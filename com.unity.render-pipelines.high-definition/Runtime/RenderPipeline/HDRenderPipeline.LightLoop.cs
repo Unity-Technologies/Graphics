@@ -399,6 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int reprojectionKernel;
             public int accumulateKernel;
             public bool transparentSSR;
+            public bool skyImportanceSampling;
             public bool usePBRAlgo;
             public bool accumNeedClear;
             public bool previousAccumNeedClear;
@@ -505,6 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
                     passData.accumulateKernel = m_SsrAccumulateKernel;
                     passData.transparentSSR = transparent;
+                    passData.skyImportanceSampling = settings.skyImportanceSampling.value;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
@@ -573,6 +575,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
                             else
                                 ctx.cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
+
+                            if (data.skyImportanceSampling)
+                            {
+                                ctx.cmd.EnableShaderKeyword("SSR_IMPORTANCE_SAMPLE_SKY");
+                            }
+                            else
+                            {
+                                ctx.cmd.DisableShaderKeyword("SSR_IMPORTANCE_SAMPLE_SKY");
+                            }
 
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
                             {
