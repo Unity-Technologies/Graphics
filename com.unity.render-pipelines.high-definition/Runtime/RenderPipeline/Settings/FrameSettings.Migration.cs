@@ -389,6 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.MotionBlur, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PaniniProjection, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Bloom, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.LensFlare, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.LensDistortion, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ChromaticAberration, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Vignette, true);
@@ -396,6 +397,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.FilmGrain, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Dithering, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, true);
+        }
+
+        internal static void MigrateToLensFlare(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.LensFlare, true);
         }
 
         internal static void MigrateToDirectSpecularLighting(ref FrameSettings cameraFrameSettings)

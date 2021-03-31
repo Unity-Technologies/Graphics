@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Screen_Circle_Uniform
+  m_Name: Circle_Screen_Uniform
   m_EditorClassIdentifier: 
   elements:
   - position: 0.125
@@ -150,6 +150,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    distortionRelativeToCenter: 0
     fallOff: 0.99
     edgeOffset: 0.459
     sideCount: 6

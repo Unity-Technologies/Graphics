@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Lerp_Random
+  m_Name: PolygonInv_Addivive_Curve
   m_EditorClassIdentifier: 
   elements:
   - position: 0.125
@@ -18,20 +18,20 @@ MonoBehaviour:
     angularOffset: 0
     translationScale: {x: 1, y: 1}
     localIntensity: 2.93
-    lensFlareTexture: {fileID: 2800000, guid: 5e0913c9e5cbb69488556b06f0380fcc, type: 3}
+    lensFlareTexture: {fileID: 0}
     uniformScale: 2
     sizeXY: {x: 1.48, y: 1.21}
     allowMultipleElement: 1
-    count: 6
+    count: 13
     preserveAspectRatio: 0
-    rotation: 31.92
-    tint: {r: 1, g: 0.81446993, b: 0, a: 0.5}
-    blendMode: 3
-    autoRotate: 0
-    flareType: 0
+    rotation: 0
+    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    blendMode: 0
+    autoRotate: 1
+    flareType: 2
     modulateByLightColor: 1
     isFoldOpened: 1
-    distribution: 2
+    distribution: 1
     lengthSpread: 0.8
     positionCurve:
       serializedVersion: 2
@@ -108,7 +108,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 97
+    seed: 0
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 0, b: 0, a: 1}
@@ -138,10 +138,10 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 7
       m_NumAlphaKeys: 2
-    intensityVariation: 1
-    positionVariation: {x: 0.72, y: 0.91}
-    scaleVariation: 1.56
-    rotationVariation: 25.99
+    intensityVariation: 0
+    positionVariation: {x: 0, y: 0}
+    scaleVariation: 0
+    rotationVariation: 0
     enableRadialDistortion: 1
     targetSizeDistortion: {x: 0.51, y: 1.55}
     distortionCurve:
@@ -177,7 +177,8 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    fallOff: 0.99
+    distortionRelativeToCenter: 0
+    fallOff: 0.96
     edgeOffset: 0.099
     sideCount: 6
     sdfRoundness: 0.488

@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Screen_Offscreen_Uniform
+  m_Name: Polygon_Additive_Random_Round
   m_EditorClassIdentifier: 
   elements:
-  - position: 0.125
+  - position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 5.66
+    localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 2.91
-    sizeXY: {x: 3.74, y: 1.21}
+    uniformScale: 2
+    sizeXY: {x: 1.48, y: 1.21}
     allowMultipleElement: 1
-    count: 54
+    count: 8
     preserveAspectRatio: 0
-    rotation: 41.51
-    tint: {r: 0.8490566, g: 0.8490566, b: 0.8490566, a: 0.5}
-    blendMode: 1
+    rotation: 0
+    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    blendMode: 0
     autoRotate: 1
-    flareType: 1
+    flareType: 2
     modulateByLightColor: 1
     isFoldOpened: 1
     distribution: 0
-    lengthSpread: 0.99
+    lengthSpread: 1
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -115,25 +115,34 @@ MonoBehaviour:
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
     rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 0.48, y: 1.55}
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 0.51, y: 1.55}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
+        time: 0.42430767
+        value: 0.7929525
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -141,8 +150,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    fallOff: 0
-    edgeOffset: 0.548
-    sideCount: 6
-    sdfRoundness: 0
-    inverseSDF: 1
+    distortionRelativeToCenter: 0
+    fallOff: 1.11
+    edgeOffset: 0.479
+    sideCount: 3
+    sdfRoundness: 0.398
+    inverseSDF: 0

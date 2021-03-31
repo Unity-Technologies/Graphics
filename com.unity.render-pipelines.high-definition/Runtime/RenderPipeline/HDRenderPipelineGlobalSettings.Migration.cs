@@ -8,10 +8,20 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             First,
+            UpdateLensFlare,
         }
+
+        static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.UpdateLensFlare, (HDRenderPipelineGlobalSettings data) =>
+            {
+                FrameSettings.MigrateToLensFlare(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            })
+        );
 
         [SerializeField]
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+
+        void OnEnable() => k_Migration.Migrate(this);
     }
 }

@@ -10,58 +10,49 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Addivive_PolygonInv_Curve
+  m_Name: Polygon_Premultiply_Uniform
   m_EditorClassIdentifier: 
   elements:
-  - position: 0.125
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 2.93
+  - position: 0.03
+    positionOffset: {x: -0.39, y: 0.44}
+    angularOffset: 19.6
+    translationScale: {x: 1, y: 0}
+    localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 2
+    uniformScale: 1.2
     sizeXY: {x: 1.48, y: 1.21}
     allowMultipleElement: 1
-    count: 6
+    count: 12
     preserveAspectRatio: 0
-    rotation: 0
+    rotation: 170.11
     tint: {r: 1, g: 0.81446993, b: 0, a: 0.5}
-    blendMode: 0
+    blendMode: 2
     autoRotate: 1
     flareType: 2
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 1
-    distribution: 1
-    lengthSpread: 0.8
+    distribution: 2
+    lengthSpread: 0.46
     positionCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 3.723119
-        outSlope: 3.723119
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.027181689
-      - serializedVersion: 3
-        time: 0.41333547
-        value: 0.783026
-        inSlope: 0.7556713
-        outSlope: 0.7556713
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.14894345
+        outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0.0000011493421
-        outSlope: 0.0000011493421
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.20743918
+        inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -70,40 +61,22 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.02002716
-        value: 0.9296875
-        inSlope: -3.4161549
-        outSlope: -3.4161549
-        tangentMode: 34
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.09913778
-        value: 0.65943336
-        inSlope: -2.0244567
-        outSlope: -2.0244567
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.6387649
-        value: 0.31797957
-        inSlope: 0.6276325
-        outSlope: 0.6276325
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1.8880237
-        outSlope: 1.8880237
-        tangentMode: 34
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
+        inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -113,18 +86,18 @@ MonoBehaviour:
       serializedVersion: 2
       key0: {r: 1, g: 0.51841265, b: 0, a: 1}
       key1: {r: 1, g: 0, b: 0, a: 1}
-      key2: {r: 1, g: 0, b: 0, a: 0}
-      key3: {r: 1, g: 0, b: 0, a: 0}
-      key4: {r: 1, g: 0, b: 0, a: 0}
-      key5: {r: 1, g: 0, b: 0, a: 0}
+      key2: {r: 0, g: 1, b: 0, a: 0}
+      key3: {r: 0, g: 1, b: 1, a: 0}
+      key4: {r: 0, g: 0, b: 1, a: 0}
+      key5: {r: 1, g: 0, b: 1, a: 0}
       key6: {r: 1, g: 0, b: 0, a: 0}
       key7: {r: 1, g: 0, b: 0, a: 0}
       ctime0: 0
       ctime1: 65535
-      ctime2: 65535
-      ctime3: 65535
-      ctime4: 65535
-      ctime5: 65535
+      ctime2: 20432
+      ctime3: 31226
+      ctime4: 42598
+      ctime5: 53392
       ctime6: 65535
       ctime7: 65535
       atime0: 0
@@ -138,12 +111,12 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 0
-    rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 0.51, y: 1.55}
+    intensityVariation: 1
+    positionVariation: {x: -2.3, y: 0.32}
+    scaleVariation: 5.4
+    rotationVariation: 13.19
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 0.11, y: 2.17}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -177,8 +150,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    fallOff: 0.99
-    edgeOffset: 0.099
-    sideCount: 6
-    sdfRoundness: 0.488
+    distortionRelativeToCenter: 1
+    fallOff: 0
+    edgeOffset: 0.213
+    sideCount: 3
+    sdfRoundness: 0.756
     inverseSDF: 1
