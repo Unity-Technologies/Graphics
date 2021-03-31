@@ -400,7 +400,7 @@ namespace UnityEditor.ShaderGraph
                 if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                    if (!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path) && AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) != null)
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if (!s_ValidExtensions.Contains(extension))
