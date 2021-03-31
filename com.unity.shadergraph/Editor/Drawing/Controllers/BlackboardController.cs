@@ -336,6 +336,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
             blackboardCategoryViewModel.name = categoryInfo.name;
             blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
+            blackboardCategoryViewModel.isExpanded = categoryInfo.isExpanded;
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
             m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
             return blackboardCategoryController;

@@ -63,6 +63,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HashSet<string> categoriesToRemoveGuids { get; set; } = new HashSet<string>();
     }
 
+    class ChangeCategoryIsExpandedAction : IGraphDataAction
+    {
+        void ChangeIsExpanded(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeIsExpanded on Category");
+            var cat = graphData.categories.First(c => c.categoryGuid == categoryGuid);
+            if (cat.isExpanded != isExpanded)
+            {
+                cat.isExpanded = isExpanded;
+                graphData.owner.RegisterCompleteObjectUndo("Change Category IsExpanded");
+                Debug.Log($"{cat.isExpanded}");
+            }
+        }
+
+        public string categoryGuid { get; set; }
+        public bool isExpanded { get; set; }
+
+        public Action<GraphData> modifyGraphDataAction => ChangeIsExpanded;
+    }
+
     class BlackboardCategoryController : SGViewController<CategoryData, BlackboardCategoryViewModel>
     {
         internal SGBlackboardCategory blackboardCategoryView => m_BlackboardCategoryView;
@@ -175,6 +195,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     break;
 
+                case ChangeCategoryIsExpandedAction changeIsExpandedAction:
+                    ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
+                    break;
             }
 
             // If a non-named category ever reaches 0 children, remove it from the blackboard

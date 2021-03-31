@@ -55,6 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_MainContainer;
         VisualElement m_Header;
         Label m_TitleLabel;
+        Foldout m_Foldout;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
         SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
@@ -118,6 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Header = m_MainContainer.Q("sectionHeader");
             m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
+            m_Foldout = m_MainContainer.Q<Foldout>("sectionTitleFoldout");
             m_RowsContainer = m_MainContainer.Q("rowsContainer");
 
             hierarchy.Add(m_MainContainer);
@@ -135,6 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
+            
             // add drag and drop manipulator
             //this.AddManipulator(new SelectionDropper());
 
@@ -145,6 +148,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+
+            m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
 
             var styleSheet = Resources.Load<StyleSheet>($"Styles/Blackboard");
             styleSheets.Add(styleSheet);
@@ -218,6 +223,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return false;
+        }
+
+        void OnFoldoutToggle(ChangeEvent<bool> evt)
+        {
+            DoFoldout(evt.newValue);
+        }
+
+        void DoFoldout(bool expand)
+        {
+            m_Foldout.SetValueWithoutNotify(expand);
+            if (!expand)
+                m_RowsContainer.RemoveFromHierarchy();
+            else
+                m_MainContainer.Add(m_RowsContainer);
+
+            var isExpandedAction = new ChangeCategoryIsExpandedAction();
+            isExpandedAction.categoryGuid = viewDataKey;
+            isExpandedAction.isExpanded = expand;
+            viewModel.requestModelChangeAction(isExpandedAction);
         }
 
         void OnHoverStartEvent(MouseEnterEvent evt)
