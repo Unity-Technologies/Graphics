@@ -286,15 +286,15 @@ namespace UnityEngine.Rendering
                 if (GetNormalAndRequestTicketForOccluder(position, dirAxis * distance, ref requestIndex, ref hitDistance, ref normal))
                 {
                     extraData.requestIndex[i] = requestIndex;
-                    extraData.NeighbourDistance[i] = hitDistance;
-                    extraData.NeighbourNormal[i] = normal;
+                    extraData.neighbourDistance[i] = hitDistance;
+                    extraData.neighbourNormal[i] = normal;
                     hits++;
                 }
                 else
                 {
-                    extraData.NeighbourColour[i] = Vector3.zero;
-                    extraData.NeighbourDistance[i] = 0;
-                    extraData.NeighbourNormal[i] = -dirAxis.normalized;
+                    extraData.neighbourColour[i] = Vector3.zero;
+                    extraData.neighbourDistance[i] = 0;
+                    extraData.neighbourNormal[i] = -dirAxis.normalized;
                     extraData.requestIndex[i] = -1;
                 }
             }
@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering
                 if (extraData.requestIndex[i] >= 0)
                 {
                     var extraDataRequestOutput = ProbeDynamicGIExtraDataManager.instance.RetrieveRequestOutput(extraData.requestIndex[i]);
-                    extraData.NeighbourColour[i] = extraDataRequestOutput.albedo;
+                    extraData.neighbourColour[i] = extraDataRequestOutput.albedo;
                 }
             }
         }

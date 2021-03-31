@@ -108,8 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_PrevDynamicGI.Allocate(dimensions);
                 m_LastAllocatedDimensions = dimensions;
             }
-
-            ProbeReferenceVolume.instance.InitExtraDataBuffers();
         }
 
         internal void CleanupDynamicGIResources()
@@ -209,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (data.clear)
             {
-                buffers.ClearIrradianceCaches();
+                buffers.ClearIrradianceCaches(data.probeCount, ProbeExtraData.s_AxisCount);
             }
 
             data.irradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.irradianceCache);

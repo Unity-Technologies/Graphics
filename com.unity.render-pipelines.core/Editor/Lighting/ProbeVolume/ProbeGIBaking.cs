@@ -247,10 +247,6 @@ namespace UnityEngine.Rendering
                     ResolveExtraDataRequest(ref cell.extraData[i]);
                 }
 
-                if (supportsDynamicPropagation)
-                {
-                    cell.ProcessExtraDataBuffer();
-                }
 
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);

@@ -940,6 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ProbeReferenceVolume.instance.PerformPendingOperations();
                 m_DynamicGI.AllocateDynamicGIResources(ProbeReferenceVolume.instance.poolDimension);
+                ProbeDynamicGIManager.instance.InitExtraDataBuffers(ProbeReferenceVolume.instance.GetCellsWithExtraDataToInit());
             }
         }
 

@@ -44,45 +44,31 @@ namespace UnityEngine.Rendering
         public static int s_ProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
-        internal class Cell
+        /// <summary>
+        /// TODO ADD.
+        /// </summary>
+        public class Cell
         {
-            public int index;
-            public Vector3Int position;
-            public List<Brick> bricks;
+            [SerializeField]
+            internal int index;
+            [SerializeField]
+            internal Vector3Int position;
+            [SerializeField]
+            internal List<Brick> bricks;
+            /// <summary>
+            /// TODO TODO_FCC ADD.
+            /// </summary>
             public Vector3[] probePositions;
-            public SphericalHarmonicsL2[] sh;
-            public float[] validity;
+            [SerializeField]
+            internal SphericalHarmonicsL2[] sh;
+            [SerializeField]
+            internal float[] validity;
 
             // Shall we store elsewhere?
             public ProbeExtraData[] extraData;
-            internal ProbeExtraDataBuffers probeExtraDataBuffers;
+            public ProbeExtraDataBuffers probeExtraDataBuffers;
             public int[] chunkIndices;
-
-            public void ProcessExtraDataBuffer()
-            {
-                if (!ProbeReferenceVolume.instance.SupportsDynamicPropagation())
-                    return;
-
-                if (extraData == null) return;
-
-                if (probeExtraDataBuffers == null)
-                    probeExtraDataBuffers = new ProbeExtraDataBuffers(this);
-
-                if (probeExtraDataBuffers.finalExtraDataBuffer != null)
-                    probeExtraDataBuffers.Dispose();
-
-                probeExtraDataBuffers = new ProbeExtraDataBuffers(this);
-
-                var len = extraData.Length;
-                for (int i = 0; i < len; ++i)
-                {
-                    probeExtraDataBuffers.AddProbeExtraData(extraData[i], probePositions[i]);
-                }
-
-                probeExtraDataBuffers.ProduceShaderConsumableExtraData();
-                probeExtraDataBuffers.PopulateComputeBuffer();
-                probeExtraDataBuffers.ClearIrradianceCaches();
-            }
+            public bool extraDataBufferInit = false;
 
             public void Dispose()
             {
@@ -254,13 +240,28 @@ namespace UnityEngine.Rendering
         /// <summary>
         ///  todo
         /// </summary>
+        public List<Cell> GetCellsWithExtraDataToInit()
+        {
+            List<Cell> cellsWithExtraBuffersToInit = new List<Cell>();
+            foreach (var cell in cells.Values)
+            {
+                if (!cell.extraDataBufferInit)
+                    cellsWithExtraBuffersToInit.Add(cell);
+            }
+            return cellsWithExtraBuffersToInit;
+        }
+
+        /// <summary>
+        ///  todo
+        /// </summary>
         /// <returns></returns>
         public List<ProbeExtraDataBuffers> GetExtraDataBuffers()
         {
             List<ProbeExtraDataBuffers> extraDataBuffers = new List<ProbeExtraDataBuffers>(cells.Count);
             foreach (var cell in cells.Values)
             {
-                extraDataBuffers.Add(cell.probeExtraDataBuffers);
+                if (cell.extraDataBufferInit)
+                    extraDataBuffers.Add(cell.probeExtraDataBuffers);
             }
 
             return extraDataBuffers;
@@ -270,7 +271,8 @@ namespace UnityEngine.Rendering
         {
             foreach (var cell in cells.Values)
             {
-                cell.probeExtraDataBuffers.SwapIrradianceCache();
+                if (cell.extraDataBufferInit)
+                    cell.probeExtraDataBuffers.SwapIrradianceCache();
             }
         }
 
@@ -283,25 +285,13 @@ namespace UnityEngine.Rendering
             List<int[]> indicesList = new List<int[]>(cells.Count);
             foreach (var cell in cells.Values)
             {
-                indicesList.Add(cell.chunkIndices);
+                if (cell.extraDataBufferInit)
+                    indicesList.Add(cell.chunkIndices);
             }
 
             return indicesList;
         }
 
-        public void InitExtraDataBuffers()
-        {
-            if (!instance.SupportsDynamicPropagation())
-                return;
-
-            foreach (var cell in cells.Values)
-            {
-                if (cell.probeExtraDataBuffers.finalExtraDataBuffer == null)
-                {
-                    cell.ProcessExtraDataBuffer();
-                }
-            }
-        }
 
         private Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
 
@@ -511,10 +501,7 @@ namespace UnityEngine.Rendering
                 }
 
                 cells[cell.index] = cell;
-                if (SupportsDynamicPropagation())
-                {
-                    cells[cell.index].ProcessExtraDataBuffer();
-                }
+                cells[cell.index].extraDataBufferInit = false;
 
                 m_AssetPathToBricks[path].Add(regId);
 
