@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -21,13 +22,17 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                //TODOPAUL : filter only ones declared with a flag
-                return VFXLibrary.GetSlotsType();
+                foreach (var type in VFXLibrary.GetSlotsType())
+                {
+                    var typeAttribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+                    if (typeAttribute != null && typeAttribute.flags.HasFlag(VFXTypeAttribute.Flags.GraphicsBuffer))
+                        yield return type;
+                }
             }
         }
 
 
-        protected override Type defaultValueType => null;
+        protected override Type defaultValueType => validTypes.FirstOrDefault();
 
         override public string name { get { return "Sample Graphics Buffer"; } }
 
