@@ -955,13 +955,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear);
-
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
                 ClearFlag finalClearFlag = ClearFlag.None;
                 finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.DepthStencil) : (renderPass.clearFlag & ClearFlag.DepthStencil);
-                finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
+                finalClearFlag |= needCustomCameraColorClear ? (IsRenderPassEnabled(renderPass) ? (cameraClearFlag & ClearFlag.Color) : 0) : (renderPass.clearFlag & ClearFlag.Color);
+
+                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, finalClearFlag);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
                 if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)

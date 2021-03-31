@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetNativeRenderPassMRTAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear, bool needCustomCameraDepthClear)
+        internal void SetNativeRenderPassMRTAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear, ClearFlag clearFlag)
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
             {
@@ -177,9 +177,13 @@ namespace UnityEngine.Rendering.Universal
                             // add a new attachment
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
 
-                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i], false, true);
-                            if (needCustomCameraColorClear)
-                                m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(Color.black, 1.0f, 0);
+                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i],  (clearFlag & ClearFlag.Color) == 0, true);
+
+                         	if ((clearFlag & ClearFlag.Color) != 0)
+							{
+								var clearColor = (needCustomCameraColorClear && pass.colorAttachments[i] == m_CameraColorTarget) ? cameraData.camera.backgroundColor : renderPass.clearColor;
+						    	m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(clearColor), 1.0f, 0);
+							}
 
                             pass.m_InputAttachmentIndices[i] = currentAttachmentIdx;
 
@@ -195,8 +199,8 @@ namespace UnityEngine.Rendering.Universal
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, !needCustomCameraDepthClear, !isLastPassToBB);
-                    if (needCustomCameraDepthClear)
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, !isLastPassToBB);
+                    if ((clearFlag & ClearFlag.DepthStencil) != 0)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                 }
             }
