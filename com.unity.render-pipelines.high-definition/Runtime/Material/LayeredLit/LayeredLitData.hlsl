@@ -807,6 +807,36 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_HEIGHTMAPS)
+    {
+        float3 heightmap = _DebugShowHeightMaps.rgb;
+
+#if LAYERS_HEIGHTMAP_ENABLE
+        LayerTexCoord layerTexCoord;
+        ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+        GetLayerTexCoord(input, layerTexCoord);
+
+        float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
+        SetEnabledHeightByLayer(blendMasks.x, blendMasks.y, blendMasks.z, blendMasks.w); // Nullify weights for unused layers
+
+        float totalWeight = length(blendMasks);
+        if (totalWeight > 0)
+        {
+
+            float lod = ComputeTextureLOD(GetMinUvSize(layerTexCoord));
+
+            float height0 = SAMPLE_TEXTURE2D_LOD(_HeightMap0, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base0.uv, lod).r;
+            float height1 = SAMPLE_TEXTURE2D_LOD(_HeightMap1, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base1.uv, lod).r;
+            float height2 = SAMPLE_TEXTURE2D_LOD(_HeightMap2, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base2.uv, lod).r;
+            float height3 = SAMPLE_TEXTURE2D_LOD(_HeightMap3, SAMPLER_HEIGHTMAP_IDX, layerTexCoord.base3.uv, lod).r;
+
+            heightmap = dot(float4(height0, height1, height2, height3), blendMasks.argb) / totalWeight;
+        }
+#endif
+
+        surfaceData.baseColor = lerp(heightmap, surfaceData.baseColor, _DebugShowHeightMaps.a);
+    }
 #endif
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.

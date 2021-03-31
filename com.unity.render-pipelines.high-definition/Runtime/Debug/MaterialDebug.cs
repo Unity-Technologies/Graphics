@@ -441,6 +441,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
         /// <summary>Enable display of materials using a true metallic value.</summary>
         public bool  materialValidateTrueMetal = false;
+        /// <summary>Color for displaying materials that don't have a HeightMap in Show Heightmaps mode.</summary>
+        public Color showHeightMapsDefaultColor = new Color(0.5f, 0.5f, 0.5f);
+        /// <summary>How much from the albedo map is used to tint the heightmap.</summary>
+        public float showHeightMapsBlendAlbedo = 0.2f;
 
         /// <summary>
         /// Current Debug View Material.

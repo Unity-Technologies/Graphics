@@ -76,5 +76,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     ApplyDebugToBuiltinData(builtinData);
 
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_HEIGHTMAPS)
+    {
+        float3 heightmap = _DebugShowHeightMaps.rgb;
+#if defined(_HEIGHTMAP)
+        float  lod = ComputeTextureLOD(GetMinUvSize(layerTexCoord));
+        heightmap = SAMPLE_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base.uvZY, lod).rrr;
+#endif
+        surfaceData.color = lerp(heightmap, surfaceData.color, _DebugShowHeightMaps.a);
+    }
+#endif
+
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }
