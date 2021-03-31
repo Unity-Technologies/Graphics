@@ -11,7 +11,6 @@ namespace UnityEngine
 
         private SRPLensFlareCommon()
         {
-            //m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
         }
 
         /// <summary>
@@ -215,6 +214,47 @@ namespace UnityEngine
         {
             return ShapeAttenuationDirLight(forward, wo);
         }
+        static Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
+        {
+            float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
+            float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
+
+            Vector2 rayOff = -translationScale * (screenPos + screenPos * (position - 1.0f));
+            rayOff = new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
+                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+
+            float rotation = angleDeg;
+
+            rotation += 180.0f;
+            if (!autoRotate)
+            {
+                rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
+            }
+            else
+            {
+                Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
+                rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
+            }
+            rotation *= Mathf.Deg2Rad;
+            float localCos0 = Mathf.Cos(-rotation);
+            float localSin0 = Mathf.Sin(-rotation);
+
+            return new Vector4(localCos0, localSin0, positionOffset.x, -positionOffset.y);
+        }
+        static Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
+        {
+            Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
+            return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
+                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+        }
+
+        static Rendering.ProfilingSampler markerPreFlare = new Rendering.ProfilingSampler("PreLensFlareDataDriven");
+        static Rendering.ProfilingSampler markerWholeFlare = new Rendering.ProfilingSampler("WholeLensFlareDataDriven");
+        static Rendering.ProfilingSampler markerSingleFlare = new Rendering.ProfilingSampler("SingleLensFlareDataDriven");
+        static Rendering.ProfilingSampler markerAFlare = new Rendering.ProfilingSampler("ALensFlareDataDriven");
+        static Rendering.ProfilingSampler markerBFlare = new Rendering.ProfilingSampler("BLensFlareDataDriven");
+        static Rendering.ProfilingSampler markerCFlare = new Rendering.ProfilingSampler("CLensFlareDataDriven");
+        static Rendering.ProfilingSampler markerDFlare = new Rendering.ProfilingSampler("DLensFlareDataDriven");
 
         /// <summary>
         /// Effective Job of drawing the set of Lens Flare registered
@@ -236,51 +276,20 @@ namespace UnityEngine
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
-        static public void DoLensFlareDataDriven(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight, UnityEngine.Rendering.CommandBuffer cmd, UnityEngine.Rendering.RenderTargetIdentifier source, UnityEngine.Rendering.RenderTargetIdentifier target,
+        static public void DoLensFlareDataDriven(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight, Rendering.CommandBuffer cmd, Rendering.RenderTargetIdentifier source, Rendering.RenderTargetIdentifier target,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
         {
-            Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
-            {
-                float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
-                float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
+            Vector2 vScreenRatio;
 
-                Vector2 rayOff = -translationScale * (screenPos + screenPos * (position - 1.0f));
-                rayOff = new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
-                    globalSin0 * rayOff.x + globalCos0 * rayOff.y);
-
-                float rotation = angleDeg;
-
-                rotation += 180.0f;
-                if (!autoRotate)
-                {
-                    rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
-                }
-                else
-                {
-                    Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
-                    rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
-                }
-                rotation *= Mathf.Deg2Rad;
-                float localCos0 = Mathf.Cos(-rotation);
-                float localSin0 = Mathf.Sin(-rotation);
-
-                return new Vector4(localCos0, localSin0, positionOffset.x, -positionOffset.y);
-            }
-
-            Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
-            {
-                Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
-                return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
-                    globalSin0 * rayOff.x + globalCos0 * rayOff.y);
-            }
+            using (new Rendering.ProfilingScope(cmd, markerPreFlare)) {
 
             if (lensFlares.IsEmpty())
                 return;
 
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
             float screenRatio = screenSize.x / screenSize.y;
-            Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
+            vScreenRatio = new Vector2(screenRatio, 1.0f);
 
             //if (skipCopy)
             //{
@@ -293,6 +302,10 @@ namespace UnityEngine
                 cmd.CopyTexture(source, target);
                 UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
             }
+
+            }
+
+            using (new Rendering.ProfilingScope(cmd, markerWholeFlare)) {
 
             foreach (SRPLensFlareOverride comp in lensFlares.GetData())
             {
@@ -373,6 +386,8 @@ namespace UnityEngine
 
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
+                    using (new Rendering.ProfilingScope(cmd, markerSingleFlare)) {
+
                     if (element == null ||
                         (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
                         element.localIntensity <= 0.0f ||
@@ -522,23 +537,26 @@ namespace UnityEngine
 
                     if (!element.allowMultipleElement || element.count == 1)
                     {
-                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
-
-                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                        Vector2 localSize = size;
-
-                        if (element.enableRadialDistortion)
+                        using (new Rendering.ProfilingScope(cmd, markerAFlare))
                         {
-                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                            Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+
+                            Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                            Vector2 localSize = size;
+
+                            if (element.enableRadialDistortion)
+                            {
+                                Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                            }
+
+                            cmd.SetGlobalVector(_FlareData0, flareData0);
+                            cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                            cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                            cmd.SetGlobalVector(_FlareColorValue, curColor);
+
+                            cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                         }
-
-                        cmd.SetGlobalVector(_FlareData0, flareData0);
-                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                        cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                        cmd.SetGlobalVector(_FlareColorValue, curColor);
-
-                        cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                     }
                     else
                     {
@@ -546,107 +564,122 @@ namespace UnityEngine
 
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
                         {
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            using (new Rendering.ProfilingScope(cmd, markerBFlare))
                             {
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-
-                                Vector2 localSize = size;
-                                if (element.enableRadialDistortion)
+                                for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                                 {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+
+                                    Vector2 localSize = size;
+                                    if (element.enableRadialDistortion)
+                                    {
+                                        Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                        localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    }
+
+                                    float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                                    Color col = element.colorGradient.Evaluate(timeScale);
+
+                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                                    cmd.SetGlobalVector(_FlareData0, flareData0);
+                                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                    cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                    cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                                    cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                                    position += dLength;
                                 }
-
-                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
-
-                                Color col = element.colorGradient.Evaluate(timeScale);
-
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
-                                cmd.SetGlobalVector(_FlareData0, flareData0);
-                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
-
-                                cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
-                                position += dLength;
                             }
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Random)
                         {
+                            Random.State backupRandState = UnityEngine.Random.state;
+                            Random.InitState(element.seed);
                             Vector2 side = new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad));
                             side *= element.positionVariation.y;
-                            float RandomRange(System.Random rnd, float min, float max)
+                            float RandomRange(float min, float max)
                             {
-                                float x = (float)rnd.NextDouble();
-                                return x * (max - min) + min;
+                                return Random.Range(min, max);
                             }
 
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            using (new Rendering.ProfilingScope(cmd, markerCFlare))
                             {
-                                float localIntensity = RandomRange(element.rand, -1.0f, 1.0f) * element.intensityVariation + 1.0f;
-
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                                Vector2 localSize = size;
-                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(element.rand, -1.0f, 1.0f));
-                                if (element.enableRadialDistortion)
+                                for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                                 {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    float localIntensity = RandomRange(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
+
+                                    Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                                    Vector2 localSize = size;
+                                    localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(-1.0f, 1.0f));
+                                    if (element.enableRadialDistortion)
+                                    {
+                                        Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                        localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    }
+
+                                    Color randCol = element.colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
+
+                                    Vector2 localPositionOffset = element.positionOffset + RandomRange(-1.0f, 1.0f) * side;
+
+                                    float localRotation = element.rotation + RandomRange(-Mathf.PI, Mathf.PI) * element.rotationVariation;
+
+                                    if (localIntensity > 0.0f)
+                                    {
+                                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
+                                        cmd.SetGlobalVector(_FlareData0, flareData0);
+                                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                        cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                        cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
+
+                                        cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                                    }
+
+                                    position += dLength;
+                                    position += 0.5f * dLength * RandomRange(-1.0f, 1.0f) * element.positionVariation.x;
                                 }
-
-                                Color randCol = element.colorGradient.Evaluate(RandomRange(element.rand, 0.0f, 1.0f));
-
-                                Vector2 localPositionOffset = element.positionOffset + RandomRange(element.rand, -1.0f, 1.0f) * side;
-
-                                float localRotation = element.rotation + RandomRange(element.rand, -Mathf.PI, Mathf.PI) * element.rotationVariation;
-
-                                if (localIntensity > 0.0f)
-                                {
-                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
-                                    cmd.SetGlobalVector(_FlareData0, flareData0);
-                                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                    cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                    cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
-
-                                    cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
-                                }
-
-                                position += dLength;
-                                position += 0.5f * dLength * RandomRange(element.rand, -1.0f, 1.0f) * element.positionVariation.x;
+                                Random.state = backupRandState;
                             }
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Curve)
                         {
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            using (new Rendering.ProfilingScope(cmd, markerDFlare))
                             {
-                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
-
-                                Color col = element.colorGradient.Evaluate(timeScale);
-
-                                float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
-
-                                float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
-                                Vector2 localSize = size;
-                                if (element.enableRadialDistortion)
+                                for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                                 {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                                    Color col = element.colorGradient.Evaluate(timeScale);
+
+                                    float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
+
+                                    float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
+                                    Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
+                                    Vector2 localSize = size;
+                                    if (element.enableRadialDistortion)
+                                    {
+                                        Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                        localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                    }
+                                    float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
+                                    localSize *= sizeCurveValue;
+
+                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
+                                    cmd.SetGlobalVector(_FlareData0, flareData0);
+                                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                    cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                    cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                                    cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                                 }
-                                float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
-                                localSize *= sizeCurveValue;
-
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
-                                cmd.SetGlobalVector(_FlareData0, flareData0);
-                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
-
-                                cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                             }
                         }
                     }
+
+                    }
                 }
+            }
+
             }
         }
 
