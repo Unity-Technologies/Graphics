@@ -4,6 +4,12 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    struct DummyTest
+    {
+        Vector3 position;
+        Vector3 color;
+    }
+
     [VFXInfo(category = "Sampling")]
     class SampleBuffer : VFXOperator
     {
@@ -20,16 +26,17 @@ namespace UnityEditor.VFX.Operator
         public class OutputProperties
         {
             [Tooltip("TODO. //Will be dynamic")]
-            public Vector4 position;
+            public Vector3 position;
 
             [Tooltip("TODO. //Will be dynamic")]
-            public Vector4 color;
+            public Vector3 color;
         }
+
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var samplePosition = new VFXExpressionSampleBuffer(null, "position", inputExpression[0], inputExpression[1]);
-            var samplecolor = new VFXExpressionSampleBuffer(null, "color", inputExpression[0], inputExpression[1]);
+            var samplePosition = new VFXExpressionSampleBuffer(typeof(DummyTest), "position", inputExpression[0], inputExpression[1]);
+            var samplecolor = new VFXExpressionSampleBuffer(typeof(DummyTest), "color", inputExpression[0], inputExpression[1]);
             return new[] { samplePosition, samplecolor };
         }
     }

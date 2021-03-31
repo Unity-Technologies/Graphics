@@ -216,12 +216,27 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public void WriteBuffer(VFXUniformMapper mapper)
+        public void WriteBuffer(VFXUniformMapper mapper, Dictionary<VFXExpression, Type> usageGraphicsBuffer)
         {
             foreach (var buffer in mapper.buffers)
             {
                 var name = mapper.GetName(buffer);
-                WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+
+                if (buffer.valueType == VFXValueType.Buffer && usageGraphicsBuffer.TryGetValue(buffer, out var type))
+                {
+                    if (type == null)
+                        throw new NullReferenceException();
+
+                    //TODOPAUL : hardcoded for now
+                    var structureName = string.Format("{0}{1}", type.Name, name);
+                    WriteLineFormat("struct {0} {{ float3 position; float3 color; }};", structureName);
+
+                    WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
+                }
+                else
+                {
+                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+                }
             }
         }
 

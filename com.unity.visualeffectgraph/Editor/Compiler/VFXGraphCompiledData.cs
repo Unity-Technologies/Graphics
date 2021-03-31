@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
+        public Dictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public int indexInShaderSource;
     }
@@ -764,6 +765,7 @@ namespace UnityEditor.VFX
                     var contextData = contextToCompiledData[context];
                     contextData.gpuMapper = gpuMapper;
                     contextData.uniformMapper = uniformMapper;
+                    contextData.graphicsBufferUsage = graph.m_GraphicsBufferUsageType;
                     contextToCompiledData[context] = contextData;
 
                     if (context.doesGenerateShader)

@@ -81,6 +81,10 @@ namespace UnityEditor.VFX
 
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
+
+            m_GraphicsBufferUsageType = m_GraphicsBufferUsageType
+                .Concat(expressionContext.m_GraphicsBufferUsageType)
+                .ToDictionary(k => k.Key, k => k.Value); //TODOPAUL : check duplicate
         }
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
@@ -302,6 +306,9 @@ namespace UnityEditor.VFX
                 return m_GlobalEventAttributes;
             }
         }
+
+        //TODOPAUL : getter
+        public Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
 
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();

@@ -170,6 +170,15 @@ namespace UnityEditor.VFX
                             //Nothing to patch on this type
                             break;
                     }
+
+                    //TODOPAUL : Not sure it's the right place to register this but it's convenient since we have input & parent
+                    if (input.valueType == VFXValueType.Buffer && targetExpression is VFXExpressionSampleBuffer)
+                    {
+                        if (!m_GraphicsBufferUsageType.ContainsKey(input))
+                        {
+                            m_GraphicsBufferUsageType.Add(input, (targetExpression as VFXExpressionSampleBuffer).GetSampledType());
+                        }
+                    }
                 }
 
                 if (patchReadAttributeForSpawn && input is VFXAttributeExpression)
@@ -230,6 +239,7 @@ namespace UnityEditor.VFX
             public void Invalidate()
             {
                 m_ReducedCache.Clear();
+                m_GraphicsBufferUsageType.Clear();
             }
 
             public void Invalidate(VFXExpression expression)
@@ -267,6 +277,8 @@ namespace UnityEditor.VFX
 
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
+            //TODOPAUL : add getter
+            public Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;
