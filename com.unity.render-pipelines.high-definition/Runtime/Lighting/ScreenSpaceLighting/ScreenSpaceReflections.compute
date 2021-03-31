@@ -11,6 +11,7 @@
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
+#pragma multi_compile _ SSR_IMPORTANCE_SAMPLE_SKY
 
 // Tweak parameters.
 // #define DEBUG
@@ -176,7 +177,9 @@ bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, ou
     if (infos.x == 0.0f)
         weight = 0.0f;
     else
-        weight = integral * sin0;// / infos.x;
+        //weight = sin0 / infos.x;
+        weight = infos.x / integral;
+        //integral;// *sin0; *infos.x;
 
     return true;
 }
@@ -248,6 +251,7 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
 #elif SPEC_SKY == 1
     ImportanceSampleSky(localToWorld, V, Xi, L, weight);
 #else
+#if SSR_IMPORTANCE_SAMPLE_SKY
     //if (rnd >= normalData.perceptualRoughness)
     if (rnd >= roughness)
         SampleGGX_VNDF(roughness,
@@ -258,6 +262,14 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
             weight);
     else
         ImportanceSampleSky(localToWorld, V, Xi, L, weight);
+#else
+    SampleGGX_VNDF(roughness,
+        localToWorld,
+        V,
+        Xi,
+        L,
+        weight);
+#endif
 #endif
 
     NdotV = dot(normalData.normalWS, V);

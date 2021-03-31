@@ -64,6 +64,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the casting technique used to evaluate the effect.")]
         public RayCastingModeParameter tracing = new RayCastingModeParameter(RayCastingMode.RayMarching);
 
+        /// <summary>
+        /// Enable Sky Importance Sampling.
+        /// </summary>
+        public BoolParameter skyImportanceSampling = new BoolParameter(false);
+
         // Shared Data
         /// <summary>
         /// Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.
