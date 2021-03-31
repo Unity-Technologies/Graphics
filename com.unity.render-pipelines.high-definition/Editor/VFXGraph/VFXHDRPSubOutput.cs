@@ -31,9 +31,12 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
-        bool GeneratesWithShaderGraph() => owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
-        shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
-        shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
