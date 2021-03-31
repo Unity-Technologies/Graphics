@@ -18,7 +18,8 @@ public class CreateAndBindBufferTest : MonoBehaviour
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    //TODO : should not be in editor
+    [UnityEditor.VFX.VFXType, StructLayout(LayoutKind.Sequential)]
     struct CustomData
     {
         public Vector3 position;
