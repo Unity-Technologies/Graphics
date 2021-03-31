@@ -71,9 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var cat = graphData.categories.First(c => c.categoryGuid == categoryGuid);
             if (cat.isExpanded != isExpanded)
             {
+                graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
                 cat.isExpanded = isExpanded;
-                graphData.owner.RegisterCompleteObjectUndo("Change Category IsExpanded");
-                Debug.Log($"{cat.isExpanded}");
             }
         }
 
@@ -196,7 +195,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case ChangeCategoryIsExpandedAction changeIsExpandedAction:
-                    ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
+                    if (changeIsExpandedAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    {
+                        ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
+                        m_BlackboardCategoryView.TryDoFoldout(changeIsExpandedAction.isExpanded);
+                    }
+                    break;
+
+                case HandleUndoRedoAction handleUndoRedoAction:
+                    var cat = graphData.categories.First(c => c.categoryGuid == ViewModel.associatedCategoryGuid);
+                    ViewModel.isExpanded = cat.isExpanded;
+                    m_BlackboardCategoryView.TryDoFoldout(cat.isExpanded);
                     break;
             }
 

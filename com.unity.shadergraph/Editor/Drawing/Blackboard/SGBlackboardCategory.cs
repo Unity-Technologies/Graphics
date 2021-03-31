@@ -149,8 +149,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 
-            m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
-
             var styleSheet = Resources.Load<StyleSheet>($"Styles/Blackboard");
             styleSheets.Add(styleSheet);
 
@@ -159,6 +157,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update category title from view model
             title = m_ViewModel.name;
             this.viewDataKey = viewModel.associatedCategoryGuid;
+
+            if (String.IsNullOrEmpty(title))
+            {
+                m_Foldout.visible = false;
+                m_Foldout.RemoveFromHierarchy();
+            }
+            else
+            {                
+                TryDoFoldout(m_ViewModel.isExpanded);
+                m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
+            }
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
@@ -227,21 +236,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnFoldoutToggle(ChangeEvent<bool> evt)
         {
-            DoFoldout(evt.newValue);
+            if (evt.previousValue != evt.newValue)
+            {
+                var isExpandedAction = new ChangeCategoryIsExpandedAction();
+                isExpandedAction.categoryGuid = viewDataKey;
+                isExpandedAction.isExpanded = evt.newValue;
+                viewModel.requestModelChangeAction(isExpandedAction);
+            }
         }
 
-        void DoFoldout(bool expand)
+        internal void TryDoFoldout(bool expand)
         {
             m_Foldout.SetValueWithoutNotify(expand);
             if (!expand)
                 m_RowsContainer.RemoveFromHierarchy();
             else
                 m_MainContainer.Add(m_RowsContainer);
-
-            var isExpandedAction = new ChangeCategoryIsExpandedAction();
-            isExpandedAction.categoryGuid = viewDataKey;
-            isExpandedAction.isExpanded = expand;
-            viewModel.requestModelChangeAction(isExpandedAction);
         }
 
         void OnHoverStartEvent(MouseEnterEvent evt)
