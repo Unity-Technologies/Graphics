@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle m_DepthAttachment { get; set; }
         internal RenderTextureDescriptor descriptor { get; set; }
-        internal bool allocateDepth { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         FilteringSettings m_FilteringSettings;
@@ -46,15 +45,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
             descriptor = baseDescriptor;
-
-            this.allocateDepth = true;
             this.shaderTagId = k_ShaderTagId;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (this.allocateDepth)
-                cmd.GetTemporaryRT(Shader.PropertyToID(m_DepthAttachment.name), descriptor, FilterMode.Point);
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             ConfigureTarget(m_DepthAttachment ?? k_CameraTarget, GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
@@ -86,13 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-
-            if (m_DepthAttachment != null)
-            {
-                if (this.allocateDepth)
-                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DepthAttachment.name));
-                m_DepthAttachment = null;
-            }
+            m_DepthAttachment = null;
         }
     }
 }

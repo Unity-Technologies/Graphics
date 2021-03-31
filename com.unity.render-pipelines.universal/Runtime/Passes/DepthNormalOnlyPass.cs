@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal RenderTextureDescriptor normalDescriptor { get; set; }
         internal RenderTextureDescriptor depthDescriptor { get; set; }
-        internal bool allocateDepth { get; set; } = true;
         internal bool allocateNormal { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
@@ -58,7 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
-            this.allocateDepth = true;
             this.allocateNormal = true;
             this.shaderTagId = k_ShaderTagId;
         }
@@ -68,8 +66,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (this.allocateNormal)
                 cmd.GetTemporaryRT(Shader.PropertyToID(normal.name), normalDescriptor, FilterMode.Point);
-            if (this.allocateDepth)
-                cmd.GetTemporaryRT(Shader.PropertyToID(depth.name), depthDescriptor, FilterMode.Point);
             ConfigureTarget(normal, depth);
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -110,8 +106,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (this.allocateNormal)
                     cmd.ReleaseTemporaryRT(Shader.PropertyToID(normal.name));
-                if (this.allocateDepth)
-                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(depth.name));
                 normal = null;
                 depth = null;
             }
