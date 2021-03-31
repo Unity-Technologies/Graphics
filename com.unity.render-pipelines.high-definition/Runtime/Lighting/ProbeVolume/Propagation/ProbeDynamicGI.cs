@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (data.clear)
             {
-                buffers.ClearIrradianceCaches(data.probeCount, ProbeExtraData.s_AxisCount);
+                buffers.ClearIrradianceCaches(data.probeCount, ProbeDynamicGIManager.s_AxisCount);
             }
 
             data.irradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.irradianceCache);
@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ChunkIndices, indicesArray);
 
-                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeDynamicGIManager.NeighbourAxis);
 
                         const int probesPerGroup = 64;
                         int groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.x, probesPerGroup);
@@ -439,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1G_L1Ry, data.secondL1Gry);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1B_L1Rz, data.secondL1Brz);
 
-                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeDynamicGIManager.NeighbourAxis);
 
                         Vector4[] indicesArray = new Vector4[8];
 

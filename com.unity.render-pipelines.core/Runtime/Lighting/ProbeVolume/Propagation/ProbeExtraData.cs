@@ -5,57 +5,13 @@ namespace UnityEngine.Rendering
     [System.Serializable]
     public struct ProbeExtraData
     {
-
-        // TODO_FCC: TODO FIND A WAY TO MOVE FROM HERE. (moving the baking would do.)
-        public static readonly int s_AxisCount = 14;
-        internal static readonly float s_DiagonalDist = Mathf.Sqrt(3.0f);
-        internal static readonly float s_Diagonal = 1.0f / s_DiagonalDist;
-        internal static readonly float s_2DDiagonalDist = Mathf.Sqrt(2.0f);
-        internal static readonly float s_2DDiagonal = 1.0f / s_2DDiagonalDist;
-
-        public static readonly Vector4[] NeighbourAxis =
-        {
-            // primary axis
-            new Vector4(1, 0, 0, 1),
-            new Vector4(-1, 0, 0, 1),
-            new Vector4(0, 1, 0, 1),
-            new Vector4(0, -1, 0, 1),
-            new Vector4(0, 0, 1, 1),
-            new Vector4(0, 0, -1, 1),
-
-            // 3D diagonals
-            new Vector4(s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4(s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-
-            new Vector4(-s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-            new Vector4(-s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-        };
-
         // TODO: Do this need to be public? Probably move packing to here so this can still stay hidden to other pipelines.
         public Vector3[] neighbourColour;
         public Vector3[] neighbourNormal;
         public float[] neighbourDistance;
         public int[] requestIndex;
         public float validity;
-
-        // TODO TODO_FCC move to HDRP when moving the baking to HDRP only.
-        internal void InitExtraData()
-        {
-            neighbourColour = new Vector3[ProbeExtraData.s_AxisCount];
-            neighbourNormal = new Vector3[ProbeExtraData.s_AxisCount];
-            neighbourDistance = new float[ProbeExtraData.s_AxisCount];
-            requestIndex = new int[ProbeExtraData.s_AxisCount];
-            for (int i = 0; i < ProbeExtraData.s_AxisCount; ++i)
-            {
-                requestIndex[i] = -1;
-            }
-        }
     }
-
 
     // TODO_FCC: Remove the note.
     // TODO_FCC: Verify if needs to be public. We might want to move stuff around.

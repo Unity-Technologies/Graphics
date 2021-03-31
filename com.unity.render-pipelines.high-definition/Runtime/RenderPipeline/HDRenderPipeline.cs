@@ -490,7 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO_FCC: TODO ONLY WHEN AVAILABLE
 #if UNITY_EDITOR
-            ProbeDynamicGIExtraDataManager.instance.Allocate();
+            ProbeDynamicGIManager.instance.Allocate(defaultResources);
+            ProbeReferenceVolume.instance.generateExtraDataAction = null;
+            ProbeReferenceVolume.instance.generateExtraDataAction += ProbeDynamicGIManager.instance.GenerateExtraDataForDynamicGI;
 #endif
 
             CameraCaptureBridge.enabled = true;
@@ -766,10 +768,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             base.Dispose(disposing);
-
-#if UNITY_EDITOR
-            ProbeDynamicGIExtraDataManager.instance.Dispose();
-#endif
 
             ReleaseScreenSpaceShadows();
 

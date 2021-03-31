@@ -946,18 +946,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DynamicGIParams0               = Shader.PropertyToID("_DynamicGIParams0");
         public static readonly int _DynamicGIParams1               = Shader.PropertyToID("_DynamicGIParams1");
         public static readonly int _DynamicGIParams2               = Shader.PropertyToID("_DynamicGIParams2");
-        public static readonly int _DynamicGIParams3 = Shader.PropertyToID("_DynamicGIParams3");
-        public static readonly int _DynamicGIParams4 = Shader.PropertyToID("_DynamicGIParams4");
-        public static readonly int _IrradianceCache = Shader.PropertyToID("_IrradianceCache");
-        public static readonly int _PrevIrradianceCache = Shader.PropertyToID("_PrevIrradianceCache");
+        public static readonly int _DynamicGIParams3               = Shader.PropertyToID("_DynamicGIParams3");
+        public static readonly int _DynamicGIParams4               = Shader.PropertyToID("_DynamicGIParams4");
+        public static readonly int _IrradianceCache                = Shader.PropertyToID("_IrradianceCache");
+        public static readonly int _PrevIrradianceCache            = Shader.PropertyToID("_PrevIrradianceCache");
         public static readonly int _RayAxis                        = Shader.PropertyToID("_RayAxis");
         public static readonly int _ChunkIndices                   = Shader.PropertyToID("_ChunkIndices");
         public static readonly int _PVCombineParameters            = Shader.PropertyToID("_PVCombineParameters");
 
-        public static readonly int _ExtractParameters = Shader.PropertyToID("_ExtractParameters");
-        public static readonly int _CubemapPoolAlbedo = Shader.PropertyToID("_CubemapPoolAlbedo");
-        public static readonly int _CubemapPoolNormal = Shader.PropertyToID("_CubemapPoolNormal");
-        public static readonly int _CubemapPoolDepth = Shader.PropertyToID("_CubemapPoolDepth");
+        public static readonly int _UnwrappedDataPool              = Shader.PropertyToID("_UnwrappedDataPool");
+        public static readonly int _RequestBatchSize               = Shader.PropertyToID("_RequestBatchSize");
+        public static readonly int _RequestsInputData              = Shader.PropertyToID("_RequestsInputData");
+        public static readonly int _RWRequestsOutputData           = Shader.PropertyToID("_RWRequestsOutputData");
 
         public static readonly int _APVResL2_0                     = Shader.PropertyToID("_APVResL2_0");
         public static readonly int _APVResL2_1                     = Shader.PropertyToID("_APVResL2_1");

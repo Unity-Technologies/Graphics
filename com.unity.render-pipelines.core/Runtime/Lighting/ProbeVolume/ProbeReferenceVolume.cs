@@ -61,8 +61,11 @@ namespace UnityEngine.Rendering
             public Vector3[] probePositions;
             [SerializeField]
             internal SphericalHarmonicsL2[] sh;
-            [SerializeField]
-            internal float[] validity;
+
+            /// <summary>
+            /// TODO TODO_FCC ADD.
+            /// </summary>
+            public float[] validity;
 
             // Shall we store elsewhere?
             public ProbeExtraData[] extraData;
@@ -236,6 +239,12 @@ namespace UnityEngine.Rendering
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        public Action<Vector3, Vector3> generateExtraDataAction;
 
         /// <summary>
         ///  todo

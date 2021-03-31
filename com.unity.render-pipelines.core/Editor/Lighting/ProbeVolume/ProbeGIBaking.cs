@@ -148,10 +148,6 @@ namespace UnityEngine.Rendering
             var referenceVol = ProbeReferenceVolume.instance;
             bool supportsDynamicPropagation = referenceVol.SupportsDynamicPropagation();
 
-            if (supportsDynamicPropagation)
-            {
-                AddOccluders(bakingReferenceVolumeAuthoring.transform.position, bakingReferenceVolumeAuthoring.transform.localScale);
-            }
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
@@ -222,11 +218,6 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
                     cell.validity[i] = validity[j];
-
-                    if (supportsDynamicPropagation)
-                    {
-                        GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
-                    }
                 }
 
                 for (int i = 0; i < numProbes; ++i)
@@ -239,14 +230,6 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
-
-                ProbeDynamicGIExtraDataManager.instance.ExecutePendingRequests();
-
-                for (int i = 0; i < numProbes; ++i)
-                {
-                    ResolveExtraDataRequest(ref cell.extraData[i]);
-                }
-
 
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
@@ -312,17 +295,20 @@ namespace UnityEngine.Rendering
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
 
+            if (supportsDynamicPropagation)
+            {
+                // TODO_FCC : THIS SHOULD ONLY BE IN THE COMBINED VOLUME OF ALL VOLUMES, NOT REF VOLUME.
+                ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(bakingReferenceVolumeAuthoring.transform.position,
+                                                                              bakingReferenceVolumeAuthoring.transform.localScale);
+            }
+
             foreach (var refVol in refVol2Asset.Keys)
             {
                 if (refVol.enabled && refVol.gameObject.activeSelf)
                     refVol.QueueAssetLoading();
             }
 
-            if (supportsDynamicPropagation)
-            {
-                CleanupRenderers();
-                ProbeDynamicGIExtraDataManager.instance.ClearContent();
-            }
+
         }
 
         private static void OnLightingDataCleared()
