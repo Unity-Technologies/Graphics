@@ -252,17 +252,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             for (int i = 0; i < copiedSelectionList.Count; i++)
             {
                 var selectable = copiedSelectionList[i];
-
                 if (selectable is SGBlackboardCategory category)
                 {
                     selectedCategories.Add(selectable as SGBlackboardCategory);
-                    // addBlackboardItemAction.categoryToAddItemToGuid = category.viewModel.associatedCategoryGuid;
                 }
             }
             if (selectedCategories.Count == 1)
             {
                 selectedCategoryGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
-                //addBlackboardItemAction.categoryToAddItemToGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
             }
             return selectedCategoryGuid;
         }
