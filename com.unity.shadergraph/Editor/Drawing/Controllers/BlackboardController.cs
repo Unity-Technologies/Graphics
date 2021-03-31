@@ -30,6 +30,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If type property is valid, create instance of that type
             if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+            else if(shaderInputReferenceGetter != null)
+            {
+                shaderInputReference = shaderInputReferenceGetter();
+            }
             // If type is null a direct override object must have been provided or else we are in an error-state
             else if (shaderInputReference == null)
             {
@@ -74,6 +78,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Type blackboardItemType { get; set; }
         // If the type field above is null and this is provided, then it is directly used as the item to add to blackboard
         public BlackboardItem shaderInputReference { get; set; }
+
+        public Func<BlackboardItem> shaderInputReferenceGetter = null;
         public AddActionSource addInputActionType { get; set; }
         public string categoryToAddItemToGuid { get; set; } = String.Empty;
     }
@@ -269,8 +275,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Default Keywords next
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
 
             // Built-In Keywords after that
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
@@ -283,7 +289,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddShaderInputAction() { shaderInputReference = keyword.Copy(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddShaderInputAction() { shaderInputReferenceGetter = () => keyword.Copy(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
                 }
             }
 
