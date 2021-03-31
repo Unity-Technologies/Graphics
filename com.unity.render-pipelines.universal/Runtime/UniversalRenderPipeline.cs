@@ -272,7 +272,10 @@ namespace UnityEngine.Rendering.Universal
                 EndFrameRendering(renderContext, cameras);
             }
 #endif
+
+#if ENABLE_SHADER_DEBUG_PRINT
             ShaderDebugPrintManager.Instance.EndFrame();
+#endif
         }
 
         /// <summary>

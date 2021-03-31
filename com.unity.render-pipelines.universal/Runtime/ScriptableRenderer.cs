@@ -1200,9 +1200,11 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+#if ENABLE_SHADER_DEBUG_PRINT
             ShaderDebugPrintManager.Instance.SetShaderDebugPrintInputConstants(cmd, ShaderDebugPrintInputProducer.Get());
-            // TODO: Binding doesn't seem to work on Mac/Metal
             ShaderDebugPrintManager.Instance.SetShaderDebugPrintBindings(cmd);
+#endif
         }
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
