@@ -1,10 +1,9 @@
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Runtime.InteropServices;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using System.Linq;
-using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -13,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Style
         {
-            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Pipeline Wizard");
+            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("HDRP Wizard");
 
             public const string hdrpProjectSettingsPathLabel = "Default Resources Folder";
             public const string hdrpProjectSettingsPathTooltip = "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.";
@@ -35,13 +34,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
 
-            public const string installConfigPackageLabel = "Install Configuration Editable Package";
-            public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
+            public const string installConfigPackageLabel = "Embed Configuration Editable Package";
+            public const string installConfigPackageInfoInCheck = "Checking if the config package is embedded in your project.";
+            public const string installConfigPackageInfoInProgress = "The config package is being embedded in your project.";
+            public const string installConfigPackageInfoFinished = "The config package is already embedded in your project.";
 
-            public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
-            public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
+            public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
+            public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string HDRPVersion = "Current HDRP version: ";
@@ -108,6 +107,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
                 error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
+            public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
+                label: "Default Look Dev volume profile",
+                error: "Default Look Dev volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
@@ -135,31 +137,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed! (Editor restart is required)");
+                error: "Direct3D 12 needs to be the active device! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR.");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadows (Asset)",
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
                 label: "Screen Space Shadows (Default Camera Frame Setting)",
-                error: "Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows", messageType: MessageType.Info);
+                error: "Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: "Reflection (Asset)",
                 error: "Screen Space Reflection is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections in Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Screen Space Reflections", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
                 label: "Reflection (Default Camera Frame Setting)",
-                error: "Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections", messageType: MessageType.Info);
+                error: "Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: "Screen Space Reflection - Transparent (Asset)",
                 error: "Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections for transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
                 label: "Screen Space Reflection - Transparent (Default Camera Frame Setting)",
-                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections for transparent GameObjects. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable On Transparent", messageType: MessageType.Info);
+                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections for transparent GameObjects. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable On Transparent", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: "Global Illumination (Asset)",
                 error: "Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components. To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
                 label: "Global Illumination (Default Camera Frame Setting)",
-                error: "Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination", messageType: MessageType.Info);
+                error: "Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination", messageType: MessageType.Info);
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: "Architecture 64 bits",
                 error: "To build your Project to a Unity Player, ray tracing requires that the build uses 64 bit architecture.");
@@ -210,10 +212,10 @@ namespace UnityEditor.Rendering.HighDefinition
         VisualElement m_InstallConfigPackageButton = null;
         Label m_InstallConfigPackageHelpboxLabel;
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
         static void OpenWindow()
         {
-            var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
+            var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
             HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }

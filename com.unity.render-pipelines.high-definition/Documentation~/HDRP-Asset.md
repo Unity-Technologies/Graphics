@@ -13,7 +13,7 @@ A new Project using the HDRP template includes an HDRP Asset file named HDRender
 If you [upgrade a Project to HDRP](Upgrading-To-HDRP.md) and therefore do not use the HDRP template, you need to add an HDRP Asset to your Project. To create and customize an HDRP Asset:
 
 1. In the Unity Editor, go to the Project window and navigate to the folder you want to create your HDRP Asset in. This folder must be inside the **Assets** folder; you can not create Assets in the **Packages** folder.
-2. In the main menu, go to **Assets > Create > Rendering** and click **High Definition Render Pipeline Asset**.
+2. In the main menu, go to **Assets > Create > Rendering** and click **HDRP Asset**.
 3. Enter a name for the **HDRP Asset** and press the Return key to confirm it.
 
 When you have created an HDRP Asset, you must assign it it to the pipeline:
@@ -28,7 +28,9 @@ Unity now uses the High Definition Render Pipeline (HDRP) in your Unity Project.
 
 You can create multiple HDRP Assets containing different settings. This is useful for Project that support multiple platforms, such as PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform. For more information on using creating HDRP Assets to target different platforms, see [Scalability in HDRP](Scalability-Manual.md).
 
-To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
+To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the active Quality Level of the Quality Settings window (as shown above), or use the QualitySettings.renderPipeline property via script.
+
+To change which HDRP Asset your render pipeline uses by default, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
 
 When you create an HDRP Asset, open it in the Inspector to edit its properties.
 
@@ -40,7 +42,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Lit Shader Mode**                     | Use the drop-down to choose which mode HDRP uses for the [Lit Shader](Lit-Shader.md).<br />&#8226; **Forward Only**: forces HDRP to only use forward rendering for Lit Shaders.<br />&#8226; **Deferred Only**: forces HDRP to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering).<br />&#8226; **Both**: allows the Camera to use deferred and forward rendering.<br /><br />Select **Both** to allow you to switch between forward and deferred rendering for Lit Shaders at runtime per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at runtime. |
 | **- Multisample Anti-aliasing Quality** | Use the drop-down to set the number of samples HDRP uses for multisample anti-aliasing (MSAA). The larger the sample count, the better the quality. Select **None** to disable MSAA.<br />This property is only visible when **Lit Shader Mode** is set to **Forward Only** or **Both**. |
 | **Motion Vectors**                      | Enable the checkbox to make HDRP support motion vectors. HDRP uses motion vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
-| **Runtime Debug Display**               | Enable the checkbox to make HDRP able to use debug modes from the Render Pipeline Debug window at runtime. Disable the checkbox to reduce build time and shader memory. This disables the following debug modes: All material property debug modes except GBuffer debug, the various property override options, and all the lighting debug modes.  |
+| **Runtime Debug Display**               | Enable the checkbox to make HDRP able to use debug modes from the Render Pipeline Debugger window at runtime. Disable the checkbox to reduce build time and shader memory. This disables the following debug modes: All material property debug modes except GBuffer debug, the various property override options, and all the lighting debug modes.  |
 | **Runtime AOV API**                     | Enable the checkbox to make HDRP able to use the AOV API (rendering of material properties and lighting modes) at runtime. Disable this checkbox to reduce build time and shader memory. This disables the following AOV modes: All material properties and lighting modes. |
 | **Dithering Cross-fade**                | Enable the checkbox to make HDRP support dithering cross fade. This allows HDRP to implement smooth transitions between a GameObject’s LOD levels. When disabled, this reduces build time if you are not using LOD fade. |
 | **Terrain Hole**                        | Enable the checkbox to make HDRP support [Terrain Holes](https://docs.unity3d.com/2019.3/Documentation/Manual/terrain-PaintHoles.html). If you do not enable this, Terrain Holes are not visible in your Scene. |
@@ -203,7 +205,6 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | **Subsurface Scattering**       | Enable the checkbox to make HDRP support subsurface scattering (SSS). SSS describes light penetration of the surface of a translucent object |
 | **- High Quality**             | Enable the checkbox to increase the SSS Sample Count and enable high quality subsurface scattering. Increasing the sample count greatly increases the performance cost of the Subsurface Scattering effect. |
 | **Fabric BSDF Convolution** | By default, Fabric Materials reuse the Reflection Probes that HDRP calculates for the Lit Shader (GGX BRDF). Enable the checkbox to make HDRP calculate another version of each Reflection Probe for the Fabric Shader, creating more accurate lighting effects. This increases the resource intensity because HDRP must condition two Reflection Probes instead of one. It also reduces the number of visible Reflection Probes in the current view by half because the size of the cache that stores Reflection Probe data does not change and must now store both versions of each Reflection Probe. |
-| **Diffusion Profile List**      | Assign __Diffusion Profiles__ to this list to store Subsurface Scattering and Transmission profiles for your Project. To create a Diffusion Profile Asset, navigate to **Assets > Create > Rendering** and click **Diffusion Profile**. |
 
 ## Post-processing
 

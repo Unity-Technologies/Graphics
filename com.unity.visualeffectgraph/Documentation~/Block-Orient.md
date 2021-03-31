@@ -81,7 +81,7 @@ This Block is compatible with the following Contexts:
 
 | **Input**    | **Type**                     | **Description**                                              |
 | ------------ | ---------------------------- | ------------------------------------------------------------ |
-| **Position** | [Position](Type-Position.md) | The Position the particle should face.<br/>This property only appears if you set **Mode** to **Look At Position**. |
+| **Position** | [Position](Type-Position.md) | The Position the particle faces towards.<br/>This property only appears if you set **Mode** to **Look At Position**. |
 | **Line**     | [Line](Type-Line.md)         | The Line to use for particle orientation. Particles orient to face towards the nearest point along the direction of this Line.<br/>This property only appears if you set **Mode** to **Look At Line** |
 | **Axis X**   | [Vector](Type-Vector.md)     | The x-axis of the Advanced orientation.<br/>This property only appears if you set **Mode** to **Advanced** and **Axes** uses the **X** axis. |
 | **Axis Y**   | [Vector](Type-Vector.md)     | Specifies the y-axis of the Advanced orientation.<br/>This property only appears if you set **Mode** to **Advanced** and **Axes** uses the **Y** axis. |

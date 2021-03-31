@@ -27,7 +27,7 @@ From 10.x, various HDRP menu items in **Assets > Create > Shader** have been ren
 
 From 10.x, decals no longer require a full Depth Prepass. HDRP only renders Materials with **Receive Decals** enabled during the Depth Prepass. Unless other options force it.
 
-From 10.x, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
+From 10.x, you can use the Decal Layers system which makes use of the **Rendering Layer Mask** property from a Mesh Renderer and Terrain. The default value of this property prior to 2020.2 does not include any Decal Layer flags. This means that when you enable this feature, no Meshes receive decals until you configure them correctly. A script **Edit > Render Pipeline/HD Render Pipeline > Upgrade from Previous Version > Add HDRP Decal Layer Default to Loaded Mesh Renderers and Terrains** is provided to convert the already created Meshes, as well a version to apply only on a selection. Newly created Mesh Renderer or Terrain have the have **Decal Layer Default** enable by default.
 
 ## Lighting
 
@@ -60,6 +60,15 @@ For project migrating from old 9.x.x-preview package. There is a change in the o
 From 10.x, the debug lens attenuation has been removed, however the lens attenuation can now be set in the HDRP Default setting Panel as either modelling a perfect lens or an imperfect one.
 
 From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
+
+## Volumetric Fog
+
+When upgrading a project to 10.2, the quality of volumetric fog in your Scene may degrade. This is because of the new volumetric fog control modes. To make volumetric fog look the same as it did in 8.x:
+
+1. In the [Fog](Override-Fog.md) Volume Override, set **Fog Control Mode** to **Manual**.
+2. For the properties this mode exposes, enter the same values as you had in 8.x
+
+Alternatively, set **Fog Control Mode** to **Balance** and use the new performance-oriented properties to define the quality of the volumetric fog.
 
 ## Shadows
 
@@ -240,10 +249,10 @@ With:
 protected override void Execute(CustomPassContext ctx) { ... }
 ```
 
-## Density Volume Mask Texture
+## Local Volumetric Fog Mask Texture
 
-Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Density Volume Texture Tool__ in the __Window > Rendering__ menu.
-From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Density Volume documentation](Density-Volume.md).
+Previously, to convert a 2D flipbook texture to the 3D format Density Mask Textures require, you needed to use the __Local Volumetric Fog Texture Tool__ in the __Window > Rendering__ menu.
+From Unity 2020.2, you can now do this conversion directly through the __Texture Importer__. For information on how to use the importer to convert the flipbook texture, see the [Local Volumetric Fog documentation](Local-Volumetric-Fog.md).
 
 ## Diffusion Profiles
 

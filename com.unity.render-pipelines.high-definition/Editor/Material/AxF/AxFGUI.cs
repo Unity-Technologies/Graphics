@@ -199,11 +199,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", material.HasProperty(kSpecularOcclusionMode) && material.GetFloat(kSpecularOcclusionMode) == 0.0f);
 
             BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);
-
-            if (material.HasProperty(kAddPrecomputedVelocity))
-            {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-            }
             //
             // Patch for raytracing for now: mirror int props as float explicitly
             //

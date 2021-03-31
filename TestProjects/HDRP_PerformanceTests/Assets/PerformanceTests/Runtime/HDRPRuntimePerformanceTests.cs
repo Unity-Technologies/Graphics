@@ -52,6 +52,13 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
     {
-        yield return ReportMemoryUsage(testDescription);
+        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+
+        var unloadTask = Resources.UnloadUnusedAssets();
+        while (!unloadTask.isDone)
+            yield return new WaitForEndOfFrame();
+
+        var sceneSettings = SetupTestScene();
+        yield return ReportMemoryUsage(sceneSettings, testDescription);
     }
 }

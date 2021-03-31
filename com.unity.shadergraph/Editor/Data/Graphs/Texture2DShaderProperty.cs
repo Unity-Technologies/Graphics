@@ -43,9 +43,14 @@ namespace UnityEditor.ShaderGraph.Internal
             // action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl)); // TODO: allow users to make use of the ST values
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "UnityTexture2D " + referenceName;
+        }
+
+        internal override string GetPropertyAsArgumentStringForVFX(string precisionString)
+        {
+            return "TEXTURE2D(" + referenceName + ")";
         }
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
