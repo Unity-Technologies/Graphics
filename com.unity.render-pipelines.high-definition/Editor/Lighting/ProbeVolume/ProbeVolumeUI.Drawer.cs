@@ -84,13 +84,13 @@ namespace UnityEditor.Rendering.HighDefinition
             var asset = serialized.probeVolumeAsset.objectReferenceValue as ProbeVolumeAsset;
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
-                && asset != null && asset.payload.dataOctahedralDepth == null)
+                && asset != null && (asset.payload.dataOctahedralDepth == null || asset.payload.dataOctahedralDepth.Length == 0))
             {
                 EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthEnabledNoData, MessageType.Error);
             }
             
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth
-                && asset != null && asset.payload.dataOctahedralDepth != null)
+                && asset != null && (asset.payload.dataOctahedralDepth != null && asset.payload.dataOctahedralDepth.Length > 0))
             {
                 EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthDisableYesData, MessageType.Error);
             }
@@ -130,6 +130,20 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel);
+            EditorGUILayout.PropertyField(serialized.drawOctahedralDepthRays, Styles.s_DrawOctahedralDepthRays);
+            if (serialized.drawOctahedralDepthRays.boolValue)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexX, Styles.s_DrawOctahedralDepthRayIndexX);
+                EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexY, Styles.s_DrawOctahedralDepthRayIndexY);
+                EditorGUILayout.DelayedIntField(serialized.drawOctahedralDepthRayIndexZ, Styles.s_DrawOctahedralDepthRayIndexZ);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.drawOctahedralDepthRayIndexX.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexX.intValue, 0, serialized.resolutionX.intValue - 1);
+                    serialized.drawOctahedralDepthRayIndexY.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexY.intValue, 0, serialized.resolutionY.intValue - 1);
+                    serialized.drawOctahedralDepthRayIndexZ.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexZ.intValue, 0, serialized.resolutionZ.intValue - 1);
+                }
+            }
             EditorGUILayout.PropertyField(serialized.probeSpacingMode, Styles.s_ProbeSpacingModeLabel);
             switch ((ProbeSpacingMode)serialized.probeSpacingMode.enumValueIndex)
             {

@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             First,
             AddProbeVolumesAtlasEncodingModes,
+            AddOctahedralDepthVarianceFromLightmapper,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -25,7 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal SphericalHarmonicsL1[] dataSH = null;
         [SerializeField] internal float[] dataValidity = null;
         [SerializeField] internal float[] dataOctahedralDepth = null;
-
 
         [SerializeField] internal ProbeVolumePayload payload = ProbeVolumePayload.zero;
 

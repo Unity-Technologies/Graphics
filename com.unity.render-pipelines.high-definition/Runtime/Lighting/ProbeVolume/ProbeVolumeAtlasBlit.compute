@@ -55,10 +55,11 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
 
     // Convert from "Occlusion" representation from Lightmapper into "Validity" representation which can be directly fed into bilateral filter.
     // This avoids computing 1.0 - occlusion terms per 8 probes per volume per pixel per frame.
-    // TODO: Could additionally pre-compute and power transform here to modify curvature of validity data for filter.
+    // Additionally pre-compute a power transform here to modify curvature of validity data for the bilateral filter.
+    // Raising the power of our validity term makes the bilateral filter reject partial-invalidity samples more agressively.
     // i.e: validity = pow(validity, 4.0);
     float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
-    float validity = 1.0 - occlusion;
+    float validity = pow(1.0 - occlusion, 8.0);
 
     // See ProbeVolumePayload for more info on _ProbeVolumeAtlasReadBufferSHLX layouts.
     // This shader must stay in sync with that layout:

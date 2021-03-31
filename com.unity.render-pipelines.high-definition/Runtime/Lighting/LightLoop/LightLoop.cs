@@ -2615,6 +2615,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (processedProbe.hdProbe.texture == null)
                 return true;
 
+            // custom-begin:
+#if UNITY_EDITOR
+                // Skip reflection probes that are hidden by the scene visibility toggle.
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(processedProbe.hdProbe.gameObject))
+                return true;
+#endif
+            // custom-end
+
             return false;
         }
 
