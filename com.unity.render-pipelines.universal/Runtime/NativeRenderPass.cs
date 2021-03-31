@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.Universal
         private const int kRenderPassMaxCount = 20;
 
         // used to keep track of the index of the last pass when we called BeginSubpass
-        private int m_LastBeginSubpassSceneIndex = 0;
+        private int m_LastBeginSubpassPassIndex = 0;
 
         private Dictionary<Hash128, int[]> m_MergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
         // static array storing all the mergeableRenderPassesMap arrays. This is used to remove any GC allocs during the frame which would have been introduced by using a dynamic array to store the mergeablePasses per RenderPass
         private int[][] m_MergeableRenderPassesMapArrays;
-        private Hash128[] m_SceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
+        private Hash128[] m_PassIndexToPassHash = new Hash128[kRenderPassMaxCount];
         private Dictionary<Hash128, int> m_RenderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
         AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
@@ -73,8 +73,8 @@ namespace UnityEngine.Rendering.Universal
         internal void SetupNativeRenderPassFrameData(CameraData cameraData, bool isRenderPassEnabled)
         {
             //TODO: edge cases to detect that should affect possible passes to merge
-            // - different depth attachment
             // - total number of color attachment > 8
+
             // Go through all the passes and mark the final one as last pass
 
             using (new ProfilingScope(null, Profiling.setupFrameData))
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
 
                     Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
 
-                    m_SceneIndexToPassHash[i] = hash;
+                    m_PassIndexToPassHash[i] = hash;
 
                     bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
                     if (!RPEnabled)
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
                         currentHashIndex++;
                         hash = CreateRenderPassHash(rpDesc, currentHashIndex);
 
-                        m_SceneIndexToPassHash[i] = hash;
+                        m_PassIndexToPassHash[i] = hash;
 
                         m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
                         m_RenderPassesAttachmentCount.Add(hash, 0);
@@ -138,12 +138,12 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
             {
-                int currentSceneIndex = renderPass.renderPassQueueIndex;
-                Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+                int currentPassIndex = renderPass.renderPassQueueIndex;
+                Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
                 int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
 
                 // Not the first pass
-                if (currentMergeablePasses.First() != currentSceneIndex)
+                if (currentMergeablePasses.First() != currentPassIndex)
                     return;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
@@ -206,12 +206,12 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(null, Profiling.setAttachmentList))
             {
-                int currentSceneIndex = renderPass.renderPassQueueIndex;
-                Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+                int currentPassIndex = renderPass.renderPassQueueIndex;
+                Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
                 int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
 
                 // Skip if not the first pass
-                if (currentMergeablePasses.First() != currentSceneIndex)
+                if (currentMergeablePasses.First() != currentPassIndex)
                     return;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
@@ -308,12 +308,12 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(null, Profiling.configure))
             {
-                int currentSceneIndex = renderPass.renderPassQueueIndex;
-                Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+                int currentPassIndex = renderPass.renderPassQueueIndex;
+                Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
                 int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
 
                 // If it's the first pass, configure the whole merge block
-                if (currentMergeablePasses.First() == currentSceneIndex)
+                if (currentMergeablePasses.First() == currentPassIndex)
                 {
                     foreach (var passIdx in currentMergeablePasses)
                     {
@@ -330,8 +330,8 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(null, Profiling.execute))
             {
-                int currentSceneIndex = renderPass.renderPassQueueIndex;
-                Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+                int currentPassIndex = renderPass.renderPassQueueIndex;
+                Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
                 int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
 
                 int validColorBuffersCount = m_RenderPassesAttachmentCount[currentPassHash];
@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (validPassCount == 1 || currentMergeablePasses[0] == currentSceneIndex) // Check if it's the first pass
+                if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex) // Check if it's the first pass
                 {
                     context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
@@ -379,16 +379,16 @@ namespace UnityEngine.Rendering.Universal
 
                     context.BeginSubPass(attachmentIndices);
 
-                    m_LastBeginSubpassSceneIndex = currentSceneIndex;
+                    m_LastBeginSubpassPassIndex = currentPassIndex;
                 }
                 else
                 {
-                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassSceneIndex], m_ActiveRenderPassQueue[currentSceneIndex]))
+                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex]))
                     {
                         context.EndSubPass();
                         context.BeginSubPass(attachmentIndices);
 
-                        m_LastBeginSubpassSceneIndex = currentSceneIndex;
+                        m_LastBeginSubpassPassIndex = currentPassIndex;
                     }
                 }
 
@@ -396,12 +396,12 @@ namespace UnityEngine.Rendering.Universal
 
                 renderPass.Execute(context, ref renderingData);
 
-                if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentSceneIndex) // Check if it's the last pass
+                if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentPassIndex) // Check if it's the last pass
                 {
                     context.EndSubPass();
                     context.EndRenderPass();
 
-                    m_LastBeginSubpassSceneIndex = 0;
+                    m_LastBeginSubpassPassIndex = 0;
                 }
 
                 for (int i = 0; i < m_ActiveColorAttachmentDescriptors.Length; ++i)
