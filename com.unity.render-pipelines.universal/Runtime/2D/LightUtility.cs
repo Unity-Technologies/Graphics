@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using UnityEngine.Rendering.Universal.LibTessDotNet;
 using UnityEngine.Rendering;
 using UnityEngine.U2D;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class LightUtility
     {

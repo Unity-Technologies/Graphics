@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class Light2D
     {

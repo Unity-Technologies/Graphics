@@ -3,10 +3,11 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public struct Light2DBlendStyle
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    public struct Light2DBlendStyle
     {
         internal enum TextureChannel
         {

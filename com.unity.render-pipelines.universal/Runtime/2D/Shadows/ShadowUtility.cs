@@ -4,10 +4,10 @@ using UnityEngine;
 using System;
 using Unity.Collections;
 using System.Linq;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using UnityEngine.Rendering.Universal.LibTessDotNet;
 
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class ShadowUtility
     {

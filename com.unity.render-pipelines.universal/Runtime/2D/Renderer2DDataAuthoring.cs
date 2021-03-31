@@ -1,8 +1,9 @@
 using UnityEditor;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public partial class Renderer2DData
     {
