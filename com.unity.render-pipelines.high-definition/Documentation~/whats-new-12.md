@@ -15,6 +15,10 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ## Improvements
 
+### Area Lights
+
+The AxF shader and Fabric and Hair master nodes now correctly support Area lights.
+
 ### Density Volume (Local Volumetric Fog) Improvements
 
 Density Volumes are now known as **Local Volumetric Fog**. This is a more accurate, descriptive name that removes confusion with [Volumes](Volumes.md) and makes the relation to fog clearer.
@@ -56,6 +60,12 @@ From HDRP 12.0, The AOV API includes the following improvements:
 ### Additional Properties
 
 From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
+
+### Path traced fabric material
+
+![](Images/HDRPFeatures-FabricPT.png)
+
+HDRP's path tracer now offers support for the fabric material, in both its cotton/wool and silk variants.
 
 ### Top level menus
 
