@@ -5335,6 +5335,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     debugLut.height - 1,
                     0f);
 
+                cb._DebugShowHeightMaps = new Vector4(
+                    materialDebugSettings.showHeightMapsDefaultColor.r,
+                    materialDebugSettings.showHeightMapsDefaultColor.g,
+                    materialDebugSettings.showHeightMapsDefaultColor.b,
+                    materialDebugSettings.showHeightMapsBlendAlbedo);
+
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);

@@ -200,6 +200,10 @@ void Frag(PackedVaryingsToPS packedInput,
 
             outColor = float4(result, 1.0f);
         }
+        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_HEIGHTMAPS)
+        {
+            outColor = GetHeightMapDebug(surfaceData);
+        }
         else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
         {
             float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);

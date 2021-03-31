@@ -269,6 +269,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_HEIGHTMAPS)
+    {
+        float3 heightmap = _DebugShowHeightMaps.rgb;
+#if defined(_HEIGHTMAP)
+        float  lod = ComputeTextureLOD(GetMinUvSize(layerTexCoord));
+        heightmap = SAMPLE_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base.uvZY, lod).rrr;
+#endif
+        surfaceData.baseColor = lerp(heightmap, surfaceData.baseColor, _DebugShowHeightMaps.a);
+    }
 #endif
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
