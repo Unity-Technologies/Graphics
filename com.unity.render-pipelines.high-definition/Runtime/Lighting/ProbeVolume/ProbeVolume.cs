@@ -603,7 +603,10 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         private bool dataUpdated = false;
+        
+#if UNITY_EDITOR
         private bool dataNeedsDilation = false;
+#endif
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -770,9 +773,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
 
             dataUpdated = false;
-            dataNeedsDilation = false;
 
 #if UNITY_EDITOR
+            dataNeedsDilation = false;
             ForceBakingEnabled();
 #endif
 
@@ -804,7 +807,10 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnDisable()
         {
             dataUpdated = false;
+
+#if UNITY_EDITOR
             dataNeedsDilation = false;
+#endif
 
             // custom-begin:
             InstanceRemove();
