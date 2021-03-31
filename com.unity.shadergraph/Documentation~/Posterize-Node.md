@@ -6,7 +6,7 @@
 
 *[https://en.wikipedia.org/wiki/Posterization](https://en.wikipedia.org/wiki/Posterization)*
 
-This node returns the posterized (also known as quantized) value of the input **In** into an amount of values specified by input **Steps**. 
+This node returns the posterized (also known as quantized) value of the input **In** into an amount of values specified by input **Steps**.
 
 ## Ports
 

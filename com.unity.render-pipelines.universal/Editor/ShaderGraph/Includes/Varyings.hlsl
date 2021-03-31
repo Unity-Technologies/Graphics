@@ -19,6 +19,10 @@ Varyings BuildVaryings(Attributes input)
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
+    #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
+        CustomInterpolatorPassThroughFunc(output, vertexDescription);
+    #endif
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
@@ -101,11 +105,11 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+    output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
-    output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
+    output.screenPosition = vertexInput.positionNDC;
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
@@ -114,12 +118,15 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    half fogFactor = 0;
+#if !defined(_FOG_FRAGMENT)
+        fogFactor = ComputeFogFactor(output.positionCS.z);
+#endif
     half3 vertexLight = VertexLighting(positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(output.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -9,7 +10,6 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
@@ -26,13 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             dockingTop = false,
             dockingLeft = false,
-            verticalOffset = 8,
-            horizontalOffset = 8
-        };
-        public WindowDockingLayout blackboardLayout = new WindowDockingLayout
-        {
-            dockingTop = true,
-            dockingLeft = true,
             verticalOffset = 8,
             horizontalOffset = 8
         };
@@ -58,14 +51,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
-        BlackboardProvider m_BlackboardProvider;
+
+        BlackboardController m_BlackboardController;
+
+        internal BlackboardController blackboardController
+        {
+            get => m_BlackboardController;
+            set
+            {
+                if (value != null)
+                    m_BlackboardController = value;
+            }
+        }
+
         ColorManager m_ColorManager;
         EditorWindow m_EditorWindow;
-
-        public BlackboardProvider blackboardProvider
-        {
-            get { return m_BlackboardProvider; }
-        }
 
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
@@ -104,10 +104,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string assetName
         {
-            get { return m_BlackboardProvider.assetName; }
+            get => m_AssetName;
             set
             {
-                m_BlackboardProvider.assetName = value;
+                m_AssetName = value;
+                // Also update blackboard title
+                m_BlackboardController.UpdateBlackboardTitle(m_AssetName);
             }
         }
 
@@ -118,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
         private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -126,12 +128,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EditorWindow = editorWindow;
             m_Graph = graph;
+            m_AssetName = graphName;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.RenderPreviews(false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
-
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
@@ -208,7 +210,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); });
+                // Bugfix 1312222. Running 'ResetSelectedBlockNodes' on all mouse up interactions will break selection
+                // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
+                // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions and drag indicator if so
+                m_GraphView.RegisterCallback<DragExitedEvent>(evt =>
+                {
+                    blackboardController.blackboard.HideScrollBoundaryRegions();
+                    blackboardController.blackboard.hideDragIndicatorAction?.Invoke();
+                });
 
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
@@ -219,10 +229,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
                 }
 
-                CreateBlackboard();
                 CreateMasterPreview();
-                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector();
+                CreateBlackboard();
 
                 UpdateSubWindowsVisibility();
 
@@ -276,14 +285,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
             m_Graph.UpdateActiveBlocks(activeBlocks);
 
-            //graph settings need to be initilaized after the target setup
+            // Graph settings need to be initialized after the target setup
             m_InspectorView.InitializeGraphSettings();
         }
 
         private void CreateBlackboard()
         {
-            m_BlackboardProvider = new BlackboardProvider(m_Graph);
-            m_GraphView.Add(m_BlackboardProvider.blackboard);
+            var blackboardViewModel = new BlackboardViewModel() { parentView = graphView, model = m_Graph, title = assetName };
+            m_BlackboardController = new BlackboardController(m_Graph, blackboardViewModel, m_Graph.owner.graphDataStore);
         }
 
         void AddContexts()
@@ -350,15 +359,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+                blackboardController.blackboard.ShowWindow();
             else
-                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+                blackboardController.blackboard.HideWindow();
 
             // Same for the inspector
             if (m_UserViewSettings.isInspectorVisible)
-                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
+                m_InspectorView.ShowWindow();
             else
-                m_InspectorView.RemoveFromHierarchy();
+                m_InspectorView.HideWindow();
 
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
@@ -395,8 +404,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            m_InspectorView = new InspectorView(graphView);
-            m_GraphView.Add(m_InspectorView);
+            var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
+            m_InspectorView = new InspectorView(inspectorViewModel);
+            graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
+            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
+            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -648,6 +660,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             UnregisterGraphViewCallbacks();
 
             previewManager.HandleGraphChanges();
+            m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
@@ -657,9 +670,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-            m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
-            if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
+
+            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
+
+            if (wasUndoRedoPerformed)
+                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
+
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)
@@ -866,7 +883,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }
         }
@@ -1175,6 +1193,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();
+        string m_AssetName;
 
         void UpdateEdgeColors(HashSet<IShaderNodeView> nodeViews)
         {
@@ -1256,7 +1275,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ApplyMasterPreviewLayout();
 
-            ApplyBlackboardLayout();
+            m_BlackboardController.blackboard.DeserializeLayout();
 
             m_InspectorView.DeserializeLayout();
         }
@@ -1285,51 +1304,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateSerializedWindowLayout();
         }
 
-        void ApplyBlackboardLayout()
-        {
-            // If a blackboard size was loaded in from saved user settings use that
-            if (m_FloatingWindowsLayout.blackboardLayout.size.x > 0f && m_FloatingWindowsLayout.blackboardLayout.size.y > 0f)
-            {
-                blackboardProvider.blackboard.style.width = m_FloatingWindowsLayout.blackboardLayout.size.x;
-                blackboardProvider.blackboard.style.height = m_FloatingWindowsLayout.blackboardLayout.size.y;
-            }
-            else // Use default specified in the stylesheet for blackboard
-            {
-                m_FloatingWindowsLayout.blackboardLayout.size = blackboardProvider.blackboard.layout.size;
-            }
-
-            // Restore blackboard layout, and make sure that it remains in the view.
-            Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
-
-            // Make sure the dimensions are sufficiently large.
-            blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
-            blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
-
-            // Make sure that the positioning is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f,
-                Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f,
-                Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
-
-            // Set the processed blackboard layout.
-            m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
-
-            // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
-            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(SerializeBlackboardLayout);
-        }
-
-        void SerializeBlackboardLayout(GeometryChangedEvent evt)
-        {
-            UpdateSerializedWindowLayout();
-        }
-
         void UpdateSerializedWindowLayout()
         {
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
-            m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
+            blackboardController.blackboard.ClampToParentLayout(m_GraphView.layout);
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 

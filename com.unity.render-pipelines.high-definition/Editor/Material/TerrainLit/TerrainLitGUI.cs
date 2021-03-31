@@ -14,12 +14,12 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
-        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
 
         [Flags]
         enum Expandable
         {
-            Terrain     = 1 << 0,
+            Terrain     = 1 << 1,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
                 uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
 
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private class StylesLayer
         {
-            public readonly string terrainText = "Terrain";
+            public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Terrain");
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && customProperties.Count == 0)
                 return;
 
-            using (var header = new MaterialHeaderScope(styles.terrainText, (uint)Expandable.Terrain, materialEditor))
+            using (var header = new MaterialHeaderScope(styles.header, (uint)Expandable.Terrain, materialEditor))
             {
                 if (header.expanded)
                 {

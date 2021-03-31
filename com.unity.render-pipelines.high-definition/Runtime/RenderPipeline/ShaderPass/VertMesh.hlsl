@@ -128,19 +128,26 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that MotionVectorPass can get the modified input values later.
-VaryingsMeshType VertMesh(AttributesMesh input)
+VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 {
     VaryingsMeshType output;
+    ZERO_INITIALIZE(VaryingsMeshType, output);
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+
 #if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input, _TimeParameters.xyz);
+    input = ApplyMeshModification(input, _TimeParameters.xyz
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+        , output
+    #endif
+    );
 #endif
 
     // This return the camera relative position (if enable)
-    float3 positionRWS = TransformObjectToWorld(input.positionOS);
+    float3 positionRWS = TransformObjectToWorld(input.positionOS) + worldSpaceOffset;
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else
@@ -194,6 +201,11 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #endif
 
     return output;
+}
+
+VaryingsMeshType VertMesh(AttributesMesh input)
+{
+    return VertMesh(input, 0.0f);
 }
 
 #ifdef TESSELLATION_ON

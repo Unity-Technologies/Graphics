@@ -7,74 +7,109 @@
 
 ---
 
-All_URP_Performance_BoatAttack_trunk:
-    name: All URP_Performance_BoatAttack CI - trunk
+PR_URP_Performance_BoatAttack_trunk:
+    name: URP_Performance_BoatAttack PR Job - trunk
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
+         rerun: on_new_revision
     variables:
+        UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
-All_URP_Performance_BoatAttack_CUSTOM-REVISION:
-    name: All URP_Performance_BoatAttack CI - CUSTOM-REVISION
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+Nightly_URP_Performance_BoatAttack_trunk:
+    name: Nightly URP_Performance_BoatAttack - trunk
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
+         rerun: on_new_revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
+    name: Nightly URP_Performance_BoatAttack - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
+         rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c

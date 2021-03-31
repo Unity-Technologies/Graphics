@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.Universal
         // Must be called after all views have been added to the pass
         internal void UpdateOcclusionMesh()
         {
-            if (isOcclusionMeshSupported && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
             {
                 if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
                 {
@@ -339,8 +339,6 @@ namespace UnityEngine.Rendering.Universal
             occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
 
-        Vector4[] stereoEyeIndices = new Vector4[2] { Vector4.zero , Vector4.one };
-
         internal void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -352,7 +350,6 @@ namespace UnityEngine.Rendering.Universal
                         if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
-                            cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
                         }
                         else
                         {
@@ -406,6 +403,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
+        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+        #endif
+
             if (isOcclusionMeshSupported)
             {
                 using (new ProfilingScope(cmd, _XROcclusionProfilingSampler))

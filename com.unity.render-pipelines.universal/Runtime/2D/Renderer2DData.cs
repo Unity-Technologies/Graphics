@@ -104,8 +104,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader samplingShader => m_SamplingShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
-        [Obsolete("This is obsolete, PostProcessData was moved into UniversalRenderPipelineAsset.", false)]
-        internal PostProcessData postProcessData => m_PostProcessData;
+        internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;

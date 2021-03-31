@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// It provides
     /// </summary>
     [ExecuteAlways]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Custom-Pass" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Custom-Pass")]
     public class CustomPassVolume : MonoBehaviour
     {
         /// <summary>
@@ -88,12 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             UnRegister(this);
+            CleanupPasses();
 #if UNITY_EDITOR
             UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
 #endif
         }
-
-        void OnDestroy() => CleanupPasses();
 
 #if UNITY_EDITOR
         void UpdateCustomPassVolumeVisibility()
@@ -118,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in CustomPass.RenderTargets targets)
+        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -129,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
-                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, targets, this);
+                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
                     executed = true;
                 }
             }

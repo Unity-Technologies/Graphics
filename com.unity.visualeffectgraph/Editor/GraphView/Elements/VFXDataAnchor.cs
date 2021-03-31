@@ -279,6 +279,7 @@ namespace UnityEditor.VFX.UI
                 if (parameterDesc != null)
                 {
                     Vector2 pos = view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20);
+                    view.UpdateSelectionWithNewNode();
                     VFXParameter parameter = viewController.AddVFXParameter(pos, parameterDesc, false);
                     parameter.SetSettingValue("m_Exposed", true);
                     startSlot.Link(parameter.outputSlots[0]);

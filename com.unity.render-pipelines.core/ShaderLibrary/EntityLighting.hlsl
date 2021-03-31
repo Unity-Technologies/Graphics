@@ -1,6 +1,10 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
@@ -39,6 +43,16 @@ real3 SHEvalLinearL0L1(real3 N, real4 shAr, real4 shAg, real4 shAb)
     x1.r = dot(shAr, vA);
     x1.g = dot(shAg, vA);
     x1.b = dot(shAb, vA);
+
+    return x1;
+}
+
+real3 SHEvalLinearL1(real3 N, real3 shAr, real3 shAg, real3 shAb)
+{
+    real3 x1;
+    x1.r = dot(shAr, N);
+    x1.g = dot(shAg, N);
+    x1.b = dot(shAb, N);
 
     return x1;
 }
@@ -355,5 +369,8 @@ real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSa
     return bakeDiffuseLighting;
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_ENTITY_LIGHTING_INCLUDED

@@ -1,6 +1,6 @@
 # Split Toning
 
-This effect tints different areas of the image based on luminance values, to help you achieve a more distinctive look. You can use this to add different color tones to the shadows and highlights in your Scene. 
+This effect tints different areas of the image based on luminance values, to help you achieve a more distinctive look. You can use this to add different color tones to the shadows and highlights in your Scene.
 
 ## Using Split Toning
 
@@ -8,6 +8,8 @@ This effect tints different areas of the image based on luminance values, to hel
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Split Toning**. HDRP now applies **Split Toning** to any Camera this Volume affects.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 

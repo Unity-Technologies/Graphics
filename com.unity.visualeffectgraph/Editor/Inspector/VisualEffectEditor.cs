@@ -244,6 +244,10 @@ namespace UnityEditor.VFX
                         {
                             objTyp = typeof(Mesh);
                         }
+                        else if (parameter.realType == "SkinnedMeshRenderer")
+                        {
+                            objTyp = typeof(SkinnedMeshRenderer);
+                        }
                     }
                     EditorGUI.ObjectField(rect, valueProperty, objTyp, nameContent);
                 }
@@ -1331,6 +1335,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
             public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
             public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent createAsset =         EditorGUIUtility.TrTextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.");
             public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
             public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");

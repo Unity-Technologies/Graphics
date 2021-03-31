@@ -21,4 +21,3 @@
     * [Writing custom effects](Writing-Custom-Effects)
 * [Known issues](known-issues)
 * [Debugging Post-processing effects](Debugging-Post-processing-effects)
-

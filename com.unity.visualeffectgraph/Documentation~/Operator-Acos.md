@@ -1,6 +1,6 @@
 # Acos
 
-Menu Path : **Operator > Math > Trigonometry > Acos**  
+Menu Path : **Operator > Math > Trigonometry > Acos**
 
 The **Acos** Operator calculates the [arccosine](https://docs.unity3d.com/ScriptReference/Mathf.Acos.html) of the input. This Operator is the inverse of the [Cosine Operator](Operator-Cosine.md). The result is in radians.
 

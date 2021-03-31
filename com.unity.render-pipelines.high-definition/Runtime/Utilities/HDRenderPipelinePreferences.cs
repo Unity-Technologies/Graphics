@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     // This file can't be in the editor assembly as we need to access it in runtime-editor-specific
@@ -8,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     using UnityEditor;
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
+    [InitializeOnLoad]
     static class HDRenderPipelinePreferences
     {
         static bool m_Loaded = false;
@@ -35,6 +38,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 EditorPrefs.SetFloat(Keys.matcapViewScale, s_MatcapScale);
             }
         }
+
+        #region Decal Gizmo Color
+
+        static readonly Color k_DecalGizmoColorBase = new Color(1, 1, 1, 8f / 255);
+        static Func<Color>    GetColorPrefDecalGizmoColor;
+        public static Color   decalGizmoColor => GetColorPrefDecalGizmoColor();
+
+        #endregion
 
         static class Keys
         {
@@ -70,6 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
             s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
+            GetColorPrefDecalGizmoColor = CoreRenderPipelinePreferences.RegisterPreferenceColor("Scene/Decal", k_DecalGizmoColorBase);
 
             m_Loaded = true;
         }

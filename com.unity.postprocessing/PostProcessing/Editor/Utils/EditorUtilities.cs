@@ -26,7 +26,14 @@ namespace UnityEditor.Rendering.PostProcessing
             {
                 var t = EditorUserBuildSettings.activeBuildTarget;
                 return t == BuildTarget.PS4
+#if UNITY_PS5
+                    || t == BuildTarget.PS5
+#endif
                     || t == BuildTarget.XboxOne
+#if UNITY_GAMECORE
+                    || t == BuildTarget.GameCoreXboxSeries
+                    || t == BuildTarget.GameCoreXboxOne
+#endif
                     || t == BuildTarget.Switch;
             }
         }

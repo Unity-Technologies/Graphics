@@ -62,7 +62,7 @@ namespace UnityEditor
         public const string editorResourcesFolder = "Editor/UIResources";
         public static string editorResourcesPath => VisualEffectGraphPackageInfo.assetPackagePath + "/" + editorResourcesFolder;
 
-        [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
+        [MenuItem("GameObject/Visual Effects/Visual Effect", priority = 12)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null, "Visual Effect"));
@@ -87,7 +87,16 @@ namespace UnityEditor
 
         public static T CreateNew<T>(string path) where T : UnityObject
         {
-            string emptyAsset = "%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!2058629511 &1\nVisualEffectResource:\n";
+            string emptyAsset =
+@"%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &114350483966674976
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
+--- !u!2058629511 &1
+VisualEffectResource:
+  m_Graph: {fileID: 114350483966674976}
+";
 
             File.WriteAllText(path, emptyAsset);
 

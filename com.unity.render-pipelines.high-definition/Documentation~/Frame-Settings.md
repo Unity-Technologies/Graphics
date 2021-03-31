@@ -8,11 +8,11 @@ Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and c
 
 You can override the default Frame Settings on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes.This exposes the Frame Settings Override which gives you access to the same settings as in default Frame Settings within the HDRP Asset. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.
 
-Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings. 
+Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings.
 
 Note: Some options are grayed-out depending on whether you have enabled/disabled them in the Render Pipeline Supported Features section of your HDRP Asset.
 
-Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene. 
+Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene.
 
 ## Properties
 
@@ -43,6 +43,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | - **Transparent Object Motion**     | Enable the checkbox to allow HDRP to write the velocity of transparent GameObjects to the velocity buffer. To make HDRP write transparent GameObjects to the velocity buffer, you must also enable the **Transparent Writes Velocity** checkbox on each transparent Material. Enabling this feature means that effects, such as motion blur, affect transparent GameObjects.  This is useful for alpha blended objects like hair. |
 | **Refraction**                      | Enable the checkbox to make HDRP process Refraction for Cameras/Reflection Probes using these Frame Settings. Refraction is when a transparent surface scatters light that passes through it. This add a resolve of ColorBuffer after the drawing of opaque materials to be use for Refraction effect during transparent pass. |
 | **Distortion**                      | Enable the checkbox to make HDRP process Distortion. Enabling this feature causes HDRP to calculate a distortion pass. This allows Meshes with transparent Materials to distort the light that enters them. |
+| - **Rough Distortion** | Enable the checkbox to allow HDRP to modulate distortion based on the roughness of the material. If you enable this option, HDRP generates a color pyramid with mipmaps to process distortion. This increases the resource intensity of the distortion effect. |
 | **Post-process**                    | Enable the checkbox to make HDRP perform a Post-processing pass. Disable this feature to remove all post-processing effects from this Camera/Reflection Probe. |
 | - **Custom Post-process**           | Enable the checkbox to allow HDRP to execute custom post processes. Disable this feature to remove all custom post-processing effects from this Camera/Reflection Probe. |
 | - **Stop NaN**                        | Enable the checkbox to allow HDRP to replace pixel values that are not a number (NaN) with black pixels for [Cameras](HDRP-Camera.md) that have **Stop NaNs** enabled. |
@@ -125,4 +126,4 @@ Note: These settings are for debugging purposes only. Each property here describ
 
 ## Debugging Frame Settings
 
-You can use the [Render Pipeline Debug Window](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.
+You can use the [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md) to temporarily change Frame Settings for a Camera without altering the actual Frame Settings data of the Camera itself. This means that, when you stop debugging, the Frame Settings for the Camera are as you set them before you started debugging.

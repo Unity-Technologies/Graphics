@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTLOOP_CS_HLSL
@@ -18,10 +18,9 @@
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_PROBE_VOLUME (3)
-#define LIGHTCATEGORY_DECAL (4)
-#define LIGHTCATEGORY_DENSITY_VOLUME (5)
-#define LIGHTCATEGORY_COUNT (6)
+#define LIGHTCATEGORY_DECAL (3)
+#define LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG (4)
+#define LIGHTCATEGORY_COUNT (5)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -56,6 +55,7 @@
 #define LIGHT_FEATURE_MASK_FLAGS_OPAQUE (16642048)
 #define LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT (16510976)
 #define MATERIAL_FEATURE_MASK_FLAGS (4095)
+#define RAY_TRACED_SCREEN_SPACE_SHADOW_FLAG (4096)
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
@@ -111,10 +111,10 @@ CBUFFER_START(ShaderVariablesLightList)
     int g_iNumSamplesMSAA;
     uint _EnvLightIndexShift;
     uint _DecalIndexShift;
-    uint _DensityVolumeIndexShift;
-    uint _ProbeVolumeIndexShift;
+    uint _LocalVolumetricFogIndexShift;
     uint _Pad0_SVLL;
     uint _Pad1_SVLL;
+    uint _Pad2_SVLL;
 CBUFFER_END
 
 //

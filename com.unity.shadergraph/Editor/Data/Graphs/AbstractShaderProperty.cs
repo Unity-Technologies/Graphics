@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph.Internal
             set {}
         }
 
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            return referenceName;
+        }
+
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
         // instead, it tells you what the DEFAULT HLSL Declaration would be, IF the property makes use of the default
         // to check ACTUAL HLSL Declaration types, enumerate the HLSL Properties and check their HLSLDeclarations...
@@ -54,9 +59,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        internal void SetupConcretePrecision(ConcretePrecision defaultPrecision)
         {
-            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+            m_ConcretePrecision = precision.ToConcrete(defaultPrecision, defaultPrecision);
         }
 
         [SerializeField]
@@ -95,7 +100,12 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
-        internal abstract string GetPropertyAsArgumentString();
+        internal virtual string GetPropertyAsArgumentStringForVFX(string precisionString)
+        {
+            return GetPropertyAsArgumentString(precisionString);
+        }
+
+        internal abstract string GetPropertyAsArgumentString(string precisionString);
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
 

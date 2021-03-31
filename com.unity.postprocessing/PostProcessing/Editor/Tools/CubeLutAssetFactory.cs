@@ -39,16 +39,16 @@ namespace UnityEditor.Rendering.PostProcessing
             const float kSizeMinusOne = (float)kSize - 1f;
 
             for (int x = 0; x < kSize; x++)
-            for (int y = 0; y < kSize; y++)
-            for (int z = 0; z < kSize; z++)
-            {
-                float ox = eval((float)x / kSizeMinusOne);
-                float oy = eval((float)y / kSizeMinusOne);
-                float oz = eval((float)z / kSizeMinusOne);
+                for (int y = 0; y < kSize; y++)
+                    for (int z = 0; z < kSize; z++)
+                    {
+                        float ox = eval((float)x / kSizeMinusOne);
+                        float oy = eval((float)y / kSizeMinusOne);
+                        float oz = eval((float)z / kSizeMinusOne);
 
-                // Resolve & Photoshop use BGR as default, let's make it easier for users
-                sb.AppendFormat("{0} {1} {2}\n", oz, oy, ox);
-            }
+                        // Resolve & Photoshop use BGR as default, let's make it easier for users
+                        sb.AppendFormat("{0} {1} {2}\n", oz, oy, ox);
+                    }
 
             var content = sb.ToString();
             var path = Path.Combine(Application.dataPath, string.Format("{0}.cube", title));

@@ -66,8 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolume    owner;
         HDCamera            currentHDCamera;
 
-        MaterialPropertyBlock userMaterialPropertyBlock;
-
         // TODO RENDERGRAPH: Remove this when we move things to render graph completely.
         MaterialPropertyBlock m_MSAAResolveMPB = null;
         void Awake()
@@ -140,8 +138,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Lazy<RTHandle> customColorBuffer;
             public Lazy<RTHandle> customDepthBuffer;
 
-            // Render graph specific
-            // TODO RENDERGRAPH cleanup the other ones when we only have the render graph path.
             public TextureHandle colorBufferRG;
             public TextureHandle nonMSAAColorBufferRG;
             public TextureHandle depthBufferRG;
@@ -177,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public CustomPass customPass;
             public CullingResults cullingResult;
+            public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
         }
 
@@ -207,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
@@ -217,6 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
+                passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
@@ -240,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);
                             customPass.isSetup = true;
-                            // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
-                            // We can remove the member altogether when we remove the non render graph code path.
-                            customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                         }
 
                         customPass.SetCustomPassTarget(ctx.cmd);
@@ -252,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
                             ctx.renderContext, ctx.cmd, data.hdCamera,
-                            data.cullingResult,
+                            data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,

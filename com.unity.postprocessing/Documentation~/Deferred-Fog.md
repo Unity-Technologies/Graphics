@@ -2,7 +2,7 @@
 
 The **Deferred Fog** effect simulates the look of fog or mist in outdoor environments. To do this, it overlays a color onto objects depending on how far away they are from the Camera.
 
- ![screenshot-fog](C:\Users\Vic Cooper\Documents\GitHub\PostProcessing\Documentation~\images\screenshot-fog.png)
+ ![screenshot-fog](/images/screenshot-fog.png)
 
 You can also use the Deferred fog effect to hide object clipping. This is useful if you want to bring the Camera’s far clip plane forward to improve performance.
 
@@ -25,4 +25,3 @@ The **Deferred Fog** effect only appears in your [**Post-process Layer**](https:
 
 - Depth texture
 - Shader Model 3
-

@@ -3,7 +3,7 @@ Shader "Hidden/PostProcessing/FinalPass"
     HLSLINCLUDE
 
         #pragma multi_compile __ FXAA FXAA_LOW
-        #pragma multi_compile __ FXAA_KEEP_ALPHA
+        #pragma multi_compile __ FXAA_KEEP_ALPHA FXAA_NO_ALPHA
 
         #pragma vertex VertUVTransform
         #pragma fragment Frag
@@ -15,7 +15,7 @@ Shader "Hidden/PostProcessing/FinalPass"
         // PS3 and XBOX360 aren't supported in Unity anymore, only use the PC variant
         #define FXAA_PC 1
 
-        #if FXAA_KEEP_ALPHA
+        #if FXAA_KEEP_ALPHA || FXAA_NO_ALPHA
             // Luma hasn't been encoded in alpha
             #define FXAA_GREEN_AS_LUMA 1
         #else
@@ -131,10 +131,10 @@ Shader "Hidden/PostProcessing/FinalPass"
         Pass
         {
             HLSLPROGRAM
-                #pragma only_renderers gles
+                #pragma only_renderers gles3
 
                 #pragma multi_compile __ STEREO_INSTANCING_ENABLED STEREO_DOUBLEWIDE_TARGET
-                #pragma target es3.0
+                #pragma target 3.0
 
             ENDHLSL
         }

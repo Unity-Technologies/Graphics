@@ -12,26 +12,35 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     class InspectorView : GraphSubWindow
     {
-        readonly List<Type> m_PropertyDrawerList = new List<Type>();
+        const float k_InspectorUpdateInterval = 0.25f;
+        const int k_InspectorElementLimit = 20;
 
-        List<ISelectable> m_CachedSelectionList = new List<ISelectable>();
+        int m_CurrentlyInspectedElementsCount = 0;
+
+        readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
-        protected override string windowTitle => "Graph Inspector";
-        protected override string elementName => "InspectorView";
-        protected override string styleName => "InspectorView";
-        protected override string UxmlName => "GraphInspector";
-        protected override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
+        public override string windowTitle => "Graph Inspector";
+        public override string elementName => "InspectorView";
+        public override string styleName => "InspectorView";
+        public override string UxmlName => "GraphInspector";
+        public override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
-        private TabbedView m_GraphInspectorView;
+        TabbedView m_GraphInspectorView;
+        TabbedView m_NodeSettingsTab;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
+
+        Label m_MaxItemsMessageLabel;
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
             if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
+            {
                 Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
+                return;
+            }
 
             var newPropertyDrawerAttribute = newPropertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
 
@@ -64,12 +73,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 Debug.Log("Attempted to register property drawer: " + newPropertyDrawerType + " that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
-        public InspectorView(GraphView graphView) : base(graphView)
+        public InspectorView(InspectorViewModel viewModel) : base(viewModel)
         {
             m_GraphInspectorView = m_MainContainer.Q<TabbedView>("GraphInspectorView");
             m_GraphSettingsContainer = m_GraphInspectorView.Q<VisualElement>("GraphSettingsContainer");
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
+            m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
+
+            isWindowScrollable = true;
+            isWindowResizable = true;
 
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
@@ -87,11 +100,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
         }
 
-        // If any of the selected items are no longer selected, inspector requires an update
-        public bool DoesInspectorNeedUpdate()
+        public bool doesInspectorNeedUpdate { get; set; }
+
+        public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
-            var needUpdate = !m_CachedSelectionList.SequenceEqual(selection);
-            return needUpdate;
+            // An optimization that prevents inspector updates from getting triggered every time a selection event is issued in the event of large selections
+            // As beyond a certain number of selections
+            if (selectionList?.Count() > k_InspectorElementLimit)
+                return;
+            doesInspectorNeedUpdate = true;
         }
 
         public void Update()
@@ -99,24 +116,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
+            m_CurrentlyInspectedElementsCount = 0;
 
             try
             {
-                //m_GraphInspectorView.Activate(m_NodeSettingsTab);
+                bool anySelectables = false;
                 foreach (var selectable in selection)
                 {
                     if (selectable is IInspectable inspectable)
+                    {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
+                        m_CurrentlyInspectedElementsCount++;
+                        anySelectables = true;
+                    }
+                    if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                        m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
+                }
+                if (anySelectables)
+                {
+                    // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
+                    // Node Settings tab so we can make the assumption they want to see that tab
+                    m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Debug.LogError(e);
             }
 
-            // Store this for update checks later, copying list deliberately as we dont want a reference
-            m_CachedSelectionList = new List<ISelectable>(selection);
+            if (doesInspectorNeedUpdate)
+                doesInspectorNeedUpdate = false;
 
             m_NodeSettingsContainer.MarkDirtyRepaint();
         }
@@ -129,6 +158,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
         }
 
+        internal void HandleGraphChanges()
+        {
+            float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
+            // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
+            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
+                Update();
+        }
+
         void TriggerInspectorUpdate()
         {
             Update();
@@ -138,12 +175,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // which for SG, is a representation of the settings in GraphData
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
-            var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
+            var graphEditorView = ParentView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
             contentContainer.Clear();
-            DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            DrawInspectable(contentContainer, (IInspectable)ParentView, m_graphSettingsPropertyDrawer);
             contentContainer.MarkDirtyRepaint();
         }
     }

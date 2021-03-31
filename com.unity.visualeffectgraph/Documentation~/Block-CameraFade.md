@@ -20,6 +20,7 @@ This Block is compatible with the following Contexts:
 | ------------------- | -------- | ------------------------------------------------------------ |
 | **Cull When Faded** | Bool     | **(Inspector)** Indicates whether to cull the particle culled when it is fully faded to reduce overdraw. |
 | **Fade Mode**       | Enum     | Specifies how to fade the particle out when it gets near the camera. The options are:<br/>&#8226; **Color**: Fades out the particle's color.<br/>&#8226; **Alpha**: Fades out the particle's alpha.<br/>&#8226; **Color And Alpha**: Fades out both the particle's color and its alpha. |
+| **Affect Shadows**  | Bool     | **(Inspector)** Indicates whether the fade also affects shadow maps or not. Note that applying the fade to shadows might produce unexpected results when using multiple cameras. |
 
 ## Block properties
 
