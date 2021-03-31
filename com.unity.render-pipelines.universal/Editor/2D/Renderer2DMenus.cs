@@ -4,7 +4,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 
 namespace UnityEditor.Rendering.Universal

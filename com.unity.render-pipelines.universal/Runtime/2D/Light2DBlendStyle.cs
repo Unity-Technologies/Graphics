@@ -1,7 +1,5 @@
 using System;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {

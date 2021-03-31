@@ -1,6 +1,3 @@
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-
 namespace UnityEngine.Rendering.Universal
 {
     // Only to be used when Pixel Perfect Camera is present and it has Crop Frame X or Y enabled.

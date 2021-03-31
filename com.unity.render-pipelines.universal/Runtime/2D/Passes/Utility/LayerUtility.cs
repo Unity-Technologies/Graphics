@@ -1,5 +1,4 @@
 using Unity.Mathematics;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {

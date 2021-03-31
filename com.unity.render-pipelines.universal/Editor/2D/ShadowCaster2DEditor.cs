@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-
-using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;

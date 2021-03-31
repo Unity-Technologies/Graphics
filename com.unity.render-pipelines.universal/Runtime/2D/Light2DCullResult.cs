@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {

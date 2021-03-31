@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal

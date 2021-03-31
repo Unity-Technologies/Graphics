@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -11,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public class ShadowCaster2D : ShadowCasterGroup2D
     {

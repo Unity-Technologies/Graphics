@@ -4,10 +4,6 @@ using UnityEditor.EditorTools;
 using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering.Universal;
-using UnityEditor.AnimatedValues;
-using UnityEditor.Rendering.Universal;
-using UnityEditor.Rendering;
 
 
 namespace UnityEditor.Rendering.Universal

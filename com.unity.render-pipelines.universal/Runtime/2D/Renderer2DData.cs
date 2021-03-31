@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 

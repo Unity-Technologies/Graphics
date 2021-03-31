@@ -4,7 +4,6 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Rendering.Universal.LibTessDotNet;
-using UnityEngine.Rendering;
 using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal

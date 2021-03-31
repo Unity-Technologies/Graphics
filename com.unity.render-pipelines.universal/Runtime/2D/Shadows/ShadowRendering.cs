@@ -1,6 +1,3 @@
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal

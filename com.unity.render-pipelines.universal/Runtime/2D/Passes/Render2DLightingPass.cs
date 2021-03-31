@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
-using UnityEngine.Rendering;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
