@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     internal class ProbeBrickIndex
     {
         // a few constants
-        internal const int kMaxSubdivisionLevels = 7; // 4 bits
+        internal const int kMaxSubdivisionLevels = 7; // 3 bits
         private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
         [System.Serializable]

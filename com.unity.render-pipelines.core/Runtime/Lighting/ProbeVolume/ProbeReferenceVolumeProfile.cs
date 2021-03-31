@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The size of a Brick.
         /// </summary>
-        [Min(0.01f)]
+        [Min(0.1f)]
         public float minDistanceBetweenProbes = 1.0f;
         /// <summary>
         /// The normal bias to apply during shading.
