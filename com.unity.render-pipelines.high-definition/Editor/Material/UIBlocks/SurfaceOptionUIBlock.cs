@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
             Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
-            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
+            Lit                         = All ^ ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
             All                         = ~0,
         }
