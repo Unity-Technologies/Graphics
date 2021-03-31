@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // Injects an external alpha texture into the alpha channel. Used for controlling which pixels will be affected by post processing.
     // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal compositor use only)
-    [Serializable, VolumeComponentDeprecated]
+    [Serializable, HideInInspector]
     internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
