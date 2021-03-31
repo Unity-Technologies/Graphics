@@ -1699,7 +1699,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
                                 //this will cause them to blow up, but will match the standard nomralized exposure.
-                                hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
+                                hdParentCamera.RequestGpuDeExposureValue(PostProcessSystem.GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));;
                                 visibleProbe.SetProbeExposureValue(1.0f);
                                 additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
                             }
