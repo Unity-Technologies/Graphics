@@ -1,0 +1,2 @@
+ConfigurationValidation:
+T| * Utilities| Bug in the validation code prevent ref param to be match with long deceased namespace "Utilities"
