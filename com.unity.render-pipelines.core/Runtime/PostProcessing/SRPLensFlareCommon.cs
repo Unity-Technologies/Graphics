@@ -7,11 +7,11 @@ namespace UnityEngine
     {
         private static SRPLensFlareCommon m_Instance = null;
         private static readonly object m_Padlock = new object();
-        private System.Collections.Generic.List<SRPLensFlareOverride> m_Data;
+        private static System.Collections.Generic.List<SRPLensFlareOverride> m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
 
         private SRPLensFlareCommon()
         {
-            m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
+            //m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace UnityEngine
             }
         }
 
-        private System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return m_Data; } }
+        private System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return SRPLensFlareCommon.m_Data; } }
 
         /// <summary>
         /// Return the pool of Lens Flare added
