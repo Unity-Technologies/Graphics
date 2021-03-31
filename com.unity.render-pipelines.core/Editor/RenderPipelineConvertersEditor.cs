@@ -270,7 +270,14 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 // Update the amount of things to convert
                 child.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
 
-                listView.makeItem = converterItem.CloneTree;
+                //listView.makeItem = converterItem.CloneTree;
+                listView.makeItem = () =>
+                {
+                    var convertItem = converterItem.CloneTree();
+                    //convertItem.AddManipulator(new ContextualMenuManipulator(AddToContextMenu));
+                    return convertItem;
+                };
+
                 listView.showBoundCollectionSize = false;
 
                 listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
@@ -285,8 +292,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
                     // Adding the contextual menu for each item, not working properly
                     //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id, index)));
+                    //element.RemoveManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, index)));
                     //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, index)));
-
+                    element.userData = index;
                     ConverterItemDescriptor convItemDesc = converterItemInfos[index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
@@ -340,10 +348,16 @@ public class RenderPipelineConvertersEditor : EditorWindow
         rootVisualElement.Bind(m_SerializedObject);
     }
 
-    // void AddToContextMenu(ContextualMenuPopulateEvent evt, int index)
-    // {
-    //     Debug.Log($"Index ::: {index}");
-    // }
+    void AddToContextMenu(ContextualMenuPopulateEvent evt)
+    {
+        //Debug.Log($"Index ::: {evt.target.userData}");
+    }
+
+    void AddToContextMenu(ContextualMenuPopulateEvent evt, int index)
+    {
+        Debug.Log($"Index ::: {index}");
+    }
+
     //
     // void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex, int index)
     // {
