@@ -393,10 +393,15 @@ Shader ""Hidden/GraphErrorShader2""
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
             }
 
-            //Remove inactive blocks from generation
+            //Remove inactive blocks from legacy generation
+            if (!asset.generatesWithShaderGraph)
             {
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+
+                // NOTE: For whatever reason, this call fails for custom interpolator ports (ie, active ones are not detected as active).
+                // For the sake of compatibility with custom interpolator with shadergraph generation, skip the removal of inactive blocks.
                 target.GetActiveBlocks(ref tmpCtx);
+
                 ports.RemoveAll(materialSlot =>
                 {
                     return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);
