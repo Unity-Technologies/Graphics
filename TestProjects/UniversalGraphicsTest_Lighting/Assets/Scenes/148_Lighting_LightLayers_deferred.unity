@@ -532,7 +532,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 3
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 9
 --- !u!108 &568285243
 Light:
@@ -1432,7 +1432,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 48
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 144
 --- !u!108 &1603779292
 Light:
@@ -1653,7 +1653,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 3
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 9
 --- !u!108 &1827810313
 Light:

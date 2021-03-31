@@ -74,13 +74,13 @@ namespace UnityEngine.Rendering.Universal
             set { m_LightLayersMask = value; }
         }
 
-        [SerializeField] bool m_LinkLightLayers = true;
+        [SerializeField] bool m_CustomShadowLayers = false;
 
         // if enabled, shadowLayersMask use the same settings as lightLayersMask.
-        public bool linkLightLayers
+        public bool customShadowLayers
         {
-            get { return m_LinkLightLayers; }
-            set { m_LinkLightLayers = value; }
+            get { return m_CustomShadowLayers; }
+            set { m_CustomShadowLayers = value; }
         }
 
         // The layer(s) used for shadow casting.

@@ -255,7 +255,7 @@ Transform:
   - {fileID: 1680341008}
   - {fileID: 1594247947}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &283919722
 GameObject:
@@ -483,7 +483,7 @@ Transform:
   - {fileID: 2029985467}
   - {fileID: 1896767701}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &568285240
 GameObject:
@@ -532,7 +532,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 3
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 9
 --- !u!108 &568285243
 Light:
@@ -609,6 +609,7 @@ GameObject:
   - component: {fileID: 600791858}
   - component: {fileID: 600791857}
   - component: {fileID: 600791861}
+  - component: {fileID: 600791862}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -711,7 +712,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &600791861
 MonoBehaviour:
@@ -740,30 +741,13 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
---- !u!1 &691381244
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 691381246}
-  - component: {fileID: 691381245}
-  m_Layer: 0
-  m_Name: SwapPipelineAsset
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &691381245
+--- !u!114 &600791862
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 691381244}
+  m_GameObject: {fileID: 600791856}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4830a6573fd2ac40b2db2d44627a7ee, type: 3}
@@ -771,20 +755,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
   thisTestPipeline: {fileID: 11400000, guid: 1321edb612b7b7b4f8b1db2544f77af1, type: 2}
---- !u!4 &691381246
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 691381244}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.5985264, y: 4.166724, z: 4.4545465}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &805804144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1012,7 +982,7 @@ Transform:
   - {fileID: 1197812044}
   - {fileID: 805804145}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1197812043
 GameObject:
@@ -1432,7 +1402,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 48
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 144
 --- !u!108 &1603779292
 Light:
@@ -1653,7 +1623,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 0
   m_LightLayersMask: 3
-  m_LinkLightLayers: 0
+  m_CustomShadowLayers: 1
   m_ShadowLayersMask: 9
 --- !u!108 &1827810313
 Light:

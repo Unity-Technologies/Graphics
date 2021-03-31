@@ -61,8 +61,8 @@ namespace UnityEditor.Rendering.Universal
             };
 
             public readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
-            public readonly GUIContent linkLightAndShadowLayers = EditorGUIUtility.TrTextContent("Link Light Layer", "When enabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property below to specify the light layers for shadows seperately to lighting.");
-            public readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Shadow Layer", "Specifies the light layer to use for shadows.");
+            public readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layer", "When disabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When enabled, you can use the Layer property below to specify the light layers for shadows seperately to lighting.");
+            public readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
         }
 
         static Styles s_Styles;
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightsShadowResolutionTierProp;  // Index of the AdditionalLights ShadowResolution Tier
 
         SerializedProperty m_LightLayersMask;
-        SerializedProperty m_LinkLightLayers;
+        SerializedProperty m_CustomShadowLayers;
         SerializedProperty m_ShadowLayersMask;
 
         protected override void OnEnable()
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
             m_LightLayersMask = m_AdditionalLightDataSO.FindProperty("m_LightLayersMask");
-            m_LinkLightLayers = m_AdditionalLightDataSO.FindProperty("m_LinkLightLayers");
+            m_CustomShadowLayers = m_AdditionalLightDataSO.FindProperty("m_CustomShadowLayers");
             m_ShadowLayersMask = m_AdditionalLightDataSO.FindProperty("m_ShadowLayersMask");
 
             settings.ApplyModifiedProperties();
@@ -182,17 +182,13 @@ namespace UnityEditor.Rendering.Universal
                 if (group.visible)
                     settings.DrawBounceIntensity();
 
-            ShadowsGUI();
-
-            settings.DrawRenderMode();
-
             if (UniversalRenderPipeline.asset.supportsLightLayers)
             {
                 EditorGUI.BeginChangeCheck();
                 DrawLightLayerMask(m_LightLayersMask, s_Styles.LightLayer);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (m_LinkLightLayers.boolValue)
+                    if (!m_CustomShadowLayers.boolValue)
                     {
                         m_ShadowLayersMask.intValue = m_LightLayersMask.intValue;
                         lightProperty.renderingLayerMask = m_LightLayersMask.intValue;
@@ -201,7 +197,12 @@ namespace UnityEditor.Rendering.Universal
                     m_AdditionalLightDataSO.ApplyModifiedProperties();
                 }
             }
-            else
+
+            ShadowsGUI();
+
+            settings.DrawRenderMode();
+
+            if (!UniversalRenderPipeline.asset.supportsLightLayers)
                 settings.DrawCullingMask();
 
             settings.ApplyModifiedProperties();
@@ -479,18 +480,18 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipeline.asset.supportsLightLayers)
             {
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_LinkLightLayers, s_Styles.linkLightAndShadowLayers);
+                EditorGUILayout.PropertyField(m_CustomShadowLayers, s_Styles.customShadowLayers);
                 // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (m_LinkLightLayers.boolValue)
-                        m_ShadowLayersMask.intValue = m_LightLayersMask.intValue;
-                    lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                    lightProperty.renderingLayerMask = m_CustomShadowLayers.boolValue ? m_ShadowLayersMask.intValue : m_LightLayersMask.intValue;
                     m_AdditionalLightDataSO.ApplyModifiedProperties();
                 }
 
-                using (new EditorGUI.DisabledGroupScope(m_LinkLightLayers.boolValue))
+                if (m_CustomShadowLayers.boolValue)
                 {
+                    EditorGUI.indentLevel += 1;
+
                     EditorGUI.BeginChangeCheck();
                     DrawLightLayerMask(m_ShadowLayersMask, s_Styles.ShadowLayer);
                     if (EditorGUI.EndChangeCheck())
@@ -498,6 +499,8 @@ namespace UnityEditor.Rendering.Universal
                         lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
                         m_AdditionalLightDataSO.ApplyModifiedProperties();
                     }
+
+                    EditorGUI.indentLevel -= 1;
                 }
             }
 
