@@ -7,8 +7,9 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    //TODOPAUL : Move to runtime, document & add filter for graphics buffer usage
     [AttributeUsage(AttributeTargets.Struct)]
-    class VFXTypeAttribute : Attribute
+    public class VFXTypeAttribute : Attribute
     {}
 
     enum SpaceableType

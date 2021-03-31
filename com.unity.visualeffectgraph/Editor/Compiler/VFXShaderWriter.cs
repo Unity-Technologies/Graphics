@@ -5,6 +5,7 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -216,6 +217,16 @@ namespace UnityEditor.VFX
             return padding;
         }
 
+        public IEnumerable<Tuple<VFXValueType, string>> GetFieldFromType(Type type)
+        {
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                var vfxType = VFXExpression.GetVFXValueTypeFromType(field.FieldType);
+                if (vfxType != VFXValueType.None)
+                    yield return new Tuple<VFXValueType, string>(vfxType, field.Name);
+            }
+        }
+
         public void WriteBuffer(VFXUniformMapper mapper, Dictionary<VFXExpression, Type> usageGraphicsBuffer)
         {
             foreach (var buffer in mapper.buffers)
@@ -227,9 +238,17 @@ namespace UnityEditor.VFX
                     if (type == null)
                         throw new NullReferenceException();
 
-                    //TODOPAUL : hardcoded for now
-                    var structureName = string.Format("{0}{1}", type.Name, name);
-                    WriteLineFormat("struct {0} {{ float3 position; float3 color; }};", structureName);
+                    //TODOPAUL : Define properly helper & avoid multiple declaration
+                    var structureName = string.Format("{0}", type.Name);
+                    WriteLineFormat("struct {0}", structureName);
+                    WriteLine("{");
+                    Indent();
+                    foreach (var field in GetFieldFromType(type))
+                    {
+                        WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(field.Item1), field.Item2);
+                    }
+                    Deindent();
+                    WriteLine("};");
 
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
                 }

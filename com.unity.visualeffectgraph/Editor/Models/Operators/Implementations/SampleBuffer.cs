@@ -1,13 +1,15 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    [VFXType]
     struct DummyTest
     {
-        Vector3 position;
-        Vector3 color;
+        public Vector3 position;
+        public Vector3 color;
     }
 
     [VFXInfo(category = "Sampling")]
@@ -20,24 +22,31 @@ namespace UnityEditor.VFX.Operator
             [Tooltip("Sets the Signed Distance Field texture to sample from.")]
             public GraphicsBuffer buffer = null;
             [Tooltip("Sets the oriented box containing the SDF.")]
-            public UInt32 index;
+            public uint index;
         }
 
-        public class OutputProperties
+
+        protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
-            [Tooltip("TODO. //Will be dynamic")]
-            public Vector3 position;
-
-            [Tooltip("TODO. //Will be dynamic")]
-            public Vector3 color;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(DummyTest), "s"));
+            }
         }
-
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var samplePosition = new VFXExpressionSampleBuffer(typeof(DummyTest), "position", inputExpression[0], inputExpression[1]);
-            var samplecolor = new VFXExpressionSampleBuffer(typeof(DummyTest), "color", inputExpression[0], inputExpression[1]);
-            return new[] { samplePosition, samplecolor };
+            var outputSlot = GetOutputSlot(0);
+            var slots = outputSlot.GetVFXValueTypeSlots();
+
+            var type = typeof(DummyTest);
+            var expressions = new List<VFXExpression>();
+            foreach (var slot in slots)
+            {
+                var current = new VFXExpressionSampleBuffer(type, slot.valueType, slot.name, inputExpression[0], inputExpression[1]);
+                expressions.Add(current);
+            }
+            return expressions.ToArray();
         }
     }
 }
