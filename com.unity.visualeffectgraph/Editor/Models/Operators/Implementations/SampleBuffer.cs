@@ -60,10 +60,15 @@ namespace UnityEditor.VFX.Operator
             var outputSlot = GetOutputSlot(0);
             var slots = outputSlot.GetVFXValueTypeSlots();
 
+            var buffer = inputExpression[0];
+            var index = inputExpression[1];
+            var stride = new VFXExpressionBufferStride(buffer);
+            var count = new VFXExpressionBufferCount(buffer);
+
             var expressions = new List<VFXExpression>();
             foreach (var slot in slots)
             {
-                var current = new VFXExpressionSampleBuffer(m_Type, slot.valueType, slot.name, inputExpression[0], inputExpression[1]);
+                var current = new VFXExpressionSampleBuffer(m_Type, slot.valueType, slot.name, buffer, index, stride, count);
                 expressions.Add(current);
             }
             return expressions.ToArray();

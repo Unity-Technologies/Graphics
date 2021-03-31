@@ -223,6 +223,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.CameraBuffer:
                 case VFXValueType.Mesh:
                 case VFXValueType.SkinnedMeshRenderer:
+                case VFXValueType.Buffer:
                     return false;
             }
             return true;

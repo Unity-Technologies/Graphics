@@ -1,13 +1,51 @@
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
-    //*WIP*
-    #pragma warning disable 0659
+    class VFXExpressionBufferCount : VFXExpression
+    {
+        public VFXExpressionBufferCount() : this(VFXValue<GraphicsBuffer>.Default)
+        {
+        }
+
+        public VFXExpressionBufferCount(VFXExpression graphicsBuffer) : base(Flags.InvalidOnGPU, graphicsBuffer)
+        {
+        }
+
+        public override VFXExpressionOperation operation => VFXExpressionOperation.BufferCount;
+
+        protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var graphicsBuffer = constParents[0].Get<GraphicsBuffer>();
+            return VFXValue.Constant<uint>(graphicsBuffer != null ? (uint)graphicsBuffer.count : 0u);
+        }
+    }
+
+    class VFXExpressionBufferStride : VFXExpression
+    {
+        public VFXExpressionBufferStride() : this(VFXValue<GraphicsBuffer>.Default)
+        {
+        }
+
+        public VFXExpressionBufferStride(VFXExpression graphicsBuffer) : base(Flags.InvalidOnGPU, graphicsBuffer)
+        {
+        }
+
+        public override VFXExpressionOperation operation => VFXExpressionOperation.BufferStride;
+
+        protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var graphicsBuffer = constParents[0].Get<GraphicsBuffer>();
+            return VFXValue.Constant<uint>(graphicsBuffer != null ? (uint)graphicsBuffer.stride : 0u);
+        }
+    }
+
+#pragma warning disable 0659
     class VFXExpressionSampleBuffer : VFXExpression
     {
-        public VFXExpressionSampleBuffer() : this(null, VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default)
+        public VFXExpressionSampleBuffer() : this(null, VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -21,7 +59,7 @@ namespace UnityEditor.VFX
             return m_SampledType;
         }
 
-        public VFXExpressionSampleBuffer(Type sampledType, VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index) : base(Flags.InvalidOnCPU, new VFXExpression[] { graphicsBuffer, index })
+        public VFXExpressionSampleBuffer(Type sampledType, VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index, VFXExpression stride, VFXExpression count) : base(Flags.InvalidOnCPU,  graphicsBuffer, index, stride, count)
         {
             m_SampledType = sampledType;
             m_FieldType = fieldType;
@@ -64,7 +102,18 @@ namespace UnityEditor.VFX
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("{0}[(int){1}].{2};", parents[0], parents[1], m_FieldPath);
+            var expectedStride = Marshal.SizeOf(m_SampledType);
+            var buffer = parents[0];
+            var index = parents[1];
+            var stride = parents[2];
+            var count = parents[3];
+
+            var condition = string.Format("{0} < {1} && {2} == {3}", index, count, stride, expectedStride);
+            var sampling = string.Format("{0}[(int){1}].{2}", buffer, index, m_FieldPath);
+            var defaultValue = string.Format("({0})0", TypeToCode(m_FieldType));
+
+            //TODOPAUL : missing [branch] here, see https://unity.slack.com/archives/C06TQ1HNE/p1598612484066000?thread_ts=1598608186.055100&cid=C06TQ1HNE
+            return string.Format("{0} ? {1} : {2}", condition, sampling, defaultValue);
         }
     }
 }
