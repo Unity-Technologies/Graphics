@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph
         public T Model => m_Model;
 
         // Cleanup delegate association before destruction
-        ~SGController()
+        public void Cleanup()
         {
             DataStore.Subscribe -= ModelChanged;
         }

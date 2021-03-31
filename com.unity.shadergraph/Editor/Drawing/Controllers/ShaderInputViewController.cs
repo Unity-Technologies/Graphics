@@ -301,6 +301,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void Destroy()
         {
+            Cleanup();
             BlackboardItemView.RemoveFromHierarchy();
         }
     }

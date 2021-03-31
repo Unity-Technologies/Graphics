@@ -179,7 +179,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // If a non-named category ever reaches 0 children, remove it from the blackboard
             if (Model.childCount == 0 && Model.IsNamedCategory() == false)
+            {
                 this.Destroy();
+            }
         }
 
         internal bool IsInputInCategory(ShaderInput shaderInput)
@@ -241,6 +243,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void Destroy()
         {
+            Cleanup();
             m_BlackboardCategoryView?.RemoveFromHierarchy();
             ClearBlackboardRows();
         }
