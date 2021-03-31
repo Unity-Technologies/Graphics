@@ -265,7 +265,7 @@ namespace UnityEditor.ShaderGraph
                 // m_SerializedDescriptor = $"{m_Descriptor.uniqueNamespace}.{m_Descriptor.tag}.{m_Descriptor.name}";
                 // but in case we have an unknown blockfield blocknode,
                 // it's important to serialize back as it was (the unknown node could be from the old blockfields).
-                string optionalPrefix = m_Descriptor.uniqueNamespace == "" ? "" : $"{m_Descriptor.uniqueNamespace}.";
+                string optionalPrefix = m_Descriptor.uniqueNamespace.Length == 0 ? "" : $"{m_Descriptor.uniqueNamespace}.";
                 string optionalSuffix = isCustomBlock ? $"#{ControlToWidth(m_Descriptor.control)}" : "";
                 m_SerializedDescriptor = $"{optionalPrefix}{m_Descriptor.tag}.{m_Descriptor.name}{optionalSuffix}";
             }
