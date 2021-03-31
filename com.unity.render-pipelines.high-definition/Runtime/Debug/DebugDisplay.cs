@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _MousePixelCoord;  // xy unorm, zw norm
         public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
         public Vector4 _DebugLutParams; // x: 1/width, y: 1/height, z: height-1, w: unused
+        public Vector4 _DebugShowHeightMaps; // xyz = color to use for materials not using heightmaps, w = albedo blend
 
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
@@ -120,6 +121,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ValidateDiffuseColor,
         /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
+        /// <summary>Display material heightmaps.</summary>
+        Heightmaps,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug,
         // TODO: Move before count for 11.0
@@ -336,6 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
+            s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.Heightmaps - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Show Heightmaps");
 
             s_MsaaSamplesDebugStrings = Enum.GetNames(typeof(MSAASamples))
                 .Select(t => new GUIContent(t))
@@ -518,7 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material validation is enabled.</returns>
         public bool IsMaterialValidationEnabled()
         {
-            return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor);
+            return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor) || (data.fullScreenDebugMode == FullScreenDebugMode.Heightmaps);
         }
 
         /// <summary>
@@ -1014,6 +1018,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.ColorField { displayName = "Too Low Color", getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
                         new DebugUI.ColorField { displayName = "Not A Pure Metal Color", getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
                         new DebugUI.BoolField  { displayName = "Pure Metals", getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.Heightmaps)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "No HeightMap Color", getter = () => data.materialDebugSettings.showHeightMapsDefaultColor, setter = value => data.materialDebugSettings.showHeightMapsDefaultColor = value, showAlpha = false, hdr = false },
+                        new DebugUI.FloatField { displayName = "Blend Albedo", getter = () => data.materialDebugSettings.showHeightMapsBlendAlbedo, setter = (v) => data.materialDebugSettings.showHeightMapsBlendAlbedo = v, min = () => 0.0f, max = () => 1.0f, },
                     }
                 });
             }

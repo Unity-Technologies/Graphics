@@ -340,6 +340,10 @@ void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
     result = surfaceData.diffuseColor;
 }
 
+float4 GetHeightMapDebug(SurfaceData surfaceData)
+{
+    return float4(surfaceData.diffuseColor, 1);
+}
 
 
 // This function is used to help with debugging and must be implemented by any lit material
