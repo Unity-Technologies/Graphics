@@ -35,7 +35,7 @@ PR_HDRP_trunk:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
