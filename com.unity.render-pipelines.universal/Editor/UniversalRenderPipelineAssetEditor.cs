@@ -90,6 +90,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Missing Default Renderer\nThere is no default renderer assigned, so Unity can’t perform any rendering. Set another renderer to be the new Default, or assign a renderer to the Default slot.");
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
+            public static GUIContent lightlayersUnsupportedMessage =
+                EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues.\n\n");
             public static GUIContent rendererUnsupportedAPIMessage =
                 EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
 
@@ -607,11 +609,17 @@ namespace UnityEditor.Rendering.Universal
             m_AdvancedSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedSettingsFoldout.value, Styles.advancedSettingsText);
             if (m_AdvancedSettingsFoldout.value)
             {
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                string unsupportedGraphicsApisMessage;
+
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
                 EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
                 EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
                 EditorGUILayout.PropertyField(m_SupportsLightLayers, Styles.supportsLightLayers);
+
+                if (m_SupportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
+                    EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
                 EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
                 EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
                 EditorGUI.indentLevel--;
@@ -786,6 +794,22 @@ namespace UnityEditor.Rendering.Universal
                     if (System.Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
                         unsupportedGraphicsApisMessage += System.String.Format("{0} at index {1} does not support {2}.\n", renderer, i, unsupportedAPIs[apiIndex]);
                 }
+            }
+
+            return unsupportedGraphicsApisMessage == null;
+        }
+
+        bool ValidateRendererGraphicsAPIsForLightLayers(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        {
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                if (!RenderingUtils.SupportsLightLayers(graphicsAPIs[apiIndex]))
+                    unsupportedGraphicsApisMessage += System.String.Format("{0}\n", graphicsAPIs[apiIndex]);
             }
 
             return unsupportedGraphicsApisMessage == null;
