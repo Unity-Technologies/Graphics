@@ -22,9 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset()
         {
+#if UNITY_EDITOR
             // we need to ensure we have a global settings asset to be able to create an HDRP Asset
             HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
-
+#endif
             OnValidate();
         }
 
