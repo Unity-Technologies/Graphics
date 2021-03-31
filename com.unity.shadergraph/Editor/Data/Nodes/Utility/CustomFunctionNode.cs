@@ -396,7 +396,7 @@ namespace UnityEditor.ShaderGraph
             bool hasAnyOutputs = this.GetOutputSlots<MaterialSlot>().Any();
             if (sourceType == HlslSourceType.File)
             {
-                SourceFileStatus fileStatus = SourceFileStatus.Empty; 
+                SourceFileStatus fileStatus = SourceFileStatus.Empty;
                 if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
@@ -404,19 +404,23 @@ namespace UnityEditor.ShaderGraph
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if (!s_ValidExtensions.Contains(extension))
+                        {
                             fileStatus = SourceFileStatus.Invalid;
+                        }
                         else
+                        {
                             fileStatus = SourceFileStatus.Valid;
+                        }
                     }
                     else
                         fileStatus = SourceFileStatus.DoesNotExist;
                 }
 
-                if(fileStatus == SourceFileStatus.DoesNotExist || (fileStatus == SourceFileStatus.Empty && hasAnyOutputs))
+                if (fileStatus == SourceFileStatus.DoesNotExist || (fileStatus == SourceFileStatus.Empty && hasAnyOutputs))
                     owner.AddValidationError(objectId, k_MissingFile, ShaderCompilerMessageSeverity.Error);
-                else if(fileStatus == SourceFileStatus.Invalid)
+                else if (fileStatus == SourceFileStatus.Invalid)
                     owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
-                else if(fileStatus == SourceFileStatus.Valid)
+                else if (fileStatus == SourceFileStatus.Valid)
                     owner.ClearErrorsForNode(this);
             }
             if (!hasAnyOutputs)
