@@ -240,7 +240,7 @@ namespace UnityEngine
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
         {
-            Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
+            Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
             {
                 float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
                 float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
@@ -258,7 +258,7 @@ namespace UnityEngine
                 }
                 else
                 {
-                    Vector2 pos = (rayOff.normalized * vScreenRatio) * translationScale;
+                    Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
                     rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
                 }
                 rotation *= Mathf.Deg2Rad;
@@ -581,25 +581,24 @@ namespace UnityEngine
                                 return x * (max - min) + min;
                             }
 
-                            System.Random rnd = new System.Random(element.seed);
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
-                                float localIntensity = RandomRange(rnd, -1.0f, 1.0f) * element.intensityVariation + 1.0f;
+                                float localIntensity = RandomRange(element.rand, -1.0f, 1.0f) * element.intensityVariation + 1.0f;
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localSize = size;
-                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(rnd, -1.0f, 1.0f));
+                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(element.rand, -1.0f, 1.0f));
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                     localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                                 }
 
-                                Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
+                                Color randCol = element.colorGradient.Evaluate(RandomRange(element.rand, 0.0f, 1.0f));
 
-                                Vector2 localPositionOffset = element.positionOffset + RandomRange(rnd, -1.0f, 1.0f) * side;
+                                Vector2 localPositionOffset = element.positionOffset + RandomRange(element.rand, -1.0f, 1.0f) * side;
 
-                                float localRotation = element.rotation + RandomRange(rnd, -Mathf.PI, Mathf.PI) * element.rotationVariation;
+                                float localRotation = element.rotation + RandomRange(element.rand, -Mathf.PI, Mathf.PI) * element.rotationVariation;
 
                                 if (localIntensity > 0.0f)
                                 {
@@ -613,7 +612,7 @@ namespace UnityEngine
                                 }
 
                                 position += dLength;
-                                position += 0.5f * dLength * RandomRange(rnd, -1.0f, 1.0f) * element.positionVariation.x;
+                                position += 0.5f * dLength * RandomRange(element.rand, -1.0f, 1.0f) * element.positionVariation.x;
                             }
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Curve)

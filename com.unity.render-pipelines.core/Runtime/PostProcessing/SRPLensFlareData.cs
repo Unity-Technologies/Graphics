@@ -108,7 +108,8 @@ namespace UnityEngine
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
 
             // Random
-            seed = 0;
+            m_Seed = 0;
+            rand = new System.Random(m_Seed);
             intensityVariation = 0.0f;
             positionVariation = new Vector2(0.0f, 0.0f);
             scaleVariation = 0.0f;
@@ -220,10 +221,20 @@ namespace UnityEngine
         /// Curve describing how to scale flares distribution (Used only for Uniform and Curve 'distribution')
         /// </summary>
         public AnimationCurve scaleCurve;
+        private int m_Seed;
         /// <summary>
         /// Seed used to seed randomness
         /// </summary>
-        public int seed;
+        public int seed {
+            get {
+                return m_Seed;
+            }
+            set {
+                m_Seed = value;
+                rand = new System.Random(value);
+            }
+        }
+        public System.Random rand { get; internal set; }
         /// <summary>
         /// Colors used uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'.
         /// </summary>
