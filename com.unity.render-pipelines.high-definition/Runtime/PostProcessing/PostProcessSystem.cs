@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
-                        DoFixedExposure(PrepareExposureParameters(camera), cmd, hdCamera.currentExposureTextures.current);
+                        DoFixedExposure(PrepareExposureParameters(camera), cmd, camera.currentExposureTextures.current);
                     }
                 }
 
