@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rt = rtHandleSystem.Alloc(1, 1, colorFormat: PostProcessSystem.k_ExposureFormat,
                         enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
                     );
-                    HDRenderPipeline.SetExposureTextureToEmpty(rt);
+                    PostProcessSystem.SetExposureTextureToEmpty(rt);
                     return rt;
                 }
 
