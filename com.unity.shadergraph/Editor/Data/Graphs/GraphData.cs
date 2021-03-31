@@ -2518,11 +2518,11 @@ namespace UnityEditor.ShaderGraph
                 total += (int)cib.customWidth;
                 if (total > errorLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} exceeds error threshold: {errRange}. See ShaderGraph project settings.");
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel error threshold: {errRange}. See ShaderGraph project settings.");
                 }
                 else if (total > warnLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} exceeds warning threshold: {warnRange}. See ShaderGraph project settings.", ShaderCompilerMessageSeverity.Warning);
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel warning threshold: {warnRange}. See ShaderGraph project settings.", ShaderCompilerMessageSeverity.Warning);
                 }
             }
         }
