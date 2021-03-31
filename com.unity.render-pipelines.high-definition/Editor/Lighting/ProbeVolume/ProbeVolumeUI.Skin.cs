@@ -25,6 +25,11 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
             internal static readonly GUIContent s_DebugColorLabel = new GUIContent("Debug Color", "This color is used to visualize per-pixel probe volume weights in the render pipeline debugger.");
             internal static readonly GUIContent s_DrawProbesLabel = new GUIContent("Draw Probes", "Enable or disable drawing probes.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRays = new GUIContent("Draw Octahedral Depth Rays", "Enable or disable drawing rays to visualize to the octahedral depth data.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexX = new GUIContent("Octahedral Depth Rays Probe X", "Specifies the x index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexY = new GUIContent("Octahedral Depth Rays Probe Y", "Specifies the y index of the probe to visualize octahedral depth rays for.");
+            internal static readonly GUIContent s_DrawOctahedralDepthRayIndexZ = new GUIContent("Octahedral Depth Rays Probe Z", "Specifies the z index of the probe to visualize octahedral depth rays for.");
+
             internal static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the contribution fades in completely.");
             internal static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Exposes standard parameters.");
             internal static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");

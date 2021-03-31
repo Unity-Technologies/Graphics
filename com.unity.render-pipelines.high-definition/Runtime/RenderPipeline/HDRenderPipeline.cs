@@ -901,6 +901,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                // custom-begin:
+                // From spotlight backport of https://ono.unity3d.com/unity/unity/pull-request/123092/_/lighting/SRP-opt-out-skymanager
+                // When defined, and using a compatible editor build with the above feature, legacy ambient probe baking will be skipped.
+                // This is important as it was causing erroneous results in reflection probe baking, and DOTS conversion.
+#if HDRP_STRIP_LEGACY_AMBIENT_PROBE_BAKING
+                , autoAmbientProbeBaking = false
+                , autoDefaultReflectionProbeBaking = false
+#endif
+                // custom-end
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);

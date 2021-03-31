@@ -770,6 +770,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     DensityVolume volume = volumes[i];
 
+#if UNITY_EDITOR
+                    // Skip density volumes that are hidden by the scene visibility toggle.
+                    if (UnityEditor.SceneVisibilityManager.instance.IsHidden(volume.gameObject)) { continue; }
+#endif
+
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
