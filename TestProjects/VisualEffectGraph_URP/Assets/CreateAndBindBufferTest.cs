@@ -8,12 +8,6 @@ using UnityEngine.VFX;
 public class CreateAndBindBufferTest : MonoBehaviour
 {
 
-    [StructLayout(LayoutKind.Sequential)]
-    struct CustomData
-    {
-        public Vector4 position;
-        public Vector4 color;
-    }
 
     public void OnDisable()
     {
@@ -24,6 +18,13 @@ public class CreateAndBindBufferTest : MonoBehaviour
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    struct CustomData
+    {
+        public Vector3 position;
+        public Vector3 color;
+    }
+
     private GraphicsBuffer m_buffer;
     void Update()
     {
@@ -32,17 +33,15 @@ public class CreateAndBindBufferTest : MonoBehaviour
             m_buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 3, Marshal.SizeOf(typeof(CustomData)));
             var data = new List<CustomData>()
             {
-                new CustomData() { position = new Vector4(0, 0, 0, 0), color = new Vector4(1, 0, 0, 0) },
-                new CustomData() { position = new Vector4(1, 0, 0, 0), color = new Vector4(0, 1, 0, 0) },
-                new CustomData() { position = new Vector4(2, 0, 0, 0), color = new Vector4(0, 0, 1, 0) },
+                new CustomData() { position = new Vector3(0, 0, 0), color = new Vector3(1, 0, 0) },
+                new CustomData() { position = new Vector3(1, 0, 0), color = new Vector3(0, 1, 0) },
+                new CustomData() { position = new Vector3(2, 0, 0), color = new Vector3(0, 0, 1) },
             };
             m_buffer.SetData(data);
         }
 
         var vfx = GetComponent<VisualEffect>();
         if (vfx.GetGraphicsBuffer("buffer") == null)
-        {
             vfx.SetGraphicsBuffer("buffer", m_buffer);
-        }
     }
 }
