@@ -546,10 +546,6 @@ namespace UnityEngine
 
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
                         {
-                            Vector4[] buffer0 = new Vector4[element.count];
-                            Vector4[] buffer2 = new Vector4[element.count];
-                            Vector4[] buffer3 = new Vector4[element.count];
-                            Vector4[] colors = new Vector4[element.count];
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
