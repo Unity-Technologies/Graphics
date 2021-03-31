@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
 
-            ResetFrameData();
+            ResetNativeRenderPassFrameData();
 
             useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                SetupFrameData(cameraData, useRenderPassEnabled);
+                SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    NativeRenderPassConfigure(cmd,  renderPass, cameraData);
+                    ConfigureNativeRenderPass(cmd,  renderPass, cameraData);
                 else
                     renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
@@ -866,7 +866,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                NativeRenderPassExecute(context,  renderPass, cameraData, ref  renderingData);
+                ExecuteNativeRenderPass(context,  renderPass, cameraData, ref  renderingData);
             else
                 renderPass.Execute(context, ref renderingData);
         }
@@ -956,7 +956,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    SetMRTAttachmentsList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear);
+                    SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear);
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
                 ClearFlag finalClearFlag = ClearFlag.None;
@@ -1049,7 +1049,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    SetAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
                 }
                 else
                 {
@@ -1222,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveRenderPassQueue.Clear();
             }
 
-            ResetFrameData();
+            ResetNativeRenderPassFrameData();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
