@@ -7,8 +7,6 @@
 #pragma kernel GatherFirstBounceHit HIT
 #pragma kernel GatherFirstBounceMiss MISS
 
-#pragma kernel Clear        CLEAR
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
@@ -34,6 +32,13 @@ StructuredBuffer<float3> _PrevIrradianceCache;
 TEXTURE3D(_PrevAPVResL0_L1Rx);
 TEXTURE3D(_PrevAPVResL1G_L1Ry);
 TEXTURE3D(_PrevAPVResL1B_L1Rz);
+
+#if OUTPUT_TYPE == SHL2
+TEXTURE3D(_PrevAPVResL2_0);
+TEXTURE3D(_PrevAPVResL2_1);
+TEXTURE3D(_PrevAPVResL2_2);
+TEXTURE3D(_PrevAPVResL2_3);
+#endif
 
 float4 _DynamicGIParams2;
 #define _PrimaryDecay  _DynamicGIParams2.x
@@ -292,11 +297,12 @@ bool AccumulateLighting(float3 probeWorldPosition, uint probeIndex, uint2 extraD
 // Gather previous result.
 // -------------------------------------------------------------
 
-OutputRepresentation SampleAdaptiveProbeVolumeSH(in float3 posWS, in float3 normalWS)
+OutputRepresentation SamplePreviousAPV(in float3 posWS, in float3 normalWS)
 {
     OutputRepresentation output;
     ZERO_INITIALIZE(OutputRepresentation, output);
 
+#if OUTPUT_IS_SH
     float3 pool_uvw;
     APVResources apvRes = FillAPVResources();
     if (TryToGetPoolUVW(apvRes, posWS, 0, pool_uvw))
@@ -305,8 +311,20 @@ OutputRepresentation SampleAdaptiveProbeVolumeSH(in float3 posWS, in float3 norm
         float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1G_L1Ry, s_linear_clamp_sampler, pool_uvw, 0).rgba;
         float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1B_L1Rz, s_linear_clamp_sampler, pool_uvw, 0).rgba;
 
-        SamplesToRepresentation(output, L0_L1Rx, L1G_L1Ry, L1B_L1Rz, true);
+#if OUTPUT_TYPE == SHL2
+        float4 L2_R = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL2_0, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L2_G = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL2_1, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L2_B = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL2_2, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L2_C = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL2_3, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+#endif
+
+        SamplesToRepresentation(output, L0_L1Rx, L1G_L1Ry, L1B_L1Rz,
+#if OUTPUT_TYPE == SHL2
+            L2_R, L2_G, L2_B, L2_C,
+#endif
+            true);
     }
+#endif
 
     return output;
 }
@@ -323,7 +341,7 @@ void AccumulateSecondBounce(float3 centralProbeLocation, int probeIndex, float4 
     float3 dist = direction * _DistanceBetweenProbes * axisDirection.w;
     float3 neighbourPos = centralProbeLocation + dist;
 
-    value = SampleAdaptiveProbeVolumeSH(neighbourPos, direction);
+    value = SamplePreviousAPV(neighbourPos, direction);
     irradiance = value.Evaluate(direction);
 
     float3 neighbContribution = irradiance * INV_PI;
@@ -336,22 +354,6 @@ void AccumulateSecondBounce(float3 centralProbeLocation, int probeIndex, float4 
 // Actual Light Loop
 // -------------------------------------------------------------
 
-#ifdef CLEAR
-
-[numthreads(GROUP_SIZE, 1, 1)]
-void Clear(uint3 id : SV_DispatchThreadID)
-{
-    uint probeIndex = id.x;
-    if (probeIndex < _ProbeCount)
-    {
-        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
-        _RWAPVResL0_L1Rx[dstLoc] = 0;
-        _RWAPVResL1G_L1Ry[dstLoc] = 0;
-        _RWAPVResL1B_L1Rz[dstLoc] = 0;
-    }
-}
-
-#else
 
 #ifdef HIT
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -402,9 +404,5 @@ void GatherFirstBounceMiss(uint3 id : SV_DispatchThreadID)
         lightingAndWeight.xyz *= invalidScale;
         lightingAndWeight.xyz /= lightingAndWeight.w;
         _IrradianceCache[probeIndex * AXIS_COUNT + axisIndex] = lightingAndWeight.xyz;
-
     }
 }
-
-
-#endif

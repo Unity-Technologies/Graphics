@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
 
+// TODO: Better abstraction of output representation.
 
 #pragma kernel CombineProbeVolumes SIMPLE_COMBINE
 #pragma kernel CombineIrradianceCacheAndPV  COMBINE_FROM_CACHE
@@ -9,6 +10,13 @@
 TEXTURE3D(_APVResL0_L1Rx);
 TEXTURE3D(_APVResL1G_L1Ry);
 TEXTURE3D(_APVResL1B_L1Rz);
+
+#if OUTPUT_TYPE == SHL2
+TEXTURE3D(_APVResL2_0);
+TEXTURE3D(_APVResL2_1);
+TEXTURE3D(_APVResL2_2);
+TEXTURE3D(_APVResL2_3);
+#endif
 
 float4 _PVCombineParameters;
 
@@ -22,18 +30,9 @@ float4 _PVCombineParameters;
 #define ONLY_SECOND 2
 #define DEBUG ONLY_SECOND
 
+
 //#pragma enable_d3d11_debug_symbols
 
-OutputRepresentation CombineSH(OutputRepresentation first, OutputRepresentation second)
-{
-    OutputRepresentation output;
-    output.L0 = first.L0 * _FirstBlendFactor + second.L0 * _SecondBlendFactor;
-    output.L1_0 = first.L1_0 * _FirstBlendFactor + second.L1_0 * _SecondBlendFactor;
-    output.L1_1 = first.L1_1 * _FirstBlendFactor + second.L1_1 * _SecondBlendFactor;
-    output.L1_2 = first.L1_2 * _FirstBlendFactor + second.L1_2 * _SecondBlendFactor;
-
-    return output;
-}
 
 #ifdef SIMPLE_COMBINE
 
@@ -46,19 +45,27 @@ void CombineProbeVolumes(uint3 id : SV_DispatchThreadID)
         uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
 
         OutputRepresentation firstPV;
-        SamplesToRepresentation(firstPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]);
+        SamplesToRepresentation(firstPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]
+#if OUTPUT_TYPE == SHL2
+            _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
+#endif
+        );
 
 #if DEBUG == ONLY_SECOND
         ZERO_INITIALIZE(OutputRepresentation, firstPV);
 #endif
 
         OutputRepresentation secondPV;
-        SamplesToRepresentation(secondPV, _RWAPVResL0_L1Rx[dstLoc], _RWAPVResL1G_L1Ry[dstLoc], _RWAPVResL1B_L1Rz[dstLoc]);
+        SamplesToRepresentation(secondPV, _RWAPVResL0_L1Rx[dstLoc], _RWAPVResL1G_L1Ry[dstLoc], _RWAPVResL1B_L1Rz[dstLoc]
+#if OUTPUT_TYPE == SHL2
+            _RWAPVResL2_0[dstLoc], _RWAPVResL2_1[dstLoc], _RWAPVResL2_2[dstLoc], _RWAPVResL2_3[dstLoc]
+#endif
+        );
 
 #if DEBUG == ONLY_FIRST
         ZERO_INITIALIZE(OutputRepresentation, secondPV);
 #endif
-        OutputRepresentation finalPV = CombineSH(firstPV, secondPV);
+        OutputRepresentation finalPV = SumOutput(firstPV, _FirstBlendFactor, secondPV, _SecondBlendFactor);
 
         WriteToOutput(finalPV, probeIndex);
     }
@@ -81,6 +88,8 @@ StructuredBuffer<float3> _IrradianceCache;
 
 void ConvolveWithWindowing(inout OutputRepresentation result, float w)
 {
+#if OUTPUT_IS_SH
+
 #if FILTER == HANNING
     float factor = (1.0f + cos(PI * rcp(w))) * 0.5f;
 #elif FILTER == LANCZOS
@@ -93,6 +102,10 @@ void ConvolveWithWindowing(inout OutputRepresentation result, float w)
     result.L1_0 *= factor;
     result.L1_1 *= factor;
     result.L1_2 *= factor;
+
+    // TODO: Implement deringing for L2 too...
+
+#endif
 }
 
 // -------------------------------------------------------------
@@ -119,6 +132,13 @@ OutputRepresentation ProjectToOutput(uint probeIndex)
 RW_TEXTURE3D(float4, _PrevAPVResL0_L1Rx);
 RW_TEXTURE3D(float4, _PrevAPVResL1G_L1Ry);
 RW_TEXTURE3D(float4, _PrevAPVResL1B_L1Rz);
+#if OUTPUT_TYPE == SHL2
+RW_TEXTURE3D(float4, _PrevAPVResL2_0);
+RW_TEXTURE3D(float4, _PrevAPVResL2_1);
+RW_TEXTURE3D(float4, _PrevAPVResL2_2);
+RW_TEXTURE3D(float4, _PrevAPVResL2_3);
+#endif
+
 
 void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
 {
@@ -128,9 +148,22 @@ void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
     float3 L1_G = float3(outputSpace.L1_0.y, outputSpace.L1_1.y, outputSpace.L1_2.y);
     float3 L1_B = float3(outputSpace.L1_0.z, outputSpace.L1_1.z, outputSpace.L1_2.z);
 
-    L1_R = EncodeSH(outputSpace.L0.x, L1_R);
-    L1_G = EncodeSH(outputSpace.L0.y, L1_G);
-    L1_B = EncodeSH(outputSpace.L0.z, L1_B);
+    L1_R = EncodeSHL1(outputSpace.L0.x, L1_R);
+    L1_G = EncodeSHL1(outputSpace.L0.y, L1_G);
+    L1_B = EncodeSHL1(outputSpace.L0.z, L1_B);
+
+
+#if OUTPUT_TYPE == SHL2
+    float4 L2_R = float4(outputSpace.L2_0.r, outputSpace.L2_1.r, outputSpace.L2_2.r, outputSpace.L2_3.r);
+    float4 L2_G = float4(outputSpace.L2_0.g, outputSpace.L2_1.g, outputSpace.L2_2.g, outputSpace.L2_3.g);
+    float4 L2_B = float4(outputSpace.L2_0.b, outputSpace.L2_1.b, outputSpace.L2_2.b, outputSpace.L2_3.b);
+    float4 L2_C = float4(outputSpace.L2_4, 1.0f);
+
+    L2_R = EncodeSHL2(outputSpace.L0.r, L2_R, L2_C.r);
+    L2_G = EncodeSHL2(outputSpace.L0.g, L2_G, L2_C.g);
+    L2_B = EncodeSHL2(outputSpace.L0.b, L2_B, L2_C.b);
+#endif
+
 
     if (AnyIsInf(outputSpace.L0) || AnyIsNaN(outputSpace.L0))
     {
@@ -138,11 +171,24 @@ void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
         L1_G = 0;
         L1_B = 0;
         outputSpace.L0 = 0;
+
+#if OUTPUT_TYPE == SHL2
+        L2_R = 0;
+        L2_G = 0;
+        L2_B = 0;
+        L2_C = 0;
+#endif
     }
 
     _PrevAPVResL0_L1Rx[indexInPool] = float4(outputSpace.L0.xyz, L1_R.x);
     _PrevAPVResL1G_L1Ry[indexInPool] = float4(L1_G.xyz, L1_R.y);
     _PrevAPVResL1B_L1Rz[indexInPool] = float4(L1_B.xyz, L1_R.z);
+#if OUTPUT_TYPE == SHL2
+    _PrevAPVResL2_0[indexInPool] = L2_R;
+    _PrevAPVResL2_1[indexInPool] = L2_G;
+    _PrevAPVResL2_2[indexInPool] = L2_B;
+    _PrevAPVResL2_3[indexInPool] = L2_C;
+#endif
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -170,7 +216,7 @@ void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
         ZERO_INITIALIZE(OutputRepresentation, staticPV);
 #endif
 
-        OutputRepresentation finalPV = CombineSH(staticPV, dynamicPV);
+        OutputRepresentation finalPV = SumOutput(staticPV, _FirstBlendFactor, dynamicPV, _SecondBlendFactor);
 
         WriteToOutput(finalPV, probeIndex);
     }

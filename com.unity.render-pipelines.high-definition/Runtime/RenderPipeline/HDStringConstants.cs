@@ -935,13 +935,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL0_L1Rx                  = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry                 = Shader.PropertyToID("_APVResL1G_L1Ry");
         public static readonly int _APVResL1B_L1Rz                 = Shader.PropertyToID("_APVResL1B_L1Rz");
+
         public static readonly int _RWAPVResL0_L1Rx                = Shader.PropertyToID("_RWAPVResL0_L1Rx");
         public static readonly int _RWAPVResL1G_L1Ry               = Shader.PropertyToID("_RWAPVResL1G_L1Ry");
         public static readonly int _RWAPVResL1B_L1Rz               = Shader.PropertyToID("_RWAPVResL1B_L1Rz");
+        public static readonly int _RWAPVResL2_0                   = Shader.PropertyToID("_RWAPVResL2_0");
+        public static readonly int _RWAPVResL2_1                   = Shader.PropertyToID("_RWAPVResL2_1");
+        public static readonly int _RWAPVResL2_2                   = Shader.PropertyToID("_RWAPVResL2_2");
+        public static readonly int _RWAPVResL2_3                   = Shader.PropertyToID("_RWAPVResL2_3");
 
         public static readonly int _PrevAPVResL0_L1Rx              = Shader.PropertyToID("_PrevAPVResL0_L1Rx");
         public static readonly int _PrevAPVResL1G_L1Ry             = Shader.PropertyToID("_PrevAPVResL1G_L1Ry");
         public static readonly int _PrevAPVResL1B_L1Rz             = Shader.PropertyToID("_PrevAPVResL1B_L1Rz");
+        public static readonly int _PrevAPVResL2_0                 = Shader.PropertyToID("_PrevAPVResL2_0");
+        public static readonly int _PrevAPVResL2_1                 = Shader.PropertyToID("_PrevAPVResL2_1");
+        public static readonly int _PrevAPVResL2_2                 = Shader.PropertyToID("_PrevAPVResL2_2");
+        public static readonly int _PrevAPVResL2_3                 = Shader.PropertyToID("_PrevAPVResL2_3");
+
 
         public static readonly int _DynamicGIParams0               = Shader.PropertyToID("_DynamicGIParams0");
         public static readonly int _DynamicGIParams1               = Shader.PropertyToID("_DynamicGIParams1");
