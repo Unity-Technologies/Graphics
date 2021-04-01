@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
@@ -88,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_ScrollToBottom = false;
         bool m_EditPathCancelled = false;
         bool m_IsFieldBeingDragged = false;
+        int m_InsertIndex = -1;
 
         const int k_DraggedPropertyScrollSpeed = 6;
 
@@ -136,6 +138,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
             this.RegisterCallback<DragExitedEvent>(evt => HideScrollBoundaryRegions());
+
+            // Register drag callbacks
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
@@ -323,6 +330,70 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;
+        }
+
+
+        private int InsertionIndex(Vector2 pos)
+        {
+            int index = -1;
+            VisualElement owner = contentContainer != null ? contentContainer : this;
+            Vector2 localPos = this.ChangeCoordinatesTo(owner, pos);
+
+            if (owner.ContainsPoint(localPos))
+            {
+                index = 0;
+
+                foreach (VisualElement child in Children())
+                {
+                    Rect rect = child.layout;
+
+                    if (localPos.y > (rect.y + rect.height / 2))
+                    {
+                        ++index;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (index == -1 && childCount >= 2)
+            {
+                index = localPos.y < Children().First().layout.yMin ? 0 :
+                        localPos.y > Children().Last().layout.yMax ? childCount : -1;
+            }
+            return index;
+        }
+
+        private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+        {
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection.OfType<SGBlackboardCategory>().Count() == 0)
+                return;
+
+            Vector2 localPosition = evt.localMousePosition;
+            m_InsertIndex = InsertionIndex(localPosition);
+            DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+        }
+
+        private void OnDragPerformEvent(DragPerformEvent evt)
+        {
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection != null && selection.OfType<SGBlackboardCategory>().Count() == 0)
+                return;
+
+            var moveCategoryAction = new MoveCategoryAction();
+            moveCategoryAction.categoryGuid = selection.OfType<SGBlackboardCategory>().First().viewModel.associatedCategoryGuid;
+            moveCategoryAction.newIndexValue = m_InsertIndex;
+            ViewModel.requestModelChangeAction(moveCategoryAction);
+            evt.StopPropagation();
+        }
+
+        private void OnDragLeaveEvent(DragLeaveEvent evt)
+        {
+            DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+            m_InsertIndex = -1;
         }
     }
 }

@@ -135,8 +135,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
+
             // add drag and drop manipulator
-            //this.AddManipulator(new SelectionDropper());
+            this.AddManipulator(new SelectionDropper());
 
             // Register hover callbacks
             RegisterCallback<MouseEnterEvent>(OnHoverStartEvent);

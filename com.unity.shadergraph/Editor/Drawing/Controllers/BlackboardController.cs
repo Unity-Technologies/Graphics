@@ -173,6 +173,25 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<ShaderInput> childObjects { get; set; }
     }
 
+    class MoveCategoryAction : IGraphDataAction
+    {
+        void MoveCategory(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out MoveCategoryAction");
+            graphData.owner.RegisterCompleteObjectUndo("Move Category");
+            var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == categoryGuid);
+            AssertHelpers.IsNotNull(cat, "Category is null while carrying out MoveCategoryAction");
+            graphData.MoveCategory(cat, newIndexValue);
+        }
+
+        public Action<GraphData> modifyGraphDataAction => MoveCategory;
+
+        // Reference to the shader input being modified
+        internal string categoryGuid { get; set; }
+
+        internal int newIndexValue { get; set; }
+    }
+
     // TODO: These are stub classes, feel free to change them
     class AddItemToCategoryAction : IGraphDataAction
     {
@@ -450,6 +469,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     break;
 
+                case MoveCategoryAction moveCategoryAction:
+                    // TODO: Not this.
+                    ClearBlackboardCategories();
+                    foreach (var categoryData in ViewModel.categoryInfoList)
+                        AddBlackboardCategory(graphData.owner.graphDataStore, categoryData);
+                    break;
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
