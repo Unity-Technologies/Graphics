@@ -169,14 +169,14 @@ if (withLocal)
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-if (withDistant)
-{
-    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    if (withDistant)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
-            list.distantIndex[list.distantCount++] = i;
+        for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+        {
+            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
+                list.distantIndex[list.distantCount++] = i;
+        }
     }
-}
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
     list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
