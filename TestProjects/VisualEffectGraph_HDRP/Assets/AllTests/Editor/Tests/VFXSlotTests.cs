@@ -410,7 +410,7 @@ namespace UnityEditor.VFX.Test
             sphere.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
             Assert.AreEqual("radius", sphere.inputSlots[0][1].name);
-            sourceOfLink.outputSlots[0].Link(sphere.inputSlots[0][1]);
+            sourceOfLink.outputSlots[0].Link(sphere.inputSlots[0][0]);
 
             Assert.AreEqual("center", sphere.inputSlots[0][0].name);
             Assert.AreEqual("radius", sphere.inputSlots[0][1].name);
