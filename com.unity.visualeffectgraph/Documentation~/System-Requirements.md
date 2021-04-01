@@ -8,6 +8,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
+| 11.x                | 2021.1                    | 2021.1                    |
 | 10.x                | 2020.2                    | 2020.2                    |
 | 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
@@ -19,6 +20,7 @@ The Visual Effect Graph varies in compatibility between the High Definition Rend
 
 | **Package version** | **HDRP**       | **URP**       |
 | ------------------- | -------------- | ------------- |
+| 11.x                | Out of preview | In preview    |
 | 10.x                | Out of preview | In preview    |
 | 8.x / 9.x-preview   | Out of preview | In preview    |
 | 7.x                 | Out of preview | In preview    |
