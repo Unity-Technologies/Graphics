@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
         public const string kFeatures = "features";
         public const string kSurfaceType = "SurfaceType";
         public const string kBlendMode = "BlendMode";
+        public const string kTransforms = "Transforms";
         #endregion
 
         #region Fields
@@ -22,10 +23,9 @@ namespace UnityEditor.ShaderGraph
         public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1"); // HD only
         public static FieldDescriptor AlphaToMask =           new FieldDescriptor(string.Empty, "AlphaToMask", "_ALPHATOMASK_ON 1"); // HD only
 
-        // These
         public static FieldDescriptor GraphVFX =              new FieldDescriptor(kFeatures, "graphVFX", "FEATURES_GRAPH_VFX");
-        public static FieldDescriptor ObjectToWorld =        new FieldDescriptor(string.Empty, "ElementToWorld", "_ELEMENT_TO_WORLD");
-        public static FieldDescriptor WorldToObject =        new FieldDescriptor(string.Empty, "WorldToElement", "_WORLD_TO_ELEMENT");
+        public static FieldDescriptor ObjectToWorld =         new FieldDescriptor(kTransforms, "ObjectToWorld", "_OBJECT_TO_WORLD");
+        public static FieldDescriptor WorldToObject =         new FieldDescriptor(kTransforms, "WorldToObject", "_WORLD_TO_OBJECT");
         #endregion
     }
 }
