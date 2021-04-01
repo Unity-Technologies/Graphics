@@ -19,9 +19,23 @@ public class CreateAndBindBufferTest : MonoBehaviour
     }
 
     //TODO : should not be in editor
-    [UnityEditor.VFX.VFXType, StructLayout(LayoutKind.Sequential)]
+    [UnityEditor.VFX.VFXType(UnityEditor.VFX.VFXTypeAttribute.Flags.GraphicsBuffer), StructLayout(LayoutKind.Sequential)]
     struct CustomData
     {
+        public Vector3 position;
+        public Vector3 color;
+    }
+
+    [UnityEditor.VFX.VFXType(UnityEditor.VFX.VFXTypeAttribute.Flags.GraphicsBuffer), StructLayout(LayoutKind.Sequential)]
+    struct CustomDataBis
+    {
+        [UnityEditor.VFX.VFXType(UnityEditor.VFX.VFXTypeAttribute.Flags.GraphicsBuffer), StructLayout(LayoutKind.Sequential)]
+        public struct Rectangle
+        {
+            public Vector2 size;
+            public Vector3 color;
+        }
+        public Rectangle rectangle;
         public Vector3 position;
         public Vector3 color;
     }

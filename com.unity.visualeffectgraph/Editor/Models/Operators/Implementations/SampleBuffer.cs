@@ -52,6 +52,19 @@ namespace UnityEditor.VFX.Operator
                     yield return new VFXPropertyWithValue(new VFXProperty(m_Type, "s"));
             }
         }
+
+        public string ComputeSlotPath(VFXSlot slot)
+        {
+            var name = slot.name;
+            var parent = slot.GetParent();
+            while (!parent.IsMasterSlot())
+            {
+                name = string.Format("{0}.{1}", parent.name, name);
+                parent = parent.GetParent();
+            }
+            return name;
+        }
+
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             if (GetNbOutputSlots() == 0)
@@ -68,7 +81,8 @@ namespace UnityEditor.VFX.Operator
             var expressions = new List<VFXExpression>();
             foreach (var slot in slots)
             {
-                var current = new VFXExpressionSampleBuffer(m_Type, slot.valueType, slot.name, buffer, index, stride, count);
+                var path = ComputeSlotPath(slot);
+                var current = new VFXExpressionSampleBuffer(m_Type, slot.valueType, path, buffer, index, stride, count);
                 expressions.Add(current);
             }
             return expressions.ToArray();

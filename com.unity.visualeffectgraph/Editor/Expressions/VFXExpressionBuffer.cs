@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
         }
     }
 
-#pragma warning disable 0659
+    #pragma warning disable 0659
     class VFXExpressionSampleBuffer : VFXExpression
     {
         public VFXExpressionSampleBuffer() : this(null, VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)

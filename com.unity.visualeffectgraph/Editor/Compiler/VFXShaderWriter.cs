@@ -217,14 +217,41 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        public IEnumerable<Tuple<VFXValueType, string>> GetFieldFromType(Type type)
+        static IEnumerable<Tuple<VFXValueType, Type, string>> GetFieldFromType(Type type)
         {
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var vfxType = VFXExpression.GetVFXValueTypeFromType(field.FieldType);
-                if (vfxType != VFXValueType.None)
-                    yield return new Tuple<VFXValueType, string>(vfxType, field.Name);
+                yield return new Tuple<VFXValueType, Type, string>(vfxType, field.FieldType, field.Name);
             }
+        }
+
+        //TODOPAUL : hashset already generated structure
+        static void GenerateStructureCode(Type type, out string structureName, VFXShaderWriter structureDeclaration)
+        {
+            structureName = type.Name; //TODOPAUL : probably replace not legal character
+
+            var prerequisite = new VFXShaderWriter();
+            var currentStructure = new VFXShaderWriter();
+            currentStructure.WriteLineFormat("struct {0}", structureName);
+            currentStructure.WriteLine("{");
+            currentStructure.Indent();
+            foreach (var field in GetFieldFromType(type))
+            {
+                string typeName;
+                if (field.Item1 == VFXValueType.None)
+                    GenerateStructureCode(field.Item2, out typeName, prerequisite);
+                else
+                    typeName = VFXExpression.TypeToCode(field.Item1);
+
+                currentStructure.WriteLineFormat("{0} {1};", typeName, field.Item3);
+            }
+
+            currentStructure.Deindent();
+            currentStructure.WriteLine("};");
+
+            prerequisite.WriteLine(currentStructure.ToString());
+            structureDeclaration.Write(prerequisite.ToString());
         }
 
         public void WriteBuffer(VFXUniformMapper mapper, Dictionary<VFXExpression, Type> usageGraphicsBuffer)
@@ -239,17 +266,9 @@ namespace UnityEditor.VFX
                         throw new NullReferenceException();
 
                     //TODOPAUL : Define properly helper & avoid multiple declaration
-                    var structureName = string.Format("{0}", type.Name);
-                    WriteLineFormat("struct {0}", structureName);
-                    WriteLine("{");
-                    Indent();
-                    foreach (var field in GetFieldFromType(type))
-                    {
-                        WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(field.Item1), field.Item2);
-                    }
-                    Deindent();
-                    WriteLine("};");
 
+                    string structureName;
+                    GenerateStructureCode(type, out structureName, this);
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
                 }
                 else
