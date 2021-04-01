@@ -50,15 +50,6 @@ namespace UnityEditor.ShaderGraph
 
     interface IMayRequireTransform
     {
-        NeededTransform RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All);
-    }
-
-    static class MayRequireTransformExtensions
-    {
-        public static NeededTransform RequiresTransform(this MaterialSlot slot)
-        {
-            var mayRequireTransform = slot as IMayRequireTransform;
-            return mayRequireTransform != null ? mayRequireTransform.RequiresTransform() : NeededTransform.None;
-        }
+        NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 }

@@ -111,9 +111,9 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        public NeededTransform RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
-            return new NeededTransform(matrixType);
+            return new[] { new NeededTransform(matrixType) };
         }
     }
 }

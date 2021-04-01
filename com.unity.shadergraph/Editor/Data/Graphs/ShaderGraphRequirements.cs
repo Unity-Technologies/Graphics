@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
             where T : AbstractMaterialNode
         {
-            var requiresTransforms = nodes.OfType<IMayRequireTransform>().Select(o => o.RequiresTransform()).Distinct().ToList();
+            var requiresTransforms = nodes.OfType<IMayRequireTransform>().SelectMany(o => o.RequiresTransform()).Distinct().ToList();
             NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
             NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
             NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));

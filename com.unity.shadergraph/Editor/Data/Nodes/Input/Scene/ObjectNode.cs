@@ -38,6 +38,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public NeededTransform RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All) => NeededTransform.ObjectToWorld;
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All) => new[] { NeededTransform.ObjectToWorld };
     }
 }

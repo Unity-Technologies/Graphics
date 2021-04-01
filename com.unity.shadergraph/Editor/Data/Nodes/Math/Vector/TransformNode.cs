@@ -273,9 +273,12 @@ namespace UnityEditor.ShaderGraph
             return conversion.from.ToNeededCoordinateSpace();
         }
 
-        public NeededTransform RequiresTransform(ShaderStageCapability stageCapability)
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability)
         {
-            return new NeededTransform(conversion.from.ToNeededCoordinateSpace(), conversion.to.ToNeededCoordinateSpace());
+            return new[]
+            {
+                new NeededTransform(conversion.from.ToNeededCoordinateSpace(), conversion.to.ToNeededCoordinateSpace())
+            };
         }
     }
 }
