@@ -332,7 +332,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Global)
                         continue;
 
-                    if (!light.renderVolumetricShadows)
+                    if (light.volumeIntensity <= 0.0f || !light.volumeIntensityEnabled)
                         continue;
 
                     var topMostLayerValue = light.GetTopMostLitLayer();
