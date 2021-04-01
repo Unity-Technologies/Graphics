@@ -154,10 +154,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: 9f1c2c99fc2d8124c85cffc0a3b68fb4, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 9f1c2c99fc2d8124c85cffc0a3b68fb4, type: 2}
   intensity: 1
-  maxAttenuationDistance: 100
-  maxAttenuationScale: 25
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -166,16 +166,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -190,16 +190,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -465,10 +465,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: db25ccdbf2065934286bb63b27ea9df2, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 9e64b5726cb4f5141ac25967fee882fb, type: 2}
   intensity: 1
-  maxAttenuationDistance: 25
-  maxAttenuationScale: 100
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -477,16 +477,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -501,16 +501,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -800,6 +800,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: customRenderingSettings
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &1278571982
@@ -833,10 +838,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: db25ccdbf2065934286bb63b27ea9df2, type: 2}
-  intensity: 1
-  maxAttenuationDistance: 25
-  maxAttenuationScale: 100
+  m_LensFlareData: {fileID: 11400000, guid: a0b26c62823b65043aa4470dd59a91a0, type: 2}
+  intensity: 0.39
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -845,16 +850,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -869,16 +874,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1144,10 +1149,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: db25ccdbf2065934286bb63b27ea9df2, type: 2}
-  intensity: 1
-  maxAttenuationDistance: 25
-  maxAttenuationScale: 100
+  m_LensFlareData: {fileID: 11400000, guid: 21516b371f23c8d4996ac25e7e739ae6, type: 2}
+  intensity: 0.03
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -1156,16 +1161,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1180,16 +1185,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1455,10 +1460,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: 9f1c2c99fc2d8124c85cffc0a3b68fb4, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: db25ccdbf2065934286bb63b27ea9df2, type: 2}
   intensity: 1
-  maxAttenuationDistance: 100
-  maxAttenuationScale: 25
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -1467,16 +1472,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1491,16 +1496,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1766,10 +1771,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: 9f1c2c99fc2d8124c85cffc0a3b68fb4, type: 2}
-  intensity: 1
-  maxAttenuationDistance: 100
-  maxAttenuationScale: 25
+  m_LensFlareData: {fileID: 11400000, guid: 1f87517c56314074ea24fc8b3f704b1a, type: 2}
+  intensity: 0.46
+  maxAttenuationDistance: 5000
+  maxAttenuationScale: 5000
   distanceAttenuationCurve:
     serializedVersion: 2
     m_Curve:
@@ -1778,16 +1783,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -1802,16 +1807,16 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0

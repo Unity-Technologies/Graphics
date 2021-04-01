@@ -359,7 +359,7 @@ namespace UnityEditor.Rendering
                 {
                     rect = GetNextRect();
                     if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
-                        countProp.intValue = Mathf.Max(iTmp, 1);
+                        countProp.intValue = Mathf.Max(iTmp, 2);
                 }
 
                 isFoldOpenedProp.boolValue = false;

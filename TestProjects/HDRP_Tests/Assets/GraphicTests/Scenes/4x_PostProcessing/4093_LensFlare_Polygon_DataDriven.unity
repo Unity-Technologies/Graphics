@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: e1df9038bfbeaf0438e3c89def22b4b2, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 745c52038ce54cc4db6982d2f0eff13b, type: 2}
   intensity: 1
   maxAttenuationDistance: 100
   maxAttenuationScale: 25
@@ -465,7 +465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: a7df08810728a714982f6d4dbe1cbd25, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 6223f4b287ad8764abc19ab39d7bb038, type: 2}
   intensity: 1
   maxAttenuationDistance: 25
   maxAttenuationScale: 100
@@ -833,7 +833,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: a7df08810728a714982f6d4dbe1cbd25, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: f9ea12ba4c2bdee41ad77fe119758a57, type: 2}
   intensity: 1
   maxAttenuationDistance: 25
   maxAttenuationScale: 100
@@ -1144,7 +1144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: a7df08810728a714982f6d4dbe1cbd25, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 6f79a0410d929a341b4a6566b4afa793, type: 2}
   intensity: 1
   maxAttenuationDistance: 25
   maxAttenuationScale: 100
@@ -1455,7 +1455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: e1df9038bfbeaf0438e3c89def22b4b2, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 3ea9b18b7f517964f879db714851d97e, type: 2}
   intensity: 1
   maxAttenuationDistance: 100
   maxAttenuationScale: 25
@@ -1766,7 +1766,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lensFlareData: {fileID: 11400000, guid: e1df9038bfbeaf0438e3c89def22b4b2, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 8e11bd473b3da584d99c50c9305e0cfb, type: 2}
   intensity: 1
   maxAttenuationDistance: 100
   maxAttenuationScale: 25

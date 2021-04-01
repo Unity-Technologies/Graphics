@@ -258,7 +258,7 @@ namespace UnityEngine
         /// </summary>
         public AnimationCurve distortionCurve;
         /// <summary>
-        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position
+        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position.
         /// </summary>
         public bool distortionRelativeToCenter;
 
@@ -366,7 +366,7 @@ namespace UnityEngine
         private static void CreateSRPLensFlareAsset()
         {
             string className = typeof(SRPLensFlareData).Name;
-            string assetName = className;
+            string assetName = "New Lens Flare";
             string folder = GetSelectedAssetFolder();
 
             string[] standardNames = new string[] { "Asset", "Attributes", "Container" };
