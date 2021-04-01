@@ -84,6 +84,43 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     }
 }
 
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
+    const float4 kRadarColors[12] =
+    {
+        float4(0.0, 0.0, 0.0, 0.0),   // 0 black
+        float4(0.0, 0.0, 0.6, 0.5),   // 1 dark blue
+        float4(0.0, 0.0, 0.9, 0.5),   // 2 blue
+        float4(0.0, 0.6, 0.9, 0.5),   // 3 light blue
+        float4(0.0, 0.9, 0.9, 0.5),   // 4 cyan
+        float4(0.0, 0.9, 0.6, 0.5),   // 5 blueish green
+        float4(0.0, 0.9, 0.0, 0.5),   // 6 green
+        float4(0.6, 0.9, 0.0, 0.5),   // 7 yellowish green
+        float4(0.9, 0.9, 0.0, 0.5),   // 8 yellow
+        float4(0.9, 0.6, 0.0, 0.5),   // 9 orange
+        float4(0.9, 0.0, 0.0, 0.5),   // 10 dark red
+        float4(1.0, 0.0, 0.0, 0.9)    // 11 strong red
+    };
+
+    int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
+    colorIndex = clamp(colorIndex, 0, 11);
+    float4 col = kRadarColors[colorIndex];
+
+    int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+    if (n >= 0)
+    {
+        if (SampleDebugFontNumber(coord, n))        // Shadow
+            color = float4(0, 0, 0, 1);
+        if (SampleDebugFontNumber(coord + 1, n))    // Text
+            color = float4(1, 1, 1, 1);
+    }
+    return color;
+}
+
 float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
 {
     // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)

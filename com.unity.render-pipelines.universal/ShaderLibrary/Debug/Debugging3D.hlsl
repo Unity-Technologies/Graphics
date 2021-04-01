@@ -231,7 +231,21 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
     // Assume a main light and add 1 to the additional lights.
     int numLights = GetAdditionalLightsCount() + 1;
 
-    return CalculateDebugColorWithNumber(inputData.positionWS, surfaceData.albedo, numLights);
+    const uint2 tileSize = uint2(32,32);
+    const uint maxLights = 9;
+    const float opacity = 0.8f;
+
+    uint2 pixelCoord = uint2(inputData.normalizedScreenSpaceUV * _ScreenParams.xy);
+    half3 base = surfaceData.albedo;
+    half4 overlay = half4(OverlayHeatMap(pixelCoord, tileSize, numLights, maxLights, opacity));
+
+    int2 tileCoord = (float2)pixelCoord / tileSize;
+    int2 offsetInTile = pixelCoord - tileCoord * tileSize;
+    bool border = any(offsetInTile == 0 || offsetInTile == tileSize.x - 1);
+    if (border)
+        overlay = half4(1, 1, 1, 0.4f);
+
+    return half4(lerp(base.rgb, overlay.rgb, overlay.a), 1);
 }
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
