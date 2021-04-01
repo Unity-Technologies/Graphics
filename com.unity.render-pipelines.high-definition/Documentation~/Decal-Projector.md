@@ -1,6 +1,6 @@
 # Decal Projector
 
-The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
+The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
 
 The Decal Projector also supports [Decal Layers](Decal.md) which means you can control which Materials receive decals on a Layer by Layer basis.
 
@@ -38,6 +38,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
+| **Scale Mode**          | The scaling mode to apply to decals that use this Decal Projector. The options are:<br/>&#8226; **Scale Invariant**: Ignores the transformation hierarchy and uses the scale values in this component directly.<br/>&#8226; **Inherit from Hierarchy**: Multiplies the [lossy scale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) of the Transform with the Decal Projector's own scale then applies this to the decal. Note that since the Decal Projector uses orthogonal projection, if the transformation hierarchy is [skewed](https://docs.unity3d.com/Manual/class-Transform.html), the decal does not scale correctly. |
 | **Size**                | The size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along the local x-axis) and **Height** (along the local y-axis) components of the **Size**. |
 | **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local z-axis. |
 | **Pivot**               | The offset position of the transform regarding the projection box. To  rotate the projected texture around a specific position, adjust the **X** and **Y** values. To set a depth offset for the projected texture, adjust the **Z** value. |
@@ -54,7 +55,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
-- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
+- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
 - Decal Emissive isn't supported on Transparent Material.
 - The **Receive Decals** property of Materials in HDRP does not affect emissive decals. HDRP always renders emissive decals unless you use Decal Layers, which can disable emissive decals on a Layer by Layer basis.
 - If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.

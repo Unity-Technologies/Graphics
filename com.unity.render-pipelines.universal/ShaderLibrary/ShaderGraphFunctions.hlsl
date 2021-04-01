@@ -54,10 +54,12 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
     return DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, lod), unity_SpecCube0_HDR);
 }
 
-void shadergraph_LWFog(float3 position, out float4 color, out float density)
+void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
-    density = ComputeFogFactor(TransformObjectToHClip(position).z);
+    float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
+    float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    density = 1.0f - ComputeFogIntensity(ComputeFogFactorZ0ToFar(nearZ0ToFarZ));
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w

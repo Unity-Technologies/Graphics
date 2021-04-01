@@ -18,9 +18,9 @@ VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -28,7 +28,7 @@ VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
     name: Build VFX_URP on Linux_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:
@@ -40,14 +40,14 @@ Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --timeout=1200
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -67,14 +67,14 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -91,14 +91,14 @@ VFX_URP_Linux_OpenGLCore_playmode_cache_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -115,14 +115,14 @@ VFX_URP_Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -139,14 +139,14 @@ VFX_URP_Linux_OpenGLCore_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -163,14 +163,14 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -188,19 +188,19 @@ VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_URP on Linux_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
@@ -213,14 +213,14 @@ Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-RE
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --timeout=1200
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -230,8 +230,8 @@ Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-RE
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -244,22 +244,22 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -272,22 +272,22 @@ VFX_URP_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -300,22 +300,22 @@ VFX_URP_Linux_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -328,22 +328,22 @@ VFX_URP_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision
 VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -356,19 +356,19 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      -  chmod +x utr
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_URP/utr
-      -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=../.. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=. --zero-tests-are-ok=1
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+         rerun: on_new_revision

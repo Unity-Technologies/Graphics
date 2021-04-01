@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    static class HDAssetFactory
+    static partial class HDAssetFactory
     {
         static string s_RenderPipelineResourcesPath
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
                 newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
-                EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(newAsset);
+                HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
 
                 //as we must init the editor resources with lazy init, it is not required here
 
@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/HDRP Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateHDRenderPipeline()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var newAsset = CreateInstance<RenderPipelineResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
+                // to prevent cases when the asset existed prior but then when upgrading the package, there is null field inside the resource asset
                 ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
 
                 AssetDatabase.CreateAsset(newAsset, pathName);
@@ -59,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateRenderPipelineResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -81,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Ray Tracing Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Ray Tracing Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
         static void CreateRenderPipelineRayTracingResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
@@ -103,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Hide: User aren't suppose to have to create it.
-        //[MenuItem("Assets/Create/Rendering/High Definition Render Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        //[MenuItem("Assets/Create/Rendering/HDRP Editor Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void CreateRenderPipelineEditorResources()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
