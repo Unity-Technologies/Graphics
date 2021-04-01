@@ -97,7 +97,7 @@ float3 GetElementSize(Attributes attributes)
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index)
 {
-    const Attributes attributes;
+    Attributes attributes;
     ZERO_INITIALIZE(Attributes, attributes);
 
     // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
