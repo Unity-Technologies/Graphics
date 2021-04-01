@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering
         private bool m_GreedyDilation = false;
 
         Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
+        MeshGizmo cellGizmo;
 
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering
             foreach (var meshGizmo in brickGizmos.Values)
                 meshGizmo.Dispose();
             brickGizmos.Clear();
+            cellGizmo?.Dispose();
 
             m_PrevAsset = null;
 
@@ -251,6 +253,9 @@ namespace UnityEngine.Rendering
                 // preview how cells will look before they commit to a bake.
                 Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
                 Gizmos.matrix = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
+                if (cellGizmo == null)
+                    cellGizmo = new MeshGizmo();
+                cellGizmo.Clear();
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
                     if (ShouldCull(cell.position, transform.position))
@@ -259,7 +264,9 @@ namespace UnityEngine.Rendering
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
                     var center = positionF * m_Profile.cellSize + m_Profile.cellSize * 0.5f * Vector3.one;
                     Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSize);
+                    cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSize, new Color(0, 1, 0.5f, 1));
                 }
+                cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
         }
 

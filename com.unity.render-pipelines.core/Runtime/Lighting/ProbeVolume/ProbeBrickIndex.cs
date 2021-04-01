@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         public struct Brick
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            public int subdivisionLevel;
+            public int subdivisionLevel;              // size as factor covered elementary cells
 
             internal Brick(Vector3Int position, int subdivisionLevel)
             {
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
         private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
         private HeightRange[] m_HeightRanges;
 #if !USE_NATIVE_ARRAY
-        private int[]         m_TmpUpdater;
+        private int[]         m_TmpUpdater = new int[Mathf.Max(kAPVConstantsSize, ProbeReferenceVolume.CellSize(15) + 1)];
 #endif
         private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
@@ -81,7 +81,6 @@ namespace UnityEngine.Rendering
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured);
 #endif
             m_HeightRanges = new HeightRange[indexDimensions.x * indexDimensions.z];
-            m_TmpUpdater = new int[m_IndexBuffer.count];
             // Should be done by a compute shader
             Clear();
             Profiler.EndSample();
@@ -268,7 +267,6 @@ namespace UnityEngine.Rendering
             int posIS_x = m_CenterIS.x + volMin.x;
             int posIS_z = m_CenterIS.z + volMin.z;
             // iterate over z then x, as y needs special handling for updating the base offset
-            m_IndexBuffer.GetData(m_TmpUpdater);
             for (int z = 0; z < bsize_z; z++)
             {
                 for (int x = 0; x < bsize_x; x++)
@@ -282,15 +280,16 @@ namespace UnityEngine.Rendering
                     if (hr.min == -1)
                         continue;
 
-                    int offset = base_offset + TranslateIndex(new Vector3Int(mx, 0, mz));
-                    int start = volMin.y - hr.min + offset;
+
+                    m_IndexBuffer.GetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                    int start = volMin.y - hr.min;
                     int end = Mathf.Min(start + volCellSize, m_IndexDim.y);
                     start = Mathf.Max(start, 0);
                     for (int i = start; i < end; i++)
                         m_TmpUpdater[i] = -1;
 
                     int hmin = m_IndexDim.y, hmax = -1;
-                    for (int i = offset; i < m_IndexDim.y + offset; i++)
+                    for (int i = 0; i < m_IndexDim.y; i++)
                     {
                         if (m_TmpUpdater[i] != -1)
                         {
@@ -303,14 +302,14 @@ namespace UnityEngine.Rendering
                     {
                         hr.min = -1;
                         hr.cnt = 0;
-                        m_IndexBuffer.SetData(m_TmpUpdater, offset, offset, m_IndexDim.y);
+                        m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y);
                     }
                     else
                     {
                         hr.min += hmin;
                         hr.cnt  = hmax - hmin;
-                        m_IndexBuffer.SetData(m_TmpUpdater, hmin + offset, offset, m_IndexDim.y - hmin);
-                        m_IndexBuffer.SetData(m_TmpUpdater,    0 + offset, offset, hmin);
+                        m_IndexBuffer.SetData(m_TmpUpdater, hmin, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y - hmin);
+                        m_IndexBuffer.SetData(m_TmpUpdater,    0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hmin);
                     }
 
                     // update the column offset
