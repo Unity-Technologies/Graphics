@@ -21,8 +21,8 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     // FragInputs from VFX come from two places: Interpolator or CBuffer.
     $splice(VFXSetFragInputs)
 
-    $FragInputs.elementToWorld:     UNITY_MATRIX_M   = BuildElementToWorld(input);
-    $FragInputs.worldToElement:     UNITY_MATRIX_I_M = BuildWorldToElement(input);
+    $FragInputs.elementToWorld:     BuildElementToWorld(input);
+    $FragInputs.worldToElement:     BuildWorldToElement(input);
     #endif
 
     // splice point to copy custom interpolator fields from varyings to frag inputs

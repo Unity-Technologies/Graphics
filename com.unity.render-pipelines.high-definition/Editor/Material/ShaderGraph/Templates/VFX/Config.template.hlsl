@@ -151,31 +151,6 @@ $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS
 
-// Reconstruct the VFX/World to Element matrix provided by interpolator.
-float4x4 BuildWorldToElement(VaryingsMeshType input)
-{
-    float4x4 worldToElement;
-#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
-    worldToElement[0] = input.worldToElement0;
-    worldToElement[1] = input.worldToElement1;
-    worldToElement[2] = input.worldToElement2;
-    worldToElement[3] = float4(0,0,0,1);
-#endif
-    return worldToElement;
-}
-
-float4x4 BuildElementToWorld(VaryingsMeshType input)
-{
-    float4x4 elementToWorld;
-#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
-    elementToWorld[0] = input.elementToWorld0;
-    elementToWorld[1] = input.elementToWorld1;
-    elementToWorld[2] = input.elementToWorld2;
-    elementToWorld[3] = float4(0,0,0,1);
-#endif
-    return elementToWorld;
-}
-
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
@@ -191,6 +166,27 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
     $splice(VFXInterpolantsGeneration)
 
     return true;
+}
+
+// Reconstruct the VFX/World to Element matrix provided by interpolator.
+void BuildWorldToElement(VaryingsMeshType input)
+{
+#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    UNITY_MATRIX_I_M[0] = input.worldToElement0;
+    UNITY_MATRIX_I_M[1] = input.worldToElement1;
+    UNITY_MATRIX_I_M[2] = input.worldToElement2;
+    UNITY_MATRIX_I_M[3] = float4(0,0,0,1);
+#endif
+}
+
+void BuildElementToWorld(VaryingsMeshType input)
+{
+#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
+    UNITY_MATRIX_M[0] = input.elementToWorld0;
+    UNITY_MATRIX_M[1] = input.elementToWorld1;
+    UNITY_MATRIX_M[2] = input.elementToWorld2;
+    UNITY_MATRIX_M[3] = float4(0,0,0,1);
+#endif
 }
 
 void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
@@ -223,7 +219,7 @@ void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
     );
 
 #if VFX_LOCAL_SPACE
-    UNITY_MATRIX_I_M = mul(ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()), UNITY_MATRIX_I_M);
+    UNITY_MATRIX_I_M = mul(UNITY_MATRIX_I_M, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
 #else
     UNITY_MATRIX_I_M = ApplyCameraTranslationToInverseMatrix(UNITY_MATRIX_I_M);
 #endif
