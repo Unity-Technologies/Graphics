@@ -475,11 +475,28 @@ namespace UnityEditor.VFX
                 dst = dst.children.First();
             }
 
-            if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
+            if (copySubLinks)
             {
-                int nbSubSlots = src.GetNbChildren();
-                for (int i = 0; i < nbSubSlots; ++i)
-                    CopyLinks(dst[i], src[i], notify);
+                if (src.GetNbChildren() == dst.GetNbChildren())
+                {
+                    //If number of slot is equal, copy index by index (OrientedBox <=> Transform)
+                    foreach (var srcSlot in src.children)
+                    {
+                        int nbSubSlots = src.GetNbChildren();
+                        for (int i = 0; i < nbSubSlots; ++i)
+                            CopyLinks(dst[i], src[i], notify);
+                    }
+                }
+                else
+                {
+                    //If number slot is different, try matching by name (Sphere without angles during sanitize)
+                    foreach (var srcSlot in src.children)
+                    {
+                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name);
+                        if (dstSlot != null)
+                            CopyLinks(dstSlot, srcSlot, notify);
+                    }
+                }
             }
         }
 
