@@ -700,8 +700,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             extraData.validity = validity;
-
-            Debug.Log("HITS: " + hits);
         }
 
         private static void ResolveExtraDataRequest(ref ProbeExtraData extraData)
