@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
   - Added custom interpolator thresholds on shadergraph project settings page.
+  - Added subshadergraphs for SpeedTree8 shadergraph support: LODCrossfade, SpeedTree8Wind, SpeedTree8HueVariation, SpeedTree8Billboard.
 
 ### Changed
 - Updated/corrected View Direction doc

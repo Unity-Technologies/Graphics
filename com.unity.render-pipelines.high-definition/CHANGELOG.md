@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
+- Added a default SpeedTree8 shader to HD, including upgrader support from builtin ST8 and support for importing new ST8 assets.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
