@@ -27,8 +27,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.viewDirectionWS = viewDirWS;
 
-    output.fogCoord = (half)input.positionWS.w;
-    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
+    output.vertexLighting = half3(0.0, 0.0, 0.0);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.shadowMask = half4(1, 1, 1, 1);
@@ -49,23 +49,25 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
+
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = fogFactor;
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
 
@@ -108,7 +110,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 #endif
 
     half3 result = albedo.rgb + emission;
-    half fogFactor = input.positionWS.w;
+    half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);
 

@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// HDRP Additional light data component. It contains the light API and fields used by HDRP.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Light-Component")]
     [AddComponentMenu("")] // Hide in menu
     [RequireComponent(typeof(Light))]
     [ExecuteAlways]
@@ -1585,6 +1585,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_preserveCachedShadow = value;
             }
         }
+
+        [SerializeField]
+        bool m_OnDemandShadowRenderOnPlacement = true;
+        /// <summary>
+        /// If the shadow update mode is set to OnDemand, this parameter controls whether the shadows are rendered the first time without needing an explicit render request. If this properties is false,
+        /// the OnDemand shadows will never be rendered unless a render request is performed explicitly.
+        /// </summary>
+        public bool onDomandShadowRenderOnPlacement
+        {
+            get => m_OnDemandShadowRenderOnPlacement;
+            set
+            {
+                if (m_OnDemandShadowRenderOnPlacement == value)
+                    return;
+
+                m_OnDemandShadowRenderOnPlacement = value;
+            }
+        }
+
+        // This is a bit confusing, but it is an override to ignore the onDomandShadowRenderOnPlacement field when a light is registered for the first time as a consequence of a request for shadow update.
+        internal bool forceRenderOnPlacement = false;
 
         /// <summary>
         /// True if the light affects volumetric fog, false otherwise

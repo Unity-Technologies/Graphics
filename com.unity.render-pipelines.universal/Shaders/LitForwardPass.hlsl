@@ -65,7 +65,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.positionWS = input.positionWS;
 #endif
 
-    half3 viewDirWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 #if defined(_NORMALMAP) || defined(_DETAIL)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
@@ -85,10 +85,10 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 #else
-    inputData.fogCoord = input.fogFactor;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
 #endif
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
@@ -116,7 +116,11 @@ Varyings LitPassVertex(Attributes input)
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+
+    half fogFactor = 0;
+    #if !defined(_FOG_FRAGMENT)
+        fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    #endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
@@ -131,7 +135,7 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
 #endif
@@ -167,7 +171,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;
 #else
-    half3 viewDirWS = GetWorldSpaceViewDir(input.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
 #endif
     ApplyPerPixelDisplacement(viewDirTS, input.uv);

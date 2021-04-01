@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray Tracing
         SerializedDataParameter m_LayerMask;
+        SerializedDataParameter m_TextureLodBias;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
@@ -59,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
+            m_TextureLodBias                = Unpack(o.Find(x => x.textureLodBias));
             m_RayLength                     = Unpack(o.Find(x => x.rayLength));
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_Denoise                       = Unpack(o.Find(x => x.denoise));
@@ -80,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection.");
+        static public readonly GUIContent k_TextureLodBiasText = EditorGUIUtility.TrTextContent("Texture Lod Bias", "The LOD Bias HDRP applies to textures in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.");
         static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
         static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
         static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
@@ -143,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             PropertyField(m_ReflectSky, k_ReflectSkyText);
             PropertyField(m_LayerMask, k_LayerMaskText);
+            PropertyField(m_TextureLodBias, k_TextureLodBiasText);
 
             if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
             {

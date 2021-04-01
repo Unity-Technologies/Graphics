@@ -27,7 +27,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);

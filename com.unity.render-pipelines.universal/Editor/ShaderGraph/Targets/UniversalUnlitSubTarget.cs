@@ -224,6 +224,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.UberDefault,
                 pragmas = CorePragmas.Forward,
+                defines = CoreDefines.UseFragmentFog,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
 

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -49,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -65,7 +66,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 int cameraSamples = 0;
-
                 if (MssaSamples == -1)
                 {
                     RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -73,6 +73,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                     cameraSamples = MssaSamples;
+
+                // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
+                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0)
+                    cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
 
@@ -96,7 +100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
                         break;
 
-                    // MSAA disabled
+                    // MSAA disabled, auto resolve supported or ms textures not supported
                     default:
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);

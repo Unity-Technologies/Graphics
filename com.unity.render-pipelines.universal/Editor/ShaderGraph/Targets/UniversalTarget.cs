@@ -598,7 +598,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -606,7 +606,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -615,7 +615,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.Vertex("vert") },
@@ -748,6 +748,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly DefineCollection UseLegacySpriteBlocks = new DefineCollection
         {
             { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
+        };
+
+        public static readonly DefineCollection UseFragmentFog = new DefineCollection()
+        {
+            {CoreKeywordDescriptors.UseFragmentFog, 1},
         };
     }
     #endregion
@@ -953,6 +958,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "USELEGACYSPRITEBLOCKS",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
+        {
+            displayName = "UseFragmentFog",
+            referenceName = "_FOG_FRAGMENT 1",
+            type = KeywordType.Boolean,
+        };
     }
     #endregion
 
@@ -990,7 +1002,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
             // this entry point allows for the function to be defined before it is used.
-            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC")
+            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC", "FEATURES_GRAPH_VERTEX")
         };
     }
     #endregion

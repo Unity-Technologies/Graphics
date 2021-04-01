@@ -413,7 +413,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.Forward,
 
@@ -462,7 +462,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = pragmas ?? CorePragmas.Forward,    // NOTE: SM 2.0 only GL
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.Forward,
 
@@ -510,7 +510,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = CorePragmas.DOTSGBuffer,
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.GBuffer,
 
@@ -549,6 +549,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.Default,
+                defines = CoreDefines.UseFragmentFog,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
 
