@@ -840,6 +840,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
+                    //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
+                    // on these buffers, however the final vbuffer will be wasting resolution. This requires a bit of more work to optimize.
                     passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
