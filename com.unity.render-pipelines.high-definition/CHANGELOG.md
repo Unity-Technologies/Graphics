@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ### Fixed
 - Fixed probe volumes debug views.

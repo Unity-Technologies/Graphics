@@ -96,6 +96,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1224_Lit_Tesselation_Culling.unity
     guid: e6dbeb027fe017c41839dd2fcfc728f3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1225_Lit_SpeedTree8SG.unity
+    guid: 693e050797cc4554ea8c9c33d2f879c5
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
