@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor
 {
-    // Used for ShaderGraph Lit shaders
+    // Used for ShaderGraph Unlit shaders
     class URPUnlitGUI : BaseShaderGUI
     {
         public static void UpdateMaterial(Material material)

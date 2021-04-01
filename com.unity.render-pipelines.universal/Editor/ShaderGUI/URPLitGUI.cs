@@ -60,6 +60,8 @@ namespace UnityEditor
         public override void DrawSurfaceInputs(Material material)
         {
             DrawShaderGraphProperties(material);
+            if ((emissionMapProp != null) && (emissionColorProp != null))
+                DrawEmissionProperties(material, true);
         }
     }
 } // namespace UnityEditor

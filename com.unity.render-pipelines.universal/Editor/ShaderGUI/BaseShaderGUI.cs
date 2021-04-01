@@ -403,12 +403,11 @@ namespace UnityEditor
             SetupMaterialBlendMode(material);
 
             // Cast Shadows
-            bool castShadows = true;
             if (material.HasProperty(Property.CastShadows))
             {
-                castShadows = (material.GetFloat(Property.CastShadows) != 0.0f);
+                bool castShadows = (material.GetFloat(Property.CastShadows) != 0.0f);
+                material.SetShaderPassEnabled("ShadowCaster", castShadows);
             }
-            material.SetShaderPassEnabled("ShadowCaster", castShadows);
 
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
