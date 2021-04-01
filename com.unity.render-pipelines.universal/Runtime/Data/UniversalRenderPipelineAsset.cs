@@ -940,9 +940,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (k_AssetVersion < 9)
             {
-                if (m_AdditionalLightsShadowResolutionTierHigh == AdditionalLightsDefaultShadowResolutionTierHigh &&
-                    m_AdditionalLightsShadowResolutionTierMedium == AdditionalLightsDefaultShadowResolutionTierMedium &&
-                    m_AdditionalLightsShadowResolutionTierLow == AdditionalLightsDefaultShadowResolutionTierLow)
+                bool assetContainsCustomAdditionalLightShadowResolutions =
+                    m_AdditionalLightsShadowResolutionTierHigh != AdditionalLightsDefaultShadowResolutionTierHigh ||
+                    m_AdditionalLightsShadowResolutionTierMedium != AdditionalLightsDefaultShadowResolutionTierMedium ||
+                    m_AdditionalLightsShadowResolutionTierLow != AdditionalLightsDefaultShadowResolutionTierLow;
+
+                if (!assetContainsCustomAdditionalLightShadowResolutions)
                 {
                     // if all resolutions are still the default values, we assume that they have never been customized and that it is safe to upgrade them to fit better the Additional Lights Shadow Atlas size
                     m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
