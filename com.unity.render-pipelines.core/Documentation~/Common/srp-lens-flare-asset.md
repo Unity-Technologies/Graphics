@@ -63,22 +63,33 @@ The Lens Flare Element asset has the following properties:
 | Roundness    | Defines how smooth the edges of the polygon flare are. This value ranges from 0 to 1, where 0 is a sharp polygon and 1 is a circle. |
 | Inverse      | Enable this property to reverse the direction of the gradient |
 
-<a name="Common"></a>
+<a name="Color"></a>
 
-## Common
+## Color
 
-![](images/LensFlareCommon.png)
+![](images/LensFlareColor.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| Intensity               | Controls the intensity of this element.                      |
 | Tint                    | Changes the tint of the lens flare. If this asset is attached to the light, this property is based on the light tint. |
-| Blend Mode              | Select the blend mode of the Lens Flare Element this asset creates:<br />• Additive  <br />• Screen  <br />• Premultiplied <br />• Lerp |
 | Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](srp-lens-flare-component.md) that is attached to a light |
+| Intensity               | Controls the intensity of this element.                      |
+| Blend Mode              | Select the blend mode of the Lens Flare Element this asset creates:<br />• Additive  <br />• Screen  <br />• Premultiplied <br />• Lerp |
+
+<a name="Transform"></a>
+
+## Transform
+
+![](images/LensFlareTransform.png)
+
+| **Property**            | **Description**                                              |
+| ----------------------- | ------------------------------------------------------------ |
+| Position Offset   | Defines the offset of the lens flare's position in screen space, relative to its source. |
+| Auto Rotate             | Enable this property to automatically rotate the Lens Flare Texture relative to its angle on the screen. Unity uses the **Auto Rotate** angle to override the **Rotation** parameter. <br/><br/> To ensure the Lens Flare can rotate, assign a value greater than 0 to the [**Starting Position**](#AxisTransform)  property. |
 | Rotation                | Rotates the lens flare. This value operates in degrees of rotation. |
 | Size                    | Use this to adjust the scale of this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
 | Scale                   | The size of this lens flare element in world space.          |
-| Auto Rotate             | Enable this property to automatically rotate the Lens Flare Texture relative to its angle on the screen. Unity uses the **Auto Rotate** angle to override the **Rotation** parameter. <br/><br/> To ensure the Lens Flare can rotate, assign a value greater than 0 to the [**Starting Position**](#AxisTransform)  property. |
+
 
 <a name="AxisTransform"></a>
 
@@ -89,7 +100,6 @@ The Lens Flare Element asset has the following properties:
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
 | Starting Position | Defines the starting position of the lens flare relative to its source. This value operates in screen space. |
-| Position Offset   | Defines the offset of the lens flare's position in screen space, relative to its source. |
 | Angular Offset    | Controls the angular offset of the lens flare, relative to its current position. This value operates in degrees of rotation. |
 | Translation Scale | Limits the size of the lens flare offset. For example, values of (1, 0) create a horizontal lens flare, and (0, 1) create a vertical lens flare. <br/><br/>You can also use this property to control how quickly the lens flare appears to move. For example, values of (0.5, 0.5) make the lens flare element appear to move at half the speed. |
 
