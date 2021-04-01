@@ -2649,6 +2649,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         });
 
                     source = passData.destination;
+
+                    PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
                 }
             }
 
@@ -2664,12 +2666,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
         {
-            LensFlareParameters parameters;// =
-                //new LensFlareParameters();
+            LensFlareParameters parameters;
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
-            parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
+            parameters.skipCopy =
+                //m_CurrentDebugDisplaySettings.data.showLensFlareDataDrivenOnly;
+                m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             return parameters;
         }

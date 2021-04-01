@@ -1742,16 +1742,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
             }
-            else if (data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven)
-            {
-                widgetList.Add(new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.BoolField {displayName = "Lens Flare Data Driven Only", getter = () => data.showLensFlareDataDrivenOnly, setter = value => data.showLensFlareDataDrivenOnly = value}
-                    }
-                });
-            }
 
             widgetList.AddRange(new DebugUI.Widget[]
             {
