@@ -72,5 +72,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    outAlbedo.xyz = surfaceData.baseColor;
+#ifdef UNLIT
+    outAlbedo.xyz = surfaceData.color;
+#else
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
+    outAlbedo.xyz = GetDiffuseOrDefaultColor(bsdfData, 1.0).xyz;
+#endif
 }

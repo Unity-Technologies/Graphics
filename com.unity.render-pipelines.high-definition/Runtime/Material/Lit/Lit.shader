@@ -556,9 +556,6 @@ Shader "HDRP/Lit"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_GEN
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -571,7 +568,6 @@ Shader "HDRP/Lit"
             #pragma fragment Frag
 
             ENDHLSL
-
         }
 
         Pass

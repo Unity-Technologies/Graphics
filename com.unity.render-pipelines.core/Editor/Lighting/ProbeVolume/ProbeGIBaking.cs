@@ -292,8 +292,6 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
 
             if (supportsDynamicPropagation)
             {
@@ -301,6 +299,10 @@ namespace UnityEngine.Rendering
                 ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(bakingReferenceVolumeAuthoring.transform.position,
                                                                               bakingReferenceVolumeAuthoring.transform.localScale);
             }
+
+
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
 
             foreach (var refVol in refVol2Asset.Keys)
             {

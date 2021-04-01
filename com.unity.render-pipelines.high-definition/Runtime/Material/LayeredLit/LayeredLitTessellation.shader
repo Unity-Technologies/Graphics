@@ -756,6 +756,33 @@ Shader "HDRP/LayeredLitTessellation"
 
         Pass
         {
+            Name "DynamicGIDataGen"
+            Tags{ "LightMode" = "DynamicGIDataGen" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+            // No tessellation for Meta pass
+            #undef TESSELLATION_ON
+
+            #define SHADERPASS SHADERPASS_DYNAMIC_GIDATA_GEN
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataGen.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "MotionVectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
