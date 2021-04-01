@@ -157,7 +157,7 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX
+  - name: OSX_Apple_Silicon
     apis:
       - name: Metal
         exclude_test_platforms:
