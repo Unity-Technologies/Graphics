@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static class Styles
         {
-            public const string optionText = "Surface Options";
+            public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Surface Options");
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
@@ -297,7 +297,6 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
-        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
 
@@ -308,8 +307,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerCount">Number of layers available in the shader.</param>
         /// <param name="features">Features of the block.</param>
         public SurfaceOptionUIBlock(ExpandableBit expandableBit, int layerCount = 1, Features features = Features.All)
+            : base(expandableBit, Styles.optionText)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
         }
@@ -420,19 +419,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.optionText, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                    DrawSurfaceOptionGUI();
-            }
-        }
-
-        /// <summary>
-        /// Draws the entire Surface Options GUI.
-        /// </summary>
-        protected void DrawSurfaceOptionGUI()
+        protected override void OnGUIOpen()
         {
             if ((m_Features & Features.Surface) != 0)
                 DrawSurfaceGUI();
