@@ -20,7 +20,7 @@ platforms:
     color_spaces:
       - Linear
 expression_trigger:
-  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 pr:
   dependencies:
     - platform: Win
