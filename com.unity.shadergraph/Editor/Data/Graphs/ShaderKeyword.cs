@@ -160,10 +160,13 @@ namespace UnityEditor.ShaderGraph
 
         public void AppendKeywordDeclarationStrings(ShaderStringBuilder builder)
         {
-            if (keywordType == KeywordType.Boolean)
-                KeywordUtil.GenerateBooleanKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, str => builder.AppendLine(str));
-            else
-                KeywordUtil.GenerateEnumKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, entries, str => builder.AppendLine(str));
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                if (keywordType == KeywordType.Boolean)
+                    KeywordUtil.GenerateBooleanKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, str => builder.AppendLine(str));
+                else
+                    KeywordUtil.GenerateEnumKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, entries, str => builder.AppendLine(str));
+            }
         }
 
         public string GetKeywordPreviewDeclarationString()

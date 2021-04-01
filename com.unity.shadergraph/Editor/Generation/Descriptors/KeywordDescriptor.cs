@@ -14,10 +14,13 @@ namespace UnityEditor.ShaderGraph
 
         public void AppendKeywordDeclarationStrings(ShaderStringBuilder builder)
         {
-            if (type == KeywordType.Boolean)
-                KeywordUtil.GenerateBooleanKeywordPragmaStrings(referenceName, definition, scope, stages, str => builder.AppendLine(str));
-            else
-                KeywordUtil.GenerateEnumKeywordPragmaStrings(referenceName, definition, scope, stages, entries, str => builder.AppendLine(str));
+            if (definition != KeywordDefinition.Predefined)
+            {
+                if (type == KeywordType.Boolean)
+                    KeywordUtil.GenerateBooleanKeywordPragmaStrings(referenceName, definition, scope, stages, str => builder.AppendLine(str));
+                else
+                    KeywordUtil.GenerateEnumKeywordPragmaStrings(referenceName, definition, scope, stages, entries, str => builder.AppendLine(str));
+            }
         }
     }
 }

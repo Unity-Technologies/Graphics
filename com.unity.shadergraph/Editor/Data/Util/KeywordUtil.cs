@@ -116,9 +116,12 @@ namespace UnityEditor.ShaderGraph
             IEnumerable<KeywordEntry> keywordEntries,
             Action<string> pragmaStringAction)
         {
-            var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
-            string variantsString = string.Join(" ", entryStrings);
-            GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
+                string variantsString = string.Join(" ", entryStrings);
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
         }
 
         public static void GenerateBooleanKeywordPragmaStrings(
@@ -128,8 +131,11 @@ namespace UnityEditor.ShaderGraph
             KeywordShaderStage keywordStages,
             Action<string> pragmaStringAction)
         {
-            string variantsString = $"_ {keywordReferenceName}";
-            GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                string variantsString = $"_ {keywordReferenceName}";
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
         }
 
         public static string ToKeywordStagesString(this KeywordShaderStage stages)
