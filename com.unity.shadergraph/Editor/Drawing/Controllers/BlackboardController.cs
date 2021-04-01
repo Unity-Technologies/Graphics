@@ -122,6 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
+                    
                     copiedShaderInput = copiedProperty;
                     break;
 
@@ -148,6 +149,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            foreach (var category in graphData.categories)
+            {
+                if (category.IsItemInCategory(shaderInputToCopy))
+                {
+                    graphData.AddItemToCategory(category.objectId, copiedShaderInput);
+                    return;
+                }
+            }
+
+            foreach(var category in graphData.categories)
+            {
+                foreach(var child in category.Children)
+                {
+                    if(child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
+                    {
+                        graphData.AddItemToCategory(category.objectId, copiedShaderInput);
+                        return;
+                    }
+                }
+            }
+
         }
 
         public Action<GraphData> modifyGraphDataAction => CopyShaderInput;
