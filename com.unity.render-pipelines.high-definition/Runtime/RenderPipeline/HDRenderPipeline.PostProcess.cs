@@ -2730,9 +2730,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
         }
 
-#endregion
+        #endregion
 
-#region Motion Blur
+        #region Motion Blur
 
         class MotionBlurData
         {
@@ -3052,9 +3052,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-#endregion
+        #endregion
 
-#region Panini Projection
+        #region Panini Projection
         Vector2 CalcViewExtents(HDCamera camera)
         {
             float fovY = camera.camera.fieldOfView * Mathf.Deg2Rad;
@@ -3169,9 +3169,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-#endregion
+        #endregion
 
-#region Bloom
+        #region Bloom
 
         class BloomData
         {
@@ -3396,9 +3396,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return bloomTexture;
         }
 
-#endregion
+        #endregion
 
-#region Color Grading
+        #region Color Grading
         class ColorGradingPassData
         {
             public ComputeShader builderCS;
@@ -3707,9 +3707,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#endregion
+        #endregion
 
-#region Uber Post
+        #region Uber Post
         // Grabs all active feature flags
         UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
         {
@@ -3996,9 +3996,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-#endregion
+        #endregion
 
-#region FXAA
+        #region FXAA
         class FXAAData
         {
             public ComputeShader fxaaCS;
@@ -4043,9 +4043,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-#endregion
+        #endregion
 
-#region CAS
+        #region CAS
         class CASData
         {
             public ComputeShader casCS;
@@ -4106,9 +4106,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-#endregion
+        #endregion
 
-#region Final Pass
+        #region Final Pass
 
         class FinalPassData
         {
@@ -4290,6 +4290,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#endregion
+        #endregion
     }
 }
