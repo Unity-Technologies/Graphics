@@ -480,7 +480,7 @@ namespace UnityEditor.VFX
                 if (GraphicsSettings.currentRenderPipeline != null)
                     srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null && unsupportedSRPWarningIssued)
+                if (binder == null && !unsupportedSRPWarningIssued)
                 {
                     Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
                     unsupportedSRPWarningIssued = true;

@@ -987,15 +987,9 @@ namespace UnityEditor.VFX
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progress) in an empty graph.
-            if (m_Graph.children.Count() < 1)
-            {
-                CleanRuntimeData();
-                return;
-            }
-
-            // Check whether current SRP is supported or not
-            if (VFXLibrary.currentSRPBinder == null)
+            // Early out in case: (Not even displaying the popup)
+            if (m_Graph.children.Count() < 1 ||         // Graph is empty
+                VFXLibrary.currentSRPBinder == null)    // One of supported SRPs is not current SRP
             {
                 CleanRuntimeData();
                 return;
