@@ -86,10 +86,6 @@ public class HDRP_GraphicTestRunner
                 WaitFunction(useBackBuffer);
         }
 
-        // Force clear all the history buffers
-        if (useBackBuffer)
-            hdCamera.RequestClearHistoryBuffers();
-
         // Reset temporal effects on hdCamera
         HDCamera.GetOrCreate(camera).Reset();
 
