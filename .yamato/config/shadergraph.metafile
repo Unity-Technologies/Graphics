@@ -68,6 +68,11 @@ platforms:
         exclude_test_platforms:
           - name: Standalone
           - name: Standalone_cache
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
     build_configs:
       - name: mono
     color_spaces:
@@ -174,3 +179,9 @@ nightly:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+    - platform: OSX_Apple_Silicon
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
