@@ -102,18 +102,12 @@ namespace UnityEditor.VFX
 
         public sealed override string GetCodeString(string[] parents)
         {
-            var expectedStride = Marshal.SizeOf(m_SampledType);
             var buffer = parents[0];
             var index = parents[1];
             var stride = parents[2];
             var count = parents[3];
 
-            var condition = string.Format("{0} < {1} && {2} == {3}", index, count, stride, expectedStride);
-            var sampling = string.Format("{0}[(int){1}].{2}", buffer, index, m_FieldPath);
-            var defaultValue = string.Format("({0})0", TypeToCode(m_FieldType));
-
-            //TODOPAUL : missing [branch] here, see https://unity.slack.com/archives/C06TQ1HNE/p1598612484066000?thread_ts=1598608186.055100&cid=C06TQ1HNE
-            return string.Format("{0} ? {1} : {2}", condition, sampling, defaultValue);
+            return string.Format("SampleStructuredBuffer({0}, {1}, {2}, {3}).{4}", buffer, index, stride, count, m_FieldPath);
         }
     }
 }

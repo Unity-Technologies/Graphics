@@ -6,6 +6,7 @@ using System.Globalization;
 using UnityEngine;
 using UnityEngine.VFX;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace UnityEditor.VFX
 {
@@ -265,11 +266,30 @@ namespace UnityEditor.VFX
                     if (type == null)
                         throw new NullReferenceException();
 
-                    //TODOPAUL : Define properly helper & avoid multiple declaration
-
+                    //TODOPAUL : avoid multiple declaration
                     string structureName;
                     GenerateStructureCode(type, out structureName, this);
+
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
+
+                    //TODOPAUL macro ?
+                    var expectedStride = Marshal.SizeOf(type);
+                    WriteLineFormat("{0} SampleStructuredBuffer(StructuredBuffer<{0}> buffer, uint index, uint actualStride, uint actualCount)", structureName);
+                    {
+                        WriteLine("{");
+                        Indent();
+
+                        WriteLine("[branch]");
+                        WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
+                        {
+                            Indent();
+                            WriteLine("return buffer[(int)index];");
+                            Deindent();
+                        }
+                        WriteLineFormat("return ({0})0;", structureName);
+                        Deindent();
+                        WriteLine("}");
+                    }
                 }
                 else
                 {
