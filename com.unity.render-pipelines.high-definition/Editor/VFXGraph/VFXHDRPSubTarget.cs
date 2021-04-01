@@ -20,12 +20,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement1),
             new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement2),
 
-            new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld0),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld1),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld2),
+
+            // Note: Normal is dependent on elementToWorld for inverse transpose multiplication.
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             HDStructFields.FragInputs.elementToWorld),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,            HDStructFields.FragInputs.worldToElement),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,          HDStructFields.FragInputs.worldToElement),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,           HDStructFields.FragInputs.worldToElement),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
+
+            new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld)
         };
 
         static VFXHDRPSubTarget()
@@ -240,6 +247,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement0);
             fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement1);
             fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement2);
+
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld2);
 
             interpolator.fields = fields.ToArray();
             return interpolator;

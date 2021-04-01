@@ -97,7 +97,8 @@ float3 GetElementSize(Attributes attributes)
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index)
 {
-    struct Attributes attributes = (Attributes)0;
+    const Attributes attributes;
+    ZERO_INITIALIZE(Attributes, attributes);
 
     // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
     $splice(VFXLoadPositionAttribute)
@@ -163,14 +164,16 @@ float4x4 BuildWorldToElement(VaryingsMeshType input)
     return worldToElement;
 }
 
-float3 TransformWorldToElement(float4x4 worldToElement, float3 position)
+float4x4 BuildElementToWorld(VaryingsMeshType input)
 {
-    return mul(worldToElement, float4(position, 1)).xyz;
-}
-
-float3 TransformWorldToElementDir(float4x4 worldToElement, float3 direction)
-{
-    return normalize(mul((float3x3)worldToElement, direction));
+    float4x4 elementToWorld;
+#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
+    elementToWorld[0] = input.elementToWorld0;
+    elementToWorld[1] = input.elementToWorld1;
+    elementToWorld[2] = input.elementToWorld2;
+    elementToWorld[3] = float4(0,0,0,1);
+#endif
+    return elementToWorld;
 }
 
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
@@ -187,81 +190,56 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 
     $splice(VFXInterpolantsGeneration)
 
-    #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
-    float4x4 worldToElement = GetVFXToElementMatrix(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-        float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-        GetElementSize(element.attributes),
-        attributes.position
-    );
-
-    #ifdef VFX_LOCAL_SPACE
-    worldToElement = mul(worldToElement, VFXGetWorldToObjectMatrix());
-    #else
-
-    // We still must handle the camera relative case for world space particles since they do not recieve the world matrix (which contains the camera pre-translation).
-    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-        float4x4 relativeToAbsolute = float4x4
-        (
-            1, 0, 0, _WorldSpaceCameraPos.x,
-            0, 1, 0, _WorldSpaceCameraPos.y,
-            0, 0, 1, _WorldSpaceCameraPos.z,
-            0, 0, 0, 1
-        );
-
-        worldToElement = mul(worldToElement, relativeToAbsolute);
-    #endif
-
-    #endif // VFX_LOCAL_SPACE
-
-    // Pack into interpolator
-    output.worldToElement0 = worldToElement[0];
-    output.worldToElement1 = worldToElement[1];
-    output.worldToElement2 = worldToElement[2];
-    #endif
-
     return true;
 }
 
-// Transform utility for going from object space into particle space.
-// For the current frame, this is done by constructing the particle (element) space matrix.
-// For the previous frame, the element matrices are cached and read back by the mesh element index.
-AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement element)
+void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
 {
-    float3 size = GetElementSize(element.attributes);
-
-    float4x4 elementToVFX = GetElementToVFXMatrix(
+    // Element -> World
+    UNITY_MATRIX_M = GetElementToVFXMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
         float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
         float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
-        size,
+        GetElementSize(element.attributes),
         element.attributes.position);
 
-    input.positionOS = mul(elementToVFX, float4(input.positionOS, 1.0f)).xyz;
+#if VFX_LOCAL_SPACE
+    UNITY_MATRIX_M = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), UNITY_MATRIX_M);
+#else
+    UNITY_MATRIX_M = ApplyCameraTranslationToMatrix(UNITY_MATRIX_M);
+#endif
 
-#if defined(ATTRIBUTES_NEED_NORMAL) || defined(ATTRIBUTES_NEED_TANGENT)
-    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+    // World -> Element
+    UNITY_MATRIX_I_M = GetVFXToElementMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
-        float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
-        size);
+        float3(element.attributes.angleX,element.attributes.angleY,element.attributes.angleZ),
+        float3(element.attributes.pivotX,element.attributes.pivotY,element.attributes.pivotZ),
+        GetElementSize(element.attributes),
+        element.attributes.position
+    );
+
+#if VFX_LOCAL_SPACE
+    UNITY_MATRIX_I_M = mul(ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()), UNITY_MATRIX_I_M);
+#else
+    UNITY_MATRIX_I_M = ApplyCameraTranslationToInverseMatrix(UNITY_MATRIX_I_M);
 #endif
 
-#ifdef ATTRIBUTES_NEED_NORMAL
-    input.normalOS = normalize(mul(elementToVFX_N, input.normalOS));
+    // Pack matrices into interpolator if requested by any node.
+#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
+    output.elementToWorld0 = UNITY_MATRIX_M[0];
+    output.elementToWorld1 = UNITY_MATRIX_M[1];
+    output.elementToWorld2 = UNITY_MATRIX_M[2];
 #endif
 
-#ifdef ATTRIBUTES_NEED_TANGENT
-    input.tangentOS = float4(normalize(mul(elementToVFX_N, input.tangentOS.xyz)), input.tangentOS.w);
+#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    output.worldToElement0 = UNITY_MATRIX_I_M[0];
+    output.worldToElement1 = UNITY_MATRIX_I_M[1];
+    output.worldToElement2 = UNITY_MATRIX_I_M[2];
 #endif
-
-    return input;
 }
 
 AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesElement element)
@@ -290,31 +268,6 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesEl
 
     return input;
 }
-
-// Here we define some overrides of the core space transforms.
-// VFX lets users work in two spaces: Local and World.
-// Local means local to "Particle Space" (or Element) which in this case we treat similarly to Object Space.
-// World means that position users define in their graph are placed in the absolute world.
-// Becuase of these two spaces we must be careful how we transform into world space for current and previous frame.
-#define TransformObjectToWorld TransformObjectToWorldVFX
-float3 TransformObjectToWorldVFX(float3 positionOS)
-{
-    float3 positionWS = TransformPositionVFXToWorld(positionOS);
-
-#ifdef VFX_WORLD_SPACE
-    positionWS = GetCameraRelativePositionWS(positionOS);
-#endif
-
-    return positionWS;
-}
-
-#ifdef VFX_WORLD_SPACE
-#define TransformPreviousObjectToWorld TransformPreviousObjectToWorldVFX
-float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
-{
-    return GetCameraRelativePositionWS(positionOS);
-}
-#endif
 
 // Vertex + Pixel Graph Properties Generation
 void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)

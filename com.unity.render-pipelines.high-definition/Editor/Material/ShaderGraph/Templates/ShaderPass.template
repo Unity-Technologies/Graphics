@@ -29,11 +29,11 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-	$features.graphVFX: #define HAVE_VFX_MODIFICATION
 
     // [NOTE-FRAG-INPUTS]
     // Omit the HDRP FragInput struct definition since VFX provides an arbitrary number of interpolators
@@ -79,6 +79,7 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
     $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
