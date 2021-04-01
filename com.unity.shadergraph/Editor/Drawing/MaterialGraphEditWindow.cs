@@ -457,6 +457,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
+            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasSavedChanges).
+            // There's unfortunately a code path (Reload Window) that doesn't go through this path. The old logic is left
+            // here as a fallback to catch this. This does unfortunately produce a double prompt right now on "Discard" though.
+
             // we are closing the shadergraph window
             MaterialGraphEditWindow newWindow = null;
             if (!PromptSaveIfDirtyOnQuit())
@@ -467,20 +471,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // newWin = Instantiate<MaterialGraphEditWindow>(this);
                 newWindow = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
                 newWindow.Initialize(this);
-
-                //newWindow = Instantiate(this);
-                //newWindow.Initialize(this);
-                //newWindow.Show();
             }
             else
             {
                 // the window is closing for good.. cleanup undo history for the graph object
                 Undo.ClearUndo(graphObject);
             }
-            // Prompting the user if they want to close is now handled via the EditorWindow's system (hasSavedChanges)
-
-            // the window is closing for good.. cleanup undo history for the graph object
-            Undo.ClearUndo(graphObject);
 
             graphObject = null;
             graphEditorView = null;
