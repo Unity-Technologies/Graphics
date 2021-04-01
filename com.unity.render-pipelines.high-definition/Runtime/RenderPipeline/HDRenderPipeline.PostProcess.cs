@@ -2627,6 +2627,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public HDCamera hdCamera;
         }
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -2637,13 +2638,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
                     passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            DoLensFlareDataDriven(data.parameters, hdCamera, ctx.cmd, data.source, data.destination);
+                            DoLensFlareDataDriven(data.parameters, data.hdCamera, ctx.cmd, data.source, data.destination);
                         });
 
                     source = passData.destination;
@@ -2662,7 +2664,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
         {
-            LensFlareParameters parameters = new LensFlareParameters();
+            LensFlareParameters parameters;// =
+                //new LensFlareParameters();
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
@@ -2673,9 +2676,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
         {
-            HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
             // Must always be true
-            if (hdLightData != null)
+            if (light.TryGetComponent<HDAdditionalLightData>(out var hdLightData))
             {
                 switch (hdLightData.type)
                 {
@@ -2715,16 +2717,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
-            SRPLensFlareCommon.DoLensFlareDataDriven(
+            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(
                 parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
-                cmd, source, target, GetLensFlareLightAttenuation,
+                cmd, source, target,
+                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
+                // And here the lambda setup like that seem to not alloc anything.
+                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
         }
 
-        #endregion
+#endregion
 
-        #region Motion Blur
+#region Motion Blur
 
         class MotionBlurData
         {
@@ -3044,9 +3049,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
         Vector2 CalcViewExtents(HDCamera camera)
         {
             float fovY = camera.camera.fieldOfView * Mathf.Deg2Rad;
@@ -3161,9 +3166,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
         class BloomData
         {
@@ -3388,9 +3393,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return bloomTexture;
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
         class ColorGradingPassData
         {
             public ComputeShader builderCS;
@@ -3699,9 +3704,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
+#endregion
 
-        #region Uber Post
+#region Uber Post
         // Grabs all active feature flags
         UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
         {
@@ -3988,9 +3993,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region FXAA
+#region FXAA
         class FXAAData
         {
             public ComputeShader fxaaCS;
@@ -4035,9 +4040,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region CAS
+#region CAS
         class CASData
         {
             public ComputeShader casCS;
@@ -4098,9 +4103,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Final Pass
+#region Final Pass
 
         class FinalPassData
         {
@@ -4282,6 +4287,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
+#endregion
     }
 }

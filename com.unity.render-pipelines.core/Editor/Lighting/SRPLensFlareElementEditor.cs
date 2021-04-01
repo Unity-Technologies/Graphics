@@ -230,8 +230,6 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
                         uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
-
-
                 }
 
                 rect = GetNextRect();
@@ -343,7 +341,7 @@ namespace UnityEditor.Rendering
                 SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
                 if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
                     flareTypeProp.enumValueIndex = (int)newType;
-                                rect = GetNextRect();
+                rect = GetNextRect();
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
 
