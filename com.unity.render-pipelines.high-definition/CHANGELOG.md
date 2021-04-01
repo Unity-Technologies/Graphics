@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added SpeedTree8 shadergraph as default ST8 shader for HDRP
 
 ### Fixed
 - Fixed probe volumes debug views.

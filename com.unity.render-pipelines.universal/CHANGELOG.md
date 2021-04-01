@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added screen space shadow as renderer feature
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
 - Added support for the PlayStation 5 platform.
+- Added SpeedTree8 shadergraph for universal. Since it behaves differently from existing ST8 shader, it is not hooked up or set to be default yet.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
