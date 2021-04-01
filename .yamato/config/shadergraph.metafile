@@ -5,6 +5,17 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+    commands:
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [all]: <shared.platform.commands.call_utr>
+
   - type: playmode
   - type: playmode
     name: playmode_cache
@@ -26,8 +37,9 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+
 expression_trigger:
-  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:

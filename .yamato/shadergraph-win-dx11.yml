@@ -19,7 +19,9 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -212,7 +214,9 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
