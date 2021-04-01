@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
+  - Added subshadergraphs for SpeedTree8 wind, color/alpha, billboard, and transforming interpolated normals on backfaces.
 
 ### Changed
 - Updated/corrected View Direction doc
@@ -19,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
+
+### Added
+- Added subshadergraphs for SpeedTree8 shadergraph support: LODCrossfade, SpeedTree8Wind, SpeedTree8HueVariation, SpeedTree8Billboard.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
