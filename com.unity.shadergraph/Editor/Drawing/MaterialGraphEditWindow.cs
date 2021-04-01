@@ -457,6 +457,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
+            // we are closing the shadergraph window
+            MaterialGraphEditWindow newWindow = null;
+            if (!PromptSaveIfDirtyOnQuit())
+            {
+                // user does not want to close the window.
+                // we can't stop the close from this code path though..
+                // all we can do is open a new window and transfer our data to the new one to avoid losing it
+                // newWin = Instantiate<MaterialGraphEditWindow>(this);
+                newWindow = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
+                newWindow.Initialize(this);
+
+                //newWindow = Instantiate(this);
+                //newWindow.Initialize(this);
+                //newWindow.Show();
+            }
+            else
+            {
+                // the window is closing for good.. cleanup undo history for the graph object
+                Undo.ClearUndo(graphObject);
+            }
             // Prompting the user if they want to close is now handled via the EditorWindow's system (hasSavedChanges)
 
             // the window is closing for good.. cleanup undo history for the graph object
@@ -464,6 +484,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject = null;
             graphEditorView = null;
+
+            // show new window if we have one
+            if (newWindow != null)
+            {
+                newWindow.Show();
+                newWindow.Focus();
+            }
         }
 
         public void PingAsset()
