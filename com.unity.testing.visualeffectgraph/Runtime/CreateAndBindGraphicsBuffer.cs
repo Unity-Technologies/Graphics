@@ -104,10 +104,10 @@ namespace Unity.Testing.VisualEffectGraph
         private static readonly int s_BufferID = Shader.PropertyToID("buffer");
         private GraphicsBuffer m_buffer;
 
-        private static readonly float s_WaitTime = 0.2f;
         private static readonly uint s_MaxIteration = 12;
+        private static readonly float s_WaitTime = 1.0f / (float)s_MaxIteration;
 
-        private System.Random m_Random = new System.Random(1254);
+        private System.Random m_Random = new System.Random(1245);
         private uint m_MaxIteration = s_MaxIteration;
         private float m_Wait = s_WaitTime;
 
@@ -116,21 +116,21 @@ namespace Unity.Testing.VisualEffectGraph
         void Start()
         {
             if (m_buffer != null)
-            {
                 m_buffer.Release();
-            }
 
             m_buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4096, Marshal.SizeOf(typeof(CustomData)));
-            m_buffer.SetData(new CustomData[4096]); //Why we need to clear ?
+            m_buffer.SetData(new CustomData[4096]); //Why we need to clear ? TODOPAUL : try to reallocate
 
             m_Data = new List<CustomData>()
-        {
-            new CustomData() { position = new Vector3(0, 0, 0), rectangle = new Rectangle() { color = new Vector3(1, 1, 1), size = new Vector2(1024, 1024) }}
-        };
+            {
+                new CustomData() { position = new Vector3(0, 0, 0), rectangle = new Rectangle() { color = new Vector3(1, 1, 1), size = new Vector2(1024, 1024) }}
+            };
             m_buffer.SetData(m_Data);
 
             var vfx = GetComponent<VisualEffect>();
             vfx.SetGraphicsBuffer(s_BufferID, m_buffer);
+
+            m_Random = new System.Random(1245);
         }
 
         void Update()
@@ -146,7 +146,7 @@ namespace Unity.Testing.VisualEffectGraph
                     m_buffer.SetData(m_Data);
 
                     if (m_MaxIteration == 0)
-                        m_Wait *= 5.0f;
+                        m_Wait = 1.0f;
 
                 }
                 else
