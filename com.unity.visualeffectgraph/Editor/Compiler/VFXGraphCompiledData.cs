@@ -1232,6 +1232,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
                         case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
+                        case VFXValueType.Buffer: break; //TODOPAUL : nothing todo
                         default: throw new InvalidOperationException("Invalid type");
                     }
                 }
