@@ -1,8 +1,9 @@
 # Building your Project for consoles
 
-To build a Project for the **PlayStation 4** or **Xbox One**, you need to install an additional package for each platform you want to support. The packages for each platform are:
+To build a Project for the **PlayStation 4**, **PlayStation 5** or **Xbox One**, you need to install an additional package for each platform you want to support. The packages for each platform are:
 
 - **PlayStation 4**: com.unity.render-pipelines.ps4
+- **PlayStation 5**: com.unity.render-pipelines.ps5
 - **Xbox One**: com.unity.render-pipelines.xboxone
 
 ## Platform package installation

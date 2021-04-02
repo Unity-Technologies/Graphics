@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsConsolePlatform()
         {
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
         }

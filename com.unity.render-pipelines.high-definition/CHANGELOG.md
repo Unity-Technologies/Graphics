@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.6.0] - 2021-03-25
 
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
 
