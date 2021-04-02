@@ -6,23 +6,21 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.VFX;
 
-
-public class CreateAndBindBufferTest : MonoBehaviour
+public class CreateAndBindGraphicsBuffer : MonoBehaviour
 {
-    [VFXType, StructLayout(LayoutKind.Sequential)]
+    [VFXType]
     public struct Rectangle
     {
         public Vector2 size;
         public Vector3 color;
     }
 
-    [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer), StructLayout(LayoutKind.Sequential)]
+    [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer)]
     struct CustomData
     {
         public Rectangle rectangle;
         public Vector3 position;
     }
-
 
     static readonly float maxWidth = 32;
     static readonly float maxHeight = 32;
@@ -95,12 +93,9 @@ public class CreateAndBindBufferTest : MonoBehaviour
                     break;
                 }
             }
-
             b.rectangle.color = newColor;
-
             rectangles.Add(a);
             rectangles.Add(b);
-
         }
     }
 
