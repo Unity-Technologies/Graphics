@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            var upgradeLog = "UniversalRP Material log:";
+            string upgradeLog = ""; // "UniversalRP Material log:";
             var upgradeCount = 0;
 
             foreach (var asset in importedAssets)
@@ -201,7 +201,8 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            Debug.LogWarning(upgradeLog);
+            if (!string.IsNullOrEmpty(upgradeLog))
+                Debug.LogWarning("UniversalRP Material log: " + upgradeLog);
         }
 
         static void InitializeLatest(Material material, ShaderPathID id)
@@ -209,7 +210,7 @@ namespace UnityEditor.Rendering.Universal
             // newly created shadergraph materials should reset their keywords immediately (in case inspector doesn't get invoked)
             if (material.IsShaderGraph())
             {
-                Debug.Log("Resetting new material: " + material.name);
+                // Debug.Log("Resetting new material: " + material.name);
                 Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material);
             }
             // TODO: should probably call reset material keywords for all materials, not just shadergraph

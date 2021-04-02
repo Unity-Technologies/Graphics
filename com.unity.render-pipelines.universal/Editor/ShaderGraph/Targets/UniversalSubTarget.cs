@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -19,13 +20,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
         }
 
-        public virtual string identifier => GetType().Name;
+        protected abstract ShaderID shaderID { get; }
 
+        public virtual string identifier => GetType().Name;
         public virtual ScriptableObject GetMetadataObject()
         {
-            // Universal currently does not use a metadata object (instead simply looking for the identifier in the subshader tags)
-            // but it could be upgraded to use this path if we need to inject more information in the future
-            return null;
+            var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
+            urpMetadata.shaderID = shaderID;
+            return urpMetadata;
         }
     }
 

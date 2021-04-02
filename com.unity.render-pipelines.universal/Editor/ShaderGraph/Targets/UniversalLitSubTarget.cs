@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
 using UnityEngine.Rendering.Universal;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -35,6 +36,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Lit";
         }
+
+        protected override ShaderID shaderID => ShaderID.SG_Lit;
 
         public WorkflowMode workflowMode
         {
