@@ -35,14 +35,6 @@ public class HDRP_GraphicTestRunner
             Assert.Fail("Missing camera for graphic tests.");
         }
 
-        // Grab the HDCamera
-        HDCamera hdCamera = HDCamera.GetOrCreate(camera);
-
-        bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
-
-        if (useBackBuffer)
-            GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
-
         Time.captureFramerate = settings.captureFramerate;
 
         int waitFrames = settings.waitFrames;
@@ -68,22 +60,7 @@ public class HDRP_GraphicTestRunner
             settings.doBeforeTest.Invoke();
 
             // Wait again one frame, to be sure.
-            yield return WaitFunction(useBackBuffer);
-        }
-
-        hdCamera.Reset();
-
-        if (settings.waitForFrameCountMultiple)
-        {
-            // Get HDRP instance
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-
-            // When we capture from the back buffer, there is no requirement of compensation frames
-            // Else, given that we will render two frames, we need to compensate for them in the waiting
-            var frameCountOffset = useBackBuffer ? 0 : 2;
-
-            while (((hdCamera.cameraFrameCount + frameCountOffset) % (uint)settings.frameCountMultiple) != 0)
-                WaitFunction(useBackBuffer);
+            yield return new WaitForEndOfFrame();
         }
 
         // Reset temporal effects on hdCamera
@@ -133,8 +110,8 @@ public class HDRP_GraphicTestRunner
 
             settingsSG.sgObjs.SetActive(true);
             settingsSG.biObjs.SetActive(false);
-            yield return WaitFunction(useBackBuffer);
-            yield return WaitFunction(useBackBuffer);
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
             bool sgFail = false;
             bool biFail = false;
 
@@ -151,13 +128,13 @@ public class HDRP_GraphicTestRunner
             settingsSG.sgObjs.SetActive(false);
             settingsSG.biObjs.SetActive(true);
             settingsSG.biObjs.transform.position = settingsSG.sgObjs.transform.position; // Move to the same location.
-            yield return WaitFunction(useBackBuffer);
-            yield return WaitFunction(useBackBuffer);
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
 
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
             }
             catch (AssertionException)
             {
@@ -169,19 +146,6 @@ public class HDRP_GraphicTestRunner
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
-    }
-    void SetViewSize(int width, int height)
-    {
-#if UNITY_EDITOR
-        GameViewUtils.SetGameViewSize(width, height);
-#else
-        Screen.SetResolution(width, height, Screen.fullScreenMode);
-#endif
-    }
-
-    YieldInstruction WaitFunction(bool isBackbuffer)
-    {
-        return isBackbuffer ? new WaitForEndOfFrame() : null;
     }
 
 #if UNITY_EDITOR
