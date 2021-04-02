@@ -5,6 +5,12 @@ $splice(VFXDefines)
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
 #define HAS_ATTRIBUTES 1
 
+#if HAS_STRIPS
+// VFX has some internal functions for strips that assume the generically named "Attributes" struct as input.
+// For now, override it. TODO: Improve the generic struct name for VFX shader library.
+#define Attributes InternalAttributesElement
+#endif
+
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
 #define VFX_OPTIONAL_INTERPOLATION
