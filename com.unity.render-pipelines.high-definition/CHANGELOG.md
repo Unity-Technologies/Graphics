@@ -183,6 +183,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
