@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.DisabledScope(addPrecomputedVelocity))
             {
-                materialEditor.BeginProperty(":" + HDShaderPassNames.s_MotionVectorsStr);
+                materialEditor.BeginProperty("$" + HDShaderPassNames.s_MotionVectorsStr);
                 enabled = EditorGUILayout.Toggle(Styles.motionVectorForVertexAnimationText, enabled);
                 materialEditor.EndProperty();
             }

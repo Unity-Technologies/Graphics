@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (useEmissiveIntensity.floatValue == 0.0f)
                 {
                     EditorGUI.BeginChangeCheck();
-                    EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorHDR);
+                    EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorLDR);
                     if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                         emissiveColor.colorValue = emissiveColorHDR.colorValue;
                 }

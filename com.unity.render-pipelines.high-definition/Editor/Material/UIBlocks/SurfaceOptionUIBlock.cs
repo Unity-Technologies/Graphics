@@ -675,7 +675,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
-            materialEditor.BeginProperty("$m_CustomRenderQueue");
+            materialEditor.BeginProperty(":m_CustomRenderQueue");
 
             switch (mode)
             {
