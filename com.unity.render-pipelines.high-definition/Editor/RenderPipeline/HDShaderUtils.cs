@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // All HDRP shader graphs should have HD metadata
                 return shader.TryGetMetadataOfType<HDMetadata>(out _);
@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static ShaderID GetShaderEnumFromShader(Shader shader)
         {
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target

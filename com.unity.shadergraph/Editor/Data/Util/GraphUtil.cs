@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
         public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
         {
             obj = null;
-            if (!shader.IsShaderGraph())
+            if (!shader.IsShaderGraphAsset())
                 return false;
 
             var path = AssetDatabase.GetAssetPath(shader);
@@ -218,7 +218,15 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
-        public static bool IsShaderGraph(this Shader shader)
+        // this will work on ALL shadergraph-built shaders, in memory or asset based
+        public static bool IsShaderGraph(this Material material)
+        {
+            var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
+            return (shaderGraphTag != null);
+        }
+
+        // NOTE: this ONLY works for ASSET based Shaders, if you created a temporary shader in memory, it won't work
+        public static bool IsShaderGraphAsset(this Shader shader)
         {
             var path = AssetDatabase.GetAssetPath(shader);
             var importer = AssetImporter.GetAtPath(path);

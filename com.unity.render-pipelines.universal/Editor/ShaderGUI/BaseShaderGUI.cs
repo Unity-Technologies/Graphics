@@ -4,6 +4,8 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.ShaderGraph;
+using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor
 {
@@ -395,16 +397,18 @@ namespace UnityEditor
             if (doubleSidedGI != material.doubleSidedGI)
                 material.doubleSidedGI = doubleSidedGI;
 
-            // TODO: make sure these hax are not running for ShaderGraph shaders
-            // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
-            if (material.HasProperty("_MainTex"))
+            if (!material.IsShaderGraph())
             {
-                material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
-                material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
-                material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
+                // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
+                if (material.HasProperty("_MainTex"))
+                {
+                    material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
+                    material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
+                    material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
+                }
+                if (material.HasProperty("_Color"))
+                    material.SetColor("_Color", material.GetColor("_BaseColor"));
             }
-            if (material.HasProperty("_Color"))
-                material.SetColor("_Color", material.GetColor("_BaseColor"));
 
             // Emission
             if (material.HasProperty("_EmissionColor"))
