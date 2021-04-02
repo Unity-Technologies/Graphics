@@ -152,7 +152,6 @@ void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
     L1_G = EncodeSHL1(outputSpace.L0.y, L1_G);
     L1_B = EncodeSHL1(outputSpace.L0.z, L1_B);
 
-
 #if OUTPUT_TYPE == SHL2
     float4 L2_R = float4(outputSpace.L2_0.r, outputSpace.L2_1.r, outputSpace.L2_2.r, outputSpace.L2_3.r);
     float4 L2_G = float4(outputSpace.L2_0.g, outputSpace.L2_1.g, outputSpace.L2_2.g, outputSpace.L2_3.g);
