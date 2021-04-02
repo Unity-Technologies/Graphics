@@ -108,26 +108,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
         {
-            materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
-            {
                 target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
-            }
-            materialEditor.serializedObject.Update();
         }
 
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
         {
-            materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
-            {
                 target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
-            }
-            materialEditor.serializedObject.Update();
         }
 
         internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
         {
+            materialEditor.BeginProperty(emissiveIntensity);
+            materialEditor.BeginProperty(emissiveIntensityUnit);
+
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
 
@@ -166,6 +161,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     emissiveIntensityUnit.floatValue = (float)newUnit;
             }
             EditorGUI.showMixedValue = false;
+
+            materialEditor.EndProperty();
+            materialEditor.EndProperty();
         }
 
         protected override void OnGUIOpen()

@@ -675,6 +675,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
+            materialEditor.BeginProperty("$m_CustomRenderQueue");
+
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -702,6 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
             }
+            materialEditor.EndProperty();
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 

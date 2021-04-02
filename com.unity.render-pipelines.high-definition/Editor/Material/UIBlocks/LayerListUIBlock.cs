@@ -69,14 +69,14 @@ namespace UnityEditor.Rendering.HighDefinition
             float resetButtonWidth = 43;
             float padding = 4f;
             float endOffset = 2f;
-            float labelWidth = 100f;
+            float labelWidth = 85f;
             float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             EditorGUIUtility.labelWidth = labelWidth;
 
             Rect headerLineRect = GUILayoutUtility.GetRect(1, height);
-            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15f, height);
-            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37f - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
+            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset, height);
+            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - UVWidth - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
             Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 20f, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, height);
 
             EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
 
                     Rect materialRect = new Rect(lineRect.x + padding, lineRect.y, lineRect.width - UVWidth - padding - 3 - resetButtonWidth + endOffset, lineRect.height);
-                    Rect uvRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - padding - UVWidth - endOffset, lineRect.y, UVWidth, lineRect.height);
+                    Rect uvRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - padding - UVWidth - endOffset + 13f, lineRect.y, UVWidth, lineRect.height);
                     Rect resetRect = new Rect(lineRect.x + lineRect.width - resetButtonWidth - endOffset, lineRect.y, resetButtonWidth, lineRect.height);
 
                     materialRect.yMin += EditorGUIUtility.standardVerticalSpacing;

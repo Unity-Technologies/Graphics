@@ -30,14 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
             uiBlocks.OnGUI(materialEditor, props);
-
-            // We should always do this call at the end
-            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -95,6 +88,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Set stencil state
             material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
             material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
+
+            // always instanced
+            material.enableInstancing = true;
         }
 
         protected const string kBaseColorMap = "_BaseColorMap";

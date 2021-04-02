@@ -38,14 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties the material has.</param>
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
             uiBlocks.OnGUI(materialEditor, props);
-
-            // We should always do this call at the end
-            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change

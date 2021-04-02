@@ -254,14 +254,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // DoubleSidedGI has to be synced with our double sided toggle
-            var serializedObject = new SerializedObject(material);
             if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
                 material.doubleSidedGI = doubleSidedEnable;
             else if (doubleSidedGIMode == DoubleSidedGIMode.On)
                 material.doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
                 material.doubleSidedGI = false;
-            serializedObject.ApplyModifiedProperties();
         }
 
         // This is a hack for GI. PVR looks in the shader for a texture named "_MainTex" to extract the opacity of the material for baking. In the same manner, "_Cutoff" and "_Color" are also necessary.
