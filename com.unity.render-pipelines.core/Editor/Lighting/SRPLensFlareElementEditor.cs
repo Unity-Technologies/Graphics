@@ -230,8 +230,6 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
                         uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
-
-
                 }
 
                 rect = GetNextRect();
@@ -343,7 +341,7 @@ namespace UnityEditor.Rendering
                 SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
                 if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
                     flareTypeProp.enumValueIndex = (int)newType;
-                                rect = GetNextRect();
+                rect = GetNextRect();
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
 
@@ -442,50 +440,50 @@ namespace UnityEditor.Rendering
 
         sealed class Styles
         {
-            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity of this element.");
-            static public readonly GUIContent position = EditorGUIUtility.TrTextContent("Starting Position", "Starting position.");
-            static public readonly GUIContent positionOffset = EditorGUIUtility.TrTextContent("Position Offset", "Position Offset.");
-            static public readonly GUIContent angularOffset = EditorGUIUtility.TrTextContent("Angular Offset", "Angular Offset.");
-            static public readonly GUIContent translationScale = EditorGUIUtility.TrTextContent("Translation Scale", "This parameter is usefull to lock the lens flare axis to horizontal or vertical.");
-            static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Texture used to for this Lens Flare Element.");
-            static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
-            static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Blend mode used.");
-            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
+            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the element.");
+            static public readonly GUIContent position = EditorGUIUtility.TrTextContent("Starting Position", "Sets the starting position of this element in screen space relative to its source.");
+            static public readonly GUIContent positionOffset = EditorGUIUtility.TrTextContent("Position Offset", "Sets the offset of this element in screen space relative to its source.");
+            static public readonly GUIContent angularOffset = EditorGUIUtility.TrTextContent("Angular Offset", "Sets the angular offset of this element in degrees relative to its current position.");
+            static public readonly GUIContent translationScale = EditorGUIUtility.TrTextContent("Translation Scale", "Controls the direction and speed the element appears to move. For example, values of (1,0) make the lens flare move horizontally.");
+            static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Specifies the Texture this element uses.");
+            static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Specifies the tint of the element. If the element type is set to Image, the Flare Texture is multiplied by this color.");
+            static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Specifies the blend mode this element uses.");
+            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "When enabled, fixes the ratio of the width and height of the element's Flare Texture.");
 
-            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Uniform scale used to size the flare on width and height.");
-            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "Size for each dimension. Can be used with Radial Distortion.");
+            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of this element.");
+            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "Sets the size of each dimension in world space. You can use this with Radial Distortion.");
 
-            static public readonly GUIContent allowMultipleElement = EditorGUIUtility.TrTextContent("Enable", "Allow MultipleElements.");
-            static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Number of Elements.");
-            static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
-            static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
-            static public readonly GUIContent modulateByLightColor = EditorGUIUtility.TrTextContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component.");
-            static public readonly GUIContent flareType = EditorGUIUtility.TrTextContent("Type", "Type of Flare.");
+            static public readonly GUIContent allowMultipleElement = EditorGUIUtility.TrTextContent("Enable", "When enabled, allows multiple lens flare elements.");
+            static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Sets the number of elements.");
+            static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Sets the local rotation of the elements.");
+            static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "When enabled, automatically rotates the element between its position and the center of the screen. Requires the Starting Position property to have a value greater than 0.");
+            static public readonly GUIContent modulateByLightColor = EditorGUIUtility.TrTextContent("Modulate By Light Color", "When enabled,changes the color of the elements based on the light color, if this asset is attached to a light.");
+            static public readonly GUIContent flareType = EditorGUIUtility.TrTextContent("Type", "Specifies the type of this lens flare element.");
 
-            static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "Method of distribution for multiple elements.");
-            static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "Length to spread the distribution of flares, spread start at 'starting position'.");
-            static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "Value used to define randomness.");
+            static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "Controls how multiple lens flare elements are distributed.");
+            static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "Sets the length lens flare elements are spread across in screen space.");
+            static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "Sets the seed value used to define randomness.");
 
-            static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "Scale factor applied on the variation of the intensities.");
-            static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "Scale factor applied on the variation of the positions.");
-            static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Coefficient applied on the variation of the scale (relative to the current scale).");
-            static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "Scale factor applied on the variation of the rotation (relative to the current rotation or auto-rotate).");
-            static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Color Gradient", "Colors sampled uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'.");
-            static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Curve describing how to place flares distribution.");
-            static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Curve describing how to scale flares distribution.");
+            static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "Controls the offset of the intensities. A value of 0 means no variations, a value of 1 means variations between 0 and 1.");
+            static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "Sets the offset applied to the current position of the element.");
+            static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Sets the offset applied to the current scale of the element.");
+            static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "Sets the offset applied to the current element rotation.");
+            static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Color Gradient", "Specifies the gradient applied across all the elements.");
+            static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Defines how the multiple elements are placed along the spread using a curve.");
+            static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Defines how the multiple elements are scaled along the spread.");
 
             // For Distortion
-            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Enable", "Radial distortion changes the size of the lens flare element(s) as they move around the screen.");
-            static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Target size used on the edge of the screen.");
-            static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Curve blending from screen center to the edges of the screen.");
-            static public readonly GUIContent distortionRelativeToCenter = EditorGUIUtility.TrTextContent("Relative To Center", "Use the distance from the centre of the screen instead of the distance along axis to calculate distortion.");
+            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Enable", "When enabled, distorts the element relative to its distance from the flare position in screen space.");
+            static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Sets the target size of the edge of the screen. Values of (1, 1) match the actual screen size.");
+            static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Controls the amount of distortion between the position of the lens flare and the edge of the screen.");
+            static public readonly GUIContent distortionRelativeToCenter = EditorGUIUtility.TrTextContent("Relative To Center", "When enabled, the amount of radial distortion changes between the center of the screen and the edge of the screen.");
 
             // For Procedural
-            static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "Fall of the gradient used for the Procedural Flare.");
-            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "Gradient Offset used for the Procedural Flare.");
-            static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "Roundness of the polygon flare (0: Sharp Polygon, 1: Circle).");
-            static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "Side count of the regular polygon generated.");
-            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "Inverse the gradient direction.");
+            static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "Controls the smoothness of the gradient. A higher value creates a sharper gradient.");
+            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "Controls the offset of the Procedural Flare gradient relative to its starting point. A higher value means the gradient starts further from the center of the shape.");
+            static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "Specifies the roundness of the polygon flare. A value of 0 creates a sharp polygon, a value of 1 creates a circle.");
+            static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "Specifies the number of sides of the lens flare polygon.");
+            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "When enabled, inverses the gradient direction.");
         }
     }
 }

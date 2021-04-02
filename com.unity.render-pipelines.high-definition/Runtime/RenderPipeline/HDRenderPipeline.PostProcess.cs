@@ -2627,6 +2627,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public HDCamera hdCamera;
         }
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -2637,16 +2638,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
                     passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            DoLensFlareDataDriven(data.parameters, hdCamera, ctx.cmd, data.source, data.destination);
+                            DoLensFlareDataDriven(data.parameters, data.hdCamera, ctx.cmd, data.source, data.destination);
                         });
 
                     source = passData.destination;
+
+                    PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
                 }
             }
 
@@ -2662,20 +2666,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
         {
-            LensFlareParameters parameters = new LensFlareParameters();
+            LensFlareParameters parameters;
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
-            parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
+            parameters.skipCopy =
+                //m_CurrentDebugDisplaySettings.data.showLensFlareDataDrivenOnly;
+                m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             return parameters;
         }
 
         static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
         {
-            HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
             // Must always be true
-            if (hdLightData != null)
+            if (light.TryGetComponent<HDAdditionalLightData>(out var hdLightData))
             {
                 switch (hdLightData.type)
                 {
@@ -2715,9 +2720,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
-            SRPLensFlareCommon.DoLensFlareDataDriven(
+            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(
                 parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
-                cmd, source, target, GetLensFlareLightAttenuation,
+                cmd, source, target,
+                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
+                // And here the lambda setup like that seem to not alloc anything.
+                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
         }

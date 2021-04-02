@@ -129,7 +129,7 @@ namespace UnityEngine
                 Light light = GetComponent<Light>();
                 if (light != null && light.type == LightType.Directional)
                 {
-                    positionWS = -transform.forward * mainCam.farClipPlane;
+                    positionWS = -transform.forward * mainCam.farClipPlane + mainCam.transform.position;
                 }
                 else
                 {
