@@ -29,33 +29,14 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+    // TODO: Merge FragInputsVFX with CustomInterpolators.
 	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+	$features.graphVFX: $include("VFX/FragInputsDeclaration.template.hlsl")
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-    // [NOTE-FRAG-INPUTS]
-    // Omit the HDRP FragInput struct definition since VFX provides an arbitrary number of interpolators
-    // (this is because properties are evaluated by the graph on the fly in the vertex stage)
-    // These interpolates must be transfered into the FragInputs so they are available for the Surface evaluation.
-    // Thus we procedurally generate a FragInput struct.
-    // Warning: Omitting this means we no longer define the GetVaryingsDataDebug..
-    #ifndef HAVE_VFX_MODIFICATION
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #else
-
-    // For VFX, redefine the custom interpolator preprocessor so that it can be checked against the procedurally created FragInputs.
-    // TODO: VFX should also use the substruct method to procedurally append to VFX, or fully make use of custom interpolators.
-    #ifdef  USE_CUSTOMINTERP_SUBSTRUCT
-    #undef  USE_CUSTOMINTERP_SUBSTRUCT
-    #define USE_CUSTOMINTERP_SUBSTRUCT 1
-    #endif//USE_CUSTOMINTERP_SUBSTRUCT
-
-    // For now, move the full struct splice to this point (contains FragInputs).
-    $splice(PassStructs)
-    #endif
-
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
@@ -188,10 +169,7 @@ Pass
     // --------------------------------------------------
     // Structs and Packing
 
-    // See: [NOTE-FRAG-INPUTS]
-    #ifndef HAVE_VFX_MODIFICATION
     $splice(PassStructs)
-    #endif
 
     $splice(InterpolatorPack)
 

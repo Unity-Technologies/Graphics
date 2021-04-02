@@ -90,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
-                    GenerateFragInputs(context, data),
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
@@ -118,7 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     loadCropFactorAttributesDescriptor,
                     loadTexcoordAttributesDescriptor,
                     vertexPropertiesGenerationDescriptor,
-                    vertexPropertiesAssignDescriptor
+                    vertexPropertiesAssignDescriptor,
+                    GenerateFragInputs(context, data)
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -155,62 +155,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
-        // TODO: Perhaps keep HDRP FragInputs alone and instead pack all VFX interpolators into a substruct (or see if we can just use SG CustomInterpolator).
-        static StructDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
-        {
-            var fields = new List<FieldDescriptor>();
-
-            // Default
-            // Note: These are all already defined in HDStructFields, but marked as "Optional".
-            //       For now just be explicit here that we NEED everything to define the struct.
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionSS", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionRWS", "", ShaderValueType.Float3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "tangentToWorld", "", ShaderValueType.Matrix3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord0", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord1", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord2", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord3", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "color", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "primitiveID", "", ShaderValueType.Uint));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean));
-
-            // VFX Object Space
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "worldToElement", "", ShaderValueType.Matrix4));
-
-            // Custom Interpolator
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "customInterpolators", "", "CustomInterpolators", preprocessor: "USE_CUSTOMINTERP_SUBSTRUCT"));
-
-            // VFX Material Properties
-            // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
-
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-
-            foreach (string fragmentParameter in context.fragmentParameters)
-            {
-                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-
-                if (filteredNamedExpression.exp != null)
-                {
-                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
-
-                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
-                        continue;
-
-                    fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, filteredNamedExpression.name, "", shaderValueType));
-                }
-            }
-
-            var fragInputs = new StructDescriptor
-            {
-                name = HDStructFields.FragInputs.name,
-                fields = fields.ToArray()
-            };
-
-            return fragInputs;
-        }
-
         // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
         // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
         // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
@@ -236,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
 
-                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+                    if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
                         continue;
 
                     // TODO: NoInterpolation only for non-strips.
@@ -359,6 +303,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
         }
 
+        static AdditionalCommandDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
+        {
+            var builder = new ShaderStringBuilder();
+
+            // VFX Material Properties
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
+
+                    if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
+                        continue;
+
+                    builder.AppendLine($"{shaderValueType.ToShaderString("float")} {filteredNamedExpression.name};");
+                }
+            }
+
+            return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
+        }
+
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
         {
             IEnumerable<VFXAttributeInfo> attributeInfos;
@@ -404,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(bool),      typeof(BooleanShaderProperty) },
         };
 
-        static readonly Dictionary<Type, ShaderValueType> kVFXShaderValueTypeyMap = new Dictionary<Type, ShaderValueType>
+        static readonly Dictionary<Type, ShaderValueType> kVFXShaderValueTypeMap = new Dictionary<Type, ShaderValueType>
         {
             { typeof(float),     ShaderValueType.Float   },
             { typeof(Vector2),   ShaderValueType.Float2  },
@@ -420,7 +392,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var type = VFXExpression.TypeToType(attribute.type);
 
-            if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+            if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
                 return null;
 
             return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);

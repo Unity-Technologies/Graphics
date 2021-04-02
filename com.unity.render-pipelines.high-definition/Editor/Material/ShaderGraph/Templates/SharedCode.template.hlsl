@@ -71,8 +71,6 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
 
-    $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-
     // splice point to copy frag inputs custom interpolator pack into the SDI
     $splice(CustomInterpolatorCopyToSDI)
 
