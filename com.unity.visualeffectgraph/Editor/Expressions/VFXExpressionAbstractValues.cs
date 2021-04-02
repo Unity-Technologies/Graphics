@@ -204,6 +204,11 @@ namespace UnityEditor.VFX
             {
                 m_Content = (T)Convert.ChangeType(value, toType);
             }
+            else if (toType == typeof(GraphicsBuffer))
+            {
+                //We can't serialize a reference of GraphicsBuffer
+                m_Content = null;
+            }
             else
             {
                 var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
