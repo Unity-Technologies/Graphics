@@ -57,7 +57,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             uv.x = PARTICLE_IN_EDGE;
         #else
             GetElementData(element);
-            const Attributes attributes = element.attributes;
+            const InternalAttributesElement attributes = element.attributes;
             $splice(VFXLoadTexcoordParameter)
             uv.x = texCoord;
         #endif
@@ -98,8 +98,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             float2(-0.5f, -0.5f),
         };
 
-    GetElementData(element);
-    const Attributes attributes = element.attributes;
+        GetElementData(element);
+        const InternalAttributesElement attributes = element.attributes;
+
         // Here we have to explicitly splice in the crop factor.
         $splice(VFXLoadCropFactorParameter)
 

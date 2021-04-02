@@ -265,8 +265,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] kVFXAttributeStructNames =
         {
-            "Attributes",
-            "SourceAttributes"
+            "InternalAttributesElement",
+            "InternalSourceAttributesElement"
         };
 
         static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,

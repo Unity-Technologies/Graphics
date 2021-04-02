@@ -54,7 +54,11 @@ $splice(VFXGeneratedBlockFunction)
 struct AttributesElement
 {
     uint index;
-    Attributes attributes;
+
+    // Internal attributes sub-struct used by VFX code-gen property mapping.
+    InternalAttributesElement attributes;
+
+    // Additional attribute information for particle strips.
 #if HAS_STRIPS
     uint relativeIndexInStrip;
     StripData stripData;
@@ -70,7 +74,7 @@ bool ShouldCullElement(uint index)
     return (index >= asuint(nbMax) - deadCount);
 }
 
-float3 GetElementSize(Attributes attributes)
+float3 GetElementSize(InternalAttributesElement attributes)
 {
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
@@ -97,8 +101,8 @@ float3 GetElementSize(Attributes attributes)
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index)
 {
-    Attributes attributes;
-    ZERO_INITIALIZE(Attributes, attributes);
+    InternalAttributesElement attributes;
+    ZERO_INITIALIZE(InternalAttributesElement, attributes);
 
     // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
     $splice(VFXLoadPositionAttribute)
@@ -130,7 +134,9 @@ void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
 
-    Attributes attributes;
+    InternalAttributesElement attributes;
+    ZERO_INITIALIZE(InternalAttributesElement, attributes);
+
     $splice(VFXLoadAttribute)
 
     #if HAS_STRIPS
@@ -155,8 +161,7 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 {
     GetElementData(element);
 
-    // Note: Cannot be const due to some VFX generated function require l-value (out / inout).
-    Attributes attributes = element.attributes;
+    InternalAttributesElement attributes = element.attributes;
 
     #if !HAS_STRIPS
     if (!attributes.alive)
@@ -255,11 +260,6 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesEl
     }
 
     input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
-
-#ifdef ATTRIBUTES_NEED_NORMAL
-    // TODO? Not necesarry for MV?
-#endif
-
 #endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
 
     return input;
@@ -268,7 +268,7 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesEl
 // Vertex + Pixel Graph Properties Generation
 void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
 {
-    Attributes attributes = element.attributes;
+    InternalAttributesElement attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
     $splice(VFXVertexPropertiesAssign)
 }
