@@ -39,8 +39,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version trunk
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -99,8 +99,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -327,8 +327,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -390,8 +390,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -457,8 +457,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -716,8 +716,8 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
 Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on OSX_Apple_Silicon_Metal_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::metal::devkit
-        image: slough-ops/macos-10.15-base:stable
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
