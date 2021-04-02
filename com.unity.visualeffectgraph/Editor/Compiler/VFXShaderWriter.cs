@@ -227,10 +227,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        //TODOPAUL : hashset already generated structure
-        static void GenerateStructureCode(Type type, out string structureName, VFXShaderWriter structureDeclaration)
+        static string GetStructureName(Type type)
         {
-            structureName = type.Name; //TODOPAUL : probably replace not legal character
+            return type.Name; //TODOPAUL : probably replace not legal character
+        }
+
+        static void GenerateStructureCode(Type type, VFXShaderWriter structureDeclaration, HashSet<Type> alreadyGeneratedStructure)
+        {
+            if (alreadyGeneratedStructure.Contains(type))
+                return;
+
+            var structureName = GetStructureName(type);
 
             var prerequisite = new VFXShaderWriter();
             var currentStructure = new VFXShaderWriter();
@@ -241,7 +248,10 @@ namespace UnityEditor.VFX
             {
                 string typeName;
                 if (field.Item1 == VFXValueType.None)
-                    GenerateStructureCode(field.Item2, out typeName, prerequisite);
+                {
+                    typeName = GetStructureName(field.Item2);
+                    GenerateStructureCode(field.Item2, prerequisite, alreadyGeneratedStructure);
+                }
                 else
                     typeName = VFXExpression.TypeToCode(field.Item1);
 
@@ -253,6 +263,39 @@ namespace UnityEditor.VFX
 
             prerequisite.WriteLine(currentStructure.ToString());
             structureDeclaration.Write(prerequisite.ToString());
+            alreadyGeneratedStructure.Add(type);
+        }
+
+        private void WriteGeneratedStructure(Type type, HashSet<Type> alreadyGeneratedStructure)
+        {
+            GenerateStructureCode(type, this, alreadyGeneratedStructure);
+
+            string structureName = GetStructureName(type);
+            //TODOPAUL macro ?
+            var expectedStride = Marshal.SizeOf(type);
+            WriteLineFormat("{0} SampleStructuredBuffer(StructuredBuffer<{0}> buffer, uint index, uint actualStride, uint actualCount)", structureName);
+            {
+                WriteLine("{");
+                Indent();
+
+                WriteLine("[branch]");
+                WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
+                {
+                    Indent();
+                    WriteLine("return buffer[(int)index];");
+                    Deindent();
+                }
+                WriteLineFormat("return ({0})0;", structureName);
+                Deindent();
+                WriteLine("}");
+            }
+        }
+
+        public void WriteGeneratedStructure(IEnumerable<Type> types)
+        {
+            var alreadyGeneratedStructure = new HashSet<Type>();
+            foreach (var type in types)
+                WriteGeneratedStructure(type, alreadyGeneratedStructure);
         }
 
         public void WriteBuffer(VFXUniformMapper mapper, Dictionary<VFXExpression, Type> usageGraphicsBuffer)
@@ -266,30 +309,8 @@ namespace UnityEditor.VFX
                     if (type == null)
                         throw new NullReferenceException();
 
-                    //TODOPAUL : avoid multiple declaration
-                    string structureName;
-                    GenerateStructureCode(type, out structureName, this);
-
+                    string structureName = GetStructureName(type);
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
-
-                    //TODOPAUL macro ?
-                    var expectedStride = Marshal.SizeOf(type);
-                    WriteLineFormat("{0} SampleStructuredBuffer(StructuredBuffer<{0}> buffer, uint index, uint actualStride, uint actualCount)", structureName);
-                    {
-                        WriteLine("{");
-                        Indent();
-
-                        WriteLine("[branch]");
-                        WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
-                        {
-                            Indent();
-                            WriteLine("return buffer[(int)index];");
-                            Deindent();
-                        }
-                        WriteLineFormat("return ({0})0;", structureName);
-                        Deindent();
-                        WriteLine("}");
-                    }
                 }
                 else
                 {
