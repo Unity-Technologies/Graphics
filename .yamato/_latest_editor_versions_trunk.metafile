@@ -16,6 +16,10 @@ editor_versions:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
@@ -37,6 +41,10 @@ editor_versions:
       revision: 2f666341c55f82848fcbb56986799ee1b6bbf34d
       updated_at: '2021-03-31 23:41:01.836999'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 2f666341c55f82848fcbb56986799ee1b6bbf34d
       updated_at: '2021-03-31 23:41:01.836999'
@@ -57,6 +65,10 @@ editor_versions:
     OSX:
       revision: 2f666341c55f82848fcbb56986799ee1b6bbf34d
       updated_at: '2021-03-31 23:41:01.836999'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: 2f666341c55f82848fcbb56986799ee1b6bbf34d

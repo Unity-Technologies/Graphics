@@ -19,15 +19,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -48,17 +43,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -79,15 +70,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -108,17 +94,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_t
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -139,17 +121,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -167,17 +145,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -195,17 +169,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -223,17 +193,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_XR_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -251,17 +217,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -279,17 +241,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -307,15 +265,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -336,17 +289,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000
     artifacts:
         logs:
             paths:
@@ -368,15 +317,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -400,17 +344,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -435,15 +375,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -467,17 +402,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_PerformanceTests_mono_Linear_C
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=1200
     artifacts:
         logs:
             paths:
@@ -502,17 +433,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -534,17 +461,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -566,17 +489,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -598,17 +517,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -630,17 +545,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-RE
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -662,17 +573,13 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-RE
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_HDRP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -694,15 +601,10 @@ VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  chmod +x ./utr
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --suite=playmode --timeout=1200 --zero-tests-are-ok=1 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -726,17 +628,13 @@ Build_VFX_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVIS
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-      -  chmod +x utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only'
+      -  chmod +x ./utr
+      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000 "
-              UTR_RESULT=$?
-              mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_HDRP --timeout=3000
     artifacts:
         logs:
             paths:

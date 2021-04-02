@@ -13,6 +13,10 @@ nightly_shadergraph_-_trunk:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
@@ -33,6 +37,10 @@ shadergraph_pr_job_-_trunk:
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     OSX:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
+    OSX_Apple_Silicon:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
@@ -59,6 +67,10 @@ vfx_urp_pr_job_-_trunk:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
@@ -79,6 +91,10 @@ vfx_hdrp_pr_job_-_trunk:
       updated_at: '2021-03-31 23:41:01.836999'
       version: ''
     OSX:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
+    OSX_Apple_Silicon:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
@@ -105,6 +121,10 @@ nightly_vfx_urp_-_trunk:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
@@ -125,6 +145,10 @@ nightly_vfx_hdrp_-_trunk:
       updated_at: '2021-03-31 23:41:01.836999'
       version: ''
     OSX:
+      revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
+    OSX_Apple_Silicon:
       revision: 687b3b92c1e89c453b5f5deb524f1762b58a6c78
       updated_at: '2021-03-30 23:18:02.816558'
       version: ''
@@ -151,6 +175,10 @@ nightly_urp_2d_-_trunk:
       revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
       updated_at: '2021-03-28 23:11:08.009980'
       version: ''
+    OSX_Apple_Silicon:
+      revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
       updated_at: '2021-03-28 23:11:08.009980'
@@ -173,6 +201,10 @@ urp_2d_pr_job_-_trunk:
     OSX:
       revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
       updated_at: '2021-03-28 23:11:08.009980'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: f43bff7f32e127686b77cd0e11a2fd60636eff04
@@ -197,6 +229,10 @@ nightly_urp_postpro_-_trunk:
       revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
       updated_at: '2021-03-22 08:42:24.455390'
       version: ''
+    OSX_Apple_Silicon:
+      revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
       updated_at: '2021-03-22 08:42:24.455390'
@@ -219,6 +255,10 @@ urp_postpro_pr_job_-_trunk:
     OSX:
       revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
       updated_at: '2021-03-22 08:42:24.455390'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: 168122e2f68747a541fa207672289ed0bfe3ff0f
@@ -243,6 +283,10 @@ nightly_urp_terrain_-_trunk:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
       version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
@@ -265,6 +309,10 @@ urp_terrain_pr_job_-_trunk:
     OSX:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
@@ -289,6 +337,10 @@ nightly_urp_foundation_-_trunk:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
       version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
@@ -311,6 +363,10 @@ urp_foundation_pr_job_-_trunk:
     OSX:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
@@ -335,6 +391,10 @@ nightly_urp_lighting_-_trunk:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
       version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
+      version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
@@ -357,6 +417,10 @@ urp_lighting_pr_job_-_trunk:
     OSX:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
       updated_at: '2021-03-15 23:26:26.034949'
+      version: ''
+    OSX_Apple_Silicon:
+      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
+      updated_at: '2021-03-30 23:18:02.816558'
       version: ''
     Win:
       revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
