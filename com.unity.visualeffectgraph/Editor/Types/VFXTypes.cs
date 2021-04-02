@@ -7,24 +7,6 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //TODOPAUL : Move to runtime, document & add filter for graphics buffer usage
-    [AttributeUsage(AttributeTargets.Struct)]
-    public class VFXTypeAttribute : Attribute
-    {
-        [Flags]
-        public enum Flags
-        {
-            Default,
-            GraphicsBuffer
-        }
-        public VFXTypeAttribute(Flags flags = Flags.Default)
-        {
-            this.flags = flags;
-        }
-
-        public Flags flags { get; private set; }
-    }
-
     enum SpaceableType
     {
         None,
