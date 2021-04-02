@@ -392,13 +392,17 @@ namespace UnityEditor
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat(Property.ReceiveShadows) == 0.0f);
 
-            // Setup double sided GI
-            bool doubleSidedGI = (RenderFace)material.GetFloat("_Cull")  != RenderFace.Front;
-            if (doubleSidedGI != material.doubleSidedGI)
-                material.doubleSidedGI = doubleSidedGI;
+            // Setup double sided GI based on Cull state
+            if (material.HasProperty(Property.Cull))
+            {
+                bool doubleSidedGI = (RenderFace)material.GetFloat(Property.Cull) != RenderFace.Front;
+                if (doubleSidedGI != material.doubleSidedGI)
+                    material.doubleSidedGI = doubleSidedGI;
+            }
 
             if (!material.IsShaderGraph())
             {
+                // TODO: This should be moved outside of the BaseShaderGUI class if it is not generic
                 // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
                 if (material.HasProperty("_MainTex"))
                 {
@@ -541,9 +545,13 @@ namespace UnityEditor
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
             // Clear all keywords for fresh start
+            // Note: this will nuke user-selected custom keywords when they change shaders
             material.shaderKeywords = null;
 
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
+
+            // Setup keywords based on the new shader
+            Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material);
         }
 
         #endregion

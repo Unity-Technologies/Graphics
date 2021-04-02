@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Both = 0        // = CullMode.Off -- render both faces
     }
 
-    sealed class UniversalTarget : Target, ILegacyTarget
+    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
     {
         public override int latestVersion => 1;
 
@@ -390,6 +390,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 ChangeVersion(latestVersion);
             }
         }
+
+        #region Metadata
+        string IHasMetadata.identifier
+        {
+            get
+            {
+                // defer to subtarget
+                if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+                return null;
+            }
+        }
+
+        ScriptableObject IHasMetadata.GetMetadataObject()
+        {
+            // defer to subtarget
+            if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+            return null;
+        }
+
+        #endregion
     }
 
     #region Passes

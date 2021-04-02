@@ -57,7 +57,10 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("// Queue: <None>");
 
                 // ShaderGraphShader tag (so we can tell what shadergraph built)
-                builder.AppendLine("\"ShaderGraphShader\" = \"true\"");
+                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+
+                if (target is IHasMetadata metadata)
+                    builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
             }
         }
 

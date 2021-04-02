@@ -233,6 +233,9 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
+        [Obsolete("Use IsShaderGraphAsset instead", false)]
+        public static bool IsShaderGraph(this Shader shader) => shader.IsShaderGraphAsset();
+
         static void Visit(List<AbstractMaterialNode> outputList, Dictionary<string, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
             if (!unmarkedNodes.ContainsKey(node.objectId))

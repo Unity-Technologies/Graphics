@@ -10,13 +10,22 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    abstract class UniversalSubTarget : SubTarget<UniversalTarget>
+    abstract class UniversalSubTarget : SubTarget<UniversalTarget>, IHasMetadata
     {
         static readonly GUID kSourceCodeGuid = new GUID("92228d45c1ff66740bfa9e6d97f7e280");  // UniversalSubTarget.cs
 
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+        }
+
+        public virtual string identifier => GetType().Name;
+
+        public virtual ScriptableObject GetMetadataObject()
+        {
+            // Universal currently does not use a metadata object (instead simply looking for the identifier in the subshader tags)
+            // but it could be upgraded to use this path if we need to inject more information in the future
+            return null;
         }
     }
 

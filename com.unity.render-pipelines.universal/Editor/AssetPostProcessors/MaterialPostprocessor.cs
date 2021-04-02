@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Rendering.Universal.ShaderGUI;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -89,7 +90,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -128,9 +129,14 @@ namespace UnityEditor.Rendering.Universal
                     continue;
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                if (!ShaderUtils.IsLWShader(material.shader))
+
+                // we only version shadergraph materials and URP built-in materials
+                bool isShaderGraphMaterial = material.IsShaderGraph();
+                bool isLWShaderMaterial = ShaderUtils.IsLWShader(material.shader);
+                if (!(isShaderGraphMaterial || isLWShaderMaterial))
                     continue;
 
+                // this will return -1 for shadergraph materials, that is fine
                 ShaderPathID id = ShaderUtils.GetEnumFromPath(material.shader.name);
                 var wasUpgraded = false;
 
@@ -159,8 +165,18 @@ namespace UnityEditor.Rendering.Universal
                     }
                     else
                     {
-                        assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
-                        debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
+                        if (isShaderGraphMaterial)
+                        {
+                            // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
+                            // so if we see a ShaderGraph material with no assetVersion, set it to 4 to ensure we apply all necessary versions.
+                            assetVersion.version = 4;
+                            debug += $" shadergraph material assumed to be version 4 due to missing version.";
+                        }
+                        else
+                        {
+                            assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
+                            debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
+                        }
                     }
 
                     assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
@@ -184,14 +200,26 @@ namespace UnityEditor.Rendering.Universal
                     s_NeedsSavingAssets = true;
                 }
             }
+
+            Debug.LogWarning(upgradeLog);
         }
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
+            // newly created shadergraph materials should reset their keywords immediately (in case inspector doesn't get invoked)
+            if (material.IsShaderGraph())
+            {
+                Debug.Log("Resetting new material: " + material.name);
+                Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material);
+            }
+            // TODO: should probably call reset material keywords for all materials, not just shadergraph
         }
 
         static void UpgradeV1(Material material, ShaderPathID shaderID)
         {
+            if (material.IsShaderGraph())
+                return;
+
             var shaderPath = ShaderUtils.GetShaderPath(shaderID);
             var upgradeFlag = MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound;
 
@@ -226,6 +254,9 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV2(Material material, ShaderPathID shaderID)
         {
+            if (material.IsShaderGraph())
+                return;
+
             // fix 50 offset on shaders
             if (material.HasProperty("_QueueOffset"))
                 BaseShaderGUI.SetupMaterialBlendMode(material);
@@ -233,6 +264,9 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV3(Material material, ShaderPathID shaderID)
         {
+            if (material.IsShaderGraph())
+                return;
+
             switch (shaderID)
             {
                 case ShaderPathID.Lit:
@@ -255,7 +289,18 @@ namespace UnityEditor.Rendering.Universal
         }
 
         static void UpgradeV4(Material material, ShaderPathID shaderID)
-        {}
+        {
+        }
+
+        static void UpgradeV5(Material material, ShaderPathID shaderID)
+        {
+            // ShaderGraph upgraded to have surface controls in the Material
+            // we need to ensure all existing ShaderGraph materials have set up their keywords properly
+            if (material.IsShaderGraph())
+            {
+                Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
     }
 
     // Upgraders v1
