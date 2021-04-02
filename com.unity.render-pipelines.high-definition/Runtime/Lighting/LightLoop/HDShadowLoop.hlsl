@@ -4,11 +4,16 @@
 //#define SHADOW_LOOP_MULTIPLY
 //#define SHADOW_LOOP_AVERAGE
 
+#if defined(SHADOW_LOOP_MULTIPLY) || defined(SHADOW_LOOP_AVERAGE)
+#define SHADOW_LOOP_WEIGHT
+#endif
+
 void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float3 normalWS, uint featureFlags, uint renderLayer,
                         out float3 shadow)
 {
-    float weight      = 0.0f;
+#ifdef SHADOW_LOOP_WEIGHT
     float shadowCount = 0.0f;
+#endif
 
 #ifdef SHADOW_LOOP_MULTIPLY
     shadow = float3(1, 1, 1);
@@ -48,8 +53,9 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #else
                 shadow = min(shadow, shadowD.xxx);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                 shadowCount += 1.0f;
-                weight      += 1.0f - shadowD;
+#endif
             }
         }
     }
@@ -122,8 +128,9 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #else
                         shadow = min(shadow, shadowP.xxx);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                         shadowCount += 1.0f;
-                        weight      += 1.0f - shadowP;
+#endif
                     }
                 }
             }
@@ -202,8 +209,9 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #else
                         shadow = min(shadow, shadowA.xxx);
 #endif
+#ifdef SHADOW_LOOP_WEIGHT
                         shadowCount += 1.0f;
-                        weight      += 1.0f - shadowA;
+#endif
                     }
                 }
 
@@ -225,9 +233,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
     {
         shadow = float3(1, 1, 1);
     }
-#else
-    //shadow = (1.0f - saturate(shadowCount)).xxx;
-    //shadow = (1.0f - saturate(weight)).xxx;
 #endif
 }
 
