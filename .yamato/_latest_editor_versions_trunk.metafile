@@ -9,8 +9,8 @@ editor_versions:
       updated_at: '2021-04-02 23:40:31.191500'
       version: ''
     Linux:
-      revision: 2f666341c55f82848fcbb56986799ee1b6bbf34d
-      updated_at: '2021-03-31 23:41:01.836999'
+      revision: 89526c83ded8ef11ada0c2368386b277d8879ea0
+      updated_at: '2021-04-03 23:40:19.578005'
       version: ''
     OSX:
       revision: 89526c83ded8ef11ada0c2368386b277d8879ea0
