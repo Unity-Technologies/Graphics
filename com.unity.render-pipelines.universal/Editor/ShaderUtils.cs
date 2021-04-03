@@ -69,12 +69,9 @@ namespace Unity.Rendering.Universal // Unity.RenderPipelines.Universal.Editor
                     case ShaderID.SG_Unlit:
                         URPUnlitGUI.UpdateMaterial(material);
                         break;
+                    // TODO: handle other shaders that need keyword resets here
                     default:
-                        // TODO: handle non shadergraph shaders here, if they need keyword resets
-                        Debug.LogWarning("Unhandled material in ResetMaterialKeywords: " + material.name + " of TargetID: " + sgTargetId + " ShaderID: " + shaderID);
                         break;
-//                    case ShaderID.Unknown:
-//                        break;
                 }
             }
         }
