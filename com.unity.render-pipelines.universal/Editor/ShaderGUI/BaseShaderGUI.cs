@@ -265,15 +265,18 @@ namespace UnityEditor
 
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
 
-            materialEditor.ShaderProperty(alphaClipProp, Styles.alphaClipText);
+            // materialEditor.ShaderProperty(alphaClipProp, Styles.alphaClipText);      // this fails for ShaderGraphs, that can't tag it as [ToggleUI]
+            DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
             if ((alphaClipProp.floatValue == 1) && (alphaCutoffProp != null))
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
             if (castShadowsProp != null)
-                materialEditor.ShaderProperty(castShadowsProp, Styles.castShadowText);
+                // materialEditor.ShaderProperty(castShadowsProp, Styles.castShadowText);
+                DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
 
             if (receiveShadowsProp != null)
-                materialEditor.ShaderProperty(receiveShadowsProp, Styles.receiveShadowText);
+                // materialEditor.ShaderProperty(receiveShadowsProp, Styles.receiveShadowText);
+                DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
         }
 
         public virtual void DrawSurfaceInputs(Material material)
