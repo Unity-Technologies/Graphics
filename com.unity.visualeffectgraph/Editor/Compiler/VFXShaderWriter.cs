@@ -271,22 +271,21 @@ namespace UnityEditor.VFX
         {
             GenerateStructureCode(type, this, alreadyGeneratedStructure);
 
-            string structureName = GetStructureName(type);
-            //TODOPAUL macro ?
+            var structureName = GetStructureName(type);
             var expectedStride = Marshal.SizeOf(type);
             WriteLineFormat("{0} SampleStructuredBuffer(StructuredBuffer<{0}> buffer, uint index, uint actualStride, uint actualCount)", structureName);
             {
                 WriteLine("{");
                 Indent();
-
+                WriteLineFormat("{0} read = ({0})0;", structureName);
                 WriteLine("[branch]");
                 WriteLineFormat("if (actualStride == (uint){0} && index < actualCount)", expectedStride);
                 {
                     Indent();
-                    WriteLine("return buffer[(int)index];");
+                    WriteLine("read = buffer[(int)index];");
                     Deindent();
                 }
-                WriteLineFormat("return ({0})0;", structureName);
+                WriteLineFormat("return read;", structureName);
                 Deindent();
                 WriteLine("}");
             }
