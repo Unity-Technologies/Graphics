@@ -230,7 +230,7 @@ namespace UnityEditor.VFX
 
         static string GetStructureName(Type type)
         {
-            return type.Name; //TODOPAUL : probably replace not legal character
+            return type.Name;
         }
 
         static void GenerateStructureCode(Type type, VFXShaderWriter structureDeclaration, HashSet<Type> alreadyGeneratedStructure)
