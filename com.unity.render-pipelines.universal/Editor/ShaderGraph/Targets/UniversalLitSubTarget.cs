@@ -369,7 +369,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit));
+                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
                 else
                     result.passes.Add(LitPasses.Forward(workflowMode, workflowMode_MaterialControl));
 
@@ -437,9 +437,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 WorkflowMode workflowMode,
                 bool workflowMode_MaterialControl,
                 bool complexLit,
-                BlockFieldDescriptor[] vertexBlocks = null,
-                BlockFieldDescriptor[] pixelBlocks = null,
-                PragmaCollection pragmas = null)
+                BlockFieldDescriptor[] vertexBlocks,
+                BlockFieldDescriptor[] pixelBlocks,
+                PragmaCollection pragmas)
             {
                 var result = new PassDescriptor
                 {
@@ -454,8 +454,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = vertexBlocks ?? CoreBlockMasks.Vertex,
-                    validPixelBlocks = pixelBlocks ?? LitBlockMasks.FragmentLit,
+                    validVertexBlocks = vertexBlocks,
+                    validPixelBlocks = pixelBlocks,
 
                     // Fields
                     structs = CoreStructCollections.Default,
@@ -464,7 +464,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberDefault,
-                    pragmas = pragmas ?? CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                    pragmas = pragmas,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.Forward,
