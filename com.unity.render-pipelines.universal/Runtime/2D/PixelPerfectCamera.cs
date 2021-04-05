@@ -393,18 +393,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else if (m_PixelSnapping)
                     m_GridSnapping = GridSnapping.PixelSnapping;
 
-                if(m_CropFrameX && m_CropFrameY)
+                if (m_CropFrameX && m_CropFrameY)
                 {
                     if (m_StretchFill)
                         m_CropFrame = CropFrame.StretchFill;
                     else
                         m_CropFrame = CropFrame.Windowbox;
                 }
-                else if(m_CropFrameX)
+                else if (m_CropFrameX)
                 {
                     m_CropFrame = CropFrame.Pillarbox;
                 }
-                else if(m_CropFrameY)
+                else if (m_CropFrameY)
                 {
                     m_CropFrame = CropFrame.Letterbox;
                 }

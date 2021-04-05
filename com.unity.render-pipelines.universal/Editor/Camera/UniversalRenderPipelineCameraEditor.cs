@@ -518,11 +518,11 @@ namespace UnityEditor.Rendering.Universal
                 camera.TryGetComponent<UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
                 bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
 
-                if(pixelPerfectEnabled)
+                if (pixelPerfectEnabled)
                     EditorGUILayout.HelpBox(Styles.pixelPerfectInfo, MessageType.Info);
                 else
                     settings.DrawProjection();
-    
+
                 settings.DrawClippingPlanes();
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
