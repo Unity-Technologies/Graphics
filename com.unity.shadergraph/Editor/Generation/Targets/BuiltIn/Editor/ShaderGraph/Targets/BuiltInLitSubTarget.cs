@@ -732,7 +732,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
-                { kMetaInput, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

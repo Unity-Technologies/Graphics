@@ -1,4 +1,4 @@
-Shader "Custom/Lit"
+Shader "Custom/LitOpaqueAlphaClipDoubleSided"
 {
     Properties
     {
@@ -11,29 +11,25 @@ Shader "Custom/Lit"
         [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
         [NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 
-        [HDR] _OcclusionStrength("Occlusion Strength", float) = 1.0
-        [NoScaleOffset] _AmbientOcclusion("Occlusion Map", 2D) = "white" {}
-
-        _BumpScale("Bump Scale", float) = 1.0
         [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
+        Alpha_Clip_Threshold("Alpha Clip Threshold", Range(0,1)) = 0.5
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 200
+        Cull Off
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
+        #pragma surface surf Standard fullforwardshadows addshadow
 
-        #pragma shader_feature _EMISSION
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
 
         sampler2D _BaseMap;
         sampler2D _MetallicGlossMap;
         sampler2D _EmissionMap;
-        sampler2D _AmbientOcclusion;
         sampler2D _BumpMap;
 
         struct Input
@@ -45,8 +41,7 @@ Shader "Custom/Lit"
         half _Metallic;
         fixed4 _BaseColor;
         fixed4 _EmissionColor;
-        float _OcclusionStrength;
-        float _BumpScale;
+        half Alpha_Clip_Threshold;
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
         // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -68,11 +63,11 @@ Shader "Custom/Lit"
             o.Albedo = c.rgb;
             // Metallic and smoothness come from slider variables
             o.Metallic = SampleAndScale(uv, _MetallicGlossMap, _Metallic).r;
-            o.Normal = UnpackNormalWithScale(SampleAndScale(uv, _BumpMap, 1), _BumpScale);
+            o.Normal = UnpackNormal(SampleAndScale(uv, _BumpMap, 1));
             o.Emission = SampleAndScale(uv, _EmissionMap, _EmissionColor);
-            o.Occlusion = SampleAndScale(uv, _AmbientOcclusion, _OcclusionStrength);
             o.Smoothness = _Smoothness;
             o.Alpha = c.a;
+            clip(o.Alpha - Alpha_Clip_Threshold);
         }
         ENDCG
     }

@@ -1,7 +1,6 @@
 #ifndef UNITY_SHIMS_INCLUDED
 #define UNITY_SHIMS_INCLUDED
 
-#define BUILTIN_TARGET_API
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
