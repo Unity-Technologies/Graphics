@@ -62,11 +62,12 @@ test_platforms:
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
       
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=players
       
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
+      - [XRQuest_OpenGLES3, XRQuest_Vulkan]: --artifacts_path=build/logs
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
         
       - [OSX_Metal]: --editor-location=.Editor
@@ -74,7 +75,7 @@ test_platforms:
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER% 
      
-      - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto 
 
@@ -89,12 +90,13 @@ test_platforms:
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
       
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
+      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-enabledxrtargets=OculusXRSDK -stereoRenderingMode=MultiPass"
       
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       
@@ -368,6 +370,47 @@ platforms:
                     utr <UTR_FLAGS>
         call_utr_without_git:
           - utr <UTR_FLAGS>
+        unity_downloader_cli:
+          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+        turn_off_firewall: 
+          - NetSh Advfirewall set allprofiles state off
+        connect_bokken:
+          - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+          - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+        kill_server: 
+          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+      
+
+  XRQuest:
+    name: XRQuest
+    os: windows
+    components:
+      - editor
+      - il2cpp
+      - android
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+    commands:
+      [OpenGLES3, Vulkan]:
+        setup_utr: 
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+        call_utr_xr:
+          - |5-
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    git clone git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
+                    set cmd=<UTR_FLAGS>
+                    cd xr.xrautomatedtests/.yamato && python CheckIfPlayerExistsAndBuild.py
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
