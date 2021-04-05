@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -298,7 +299,7 @@ namespace UnityEditor.VFX
                 WriteGeneratedStructure(type, alreadyGeneratedStructure);
         }
 
-        public void WriteBuffer(VFXUniformMapper mapper, Dictionary<VFXExpression, Type> usageGraphicsBuffer)
+        public void WriteBuffer(VFXUniformMapper mapper, ReadOnlyDictionary<VFXExpression, Type> usageGraphicsBuffer)
         {
             foreach (var buffer in mapper.buffers)
             {
@@ -307,9 +308,9 @@ namespace UnityEditor.VFX
                 if (buffer.valueType == VFXValueType.Buffer && usageGraphicsBuffer.TryGetValue(buffer, out var type))
                 {
                     if (type == null)
-                        throw new NullReferenceException();
+                        throw new NullReferenceException("Unexpected null type in graphicsBuffer usage");
 
-                    string structureName = GetStructureName(type);
+                    var structureName = GetStructureName(type);
                     WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
                 }
                 else

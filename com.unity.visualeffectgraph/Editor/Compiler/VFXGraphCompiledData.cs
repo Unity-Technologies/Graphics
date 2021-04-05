@@ -12,6 +12,7 @@ using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
 using System.IO;
+using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX
 {
@@ -20,7 +21,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper cpuMapper;
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
-        public Dictionary<VFXExpression, Type> graphicsBufferUsage;
+        public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public int indexInShaderSource;
     }
@@ -765,7 +766,7 @@ namespace UnityEditor.VFX
                     var contextData = contextToCompiledData[context];
                     contextData.gpuMapper = gpuMapper;
                     contextData.uniformMapper = uniformMapper;
-                    contextData.graphicsBufferUsage = graph.m_GraphicsBufferUsageType;
+                    contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
                     contextToCompiledData[context] = contextData;
 
                     if (context.doesGenerateShader)
