@@ -37,19 +37,22 @@ namespace Unity.Testing.VisualEffectGraph
             }
         }
 
-        static readonly Tuple<Vector3, float>[] s_Colors = new Tuple<Vector3, float>[]
+        static readonly Tuple<Vector3, float>[] s_Colors = GenerateColorPrefixSum();
+        static Tuple<Vector3, float>[] GenerateColorPrefixSum()
         {
-        new Tuple<Vector3, float>(new Vector3(1,1,1), 4.0f),
-        new Tuple<Vector3, float>(new Vector3(0,0,0), 1.0f),
-        new Tuple<Vector3, float>(new Vector3(1,0,0), 1.0f),
-        new Tuple<Vector3, float>(new Vector3(0,0,1), 1.0f),
-        new Tuple<Vector3, float>(new Vector3(1,1,0), 1.0f),
-        };
+            var colors = new Tuple<Vector3, float>[]
+            {
+                new Tuple<Vector3, float>(new Vector3(1,1,1), 4.0f),
+                new Tuple<Vector3, float>(new Vector3(0,0,0), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(1,0,0), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(0,0,1), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(1,1,0), 1.0f),
+            };
 
-        //TODOPAUL DO A FUNCTION :-)
-        static readonly float[] s_PrefixSum = PrefixSum(s_Colors.Select(o => o.Item2)).ToArray();
-        static readonly float[] s_PrefixSumNormalized = s_PrefixSum.Select(o => o / s_PrefixSum.Last()).ToArray();
-        static readonly Tuple<Vector3, float>[] s_ColorsPrefixSumNormalized = s_Colors.Zip(s_PrefixSumNormalized, (a, b) => new Tuple<Vector3, float>(a.Item1, b)).ToArray();
+            var prefixSum = PrefixSum(colors.Select(o => o.Item2)).ToArray();
+            var prefixSumNormalized = prefixSum.Select(o => o / prefixSum.Last()).ToArray();
+            return colors.Zip(prefixSumNormalized, (a, b) => new Tuple<Vector3, float>(a.Item1, b)).ToArray();
+        }
 
         private static void ProcessMondrian(List<CustomData> rectangles, System.Random rand)
         {
@@ -86,8 +89,8 @@ namespace Unity.Testing.VisualEffectGraph
                 }
 
                 randValue = (float)rand.NextDouble();
-                var newColor = s_ColorsPrefixSumNormalized.Last().Item1;
-                foreach (var color in s_ColorsPrefixSumNormalized)
+                var newColor = s_Colors.Last().Item1;
+                foreach (var color in s_Colors)
                 {
                     if (randValue < color.Item2)
                     {
@@ -102,7 +105,7 @@ namespace Unity.Testing.VisualEffectGraph
         }
 
         private static readonly int s_BufferID = Shader.PropertyToID("buffer");
-        private GraphicsBuffer m_buffer;
+        private GraphicsBuffer m_Buffer;
 
         private static readonly uint s_MaxIteration = 12;
         private static readonly float s_WaitTime = 1.0f / (float)s_MaxIteration;
@@ -113,22 +116,26 @@ namespace Unity.Testing.VisualEffectGraph
 
         private List<CustomData> m_Data;
 
+        void Reallocate(int newSize)
+        {
+            if (m_Buffer != null)
+                m_Buffer.Release();
+
+            m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newSize, Marshal.SizeOf(typeof(CustomData)));
+            m_Buffer.SetData(new CustomData[newSize]);
+        }
+
         void Start()
         {
-            if (m_buffer != null)
-                m_buffer.Release();
-
-            m_buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 4096, Marshal.SizeOf(typeof(CustomData)));
-            m_buffer.SetData(new CustomData[4096]); //Why we need to clear ? TODOPAUL : try to reallocate
-
+            Reallocate(4);
             m_Data = new List<CustomData>()
             {
                 new CustomData() { position = new Vector3(0, 0, 0), rectangle = new Rectangle() { color = new Vector3(1, 1, 1), size = new Vector2(1024, 1024) }}
             };
-            m_buffer.SetData(m_Data);
+            m_Buffer.SetData(m_Data);
 
             var vfx = GetComponent<VisualEffect>();
-            vfx.SetGraphicsBuffer(s_BufferID, m_buffer);
+            vfx.SetGraphicsBuffer(s_BufferID, m_Buffer);
 
             m_Random = new System.Random(1245);
         }
@@ -143,11 +150,19 @@ namespace Unity.Testing.VisualEffectGraph
                 {
                     m_MaxIteration--;
                     ProcessMondrian(m_Data, m_Random);
-                    m_buffer.SetData(m_Data);
+
+                    if (m_Data.Count > m_Buffer.count)
+                    {
+                        int newCount = m_Buffer.count;
+                        while (newCount < m_Data.Count)
+                            newCount *= 2;
+                        Reallocate(newCount);
+                    }
+
+                    m_Buffer.SetData(m_Data);
 
                     if (m_MaxIteration == 0)
                         m_Wait = 1.0f;
-
                 }
                 else
                 {
@@ -159,10 +174,10 @@ namespace Unity.Testing.VisualEffectGraph
 
         public void OnDisable()
         {
-            if (m_buffer != null)
+            if (m_Buffer != null)
             {
-                m_buffer.Release();
-                m_buffer = null;
+                m_Buffer.Release();
+                m_Buffer = null;
             }
         }
     }
