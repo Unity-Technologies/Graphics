@@ -16,7 +16,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"a0f757c9-ce86-42cd-bb33-d78e7f61014b\"\n    },\n    \"m_Name\": \"Blend\",\n    \"m_DefaultReferenceName\": \"Vector1_AEDE416B\",\n    \"m_OverrideReferenceName\": \"_Blend\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_Hidden\": false,\n    \"m_Value\": 1.0,\n    \"m_FloatType\": 0,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    }\n}"
+            "JSONnodeData": "{\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"a0f757c9-ce86-42cd-bb33-d78e7f61014b\"\n    },\n    \"m_Name\": \"Blend\",\n    \"m_DefaultReferenceName\": \"Vector1_AEDE416B\",\n    \"m_OverrideReferenceName\": \"_BlendValue\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Precision\": 0,\n    \"m_Hidden\": false,\n    \"m_Value\": 1.0,\n    \"m_FloatType\": 0,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    }\n}"
         }
     ],
     "m_SerializableNodes": [
