@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
+- Fixed lights shadow frustum near and far planes.
 
 ## Changed
 - Tidy up of platform abstraction code for shader optimization.
