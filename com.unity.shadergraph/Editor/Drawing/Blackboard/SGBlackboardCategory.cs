@@ -380,7 +380,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override void Select(VisualElement selectionContainer, bool additive)
         {
-            // Don't add un-named categories to graph selections
+            // Don't add the un-named/default category to graph selections
             if(controller.Model.IsNamedCategory())
                 base.Select(selectionContainer, additive);
         }
@@ -397,7 +397,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void AddToSelection(ISelectable selectable)
         {
-            // Don't add un-named categories to graph selections
+            // Don't add the un-named/default category to graph selections
             if (controller.Model.IsNamedCategory() == false && selectable == this)
                 return;
 
@@ -440,7 +440,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            // Don't allow un-named sections to have right-click menu options
+            // Don't allow the default/un-named category to have right-click menu options
             if (controller.Model.IsNamedCategory())
             {
                 evt.menu.AppendAction("Delete", evt => RequestCategoryDelete());

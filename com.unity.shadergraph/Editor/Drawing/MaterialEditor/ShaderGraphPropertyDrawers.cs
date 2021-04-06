@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 }
             }
-            Debug.Assert(metadata != null, "Cannot draw ShaderGraph GUI on a non-ShaderGraph material", materialEditor.target);
+            AssertHelpers.IsNotNull(metadata, "Cannot draw ShaderGraph GUI on a non-ShaderGraph material", materialEditor.target);
             DrawShaderGraphGUI(materialEditor, properties, metadata.categoryDatas);
         }
 
@@ -59,7 +59,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUILayout.Space();
             EditorGUILayout.Space();
             if (SupportedRenderingFeatures.active.editableMaterialRenderQueue)
+            {
                 materialEditor.RenderQueueField();
+            }
             materialEditor.EnableInstancingField();
             materialEditor.DoubleSidedGIField();
         }

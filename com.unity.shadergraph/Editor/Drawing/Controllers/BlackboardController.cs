@@ -1,3 +1,6 @@
+// TODO: REMOVE
+#define SG_ASSERTIONS
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -29,7 +32,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // If type property is valid, create instance of that type
             if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
+            {
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+            }
             else if(shaderInputReferenceGetter != null)
             {
                 shaderInputReference = shaderInputReferenceGetter();
@@ -46,22 +51,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
             graphData.AddGraphInput(shaderInputReference);
 
-            // If no categoryToAddItemToGuid is provided, add the input to a new un-named category at the end of the blackboard
+            // If no categoryToAddItemToGuid is provided, add the input to the default category
             if (categoryToAddItemToGuid == String.Empty)
             {
-                var lastCategory = graphData.categories.ToList().LastOrDefault();
-                if (lastCategory != null && lastCategory.IsNamedCategory() == false)
+                var defaultCategory = graphData.categories.FirstOrDefault();
+                AssertHelpers.IsNotNull(defaultCategory, "Default category reference is null.");
+                if (defaultCategory != null)
                 {
                     var addItemToCategoryAction = new AddItemToCategoryAction();
-                    addItemToCategoryAction.categoryGuid = lastCategory.categoryGuid;
+                    addItemToCategoryAction.categoryGuid = defaultCategory.categoryGuid;
                     addItemToCategoryAction.itemToAdd = shaderInputReference;
                     graphData.owner.graphDataStore.Dispatch(addItemToCategoryAction);
-                }
-                else
-                {
-                    var addNewCategoryAction = new AddCategoryAction();
-                    addNewCategoryAction.categoryDataReference = new CategoryData("", new List<ShaderInput>() { shaderInputReference });
-                    graphData.owner.graphDataStore.Dispatch(addNewCategoryAction);
                 }
             }
             else
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    
+
                     copiedShaderInput = copiedProperty;
                     break;
 
@@ -261,6 +261,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal int propertyCategoryIndex = 0;
         internal int keywordCategoryIndex = 1;
 
+        BlackboardCategoryController m_DefaultCategoryController = null;
         Dictionary<string, BlackboardCategoryController> m_BlackboardCategoryControllers = new Dictionary<string, BlackboardCategoryController>();
 
         SGBlackboard m_Blackboard;
@@ -333,28 +334,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard = new SGBlackboard(ViewModel);
             blackboard.controller = this;
 
-            // Handle loaded-in categories from graph first
-            foreach (var categoryData in ViewModel.categoryInfoList)
+            // Add default category at the top of the blackboard (create it if it doesn't exist already)
+            var existingDefaultCategory = DataStore.State.categories.FirstOrDefault();
+            if (existingDefaultCategory != null && existingDefaultCategory.IsNamedCategory() == false)
             {
-                AddBlackboardCategory(graphDataStore, categoryData);
+                AddBlackboardCategory(graphDataStore, existingDefaultCategory);
+            }
+            else
+            {
+                // Any properties that don't already have a category (for example, if this graph is being loaded from an older version that doesn't have category data)
+                var uncategorizedBlackboardItems = new List<ShaderInput>();
+                foreach (var shaderProperty in DataStore.State.properties)
+                    if (IsInputUncategorized(shaderProperty))
+                        uncategorizedBlackboardItems.Add(shaderProperty);
+
+                foreach (var shaderKeyword in DataStore.State.keywords)
+                    if (IsInputUncategorized(shaderKeyword))
+                        uncategorizedBlackboardItems.Add(shaderKeyword);
+
+                var addCategoryAction = new AddCategoryAction();
+                addCategoryAction.categoryDataReference = CategoryData.DefaultCategory(uncategorizedBlackboardItems);
+                graphDataStore.Dispatch(addCategoryAction);
             }
 
-            // Any properties that don't already have a category (for example, if this graph is being loaded from an older version that doesn't have category data)
-            var uncategorizedBlackboardItems = new List<ShaderInput>();
-            foreach (var shaderProperty in DataStore.State.properties)
-                if (IsInputUncategorized(shaderProperty))
-                    uncategorizedBlackboardItems.Add(shaderProperty);
+            // Get the reference to default category controller after its been added
+            m_DefaultCategoryController = m_BlackboardCategoryControllers.Values.FirstOrDefault();
+            AssertHelpers.IsNotNull(m_DefaultCategoryController, "Failed to instantiate default category.");
 
-            foreach (var shaderKeyword in DataStore.State.keywords)
-                if (IsInputUncategorized(shaderKeyword))
-                    uncategorizedBlackboardItems.Add(shaderKeyword);
-
-            if (uncategorizedBlackboardItems.Count != 0)
+            // Handle loaded-in categories from graph first, skipping the first/default category
+            foreach (var categoryData in ViewModel.categoryInfoList.Skip(1))
             {
-                // Add these properties to an un-named category at the end of the blackboard
-                var addCategoryAction = new AddCategoryAction();
-                addCategoryAction.categoryDataReference = new CategoryData(String.Empty, uncategorizedBlackboardItems);
-                graphDataStore.Dispatch(addCategoryAction);
+                AddBlackboardCategory(graphDataStore, categoryData);
             }
         }
 
@@ -366,27 +376,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.name = categoryInfo.name;
             blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
+            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
+            {
+                m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
+            }
+            else
+            {
+                AssertHelpers.Fail("Failed to add category controller due to category with same GUID already having been added.");
+                return null;
+            }
             return blackboardCategoryController;
         }
 
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
-        // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
-            var keyValuePair = m_BlackboardCategoryControllers.LastOrDefault();
-            BlackboardCategoryController lastCategoryController = null;
-            lastCategoryController = keyValuePair.Value;
-
-            if (lastCategoryController != null && lastCategoryController.Model.IsNamedCategory() == false)
-                return lastCategoryController.InsertBlackboardRow(shaderInput, insertionIndex);
-            else
-            {
-                var newCategory = new CategoryData(String.Empty, new List<ShaderInput>() { shaderInput });
-                var blackboardCategoryController = AddBlackboardCategory(DataStore, newCategory);
-                return blackboardCategoryController.FindBlackboardRow(shaderInput);
-            }
+            return m_DefaultCategoryController.InsertBlackboardRow(shaderInput, insertionIndex);
         }
+
         public void UpdateBlackboardTitle(string newTitle)
         {
             ViewModel.title = newTitle;
@@ -406,7 +413,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             switch (changeAction)
             {
-                // If newly added input doesn't belong to any of the user-made categories, add it to the end of blackboard
+                // If newly added input doesn't belong to any of the user-made categories, add it to the default category at top of blackboard
                 case AddShaderInputAction addBlackboardItemAction:
                     if (IsInputUncategorized(addBlackboardItemAction.shaderInputReference))
                     {
@@ -430,6 +437,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     foreach (var categoryData in graphData.addedCategories)
                         AddBlackboardCategory(DataStore, categoryData);
+
+                    m_DefaultCategoryController = m_BlackboardCategoryControllers.Values.FirstOrDefault();
 
                     break;
                 case CopyShaderInputAction copyShaderInputAction:
@@ -456,8 +465,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Iterate through anything that is selected currently
                     foreach (var selectedElement in blackboard.selection.ToList())
                     {
-                        // Don't add selected items to an un-named category
-                        if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput } && addCategoryAction.categoryDataReference.IsNamedCategory())
+                        if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput })
                         {
                             // If a blackboard item is selected, first remove it from the blackboard
                             RemoveInputFromBlackboard(shaderInput);
@@ -537,7 +545,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 indexPerCategory.Add(-1);
 
             if (blackboard?.selection == null || blackboard.selection.Count == 0)
+            {
                 return indexPerCategory;
+            }
 
             foreach (ISelectable selection in blackboard.selection)
             {

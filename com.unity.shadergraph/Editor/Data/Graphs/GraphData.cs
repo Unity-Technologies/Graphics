@@ -1476,8 +1476,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            CleanupCategories();
-
             RemoveGraphInputNoValidate(input);
             ValidateGraph();
         }
@@ -1632,8 +1630,6 @@ namespace UnityEditor.ShaderGraph
                     categoryData.RemoveItemFromCategory(itemToAdd);
                 }
             }
-
-            CleanupCategories();
         }
 
         public void RemoveItemFromCategory(string categoryGUID, ShaderInput itemToRemove)
@@ -1645,8 +1641,6 @@ namespace UnityEditor.ShaderGraph
                     categoryData.RemoveItemFromCategory(itemToRemove);
                 }
             }
-
-            CleanupCategories();
         }
 
         public void RemoveCategory(string categoryGUID)
@@ -1663,37 +1657,6 @@ namespace UnityEditor.ShaderGraph
                         RemoveGraphInput(shaderInput);
                 }
             }
-
-            CleanupCategories();
-        }
-
-        void CleanupCategories()
-        {
-            foreach (var categoryData in categories.ToList())
-            {
-                if (categoryData.childCount == 0 && categoryData.IsNamedCategory() == false)
-                {
-                    m_CategoryData.Remove(categoryData);
-                    m_RemovedCategories.Add(categoryData);
-                }
-            }
-
-            for(var i = 0; i < m_CategoryData.ToList().Count()-1; ++i)
-            {
-                var thisCategory = m_CategoryData[i];
-                var nextCategory = m_CategoryData[i + 1];
-                if (thisCategory.value.IsNamedCategory() == false && nextCategory.value.IsNamedCategory() == false)
-                    MergeCategories(thisCategory, nextCategory);
-            }
-        }
-
-        void MergeCategories(CategoryData categoryA, CategoryData categoryB)
-        {
-            foreach (var categoryBChild in categoryB.Children)
-            {
-                categoryA.AddItemToCategory(categoryBChild);
-            }
-            m_CategoryData.Remove(categoryB);
         }
 
         public void OnKeywordChanged()
@@ -1880,8 +1843,19 @@ namespace UnityEditor.ShaderGraph
             foreach (GroupData groupData in other.groups)
                 AddGroup(groupData);
 
-            foreach(CategoryData categoryData in other.categories)
-                AddCategory(categoryData);
+            // If categories are ever removed completely, make sure there is always one default category that exists
+            if (!other.categories.Any())
+            {
+                AddCategory(CategoryData.DefaultCategory());
+            }
+            else
+            {
+                foreach (CategoryData categoryData in other.categories)
+                {
+                    AddCategory(categoryData);
+                }
+            }
+
 
             foreach (var stickyNote in other.stickyNotes)
             {

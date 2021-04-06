@@ -26,13 +26,9 @@ namespace UnityEditor.ShaderGraph
 
         public RefValueEnumerable<ShaderInput> Children => m_ChildObjectList.SelectValue();
 
-        HashSet<string> m_ChildObjectIDSet = new HashSet<string>();
         // We expose the object list as a HashSet of their objectIDs for faster existence checks
-        public HashSet<string> childObjectIDSet
-        {
-            get => m_ChildObjectIDSet;
-            set => m_ChildObjectIDSet = value;
-        }
+        HashSet<string> m_ChildObjectIDSet = new HashSet<string>();
+
         public int childCount => m_ChildObjectIDSet.Count;
 
         public void AddItemToCategory(ShaderInput itemToAdd)
@@ -94,17 +90,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public CategoryData(string inName, List<ShaderInput> inChildObjectList = null)
+        public CategoryData(string inName, List<ShaderInput> categoryChildren = null)
         {
             name = inName;
-            if (inChildObjectList != null)
+            if (categoryChildren != null)
             {
-                foreach (var childObject in inChildObjectList)
+                foreach (var childObject in categoryChildren)
                 {
                     m_ChildObjectList.Add(childObject);
                     m_ChildObjectIDSet.Add(childObject.objectId);
                 }
             }
+        }
+
+        public static CategoryData DefaultCategory(List<ShaderInput> categoryChildren = null)
+        {
+            return new CategoryData(String.Empty, categoryChildren);
         }
     }
 }
