@@ -197,6 +197,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 - Added Global settings check in Wizard
 - Added localization on Wizard window
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [11.0.0] - 2020-10-21
 
