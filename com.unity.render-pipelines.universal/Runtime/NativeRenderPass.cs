@@ -345,10 +345,9 @@ namespace UnityEngine.Rendering.Universal
                 // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget ==
                     BuiltinRenderTextureType.CameraTarget);
-                bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() &&
+                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                bool useDepth = depthOnly || m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
-                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null &&
-                    cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
 
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1,
