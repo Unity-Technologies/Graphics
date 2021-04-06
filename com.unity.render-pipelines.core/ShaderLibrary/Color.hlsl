@@ -180,10 +180,12 @@ real4 FastLinearToSRGB(real4 c)
 
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
+#ifndef BUILTIN_TARGET_API
 real Luminance(real3 linearRgb)
 {
     return dot(linearRgb, real3(0.2126729, 0.7151522, 0.0721750));
 }
+#endif
 
 real Luminance(real4 linearRgba)
 {
