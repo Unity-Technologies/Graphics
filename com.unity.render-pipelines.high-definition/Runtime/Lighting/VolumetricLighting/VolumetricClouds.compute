@@ -583,7 +583,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
         // Total distance that the ray must travel including empty spaces
         float totalDistance = rayMarchRange.distance;
 
-        if (cloudRay.maxRayLength < rayMarchRange.start)
+        if (cloudRay.maxRayLength >= rayMarchRange.start)
         {
             volumetricRay.invalidRay = false;
 
