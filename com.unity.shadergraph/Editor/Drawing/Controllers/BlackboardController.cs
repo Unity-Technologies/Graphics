@@ -179,15 +179,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out MoveCategoryAction");
             graphData.owner.RegisterCompleteObjectUndo("Move Category");
-            var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == categoryGuid);
-            AssertHelpers.IsNotNull(cat, "Category is null while carrying out MoveCategoryAction");
-            graphData.MoveCategory(cat, newIndexValue);
+            // Handling for out of range moves is slightly different, but otherwise we need to reverse for insertion order.
+            var guids = newIndexValue >= graphData.categories.Count() ? categoryGuids : categoryGuids.Reverse<string>();
+            foreach (var guid in guids)
+            {
+                var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == guid);
+                graphData.MoveCategory(cat, newIndexValue);
+            }
         }
 
         public Action<GraphData> modifyGraphDataAction => MoveCategory;
 
         // Reference to the shader input being modified
-        internal string categoryGuid { get; set; }
+        internal List<string> categoryGuids { get; set; }
 
         internal int newIndexValue { get; set; }
     }

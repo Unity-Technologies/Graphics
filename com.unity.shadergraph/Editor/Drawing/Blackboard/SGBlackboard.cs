@@ -384,8 +384,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var moveCategoryAction = new MoveCategoryAction();
-            moveCategoryAction.categoryGuid = selection.OfType<SGBlackboardCategory>().First().viewModel.associatedCategoryGuid;
             moveCategoryAction.newIndexValue = m_InsertIndex;
+            moveCategoryAction.categoryGuids = selection.OfType<SGBlackboardCategory>().OrderBy(sgcat => sgcat.GetPosition().y).Select(cat => cat.viewModel.associatedCategoryGuid).ToList();
             ViewModel.requestModelChangeAction(moveCategoryAction);
             evt.StopPropagation();
         }
