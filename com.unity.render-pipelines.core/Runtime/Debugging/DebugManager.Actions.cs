@@ -1,6 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 
 using System.Collections.Generic;
@@ -252,6 +253,9 @@ namespace UnityEngine.Rendering
         internal bool GetActionToggleDebugMenuWithTouch()
         {
 #if USE_INPUT_SYSTEM
+            if (!EnhancedTouchSupport.enabled)
+                return false;
+
             var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
             var touchCount = touches.Count;
             const InputSystem.TouchPhase touchPhaseBegan = InputSystem.TouchPhase.Began;
