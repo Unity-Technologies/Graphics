@@ -198,6 +198,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 - Added Global settings check in Wizard
 - Added localization on Wizard window
+- Added an info box for micro shadow editor (case 1322830).
 
 ## [11.0.0] - 2020-10-21
 
