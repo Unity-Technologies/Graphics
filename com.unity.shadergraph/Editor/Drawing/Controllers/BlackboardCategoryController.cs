@@ -68,15 +68,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangeIsExpanded(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeIsExpanded on Category");
-            var cat = graphData.categories.First(c => c.categoryGuid == categoryGuid);
-            if (cat.isExpanded != isExpanded)
+
+            graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
+            foreach (var catid in categoryGuids)
             {
-                graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
-                cat.isExpanded = isExpanded;
+                var cat = graphData.categories.First(c => c.categoryGuid == catid);
+                if (cat.isExpanded != isExpanded)
+                {                    
+                    cat.isExpanded = isExpanded;
+                }
             }
         }
 
-        public string categoryGuid { get; set; }
+        public List<string> categoryGuids { get; set; }
         public bool isExpanded { get; set; }
 
         public Action<GraphData> modifyGraphDataAction => ChangeIsExpanded;
@@ -195,7 +199,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case ChangeCategoryIsExpandedAction changeIsExpandedAction:
-                    if (changeIsExpandedAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    if (changeIsExpandedAction.categoryGuids.Contains(ViewModel.associatedCategoryGuid))
                     {
                         ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
                         m_BlackboardCategoryView.TryDoFoldout(changeIsExpandedAction.isExpanded);

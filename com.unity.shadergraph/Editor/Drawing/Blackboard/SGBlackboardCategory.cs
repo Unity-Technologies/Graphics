@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Linq;
 
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
@@ -239,7 +240,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.previousValue != evt.newValue)
             {
                 var isExpandedAction = new ChangeCategoryIsExpandedAction();
-                isExpandedAction.categoryGuid = viewDataKey;
+                if (selection.Contains(this)) // expand all selected if the foldout is part of a selection
+                    isExpandedAction.categoryGuids = selection.OfType<SGBlackboardCategory>().Select(s => s.viewModel.associatedCategoryGuid).ToList();
+                else
+                    isExpandedAction.categoryGuids = new List<string>() { viewModel.associatedCategoryGuid };
+
                 isExpandedAction.isExpanded = evt.newValue;
                 viewModel.requestModelChangeAction(isExpandedAction);
             }
