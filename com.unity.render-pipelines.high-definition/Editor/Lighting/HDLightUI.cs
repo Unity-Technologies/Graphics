@@ -1236,11 +1236,15 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
-                    if (!serialized.linkShadowLayers.hasMultipleDifferentValues && !serialized.linkShadowLayers.boolValue)
+                    //
+                    if (serialized.linkShadowLayers.hasMultipleDifferentValues || !serialized.linkShadowLayers.boolValue)
                     {
-                        ++EditorGUI.indentLevel;
-                        HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
-                        --EditorGUI.indentLevel;
+                        using (new EditorGUI.DisabledGroupScope(serialized.linkShadowLayers.hasMultipleDifferentValues))
+                        {
+                            ++EditorGUI.indentLevel;
+                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            --EditorGUI.indentLevel;
+                        }
                     }
                 }
             }
