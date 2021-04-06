@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (transparentsNeedSettingsPass)
                 {
-                    EnqueuePass(m_TransparentSettingsPass);
+                    //EnqueuePass(m_TransparentSettingsPass);
                 }
 
                 EnqueuePass(m_RenderTransparentForwardPass);

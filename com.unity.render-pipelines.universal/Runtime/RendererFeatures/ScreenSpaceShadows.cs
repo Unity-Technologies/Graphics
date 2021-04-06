@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldEnqueue)
             {
                 renderer.EnqueuePass(m_SSShadowsPass);
-                renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+                //renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
             }
         }
 
