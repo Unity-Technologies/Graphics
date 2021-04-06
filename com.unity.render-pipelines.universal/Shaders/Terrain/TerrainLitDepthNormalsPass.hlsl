@@ -73,28 +73,11 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         ClipHoles(IN.uvMainAndLM.xy);
     #endif
 
-    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
-    #ifndef TERRAIN_SPLAT_BASEPASS
-        #ifdef _NORMALMAP
-            half3 nrm = 0.0f;
-            nrm += splatControl.r * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy), _NormalScale0);
-            nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw), _NormalScale1);
-            nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy), _NormalScale2);
-            nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw), _NormalScale3);
-
-            // avoid risk of NaN when normalizing.
-            #if HAS_HALF
-                nrm.z += 0.01h;
-            #else
-                nrm.z += 1e-5f;
-            #endif
-
-            normalTS = normalize(nrm.xyz);
-        #endif
-    #endif
+    half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+    NormalMapMix(IN.uvSplat01, IN.uvSplat23, splatControl, normalTS);
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
@@ -105,7 +88,6 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         half3 normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
     #else
-        //half3 viewDirWS = IN.viewDir;
         half3 normalWS = IN.normal;
     #endif
 

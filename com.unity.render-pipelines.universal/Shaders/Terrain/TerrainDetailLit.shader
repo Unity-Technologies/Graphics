@@ -183,7 +183,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half4   Color           : TEXCOORD2; // Vertex Color
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
-                half3   NormalWS        : TEXCOORD5; // Shadow UVs
+                half3   NormalWS        : TEXCOORD5; // World Space Normal
                 float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
