@@ -335,6 +335,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.controller = this;
 
             // Add default category at the top of the blackboard (create it if it doesn't exist already)
+            var blackboardCategoriesToAdd = ViewModel.categoryInfoList.Skip(1).ToList();
             var existingDefaultCategory = DataStore.State.categories.FirstOrDefault();
             if (existingDefaultCategory != null && existingDefaultCategory.IsNamedCategory() == false)
             {
@@ -362,7 +363,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(m_DefaultCategoryController, "Failed to instantiate default category.");
 
             // Handle loaded-in categories from graph first, skipping the first/default category
-            foreach (var categoryData in ViewModel.categoryInfoList.Skip(1))
+            foreach (var categoryData in blackboardCategoriesToAdd)
             {
                 AddBlackboardCategory(graphDataStore, categoryData);
             }
