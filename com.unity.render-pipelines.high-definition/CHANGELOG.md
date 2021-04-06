@@ -199,6 +199,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Global settings check in Wizard
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 
 ## [11.0.0] - 2020-10-21
 
