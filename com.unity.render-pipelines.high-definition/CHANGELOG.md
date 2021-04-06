@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Area Light support for Hair and Fabric master nodes.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 - Added support for Fabric material in Path Tracing.
+- Added an error message when not using "Full Res" Texture Quality in HDRP.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
