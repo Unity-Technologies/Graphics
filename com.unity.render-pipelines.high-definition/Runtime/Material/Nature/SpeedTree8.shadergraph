@@ -37,6 +37,9 @@
             "m_Id": "49ee09d11c1e6282949aef0edf645f3f"
         },
         {
+            "m_Id": "1464e4132afc4d85be30bb068dd34366"
+        },
+        {
             "m_Id": "9975a87d80810b889b25ce4c1b72fa44"
         },
         {
@@ -55,9 +58,6 @@
         },
         {
             "m_Id": "ceb53d0645b9418c91d9858c7da4f35a"
-        },
-        {
-            "m_Id": "86f6fc0667e94e908d51dcbde6fc09d4"
         }
     ],
     "m_Nodes": [
@@ -234,6 +234,9 @@
         },
         {
             "m_Id": "a4cf2992bbaa4f2d8ba37405f33f25b8"
+        },
+        {
+            "m_Id": "a5cd8f3203364798b96abbc29156603d"
         }
     ],
     "m_GroupDatas": [
@@ -754,6 +757,20 @@
                     "m_Id": "f43c88d9ee265082a0044a070773d0d2"
                 },
                 "m_SlotId": -1260964465
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "a5cd8f3203364798b96abbc29156603d"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "7ebcbe35838540a5844a27cdc0b1dd26"
+                },
+                "m_SlotId": 0
             }
         },
         {
@@ -1513,6 +1530,26 @@
     "m_Version": 0,
     "m_FirstTimeMigrationExecuted": true,
     "inspectorFoldoutMask": 1
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.Rendering.HighDefinition.DiffusionProfileShaderProperty",
+    "m_ObjectId": "1464e4132afc4d85be30bb068dd34366",
+    "m_Guid": {
+        "m_GuidSerialized": "a834ecc9-c150-4541-8c40-bb4373ae4907"
+    },
+    "m_Name": "Diffusion Profile",
+    "m_DefaultReferenceName": "DiffusionProfile_1464e4132afc4d85be30bb068dd34366",
+    "m_OverrideReferenceName": "Diffusion_Profile",
+    "m_GeneratePropertyBlock": true,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": {
+        "instanceID": 0
+    }
 }
 
 {
@@ -2367,7 +2404,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": 0.5,
-    "m_FloatType": 0,
+    "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -2546,10 +2583,10 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": 1.0,
-    "m_FloatType": 0,
+    "m_FloatType": 1,
     "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
+        "x": 0.00009999999747378752,
+        "y": 2.0
     }
 }
 
@@ -4016,21 +4053,17 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
-    "m_ObjectId": "86f6fc0667e94e908d51dcbde6fc09d4",
-    "m_Guid": {
-        "m_GuidSerialized": "59da2c67-28eb-43fe-b5df-041ad5be4d27"
-    },
-    "m_Name": "Enable Subsurface",
-    "m_DefaultReferenceName": "BOOLEAN_86F6FC0667E94E908D51DCBDE6FC09D4_ON",
-    "m_OverrideReferenceName": "_MATERIAL_FEATURE_TRANSMISSION",
-    "m_GeneratePropertyBlock": true,
-    "m_KeywordType": 0,
-    "m_KeywordDefinition": 0,
-    "m_KeywordScope": 0,
-    "m_Entries": [],
-    "m_Value": 0,
-    "m_IsEditable": true
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "87335049189541e2a6db6bc379fb305e",
+    "m_Id": 0,
+    "m_DisplayName": "Diffusion Profile",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
 }
 
 {
@@ -4928,6 +4961,41 @@
     "m_Labels": [
         "X"
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "a5cd8f3203364798b96abbc29156603d",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 790.0001220703125,
+            "y": 333.99993896484377,
+            "width": 162.66668701171876,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "87335049189541e2a6db6bc379fb305e"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "1464e4132afc4d85be30bb068dd34366"
+    }
 }
 
 {
