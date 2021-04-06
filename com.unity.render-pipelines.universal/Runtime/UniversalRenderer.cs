@@ -664,7 +664,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, false);
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            if (m_ShadowTransparetReceive == false && needTransparencyPass)
+            if (m_ShadowTransparentReceive == false && needTransparencyPass)
 #else
             if (m_ShadowTransparentReceive == false)
 #endif
