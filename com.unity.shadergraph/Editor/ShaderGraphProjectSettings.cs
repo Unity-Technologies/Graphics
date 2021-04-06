@@ -36,7 +36,10 @@ namespace UnityEditor.ShaderGraph
         SerializedProperty m_customInterpError;
 
         public ShaderGraphProjectSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null)
-        : base(path, scopes, keywords) { }
+        : base(path, scopes, keywords)
+        {
+            base.guiHandler = OnGUIHandler;
+        }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
@@ -46,8 +49,8 @@ namespace UnityEditor.ShaderGraph
             m_customInterpError = m_SerializedObject.FindProperty("customInterpolatorErrorThreshold");
         }
 
-        int oldWarningThreshold;
-        public override void OnGUI(string searchContext)
+        int  oldWarningThreshold;
+        void OnGUIHandler(string searchContext)
         {
             m_SerializedObject.Update();
             EditorGUI.BeginChangeCheck();
