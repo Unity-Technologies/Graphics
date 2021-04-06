@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Area Light support for Hair and Fabric master nodes.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 - Added support for Fabric material in Path Tracing.
+- Added Global settings check in Wizard
+- Added localization on Wizard window
+- Added an info box for micro shadow editor (case 1322830).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -135,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed Decal's UV edit mode with negative UV
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -195,8 +199,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
 - Improved lighting models for AxF shader area lights.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
-- Added Global settings check in Wizard
-- Added localization on Wizard window
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [11.0.0] - 2020-10-21
