@@ -82,6 +82,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Clears all the previously created history buffers
+        /// </summary>
+        /// <param name="cmd">Defines the command buffer used for clearing.</param>
+
+        public void ClearBuffers(CommandBuffer cmd)
+        {
+            foreach (var rtHandle in m_RTHandles)
+            {
+                for (int i = 0; i < rtHandle.Value.Length; ++i)
+                {
+                    CoreUtils.SetRenderTarget(cmd, rtHandle.Value[i], clearFlag: ClearFlag.Color, clearColor: Color.black);
+                }
+            }
+        }
+
+        /// <summary>
         /// Allocate RT handles for a buffer.
         /// </summary>
         /// <param name="bufferId">The buffer to allocate.</param>
