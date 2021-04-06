@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 - Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. [case 1297013](https://issuetracker.unity3d.com/issues/android-urp-black-screen-when-building-project-to-an-android-device-with-mock-hmd-enabled-and-multisampled-sampler-errors)
+- Added Depth and DepthNormals passes to particles shaders.
+- Added support for SSAO in Particle and Unlit shaders.
 
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
@@ -27,10 +29,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer to Assets/Create/Rendering/URP Forward Renderer
 - Removing unused temporary depth buffers for Depth of Field and Panini Projection.
 - Optimized the Bokeh Depth of Field shader on mobile by using half precision floats.
-- Added Depth and DepthNormals passes to particles shaders.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
 - Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
+- DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
+- SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
 
 ### Fixed
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
@@ -76,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors when the Profiler is used with XR multipass. [case 1313141](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
 - Fixed materials being constantly dirty.
 - Fixed double sided and clear coat multi editing shader.
+- Fixed an issue where Depth Prepass was not run when SSAO was set to Depth Mode.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
