@@ -271,6 +271,7 @@ namespace UnityEngine
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight,
+            bool usePanini, float paniniDistance, float paniniCropToFit,
             Rendering.CommandBuffer cmd, Rendering.RenderTargetIdentifier source, Rendering.RenderTargetIdentifier target,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
@@ -286,14 +287,13 @@ namespace UnityEngine
 
             if (skipCopy)
             {
-                cmd.CopyTexture(source, target);
-                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+                Rendering.CoreUtils.SetRenderTarget(cmd, target);
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
             else
             {
                 cmd.CopyTexture(source, target);
-                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+                Rendering.CoreUtils.SetRenderTarget(cmd, target);
             }
 
             foreach (SRPLensFlareOverride comp in lensFlares.GetData())
@@ -327,6 +327,10 @@ namespace UnityEngine
                     positionWS = comp.transform.position;
                 }
                 viewportPos = cam.WorldToViewportPoint(positionWS);
+                if (usePanini)
+                {
+                    viewportPos = DoPaniniProjection(viewportPos, (int)actualWidth, (int)actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance, true);
+                }
 
                 if (viewportPos.z < 0.0f)
                     continue;
@@ -672,12 +676,6 @@ namespace UnityEngine
         static Vector2 DoPaniniProjection(Vector2 screenPos, int actualWidth, int actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance, bool inverse)
         {
             float distance = paniniProjectionDistance;
-            //custom-begin: hack to force panini to 1 in this resolution
-            //if (camera.actualWidth == 3168 && camera.actualHeight == 1056)
-            //{
-            //    distance = 1;
-            //}
-            //custom-end:
             Vector2 viewExtents = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
             Vector2 cropExtents = Panini_Generic_Inv(viewExtents, distance);
 
@@ -688,10 +686,12 @@ namespace UnityEngine
             float paniniD = distance;
             float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), paniniProjectionCropToFit);
 
-            if (!inverse)
-                return Panini_Generic(screenPos * viewExtents * paniniS, paniniD) / viewExtents;
-            else
-                return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
+            //if (!inverse)
+            //return Panini_UnitDistance(screenPos * viewExtents * paniniS) / (viewExtents);
+            //return Panini_UnitDistance(screenPos * viewExtents * paniniD) / (viewExtents * paniniS);
+            //else
+            //    return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
+            return Panini_Generic(screenPos * viewExtents * paniniS, paniniD) / (viewExtents * paniniD);
         }
 
         static Vector2 CalcViewExtents(int actualWidth, int actualHeight, float fieldOfView)
@@ -703,6 +703,49 @@ namespace UnityEngine
             float viewExtX = aspect * viewExtY;
 
             return new Vector2(viewExtX, viewExtY);
+        }
+
+        static Vector2 Panini_UnitDistance(Vector2 view_pos)
+        {
+            // Given
+            //    S----------- E--X-------
+            //    |      ` .  /,´
+            //    |-- ---    Q
+            //  1 |       ,´/  `
+            //    |     ,´ /    ´
+            //    |   ,´  /      `
+            //    | ,´   /       .
+            //    O`    /        .
+            //    |    /         `
+            //    |   /         ´
+            //  1 |  /         ´
+            //    | /        ´
+            //    |/_  .  ´
+            //    P
+            //
+            // Have E
+            // Want to find X
+            //
+            // First apply tangent-secant theorem to find Q
+            //   PE*QE = SE*SE
+            //   QE = PE-PQ
+            //   PQ = PE-(SE*SE)/PE
+            //   Q = E*(PQ/PE)
+            // Then project Q to find X
+
+            const float d = 1.0f;
+            const float view_dist = 2.0f;
+            const float view_dist_sq = 4.0f;
+
+            float view_hyp = Mathf.Sqrt(view_pos.x * view_pos.x + view_dist_sq);
+
+            float cyl_hyp = view_hyp - (view_pos.x * view_pos.x) / view_hyp;
+            float cyl_hyp_frac = cyl_hyp / view_hyp;
+            float cyl_dist = view_dist * cyl_hyp_frac;
+
+            Vector2 cyl_pos = view_pos * cyl_hyp_frac;
+
+            return cyl_pos / (cyl_dist - d);
         }
 
         static Vector2 Panini_Generic(Vector2 view_pos, float d)
@@ -742,6 +785,7 @@ namespace UnityEngine
             float cyl_dist = cyl_dist_minus_d + d;
 
             Vector2 cyl_pos = view_pos * (cyl_dist / view_dist);
+
             return cyl_pos / (cyl_dist - d);
         }
 
