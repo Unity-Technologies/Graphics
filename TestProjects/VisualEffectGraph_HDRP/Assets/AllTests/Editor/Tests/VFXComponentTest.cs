@@ -170,8 +170,7 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        [UnityTest]
-        public IEnumerator CreateComponent_And_BindGraphicsBuffer()
+        VFXGraph CreateTemporaryGraph_With_GraphicsBuffer(string name)
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
 
@@ -185,6 +184,15 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             graph.AddChild(parameter);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            return graph;
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_BindGraphicsBuffer()
+        {
+            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -215,35 +223,31 @@ namespace UnityEditor.VFX.Test
         {
             Reinit,
             DisableAndRenable,
+            ChangeVisualEffectAsset,
             EditSerializedObject
         }
 
         static GraphicsBufferResetCase[] s_GraphicsBufferResetCase = Enum.GetValues(typeof(GraphicsBufferResetCase)).Cast<GraphicsBufferResetCase>().ToArray();
 
         [UnityTest]
-        public IEnumerator CreateComponent_And_BindGraphicsBuffer_And([ValueSource("s_GraphicsBufferResetCase")] GraphicsBufferResetCase resetCase)
+        public IEnumerator CreateComponent_And_BindGraphicsBuffer_And_([ValueSource("s_GraphicsBufferResetCase")] GraphicsBufferResetCase resetCase)
         {
-            var graph = VFXTestCommon.MakeTemporaryGraph();
-
-            //Other value used for vfx editor update
-            var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
-            Assert.IsNotNull(intDesc);
-            var targetInteger = "my_exposed_graphics_integer";
-            var parameterInteger = intDesc.CreateInstance();
-            parameterInteger.SetSettingValue("m_ExposedName", targetInteger);
-            parameterInteger.SetSettingValue("m_Exposed", true);
-            graph.AddChild(parameterInteger);
-
-            var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
-            Assert.IsNotNull(graphicsBufferDesc);
-
             var targetGraphicsBuffer = "my_exposed_graphics_buffer";
-            var parameterBuffer = graphicsBufferDesc.CreateInstance();
-            parameterBuffer.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
-            parameterBuffer.SetSettingValue("m_Exposed", true);
-            graph.AddChild(parameterBuffer);
+            var graph = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer);
+            var targetInteger = "my_exposed_graphics_integer";
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            if (resetCase == GraphicsBufferResetCase.EditSerializedObject)
+            {
+                //Other value used for vfx editor update
+                var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
+                Assert.IsNotNull(intDesc);
+                var parameterInteger = intDesc.CreateInstance();
+                parameterInteger.SetSettingValue("m_ExposedName", targetInteger);
+                parameterInteger.SetSettingValue("m_Exposed", true);
+                graph.AddChild(parameterInteger);
+
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            }
 
             while (m_mainObject.GetComponent<VisualEffect>() != null)
                 UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
@@ -262,6 +266,10 @@ namespace UnityEditor.VFX.Test
                 case GraphicsBufferResetCase.DisableAndRenable:
                     vfx.enabled = false;
                     vfx.enabled = true;
+                    break;
+                case GraphicsBufferResetCase.ChangeVisualEffectAsset:
+                    vfx.visualEffectAsset = CreateTemporaryGraph_With_GraphicsBuffer(targetGraphicsBuffer).visualEffectResource.asset;
+                    vfx.visualEffectAsset = graph.visualEffectResource.asset;
                     break;
                 case GraphicsBufferResetCase.EditSerializedObject:
                     {
@@ -286,14 +294,11 @@ namespace UnityEditor.VFX.Test
                     break;
             }
 
-            if (resetCase != GraphicsBufferResetCase.EditSerializedObject) //TODOPAUL : Check if we should fix this case or not, it's only editor
-            {
-                Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
 
-                var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
-                Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
-                newGraphicsBuffer.Release();
-            }
+            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
+            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
+            newGraphicsBuffer.Release();
 
             yield return null;
         }

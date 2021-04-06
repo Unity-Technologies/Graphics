@@ -154,7 +154,8 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool overrideMixed, bool valueMixed, out bool overriddenChanged)
         {
-            if (parameter.realType == typeof(Matrix4x4).Name)
+            if (parameter.realType == typeof(Matrix4x4).Name
+                ||  parameter.realType == typeof(GraphicsBuffer).Name)
             {
                 overriddenChanged = false;
                 return false;
@@ -872,7 +873,7 @@ namespace UnityEditor.VFX
                                 while (currentCount == 0);
                             }
 
-                            if (string.IsNullOrEmpty(parameter.sheetType))
+                            if (string.IsNullOrEmpty(parameter.sheetType)) //WRONG : buffer is null here
                             {
                                 if (!string.IsNullOrEmpty(parameter.name))
                                 {

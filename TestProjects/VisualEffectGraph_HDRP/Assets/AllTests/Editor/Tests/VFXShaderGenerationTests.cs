@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.Test
@@ -149,7 +150,8 @@ namespace UnityEditor.VFX.Test
             var contextCompiledData = new VFXContextCompiledData()
             {
                 gpuMapper = new VFXExpressionMapper(),
-                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true)
+                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true),
+                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>())
             };
             HashSet<string> dependencies = new HashSet<string>();
             var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData, dependencies);
