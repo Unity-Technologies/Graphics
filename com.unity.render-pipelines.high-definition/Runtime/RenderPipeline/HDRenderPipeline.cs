@@ -536,6 +536,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
+
+            if (QualitySettings.masterTextureLimit != 0)
+            {
+                Debug.LogError("High Definition Render Pipeline doesn't support setting the Texture Quality to anything but \"Full Res\". If you don't use \"Full Res\", some internal textures used for rendering may be corrupted and generate artefacts on screen.");
+            }
 #endif
         }
 
