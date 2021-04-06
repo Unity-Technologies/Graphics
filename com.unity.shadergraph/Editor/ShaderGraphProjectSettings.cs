@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    [FilePath("ProjectSettings/ShaderGraphProjectSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+    [FilePath("ProjectSettings/ShaderGraphSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     internal class ShaderGraphProjectSettings : ScriptableSingleton<ShaderGraphProjectSettings>
     {
         [SerializeField]
@@ -18,14 +18,16 @@ namespace UnityEditor.ShaderGraph
 
     class ShaderGraphProjectSettingsProvider : SettingsProvider
     {
-        private static string kCustomInterpolatorHelpBox = "These options are used to help ShaderGraph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
-        private static string kCustomInterpolatorDocumentationURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/";
+        internal const int kMaxChannelThreshold = 32;
+        internal const int kMinChannelThreshold = 8;
+        private static string kCustomInterpolatorHelpBox = "Unity uses these options to help ShaderGraph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
+        private static string kCustomInterpolatorDocumentationURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/"; // TODO: Direct to Custom Interpolator page.
 
         private class Styles
         {
             public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
-            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", "ShaderGraph will warn when this channel limitation is exceeded by a custom interpolator. Range must be between 8 and Error Threshold.");
-            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", "ShaderGraph will error when this channel limitation is exceeded by a custom interpolator. Range must be between 8 and 32.");
+            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"ShaderGraph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
+            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"ShaderGraph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
             public static readonly GUIContent ReadMore = L10n.TextContent("Read more");
         }
 
@@ -54,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             EditorGUI.indentLevel++;
 
             int newError = EditorGUILayout.IntField(Styles.CustomInterpErrorThresholdLabel, m_customInterpError.intValue);
-            m_customInterpError.intValue = Mathf.Clamp(newError, 8, 32);
+            m_customInterpError.intValue = Mathf.Clamp(newError, kMinChannelThreshold, kMaxChannelThreshold);
 
             int oldWarn = m_customInterpWarn.intValue;
             int newWarn = EditorGUILayout.IntField(Styles.CustomInterpWarnThresholdLabel, m_customInterpWarn.intValue);
@@ -62,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             // If the user did not modify the field, restore their previous input and reclamp against the new error threshold.
             if (oldWarn == newWarn) newWarn = oldWarningThreshold;
             else oldWarningThreshold = newWarn;
-            m_customInterpWarn.intValue = Mathf.Clamp(newWarn, 8, m_customInterpError.intValue);
+            m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, m_customInterpError.intValue);
 
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
             GUILayout.Label(EditorGUIUtility.IconContent("console.infoicon"), GUILayout.ExpandWidth(true));
