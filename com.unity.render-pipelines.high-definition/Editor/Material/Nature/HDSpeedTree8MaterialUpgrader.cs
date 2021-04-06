@@ -4,15 +4,15 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// SpeedTree8 material upgrader for HDRP.
+    /// SpeedTree 8 material upgrader for HDRP.
     /// </summary>
     class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
     {
         /// <summary>
-        /// Creates a SpeedTree8 material upgrader for HDRP.
+        /// Creates a SpeedTree 8 material upgrader for HDRP.
         /// </summary>
         /// <param name="sourceShaderName">Original shader name.</param>
-        /// <param name="destShaderName">Upgrade shader name.</param>
+        /// <param name="destShaderName">Upgraded shader name.</param>
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
             : base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
         {
@@ -25,9 +25,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Checks if a given material is an HD SpeedTree8 material.
+        /// Determines if a given material is using the default SpeedTree 8 shader for HDRP.
         /// </summary>
-        /// <param name="mat">Material to check.</param>
+        /// <param name="mat">Material to check for an HDRP-compatible SpeedTree 8 shader.</param>
         /// <returns></returns>
         public static bool IsHDSpeedTree8Material(Material mat)
         {
@@ -35,9 +35,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// (Obsolete) Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
+        /// (Obsolete) During normal usage, HDRP may reset SpeedTree-specific keywords which should not be modified. This method restores these keywords to their original state.
         /// </summary>
-        /// <param name="mat">SpeedTree8 material.</param>
+        /// <param name="mat">SpeedTree 8 material.</param>
         public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
             // Since ShaderGraph now supports toggling keywords via float properties, keywords get

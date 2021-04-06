@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Area Light support for Hair and Fabric master nodes.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 - Added support for Fabric material in Path Tracing.
-- Added a default SpeedTree8 shader to HD, including upgrader support from builtin ST8 and support for importing new ST8 assets.
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
