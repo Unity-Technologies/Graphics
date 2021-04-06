@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
+  - Added buttons to quickly upgrade ShaderGraphs to latest file format on the ShaderGraph inspector.
 
 ### Changed
 - Updated/corrected View Direction doc

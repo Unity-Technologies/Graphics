@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using System.Text;
 using UnityEditor.ShaderGraph.Serialization;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,49 +20,74 @@ namespace UnityEditor.ShaderGraph
     {
         protected override bool needsApplyRevert => false;
 
+        bool checkedAssetOutOfDate = false;
+        bool assetIsOutOfDate = false;
+
+        bool CheckIsAssetOutOfDate(AssetImporter importer)
+        {
+            // already checked
+            if (checkedAssetOutOfDate)
+                return assetIsOutOfDate;
+
+            // check it -- load graph and compare serialized
+            string originalJSon = null;
+            var graphData = GetGraphData(importer.assetPath, text => { originalJSon = text; });
+
+            var newJSon = MultiJson.Serialize(graphData);
+
+            assetIsOutOfDate = !string.Equals(originalJSon, newJSon, StringComparison.Ordinal);
+            checkedAssetOutOfDate = true;
+
+            return assetIsOutOfDate;
+        }
+
+        static GraphData GetGraphData(string shaderGraphPath, Action<string> onOriginalText = null)
+        {
+            var textGraph = File.ReadAllText(shaderGraphPath, Encoding.UTF8);
+            if (onOriginalText != null)
+                onOriginalText(textGraph);
+            var graphObject = CreateInstance<GraphObject>();
+            graphObject.hideFlags = HideFlags.HideAndDontSave;
+            bool isSubGraph;
+            var extension = Path.GetExtension(shaderGraphPath).Replace(".", "");
+            switch (extension)
+            {
+                case ShaderGraphImporter.Extension:
+                    isSubGraph = false;
+                    break;
+                case ShaderGraphImporter.LegacyExtension:
+                    isSubGraph = false;
+                    break;
+                case ShaderSubGraphImporter.Extension:
+                    isSubGraph = true;
+                    break;
+                default:
+                    throw new Exception($"Invalid file extension {extension}");
+            }
+            var assetGuid = AssetDatabase.AssetPathToGUID(shaderGraphPath);
+            graphObject.graph = new GraphData
+            {
+                assetGuid = assetGuid,
+                isSubGraph = isSubGraph,
+                messageManager = null
+            };
+            MultiJson.Deserialize(graphObject.graph, textGraph);
+            graphObject.graph.OnEnable();
+            graphObject.graph.ValidateGraph();
+            return graphObject.graph;
+        }
+
         public override void OnInspectorGUI()
         {
-            GraphData GetGraphData(AssetImporter importer)
-            {
-                var textGraph = File.ReadAllText(importer.assetPath, Encoding.UTF8);
-                var graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                bool isSubGraph;
-                var extension = Path.GetExtension(importer.assetPath).Replace(".", "");
-                switch (extension)
-                {
-                    case ShaderGraphImporter.Extension:
-                        isSubGraph = false;
-                        break;
-                    case ShaderGraphImporter.LegacyExtension:
-                        isSubGraph = false;
-                        break;
-                    case ShaderSubGraphImporter.Extension:
-                        isSubGraph = true;
-                        break;
-                    default:
-                        throw new Exception($"Invalid file extension {extension}");
-                }
-                var assetGuid = AssetDatabase.AssetPathToGUID(importer.assetPath);
-                graphObject.graph = new GraphData
-                {
-                    assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = null
-                };
-                MultiJson.Deserialize(graphObject.graph, textGraph);
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-                return graphObject.graph;
-            }
+            AssetImporter importer = target as AssetImporter;
 
             if (GUILayout.Button("Open Shader Editor"))
             {
-                AssetImporter importer = target as AssetImporter;
                 Debug.Assert(importer != null, "importer != null");
                 ShowGraphEditWindow(importer.assetPath);
             }
             using (var horizontalScope = new GUILayout.HorizontalScope("box"))
             {
-                AssetImporter importer = target as AssetImporter;
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
                 bool alreadyExists = File.Exists(path);
@@ -79,7 +105,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (update)
                 {
-                    var graphData = GetGraphData(importer);
+                    var graphData = GetGraphData(importer.assetPath);
                     var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
@@ -92,27 +118,86 @@ namespace UnityEditor.ShaderGraph
             {
                 if (GUILayout.Button("View Preview Shader"))
                 {
-                    AssetImporter importer = target as AssetImporter;
                     string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                     string path = String.Format("Temp/GeneratedFromGraph-{0}-Preview.shader", assetName.Replace(" ", ""));
 
-                    var graphData = GetGraphData(importer);
+                    var graphData = GetGraphData(importer.assetPath);
                     var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null);
                     if (GraphUtil.WriteToFile(path, generator.generatedShader))
                         GraphUtil.OpenFile(path);
                 }
             }
             if (GUILayout.Button("Copy Shader"))
-            {
-                AssetImporter importer = target as AssetImporter;
+            {               
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
 
-                var graphData = GetGraphData(importer);
+                var graphData = GetGraphData(importer.assetPath);
                 var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
+            if (CheckIsAssetOutOfDate(importer))
+            {
+                using (var horizontalScope = new GUILayout.HorizontalScope("box"))
+                {
+                    if (GUILayout.Button("Update File To Latest"))
+                    {
+                        UpdateShaderGraph(importer.assetPath, true);
+                        checkedAssetOutOfDate = false;
+                    }
+                    if (GUILayout.Button("Update All ShaderGraphs"))
+                    {
+                        if (EditorUtility.DisplayDialog("Update All ShaderGraphs",
+                            "This will update ALL ShaderGraph files in your project,\n" +
+                            "applying any versioning and file format changes." +
+                            "Please back up your project before running this process.\n",
+                            "Update All", "Cancel"))
+                        {
+                            try
+                            {
+                                AssetDatabase.StartAssetEditing();
+                                DirectoryInfo directory = new DirectoryInfo(Application.dataPath);
+                                FileInfo[] fileInfos = directory.GetFiles("*.shadergraph", SearchOption.AllDirectories);
+
+                                int fileIdx = 0;
+                                int totalFiles = fileInfos.Length;
+                                foreach (var file in fileInfos)
+                                {
+                                    fileIdx++;
+                                    var path = file.FullName;
+                                    path = path.Replace(@"\", "/").Replace(Application.dataPath, "Assets");
+                                    EditorUtility.DisplayProgressBar("ShaderGraph File Updater", string.Format("({0} of {1}) {2}", fileIdx, totalFiles, path), (float)fileIdx / (float)totalFiles);
+                                    UpdateShaderGraph(path, false);
+                                }
+                            }
+                            finally
+                            {
+                                AssetDatabase.StopAssetEditing();
+                                AssetDatabase.Refresh();
+                                EditorUtility.ClearProgressBar();
+                                checkedAssetOutOfDate = false;
+                            }
+                        }
+                    }
+                }
+            }
 
             ApplyRevertGUI();
+        }
+
+        internal static void UpdateShaderGraph(string shaderGraphPath, bool import)
+        {
+            var graphData = GetGraphData(shaderGraphPath);
+            if (graphData != null)
+            {
+                AssetDatabase.MakeEditable(shaderGraphPath);
+
+                // TODO check out file!
+                var newFileContents = FileUtilities.WriteShaderGraphToDisk(shaderGraphPath, graphData);
+                if ((newFileContents != null) && import)
+                {
+                    AssetDatabase.ImportAsset(shaderGraphPath);
+                }
+            }
         }
 
         internal static bool ShowGraphEditWindow(string path)
