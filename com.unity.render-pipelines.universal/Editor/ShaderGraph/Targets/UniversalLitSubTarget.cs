@@ -688,7 +688,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
                 { ScreenSpaceAmbientOcclusion },
-                { CoreKeywordDescriptors.SurfaceTypeTransparent },
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },

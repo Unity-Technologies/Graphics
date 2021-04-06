@@ -865,16 +865,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
         };
-
-        public static KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
-        {
-            displayName = "Surface Type Transparent",
-            referenceName = "_SURFACE_TYPE_TRANSPARENT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Fragment
-        };
     }
     #endregion
 

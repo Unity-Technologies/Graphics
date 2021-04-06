@@ -204,7 +204,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static KeywordCollection Unlit = new KeywordCollection
             {
-                { CoreKeywordDescriptors.SurfaceTypeTransparent },
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
