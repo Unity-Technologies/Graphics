@@ -13,14 +13,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed missing Update in Wizard's DXR Documentation
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 
-### Fixed
-- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
-- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
+### Added
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ## [10.4.0] - 2020-01-26
 
@@ -28,7 +29,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for XboxSeries platform.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - Added shader graph unit test for IsFrontFace node
-- Added SpeedTree8 shadergraph as default ST8 shader for HDRP
 
 ### Fixed
 - Fixed model import by adding additional data if needed.

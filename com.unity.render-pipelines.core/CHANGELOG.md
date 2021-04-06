@@ -12,9 +12,9 @@ The version number for this package has increased due to a version update of a r
 
 ### Added
 - Support for the XboxSeries platform has been added.
-- Added SpeedTree8MaterialUpgrader for common SpeedTree8 code to support HD and Universal's ST8 shadergraphs
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 
 ### Fixed
 - Fixed parameters order on inspectors for Volume Components without custom editor

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+- Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+
 ## [10.4.0] - 2020-01-26
 
 ### Fixed
@@ -22,8 +25,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 
-### Added
-- Added SpeedTree8 shadergraph for universal. Since it behaves differently from existing ST8 shader, it is not hooked up or set to be default yet.
 
 ## [10.3.1] - 2020-01-26
 
