@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
-- Added a SpeedTree8MaterialUpgrader which provides common functionality for upgrading and importing SpeedTree8 assets using SpeedTree8 shadergraphs
+- Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
@@ -76,7 +76,6 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
 - Added the support of input system V2
-- Added a SpeedTree8MaterialUpgrader which provides support for upgrading and importing to SpeedTree8 shadergraphs
 
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)

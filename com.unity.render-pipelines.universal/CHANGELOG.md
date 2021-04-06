@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added _SURFACE_TYPE_TRANSPARENT keyword to URP shaders.
 - Added Depth and DepthNormals passes to particles shaders.
 - Added support for SSAO in Particle and Unlit shaders.
-- Added SpeedTree8 shadergraph. Culling is not yet working on it, so it isn't replacing the handwritten shader as Universal's default yet.
+- Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
