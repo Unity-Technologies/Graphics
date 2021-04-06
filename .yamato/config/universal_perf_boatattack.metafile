@@ -123,7 +123,7 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=High
           - [all]: --player-save-path=playersHigh
-      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr_xr>
+      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
@@ -345,14 +345,12 @@ pr:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_build_editmode
     - platform: XRQuest
       api: Vulkan
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_build_editmode
     - platform: iPhone
       api: Metal
       build_config: il2cpp
