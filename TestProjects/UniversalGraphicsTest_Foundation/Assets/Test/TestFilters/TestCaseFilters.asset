@@ -78,15 +78,6 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
@@ -94,42 +85,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 40c4ce99a7711204d978b31395d890b4, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 74cb351d2fc32de4d812e3f2f08744e7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
@@ -141,15 +96,6 @@ MonoBehaviour:
     Reason: OSX Standalone won't work with back buffer capture
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
@@ -157,15 +103,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
@@ -184,15 +121,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
