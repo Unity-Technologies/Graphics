@@ -207,7 +207,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         else if (transparentMaterial)
                             subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.UniqueAnyHitCalls;
 
-                        // Check if we want double-sidedness for the mesh
+                        // Check if we want to enable double-sidedness for the mesh
+                        // (note that a mix of single and double-sided materials will result in a double-sided mesh in the AS)
                         doubleSided |= currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
 
                         // Check if the material has changed since last time we were here
