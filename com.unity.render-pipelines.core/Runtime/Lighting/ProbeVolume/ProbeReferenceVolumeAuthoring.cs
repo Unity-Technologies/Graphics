@@ -136,7 +136,9 @@ namespace UnityEngine.Rendering
             if (volumeAsset == null)
                 return;
 
+#if UNITY_EDITOR
             m_PrevAsset = null;
+#endif
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
