@@ -13,11 +13,15 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
         uniform int _ShadingMode;
         uniform float _ExposureCompensation;
@@ -42,6 +46,7 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
             UNITY_DEFINE_INSTANCED_PROP(float4, _R)
             UNITY_DEFINE_INSTANCED_PROP(float4, _G)
             UNITY_DEFINE_INSTANCED_PROP(float4, _B)
+            UNITY_DEFINE_INSTANCED_PROP(float4, _Position)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
 
@@ -79,18 +84,48 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         float4 frag(v2f i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
+
             if (_ShadingMode == 1)
             {
+#if 0
                 float4 r = UNITY_ACCESS_INSTANCED_PROP(Props, _R);
                 float4 g = UNITY_ACCESS_INSTANCED_PROP(Props, _G);
                 float4 b = UNITY_ACCESS_INSTANCED_PROP(Props, _B);
-
                 return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
+#else
+                float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
+                float3 normal = normalize(i.normal);
+                float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+                float3 backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+                APVResources apvRes = FillAPVResources();
+
+                float3 uvw;
+                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, uvw))
+                {
+                    float L1Rx;
+                    float3 L0 = EvaluateAPVL0(apvRes, uvw, L1Rx, true);
+
+#ifdef PROBE_VOLUMES_L1
+                    EvaluateAPVL1(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting, true);
+#elif PROBE_VOLUMES_L2
+                    EvaluateAPVL1L2(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting, true);
+#endif
+
+                    bakeDiffuseLighting += L0;
+                }
+                else
+                {
+                    bakeDiffuseLighting = EvaluateAmbientProbe(normal);
+                }
+
+                return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
+#endif
             }
             else if (_ShadingMode == 2)
             {
                 return UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
             }
+
             return _Color;
         }
         ENDHLSL

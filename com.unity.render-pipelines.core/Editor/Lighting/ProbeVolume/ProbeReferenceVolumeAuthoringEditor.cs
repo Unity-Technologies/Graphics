@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering
         {
             public List<Matrix4x4[]> probeBuffers;
             public List<MaterialPropertyBlock> props;
-            public List<int[]> probeMaps;
             public Hash128 cellHash;
             public Vector3 cellPosition;
         }
@@ -303,25 +302,27 @@ namespace UnityEngine.Rendering
                 var debugData = new CellInstancedDebugProbes();
                 debugData.probeBuffers = probeBuffers;
                 debugData.props = props;
-                debugData.probeMaps = probeMaps;
                 debugData.cellPosition = cell.position;
 
                 Vector4[][] shBuffer = new Vector4[4][];
                 for (int i = 0; i < shBuffer.Length; i++)
                     shBuffer[i] = new Vector4[probesPerBatch];
 
+                Vector4[] positionBuffer = new Vector4[probesPerBatch];
                 Vector4[] validityColors = new Vector4[probesPerBatch];
 
-                for (int batchIndex = 0; batchIndex < debugData.probeMaps.Count; batchIndex++)
+                for (int batchIndex = 0; batchIndex < probeMaps.Count; batchIndex++)
                 {
-                    for (int indexInBatch = 0; indexInBatch < debugData.probeMaps[batchIndex].Length; indexInBatch++)
+                    for (int indexInBatch = 0; indexInBatch < probeMaps[batchIndex].Length; indexInBatch++)
                     {
-                        int probeIdx = debugData.probeMaps[batchIndex][indexInBatch];
+                        int probeIdx = probeMaps[batchIndex][indexInBatch];
 
                         shBuffer[0][indexInBatch] = new Vector4(cell.sh[probeIdx][0, 3], cell.sh[probeIdx][0, 1], cell.sh[probeIdx][0, 2], cell.sh[probeIdx][0, 0]);
                         shBuffer[1][indexInBatch] = new Vector4(cell.sh[probeIdx][1, 3], cell.sh[probeIdx][1, 1], cell.sh[probeIdx][1, 2], cell.sh[probeIdx][1, 0]);
                         shBuffer[2][indexInBatch] = new Vector4(cell.sh[probeIdx][2, 3], cell.sh[probeIdx][2, 1], cell.sh[probeIdx][2, 2], cell.sh[probeIdx][2, 0]);
 
+                        var pos = cell.probePositions[probeIdx];
+                        positionBuffer[indexInBatch] = new Vector4(pos.x, pos.y, pos.z, 0.0f);
                         validityColors[indexInBatch] = Color.Lerp(Color.green, Color.red, cell.validity[probeIdx]);
                     }
 
@@ -329,6 +330,7 @@ namespace UnityEngine.Rendering
                     debugData.props[batchIndex].SetVectorArray("_G", shBuffer[1]);
                     debugData.props[batchIndex].SetVectorArray("_B", shBuffer[2]);
 
+                    debugData.props[batchIndex].SetVectorArray("_Position", positionBuffer);
                     debugData.props[batchIndex].SetVectorArray("_Validity", validityColors);
                 }
 

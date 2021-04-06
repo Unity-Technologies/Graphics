@@ -84,18 +84,32 @@ APVConstants LoadAPVConstants( StructuredBuffer<int> index )
 #define APV_USE_BASE_OFFSET
 
 // We split the evaluation in several steps to make variants with different bands easier.
-float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
+float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx, bool usePointSampling = false)
 {
-    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L0_L1Rx;
+    if (usePointSampling)
+        L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
+    else
+        L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+
     L1Rx = L0_L1Rx.w;
 
     return L0_L1Rx.xyz;
 }
 
-void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting, bool usePointSampling = false)
 {
-    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L1G_L1Ry, L1B_L1Rz;
+    if (usePointSampling)
+    {
+        L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
+        L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_point_clamp_sampler, uvw, 0).rgba;
+    }
+    else
+    {
+        L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
+        L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    }
 
     float3 l1_R = float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w);
     float3 l1_G = L1G_L1Ry.xyz;
@@ -111,14 +125,26 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 
 }
 
 #ifdef PROBE_VOLUMES_L2
-void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting, bool usePointSampling = false)
 {
-    EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
-    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_R, l2_G, l2_B, l2_C;
 
-    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+    EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting, usePointSampling);
+
+    if (usePointSampling)
+    {
+        l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
+        l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
+        l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
+        l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
+    }
+    else
+    {
+        l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
+        l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
+        l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
+        l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+    }
 
     DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
