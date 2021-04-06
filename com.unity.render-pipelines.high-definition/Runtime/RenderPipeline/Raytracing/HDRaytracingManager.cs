@@ -114,6 +114,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseDenoiser.Release();
         }
 
+        static bool IsValidRayTracedMaterial(Material currentMaterial)
+        {
+            if (currentMaterial == null || currentMaterial.shader == null)
+                return false;
+
+            // For the time being, we only consider non-decal HDRP materials as valid
+            if (currentMaterial.shader.name.Substring(0, 5) != "HDRP/" ||
+                currentMaterial.shader.name.Substring(5) == "Decal")
+                return false;
+
+            return true;
+        }
+
         static bool IsTransparentMaterial(Material currentMaterial)
         {
             return currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
@@ -184,8 +197,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Grab the material for the current sub-mesh
                     Material currentMaterial = materialArray[meshIdx];
 
-                    // Make sure that the material is both non-null and non-decal
-                    if (currentMaterial != null && !DecalSystem.IsDecalMaterial(currentMaterial))
+                    // Make sure that the material is HDRP's and non-decal
+                    if (IsValidRayTracedMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
