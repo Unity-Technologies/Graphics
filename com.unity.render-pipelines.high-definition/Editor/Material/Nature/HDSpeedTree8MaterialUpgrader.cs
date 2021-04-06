@@ -95,8 +95,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (diffusionProfileHash != 0)
             {
-                mat.SetVector(HDShaderIDs._DiffusionProfileAsset, HDUtils.ConvertGUIDToVector4(guid));
-                mat.SetFloat(HDShaderIDs._DiffusionProfileHash, HDShadowUtils.Asfloat(diffusionProfileHash));
+                mat.SetVector("Diffusion_Profile_Asset", HDUtils.ConvertGUIDToVector4(guid));
+                mat.SetFloat("Diffusion_Profile", HDShadowUtils.Asfloat(diffusionProfileHash));
             }
         }
     }
