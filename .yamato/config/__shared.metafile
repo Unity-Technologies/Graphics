@@ -402,7 +402,7 @@ platforms:
       [OpenGLES3, Vulkan]:
         setup_utr: 
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-        call_utr_xr:
+        call_utr:
           - |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
