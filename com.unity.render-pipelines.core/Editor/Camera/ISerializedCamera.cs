@@ -30,13 +30,13 @@ namespace UnityEditor.Rendering
         /// <summary>Anti aliasing property</summary>
         SerializedProperty antialiasing { get; }
 
-        /// <summary>Method that updates the <see cref="SerializedObject"/> of the Camera and the Additional Camera</summary>
+        /// <summary>Method that updates the <see cref="SerializedObject"/> of the Camera and the Additional Camera Data</summary>
         void Update();
 
-        /// <summary>Applies the modified properties to the <see cref="SerializedObject"/> of the Camera and the Additional Camera</summary>
+        /// <summary>Applies the modified properties to the <see cref="SerializedObject"/> of the Camera and the Additional Camera Data</summary>
         void Apply();
 
-        /// <summary>Refreshes the <see cref="SerializedProperty"/> of the <see cref="SerializedObject"/> of the Camera and the Additional Camera</summary>
+        /// <summary>Refreshes the <see cref="SerializedProperty"/> of the <see cref="SerializedObject"/> of the Camera and the Additional Camera Data</summary>
         void Refresh();
     }
 }
