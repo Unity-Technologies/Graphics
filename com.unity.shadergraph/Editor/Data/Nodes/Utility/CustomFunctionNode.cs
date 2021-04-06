@@ -457,11 +457,11 @@ namespace UnityEditor.ShaderGraph
                 // not sure why we don't use AssetDatabase.AssetPathToGUID...
                 // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
-                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
-                if (textAsset != null)
+                ShaderInclude shaderInclude = AssetDatabase.LoadAssetAtPath<ShaderInclude>(functionSource);
+                if (shaderInclude != null)
                 {
                     long localId;
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(shaderInclude, out guidString, out localId);
                 }
                 functionSource = guidString;
             }
