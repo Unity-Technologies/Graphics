@@ -21,7 +21,8 @@ real3 ComputeEdgeFactor(real3 V1, real3 V2)
     if (V1oV2 < 0)
     {
         // Undo range reduction.
-        y = PI * rsqrt(saturate(1 - V1oV2 * V1oV2)) - y;
+        float f = saturate(1 - V1oV2 * V1oV2);
+        y = PI * (f > 0 ? rsqrt(f) : 0) - y;
     }
 
     return V1xV2 * y;
