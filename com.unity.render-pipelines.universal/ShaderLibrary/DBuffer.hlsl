@@ -23,9 +23,9 @@
     out DBufferType2 MERGE_NAME(NAME, 2) : SV_Target2
 
 #define DECLARE_DBUFFER_TEXTURE(NAME)   \
-    TEXTURE2D_X(MERGE_NAME(NAME, 0));       \
-    TEXTURE2D_X(MERGE_NAME(NAME, 1));       \
-    TEXTURE2D_X(MERGE_NAME(NAME, 2));
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));       \
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 1));       \
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 2));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)                                              \
     DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 0), unCoord2);  \
@@ -42,8 +42,8 @@
     out DBufferType1 MERGE_NAME(NAME, 1) : SV_Target1
 
 #define DECLARE_DBUFFER_TEXTURE(NAME)   \
-    TEXTURE2D_X(MERGE_NAME(NAME, 0));       \
-    TEXTURE2D_X(MERGE_NAME(NAME, 1));
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));       \
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 1));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)                                              \
     DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 0), unCoord2);  \
@@ -59,7 +59,7 @@
     out DBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
 
 #define DECLARE_DBUFFER_TEXTURE(NAME)   \
-    TEXTURE2D_X(MERGE_NAME(NAME, 0));
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)                                              \
     DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 0), unCoord2);

@@ -143,17 +143,18 @@ public class DecalUpdateCachedSystem
 
         // Make sure draw order is up to date
         var material = entityChunk.material;
-        cachedChunk.drawOrder = material.GetInt("_DrawOrder");
+        if (material != null)
+            cachedChunk.drawOrder = material.GetInt("_DrawOrder");
 
         // Shader can change any time in editor, so we have to update passes each time
 #if !UNITY_EDITOR
         if (!cachedChunk.isCreated)
 #endif
         {
-            int passIndex = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferProjector));
+            int passIndex = material.FindPass(DecalShaderPassNames.DBufferProjector);
             cachedChunk.passIndexDBuffer = passIndex;
 
-            int passIndexEmissive = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalProjectorForwardEmissive));
+            int passIndexEmissive = material.FindPass(DecalShaderPassNames.DecalProjectorForwardEmissive);
             cachedChunk.passIndexEmissive = passIndexEmissive;
 
             int passIndexScreenSpace = material.FindPass(DecalShaderPassNames.DecalScreenSpaceProjector);

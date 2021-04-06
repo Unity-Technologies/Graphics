@@ -13,19 +13,19 @@ namespace UnityEngine.Rendering.Universal
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;
         private List<ShaderTagId> m_ShaderTagIdList;
-        public DecalDrawFowardEmissiveSystem m_DrawSystem;
+        private DecalDrawFowardEmissiveSystem m_DrawSystem;
 
-        public DecalForwardEmissivePass(string profilerTag, DecalDrawFowardEmissiveSystem decalDrawFowardEmissiveSystem)
+        public DecalForwardEmissivePass(string profilerTag, DecalDrawFowardEmissiveSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
-            m_DrawSystem = decalDrawFowardEmissiveSystem;
+            m_DrawSystem = drawSystem;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
-            m_ShaderTagIdList.Add(new ShaderTagId(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalMeshForwardEmissive)));
+            m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalMeshForwardEmissive));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

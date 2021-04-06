@@ -809,6 +809,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
+                { new RenderStateDescriptor { type = RenderStateType.ZWrite, value = "Tags { \"PreviewType\"=\"plane\" }" } }, // todo
             };
 
             public static RenderStateCollection GBufferMesh = new RenderStateCollection

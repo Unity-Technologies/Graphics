@@ -39,11 +39,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.PropertyField(rect, m_Technique);
             rect.y += defaultLineSpace;
 
-            DecalTechnique technique = (DecalTechnique)m_Technique.intValue;
+            DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
             //rect.y += defaultLineSpace;
 
-            if (technique == DecalTechnique.DBuffer)
+            if (technique == DecalTechniqueOption.DBuffer)
             {
                 EditorGUI.indentLevel++;
                 foreach (SerializedProperty prop in m_DBufferSettings)
@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 //rect.y += m_DBufferSettings.CountInProperty() * defaultLineSpace;
             }
 
-            if (technique == DecalTechnique.ScreenSpace)
+            if (technique == DecalTechniqueOption.ScreenSpace)
             {
                 EditorGUI.indentLevel++;
                 foreach (SerializedProperty prop in m_ScreenSpaceSettings)
@@ -88,14 +88,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             //height += defaultLineSpace;
 
-            DecalTechnique technique = (DecalTechnique)m_Technique.intValue;
+            DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
-            if (technique == DecalTechnique.DBuffer)
+            if (technique == DecalTechniqueOption.DBuffer)
                 foreach (SerializedProperty prop in m_DBufferSettings)
                 {
                     height += defaultLineSpace;
                 }
-            if (technique == DecalTechnique.ScreenSpace)
+            if (technique == DecalTechniqueOption.ScreenSpace)
                 foreach (SerializedProperty prop in m_ScreenSpaceSettings)
                 {
                     height += defaultLineSpace;

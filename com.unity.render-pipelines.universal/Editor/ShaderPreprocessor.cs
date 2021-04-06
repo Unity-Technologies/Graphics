@@ -26,7 +26,12 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11),
         ScreenSpaceShadows = (1 << 12),
-        UseFastSRGBLinearConversion = (1 << 13)
+        UseFastSRGBLinearConversion = (1 << 13),
+        DBufferMRT1 = (1 << 14),
+        DBufferMRT2 = (1 << 15),
+        DBufferMRT3 = (1 << 16),
+        DecalScreenSpace = (1 << 17),
+        DecalGBuffer = (1 << 18),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -61,6 +66,10 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
 
+        ShaderKeyword m_DBufferMRT1 = new ShaderKeyword("_DBUFFER_MRT1");
+        ShaderKeyword m_DBufferMRT2 = new ShaderKeyword("_DBUFFER_MRT2");
+        ShaderKeyword m_DBufferMRT3 = new ShaderKeyword("_DBUFFER_MRT3");
+
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
         ShaderKeyword m_LocalClearCoat;
@@ -93,6 +102,22 @@ namespace UnityEditor.Rendering.Universal
 
             if (snippetData.passType == PassType.ShadowCaster)
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
+                    return true;
+
+            // DBuffer
+            if (snippetData.passName == DecalShaderPassNames.DBufferMesh || snippetData.passName == DecalShaderPassNames.DBufferProjector ||
+                snippetData.passName == DecalShaderPassNames.DecalMeshForwardEmissive || snippetData.passName == DecalShaderPassNames.DecalProjectorForwardEmissive)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) && !IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3))
+                    return true;
+
+            // Decal Screen Space
+            if (snippetData.passName == DecalShaderPassNames.DecalScreenSpaceMesh || snippetData.passName == DecalShaderPassNames.DecalScreenSpaceProjector)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DecalScreenSpace))
+                    return true;
+
+            // Decal GBuffer
+            if (snippetData.passName == DecalShaderPassNames.DecalGBufferMesh || snippetData.passName == DecalShaderPassNames.DecalGBufferProjector)
+                if (!IsFeatureEnabled(features, ShaderFeatures.DecalGBuffer))
                     return true;
 
             return false;
@@ -174,6 +199,17 @@ namespace UnityEditor.Rendering.Universal
             // Screen Space Occlusion
             if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
+                return true;
+
+            // Decal DBuffer
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
                 return true;
 
             return false;
@@ -448,7 +484,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                // Check for Screen Space Ambient Occlusion Renderer Feature
+
                 ScriptableRendererData rendererData = pipelineAsset.m_RendererDataList[rendererIndex];
                 if (rendererData != null)
                 {
@@ -459,8 +495,40 @@ namespace UnityEditor.Rendering.Universal
                         ScreenSpaceShadows ssshadows = rendererFeature as ScreenSpaceShadows;
                         hasScreenSpaceShadows |= ssshadows != null;
 
+                        // Check for Screen Space Ambient Occlusion Renderer Feature
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
+
+                        // Check for Decal Renderer Feature
+                        DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
+                        if (decal != null)
+                        {
+                            switch (decal.GetTechnique(renderer))
+                            {
+                                case DecalTechnique.DBuffer:
+                                {
+                                    switch (decal.GetDBufferSettings().surfaceData)
+                                    {
+                                        case DecalSurfaceData.Albedo:
+                                            shaderFeatures |= ShaderFeatures.DBufferMRT1;
+                                            break;
+                                        case DecalSurfaceData.AlbedoNormal:
+                                            shaderFeatures |= ShaderFeatures.DBufferMRT2;
+                                            break;
+                                        case DecalSurfaceData.AlbedoNormalMask:
+                                            shaderFeatures |= ShaderFeatures.DBufferMRT3;
+                                            break;
+                                    }
+                                    break;
+                                }
+                                case DecalTechnique.ScreenSpace:
+                                    shaderFeatures |= ShaderFeatures.DecalScreenSpace;
+                                    break;
+                                case DecalTechnique.GBuffer:
+                                    shaderFeatures |= ShaderFeatures.DecalGBuffer;
+                                    break;
+                            }
+                        }
                     }
                 }
             }

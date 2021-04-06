@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
-            m_ShaderTagIdList.Add(new ShaderTagId(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferMesh)));
+            m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)

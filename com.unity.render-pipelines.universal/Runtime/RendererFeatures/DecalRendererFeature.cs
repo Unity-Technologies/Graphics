@@ -14,6 +14,14 @@ namespace UnityEngine.Rendering.Universal
 
     public enum DecalTechnique
     {
+        Invalid,
+        DBuffer,
+        ScreenSpace,
+        GBuffer,
+    }
+
+    public enum DecalTechniqueOption
+    {
         Automatic,
         DBuffer,
         ScreenSpace,
@@ -45,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     public class DecalSettings
     {
-        public DecalTechnique technique = DecalTechnique.Automatic;
+        public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000;
         public DBufferSettings dBufferSettings;
         public DecalScreenSpaceSettings screenSpaceSettings;
@@ -57,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             if (mrt4 && (SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console))
                 return new DecalSettings()
                 {
-                    technique = DecalTechnique.DBuffer,
+                    technique = DecalTechniqueOption.DBuffer,
                     maxDrawDistance = maxDrawDistance,
                     dBufferSettings = new DBufferSettings()
                     {
@@ -67,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
             else
                 return new DecalSettings()
                 {
-                    technique = DecalTechnique.ScreenSpace,
+                    technique = DecalTechniqueOption.ScreenSpace,
                     maxDrawDistance = maxDrawDistance,
                     screenSpaceSettings = new DecalScreenSpaceSettings()
                     {
@@ -164,21 +172,14 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleRendererFeature("Decal")]
     public class DecalRendererFeature : ScriptableRendererFeature
     {
-        private static SharedDecalEntityManager s_SharedDecalEntityManager;
-        private static SharedDecalEntityManager sharedDecalEntityManager
-        {
-            get
-            {
-                if (s_SharedDecalEntityManager == null)
-                    s_SharedDecalEntityManager = new SharedDecalEntityManager();
-                return s_SharedDecalEntityManager;
-            }
-        }
+        private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
 
         public DecalSettings settings = new DecalSettings(); // todo
-        private DecalSettings m_ActualSettings;
 
-        private bool m_TechniqueValid;
+        private DecalTechnique m_Technique = DecalTechnique.Invalid;
+        private DBufferSettings m_DBufferSettings;
+        private DecalScreenSpaceSettings m_ScreenSpaceSettings;
+
         private bool m_DirtySystems;
 
         [HideInInspector]
@@ -216,9 +217,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalGBufferRenderPass m_GBufferRenderPass;
         private DecalDrawGBufferSystem m_DrawGBufferSystem;
 
-        private DecalSettings actualSettings { get => m_ActualSettings; }
-        public DecalTechnique technique { get => m_ActualSettings.technique; }
-        public bool intermmediateRendering { get => !(technique == DecalTechnique.ScreenSpace && settings.screenSpaceSettings.supportAdditionalLights); }
+        internal bool intermmediateRendering => m_Technique == DecalTechnique.DBuffer;
 
         public override void Create()
         {
@@ -226,80 +225,153 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
             m_DecalPreviewPass = new DecalPreviewPass("Decal Preview Render");
-
             m_NormalReconstructionSetupPass = new NormalReconstructionSetupPass("Normal Reconstruction Setup");
+            m_DirtySystems = true;
+        }
 
-            if (settings.technique == DecalTechnique.Automatic)
+        internal DBufferSettings GetDBufferSettings()
+        {
+            if (settings.technique == DecalTechniqueOption.Automatic)
             {
-                m_ActualSettings = settings.CreateAutomatic();
+                return new DBufferSettings() { surfaceData = DecalSurfaceData.AlbedoNormalMask };
             }
             else
             {
-                m_ActualSettings = settings;
-
-                bool mrt4 = SystemInfo.supportedRenderTargetCount >= 4;
-                if (technique == DecalTechnique.DBuffer && !mrt4)
-                {
-                    Debug.LogError("Decal DBuffer technique requires MRT4 support.");
-                    m_TechniqueValid = false;
-                    return;
-                }
-
-                if (technique == DecalTechnique.ScreenSpace && actualSettings.screenSpaceSettings.useGBuffer && !mrt4)
-                {
-                    Debug.LogError("Decal useGBuffer option requires MRT4 support.");
-                    m_TechniqueValid = false;
-                    return;
-                }
+                return settings.dBufferSettings;
             }
-
-            m_DirtySystems = true;
-            m_TechniqueValid = true;
         }
 
-        private void RecreateSystemsIfNeeded()
+        internal DecalScreenSpaceSettings GetScreenSpaceSettings()
+        {
+            if (settings.technique == DecalTechniqueOption.Automatic)
+            {
+                return new DecalScreenSpaceSettings()
+                {
+                    blend = DecalNormalBlend.NormalLow,
+                    useGBuffer = false,
+                };
+            }
+            else
+            {
+                return settings.screenSpaceSettings;
+            }
+        }
+
+        internal DecalTechnique GetTechnique(ScriptableRenderer renderer)
+        {
+            var universalRenderer = renderer as UniversalRenderer;
+            if (universalRenderer == null)
+            {
+                Debug.LogError("Only universal renderer supports decal renderer feature.");
+                return DecalTechnique.Invalid;
+            }
+
+            DecalTechnique technique = DecalTechnique.Invalid;
+            switch (settings.technique)
+            {
+                case DecalTechniqueOption.Automatic:
+                    if (IsHandheld())
+                        technique = DecalTechnique.ScreenSpace;
+                    else
+                        technique = DecalTechnique.DBuffer;
+                    break;
+                case DecalTechniqueOption.ScreenSpace:
+                    bool isDeferred = universalRenderer.actualRenderingMode == RenderingMode.Deferred;
+                    if (settings.screenSpaceSettings.useGBuffer && isDeferred)
+                        technique = DecalTechnique.GBuffer;
+                    else
+                        technique = DecalTechnique.ScreenSpace;
+                    break;
+                case DecalTechniqueOption.DBuffer:
+                    technique = DecalTechnique.DBuffer;
+                    break;
+            }
+
+            bool mrt4 = SystemInfo.supportedRenderTargetCount >= 4;
+            if (technique == DecalTechnique.DBuffer && !mrt4)
+            {
+                Debug.LogError("Decal DBuffer technique requires MRT4 support.");
+                return DecalTechnique.Invalid;
+            }
+
+            if (technique == DecalTechnique.GBuffer && !mrt4)
+            {
+                Debug.LogError("Decal useGBuffer option requires MRT4 support.");
+                return DecalTechnique.Invalid;
+            }
+
+            return technique;
+        }
+
+        private bool IsHandheld()
+        {
+#if UNITY_EDITOR
+            var selectedBuildTargetGroup = UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Android)
+                return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.iOS)
+                return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Switch)
+                return true;
+#endif
+            return SystemInfo.deviceType == DeviceType.Handheld;
+        }
+
+        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)
         {
             if (!m_DirtySystems)
                 return;
+
+            m_Technique = GetTechnique(renderer);
+            m_DBufferSettings = GetDBufferSettings();
+            m_ScreenSpaceSettings = GetScreenSpaceSettings();
 
             var copyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthPS);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
 
             var dBufferClearMaterial = CoreUtils.CreateEngineMaterial(dBufferClear);
 
-            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
+            if (m_DecalEntityManager == null)
             {
-                if (m_DecalEntityManager == null)
-                {
-                    m_DecalEntityManager = sharedDecalEntityManager.Get();
-                }
+                m_DecalEntityManager = sharedDecalEntityManager.Get();
+            }
 
-                m_DecalUpdateCachedSystem = new DecalUpdateCachedSystem(m_DecalEntityManager);
-                m_DecalUpdateCullingGroupSystem = new DecalUpdateCullingGroupSystem(m_DecalEntityManager, actualSettings.maxDrawDistance);
-                m_DecalUpdateCulledSystem = new DecalUpdateCulledSystem(m_DecalEntityManager);
-                m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager);
-                m_DrawErrorSystem = new DecalDrawErrorSystem(m_DecalEntityManager);
+            m_DecalUpdateCachedSystem = new DecalUpdateCachedSystem(m_DecalEntityManager);
+            m_DecalUpdateCulledSystem = new DecalUpdateCulledSystem(m_DecalEntityManager);
+            m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager);
 
-                if (technique == DecalTechnique.ScreenSpace)
-                {
+            if (intermmediateRendering)
+            {
+                m_DecalUpdateCullingGroupSystem = new DecalUpdateCullingGroupSystem(m_DecalEntityManager, settings.maxDrawDistance);
+            }
+            else
+            {
+                m_DecalSkipCulledSystem = new DecalSkipCulledSystem(m_DecalEntityManager);
+            }
+
+            m_DrawErrorSystem = new DecalDrawErrorSystem(m_DecalEntityManager, m_Technique);
+
+            switch (m_Technique)
+            {
+                case DecalTechnique.ScreenSpace:
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
-
-                    m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
-                    m_GBufferRenderPass = new DecalGBufferRenderPass("Decal GBuffer Render", actualSettings.screenSpaceSettings, m_DrawGBufferSystem);
-
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
-                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", actualSettings.screenSpaceSettings, m_DecalDrawScreenSpaceSystem);
+                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", m_ScreenSpaceSettings, m_DecalDrawScreenSpaceSystem);
+                    break;
 
-                    m_DecalSkipCulledSystem = new DecalSkipCulledSystem(m_DecalEntityManager);
-                }
-                else
-                {
+                case DecalTechnique.GBuffer:
+                    m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
+                    m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
+                    m_GBufferRenderPass = new DecalGBufferRenderPass("Decal GBuffer Render", m_ScreenSpaceSettings, m_DrawGBufferSystem);
+                    break;
+
+                case DecalTechnique.DBuffer:
                     m_DecalDrawIntoDBufferSystem = new DecalDrawIntoDBufferSystem(m_DecalEntityManager);
-                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, actualSettings.dBufferSettings, m_DecalDrawIntoDBufferSystem);
+                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, m_DBufferSettings, m_DecalDrawIntoDBufferSystem);
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass("Decal Forward Emissive Render", m_DecalDrawForwardEmissiveSystem);
-                }
+                    break;
             }
 
             m_DirtySystems = false;
@@ -307,52 +379,39 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnCull(ScriptableRenderer renderer, in CameraData cameraData)
         {
-            if (!m_TechniqueValid)
-                return;
-
             if (cameraData.cameraType == CameraType.Preview)
                 return;
 
-            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
+            RecreateSystemsIfNeeded(renderer);
+
+            m_DecalUpdateCachedSystem.Execute();
+
+            if (intermmediateRendering)
             {
-                RecreateSystemsIfNeeded();
+                m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
 
-                m_DecalUpdateCachedSystem.Execute();
-                if (intermmediateRendering)
-                {
-                    m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
-
-                    m_DecalEntityManager.Sort();
-                }
-                else
-                {
-                    m_DecalSkipCulledSystem.Execute(cameraData.camera);
-                    m_DecalCreateDrawCallSystem.Execute();
-
-                    if (technique == DecalTechnique.ScreenSpace)
-                    {
-                        var universalRenderer = renderer as UniversalRenderer;
-                        bool deferred = universalRenderer?.actualRenderingMode == RenderingMode.Deferred;
-                        if (actualSettings.screenSpaceSettings.useGBuffer && deferred)
-                        {
-                            m_DrawGBufferSystem.Execute(cameraData);
-                        }
-                        else
-                        {
-                            m_DecalDrawScreenSpaceSystem.Execute(cameraData);
-                        }
-                    }
-                }
-
-                m_DrawErrorSystem.Execute(cameraData);
+                m_DecalEntityManager.Sort();
             }
+            else
+            {
+                m_DecalSkipCulledSystem.Execute(cameraData.camera);
+                m_DecalCreateDrawCallSystem.Execute();
+
+                if (m_Technique == DecalTechnique.ScreenSpace)
+                {
+                    m_DecalDrawScreenSpaceSystem.Execute(cameraData);
+                }
+                else if (m_Technique == DecalTechnique.GBuffer)
+                {
+                    m_DrawGBufferSystem.Execute(cameraData);
+                }
+            }
+
+            m_DrawErrorSystem.Execute(cameraData);
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if (!m_TechniqueValid)
-                return;
-
             if (renderingData.cameraData.cameraType == CameraType.Preview)
             {
                 renderer.EnqueuePass(m_DecalPreviewPass);
@@ -361,32 +420,25 @@ namespace UnityEngine.Rendering.Universal
 
             renderer.EnqueuePass(m_NormalReconstructionSetupPass);
 
-            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
+            RecreateSystemsIfNeeded(renderer);
+
+            if (intermmediateRendering)
             {
-                RecreateSystemsIfNeeded();
+                m_DecalUpdateCulledSystem.Execute();
+                m_DecalCreateDrawCallSystem.Execute();
+            }
 
-                if (intermmediateRendering)
-                {
-                    m_DecalUpdateCulledSystem.Execute();
-                    m_DecalCreateDrawCallSystem.Execute();
-                }
-
-                if (technique == DecalTechnique.ScreenSpace)
-                {
+            switch (m_Technique)
+            {
+                case DecalTechnique.ScreenSpace:
+                    renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
+                    break;
+                case DecalTechnique.GBuffer:
                     var universalRenderer = renderer as UniversalRenderer;
-                    bool deferred = universalRenderer?.actualRenderingMode == RenderingMode.Deferred;
-                    if (actualSettings.screenSpaceSettings.useGBuffer && deferred)
-                    {
-                        m_GBufferRenderPass.Setup(universalRenderer.deferredLights);
-                        renderer.EnqueuePass(m_GBufferRenderPass);
-                    }
-                    else
-                    {
-                        renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
-                    }
-                }
-                else
-                {
+                    m_GBufferRenderPass.Setup(universalRenderer.deferredLights);
+                    renderer.EnqueuePass(m_GBufferRenderPass);
+                    break;
+                case DecalTechnique.DBuffer:
                     m_CopyDepthPass.Setup(
                         new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
                         new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
@@ -394,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                     renderer.EnqueuePass(m_ForwardEmissivePass);
-                }
+                    break;
             }
         }
 

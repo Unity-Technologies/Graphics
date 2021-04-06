@@ -8,24 +8,6 @@ using UnityEngine.Jobs;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public static class DecalUtilities
-{
-    public enum MaterialDecalPass
-    {
-        DBufferProjector = 0,
-        DecalProjectorForwardEmissive = 1,
-        DBufferMesh = 2,
-        DecalMeshForwardEmissive = 3,
-    };
-
-    private static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
-
-    public static string GetDecalPassName(MaterialDecalPass decalPass)
-    {
-        return s_MaterialDecalPassNames[(int)decalPass];
-    }
-}
-
 public class DecalEntityIndexer
 {
     public struct DecalEntityItem
@@ -136,8 +118,6 @@ public struct DecalEntity
 {
     public int Index;
     public int Version;
-
-    public bool valid { get => Version != 0; }
 }
 
 public class DecalEntityChunk : DecalChunk
@@ -244,7 +224,7 @@ public class DecalEntityManager : IDisposable
     {
         var material = decalProjector.material;
         if (material == null)
-            material = m_ErrorMaterial;
+            material = errorMaterial;
         //return new DecalEntity();
 
         using (new ProfilingScope(null, m_AddDecalSampler))

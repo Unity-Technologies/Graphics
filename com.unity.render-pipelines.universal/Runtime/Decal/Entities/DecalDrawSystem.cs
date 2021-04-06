@@ -50,6 +50,7 @@ public abstract class DecalDrawSystem
 
     private void Execute(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
     {
+        Material material = GetMaterial(decalEntityChunk);
         int passIndex = GetPassIndex(decalCachedChunk);
 
         if (count == 0 || passIndex == -1)
@@ -58,7 +59,7 @@ public abstract class DecalDrawSystem
         decalCachedChunk.currentJobHandle.Complete();
         decalDrawCallChunk.currentJobHandle.Complete();
 
-        if (SystemInfo.supportsInstancing && decalCachedChunk.enabledInstancing)
+        if (SystemInfo.supportsInstancing && material.enableInstancing)
         {
             DrawInstanced(cmd, decalEntityChunk, decalCachedChunk, decalDrawCallChunk, passIndex);
         }
@@ -130,15 +131,16 @@ public abstract class DecalDrawSystem
 
     private void Execute(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
     {
+        Material material = GetMaterial(decalEntityChunk);
         int passIndex = GetPassIndex(decalCachedChunk);
 
-        if (count == 0 || passIndex == -1)
+        if (count == 0 || passIndex == -1 || material == null)
             return;
 
         decalCachedChunk.currentJobHandle.Complete();
         decalDrawCallChunk.currentJobHandle.Complete();
 
-        if (SystemInfo.supportsInstancing && decalCachedChunk.enabledInstancing)
+        if (SystemInfo.supportsInstancing && material.enableInstancing)
         {
             DrawInstanced(cameraData, decalEntityChunk, decalCachedChunk, decalDrawCallChunk, passIndex);
         }

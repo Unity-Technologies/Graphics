@@ -121,7 +121,9 @@ PackedVaryings Vert(Attributes inputMesh)
 #endif
 
 #ifdef VARYINGS_NEED_SH
-    OUTPUT_SH(output.normalWS, output.sh);
+    half3 sh = 0;
+    OUTPUT_SH(half3(output.normalWS), sh);
+    output.sh = float3(sh);
 #endif
 
     return PackVaryings(output);
