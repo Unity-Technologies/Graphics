@@ -9,7 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class MaterialUIBlock
     {
+        ///<summary>The <see cref="ExpandableBit"/> to store the state of the block</summary>
         public ExpandableBit expandableBit { get; }
+        ///<summary>The <see cref="GUIContent"/> used as header of the block</summary>
         public GUIContent header { get; }
 
         /// <summary>The current material editor.</summary>

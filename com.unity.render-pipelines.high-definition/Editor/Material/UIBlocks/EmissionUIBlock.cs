@@ -168,6 +168,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.showMixedValue = false;
         }
 
+        /// <summary>
+        /// GUI callback when the header is open
+        /// </summary>
         protected override void OnGUIOpen()
         {
             EditorGUI.BeginChangeCheck();
