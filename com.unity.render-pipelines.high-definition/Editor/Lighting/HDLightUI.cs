@@ -1236,7 +1236,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
-                    using (new EditorGUI.DisabledGroupScope(serialized.linkShadowLayers.boolValue || serialized.linkShadowLayers.hasMultipleDifferentValues))
+                    if (!serialized.linkShadowLayers.hasMultipleDifferentValues && !serialized.linkShadowLayers.boolValue)
                     {
                         ++EditorGUI.indentLevel;
                         HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);

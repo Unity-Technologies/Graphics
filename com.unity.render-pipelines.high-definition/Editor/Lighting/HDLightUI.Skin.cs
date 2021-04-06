@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent unlinkLightAndShadowLayersText = new GUIContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the light layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. ");
+            public readonly GUIContent unlinkLightAndShadowLayersText = new GUIContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
             public readonly GUIContent shadowLayerMaskText = new GUIContent("Layer", "Specifies the light layer to use for shadows.");
 
             // Settings
