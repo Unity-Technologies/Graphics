@@ -644,8 +644,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
-            { kColor, IncludeLocation.Pregraph },
             { kShims, IncludeLocation.Pregraph },
+            { kColor, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },

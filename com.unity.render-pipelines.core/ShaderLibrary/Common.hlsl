@@ -703,10 +703,12 @@ float Length2(float3 v)
     return dot(v, v);
 }
 
+#ifndef BUILTIN_TARGET_API
 real Pow4(real x)
 {
     return (x * x) * (x * x);
 }
+#endif
 
 TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
 
