@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
         /// <param name="color">The color to fill the texture</param>
+        /// <param name="textureName">The name of the texture</param>
         /// <returns>a <see cref="Texture2D"/></returns>
         public static Texture2D CreateColoredTexture2D(Color color, string textureName)
         {

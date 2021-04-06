@@ -33,16 +33,13 @@ namespace UnityEngine.Rendering
         [Obsolete("Please use baseComponentTypeArray instead.")]
         public IEnumerable<Type> baseComponentTypes
         {
-            get
-            {
-                return baseComponentTypeArray;
-            }
-            private set
-            {
-                baseComponentTypeArray = value.ToArray();
-            }
+            get => baseComponentTypeArray;
+            private set => baseComponentTypeArray = value.ToArray();
         }
 
+        /// <summary>
+        /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
+        /// </summary>
         public Type[] baseComponentTypeArray { get; private set; }
 
         // Max amount of layers available in Unity
