@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget ==
                     BuiltinRenderTextureType.CameraTarget);
                 var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
-                bool useDepth = depthOnly || m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() &&
+                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachment != BuiltinRenderTextureType.CameraTarget)) &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
 
                 var attachments =
