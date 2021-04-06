@@ -663,16 +663,12 @@ half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
 
 half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positionWS, half perceptualRoughness)
 {
-    half probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    half probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-
-    float volumeSign = sign(probe0Volume - probe1Volume);
     float importanceSign = unity_SpecCube1_BoxMin.w;
 
     // A probe is dominant if its importance is higher
     // Or have equal importance but smaller volume
-    bool probe0Dominant = importanceSign > 0 || (importanceSign == 0 && volumeSign < 0);
-    bool probe1Dominant = importanceSign < 0 || (importanceSign == 0 && volumeSign > 0);
+    bool probe0Dominant = importanceSign < 0;
+    bool probe1Dominant = importanceSign > 0;
 
     float desiredWeightProbe0 = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
     float desiredWeightProbe1 = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
