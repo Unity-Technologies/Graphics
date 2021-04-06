@@ -190,6 +190,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
 - Improved lighting models for AxF shader area lights.
+- Updated Light's shadow layer name in Editor.
 
 ## [11.0.0] - 2020-10-21
 
