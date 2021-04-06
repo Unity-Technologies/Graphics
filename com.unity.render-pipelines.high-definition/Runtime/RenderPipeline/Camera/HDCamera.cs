@@ -1650,9 +1650,16 @@ namespace UnityEngine.Rendering.HighDefinition
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: hdPipeline.GetColorBufferFormat(),
+            var mipChain = rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: hdPipeline.GetColorBufferFormat(),
                 dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
                 name: string.Format("{0}_CameraColorBufferMipChain{1}", viewName, frameIndex));
+
+            // We need to clear as the downsampling process can end up reading outside of valid data.
+            Graphics.SetRenderTarget(mipChain);
+            GL.Clear(false, true, Color.clear);
+
+            return mipChain;
+
         }
 
         void ReleaseHistoryBuffer()
