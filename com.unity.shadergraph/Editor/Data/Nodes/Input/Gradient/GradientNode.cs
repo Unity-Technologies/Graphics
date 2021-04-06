@@ -78,12 +78,17 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnBeforeSerialize()
         {
+            // call property getter to ensure we've fully de-serialized, before we serialize.
+            // We must store the property value out to a variable, because we don't want to
+            // call the getter while we are modifying the serialized variables below (or it deserializes again).
+            var grad = gradient;
+
             base.OnBeforeSerialize();
-            if (m_Gradient != null)
+            if (grad != null)
             {
-                m_SerializableColorKeys = m_Gradient.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
-                m_SerializableAlphaKeys = m_Gradient.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
-                m_SerializableMode = (int)m_Gradient.mode;
+                m_SerializableColorKeys = grad.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
+                m_SerializableAlphaKeys = grad.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
+                m_SerializableMode = (int)grad.mode;
             }
         }
 

@@ -141,15 +141,24 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (GUILayout.Button("Update File To Latest"))
                     {
-                        UpdateShaderGraph(importer.assetPath, true);
-                        checkedAssetOutOfDate = false;
+                        if (EditorUtility.DisplayDialog("Update ShaderGraph File",
+                            "This will update the ShaderGraph file\n" +
+                            "by loading and saving it.  This applies any version\n" +
+                            "or file format changes to the file on disk.\n\n" +
+                            "Please backup the file before running this process!\n",
+                            "Update File", "Cancel"))
+                        {
+                            UpdateShaderGraph(importer.assetPath, true);
+                            checkedAssetOutOfDate = false;
+                        }
                     }
                     if (GUILayout.Button("Update All ShaderGraphs"))
                     {
-                        if (EditorUtility.DisplayDialog("Update All ShaderGraphs",
+                        if (EditorUtility.DisplayDialog("Update All ShaderGraph Files",
                             "This will update ALL ShaderGraph files in your project,\n" +
-                            "applying any versioning and file format changes." +
-                            "Please back up your project before running this process.\n",
+                            "by loading and saving them.  This applies any version\n" +
+                            "or file format changes to the files on disk.\n\n" +
+                            "Please backup your project before running this process!\n",
                             "Update All", "Cancel"))
                         {
                             try
