@@ -215,6 +215,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var cmd = CommandBufferPool.Get("");
 
+            cmd.DisableShaderKeyword("_DEBUG_SHADER");
+
             // Material settings...
             cmd.SetGlobalFloat(kDebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
             cmd.SetGlobalFloat(kDebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
