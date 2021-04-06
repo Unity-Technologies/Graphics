@@ -40,4 +40,3 @@ half4 MaskRenderingFragment(Varyings input) : SV_Target
 }
 
 #endif
-

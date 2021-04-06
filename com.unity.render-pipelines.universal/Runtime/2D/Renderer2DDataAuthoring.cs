@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     return m_DefaultCustomMaterial;
             }
-            if(materialType == DefaultMaterialType.SpriteMask)
+            if (materialType == DefaultMaterialType.SpriteMask)
             {
                 return m_DefaultMaskMaterial;
             }
