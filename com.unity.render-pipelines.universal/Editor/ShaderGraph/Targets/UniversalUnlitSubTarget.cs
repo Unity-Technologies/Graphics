@@ -25,6 +25,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
+            if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
+
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
             for (int i = 0; i < subShaders.Length; i++)

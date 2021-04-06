@@ -230,6 +230,65 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
             }
+
+            List<MinimalCategoryData.GraphInputData> inputs = new List<MinimalCategoryData.GraphInputData>();
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!prop.isExposed)
+                    continue;
+                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = prop.referenceName, propertyType = prop.propertyType, isKeyword = false});
+            }
+            foreach(ShaderKeyword keyword in graph.keywords)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!keyword.isExposed)
+                    continue;
+                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
+            }
+
+            sgMetadata.categoryDatas = new List<MinimalCategoryData>();
+            foreach(CategoryData categoryData in graph.categories)
+            {
+                MinimalCategoryData mcd = new MinimalCategoryData()
+                {
+                    categoryName = categoryData.name,
+                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
+                };
+                foreach(var input in categoryData.Children)
+                {
+                    MinimalCategoryData.GraphInputData propData;
+
+                    if(input is ShaderKeyword keyword)
+                    {
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
+                    }
+                    else
+                    {
+                        var prop = input as AbstractShaderProperty;
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false};
+                    }
+
+                    // Only write out data for exposed blackboard items
+                    if (input.isExposed)
+                        mcd.propertyDatas.Add(propData);
+
+                    inputs.Remove(propData);
+                }
+                sgMetadata.categoryDatas.Add(mcd);
+            }
+
+            // Any uncategorized elements get tossed into an un-named category at the top as a fallback
+            if(inputs.Count > 0)
+            {
+                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputs });
+            }
+
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                var propertyType = prop.propertyType;
+            }
+
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
             // declare dependencies

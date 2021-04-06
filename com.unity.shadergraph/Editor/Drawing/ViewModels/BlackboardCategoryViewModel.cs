@@ -4,11 +4,11 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class BlackboardSectionViewModel : ISGViewModel
+    class BlackboardCategoryViewModel : ISGViewModel
     {
         public VisualElement parentView { get; set; }
         internal string name { get; set; }
-        internal Guid associatedCategoryGuid { get; set; }
+        internal string associatedCategoryGuid { get; set; }
         internal bool isExpanded { get; set; }
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ResetViewModelData()
         {
             name = String.Empty;
-            associatedCategoryGuid = Guid.Empty;
+            associatedCategoryGuid = String.Empty;
             isExpanded = false;
             requestModelChangeAction = null;
         }

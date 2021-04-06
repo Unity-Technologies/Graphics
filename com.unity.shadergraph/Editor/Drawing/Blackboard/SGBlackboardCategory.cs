@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class SGBlackboardSection : GraphElement, ISGControlledElement<BlackboardSectionController>
+    sealed class SGBlackboardCategory : GraphElement, ISGControlledElement<BlackboardCategoryController>, ISelection
     {
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -18,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
         }
 
-        public BlackboardSectionController controller
+        public BlackboardCategoryController controller
         {
             get => m_Controller;
             set
@@ -43,9 +46,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // --- ISGControlledElement implementation
 
-        BlackboardSectionController m_Controller;
+        BlackboardCategoryController m_Controller;
 
-        BlackboardSectionViewModel m_ViewModel;
+        BlackboardCategoryViewModel m_ViewModel;
+        public BlackboardCategoryViewModel viewModel => m_ViewModel;
 
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
@@ -87,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return index;
         }
 
-        VisualElement FindSectionDirectChild(VisualElement element)
+        VisualElement FindCategoryDirectChild(VisualElement element)
         {
             VisualElement directChild = element;
 
@@ -103,9 +107,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        internal SGBlackboardSection(BlackboardSectionViewModel sectionViewModel)
+        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
         {
-            m_ViewModel = sectionViewModel;
+            m_ViewModel = categoryViewModel;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
@@ -123,9 +127,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             hierarchy.Add(m_DragIndicator);
 
+            capabilities |= Capabilities.Selectable | Capabilities.Movable |Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
+
             ClearClassList();
             AddToClassList("blackboardSection");
 
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
+            // add drag and drop manipulator
+            //this.AddManipulator(new SelectionDropper());
+
+            // Register hover callbacks
+            RegisterCallback<MouseEnterEvent>(OnHoverStartEvent);
+            RegisterCallback<MouseLeaveEvent>(OnHoverEndEvent);
+            // Register drag callbacks
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
@@ -135,16 +151,29 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InsertIndex = -1;
 
-            // Update section title from view model
-            m_TitleLabel.text = m_ViewModel.name;
+            // Update category title from view model
+            title = m_ViewModel.name;
+            this.viewDataKey = viewModel.associatedCategoryGuid;
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
 
         public override string title
         {
-            get { return m_TitleLabel.text; }
-            set { m_TitleLabel.text = value; }
+            get => m_TitleLabel.text;
+            set
+            {
+                m_TitleLabel.text = value;
+                if (m_TitleLabel.text == String.Empty)
+                {
+                    AddToClassList("unnamed");
+                }
+                else
+                {
+                    RemoveFromClassList("unnamed");
+                }
+
+            }
         }
 
         public bool headerVisible
@@ -176,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (selection == null)
                 return false;
 
-            // Look for at least one selected element in this section to accept drop
+            // Look for at least one selected element in this category to accept drop
             foreach (ISelectable selected in selection)
             {
                 VisualElement selectedElement = selected as VisualElement;
@@ -189,6 +218,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return false;
+        }
+
+        void OnHoverStartEvent(MouseEnterEvent evt)
+        {
+            AddToClassList("hovered");
+        }
+
+        void OnHoverEndEvent(MouseLeaveEvent evt)
+        {
+            RemoveFromClassList("hovered");
         }
 
         private void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -279,7 +318,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (draggedElement != null && Contains(draggedElement))
                     {
-                        draggedElements.Add(new Tuple<VisualElement, VisualElement>(FindSectionDirectChild(draggedElement), draggedElement));
+                        draggedElements.Add(new Tuple<VisualElement, VisualElement>(FindCategoryDirectChild(draggedElement), draggedElement));
                     }
                 }
 
@@ -296,8 +335,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (Tuple<VisualElement, VisualElement> draggedElement in draggedElements)
                 {
-                    VisualElement sectionDirectChild = draggedElement.Item1;
-                    int indexOfDraggedElement = IndexOf(sectionDirectChild);
+                    VisualElement categoryDirectChild = draggedElement.Item1;
+                    int indexOfDraggedElement = IndexOf(categoryDirectChild);
 
                     if (!((indexOfDraggedElement == insertIndex) || ((insertIndex - 1) == indexOfDraggedElement)))
                     {
@@ -310,11 +349,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                             if (insertIndex == contentContainer.childCount)
                             {
-                                sectionDirectChild.BringToFront();
+                                categoryDirectChild.BringToFront();
                             }
                             else
                             {
-                                sectionDirectChild.PlaceBehind(this[insertIndex]);
+                                categoryDirectChild.PlaceBehind(this[insertIndex]);
                             }
                         }
                     }
@@ -337,6 +376,75 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void OnDragActionCanceled()
         {
             SetDragIndicatorVisible(false);
+        }
+
+        public override void Select(VisualElement selectionContainer, bool additive)
+        {
+            // Don't add the un-named/default category to graph selections
+            if(controller.Model.IsNamedCategory())
+                base.Select(selectionContainer, additive);
+        }
+
+        public override void OnSelected()
+        {
+            AddToClassList("selected");
+        }
+
+        public override void OnUnselected()
+        {
+            RemoveFromClassList("selected");
+        }
+
+        public void AddToSelection(ISelectable selectable)
+        {
+            // Don't add the un-named/default category to graph selections
+            if (controller.Model.IsNamedCategory() == false && selectable == this)
+                return;
+
+            var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
+            materialGraphView?.AddToSelection(selectable);
+        }
+
+        public void RemoveFromSelection(ISelectable selectable)
+        {
+            if(selectable == this)
+                RemoveFromClassList("selected");
+            var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
+            materialGraphView?.RemoveFromSelection(selectable);
+        }
+
+        public void ClearSelection()
+        {
+            RemoveFromClassList("selected");
+            var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
+            materialGraphView?.ClearSelection();
+        }
+
+        public List<ISelectable> selection
+        {
+            get
+            {
+                var selectionProvider = m_ViewModel.parentView.GetFirstAncestorOfType<ISelectionProvider>();
+                if (selectionProvider?.GetSelection != null)
+                    return selectionProvider.GetSelection;
+                else
+                    return new List<ISelectable>();
+            }
+        }
+
+        void RequestCategoryDelete()
+        {
+            var materialGraphView = Blackboard.ParentView as MaterialGraphView;
+            materialGraphView?.deleteSelection?.Invoke("Delete", GraphView.AskUser.DontAskUser);
+        }
+
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
+        {
+            // Don't allow the default/un-named category to have right-click menu options
+            if (controller.Model.IsNamedCategory())
+            {
+                evt.menu.AppendAction("Delete", evt => RequestCategoryDelete());
+            }
         }
     }
 }

@@ -67,6 +67,30 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
+        List<CategoryData> m_AddedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> addedCategories
+        {
+            get { return m_AddedCategories; }
+        }
+
+        [NonSerialized]
+        List<CategoryData> m_RemovedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> removedCategories
+        {
+            get { return m_RemovedCategories; }
+        }
+
+        [NonSerialized]
+        List<CategoryData> m_MovedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> movedCategories
+        {
+            get { return m_MovedCategories; }
+        }
+
+        [NonSerialized]
         bool m_MovedContexts = false;
         public bool movedContexts => m_MovedContexts;
 
@@ -627,6 +651,9 @@ namespace UnityEditor.ShaderGraph
             m_AddedInputs.Clear();
             m_RemovedInputs.Clear();
             m_MovedInputs.Clear();
+            m_AddedCategories.Clear();
+            m_RemovedCategories.Clear();
+            m_MovedCategories.Clear();
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
@@ -1439,6 +1466,16 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
 
+            // Also remove this input from any category it existed in
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.IsItemInCategory(input))
+                {
+                    categoryData.RemoveItemFromCategory(input);
+                    break;
+                }
+            }
+
             RemoveGraphInputNoValidate(input);
             ValidateGraph();
         }
@@ -1462,6 +1499,13 @@ namespace UnityEditor.ShaderGraph
                 m_Properties.Insert(newIndex, property);
             if (!m_MovedInputs.Contains(property))
                 m_MovedInputs.Add(property);
+
+            foreach (var categoryData in m_CategoryData)
+                if (categoryData.value.IsItemInCategory(property))
+                {
+                    categoryData.value.MoveItemInCategory(property, newIndex);
+                    break;
+                }
         }
 
         public void MoveKeyword(ShaderKeyword keyword, int newIndex)
@@ -1483,6 +1527,13 @@ namespace UnityEditor.ShaderGraph
                 m_Keywords.Insert(newIndex, keyword);
             if (!m_MovedInputs.Contains(keyword))
                 m_MovedInputs.Add(keyword);
+
+            foreach (var categoryData in m_CategoryData)
+                if (categoryData.value.IsItemInCategory(keyword))
+                {
+                    categoryData.value.MoveItemInCategory(keyword, newIndex);
+                    break;
+                }
         }
 
         public int GetGraphInputIndex(ShaderInput input)
@@ -1544,6 +1595,68 @@ namespace UnityEditor.ShaderGraph
                 ConnectNoValidate(newSlot.slotReference, edge.inputSlot);
 
             RemoveNodeNoValidate(propertyNode);
+        }
+
+        public bool DoesCategoryExist(string categoryGUID)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void AddCategory(CategoryData categoryDataReference)
+        {
+            m_CategoryData.Add(categoryDataReference);
+            m_AddedCategories.Add(categoryDataReference);
+        }
+
+        public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.AddItemToCategory(itemToAdd);
+                }
+                // Also make sure to remove this items guid from an existing category if it exists within one
+                else if(categoryData.IsItemInCategory(itemToAdd))
+                {
+                    categoryData.RemoveItemFromCategory(itemToAdd);
+                }
+            }
+        }
+
+        public void RemoveItemFromCategory(string categoryGUID, ShaderInput itemToRemove)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.RemoveItemFromCategory(itemToRemove);
+                }
+            }
+        }
+
+        public void RemoveCategory(string categoryGUID)
+        {
+            foreach (var categoryData in categories.ToList())
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    m_CategoryData.Remove(categoryData);
+                    m_RemovedCategories.Add(categoryData);
+
+                    // Whenever a category is removed, also remove any inputs within that category
+                    foreach (var shaderInput in categoryData.Children)
+                        RemoveGraphInput(shaderInput);
+                }
+            }
         }
 
         public void OnKeywordChanged()
@@ -1722,10 +1835,27 @@ namespace UnityEditor.ShaderGraph
                     RemoveNodeNoValidate(node);
             }
 
+            // Clear category data too before re-adding
+            m_CategoryData.Clear();
+
             ValidateGraph();
 
             foreach (GroupData groupData in other.groups)
                 AddGroup(groupData);
+
+            // If categories are ever removed completely, make sure there is always one default category that exists
+            if (!other.categories.Any())
+            {
+                AddCategory(CategoryData.DefaultCategory());
+            }
+            else
+            {
+                foreach (CategoryData categoryData in other.categories)
+                {
+                    AddCategory(categoryData);
+                }
+            }
+
 
             foreach (var stickyNote in other.stickyNotes)
             {

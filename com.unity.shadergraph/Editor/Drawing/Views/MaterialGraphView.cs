@@ -864,6 +864,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
+            // TODO: Insert category data here as part of graph serialization
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => (Graphing.Edge)x.userData);
@@ -961,6 +962,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var copiedSelectionList = new List<ISelectable>(selection);
             var deleteShaderInputAction = new DeleteShaderInputAction();
+            var deleteCategoriesAction = new DeleteCategoryAction();
 
             for (int index = 0; index < copiedSelectionList.Count; ++index)
             {
@@ -976,9 +978,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                         keywordsDirty = true;
                     }
                 }
+                else if (selectable is SGBlackboardCategory category)
+                {
+                    deleteCategoriesAction.categoriesToRemoveGuids.Add(category.viewModel.associatedCategoryGuid);
+                }
             }
 
-            graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
+            if(deleteShaderInputAction.shaderInputsToDelete.Count != 0)
+                graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
+            if(deleteCategoriesAction.categoriesToRemoveGuids.Count != 0)
+                graph.owner.graphDataStore.Dispatch(deleteCategoriesAction);
 
             // Test Keywords against variant limit
             if (keywordsDirty)
@@ -1219,7 +1228,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardController = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardController;
 
-            // Get the position to insert the new shader inputs per section.
+            // Get the position to insert the new shader inputs per category.
             List<int> insertionIndices = blackboardController.GetIndicesOfSelectedItems();
 
             // Make new inputs from the copied graph
@@ -1231,20 +1240,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                         copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.propertySectionIndex];
+                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.propertyCategoryIndex];
 
-                        // Increment for next within the same section
-                        if (insertionIndices[blackboardController.propertySectionIndex] >= 0)
-                            insertionIndices[blackboardController.propertySectionIndex]++;
+                        // Increment for next within the same category
+                        if (insertionIndices[blackboardController.propertyCategoryIndex] >= 0)
+                            insertionIndices[blackboardController.propertyCategoryIndex]++;
                         break;
 
                     case ShaderKeyword shaderKeyword:
                         copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.keywordSectionIndex];
+                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.keywordCategoryIndex];
 
-                        // Increment for next within the same section
-                        if (insertionIndices[blackboardController.keywordSectionIndex] >= 0)
-                            insertionIndices[blackboardController.keywordSectionIndex]++;
+                        // Increment for next within the same category
+                        if (insertionIndices[blackboardController.keywordCategoryIndex] >= 0)
+                            insertionIndices[blackboardController.keywordCategoryIndex]++;
 
                         // Pasting a new Keyword so need to test against variant limit
                         keywordsDirty = true;

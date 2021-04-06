@@ -21,6 +21,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
+            if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
+
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit);
         }
