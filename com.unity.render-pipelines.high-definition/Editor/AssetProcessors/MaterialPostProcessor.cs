@@ -46,7 +46,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var guid = AssetDatabase.AssetPathToGUID(sgPath);
                 if (!String.IsNullOrEmpty(guid) && importer == null)
                 {
-                    bool test = true;
                     MaterialPostprocessor.s_CreatedAssets.Add(sgPath);
                     return;
                 }
