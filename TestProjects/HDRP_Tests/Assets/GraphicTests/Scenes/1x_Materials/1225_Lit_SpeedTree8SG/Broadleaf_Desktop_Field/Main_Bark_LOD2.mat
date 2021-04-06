@@ -71,6 +71,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - Diffusion_Profile: 2.8699825
     - EFFECT_BILLBOARD: 0
     - EFFECT_EXTRA_TEX: 1
     - _AddPrecomputedVelocity: 0
@@ -133,6 +134,8 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
+    - Diffusion_Profile_Asset: {r: -9.35656e-30, g: -2.3584084e-36, b: -5.2225505e+29,
+        a: -3.8498916e-28}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: -9.35656e-30, g: -2.3584084e-36, b: -5.2225505e+29,
         a: -3.8498916e-28}
