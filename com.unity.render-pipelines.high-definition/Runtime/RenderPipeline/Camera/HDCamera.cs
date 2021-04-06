@@ -1668,6 +1668,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
 
+        internal BufferedRTHandleSystem GetHistoryRTHandleSystem()
+        {
+            return m_HistoryRTSystem;
+        }
+
+        internal void BindHistoryRTHandleSystem(BufferedRTHandleSystem historyRTSystem)
+        {
+            m_HistoryRTSystem = historyRTSystem;
+        }
+
         #endregion
     }
 }

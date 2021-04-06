@@ -1687,11 +1687,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
 
+                            // Save the camera history before rendering the AOVs
+                            var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
+
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
+                                    // Before rendering the AOV, bind the correct history buffers
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovRequest.GetHistoryRTHandleSystem());
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
@@ -1700,6 +1705,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.Submit();
                                 cmd.Clear();
                             }
+
+                            // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
+                            renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
