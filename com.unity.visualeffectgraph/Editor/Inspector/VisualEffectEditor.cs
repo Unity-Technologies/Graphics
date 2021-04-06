@@ -873,7 +873,7 @@ namespace UnityEditor.VFX
                                 while (currentCount == 0);
                             }
 
-                            if (string.IsNullOrEmpty(parameter.sheetType)) //WRONG : buffer is null here
+                            if (string.IsNullOrEmpty(parameter.sheetType)) //TODOPAUL : filter correctly GraphicsBuffer
                             {
                                 if (!string.IsNullOrEmpty(parameter.name))
                                 {
