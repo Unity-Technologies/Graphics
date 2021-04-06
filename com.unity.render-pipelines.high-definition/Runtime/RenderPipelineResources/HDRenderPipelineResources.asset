@@ -155,7 +155,7 @@ MonoBehaviour:
     ssGIDenoiserCS: {fileID: 7200000, guid: a435d803bc32d0845ba1a713b7a1c8b1, type: 3}
     bilateralUpsampleCS: {fileID: 7200000, guid: 68e831c555284d741b985e05369f0e63, type: 3}
     combineProbeVolumesCS: {fileID: 7200000, guid: b46fbe1adc9d52a46bb8a5459e5750a5, type: 3}
-    probeGIInjectionCS: {fileID: 7200000, guid: 462b6fb3a8587e24988313e0322c3ee2, type: 3}
+    probeGIInjectionCS: {fileID: 7200000, guid: f9edf8f708695ca478b47529f5cd25d0, type: 3}
     extactProbeExtraDataCS: {fileID: 7200000, guid: ec60fc9478d72a94f9945f2ce5e1b72a, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
