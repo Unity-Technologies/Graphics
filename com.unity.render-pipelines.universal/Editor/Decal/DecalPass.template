@@ -163,11 +163,11 @@ Pass
 
         #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(_DBUFFER_MRT1)
             #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul(normalToWorld, surfaceDescription.NormalTS);
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz);
             #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
                 float sgn = input.tangentWS.w;      // should be either +1 or -1
                 float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-                half3x3 tangentToWorld = float3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+                half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));

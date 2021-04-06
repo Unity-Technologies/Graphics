@@ -126,7 +126,18 @@ PackedVaryings Vert(Attributes inputMesh)
     output.sh = float3(sh);
 #endif
 
-    return PackVaryings(output);
+    PackedVaryings packedOutput = (PackedVaryings)0;
+    packedOutput = PackVaryings(output);
+
+    // Currently packing does not handle well lightmap interpolator packing, which results in not fully initialized output
+    // Here we force it to zero to satisfy compiler
+    // TODO: Remove this once it is fixed
+#if defined(VARYINGS_NEED_SH) && !defined(LIGHTMAP_ON)
+    packedOutput.interp3 = 0;
+#endif
+
+
+    return packedOutput;
 }
 
 void Frag(PackedVaryings packedInput,

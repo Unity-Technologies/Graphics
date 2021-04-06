@@ -698,7 +698,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // todo
                 StructFields.Varyings.normalWS,
 
-                //StructFields.Varyings.viewDirectionWS,
+                StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
                 //UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
