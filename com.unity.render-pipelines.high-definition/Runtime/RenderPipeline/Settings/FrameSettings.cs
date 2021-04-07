@@ -182,10 +182,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Anti-aliasing", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 18, tooltip: "When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.")]
         Antialiasing = 91,
-        /// <summary>When enabled, HDRP computes post effects in Normalized-Cluster-Coordinates instead of Normalized-Device-Coordinates.</summary>
-        [FrameSettingsField(0, displayedName: "Cluster Display", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP computes post effects in Normalized-Cluster-Coordinates instead of Normalized-Device-Coordinates")]
-        ClusterDisplay = 94,
-
+        /// <summary>When enabled, HDRP processes anti-aliasing for camera using these Frame Settings.</summary>
+        [FrameSettingsField(0, displayedName: "Asymmetric Projection", customOrderInGroup: 20, tooltip: "When enabled HDRP will correctly render using asymmetric projection matrices.")]
+        AsymetricProjection = 94,
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "After Post-process", customOrderInGroup: 19, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         AfterPostprocess = 17,
