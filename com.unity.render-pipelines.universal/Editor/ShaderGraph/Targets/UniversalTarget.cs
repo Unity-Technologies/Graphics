@@ -159,7 +159,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void Setup(ref TargetSetupContext context)
