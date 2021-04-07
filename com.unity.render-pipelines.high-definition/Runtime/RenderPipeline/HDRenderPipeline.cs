@@ -1877,7 +1877,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Resize(hdCamera);
                 BeginPostProcessFrame(cmd, hdCamera, this);
 
-                ApplyDebugDisplaySettings(hdCamera, cmd);
+                ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
                 if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR

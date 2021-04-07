@@ -71,6 +71,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
     int _DebugIsLitShaderModeDeferred;
+    int _DebugAOVOutput;
 CBUFFER_END
 
 
