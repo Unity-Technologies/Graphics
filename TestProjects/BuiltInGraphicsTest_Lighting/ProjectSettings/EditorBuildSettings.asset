@@ -26,4 +26,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
     guid: ff592545ad5dd744893d54a73f85b2cc
+  - enabled: 1
+    path: Assets/Scenes/009_AdditionalLightsShadows.unity
+    guid: fe73f67a2bc4933468c714f164c6596d
+  - enabled: 1
+    path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
+    guid: c44973f9bcb9e469ea540fc8b0f0324a
+  - enabled: 1
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
+    guid: cd37c7e9d54e74dd7add9b40a2698ada
+  - enabled: 1
+    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
+    guid: 700788280c77e4c63a4d1919a8bf97e3
+  - enabled: 1
+    path: Assets/Scenes/118_SkyboxReflectionTestOrthographic.unity
+    guid: e1fb4b913911b734b88f86697de1b94a
   m_configObjects: {}
