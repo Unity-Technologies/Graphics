@@ -384,11 +384,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
-                // Lens Flare between DepthOfField and MotionBlur
-                // MotionBlur with accumulation can "print" on sensor as sharp but can still be
-                // accumulated with MotionBlur with Accumulation
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
-
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
                 source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
@@ -405,6 +400,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.ColorLog);
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -2645,7 +2642,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            DoLensFlareDataDriven(data.parameters, data.hdCamera, ctx.cmd, data.source, data.destination);
+                            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, (float)data.hdCamera.actualWidth, (float)data.hdCamera.actualHeight,
+                                data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
+                                ctx.cmd, data.source, data.destination,
+                                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
+                                // And here the lambda setup like that seem to not alloc anything.
+                                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
+                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, data.parameters.skipCopy);
                         });
 
                     source = passData.destination;
@@ -2661,7 +2666,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Material lensFlareShader;
             public SRPLensFlareCommon lensFlares;
+            public float paniniDistance;
+            public float paniniCropToFit;
             public bool skipCopy;
+            public bool usePanini;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2670,9 +2678,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
-            parameters.skipCopy =
-                //m_CurrentDebugDisplaySettings.data.showLensFlareDataDrivenOnly;
-                m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
+            parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
+
+            PaniniProjection panini = camera.volumeStack.GetComponent<PaniniProjection>();
+
+            if (panini)
+            {
+                parameters.usePanini = panini.IsActive();
+                parameters.paniniDistance = panini.distance.value;
+                parameters.paniniCropToFit = panini.cropToFit.value;
+            }
+            else
+            {
+                parameters.usePanini = false;
+                parameters.paniniDistance = 0.0f;
+                parameters.paniniCropToFit = 1.0f;
+            }
 
             return parameters;
         }
@@ -2716,18 +2737,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return 1.0f;
-        }
-
-        static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
-        {
-            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(
-                parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
-                cmd, source, target,
-                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
-                // And here the lambda setup like that seem to not alloc anything.
-                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
-                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
         }
 
         #endregion
