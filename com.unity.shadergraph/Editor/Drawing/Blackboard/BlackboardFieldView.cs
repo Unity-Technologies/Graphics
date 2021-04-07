@@ -53,6 +53,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                         node.Dirty(modificationScope);
                     }
                     break;
+                case ShaderDropdown dropdown:
+                    foreach (var node in graph.GetNodes<DropdownNode>())
+                    {
+                        node.UpdateNode();
+                        node.Dirty(modificationScope);
+                    }
+
+                    foreach (var node in graph.GetNodes<SubGraphNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -73,6 +85,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                         return $"{m_Input.displayName} (Property)";
                     case ShaderKeyword keyword:
                         return $"{m_Input.displayName} (Keyword)";
+                    case ShaderDropdown dropdown:
+                        return $"{m_Input.displayName} (Dropdown)";
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -170,6 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     ChangeExposedField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
+                    () => m_Graph.OnDropdownChanged(),
                     ChangePropertyValue,
                     RegisterPropertyChangeUndo,
                     MarkNodesAsDirty);

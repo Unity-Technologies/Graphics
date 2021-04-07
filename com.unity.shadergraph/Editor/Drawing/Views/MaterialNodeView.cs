@@ -26,9 +26,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         new VisualElement m_ButtonContainer;
 
         VisualElement m_PreviewContainer;
-        VisualElement m_ControlItems;
         VisualElement m_PreviewFiller;
+        VisualElement m_ControlItems;        
         VisualElement m_ControlsDivider;
+        VisualElement m_DropdownItems;
+        VisualElement m_DropdownsDivider;
         IEdgeConnectorListener m_ConnectorListener;
 
         MaterialGraphView m_GraphView;
@@ -71,6 +73,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
+
+            // Add dropdowns container
+            var dropdownContainer = new VisualElement { name = "dropdowns" };
+            {
+                m_DropdownsDivider = new VisualElement { name = "divider" };
+                m_DropdownsDivider.AddToClassList("horizontal");
+                dropdownContainer.Add(m_DropdownsDivider);
+                m_DropdownItems = new VisualElement { name = "items" };
+                dropdownContainer.Add(m_DropdownItems);
+                UpdateDropdownEntries();
+            }
+            if (m_DropdownItems.childCount > 0)
+                contents.Add(dropdownContainer);
 
             if (node.hasPreview)
             {
@@ -236,6 +251,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             var badge = this.Q<IconBadge>();
             badge?.Detach();
             badge?.RemoveFromHierarchy();
+        }
+
+        public void UpdateDropdownEntries()
+        {
+            if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
+            {
+                m_DropdownItems.Clear();
+                var dropdowns = subGraphNode.asset.dropdowns;
+                foreach (var dropdown in dropdowns)
+                {
+                    if (dropdown.isExposed)
+                    {
+                        int value = subGraphNode.GetDropDownValue(dropdown.referenceName, dropdown.value);
+                        value = Mathf.Clamp(value, 0, dropdown.entries.Count - 1);
+                        var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), value);
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            subGraphNode.SetDropDownValue(dropdown.referenceName, field.index);
+                            subGraphNode.Dirty(ModificationScope.Topological);
+                        });
+
+                        m_DropdownItems.Add(new PropertyRow(new Label(dropdown.displayName)), (row) =>
+                        {
+                            row.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+                            row.Add(field);
+                        });
+                    }
+                }
+            }                
         }
 
         public VisualElement colorElement
@@ -683,6 +727,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is KeywordNode keywordNode)
             {
                 var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
+                if (keywordRow != null)
+                {
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    {
+                        keywordRow.AddToClassList("hovered");
+                    }
+                    else
+                    {
+                        keywordRow.RemoveFromClassList("hovered");
+                    }
+                }
+            }
+
+            if (node is DropdownNode dropdownNode)
+            {
+                var keywordRow = blackboardProvider.GetBlackboardRow(dropdownNode.dropdown);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

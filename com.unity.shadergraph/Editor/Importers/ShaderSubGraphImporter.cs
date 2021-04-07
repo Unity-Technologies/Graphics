@@ -263,6 +263,21 @@ namespace UnityEditor.ShaderGraph
                     arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                 }
 
+                {
+                    // The commented out code will only add dropdowns to the function that are used by a node.
+                    // In order for this to work, the SubGraph node must also know which dropdowns are used, so it can
+                    // selectively pass the argument. This requires passing a bit more context to the subgraph node,
+                    // so for now, just always pass the argument, the final shader will be the same anyway. 
+
+                    //foreach (var node in nodes)
+                    //    if (node is DropdownNode dropdownNode)
+                    //        arguments.Add($"int {dropdownNode.dropdown.referenceName}");
+
+                    var dropdowns = graph.dropdowns;
+                    foreach (var dropdown in dropdowns)
+                        arguments.Add($"int {dropdown.referenceName}");
+                }
+
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
@@ -342,7 +357,7 @@ namespace UnityEditor.ShaderGraph
                     prop.OverrideGuid(namespaceId, nameId + "_Guid_" + i);
                 }
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
+            asset.WriteData(graph.properties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

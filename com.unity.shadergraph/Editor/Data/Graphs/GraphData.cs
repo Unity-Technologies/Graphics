@@ -41,6 +41,11 @@ namespace UnityEditor.ShaderGraph
 
         public DataValueEnumerable<ShaderKeyword> keywords => m_Keywords.SelectValue();
 
+        [SerializeField]
+        List<JsonData<ShaderDropdown>> m_Dropdowns = new List<JsonData<ShaderDropdown>>();
+
+        public DataValueEnumerable<ShaderDropdown> dropdowns => m_Dropdowns.SelectValue();
+
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
 
@@ -1271,6 +1276,16 @@ namespace UnityEditor.ShaderGraph
                         m_Keywords.Insert(index, keyword);
 
                     break;
+                case ShaderDropdown dropdown:
+                    if (m_Dropdowns.Contains(dropdown))
+                        return;
+
+                    if (index < 0)
+                        m_Dropdowns.Add(dropdown);
+                    else
+                        m_Dropdowns.Insert(index, dropdown);
+
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1341,6 +1356,9 @@ namespace UnityEditor.ShaderGraph
                 case ShaderKeyword keyword:
                     sanitizedName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", sanitizedName);
                     break;
+                case ShaderDropdown dropdown:
+                    sanitizedName = GraphUtil.SanitizeName(dropdowns.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", sanitizedName);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1355,16 +1373,23 @@ namespace UnityEditor.ShaderGraph
             {
                 case AbstractShaderProperty property:
                 {
-                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
-                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName));
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
+                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
                 case ShaderKeyword keyword:
                 {
-                    // must deduplicate ref names against both keyword and properties, as they occupy the same name space
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
                     sanitizedName = sanitizedName.ToUpper();
-                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName));
+                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
+                    sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
+                }
+                break;
+                case ShaderDropdown dropdown:
+                {
+                    // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
+                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Where(p => p != input).Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
@@ -1473,6 +1498,27 @@ namespace UnityEditor.ShaderGraph
                 m_MovedInputs.Add(keyword);
         }
 
+        public void MoveDropdown(ShaderDropdown dropdown, int newIndex)
+        {
+            if (newIndex > m_Dropdowns.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within dropdowns list.");
+            var currentIndex = m_Dropdowns.IndexOf(dropdown);
+            if (currentIndex == -1)
+                throw new ArgumentException("Dropdown is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_Dropdowns.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_Keywords.Count;
+            if (isLast)
+                m_Dropdowns.Add(dropdown);
+            else
+                m_Dropdowns.Insert(newIndex, dropdown);
+            if (!m_MovedInputs.Contains(dropdown))
+                m_MovedInputs.Add(dropdown);
+        }
+
         public int GetGraphInputIndex(ShaderInput input)
         {
             switch (input)
@@ -1481,6 +1527,8 @@ namespace UnityEditor.ShaderGraph
                     return m_Properties.IndexOf(property);
                 case ShaderKeyword keyword:
                     return m_Keywords.IndexOf(keyword);
+                case ShaderDropdown dropdown:
+                    return m_Dropdowns.IndexOf(dropdown);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1489,7 +1537,8 @@ namespace UnityEditor.ShaderGraph
         void RemoveGraphInputNoValidate(ShaderInput shaderInput)
         {
             if (shaderInput is AbstractShaderProperty property && m_Properties.Remove(property) ||
-                shaderInput is ShaderKeyword keyword && m_Keywords.Remove(keyword))
+                shaderInput is ShaderKeyword keyword && m_Keywords.Remove(keyword) ||
+                shaderInput is ShaderDropdown dropdown && m_Dropdowns.Remove(dropdown))
             {
                 m_RemovedInputs.Add(shaderInput);
                 m_AddedInputs.Remove(shaderInput);
@@ -1550,6 +1599,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+		public void OnDropdownChanged()
+        {
+            OnDropdownChangedNoValidate();
+            ValidateGraph();
+        }
+
+        public void OnDropdownChangedNoValidate()
+        {
+            var allNodes = GetNodes<AbstractMaterialNode>();
+            foreach (AbstractMaterialNode node in allNodes)
+            {
+                node.Dirty(ModificationScope.Topological);
+                node.ValidateNode();
+            }
+        }
+		
         public void CleanupGraph()
         {
             //First validate edges, remove any
@@ -1878,6 +1943,24 @@ namespace UnityEditor.ShaderGraph
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
                     keywordNode.UpdateNode();
                 }
+
+                // Check if the dropdown nodes need to have their dropdowns copied.
+                if (node is DropdownNode dropdownNode)
+                {
+                    var dropdown = m_Dropdowns.SelectValue().FirstOrDefault(x => x.objectId == dropdownNode.dropdown.objectId
+                        || x.referenceName == dropdownNode.dropdown.referenceName);
+                    if (dropdown != null)
+                    {
+                        dropdownNode.dropdown = dropdown;
+                    }
+                    else
+                    {
+                        AddGraphInput(dropdownNode.dropdown);
+                    }
+
+                    // Always update Dropdown nodes to handle any collisions resolved on the Keyword
+                    dropdownNode.UpdateNode();
+                }
             }
 
             foreach (var edge in edges)
@@ -1961,10 +2044,12 @@ namespace UnityEditor.ShaderGraph
                     var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
                     var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
                     var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
+                    var dropdownGuidMap = new Dictionary<string, ShaderDropdown>();
                     var groupGuidMap = new Dictionary<string, GroupData>();
                     var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                     var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
                     var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var dropdownField = typeof(DropdownNode).GetField("m_Dropdown", BindingFlags.Instance | BindingFlags.NonPublic);
                     var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                     m_GroupDatas.Clear();
@@ -2027,6 +2112,21 @@ namespace UnityEditor.ShaderGraph
                         keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
                     }
 
+                    // Do we even need to worry about this? It is possible that somebody way be using an old version, and later upgrade?
+                    foreach (var serializedDropdown in graphData0.m_SerializedDropdowns)
+                    {
+                        var dropdown = DeserializeLegacy<ShaderDropdown>(serializedDropdown.typeInfo.fullName, serializedDropdown.JSONnodeData);
+                        if (dropdown == null)
+                        {
+                            continue;
+                        }
+
+                        m_Dropdowns.Add(dropdown);
+
+                        var input0 = JsonUtility.FromJson<ShaderInput0>(serializedDropdown.JSONnodeData);
+                        dropdownGuidMap[input0.m_Guid.m_GuidSerialized] = dropdown;
+                    }
+
                     foreach (var serializedNode in graphData0.m_SerializableNodes)
                     {
                         var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
@@ -2049,6 +2149,11 @@ namespace UnityEditor.ShaderGraph
                         if (!string.IsNullOrEmpty(node0.m_KeywordGuidSerialized) && keywordGuidMap.TryGetValue(node0.m_KeywordGuidSerialized, out var keyword))
                         {
                             keywordField.SetValue(node, (JsonRef<ShaderKeyword>)keyword);
+                        }
+
+                        if (!string.IsNullOrEmpty(node0.m_DropdownGuidSerialized) && dropdownGuidMap.TryGetValue(node0.m_DropdownGuidSerialized, out var dropdown))
+                        {
+                            dropdownField.SetValue(node, (JsonRef<ShaderDropdown>)dropdown);
                         }
 
                         var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
