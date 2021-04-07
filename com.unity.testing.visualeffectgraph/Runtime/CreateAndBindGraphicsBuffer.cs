@@ -82,16 +82,16 @@ namespace Unity.Testing.VisualEffectGraph
         {
             var colors = new Tuple<Vector3, float>[]
             {
-                new Tuple<Vector3, float>(new Vector3(1,1,1), 4.0f),
-                new Tuple<Vector3, float>(new Vector3(0,0,0), 1.0f),
-                new Tuple<Vector3, float>(new Vector3(1,0,0), 1.0f),
-                new Tuple<Vector3, float>(new Vector3(0,0,1), 1.0f),
-                new Tuple<Vector3, float>(new Vector3(1,1,0), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(249.0f,251.0f,249.0f), 4.0f),
+                new Tuple<Vector3, float>(new Vector3(46.0f,46.0f,45.0f), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(221.0f, 1.0f, 0.0f), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(32.0f, 80.0f, 149.0f), 1.0f),
+                new Tuple<Vector3, float>(new Vector3(250.0f, 201.0f, 0), 1.0f),
             };
 
             var prefixSum = PrefixSum(colors.Select(o => o.Item2)).ToArray();
             var prefixSumNormalized = prefixSum.Select(o => o / prefixSum.Last()).ToArray();
-            return colors.Zip(prefixSumNormalized, (a, b) => new Tuple<Vector3, float>(a.Item1, b)).ToArray();
+            return colors.Zip(prefixSumNormalized, (a, b) => new Tuple<Vector3, float>(new Vector3(Mathf.GammaToLinearSpace(a.Item1.x / 255.0f), Mathf.GammaToLinearSpace(a.Item1.y / 255.0f), Mathf.GammaToLinearSpace(a.Item1.z / 255.0f)), b)).ToArray();
         }
 
         private static void ProcessMondrian(List<CustomData> rectangles, System.Random rand)
