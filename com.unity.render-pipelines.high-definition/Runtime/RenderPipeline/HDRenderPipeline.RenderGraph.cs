@@ -342,6 +342,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
+//SensorSDK - Begin - Tonemapping support
+            hdCamera.postProcessSystem = m_PostProcessSystem;
+//SensorSDK - End - Tonemapping support
+
             m_RenderGraph.Execute();
 
             if (aovRequest.isValid)

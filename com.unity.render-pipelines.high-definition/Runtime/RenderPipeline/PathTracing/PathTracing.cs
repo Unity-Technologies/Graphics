@@ -182,6 +182,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+//SensorSDK - Begin
+            hdCamera.isLastIteration = camData.currentIteration == m_SubFrameManager.subFrameCount;
+
+            if (Application.isPlaying && hdCamera.isLastIteration && hdCamera.isContinousCaptureEnabled)
+            {
+                camData.ResetIteration();
+                m_SubFrameManager.SetCameraData(camID, camData);
+                return;
+            }
+//SensorSDK - End
+
             // Check camera matrix dirtiness
             if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
@@ -242,13 +253,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                              width, height;
             public RayTracingAccelerationStructure  accelerationStructure;
             public HDRaytracingLightCluster         lightCluster;
+
+//SensorSDK - Begin
+            public HDCamera hdCamera;
+//SensorSDK - End
         }
 
         PathTracingParameters PreparePathTracingParameters(HDCamera hdCamera)
         {
             PathTracingParameters parameters = new PathTracingParameters();
 
-            parameters.pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+//SensorSDK - Begin 
+            parameters.pathTracingShader = hdCamera.pathTracingShaderOverride == null ? m_Asset.renderPipelineRayTracingResources.pathTracing : hdCamera.pathTracingShaderOverride;
+//SensorSDK - End
+
             parameters.cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
             parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
             parameters.backgroundColor = hdCamera.backgroundColorHDR;
@@ -266,6 +284,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
             parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
             parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
+
+//SensorSDK - Begin
+            parameters.hdCamera = hdCamera;
+//SensorSDK - End
 
             return parameters;
         }
@@ -297,6 +319,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.pathTracingShader, HDShaderIDs._RadianceTexture, radianceTexture);
             cmd.SetRayTracingMatrixParam(parameters.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, parameters.pixelCoordToViewDirWS);
             cmd.SetRayTracingVectorParam(parameters.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, parameters.dofParameters);
+
+//SensorSDK - Begin
+            parameters.hdCamera.PrepareDispatchRays?.Invoke(cmd);
+//SensorSDK - End
 
             // Run the computation
             cmd.DispatchRays(parameters.pathTracingShader, "RayGen", (uint)parameters.width, (uint)parameters.height, 1);
