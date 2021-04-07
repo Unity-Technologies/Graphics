@@ -155,6 +155,14 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
+        public static void DisableAllKeywords(this IRenderPass2D pass, CommandBuffer cmd)
+        {
+            foreach (var keyword in k_UseBlendStyleKeywords)
+            {
+                cmd.DisableShaderKeyword(keyword);
+            }
+        }
+
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
