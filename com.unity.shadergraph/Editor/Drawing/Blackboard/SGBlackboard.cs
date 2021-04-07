@@ -108,7 +108,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ViewModel = viewModel;
 
-            InitializeAddBlackboardItemMenu();
 
             // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
@@ -239,6 +238,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string propertyName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
+                if (addAction is AddShaderInputAction addShaderInputAction)
+                {
+                    addShaderInputAction.categoryToAddItemToGuid = controller.GetFirstSelectedCategoryGuid();
+                }
                 m_AddBlackboardItemMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
             }
             m_AddBlackboardItemMenu.AddSeparator($"/");

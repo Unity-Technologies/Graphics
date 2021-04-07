@@ -271,6 +271,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_Blackboard;
             private set => m_Blackboard = value;
         }
+        public string GetFirstSelectedCategoryGuid()
+        {
+            if (m_Blackboard == null)
+            {
+                return string.Empty;
+            }
+            var copiedSelectionList = new List<ISelectable>(m_Blackboard.selection);
+            var selectedCategories = new List<SGBlackboardCategory>();
+            var selectedCategoryGuid = String.Empty;
+            for (int i = 0; i < copiedSelectionList.Count; i++)
+            {
+                var selectable = copiedSelectionList[i];
+                if (selectable is SGBlackboardCategory category)
+                {
+                    selectedCategories.Add(selectable as SGBlackboardCategory);
+                }
+            }
+            if (selectedCategories.Count == 1)
+            {
+                selectedCategoryGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
+            }
+            return selectedCategoryGuid;
+        }
 
         void InitializeViewModel()
         {
@@ -486,7 +509,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         RemoveBlackboardCategory(categoryGUID);
                     }
                     break;
-
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
