@@ -306,8 +306,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
                 var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
-                // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name
-                if (Model.keywords.Any(x => x.referenceName == keyword.referenceName))
+                // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name or display name
+                if (Model.keywords.Any(x => x.referenceName == keyword.referenceName || x.displayName == keyword.displayName))
                 {
                     ViewModel.disabledKeywordNameList.Add(keyword.displayName);
                 }

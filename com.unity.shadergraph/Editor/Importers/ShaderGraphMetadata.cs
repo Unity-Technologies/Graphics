@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -16,7 +17,31 @@ namespace UnityEditor.ShaderGraph
             public bool isKeyword;
             public PropertyType propertyType;
             public KeywordType keywordType;
+
+            public bool isCompoundProperty;
+            public List<GraphInputData> subProperties;
         }
+
+        // ShaderLab doesn't understand virtual texture inputs, they need to be processed to replace the virtual texture input with the layers that compose it instead
+        public static GraphInputData ProcessVirtualTextureProperty(VirtualTextureShaderProperty virtualTextureShaderProperty)
+        {
+            var layerReferenceNames = new List<string>();
+            virtualTextureShaderProperty.GetPropertyReferenceNames(layerReferenceNames);
+            var virtualTextureLayerDataList = new List<GraphInputData>();
+
+            // Skip the first entry in this list as that's the Virtual Texture reference name itself, which won't exist in ShaderLab
+            foreach (var referenceName in layerReferenceNames.Skip(1))
+            {
+                var layerPropertyData = new GraphInputData() { referenceName = referenceName, propertyType = PropertyType.Texture2D, isKeyword = false };
+                virtualTextureLayerDataList.Add(layerPropertyData);
+            }
+
+            var virtualTexturePropertyData = new GraphInputData() { referenceName = virtualTextureShaderProperty.displayName, propertyType = PropertyType.VirtualTexture, isKeyword = false };
+            virtualTexturePropertyData.isCompoundProperty = true;
+            virtualTexturePropertyData.subProperties = virtualTextureLayerDataList;
+            return virtualTexturePropertyData;
+        }
+
         public string categoryName;
         public List<GraphInputData> propertyDatas;
         [NonSerialized]

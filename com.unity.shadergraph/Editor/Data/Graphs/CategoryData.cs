@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {

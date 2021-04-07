@@ -231,20 +231,25 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            List<MinimalCategoryData.GraphInputData> inputs = new List<MinimalCategoryData.GraphInputData>();
-            foreach(AbstractShaderProperty prop in graph.properties)
+            List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
+            foreach(AbstractShaderProperty property in graph.properties)
             {
                 // Don't write out data for non-exposed blackboard items
-                if (!prop.isExposed)
+                if (!property.isExposed)
                     continue;
-                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = prop.referenceName, propertyType = prop.propertyType, isKeyword = false});
+
+                // VTs are treated differently
+                if (property is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                    inputInspectorDataList.Add(MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty));
+                else
+                    inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
             }
             foreach(ShaderKeyword keyword in graph.keywords)
             {
                 // Don't write out data for non-exposed blackboard items
                 if (!keyword.isExposed)
                     continue;
-                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
+                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
@@ -258,35 +263,42 @@ Shader ""Hidden/GraphErrorShader2""
                 foreach(var input in categoryData.Children)
                 {
                     MinimalCategoryData.GraphInputData propData;
+                    // Only write out data for exposed blackboard items
+                    if(input.isExposed == false)
+                        continue;
 
-                    if(input is ShaderKeyword keyword)
+                    // VTs are treated differently
+                    if (input is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                    {
+                        propData = MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty);
+                        foreach (var inputData in inputInspectorDataList.ToList())
+                        {
+                            if (inputData.referenceName == propData.referenceName)
+                                inputInspectorDataList.Remove(inputData);
+                        }
+                        mcd.propertyDatas.Add(propData);
+                        continue;
+                    }
+                    else if(input is ShaderKeyword keyword)
                     {
                         propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
                     }
                     else
                     {
                         var prop = input as AbstractShaderProperty;
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false};
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
                     }
 
-                    // Only write out data for exposed blackboard items
-                    if (input.isExposed)
-                        mcd.propertyDatas.Add(propData);
-
-                    inputs.Remove(propData);
+                    mcd.propertyDatas.Add(propData);
+                    inputInspectorDataList.Remove(propData);
                 }
                 sgMetadata.categoryDatas.Add(mcd);
             }
 
             // Any uncategorized elements get tossed into an un-named category at the top as a fallback
-            if(inputs.Count > 0)
+            if(inputInspectorDataList.Count > 0)
             {
-                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputs });
-            }
-
-            foreach(AbstractShaderProperty prop in graph.properties)
-            {
-                var propertyType = prop.propertyType;
+                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
             }
 
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);

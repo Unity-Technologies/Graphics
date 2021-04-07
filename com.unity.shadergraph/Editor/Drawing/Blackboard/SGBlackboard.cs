@@ -116,6 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_MainContainer.Q(name: "addButton") is Button addButton)
                 addButton.clickable.clicked += () =>
                 {
+                    InitializeAddBlackboardItemMenu();
                     addItemRequested?.Invoke();
                     ShowAddPropertyMenu();
                 };
@@ -259,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)
             {
-                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
+                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent($"Keyword/{disabledKeywordName}"));
             }
 
             m_AddBlackboardItemMenu.AddItem(new GUIContent("Category"), false, () => ViewModel.requestModelChangeAction(ViewModel.addCategoryAction));

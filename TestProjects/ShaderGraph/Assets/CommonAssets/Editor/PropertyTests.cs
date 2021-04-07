@@ -74,8 +74,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void Cleanup()
         {
             // Don't spawn ask-to-save dialog
-            //m_Window.graphObject = null;
-            //m_Window.Close();
+            m_Window.graphObject = null;
+            m_Window.Close();
         }
 
         [Test]

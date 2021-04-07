@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal static class ShaderGraphPropertyDrawers
     {
+        static Dictionary<MinimalCategoryData.GraphInputData, bool> s_CompoundPropertyFoldoutStates = new Dictionary<MinimalCategoryData.GraphInputData, bool>();
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -70,22 +72,61 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (minimalCategoryData.categoryName.Length > 0)
             {
-                minimalCategoryData.expanded = EditorGUILayout.Foldout(minimalCategoryData.expanded, minimalCategoryData.categoryName);
+                minimalCategoryData.expanded = EditorGUILayout.BeginFoldoutHeaderGroup(minimalCategoryData.expanded, minimalCategoryData.categoryName);
             }
             else
             {
-                //force draw if no category name to do foldout on
+                // force draw if no category name to do foldout on
                 minimalCategoryData.expanded = true;
             }
+
             if (minimalCategoryData.expanded)
             {
                 foreach (var propData in minimalCategoryData.propertyDatas)
                 {
-                    MaterialProperty prop = FindProperty(propData.referenceName, properties);
-                    DrawProperty(materialEditor, prop, propData);
+                    if (propData.isCompoundProperty == false)
+                    {
+                        MaterialProperty prop = FindProperty(propData.referenceName, properties);
+                        DrawProperty(materialEditor, prop, propData);
+                    }
+                    else
+                    {
+                        DrawCompoundProperty(materialEditor, properties, propData);
+                    }
                 }
             }
+
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
+
+        private static void DrawCompoundProperty(MaterialEditor materialEditor, MaterialProperty[] properties, MinimalCategoryData.GraphInputData compoundPropertyData)
+        {
+            EditorGUI.indentLevel++;
+
+            bool foldoutState = true;
+            var exists = s_CompoundPropertyFoldoutStates.ContainsKey(compoundPropertyData);
+            if (!exists)
+                s_CompoundPropertyFoldoutStates.Add(compoundPropertyData, true);
+            else
+                foldoutState = s_CompoundPropertyFoldoutStates[compoundPropertyData];
+
+            foldoutState = EditorGUILayout.Foldout(foldoutState, compoundPropertyData.referenceName);
+            if (foldoutState)
+            {
+                EditorGUI.indentLevel++;
+                    foreach (var subProperty in compoundPropertyData.subProperties)
+                    {
+                        var property = FindProperty(subProperty.referenceName, properties);
+                        DrawProperty(materialEditor, property, subProperty);
+                    }
+                EditorGUI.indentLevel--;
+            }
+
+            if (exists)
+                s_CompoundPropertyFoldoutStates[compoundPropertyData] = foldoutState;
+            EditorGUI.indentLevel--;
+        }
+
 
         private static void DrawProperty(MaterialEditor materialEditor, MaterialProperty property, MinimalCategoryData.GraphInputData inputData)
         {
