@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Label m_MaxItemsMessageLabel;
 
+        internal static bool forceNodeView = true;
+
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
             if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
@@ -132,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                 }
-                if (anySelectables)
+                if (anySelectables && forceNodeView)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab

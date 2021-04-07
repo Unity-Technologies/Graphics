@@ -111,7 +111,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graph.UpdateActiveBlocks(activeBlocks);
             this.m_PreviewManagerUpdateDelegate();
+            Inspector.InspectorView.forceNodeView = false;
             this.m_InspectorUpdateDelegate();
+            Inspector.InspectorView.forceNodeView = true;
         }
 
         void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
