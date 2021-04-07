@@ -749,7 +749,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordDescriptor ReceiveShadows = new KeywordDescriptor()
             {
                 displayName = "Receive Shadows Off",
-                referenceName = "_RECEIVE_SHADOWS_OFF",
+                referenceName = Keyword.HW_ReceiveShadowsOff,
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.Universal
         public static string ReceiveShadows(bool isShaderGraph)                { return isShaderGraph ? SG_ReceiveShadows : HW_ReceiveShadows; }
         public static string QueueOffset(bool isShaderGraph)                   { return isShaderGraph ? SG_QueueOffset : HW_QueueOffset; }
 
+        // for hand-written shaders (Lit.shader, Unlit.shader, maybe others)
         public static readonly string HW_SpecularWorkflowMode = "_WorkflowMode";
         public static readonly string HW_Surface = "_Surface";
         public static readonly string HW_Blend = "_Blend";
@@ -33,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string HW_ReceiveShadows = "_ReceiveShadows";
         public static readonly string HW_QueueOffset = "_QueueOffset";
 
-        // for shadergraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP properties and user properties)
+        // for ShaderGraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP properties and user properties)
         public static readonly string SG_SpecularWorkflowMode = "_URP_WorkflowMode";
         public static readonly string SG_Surface = "_URP_Surface";
         public static readonly string SG_Blend = "_URP_Blend";
@@ -64,8 +65,22 @@ namespace UnityEditor.Rendering.Universal
                 overrideReferenceName = SG_SpecularWorkflowMode,
             };
         }
+    }
 
-        //public static readonly string AlphaCutoff = "_Cutoff";
+    internal static class Keyword
+    {
+        // for hand-written shaders (Lit.shader, Unlit.shader, maybe others)
+        public static readonly string HW_ReceiveShadowsOff = "_RECEIVE_SHADOWS_OFF";
+        public static readonly string HW_Emission = "_EMISSION";
+        public static readonly string HW_AlphaTestOn = "_ALPHATEST_ON";
+        public static readonly string HW_SurfaceTypeTransparent = "_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string HW_AlphaPremultiplyOn = "_ALPHAPREMULTIPLY_ON";
+        public static readonly string HW_AlphaModulateOn = "_ALPHAMODULATE_ON";
+
+        // custom keywords for Lit.shader
+        public static readonly string HW_NormalMap = "_NORMALMAP";
+
+        // for ShaderGraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP and user keywords)
     }
 
     internal static class UniversalMaterialInspectorUtilities

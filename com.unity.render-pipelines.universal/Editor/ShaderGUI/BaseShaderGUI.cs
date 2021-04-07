@@ -407,7 +407,7 @@ namespace UnityEditor
             // Receive Shadows
             var receiveShadowsProp = Property.ReceiveShadows(isShaderGraph);
             if (material.HasProperty(receiveShadowsProp))
-                CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat(receiveShadowsProp) == 0.0f);
+                CoreUtils.SetKeyword(material, Keyword.HW_ReceiveShadowsOff, material.GetFloat(receiveShadowsProp) == 0.0f);
 
             // Setup double sided GI based on Cull state
             var cullProp = Property.Cull(isShaderGraph);
@@ -444,11 +444,11 @@ namespace UnityEditor
             if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
                 shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
 
-            CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
+            CoreUtils.SetKeyword(material, Keyword.HW_Emission, shouldEmissionBeEnabled);
 
             // Normal Map
             if (material.HasProperty("_BumpMap"))
-                CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+                CoreUtils.SetKeyword(material, Keyword.HW_NormalMap, material.GetTexture("_BumpMap"));
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
@@ -487,14 +487,14 @@ namespace UnityEditor
             if (material.HasProperty(alphaClipProp))
                 alphaClip = material.GetFloat(alphaClipProp) >= 0.5;
 
-            CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaClip);
+            CoreUtils.SetKeyword(material, Keyword.HW_AlphaTestOn, alphaClip);
 
             var queueOffsetProp = Property.QueueOffset(isShaderGraph);
             var surfaceProp = Property.Surface(isShaderGraph);
             if (material.HasProperty(surfaceProp))
             {
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(surfaceProp);
-                CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
+                CoreUtils.SetKeyword(material, Keyword.HW_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     int renderQueue;
@@ -515,7 +515,7 @@ namespace UnityEditor
                     material.renderQueue = renderQueue;
                     SetMaterialSrcDstBlendProperties(material, isShaderGraph, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
                     SetMaterialZWriteProperty(material, true);
-                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else // SurfaceType Transparent
@@ -530,26 +530,26 @@ namespace UnityEditor
                             SetMaterialSrcDstBlendProperties(material, isShaderGraph,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Premultiply:
                             SetMaterialSrcDstBlendProperties(material, isShaderGraph,
                                 UnityEngine.Rendering.BlendMode.One,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                            material.EnableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Additive:
                             SetMaterialSrcDstBlendProperties(material, isShaderGraph,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.One);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Multiply:
                             SetMaterialSrcDstBlendProperties(material, isShaderGraph,
                                 UnityEngine.Rendering.BlendMode.DstColor,
                                 UnityEngine.Rendering.BlendMode.Zero);
-                            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                            material.EnableKeyword("_ALPHAMODULATE_ON");
+                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
+                            material.EnableKeyword(Keyword.HW_AlphaModulateOn);
                             break;
                     }
 
