@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Problem on domain reload of Volume Parameter Ranges and UI values
 - Fixed Right Align of additional properties on Volume Components Editors
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed missing increment/decrement controls from DebugUIIntField & DebugUIUIntField widget prefabs.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -32,9 +33,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
+- Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
+- Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
+- Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
+- Added mouse & touch input support for Rendering Debugger runtime UI, and fix problems when InputSystem package is used.
+- Add automatic spaces to enum display names used in Rendering Debugger and add support for InspectorNameAttribute.
 
 ### Changed
-- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
