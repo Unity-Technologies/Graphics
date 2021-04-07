@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDataAssigned()
         {
-            return !MaskVolumePayload.IsNull(ref payload) && (MaskVolumePayload.GetLength(ref payload) > 0);
+            return !MaskVolumePayload.IsNull(ref payload);
         }
 
 #if UNITY_EDITOR

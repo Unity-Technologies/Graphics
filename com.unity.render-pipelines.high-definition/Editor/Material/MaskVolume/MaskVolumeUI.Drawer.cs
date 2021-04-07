@@ -73,35 +73,40 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            EditMode.DoInspectorToolbar(new[] {MaskVolumeEditor.k_EditPaint}, Styles.s_PaintToolbarContents, () =>
-                {
-                    var bounds = new Bounds();
-                    foreach (Component targetObject in owner.targets)
-                    {
-                        bounds.Encapsulate(targetObject.transform.position);
-                    }
+            // TODO: Reimplement as EditorTool. EditMode.DoInspectorToolbar doesn't actually use the result
+            // of getBoundsOfTargets and is deprecated so we manually revert the scene view if target were focused
+            // on the tool switching.
+            var sceneView = SceneView.lastActiveSceneView;
+            var sceneViewPivot = sceneView.pivot;
+            EditorGUI.BeginChangeCheck();
 
-                    return bounds;
-                },
-                owner);
+            EditMode.DoInspectorToolbar(new[] { MaskVolumeEditor.k_EditPaint },
+                Styles.s_PaintToolbarContents, null, owner);
+            
+            if (EditorGUI.EndChangeCheck())
+                sceneView.pivot = sceneViewPivot;
+            
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
 
             var brushColor = MaskVolumeEditor.BrushColor;
-            ChannelField(ref MaskVolumeEditor.BrushApplyRed, ref brushColor.r, "R");
-            ChannelField(ref MaskVolumeEditor.BrushApplyGreen, ref brushColor.g, "G");
-            ChannelField(ref MaskVolumeEditor.BrushApplyBlue, ref brushColor.b, "B");
-            brushColor.a = (byte) EditorGUILayout.IntSlider("Opacity", brushColor.a, 0, 255);
+            var invert = EditMode.editMode == MaskVolumeEditor.k_EditPaint && Event.current.control;
+            EditorGUI.BeginDisabledGroup(invert);
+            ChannelField(ref MaskVolumeEditor.BrushApplyRed, ref brushColor.r, "R", invert);
+            ChannelField(ref MaskVolumeEditor.BrushApplyGreen, ref brushColor.g, "G", invert);
+            ChannelField(ref MaskVolumeEditor.BrushApplyBlue, ref brushColor.b, "B", invert);
+            EditorGUI.EndDisabledGroup();
+            brushColor.a = EditorGUILayout.Slider("Strength", brushColor.a, 0f, 1f);
             MaskVolumeEditor.BrushColor = brushColor;
 
             EditorGUILayout.Space();
 
-            MaskVolumeEditor.Brush.Radius = EditorGUILayout.FloatField("Radius", MaskVolumeEditor.Brush.Radius);
-            if (MaskVolumeEditor.Brush.Radius < float.Epsilon)
-                MaskVolumeEditor.Brush.Radius = float.Epsilon;
-            MaskVolumeEditor.BrushHardness = EditorGUILayout.Slider("Hardness", MaskVolumeEditor.BrushHardness, 0f, 1f);
+            MaskVolumeEditor.Brush.OuterRadius = EditorGUILayout.FloatField("Outer Radius", MaskVolumeEditor.Brush.OuterRadius);
+            if (MaskVolumeEditor.Brush.OuterRadius < float.Epsilon)
+                MaskVolumeEditor.Brush.OuterRadius = float.Epsilon;
+            MaskVolumeEditor.Brush.InnerRadius = EditorGUILayout.Slider("Inner Radius", MaskVolumeEditor.Brush.InnerRadius, 0f, 1f);
 
             EditorGUILayout.Space();
 
@@ -113,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.Space();
         }
 
-        static void ChannelField(ref bool enabled, ref byte value, string label)
+        static void ChannelField(ref bool enabled, ref float value, string label, bool invert)
         {
             var rect = EditorGUILayout.GetControlRect();
 
@@ -125,9 +130,14 @@ namespace UnityEditor.Rendering.HighDefinition
             enabled = GUI.Toggle(buttonRect, enabled, gc, "Button");
 
             var sliderRect = rect;
-            sliderRect.x += 33f;
-            sliderRect.width -= 33f;
-            value = (byte)EditorGUI.IntSlider(sliderRect, value, 0, 255);
+            sliderRect.x += 28f;
+            sliderRect.width -= 28f;
+
+            if (invert)
+                value = 1f - value;
+            value = EditorGUI.Slider(sliderRect, value, 0f, 1f);
+            if (invert)
+                value = 1f - value;
         }
         
         static void Drawer_PrimarySettings(SerializedMaskVolume serialized, Editor owner)
@@ -182,18 +192,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (noAsset)
             {
                 EditorGUILayout.HelpBox("Please create the asset after setting the Mask Volume dimensions.", MessageType.Error);
+
+                if (GUILayout.Button(Styles.k_CreateAssetText))
+                    maskVolume.CreateAsset();
             }
-            else if (!maskVolume.IsAssetCompatibleResolution())
+            else if (!maskVolume.IsAssetMatchingResolution())
             {
                 var parameters = maskVolume.parameters;
-                EditorGUILayout.HelpBox($"The asset assigned to this Mask Volume does not have matching data dimensions " +
+                EditorGUILayout.HelpBox($"Dimensions of the asset assigned to this Mask Volume don't match " +
                                         $"({maskVolumeAsset.resolutionX}x{maskVolumeAsset.resolutionY}x{maskVolumeAsset.resolutionZ} vs. " +
-                                        $"{parameters.resolutionX}x{parameters.resolutionY}x{parameters.resolutionZ}), please recreate the asset.",
-                                        MessageType.Error);
-            }
+                                        $"{parameters.resolutionX}x{parameters.resolutionY}x{parameters.resolutionZ}).",
+                                        MessageType.Warning);
 
-            if (GUILayout.Button(noAsset ? Styles.k_CreateAssetText : Styles.k_RecreateAssetText))
-                maskVolume.CreateAsset();
+                if (GUILayout.Button(Styles.k_ResampleAssetText))
+                    maskVolume.ResampleAsset();
+            }
 
             EditorGUILayout.PropertyField(serialized.maskVolumeAsset, Styles.s_DataAssetLabel);
         }

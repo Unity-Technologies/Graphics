@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal const string k_VolumeHeader = "Volume";
             internal const string k_MasksHeader = "Mask";
             internal const string k_CreateAssetText = "Create Asset";
-            internal const string k_RecreateAssetText = "Recreate Asset";
+            internal const string k_ResampleAssetText = "Resample Asset";
 
             internal static readonly GUIContent[] s_PaintToolbarContents =
             {
