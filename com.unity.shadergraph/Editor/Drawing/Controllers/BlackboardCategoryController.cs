@@ -63,6 +63,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HashSet<string> categoriesToRemoveGuids { get; set; } = new HashSet<string>();
     }
 
+    class ChangeCategoryNameAction : IGraphDataAction
+    {
+        void ChangeCategoryName(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeCategoryNameAction");
+            graphData.owner.RegisterCompleteObjectUndo("Change Category Name");
+            graphData.ChangeCategoryName(categoryGuid, newCategoryNameValue);
+        }
+
+        public Action<GraphData> modifyGraphDataAction => ChangeCategoryName;
+
+        //Reference to the category being modified
+        public string categoryGuid { get; set; }
+
+        internal string newCategoryNameValue { get; set; }
+    }
+
     class BlackboardCategoryController : SGViewController<CategoryData, BlackboardCategoryViewModel>
     {
         internal SGBlackboardCategory blackboardCategoryView => m_BlackboardCategoryView;
@@ -175,6 +192,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     break;
 
+                case ChangeCategoryNameAction changeCategoryNameAction:
+                    if (changeCategoryNameAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    {
+                        ViewModel.name = changeCategoryNameAction.newCategoryNameValue;
+                        m_BlackboardCategoryView.title = ViewModel.name;
+                    }
+                    break;
             }
         }
 
@@ -188,6 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out var associatedController);
             return associatedController?.BlackboardItemView;
         }
+
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
