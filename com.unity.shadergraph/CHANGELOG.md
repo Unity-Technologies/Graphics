@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1323744]
 - Fixed a regression where custom function node file-included functions could not access shadergraph properties [1322467]
 - Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed a bug where changing a Target setting would switch the inspector view to the Node Settings tab if any nodes were selected.
 
 
 ## [11.0.0] - 2020-10-21
