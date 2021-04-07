@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
             public static GUIContent lightlayersUnsupportedMessage =
-                EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues.\n\n");
+                EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ");
             public static GUIContent rendererUnsupportedAPIMessage =
                 EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
 
@@ -809,8 +809,15 @@ namespace UnityEditor.Rendering.Universal
             for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
             {
                 if (!RenderingUtils.SupportsLightLayers(graphicsAPIs[apiIndex]))
-                    unsupportedGraphicsApisMessage += System.String.Format("{0}\n", graphicsAPIs[apiIndex]);
+                {
+                    if (unsupportedGraphicsApisMessage != null)
+                        unsupportedGraphicsApisMessage += ", ";
+                    unsupportedGraphicsApisMessage += System.String.Format("{0}", graphicsAPIs[apiIndex]);
+                }
             }
+
+            if (unsupportedGraphicsApisMessage != null)
+                unsupportedGraphicsApisMessage += ".";
 
             return unsupportedGraphicsApisMessage == null;
         }
