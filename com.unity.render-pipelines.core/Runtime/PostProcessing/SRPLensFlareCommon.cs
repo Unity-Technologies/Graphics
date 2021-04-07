@@ -416,9 +416,10 @@ namespace UnityEngine
                         elemSizeXY = new Vector2(element.sizeXY.y / usedAspectRatio, element.sizeXY.y);
                     else
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
-                    float scaleSize = 0.1f;
-                    Vector2 size = new Vector2(scaleByDistance * elemSizeXY.x, scaleByDistance * elemSizeXY.y);
-                    size *= scaleSize * element.uniformScale; // Arbitrary values
+                    float scaleSize = 0.1f; // Arbitrary value
+                    Vector2 size = new Vector2(elemSizeXY.x,elemSizeXY.y);
+                    float combinedScale = scaleByDistance * scaleSize * element.uniformScale;
+                    size *= combinedScale;
 
                     Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -503,9 +504,10 @@ namespace UnityEngine
                             localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
                             localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
                         }
+
                         float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
-                        return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),
-                            Mathf.Lerp(curSize.y, curSize.y * element.targetSizeDistortion.y, localLerpValue));
+                        return new Vector2(Mathf.Lerp(curSize.x, element.targetSizeDistortion.x * combinedScale, localLerpValue),
+                            Mathf.Lerp(curSize.y, element.targetSizeDistortion.y * combinedScale, localLerpValue));
                     }
 
                     float usedSDFRoundness = element.sdfRoundness;
@@ -594,12 +596,13 @@ namespace UnityEngine
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localSize = size;
-                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(-1.0f, 1.0f));
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                     localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                                 }
+
+                                localSize += localSize * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(-1.0f, 1.0f));
 
                                 Color randCol = element.colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
 
