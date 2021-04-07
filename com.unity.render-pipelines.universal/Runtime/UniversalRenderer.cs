@@ -660,16 +660,13 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void BeforeTransparent(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            // Before transparent object pass, force screen space shadow for main light to disable
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, false);
-
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (m_ShadowTransparentReceive == false && needTransparencyPass)
 #else
             if (m_ShadowTransparentReceive == false)
 #endif
             {
-                // then transparent objects don't receive any shadows
+                // transparent objects don't receive any shadows
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, false);
@@ -683,7 +680,7 @@ namespace UnityEngine.Rendering.Universal
                 bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
                 bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
-                // then enable main light shadows with or without cascades
+                // enable main light shadows with or without cascades
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, receiveShadowsCascades);
             }

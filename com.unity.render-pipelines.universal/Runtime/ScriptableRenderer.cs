@@ -1346,6 +1346,9 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.internalBeforeTransparent))
             {
+                // Before transparent object pass, force to disable screen space shadow for main light
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
+
                 BeforeTransparent(cmd, ref renderingData);
             }
 
