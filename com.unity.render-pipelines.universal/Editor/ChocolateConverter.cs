@@ -25,8 +25,8 @@ public sealed class ChocolateConverter : RenderPipelineConverter
             ConverterItemDescriptor info = new ConverterItemDescriptor()
             {
                 name = "Chocolate : " + i,
-                path = "Chocolate/On/My/Disk..." + i * 100,
-                initialInfo = "MilkChocolate",
+                info = "Chocolate/On/My/Disk..." + i * 100,
+                warningMessage = "MilkChocolate",
                 helpLink = "?? here is a link",
             };
             // Each converter needs to add this info using this API.
@@ -39,8 +39,8 @@ public sealed class ChocolateConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
-            ctx.Processing(item.index);
-            var path = item.descriptor.path;
+            //ctx.Processing(item.index);
+            var path = item.descriptor.info;
 
             // if failed.
             //ctx.MarkFailed(item.index);
