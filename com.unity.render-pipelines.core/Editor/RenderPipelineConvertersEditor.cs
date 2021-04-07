@@ -6,7 +6,8 @@ using UnityEditor.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-
+// Status for each row item to say in which state they are in.
+// This will make sure they are showing the correct icon
 enum Status
 {
     Pending,
@@ -15,14 +16,16 @@ enum Status
     Success
 }
 
+// This is the serialized class that stores the state of each item in the list of items to convert
 [Serializable]
 class ConverterItemState
 {
     public bool isActive;
 
-    // Maybe add the conversion info here
-    public string info;
+    // Message that will be displayed on the icon if warning or failed.
+    public string message;
 
+    // Status of the converted item, Pending, Warning, Error or Success
     internal Status status;
 }
 
@@ -53,9 +56,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
     Texture2D kImgSuccess;
     Texture2D kImgPending;
 
-    public VisualTreeAsset converterEditorAsset;
-    public VisualTreeAsset converterListAsset;
-    public VisualTreeAsset converterItem;
+    public VisualTreeAsset m_ConverterEditorAsset;
+    public VisualTreeAsset m_ConverterListAsset;
+    public VisualTreeAsset m_ConverterItem;
 
     ScrollView m_ScrollView;
     DropdownField m_ConversionsDropdownField;
@@ -65,14 +68,13 @@ public class RenderPipelineConvertersEditor : EditorWindow
     List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
     SerializedObject m_SerializedObject;
 
-    List<string> conversionsChoices = new List<string>();
+    List<string> m_ConversionsChoices = new List<string>();
     // This is a list of Converter States which holds a list of which converter items/assets are active
     // There is one for each Converter.
     [SerializeField]
     List<ConverterState> m_ConverterStates = new List<ConverterState>();
 
-
-    TypeCache.TypeCollection conversions;
+    TypeCache.TypeCollection m_Conversions;
 
 #if RENDER_PIPELINE_CONVERTER
     [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
@@ -83,7 +85,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
         wnd.titleContent = new GUIContent("Render Pipeline Converters");
     }
 
-    //d__Help.png
     void OnEnable()
     {
         kImgWarn = EditorGUIUtility.FindTexture("console.warnicon");
@@ -93,14 +94,13 @@ public class RenderPipelineConvertersEditor : EditorWindow
         kImgPending = EditorGUIUtility.FindTexture("Toolbar Minus");
 
         // This is the drop down choices.
-        conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
-        for (int j = 0; j < conversions.Count; j++)
+        m_Conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
+        for (int j = 0; j < m_Conversions.Count; j++)
         {
             // Iterate over the converters
-            RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(conversions[j]);
-            conversionsChoices.Add(conversion.name);
+            RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(m_Conversions[j]);
+            m_ConversionsChoices.Add(conversion.name);
         }
-
 
         var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
         for (int i = 0; i < converters.Count; ++i)
@@ -130,12 +130,17 @@ public class RenderPipelineConvertersEditor : EditorWindow
     public void CreateGUI()
     {
         m_SerializedObject = new SerializedObject(this);
-        converterEditorAsset.CloneTree(rootVisualElement);
+        m_ConverterEditorAsset.CloneTree(rootVisualElement);
 
         // Adding the different conversions
         // Right now the .choices attribute is internal so we can not add it. This will be public in the future.
         m_ConversionsDropdownField = rootVisualElement.Q<DropdownField>("conversionDropDown");
         //m_ConversionsDropdownField.choices = conversionsChoices;
+
+        // This is temp now to get the information filled in
+        RenderPipelineConversion conversion = (RenderPipelineConversion) Activator.CreateInstance(m_Conversions[0]);
+        rootVisualElement.Q<Label>("conversionName").text = conversion.name;
+        rootVisualElement.Q<TextElement>("conversionInfo").text = conversion.info;
 
         // Getting the scrollview where the converters should be added
         m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
@@ -145,7 +150,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             // Then adding the information needed for each converter
             // Why do I need to create a new visual element here? MTT
             VisualElement item = new VisualElement();
-            converterListAsset.CloneTree(item);
+            m_ConverterListAsset.CloneTree(item);
             var conv = m_CoreConvertersList[i];
             item.SetEnabled(conv.Enabled());
             item.Q<Label>("converterName").text = conv.name;
@@ -214,18 +219,18 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     // Default all the entries to true
                     for (var j = 0; j < converterItemInfos.Count; j++)
                     {
-                        string info = "";
+                        string message = "";
                         Status status;
                         bool active = true;
                         // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
-                        if (string.IsNullOrEmpty(converterItemInfos[j].initialInfo))
+                        if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
                         {
                             status = Status.Pending;
                         }
                         else
                         {
                             status = Status.Warning;
-                            info = converterItemInfos[j].initialInfo;
+                            message = converterItemInfos[j].warningMessage;
                             active = false;
                             m_ConverterStates[i].warnings++;
                         }
@@ -233,12 +238,11 @@ public class RenderPipelineConvertersEditor : EditorWindow
                         m_ConverterStates[i].items.Add(new ConverterItemState
                         {
                             isActive = active,
-                            info = info,
+                            message = message,
                             status = status,
                         });
                     }
 
-                    // Add this converterState to the list of converterStates.
                     m_ConverterStates[i].isInitialized = true;
 
                     // Making sure that the pending amount is set to the amount of items needs converting
@@ -265,6 +269,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             {
                 // Get the ListView for the converter items
                 ListView listView = child.Q<ListView>("converterItems");
+                listView.ClearSelection();
 
                 var converterItemInfos = m_ItemsToConvert[i];
                 // Update the amount of things to convert
@@ -273,8 +278,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 //listView.makeItem = converterItem.CloneTree;
                 listView.makeItem = () =>
                 {
-                    var convertItem = converterItem.CloneTree();
-                    //convertItem.AddManipulator(new ContextualMenuManipulator(AddToContextMenu));
+                    var convertItem = m_ConverterItem.CloneTree();
+                    // Adding the contextual menu for each item
+                    convertItem.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id)));
                     return convertItem;
                 };
 
@@ -290,22 +296,20 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     var bindable = (BindableElement)element;
                     bindable.BindProperty(property);
 
-                    // Adding the contextual menu for each item, not working properly
-                    //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id, index)));
-                    //element.RemoveManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, index)));
-                    //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, index)));
+                    // Adding index here to userData so it can be retrieved later
                     element.userData = index;
+
                     ConverterItemDescriptor convItemDesc = converterItemInfos[index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
-                    element.Q<Label>("converterItemPath").text = convItemDesc.path;
+                    element.Q<Label>("converterItemPath").text = convItemDesc.info;
 
                     element.Q<Image>("converterItemHelpIcon").image = kImgHelp;
                     element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
 
                     // Changing the icon here depending on the status.
                     Status status = m_ConverterStates[id].items[index].status;
-                    string info = m_ConverterStates[id].items[index].info;
+                    string info = m_ConverterStates[id].items[index].message;
                     Texture2D icon = null;
 
                     switch (status)
@@ -339,41 +343,26 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 };
 
                 listView.Refresh();
-
-                // When right clicking an item it should pop up a small menu with 2 entries
-                // I also would like this a separate method instead of inline.
             }
         }
 
         rootVisualElement.Bind(m_SerializedObject);
     }
 
-    void AddToContextMenu(ContextualMenuPopulateEvent evt)
+    void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex)
     {
-        //Debug.Log($"Index ::: {evt.target.userData}");
-    }
 
-    void AddToContextMenu(ContextualMenuPopulateEvent evt, int index)
-    {
-        Debug.Log($"Index ::: {index}");
-    }
+        var ve = (VisualElement) evt.target;
+        // Checking if this context menu should be enabled or not
+        var isActive = m_ConverterStates[coreConverterIndex].items[(int)ve.userData].isActive;
 
-    //
-    // void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex, int index)
-    // {
-    //     Debug.Log(evt.target);
-    //     //Debug.Log(m_CoreConvertersList[coreConverterIndex].name);
-    //     //Debug.Log(coreConverterIndex);
-    //     Debug.Log("INDEX:: " + index);
-    //
-    //     /*evt.menu.AppendAction("Run converter for this asset",
-    //         e =>
-    //         {
-    //             ConvertIndex(coreConverterIndex, index);
-    //         },
-    //         DropdownMenuAction.AlwaysEnabled);
-    //         */
-    // }
+        evt.menu.AppendAction("Run converter for this asset",
+            e =>
+            {
+                ConvertIndex(coreConverterIndex, (int)ve.userData);
+            },
+            isActive ? DropdownMenuAction.AlwaysEnabled : DropdownMenuAction.AlwaysDisabled);
+    }
 
     void UpdateInfo(int stateIndex, RunConverterContext ctx)
     {
@@ -387,7 +376,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
         foreach (FailedItem failedItem in failedItems)
         {
             // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
-            m_ConverterStates[stateIndex].items[failedItem.index].info = failedItem.message;
+            m_ConverterStates[stateIndex].items[failedItem.index].message = failedItem.message;
             m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
         }
 
