@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 8;
-        [SerializeField] int k_AssetPreviousVersion = 8;
+        [SerializeField] int k_AssetVersion = 9;
+        [SerializeField] int k_AssetPreviousVersion = 9;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -918,7 +918,7 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 7;
             }
 
-            if (k_AssetVersion < 8)
+            if (k_AssetVersion < 9)
             {
                 bool assetContainsCustomAdditionalLightShadowResolutions =
                     m_AdditionalLightsShadowResolutionTierHigh != AdditionalLightsDefaultShadowResolutionTierHigh ||
@@ -934,7 +934,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 k_AssetPreviousVersion = k_AssetVersion;
-                k_AssetVersion = 8;
+                k_AssetVersion = 9;
             }
 
 #if UNITY_EDITOR
@@ -967,10 +967,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 7)
+            if (asset.k_AssetPreviousVersion < 9)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 7;
+                asset.k_AssetPreviousVersion = 9;
             }
 
             EditorUtility.SetDirty(asset);
