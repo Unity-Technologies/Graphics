@@ -206,19 +206,31 @@ namespace Editor.Converters
                             AssetDatabase.OpenAsset(mainInstanceID);
                             yield return null;
 
-                            var scene = SceneManager.GetActiveScene();
-                            while (!scene.isLoaded)
+                            // if we have a prefab open, then we already have the object we need to update
+                            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                            if (prefabStage != null)
                             {
-                                yield return null;
+                                obj = mainInstanceID;
+                            }
+                            else
+                            {
+                                var scene = SceneManager.GetActiveScene();
+                                while (!scene.isLoaded)
+                                {
+                                    yield return null;
+                                }
                             }
                         }
 
-                        // Reload object
-                        obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                        if (!obj)
+                        // Reload object if it is still null
+                        if (obj == null)
                         {
-                            ctx.MarkFailed(i, $"Object {gid.assetGUID} failed to load...");
-                            continue;
+                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+                            if (!obj)
+                            {
+                                ctx.MarkFailed(i, $"Object {gid.assetGUID} failed to load...");
+                                continue;
+                            }
                         }
                     }
 
