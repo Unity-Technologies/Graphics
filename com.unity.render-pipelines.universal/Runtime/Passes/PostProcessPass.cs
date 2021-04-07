@@ -840,7 +840,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target)
         {
-            SRPLensFlareCommon.DoLensFlareDataDriven(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
+            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
                 cmd, source, target, GetLensFlareLightAttenuation,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
