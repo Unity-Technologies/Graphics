@@ -417,7 +417,7 @@ namespace UnityEngine
                     else
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
                     float scaleSize = 0.1f; // Arbitrary value
-                    Vector2 size = new Vector2(elemSizeXY.x,elemSizeXY.y);
+                    Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
                     float combinedScale = scaleByDistance * scaleSize * element.uniformScale;
                     size *= combinedScale;
 
