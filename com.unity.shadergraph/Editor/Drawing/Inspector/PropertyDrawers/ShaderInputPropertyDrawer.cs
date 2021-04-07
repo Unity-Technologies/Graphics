@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         property.useCustomSlotLabel = newValue.isOn;
                         this._postChangeValueCallback(true, ModificationScope.Topological);
                     },
-                    new ToggleData(property.useCustomSlotLabel),
+                    new ToggleData(property.isConnectionTestable),
                     "Use Custom Binding",
                     out var exposedToggleVisualElement));
                 exposedToggleVisualElement.SetEnabled(true);

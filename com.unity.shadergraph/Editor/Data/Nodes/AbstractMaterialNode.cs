@@ -756,13 +756,6 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public MaterialSlot AddPropertySlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
-        {
-            slot = AddSlot(slot, attemptToModifyExistingInstance);
-            slot.isProperty = true;
-            return slot;
-        }
-
         public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
         {
             if (slot == null)

@@ -218,7 +218,9 @@ namespace UnityEditor.ShaderGraph
                 prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
-                arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
+
+                if (prop.isConnectionTestable)
+                    arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");                
             }
 
             // pass surface inputs through
@@ -574,7 +576,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     return properties.First();
                 }
-            }            
+            }
 
             return null;
         }
