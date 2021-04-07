@@ -296,6 +296,102 @@ float3 GetAreaEmission(LightData lightData, float centerU, float centerV, float 
     return emission;
 }
 
+#if defined(SENSORSDK_NVL) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+/*
+struct LightData
+{
+    float3 positionRWS;
+    uint lightLayers;
+    float lightDimmer;
+    float volumetricLightDimmer;
+    real angleScale;
+    real angleOffset;
+    float3 forward;
+    int lightType;
+    float3 right;
+    real range;
+    float3 up;
+    float rangeAttenuationScale;
+    float3 color;
+    float rangeAttenuationBias;
+    int cookieIndex;
+    int tileCookie;
+    int shadowIndex;
+    int contactShadowMask;
+    float3 shadowTint;
+    float shadowDimmer;
+    float volumetricShadowDimmer;
+    int nonLightMappedOnly;
+    real minRoughness;
+    int screenSpaceShadowIndex;
+    real4 shadowMaskSelector;
+    real4 size;
+    float diffuseDimmer;
+    float specularDimmer;
+    float isRayTracedContactShadow;
+    float penumbraTint;
+    float3 padding;
+    float boxLightSafeExtent;
+};
+*/
+
+bool SampleBeam(LightData lightData,
+    float3 position,
+    float3 normal,
+    out float3 outgoingDir,
+    out float3 value,
+    out float pdf,
+    out float dist)
+{
+    // Pick a local light from the list
+    //LightData lightData = GetLocalLightData(lightList, inputSample.z);
+
+    // Generate a point on the surface of the light
+    //float3 lightCenter = lightData.positionRWS;//GetAbsolutePositionWS(lightData.positionRWS);
+    //float3 samplePos = lightCenter;
+
+    // And the corresponding direction
+    outgoingDir = lightData.positionRWS - position;
+    dist = length(outgoingDir);
+    outgoingDir /= dist;
+
+    if (dot(normal, outgoingDir) < 0.001)
+        return false;
+
+    //    if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+    //    {
+    //        float cosTheta = -dot(outgoingDir, lightData.forward);
+    //        if (cosTheta < 0.001)
+    //            return false;
+
+    //        float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+    //        value = lightData.color;
+    //        pdf = GetLocalLightWeight(lightList) * Sq(dist) / (lightArea * cosTheta);
+    //    }
+    //    else // Punctual light
+    {
+        // DELTA_PDF represents 1 / area, where the area is infinitesimal
+        //value = GetPunctualEmission(lightData, outgoingDir, dist);
+        //float4 distances = float4(dist, Sq(dist), 1.0 / dist, -dist * dot(outgoingDir, lightData.forward));
+
+        //Distance attenuation
+        value = lightData.color;// * PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
+
+        float beamSpotAreaRadius = dist * lightData.angleScale; // in meter
+        float beamSpotArea = PI * Sq(beamSpotAreaRadius);
+
+        value /= beamSpotArea; // (W / m^2)
+
+        //Divergeance attenuation (aka attenuation from the center)
+        //TODO
+
+        pdf = 1.0f /*GetLocalLightWeight(lightList)*/;
+    }
+
+    return any(value);
+}       
+#endif
+
 bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,

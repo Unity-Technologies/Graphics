@@ -197,6 +197,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool rayTraced;
         }
 
+//SensorSDK - Begin - Tonemapping support
+        public RayTracingAccelerationStructure accelerationStructure;
+
+        public RayTracingShader pathTracingShaderOverride;
+        public delegate void PrepareDispatchRaysAction<T1>(T1 cmd);
+        public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
+
+        public bool isContinousCaptureEnabled = true;
+        public bool isLastIteration = false;
+        internal PostProcessSystem postProcessSystem;
+//SensorSDK - End - Tonemapping support
+
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;

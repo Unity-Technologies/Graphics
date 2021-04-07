@@ -380,6 +380,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 return;
 
+//SensorSDK - Begin - Expose acceleration structure to avoid building our own into the custom pass
+            hdCamera.accelerationStructure = m_CurrentRAS;
+//SensorSDK - End - Expose acceleration structure to avoid building our own into the custom pass
+
             // We only support ray traced shadows if the camera supports ray traced shadows
             bool screenSpaceShadowsSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
 
