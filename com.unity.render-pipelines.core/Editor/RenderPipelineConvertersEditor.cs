@@ -189,67 +189,56 @@ public class RenderPipelineConvertersEditor : EditorWindow
         initButton.RegisterCallback<ClickEvent>(Init);
     }
 
-    void GetAndSetData()
+    void GetAndSetData(int i)
     {
-        for (int i = 0; i < m_ConverterStates.Count; ++i)
+        // This need to be in Init method
+        // Need to get the assets that this converter is converting.
+        // Need to return Name, Path, Initial info, Help link.
+        // New empty list of ConverterItemInfos
+        List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
+        var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
+
+        var conv = m_CoreConvertersList[i];
+
+        // This should also go to the init method
+        // This will fill out the converter item infos list
+        conv.OnInitialize(initCtx);
+
+        // Set the item infos list to to the right index
+        m_ItemsToConvert[i] = converterItemInfos;
+        m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
+
+        // Default all the entries to true
+        for (var j = 0; j < converterItemInfos.Count; j++)
         {
-            // Checking if this converter is enabled or not
-            if (m_ConverterStates[i].isEnabled)
+            string message = "";
+            Status status;
+            bool active = true;
+            // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
+            if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
             {
-                // Checking if this converter should get the data
-                if (m_ConverterStates[i].isActive && !m_ConverterStates[i].isInitialized)
-                {
-                    // This need to be in Init method
-                    // Need to get the assets that this converter is converting.
-                    // Need to return Name, Path, Initial info, Help link.
-                    // New empty list of ConverterItemInfos
-                    List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-                    var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
-
-                    var conv = m_CoreConvertersList[i];
-
-                    // This should also go to the init method
-                    // This will fill out the converter item infos list
-                    conv.OnInitialize(initCtx);
-
-                    // Set the item infos list to to the right index
-                    m_ItemsToConvert[i] = converterItemInfos;
-                    m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
-
-                    // Default all the entries to true
-                    for (var j = 0; j < converterItemInfos.Count; j++)
-                    {
-                        string message = "";
-                        Status status;
-                        bool active = true;
-                        // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
-                        if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
-                        {
-                            status = Status.Pending;
-                        }
-                        else
-                        {
-                            status = Status.Warning;
-                            message = converterItemInfos[j].warningMessage;
-                            active = false;
-                            m_ConverterStates[i].warnings++;
-                        }
-
-                        m_ConverterStates[i].items.Add(new ConverterItemState
-                        {
-                            isActive = active,
-                            message = message,
-                            status = status,
-                        });
-                    }
-
-                    m_ConverterStates[i].isInitialized = true;
-
-                    // Making sure that the pending amount is set to the amount of items needs converting
-                    m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
-                }
+                status = Status.Pending;
             }
+            else
+            {
+                status = Status.Warning;
+                message = converterItemInfos[j].warningMessage;
+                active = false;
+                m_ConverterStates[i].warnings++;
+            }
+
+            m_ConverterStates[i].items.Add(new ConverterItemState
+            {
+                isActive = active,
+                message = message,
+                status = status,
+            });
         }
+
+        m_ConverterStates[i].isInitialized = true;
+
+        // Making sure that the pending amount is set to the amount of items needs converting
+        m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
 
         EditorUtility.SetDirty(this);
         m_SerializedObject.Update();
@@ -257,25 +246,26 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
     void Init(ClickEvent evt)
     {
-        Undo.RegisterCompleteObjectUndo(this, "Initialize Converts");
-
-        GetAndSetData();
-
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
-            var id = i;
+            // Need to clear selection here otherwise we get an error for the listview refresh
             VisualElement child = m_ScrollView[i];
+            ListView listView = child.Q<ListView>("converterItems");
+            listView.ClearSelection();
+
+            var state = m_ConverterStates[i];
+            if(state.isInitialized || !state.isEnabled || !state.isActive)
+                continue;
+
+            GetAndSetData(i);
+
+            var id = i;
             if (m_ConverterStates[i].isActive)
             {
-                // Get the ListView for the converter items
-                ListView listView = child.Q<ListView>("converterItems");
-                listView.ClearSelection();
-
                 var converterItemInfos = m_ItemsToConvert[i];
                 // Update the amount of things to convert
                 child.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
 
-                //listView.makeItem = converterItem.CloneTree;
                 listView.makeItem = () =>
                 {
                     var convertItem = m_ConverterItem.CloneTree();
