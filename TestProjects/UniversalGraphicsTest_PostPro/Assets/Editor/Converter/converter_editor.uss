@@ -1,4 +1,0 @@
-.convertersListView {
-    --unity-item-height: 16;
-    height: 120px;
-}
