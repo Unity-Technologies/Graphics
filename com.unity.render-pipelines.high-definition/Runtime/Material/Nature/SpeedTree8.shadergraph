@@ -1419,7 +1419,7 @@
     "m_Group": {
         "m_Id": "9ac41cd9d57e45398e2fdf46eb4a6cf7"
     },
-    "m_Name": "EFFECT_BILLBOARD",
+    "m_Name": "Is Billboard",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2015,7 +2015,7 @@
     "m_Group": {
         "m_Id": "9ac41cd9d57e45398e2fdf46eb4a6cf7"
     },
-    "m_Name": "EFFECT_BILLBOARD",
+    "m_Name": "Is Billboard",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2140,12 +2140,12 @@
     "m_Guid": {
         "m_GuidSerialized": "b44afb17-c8e0-4149-94f6-bc2fb7eaeb5c"
     },
-    "m_Name": "EFFECT_BILLBOARD",
+    "m_Name": "Is Billboard",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "BOOLEAN_E5812BC_ON",
     "m_OverrideReferenceName": "EFFECT_BILLBOARD",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_KeywordType": 0,
     "m_KeywordDefinition": 0,
     "m_KeywordScope": 0,
@@ -5128,7 +5128,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "EFFECT_BILLBOARD",
+    "m_Name": "Is Billboard",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
