@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
     {
         public List<JsonData<AbstractShaderProperty>> inputs = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<ShaderKeyword>> keywords = new List<JsonData<ShaderKeyword>>();
+        public List<JsonData<ShaderDropdown>> dropdowns = new List<JsonData<ShaderDropdown>>();
         public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
         public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
@@ -69,6 +70,8 @@ namespace UnityEditor.ShaderGraph
 
         public DataValueEnumerable<ShaderKeyword> keywords => m_SubGraphData.keywords.SelectValue();
 
+        public DataValueEnumerable<ShaderDropdown> dropdowns => m_SubGraphData.dropdowns.SelectValue();
+
         public DataValueEnumerable<AbstractShaderProperty> nodeProperties => m_SubGraphData.nodeProperties.SelectValue();
 
         public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
@@ -95,7 +98,7 @@ namespace UnityEditor.ShaderGraph
 
         public PreviewMode previewMode;
 
-        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
+        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<ShaderDropdown> dropdowns, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if (m_SubGraphData == null)
             {
@@ -105,6 +108,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
+            m_SubGraphData.dropdowns.Clear();
             m_SubGraphData.nodeProperties.Clear();
             m_SubGraphData.outputs.Clear();
             m_SubGraphData.unsupportedTargets.Clear();
@@ -117,6 +121,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var keyword in keywords)
             {
                 m_SubGraphData.keywords.Add(keyword);
+            }
+
+            foreach (var dropdown in dropdowns)
+            {
+                m_SubGraphData.dropdowns.Add(dropdown);
             }
 
             foreach (var nodeProperty in nodeProperties)

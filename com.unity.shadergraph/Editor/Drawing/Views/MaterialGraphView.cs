@@ -785,7 +785,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             selectedProperties.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
             CopyPasteGraph copiedProperties = new CopyPasteGraph(null, null, null, selectedProperties,
-                null, null, null);
+                null, null, null, null);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
         }
@@ -815,10 +815,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Collect the keyword nodes and get the corresponding keywords
             var metaKeywords = new HashSet<ShaderKeyword>(nodes.OfType<KeywordNode>().Select(x => x.keyword).Concat(inputs.OfType<ShaderKeyword>()));
 
+            // Collect the dropdown nodes and get the corresponding dropdowns
+            var metaDropdowns = new HashSet<ShaderDropdown>(nodes.OfType<DropdownNode>().Select(x => x.dropdown).Concat(inputs.OfType<ShaderDropdown>()));
+
             // Sort so that the ShaderInputs are in the correct order
             inputs.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            var copyPasteGraph = new CopyPasteGraph(groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
+            var copyPasteGraph = new CopyPasteGraph(groups, nodes, edges, inputs, metaProperties, metaKeywords, metaDropdowns, notes);
             return MultiJson.Serialize(copyPasteGraph);
         }
 
@@ -841,9 +844,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
+            bool dropdownsDirty = false;
 
             // Track dependent keyword nodes to remove them
             List<KeywordNode> keywordNodes = new List<KeywordNode>();
+            List<DropdownNode> dropdownNodes = new List<DropdownNode>();
 
             foreach (var selectable in selection)
             {
@@ -857,6 +862,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                             break;
                         case ShaderKeyword keyword:
                             keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keyword == keyword));
+                            break;
+                        case ShaderDropdown dropdown:
+                            dropdownNodes.AddRange(graph.GetNodes<DropdownNode>().Where(x => x.dropdown == dropdown));
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -878,6 +886,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Add keyword nodes dependent on deleted keywords
             nodesToDelete = nodesToDelete.Union(keywordNodes);
+            nodesToDelete = nodesToDelete.Union(dropdownNodes);
 
             // If deleting a Sub Graph node whose asset contains Keywords test variant limit
             foreach (SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
@@ -889,6 +898,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (subGraphNode.asset.keywords.Any())
                 {
                     keywordsDirty = true;
+                }
+                if (subGraphNode.asset.dropdowns.Any())
+                {
+                    dropdownsDirty = true;
                 }
             }
 
@@ -911,6 +924,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         keywordsDirty = true;
                     }
+                    if (input is ShaderDropdown dropdown)
+                    {
+                        dropdownsDirty = true;
+                    }
                 }
             }
 
@@ -919,12 +936,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 graph.OnKeywordChangedNoValidate();
             }
+            if (dropdownsDirty)
+            {
+                graph.OnDropdownChangedNoValidate();
+            }
 
             selection.Clear();
         }
 
         // Gets the index after the currently selected shader input per row.
-        public static List<int> GetIndicesToInsert(SGBlackboard blackboard, int numberOfSections = 2)
+        public static List<int> GetIndicesToInsert(SGBlackboard blackboard, int numberOfSections = 3)
         {
             List<int> indexPerSection = new List<int>();
 
@@ -1182,6 +1203,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                         node.keyword = keyword;
                         break;
                     }
+
+                    case ShaderDropdown dropdown:
+                    {
+                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                        if (graph.dropdowns.FirstOrDefault(k => k == dropdown) == null)
+                        {
+                            dropdown = (ShaderDropdown)graph.AddCopyOfShaderInput(dropdown);
+                        }
+
+                        var node = new DropdownNode();
+                        var drawState = node.drawState;
+                        drawState.position = new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.dropdown = dropdown;
+                        break;
+                    }
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -1223,6 +1264,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
+
+            bool dropdownsDirty = false;
 
             SGBlackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
 
@@ -1275,6 +1318,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                         keywordsDirty = true;
                         break;
 
+                    case ShaderDropdown shaderDropdown:
+                        var copiedDropdown = (ShaderDropdown)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_DropdownSectionIndex]);
+
+                        // Increment for next within the same section
+                        if (indicies[BlackboardProvider.k_DropdownSectionIndex] >= 0)
+                            indicies[BlackboardProvider.k_DropdownSectionIndex]++;
+
+                        // Update the dropdown nodes that depends on the copied node
+                        var dependentDropdownNodes = copyGraph.GetNodes<DropdownNode>().Where(x => x.dropdown == input);
+                        foreach (var node in dependentDropdownNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.dropdown = copiedDropdown;
+                        }
+
+                        dropdownsDirty = true;
+                        break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -1287,12 +1348,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     keywordsDirty = true;
                 }
+
+                if (subGraphNode.asset.dropdowns.Any())
+                {
+                    dropdownsDirty = true;
+                }
             }
 
             // Test Keywords against variant limit
             if (keywordsDirty)
             {
                 graphView.graph.OnKeywordChangedNoValidate();
+            }
+
+            if (dropdownsDirty)
+            {
+                graphView.graph.OnDropdownChangedNoValidate();
             }
 
             using (ListPool<AbstractMaterialNode>.Get(out var remappedNodes))

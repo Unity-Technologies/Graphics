@@ -93,6 +93,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<int> m_PropertyIds = new List<int>();
 
+        [SerializeField]
+        List<string> m_DropdownNames = new List<string>();
+
+        [SerializeField]
+        List<int> m_DropdownValues = new List<int>();
+
         public string subGraphGuid
         {
             get
@@ -219,6 +225,13 @@ namespace UnityEditor.ShaderGraph
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
                 arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
+            }
+
+            var dropdowns = asset.dropdowns;
+            foreach (var dropdown in dropdowns)
+            {
+                int value = GetDropDownValue(dropdown.referenceName, dropdown.value);
+                arguments.Add(value.ToString());
             }
 
             // pass surface inputs through
@@ -753,6 +766,31 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresVertexID;
+        }
+
+        public int GetDropDownValue(string referenceName, int defaultValue)
+        {
+            var index = m_DropdownNames.IndexOf(referenceName);
+            if (index >= 0)
+            {
+                return m_DropdownValues[index];
+            }
+
+            return defaultValue;
+        }
+
+        public void SetDropDownValue(string referenceName, int value)
+        {
+            var index = m_DropdownNames.IndexOf(referenceName);
+            if (index >= 0)
+            {
+                m_DropdownValues[index] = value;
+            }
+            else
+            {
+                m_DropdownNames.Add(referenceName);
+                m_DropdownValues.Add(value);
+            }
         }
     }
 }

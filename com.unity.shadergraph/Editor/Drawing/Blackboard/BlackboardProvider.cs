@@ -16,9 +16,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         readonly Dictionary<ShaderInput, BlackboardRow> m_InputRows;
         readonly SGBlackboardSection m_PropertySection;
         readonly SGBlackboardSection m_KeywordSection;
+        readonly SGBlackboardSection m_DropdownSection;
 
         public const int k_PropertySectionIndex = 0;
         public const int k_KeywordSectionIndex = 1;
+        public const int k_DropdownSectionIndex = 2;
         const string k_styleName = "Blackboard";
 
         public SGBlackboard blackboard { get; private set; }
@@ -54,12 +56,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 m_PropertySection.OnDragActionCanceled();
                 m_KeywordSection.OnDragActionCanceled();
+                m_DropdownSection.OnDragActionCanceled();
             });
 
             blackboard.RegisterCallback<DragExitedEvent>(evt =>
             {
                 m_PropertySection.OnDragActionCanceled();
                 m_KeywordSection.OnDragActionCanceled();
+                m_DropdownSection.OnDragActionCanceled();
             });
 
 
@@ -80,6 +84,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
+
+            m_DropdownSection = new SGBlackboardSection { title = "dropdowns" };
+            foreach (var dropdown in graph.dropdowns)
+                AddInputRow(dropdown);
+            blackboard.Add(m_DropdownSection);
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -196,6 +205,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 case ShaderKeyword keyword:
                     m_Graph.MoveKeyword(keyword, newIndex);
                     break;
+                case ShaderDropdown dropdown:
+                    m_Graph.MoveDropdown(dropdown, newIndex);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -206,6 +219,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             var gm = new GenericMenu();
             AddPropertyItems(gm);
             AddKeywordItems(gm);
+            AddDropdownItems(gm);
             gm.ShowAsContext();
         }
 
@@ -264,6 +278,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 gm.AddItem(new GUIContent($"Keyword/{keyword.displayName}"), false, () => AddInputRow(m_Graph.AddCopyOfShaderInput(keyword)));
             }
+        }
+
+        void AddDropdownItems(GenericMenu gm)
+        {
+            gm.AddItem(new GUIContent($"Dropdown"), false, () => AddInputRow(new ShaderDropdown(), true));
         }
 
         void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
@@ -329,6 +348,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
+
+                foreach (var dropdown in m_Graph.dropdowns)
+                    m_DropdownSection.Add(m_InputRows[dropdown]);
             }
         }
 
@@ -404,6 +426,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
                     break;
                 }
+                case ShaderDropdown dropdown:
+                    {
+                        var icon = (m_Graph.isSubGraph || dropdown.isExposed) ? exposedIcon : null;
+
+                        string typeText = "Dropdown";
+
+                        field = new BlackboardFieldView(m_Graph, dropdown, icon, dropdown.displayName, typeText) { userData = dropdown };
+                        field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                        row = new BlackboardRow(field, null);
+
+                        if (index < 0 || index > m_InputRows.Count)
+                            index = m_InputRows.Count;
+
+                        if (index == m_InputRows.Count)
+                            m_DropdownSection.Add(row);
+                        else
+                            m_DropdownSection.Insert(index, row);
+
+                        break;
+                    }
                 default:
 
                     throw new ArgumentOutOfRangeException();
@@ -462,6 +504,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
             }
+            foreach (var node in m_Graph.GetNodes<DropdownNode>())
+            {
+                node.OnEnable();
+                node.Dirty(ModificationScope.Node);
+            }
         }
 
         public BlackboardRow GetBlackboardRow(ShaderInput input)
@@ -504,6 +551,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                         if (node.userData is KeywordNode keywordNode)
                         {
                             if (keywordNode.keyword == input)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
+                        }
+                    }
+                    else if (input is ShaderDropdown dropdown)
+                    {
+                        if (node.userData is DropdownNode dropdownNode)
+                        {
+                            if (dropdownNode.dropdown == input)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");
