@@ -179,11 +179,11 @@ namespace UnityEngine.Rendering.Universal
 
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i],  (clearFlag & ClearFlag.Color) == 0, true);
 
-                         	if ((clearFlag & ClearFlag.Color) != 0)
-							{
-								var clearColor = (needCustomCameraColorClear && pass.colorAttachments[i] == m_CameraColorTarget) ? cameraData.camera.backgroundColor : renderPass.clearColor;
-						    	m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(clearColor), 1.0f, 0);
-							}
+                            if ((clearFlag & ClearFlag.Color) != 0)
+                            {
+                                var clearColor = (needCustomCameraColorClear && pass.colorAttachments[i] == m_CameraColorTarget) ? cameraData.camera.backgroundColor : renderPass.clearColor;
+                                m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(clearColor), 1.0f, 0);
+                            }
 
                             pass.m_InputAttachmentIndices[i] = currentAttachmentIdx;
 
