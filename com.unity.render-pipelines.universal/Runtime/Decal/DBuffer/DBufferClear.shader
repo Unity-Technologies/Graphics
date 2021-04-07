@@ -12,10 +12,6 @@ Shader "Hidden/Universal Render Pipeline/DBufferClear"
             ZWrite Off
             Cull Off
 
-            /*ColorMask 0 0
-            ColorMask RGBA 1
-            ColorMask 0 2*/
-
             HLSLPROGRAM
             #pragma vertex FullscreenVert
             #pragma fragment Fragment

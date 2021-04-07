@@ -66,9 +66,9 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
 
-        ShaderKeyword m_DBufferMRT1 = new ShaderKeyword("_DBUFFER_MRT1");
-        ShaderKeyword m_DBufferMRT2 = new ShaderKeyword("_DBUFFER_MRT2");
-        ShaderKeyword m_DBufferMRT3 = new ShaderKeyword("_DBUFFER_MRT3");
+        ShaderKeyword m_DBufferMRT1 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT1);
+        ShaderKeyword m_DBufferMRT2 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT2);
+        ShaderKeyword m_DBufferMRT3 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT3);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;

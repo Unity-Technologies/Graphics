@@ -3,9 +3,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawIntoDBufferSystem : DecalDrawSystem
+    public class DecalDrawDBufferSystem : DecalDrawSystem
     {
-        public DecalDrawIntoDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) {}
+        public DecalDrawDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) {}
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexDBuffer;
     }
 
@@ -14,26 +14,24 @@ namespace UnityEngine.Rendering.Universal
         private static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
         private static string s_DBufferDepthName = "DBufferDepth";
 
-        private DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
+        private DecalDrawDBufferSystem m_DrawSystem;
         private DBufferSettings m_Settings;
         private Material m_DBufferClear;
 
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;
         private int m_DBufferCount;
-        private ProfilingSampler m_ClearSampler;
         private ProfilingSampler m_ProfilingSampler;
 
-        public DBufferRenderPass(string profilerTag, Material dBufferClear, DBufferSettings settings, DecalDrawIntoDBufferSystem decalDrawIntoDBufferSystem)
+        public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
-            m_DecalDrawIntoDBufferSystem = decalDrawIntoDBufferSystem;
+            m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
-            m_ClearSampler = new ProfilingSampler("DBuffer Setup");
+            m_ProfilingSampler = new ProfilingSampler("DBuffer Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -84,21 +82,11 @@ namespace UnityEngine.Rendering.Universal
 
             m_DBufferCount = dBufferCount;
 
-            // TODO: Remove
-            Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-            Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-            Color clearColorAOSBlend = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-
             var colorAttachments = new RenderTargetIdentifier[dBufferCount];
             for (int dbufferIndex = 0; dbufferIndex < dBufferCount; ++dbufferIndex)
                 colorAttachments[dbufferIndex] = new RenderTargetIdentifier(s_DBufferNames[dbufferIndex]);
 
-            //ConfigureTarget(colorAttachments, new RenderTargetIdentifier("_CameraDepthTexture"));
             ConfigureTarget(colorAttachments, new RenderTargetIdentifier(s_DBufferDepthName));
-
-            // for alpha compositing, color is cleared to 0, alpha to 1
-            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-            //ConfigureClear(ClearFlag.Color, new Color(0f, 0f, 0f, 1));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -112,10 +100,12 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT1", m_Settings.surfaceData == DecalSurfaceData.Albedo);
-                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT2", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT3", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, m_Settings.surfaceData == DecalSurfaceData.Albedo);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
 
+                // for alpha compositing, color is cleared to 0, alpha to 1
+                // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                 // TODO: This should be replace with mrt clear once we support it
                 // Clear render targets
                 var clearSampleName = "Clear";
@@ -123,15 +113,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
                 cmd.EndSample(clearSampleName);
 
-                float width = renderingData.cameraData.pixelWidth;
-                float height = renderingData.cameraData.pixelHeight;
-                cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
-
                 // Split here allows clear to be executed before DrawRenderers
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                m_DecalDrawIntoDBufferSystem?.Execute(cmd);
+                m_DrawSystem.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }
@@ -146,9 +132,9 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT1", false);
-            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT2", false);
-            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT3", false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, false);
 
             for (int dbufferIndex = 0; dbufferIndex < m_DBufferCount; ++dbufferIndex)
             {

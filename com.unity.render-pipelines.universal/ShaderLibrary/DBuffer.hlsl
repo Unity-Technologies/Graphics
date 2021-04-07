@@ -1,5 +1,5 @@
-#ifndef UIVERSAL_DBUFFER_INDLUDED
-#define UIVERSAL_DBUFFER_INDLUDED
+#ifndef UNIVERSAL_DBUFFER_INDLUDED
+#define UNIVERSAL_DBUFFER_INDLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
@@ -154,4 +154,4 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
     surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
 #endif
 }
-#endif // UIVERSAL_DBUFFER_INDLUDED
+#endif // UNIVERSAL_DBUFFER_INDLUDED

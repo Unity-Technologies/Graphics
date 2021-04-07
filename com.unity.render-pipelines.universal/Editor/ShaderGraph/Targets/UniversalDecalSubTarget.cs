@@ -161,10 +161,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 2"));
 
-                //if (decalData.affectsEmission || pass.lightMode == DecalShaderPassNames.DecalGBufferMesh) // GBufferMesh uses emission for GI
+                // GI needs it unconditionaly
                 pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 3"));
-                //else
-                //    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 3"));
             }
 
             if (pass.lightMode == DecalShaderPassNames.DBufferProjector ||
@@ -288,7 +286,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsAlbedo, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affect BaseColor");
                 decalData.affectsAlbedo = (bool)evt.newValue;
                 onChange();
             });
@@ -298,7 +296,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsNormal, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affects Normal");
                 decalData.affectsNormal = (bool)evt.newValue;
                 onChange();
             });
@@ -308,7 +306,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsMetal, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affect Metal");
                 decalData.affectsMetal = (bool)evt.newValue;
                 onChange();
             });
@@ -318,7 +316,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsAO, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affect Ambient Occlusion");
                 decalData.affectsAO = (bool)evt.newValue;
                 onChange();
             });
@@ -328,7 +326,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsSmoothness, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affect Smoothness");
                 decalData.affectsSmoothness = (bool)evt.newValue;
                 onChange();
             });
@@ -338,7 +336,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.affectsEmission, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Affect Emission");
                 decalData.affectsEmission = (bool)evt.newValue;
                 onChange();
             });
@@ -348,7 +346,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.supportLodCrossFade, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Supports LOD Cross Fade");
                 decalData.supportLodCrossFade = (bool)evt.newValue;
                 onChange();
             });
@@ -358,7 +356,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(decalData.angleFade, evt.newValue))
                     return;
 
-                registerUndo("Change Fragment Normal Space");
+                registerUndo("Change Angle Fade");
                 decalData.angleFade = (bool)evt.newValue;
                 onChange();
             });
@@ -391,8 +389,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class DecalPasses
         {
-            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - enum MaterialDecalPass
-
             public static PassDescriptor ScenePicking = new PassDescriptor()
             {
                 // Definition
@@ -682,9 +678,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static FieldCollection ScreenSpaceProjector = new FieldCollection()
             {
-                // todo
                 StructFields.Varyings.normalWS,
-
                 StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
@@ -695,13 +689,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static FieldCollection GBufferProjector = new FieldCollection()
             {
-                // todo
                 StructFields.Varyings.normalWS,
-
                 StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
-                //UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 // todo
                 //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
@@ -1026,7 +1017,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
-                //todo
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
@@ -1035,9 +1025,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-
-                //{ CoreKeywordDescriptors.MainLightShadows },
-                //{ CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
             };
 
@@ -1054,14 +1041,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
-                // todo
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
-
                 { Descriptors.GBufferNormalsOct },
             };
         }

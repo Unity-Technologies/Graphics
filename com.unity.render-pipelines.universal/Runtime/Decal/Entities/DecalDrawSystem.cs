@@ -82,7 +82,6 @@ public abstract class DecalDrawSystem
             for (int j = subCall.start; j < subCall.end + 1; ++j)
             {
                 decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                //cmd.SetGlobalMatrix(Shader.PropertyToID("_NormalToWorld"), decalDrawCallChunk.normalToDecals[j]);
                 cmd.DrawMesh(m_DecalMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
             }
         }
@@ -161,8 +160,7 @@ public abstract class DecalDrawSystem
             for (int j = subCall.start; j < subCall.end + 1; ++j)
             {
                 decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                //cmd.SetGlobalMatrix(Shader.PropertyToID("_NormalToWorld"), decalDrawCallChunk.normalToDecals[j]);
-                Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], material, 0 /*decalCachedChunk.layerMasks[j]*/, cameraData.camera, 0, decalCachedChunk.propertyBlock);
+                Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
             }
         }
     }

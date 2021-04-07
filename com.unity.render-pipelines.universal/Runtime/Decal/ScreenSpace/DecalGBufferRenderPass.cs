@@ -16,16 +16,15 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawGBufferSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
-        DeferredLights m_DeferredLights;
+        private DeferredLights m_DeferredLights;
 
-        public DecalGBufferRenderPass(string profilerTag, DecalScreenSpaceSettings settings, DecalDrawGBufferSystem decalDrawFowardEmissiveSystem)
+        public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
-            //ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
-            m_DrawSystem = decalDrawFowardEmissiveSystem;
+            m_DrawSystem = drawSystem;
             m_Settings = settings;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ProfilingSampler = new ProfilingSampler("Decal GBuffer Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -56,16 +55,7 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                float width = renderingData.cameraData.pixelWidth;
-                float height = renderingData.cameraData.pixelHeight;
-                cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
-
-                // Split here allows clear to be executed before DrawRenderers
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                if (!m_Settings.supportAdditionalLights)
-                    m_DrawSystem?.Execute(cmd);
+                m_DrawSystem?.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }

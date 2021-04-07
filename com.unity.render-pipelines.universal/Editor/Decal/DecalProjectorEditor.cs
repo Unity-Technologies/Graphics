@@ -77,28 +77,9 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        bool showAffectTransparency => false;// ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        bool showAffectTransparency => false;
 
-        bool showAffectTransparencyHaveMultipleDifferentValue
-        {
-            get
-            {
-                /*if (targets.Length < 2)
-                    return false;
-                DecalProjector decalProjector0 = (targets[0] as DecalProjector);
-                bool show = decalProjector0.material != null && DecalSystem.IsHDRenderPipelineDecal(decalProjector0.material.shader);
-                for (int index = 0; index < targets.Length; ++index)
-                {
-                    if ((targets[index] as DecalProjector).material != null)
-                    {
-                        DecalProjector decalProjectori = (targets[index] as DecalProjector);
-                        if (decalProjectori != null && DecalSystem.IsHDRenderPipelineDecal(decalProjectori.material.shader) ^ show)
-                            return true;
-                    }
-                }*/
-                return false;
-            }
-        }
+        bool showAffectTransparencyHaveMultipleDifferentValue => false;
 
         static HierarchicalBox s_Handle;
         static HierarchicalBox handle

@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalCreateDrawCallSystem m_DecalCreateDrawCallSystem;
 
         // DBuffer
-        private DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
+        private DecalDrawDBufferSystem m_DecalDrawIntoDBufferSystem;
         private DecalDrawFowardEmissiveSystem m_DecalDrawForwardEmissiveSystem;
 
         // Screen Space
@@ -356,21 +356,21 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.ScreenSpace:
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
-                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", m_ScreenSpaceSettings, m_DecalDrawScreenSpaceSystem);
+                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass(m_ScreenSpaceSettings, intermmediateRendering ? m_DecalDrawScreenSpaceSystem : null);
                     break;
 
                 case DecalTechnique.GBuffer:
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
                     m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
-                    m_GBufferRenderPass = new DecalGBufferRenderPass("Decal GBuffer Render", m_ScreenSpaceSettings, m_DrawGBufferSystem);
+                    m_GBufferRenderPass = new DecalGBufferRenderPass(m_ScreenSpaceSettings, intermmediateRendering ? m_DrawGBufferSystem : null);
                     break;
 
                 case DecalTechnique.DBuffer:
-                    m_DecalDrawIntoDBufferSystem = new DecalDrawIntoDBufferSystem(m_DecalEntityManager);
-                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, m_DBufferSettings, m_DecalDrawIntoDBufferSystem);
+                    m_DecalDrawIntoDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
+                    m_DBufferRenderPass = new DBufferRenderPass(dBufferClearMaterial, m_DBufferSettings, m_DecalDrawIntoDBufferSystem);
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
-                    m_ForwardEmissivePass = new DecalForwardEmissivePass("Decal Forward Emissive Render", m_DecalDrawForwardEmissiveSystem);
+                    m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
                     break;
             }
 

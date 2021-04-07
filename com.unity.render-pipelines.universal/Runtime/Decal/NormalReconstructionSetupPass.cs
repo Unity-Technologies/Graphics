@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
             cmd.SetGlobalVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
 
+            PostProcessUtils.SetSourceSize(cmd, renderingData.cameraData.cameraTargetDescriptor);
+
             // Update keywords
             CoreUtils.SetKeyword(cmd, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
         }
@@ -75,9 +77,6 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                float width = renderingData.cameraData.pixelWidth;
-                float height = renderingData.cameraData.pixelHeight;
-                cmd.SetGlobalVector("_SourceSize", new Vector4(width, height, 1f / width, 1f / height));
                 SetupNormalReconstructProperties(cmd, ref renderingData);
             }
             context.ExecuteCommandBuffer(cmd);

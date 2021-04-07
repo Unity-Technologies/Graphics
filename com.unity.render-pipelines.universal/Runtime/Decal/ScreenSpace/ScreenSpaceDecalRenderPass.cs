@@ -18,14 +18,14 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawScreenSpaceSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
 
-        public ScreenSpaceDecalRenderPass(string profilerTag, DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem decalDrawFowardEmissiveSystem)
+        public ScreenSpaceDecalRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem decalDrawFowardEmissiveSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques + 1;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
             m_DrawSystem = decalDrawFowardEmissiveSystem;
             m_Settings = settings;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ProfilingSampler = new ProfilingSampler("Decal Screen Space Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -51,15 +51,10 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_MEDIUM", m_Settings.blend == DecalNormalBlend.NormalMedium);
                 CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_HIGH", m_Settings.blend == DecalNormalBlend.NormalHigh);
 
-                float width = renderingData.cameraData.pixelWidth;
-                float height = renderingData.cameraData.pixelHeight;
-                cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                if (!m_Settings.supportAdditionalLights)
-                    m_DrawSystem?.Execute(cmd);
+                m_DrawSystem?.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }

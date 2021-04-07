@@ -15,13 +15,13 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawFowardEmissiveSystem m_DrawSystem;
 
-        public DecalForwardEmissivePass(string profilerTag, DecalDrawFowardEmissiveSystem drawSystem)
+        public DecalForwardEmissivePass(DecalDrawFowardEmissiveSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
             m_DrawSystem = drawSystem;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ProfilingSampler = new ProfilingSampler("Decal Forward Emissive Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -39,11 +39,7 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                float width = renderingData.cameraData.pixelWidth;
-                float height = renderingData.cameraData.pixelHeight;
-                cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
-
-                m_DrawSystem?.Execute(cmd);
+                m_DrawSystem.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }

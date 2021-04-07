@@ -8,7 +8,7 @@ using UnityEngine.Rendering.Universal.Internal;
 namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
-    /// Represents the GUI for HDRP Shader Graph materials.
+    /// Represents the GUI for Decal Shader Graph materials.
     /// </summary>
     internal class DecalShaderGraphGUI : PBRMasterGUI
     {
@@ -89,9 +89,6 @@ namespace UnityEditor.Rendering.Universal
         {
             MaterialProperty[] properties = m_Properties;
             MaterialEditor materialEditor = m_MaterialEditor;
-
-            //materialEditor.PropertiesDefaultGUI(properties);
-            //return;
 
             // TODO: scope
             var fieldWidth = EditorGUIUtility.fieldWidth;

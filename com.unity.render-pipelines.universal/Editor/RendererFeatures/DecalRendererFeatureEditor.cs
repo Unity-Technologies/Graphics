@@ -19,9 +19,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private void Init(SerializedProperty property)
         {
-            //if (m_Technique != null)
-            //    return;
-
             m_Technique = property.FindPropertyRelative("technique");
             m_MaxDrawDistance = property.FindPropertyRelative("maxDrawDistance");
             m_DBufferSettings = property.FindPropertyRelative("dBufferSettings");
@@ -41,8 +38,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
-            //rect.y += defaultLineSpace;
-
             if (technique == DecalTechniqueOption.DBuffer)
             {
                 EditorGUI.indentLevel++;
@@ -52,8 +47,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     rect.y += defaultLineSpace;
                 }
                 EditorGUI.indentLevel--;
-
-                //rect.y += m_DBufferSettings.CountInProperty() * defaultLineSpace;
             }
 
             if (technique == DecalTechniqueOption.ScreenSpace)
@@ -65,9 +58,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     rect.y += defaultLineSpace;
                 }
                 EditorGUI.indentLevel--;
-
-                //EditorGUI.PropertyField(rect, m_ScreenSpaceSettings, true);
-                //rect.y += m_DBufferSettings.CountInProperty() * defaultLineSpace;
             }
 
             EditorGUI.PropertyField(rect, m_MaxDrawDistance);
@@ -85,8 +75,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             float height = 0;
             height += defaultLineSpace;
             height += defaultLineSpace;
-
-            //height += defaultLineSpace;
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 

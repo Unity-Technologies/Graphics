@@ -55,7 +55,6 @@ public class DecalUpdateCullingGroupSystem
     private Camera m_Camera;
     private DecalEntityManager m_EntityManager;
     private ProfilingSampler m_Sampler;
-    //private float m_DrawDistance;
 
     public DecalUpdateCullingGroupSystem(DecalEntityManager entityManager, float drawDistance)
     {
@@ -77,8 +76,6 @@ public class DecalUpdateCullingGroupSystem
     public void Execute(DecalCachedChunk cachedChunk, DecalCulledChunk culledChunk, int count)
     {
         cachedChunk.currentJobHandle.Complete();
-
-        //m_BoundingDistance[0] = m_DrawDistance;
 
         CullingGroup cullingGroup = culledChunk.cullingGroups;
         cullingGroup.targetCamera = m_Camera;
