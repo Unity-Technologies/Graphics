@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
 
+### Added
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. Includes an hlsl file that can be included to crossfade between LODs of any prefab with a LODGroup component.
+
 ## [10.4.0] - 2021-01-27
 
 ### Added
 - Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
 - Support for the XboxSeries platform has been added.
-- Added subshadergraphs for SpeedTree8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. Includes a LODCrossfade hlsl that can be used by anything with a LODGroup.
 
 ### Fixed
 - Fixed an issue where the "Node Settings" tab get switched to, overriding the "Graph Settings" tab, when user tries to modify a graph setting [1318844] (https://issuetracker.unity3d.com/issues/shader-graph-graph-settings-window-loses-focus-on-expanding-universal-dropdown-in-graph-inspector)

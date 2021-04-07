@@ -10,7 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
-- Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+- Added a SpeedTree 8 Shader Graph but did not set it as the default for importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
 
 ## [10.4.0] - 2020-01-26
 
