@@ -10,17 +10,20 @@ float4x4 _ClusterDisplayParams;
 
 float2 DeviceToClusterFullscreenUV(float2 xy)
 {
-    return _ClusterDisplayParams[0].xy + xy * _ClusterDisplayParams[0].zw;
+    return xy;
+    // return _ClusterDisplayParams[0].xy + xy * _ClusterDisplayParams[0].zw;
 }
 
 float2 ClusterToDeviceFullscreenUV(float2 xy)
 {
+    return xy;
     return (xy - _ClusterDisplayParams[0].xy) / _ClusterDisplayParams[0].zw;
 }
 
 // from normalized-device-coordinates to normalized-cluster-coordinates
 float2 NdcToNcc(float2 xy)
 {
+    return xy;
     // ndc to device-UV
     xy.y = -xy.y;
     xy = (xy + 1) * 0.5;
@@ -34,6 +37,7 @@ float2 NdcToNcc(float2 xy)
 // from normalized-cluster-coordinates to normalized-device-coordinates
 float2 NccToNdc(float2 xy)
 {
+    return xy;
     // ncc to cluster-UV
     xy.y = -xy.y;
     xy = (xy + 1) * 0.5;

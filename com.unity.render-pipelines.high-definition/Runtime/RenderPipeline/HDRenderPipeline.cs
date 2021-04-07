@@ -2755,8 +2755,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams = hdCamera.xr.cullingParams;
 
                 // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
-                if (!camera.usePhysicalProperties)
-                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+                // (CLUSTER DISPLAY) Sean Connor: This seems to be applying a constant zoom when cluster display is activated.
+                // if (!camera.usePhysicalProperties)
+                //     camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
             {

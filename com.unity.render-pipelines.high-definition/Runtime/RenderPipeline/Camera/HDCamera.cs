@@ -1238,7 +1238,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
+            if (xr.enabled || true)
             {
                 var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
                 transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
