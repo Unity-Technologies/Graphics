@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -14,7 +13,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphResourcePool<Type> : IRenderGraphResourcePool where Type : class
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
-        protected  Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
+        // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
+        protected  Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
+        protected List<int> m_RemoveList = new List<int>(32); // Used to remove stale resources as there is no RemoveAll on SortedLists
 
         // This list allows us to determine if all resources were correctly released in the frame.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.
@@ -28,23 +29,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         protected abstract string GetResourceName(Type res);
         protected abstract long GetResourceSize(Type res);
         protected abstract string GetResourceTypeName();
+        protected abstract int GetSortIndex(Type res);
+
 
         public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
         {
             if (!m_ResourcePool.TryGetValue(hash, out var list))
             {
-                list = new List<(Type resource, int frameIndex)>();
+                list = new SortedList<int, (Type resource, int frameIndex)>();
                 m_ResourcePool.Add(hash, list);
             }
 
-            list.Add((resource, currentFrameIndex));
+            list.Add(GetSortIndex(resource), (resource, currentFrameIndex));
         }
 
         public bool TryGetResource(int hashCode, out Type resource)
         {
-            if (m_ResourcePool.TryGetValue(hashCode, out var list) && list.Count > 0)
+            if (m_ResourcePool.TryGetValue(hashCode, out SortedList<int, (Type resource, int frameIndex)> list) && list.Count > 0)
             {
-                resource = list[list.Count - 1].resource;
+                resource = list.Values[list.Count - 1].resource;
                 list.RemoveAt(list.Count - 1); // O(1) since it's the last element.
                 return true;
             }
@@ -59,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var res in kvp.Value)
                 {
-                    ReleaseInternalResource(res.resource);
+                    ReleaseInternalResource(res.Value.resource);
                 }
             }
         }
@@ -113,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var res in kvp.Value)
                 {
-                    allocationList.Add(new ResourceLogInfo { name = GetResourceName(res.resource), size = GetResourceSize(res.resource) });
+                    allocationList.Add(new ResourceLogInfo { name = GetResourceName(res.Value.resource), size = GetResourceSize(res.Value.resource) });
                 }
             }
 

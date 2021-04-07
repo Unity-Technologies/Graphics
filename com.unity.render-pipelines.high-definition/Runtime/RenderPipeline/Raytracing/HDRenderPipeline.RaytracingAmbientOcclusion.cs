@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitRayTracingAmbientOcclusion()
         {
             // Grab the kernels we need
-            m_RTAOApplyIntensityKernel = asset.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
+            m_RTAOApplyIntensityKernel = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
         float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Other parameters
                 passData.raytracingCB = shaderVariablesRaytracing;
-                passData.aoShaderRT = asset.renderPipelineRayTracingResources.aoRaytracingRT;
+                passData.aoShaderRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.aoRaytracingRT;
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.actualWidth = hdCamera.actualWidth;
                 passData.actualHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-                passData.aoShaderCS = asset.renderPipelineRayTracingResources.aoRaytracingCS;
+                passData.aoShaderCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.aoRaytracingCS;
                 passData.intensityKernel = m_RTAOApplyIntensityKernel;
                 passData.outputTexture = builder.ReadWriteTexture(aoTexture);
 
