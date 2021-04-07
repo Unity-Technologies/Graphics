@@ -351,7 +351,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             {
                 ConvertIndex(coreConverterIndex, (int)ve.userData);
             },
-            isActive ? DropdownMenuAction.AlwaysEnabled : DropdownMenuAction.AlwaysDisabled);
+            isActive ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
     }
 
     void UpdateInfo(int stateIndex, RunConverterContext ctx)

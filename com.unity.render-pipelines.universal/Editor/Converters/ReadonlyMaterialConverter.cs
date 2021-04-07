@@ -74,7 +74,7 @@ namespace Editor.Converters
                     var item = new ConverterItemDescriptor()
                     {
                         name = $"{label} : {description}",
-                        path = gid.ToString(),
+                        info = gid.ToString(),
                     };
 
                     ctx.AddAssetToConvert(item);
@@ -181,7 +181,7 @@ namespace Editor.Converters
             {
                 var item = items[i];
 
-                if (GlobalObjectId.TryParse(item.descriptor.path, out var gid))
+                if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
                 {
                     var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
                     if (!obj)
@@ -238,7 +238,7 @@ namespace Editor.Converters
                 }
                 else
                 {
-                    ctx.MarkFailed(i, $"Failed to parse Global ID {item.descriptor.path}...");
+                    ctx.MarkFailed(i, $"Failed to parse Global ID {item.descriptor.info}...");
                 }
             }
         }
