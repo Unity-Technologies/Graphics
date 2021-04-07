@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning disable 0618
                 baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
-                
+
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
