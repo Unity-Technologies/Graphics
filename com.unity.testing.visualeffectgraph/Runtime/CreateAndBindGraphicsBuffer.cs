@@ -24,6 +24,46 @@ namespace Unity.Testing.VisualEffectGraph
             public Vector3 position;
         }
 
+/*
+        //Some sample of invalid declaration
+        //0.
+        [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer)]
+        public struct Type_Using_Private_And_GraphicsBuffer
+        {
+            public int a;
+            private int b;
+        }
+
+        //1.
+        public struct NotAVFXType
+        {
+            public int a;
+        }
+
+        //2.
+        [VFXType]
+        public struct Type_Using_Not_VFX_Type_SubType
+        {
+            public float a;
+            public NotAVFXType b;
+        }
+
+        //3.
+        [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer)]
+        public struct Type_Using_Not_Supported_Type_By_VFX
+        {
+            public float a;
+            public byte b;
+        }
+
+        //4.
+        [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer)]
+        public struct Type_Not_Blittable
+        {
+            public float a;
+            public Texture2D b;
+        }
+*/
         static readonly float maxWidth = 32;
         static readonly float maxHeight = 32;
 
