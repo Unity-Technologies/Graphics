@@ -43,6 +43,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
@@ -193,6 +194,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
