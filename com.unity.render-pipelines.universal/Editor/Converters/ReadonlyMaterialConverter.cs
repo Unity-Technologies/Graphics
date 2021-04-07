@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Configuration;
-using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
+using UnityEditor.SceneManagement;
 using UnityEditor.Search;
+using UnityEditor.Search.Providers;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace Editor.Converters
@@ -19,12 +20,23 @@ namespace Editor.Converters
     {
         public static readonly Dictionary<string, string> Map = new Dictionary<string, string>
         {
-            {"Default-Diffuse", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
-            {"Default-Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
-            {"Default UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
-            {"ETC1 Supported UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
-            {"Default-ParticleSystem", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
-            {"Default-Line", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Default/Default-Material.mat"},
+            {"Default-Diffuse", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"Default-Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"Default-ParticleSystem", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ParticlesUnlit.mat"},
+            {"Default-Particle", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ParticlesUnlit.mat"},
+            {"Default-Terrain-Diffuse", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
+            {"Default-Terrain-Specular", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
+            {"Default-Terrain-Standard", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
+            {"Sprites-Default", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
+            {"Sprites-Mask", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
+
+            // TODO: Replace these with something more appropriate
+            {"Default UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"ETC1 Supported UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"Default-Line", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"Default-Skybox", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"SpatialMappingOcclusion", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
+            {"SpatialMappingWireframe", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
         };
     }
 
@@ -34,29 +46,45 @@ namespace Editor.Converters
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
         public override Type conversion => typeof(BuiltInToURPConversion);
 
+        private bool _startingSceneIsClosed;
+
         public override void OnInitialize(InitializeConverterContext ctx)
         {
             using var context = SearchService.CreateContext("asset", "urp:convert");
             using var request = SearchService.Request(context);
-            foreach (var r in request)
             {
-                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                // we're going to do this step twice in order to get them ordered, but it should be fast
+                var orderedRequest = request.OrderBy(req =>
+                    {
+                        GlobalObjectId.TryParse(req.id, out var gid);
+                        return gid.assetGUID;
+                    })
+                    .ToList();
+
+                foreach (var r in orderedRequest)
                 {
-                    continue;
+                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                    {
+                        continue;
+                    }
+
+                    var label = r.provider.fetchLabel(r, r.context);
+                    var description = r.provider.fetchDescription(r, r.context);
+
+                    var item = new ConverterItemDescriptor()
+                    {
+                        name = $"{label} : {description}",
+                        path = gid.ToString(),
+                    };
+
+                    ctx.AddAssetToConvert(item);
                 }
-
-                var item = new ConverterItemDescriptor()
-                {
-                    name = r.description,
-                    path = gid.ToString(),
-                };
-
-                ctx.AddAssetToConvert(item);
             }
         }
 
         public override void OnRun(RunConverterContext ctx)
         {
+            // order by the assetGuid so that they run in order
             var items = ctx.items.ToList();
 
             foreach (var (index, obj) in EnumerateObjects(items, ctx).Where(item => item != null))
@@ -80,7 +108,6 @@ namespace Editor.Converters
                 if (result)
                 {
                     ctx.MarkSuccessful(index);
-                    // todo: Save assets
                 }
                 else
                 {
@@ -132,11 +159,15 @@ namespace Editor.Converters
                 {
                     var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(newMaterialPath);
 
-                    if (newMaterial != null && property.SetMethod != null)
+                    if (newMaterial != null)
                     {
-                        //property.GetSetMethod().Invoke(obj, new object[] { newMaterial });
-                        Debug.Log($"Setting material on {obj.name} : {obj.GetType()}...");
-                        result = true;
+                        var setMethod = property.GetSetMethod();
+
+                        if (setMethod != null)
+                        {
+                            setMethod.Invoke(obj, new object[] { newMaterial });
+                            result = true;
+                        }
                     }
                 }
             }
@@ -144,7 +175,7 @@ namespace Editor.Converters
             return result;
         }
 
-        private static IEnumerable<Tuple<int,Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunConverterContext ctx)
+        private IEnumerable<Tuple<int,Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunConverterContext ctx)
         {
             for (var i = 0; i < items.Count; i++)
             {
@@ -158,13 +189,24 @@ namespace Editor.Converters
                         // Open container scene
                         if (gid.identifierType == (int)IdentifierType.kSceneObject)
                         {
+                            // Before we open a new scene, we need to save.
+                            // However, we shouldn't save the first scene.
+                            // Todo: This should probably be expanded to the context of all converters. This is an example for now.
+                            if (_startingSceneIsClosed)
+                            {
+                                var currentScene = SceneManager.GetActiveScene();
+                                EditorSceneManager.SaveScene(currentScene);
+                            }
+
+                            _startingSceneIsClosed = true;
+
                             var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
 
                             var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
                             AssetDatabase.OpenAsset(mainInstanceID);
                             yield return null;
 
-                            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                            var scene = SceneManager.GetActiveScene();
                             while (!scene.isLoaded)
                             {
                                 yield return null;
