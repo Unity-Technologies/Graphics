@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -383,6 +384,106 @@ namespace UnityEditor.VFX
             }
         }
 
+        public struct VFXFieldType
+        {
+            public VFXValueType valueType;
+            public Type type;
+            public string name;
+        }
+
+        public static IEnumerable<VFXFieldType> GetFieldFromType(Type type, bool enumeratePrivate = true)
+        {
+            var bindingsFlag = BindingFlags.Public | BindingFlags.Instance;
+            foreach (var field in type.GetFields(bindingsFlag))
+            {
+                yield return new VFXFieldType()
+                {
+                    valueType = VFXExpression.GetVFXValueTypeFromType(field.FieldType),
+                    type = field.FieldType,
+                    name = field.Name
+                };
+            }
+        }
+
+        private static bool CheckBlittablePublic(Type type)
+        {
+            if (type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Any())
+                return false;
+
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+                if (VFXExpression.GetVFXValueTypeFromType(field.FieldType) == VFXValueType.None
+                    &&  !CheckBlittablePublic(field.FieldType))
+                    return false;
+
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors, Dictionary<Type, bool> alreadyProcessedType)
+        {
+            if (alreadyProcessedType.TryGetValue(type, out var result))
+                return result;
+
+            alreadyProcessedType.Add(type, false);
+            var attribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
+            if (attribute == null)
+            {
+                errors.AppendFormat("The type {0} doesn't use the expected [VFXType] attribute.\n", type);
+                return false;
+            }
+
+            var hasGraphicsBufferFlag = attribute.flags.HasFlag(VFXTypeAttribute.Flags.GraphicsBuffer);
+            if (hasGraphicsBufferFlag && !Unity.Collections.LowLevel.Unsafe.UnsafeUtility.IsBlittable(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't blittable.\n", type);
+                return false;
+            }
+
+            foreach (var field in GetFieldFromType(type))
+            {
+                if (field.valueType == VFXValueType.None)
+                {
+                    var innerType = field.type;
+                    if (!ValidateVFXType(innerType, errors, alreadyProcessedType))
+                    {
+                        errors.AppendFormat("The field '{0}' ({1}) in type '{2}' isn't valid.\n", field.name, field.type, type);
+                        return false;
+                    }
+                }
+            }
+
+            if (hasGraphicsBufferFlag && !CheckBlittablePublic(type))
+            {
+                errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't fully public.\n", type);
+                return false;
+            }
+
+            alreadyProcessedType.Remove(type);
+            alreadyProcessedType.Add(type, true);
+            return true;
+        }
+
+        private static bool ValidateVFXType(Type type, StringBuilder errors)
+        {
+            var processedType = new Dictionary<Type, bool>();
+            return ValidateVFXType(type, errors, processedType);
+        }
+
+        private static Type[] LoadAndValidateVFXType()
+        {
+            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var errors = new StringBuilder();
+            var validTypes = new List<Type>();
+            foreach (var type in vfxTypes)
+            {
+                if (ValidateVFXType(type, errors))
+                    validTypes.Add(type);
+            }
+
+            if (errors.Length != 0)
+                Debug.LogErrorFormat("Error while processing VFXType\n{0}", errors.ToString());
+            return validTypes.ToArray();
+        }
+
         private static Dictionary<Type, VFXModelDescriptor<VFXSlot>> LoadSlots()
         {
             // First find concrete slots
@@ -409,7 +510,7 @@ namespace UnityEditor.VFX
             }
 
             // Then find types that needs a generic slot
-            var vfxTypes = FindConcreteSubclasses(null, typeof(VFXTypeAttribute));
+            var vfxTypes = LoadAndValidateVFXType();
             foreach (var type in vfxTypes)
             {
                 if (!dictionary.ContainsKey(type)) // If a slot was not already explicitly declared

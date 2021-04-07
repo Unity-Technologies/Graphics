@@ -7,8 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX
 {
-    //TODOPAUL : document
-    [AttributeUsage(AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Struct, AllowMultiple = false)]
     public class VFXTypeAttribute : Attribute
     {
         [Flags]

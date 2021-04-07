@@ -219,15 +219,6 @@ namespace UnityEditor.VFX
             return padding;
         }
 
-        static IEnumerable<Tuple<VFXValueType, Type, string>> GetFieldFromType(Type type)
-        {
-            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-            {
-                var vfxType = VFXExpression.GetVFXValueTypeFromType(field.FieldType);
-                yield return new Tuple<VFXValueType, Type, string>(vfxType, field.FieldType, field.Name);
-            }
-        }
-
         static string GetStructureName(Type type)
         {
             return type.Name;
@@ -245,18 +236,18 @@ namespace UnityEditor.VFX
             currentStructure.WriteLineFormat("struct {0}", structureName);
             currentStructure.WriteLine("{");
             currentStructure.Indent();
-            foreach (var field in GetFieldFromType(type))
+            foreach (var field in VFXLibrary.GetFieldFromType(type))
             {
                 string typeName;
-                if (field.Item1 == VFXValueType.None)
+                if (field.valueType == VFXValueType.None)
                 {
-                    typeName = GetStructureName(field.Item2);
-                    GenerateStructureCode(field.Item2, prerequisite, alreadyGeneratedStructure);
+                    typeName = GetStructureName(field.type);
+                    GenerateStructureCode(field.type, prerequisite, alreadyGeneratedStructure);
                 }
                 else
-                    typeName = VFXExpression.TypeToCode(field.Item1);
+                    typeName = VFXExpression.TypeToCode(field.valueType);
 
-                currentStructure.WriteLineFormat("{0} {1};", typeName, field.Item3);
+                currentStructure.WriteLineFormat("{0} {1};", typeName, field.name);
             }
 
             currentStructure.Deindent();
