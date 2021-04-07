@@ -51,6 +51,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
         [NonSerialized]
         bool m_ProTheme;
+        [NonSerialized]
+        int m_customInterpWarn;
+        [NonSerialized]
+        int m_customInterpErr;
 
         [SerializeField]
         bool m_AssetMaybeChangedOnDisk;
@@ -216,6 +220,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ProTheme = EditorGUIUtility.isProSkin;
                 }
             }
+
+            bool revalidate = false;
+            if (m_customInterpWarn != ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold)
+            {
+                m_customInterpWarn = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
+                revalidate = true;
+            }
+            if (m_customInterpErr != ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold)
+            {
+                m_customInterpErr = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
+                revalidate = true;                
+            }
+
+            if (revalidate)
+                graphEditorView?.graphView?.graph.ValidateGraph();
 
             if (m_AssetMaybeChangedOnDisk)
             {
