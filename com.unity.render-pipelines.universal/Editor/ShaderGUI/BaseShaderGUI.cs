@@ -92,7 +92,7 @@ namespace UnityEditor
                 "Converts the assigned texture to be a normal map format.");
 
             public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
-                "Determines the chronological rendering order for a Material. High values are rendered first.");
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
         }
 
         #endregion
