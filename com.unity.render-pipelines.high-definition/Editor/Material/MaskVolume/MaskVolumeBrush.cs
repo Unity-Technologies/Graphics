@@ -9,17 +9,25 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_Stepping = 0.5f;
         const int k_RaycastBufferSize = 128;
 
-        public float Radius = 0.5f;
+        public float OuterRadius = 0.5f;
+        public float InnerRadius = 1f;
+        public float NormalBias = 0f;
 
         public bool MeshCollidersOnly = true;
         public LayerMask PhysicsLayerMask = ~0;
 
         bool m_Hovering = false;
         Vector3 m_Position;
+        Vector3 m_Normal;
+        
         bool m_Applying = false;
         Vector3 m_LastApplyPosition;
+        Vector3 m_LastApplyNormal;
+        float m_LastApplyPressure;
 
-        public event Action<Vector3> OnApply;
+        public delegate void Apply(Vector3 position, Vector3 normal, float pressure, bool control);
+        
+        public event Apply OnApply;
         public event Action OnStopApplying;
 
         public void OnSceneGUI(SceneView sceneView)
@@ -48,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 case EventType.MouseDown:
                 case EventType.MouseDrag:
                     UpdateBrush(e.mousePosition);
-                    ApplyBrush();
+                    ApplyBrush(e.pressure, e.control);
                     break;
 
                 case EventType.MouseUp:
@@ -82,13 +90,16 @@ namespace UnityEditor.Rendering.HighDefinition
         void UpdateBrush(Vector2 mousePosition)
         {
             Ray mouseRay = HandleUtility.GUIPointToWorldRay(mousePosition);
-            m_Hovering = Raycast(mouseRay, out var hitPosition);
+            m_Hovering = Raycast(mouseRay, out var hitPosition, out var hitNormal);
             if (m_Hovering)
+            {
                 m_Position = hitPosition;
+                m_Normal = hitNormal;
+            }
         }
 
         RaycastHit[] raycastBuffer;
-        bool Raycast(Ray ray, out Vector3 hitPosition)
+        bool Raycast(Ray ray, out Vector3 hitPosition, out Vector3 hitNormal)
         {
             if (MeshCollidersOnly)
             {
@@ -97,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hitCount = Physics.RaycastNonAlloc(ray, raycastBuffer, float.MaxValue, PhysicsLayerMask, QueryTriggerInteraction.Ignore);
 
                 var minDistance = float.MaxValue;
-                var nearestPosition = Vector3.zero;
+                var nearestHit = -1;
 
                 for (int i = 0; i < hitCount; i++)
                 {
@@ -105,13 +116,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (hit.collider is MeshCollider && hit.distance < minDistance)
                     {
                         minDistance = hit.distance;
-                        nearestPosition = hit.point;
+                        nearestHit = i;
                     }
                 }
 
-                if (minDistance != float.MaxValue)
+                if (nearestHit != -1)
                 {
-                    hitPosition = nearestPosition;
+                    var hit = raycastBuffer[nearestHit];
+                    hitPosition = hit.point;
+                    hitNormal = hit.normal;
                     return true;
                 }
             }
@@ -120,41 +133,50 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (Physics.Raycast(ray, out var hit, float.MaxValue, PhysicsLayerMask, QueryTriggerInteraction.Ignore))
                 {
                     hitPosition = hit.point;
+                    hitNormal = hit.normal;
                     return true;
                 }
             }
 
             hitPosition = default;
+            hitNormal = default;
             return false;
         }
 
         /// <summary>
         /// Apply brush.
         /// </summary>
-        void ApplyBrush()
+        void ApplyBrush(float pressure, bool control)
         {
             if (m_Hovering)
             {
                 if (!m_Applying)
                 {
                     m_Applying = true;
-                    OnApply?.Invoke(m_Position);
+                    OnApply?.Invoke(m_Position, m_Normal, pressure, control);
                     m_LastApplyPosition = m_Position;
+                    m_LastApplyNormal = m_Normal;
+                    m_LastApplyPressure = pressure;
                 }
                 else
                 {
                     var moveDistance = Vector3.Distance(m_Position, m_LastApplyPosition);
 
                     // If mouse moved too far due to low framerate or high movement speed, fill the gap with more stamps
-                    var maxStep = Radius * k_Stepping;
+                    var maxStep = OuterRadius * k_Stepping;
                     var steps = (int) (moveDistance / maxStep);
 
                     var maxTime = Time.realtimeSinceStartup + k_MaxTimeSpentPerEvent;
                     var startPosition = m_LastApplyPosition;
+                    var startNormal = m_LastApplyNormal;
+                    var startPressure = m_LastApplyPressure;
                     for (int i = 1; i <= steps; i++)
                     {
-                        m_LastApplyPosition = Vector3.Lerp(startPosition, m_Position, (float) i / steps);
-                        OnApply?.Invoke(m_LastApplyPosition);
+                        var time = (float) i / steps;
+                        m_LastApplyPosition = Vector3.Lerp(startPosition, m_Position, time);
+                        m_LastApplyNormal = Vector3.Lerp(startNormal, m_Normal, time);
+                        m_LastApplyPressure = Mathf.Lerp(startPressure, pressure, time);
+                        OnApply?.Invoke(m_LastApplyPosition, m_LastApplyNormal, m_LastApplyPressure, control);
                         if (Time.realtimeSinceStartup > maxTime)
                             break;
                     }
@@ -165,7 +187,28 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawGizmo(SceneView sceneView)
         {
             if (m_Hovering)
-                Handles.DrawWireDisc(m_Position, (sceneView.camera.transform.position - m_Position).normalized, Radius);
+            {
+                var oldHandleColor = Handles.color;
+                
+                var discNormal = (sceneView.camera.transform.position - m_Position).normalized;
+
+                if (InnerRadius != 1f)
+                {
+                    Handles.color = new Color(1f, 1f, 1f, 0.5f);
+                    Handles.DrawWireDisc(m_Position, discNormal, OuterRadius);
+                }
+
+                Handles.color = Color.white;
+                Handles.DrawWireDisc(m_Position, discNormal, OuterRadius * InnerRadius);
+
+                if (NormalBias != 0f)
+                {
+                    Handles.color = new Color(Mathf.Abs(m_Normal.x), Mathf.Abs(m_Normal.y), Mathf.Abs(m_Normal.z));
+                    Handles.DrawLine(m_Position, m_Position + m_Normal * NormalBias);
+                }
+                
+                Handles.color = oldHandleColor;
+            }
         }
 
         public void StopIfApplying()

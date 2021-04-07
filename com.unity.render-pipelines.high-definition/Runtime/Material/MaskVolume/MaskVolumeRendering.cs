@@ -242,11 +242,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool EnsureMaskVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, MaskVolume volume)
         {
             int key = volume.GetID();
-            int width = volume.parameters.resolutionX;
-            int height = volume.parameters.resolutionY;
-            int depth = volume.parameters.resolutionZ;
+            int width = volume.maskVolumeAsset.resolutionX;
+            int height = volume.maskVolumeAsset.resolutionY;
+            int depth = volume.maskVolumeAsset.resolutionZ;
 
-            int size = volume.parameters.resolutionX * volume.parameters.resolutionY * volume.parameters.resolutionZ;
+            int size = width * height * depth;
             Debug.Assert(size > 0, "MaskVolume: Encountered mask volume with resolution set to zero on all three axes.");
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolumePayload payload = volume.GetPayload();
 
-                    if (MaskVolumePayload.IsNull(ref payload) || !volume.IsAssetCompatible())
+                    if (MaskVolumePayload.IsNull(ref payload))
                     {
                         ReleaseMaskVolumeFromAtlas(volume);
                         return false;
@@ -279,14 +279,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     //Debug.Log("Uploading Mask Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, new Vector3(
-                        volume.parameters.resolutionX,
-                        volume.parameters.resolutionY,
-                        volume.parameters.resolutionZ
+                        width,
+                        height,
+                        depth
                     ));
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolutionInverse, new Vector3(
-                        1.0f / (float)volume.parameters.resolutionX,
-                        1.0f / (float)volume.parameters.resolutionY,
-                        1.0f / (float)volume.parameters.resolutionZ
+                        1.0f / (float)width,
+                        1.0f / (float)height,
+                        1.0f / (float)depth
                     ));
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasScale,
                         volume.parameters.scale
@@ -387,11 +387,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolume volume = volumes[maskVolumesIndex];
 
-#if UNITY_EDITOR
-                    if (!volume.IsAssetCompatible())
-                        continue;
-#endif
-
                     if (volume.maskVolumeAsset == null || !volume.maskVolumeAsset.IsDataAssigned())
                         continue;
 
@@ -444,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     obb.center -= camOffset;
 
                     // TODO: cache these?
-                    var data = volume.parameters.ConvertToEngineData();
+                    var data = volume.ConvertToEngineData();
 
                     m_VisibleMaskVolumeBounds.Add(obb);
                     m_VisibleMaskVolumeData.Add(data);
