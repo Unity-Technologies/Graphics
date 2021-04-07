@@ -4,8 +4,6 @@ namespace UnityEngine.Rendering.Universal
 {
     public class CustomRenderer : ScriptableRenderer
     {
-        static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
-
         private DrawObjectsPass m_RenderOpaqueForwardPass;
 
         ForwardLights m_ForwardLights;

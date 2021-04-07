@@ -6,8 +6,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
-        private static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
-
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         FinalBlitPass m_FinalBlitPass;
