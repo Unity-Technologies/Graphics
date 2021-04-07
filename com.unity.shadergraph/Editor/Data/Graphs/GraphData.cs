@@ -2506,8 +2506,8 @@ namespace UnityEditor.ShaderGraph
             int errRange = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
             int warnRange = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
 
-            int errorLevel = errRange * 4 - padding; 
-            int warnLevel  = warnRange * 4 - padding; 
+            int errorLevel = errRange * 4 - padding;
+            int warnLevel = warnRange * 4 - padding;
 
             int total = 0;
 

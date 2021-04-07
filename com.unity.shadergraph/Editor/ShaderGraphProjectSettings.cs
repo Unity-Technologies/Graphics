@@ -18,10 +18,11 @@ namespace UnityEditor.ShaderGraph
 
     class ShaderGraphProjectSettingsProvider : SettingsProvider
     {
-        internal const int kMaxChannelThreshold = 32;
-        internal const int kMinChannelThreshold = 8;
+        private static int kMaxChannelThreshold = 32;
+        private static int kMinChannelThreshold = 8;
         private static string kCustomInterpolatorHelpBox = "Unity uses these options to help ShaderGraph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
-        private static string kCustomInterpolatorDocumentationURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/"; // TODO: Direct to Custom Interpolator page.
+        // TODO: Direct url to Custom Interpolator page.
+        private static string kCustomInterpolatorDocumentationURL = "https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/";
 
         private class Styles
         {
@@ -35,10 +36,9 @@ namespace UnityEditor.ShaderGraph
         SerializedProperty m_customInterpWarn;
         SerializedProperty m_customInterpError;
 
-        public ShaderGraphProjectSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null)
-        : base(path, scopes, keywords)
+        public ShaderGraphProjectSettingsProvider(string path, SettingsScope scopes, IEnumerable<string> keywords = null) : base(path, scopes, keywords)
         {
-            base.guiHandler = OnGUIHandler;
+            guiHandler = OnGUIHandler;
         }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
             m_customInterpError = m_SerializedObject.FindProperty("customInterpolatorErrorThreshold");
         }
 
-        int  oldWarningThreshold;
+        int oldWarningThreshold;
         void OnGUIHandler(string searchContext)
         {
             m_SerializedObject.Update();
@@ -64,9 +64,12 @@ namespace UnityEditor.ShaderGraph
             int oldWarn = m_customInterpWarn.intValue;
             int newWarn = EditorGUILayout.IntField(Styles.CustomInterpWarnThresholdLabel, m_customInterpWarn.intValue);
 
-            // If the user did not modify the field, restore their previous input and reclamp against the new error threshold.
-            if (oldWarn == newWarn) newWarn = oldWarningThreshold;
-            else oldWarningThreshold = newWarn;
+            // If the user did not modify the warning field, restore their previous input and reclamp against the new error threshold.
+            if (oldWarn == newWarn)
+                newWarn = oldWarningThreshold;
+            else
+                oldWarningThreshold = newWarn;
+
             m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, m_customInterpError.intValue);
 
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
