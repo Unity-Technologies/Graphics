@@ -1618,13 +1618,13 @@ namespace UnityEditor.ShaderGraph
             m_AddedCategories.Add(categoryDataReference);
         }
 
-        public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
+        public void InsertItemIntoCategory(string categoryGUID, ShaderInput itemToAdd, int insertionIndex = -1)
         {
             foreach (var categoryData in categories)
             {
                 if (categoryData.categoryGuid == categoryGUID)
                 {
-                    categoryData.AddItemToCategory(itemToAdd);
+                    categoryData.InsertItemIntoCategory(itemToAdd, insertionIndex);
                 }
                 // Also make sure to remove this items guid from an existing category if it exists within one
                 else if(categoryData.IsItemInCategory(itemToAdd))
@@ -1691,7 +1691,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var categoryBChild in categoryB.Children)
             {
-                categoryA.AddItemToCategory(categoryBChild);
+                categoryA.InsertItemIntoCategory(categoryBChild);
             }
             m_CategoryData.Remove(categoryB);
         }

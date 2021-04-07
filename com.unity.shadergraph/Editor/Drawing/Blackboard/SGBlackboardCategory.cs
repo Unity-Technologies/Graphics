@@ -324,6 +324,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
                         addItemToCategoryAction.itemToAdd = newShaderInput;
+                        addItemToCategoryAction.indexToAddItemAt = m_InsertIndex;
                         m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
                     }
                 }
