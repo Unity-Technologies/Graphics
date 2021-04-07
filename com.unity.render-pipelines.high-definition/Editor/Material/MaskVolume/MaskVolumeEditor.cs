@@ -16,11 +16,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static Dictionary<MaskVolume, HierarchicalBox> shapeBoxes = new Dictionary<MaskVolume, HierarchicalBox>();
         internal static Dictionary<MaskVolume, HierarchicalBox> blendBoxes = new Dictionary<MaskVolume, HierarchicalBox>();
 
-        internal static Color32 BrushColor = new Color32(255, 0, 0, 255);
+        internal static Color BrushColor = new Color(1f, 0f, 0f, 1f);
         internal static bool BrushApplyRed = true;
         internal static bool BrushApplyGreen = true;
         internal static bool BrushApplyBlue = true;
-        internal static float BrushHardness = 1f;
 
         SerializedMaskVolume m_SerializedMaskVolume;
 
@@ -52,7 +51,12 @@ namespace UnityEditor.Rendering.HighDefinition
             Brush.OnStopApplying -= OnStopApplyingBrush;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
-
+        
+        public override bool RequiresConstantRepaint()
+        {
+            return EditMode.editMode == k_EditPaint;
+        }
+        
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -119,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!blendBoxes.TryGetValue(maskVolume, out HierarchicalBox blendBox)) { return; }
             if (!shapeBoxes.TryGetValue(maskVolume, out HierarchicalBox shapeBox)) { return; }
 
-            if (EditMode.editMode != EditMode.SceneViewEditMode.GridPainting)
+            if (EditMode.editMode != k_EditPaint)
                 Brush.StopIfApplying();
 
             switch (EditMode.editMode)
@@ -182,6 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
                 case k_EditPaint:
                     var sceneView = SceneView.currentDrawingSceneView;
+                    Brush.NormalBias = maskVolume.parameters.normalBiasWS;
                     Brush.OnSceneGUI(sceneView);
                     sceneView.Repaint();
                     break;
@@ -190,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool m_ApplyingBrush;
 
-        void OnApplyBrush(Vector3 position)
+        void OnApplyBrush(Vector3 position, Vector3 normal, float pressure, bool control)
         {
             // TODO: Multi-editing.
             var maskVolume = (MaskVolume)target;
@@ -212,10 +217,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var maskTransform = maskVolume.transform;
             var localToWorld = Matrix4x4.TRS(maskTransform.position, maskTransform.rotation, Vector3.one);
             var worldToLocal = localToWorld.inverse;
-            var localBrushPosition = worldToLocal.MultiplyPoint3x4(position);
+            var localBrushPosition = worldToLocal.MultiplyPoint3x4(position + normal * parameters.normalBiasWS);
 
-            var minAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition - new Vector3(Brush.Radius, Brush.Radius, Brush.Radius);
-            var maxAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition + new Vector3(Brush.Radius, Brush.Radius, Brush.Radius);
+            var minAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition - new Vector3(Brush.OuterRadius, Brush.OuterRadius, Brush.OuterRadius);
+            var maxAffectedLocalPosition = localBrushPosition - firstVoxelLocalPosition + new Vector3(Brush.OuterRadius, Brush.OuterRadius, Brush.OuterRadius);
 
             var minX = Mathf.Max(Mathf.RoundToInt(minAffectedLocalPosition.x / voxelSize.x), 0);
             var minY = Mathf.Max(Mathf.RoundToInt(minAffectedLocalPosition.y / voxelSize.y), 0);
@@ -226,6 +231,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var dataSHL0 = maskVolumeAsset.payload.dataSHL0;
             var strideSHL0 = MaskVolumePayload.GetDataSHL0Stride();
+            var color32 = (Color32)BrushColor;
+
+            // A way of erase quickly
+            if (control)
+            {
+                color32.r = (byte)(255 - color32.r);
+                color32.g = (byte)(255 - color32.g);
+                color32.b = (byte)(255 - color32.b);
+            }
+            
+            float opacity = BrushColor.a * pressure;
 
             for (int z = minZ; z <= maxZ; z++)
             {
@@ -244,22 +260,20 @@ namespace UnityEditor.Rendering.HighDefinition
                         var longestComponent = Mathf.Max(Mathf.Max(Mathf.Abs(toBrush.x), Mathf.Abs(toBrush.y)), Mathf.Abs(toBrush.z));
                         var halfVoxelLength = Vector3.Scale(toBrush / longestComponent, voxelSize).magnitude * 0.5f;
 
-                        var outerRadius = Brush.Radius + halfVoxelLength;
-                        var innerRadius = Brush.Radius - halfVoxelLength;
-                        if (innerRadius > 0f)
-                            innerRadius *= BrushHardness;
+                        var outerRadius = Brush.OuterRadius + halfVoxelLength;
+                        var innerRadius = Brush.OuterRadius * Brush.InnerRadius - halfVoxelLength;
 
                         var distanceToBrush = toBrush.magnitude;
-                        var opacity = MaskVolumePayload.ToUNormByte(MaskVolumePayload.FromUNormByte(BrushColor.a) * (outerRadius - distanceToBrush) / (outerRadius - innerRadius));
-                        if (opacity > 0)
+                        color32.a = (byte)(opacity * Mathf.Clamp01((outerRadius - distanceToBrush) / (outerRadius - innerRadius)) * 255f);
+                        if (color32.a > 0)
                         {
                             var indexDataBaseSHL0 = i * strideSHL0;
                             if (BrushApplyRed)
-                                dataSHL0[indexDataBaseSHL0 + 0] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 0], BrushColor.r, opacity); // shAr.w
+                                dataSHL0[indexDataBaseSHL0 + 0] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 0], color32.r, color32.a); // shAr.w
                             if (BrushApplyGreen)
-                                dataSHL0[indexDataBaseSHL0 + 1] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 1], BrushColor.g, opacity); // shAg.w
+                                dataSHL0[indexDataBaseSHL0 + 1] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 1], color32.g, color32.a); // shAg.w
                             if (BrushApplyBlue)
-                                dataSHL0[indexDataBaseSHL0 + 2] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 2], BrushColor.b, opacity); // shAb.w
+                                dataSHL0[indexDataBaseSHL0 + 2] = ApplyBrushChannel(dataSHL0[indexDataBaseSHL0 + 2], color32.b, color32.a); // shAb.w
                         }
                     }
                 }
@@ -271,16 +285,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static byte ApplyBrushChannel(byte value, byte targetValue, byte opacity)
         {
             var delta = targetValue - value;
-            if (delta < 0)
-            {
-                if (delta < -opacity)
-                    delta = -opacity;
-            }
-            else
-            {
-                if (delta > opacity)
-                    delta = opacity;
-            }
+            if (delta < -opacity)
+                delta = -opacity;
+            else if (delta > opacity)
+                delta = opacity;
             return (byte)(value + delta);
         }
 
