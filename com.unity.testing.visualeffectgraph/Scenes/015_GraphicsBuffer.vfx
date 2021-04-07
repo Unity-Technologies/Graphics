@@ -12,28 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d01270efd3285ea4a9d6c555cb0a8027, type: 3}
   m_Name: VFXUI
   m_EditorClassIdentifier: 
-  groupInfos:
-  - title: 'Voluntary not connected '
-    position:
-      serializedVersion: 2
-      x: 1466
-      y: 922
-      width: 381
-      height: 162
-    contents:
-    - model: {fileID: 8926484042661614796}
-      id: 1
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615027}
-      id: 0
-      isStickyNote: 0
+  groupInfos: []
   stickyNoteInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 1466
+    x: 1641
     y: -176
-    width: 3181
+    width: 3006
     height: 2408
 --- !u!114 &114350483966674976
 MonoBehaviour:
@@ -61,7 +47,6 @@ MonoBehaviour:
   - {fileID: 8926484042661614940}
   - {fileID: 8926484042661614927}
   - {fileID: 8926484042661614969}
-  - {fileID: 8926484042661615027}
   - {fileID: 8926484042661615050}
   - {fileID: 8926484042661615052}
   - {fileID: 8926484042661615064}
@@ -1425,13 +1410,6 @@ MonoBehaviour:
     position: {x: 1773, y: 730}
     expandedSlots: []
     expanded: 0
-  - m_Id: 1
-    linkedSlots:
-    - outputSlot: {fileID: 8926484042661614797}
-      inputSlot: {fileID: 8926484042661615028}
-    position: {x: 1491, y: 1007}
-    expandedSlots: []
-    expanded: 0
   - m_Id: 2
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614797}
@@ -1474,7 +1452,6 @@ MonoBehaviour:
   m_Direction: 1
   m_LinkedSlots:
   - {fileID: 8926484042661614785}
-  - {fileID: 8926484042661615028}
   - {fileID: 8926484042661615175}
 --- !u!114 &8926484042661614811
 MonoBehaviour:
@@ -3016,7 +2993,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615010}
   - {fileID: 8926484042661615018}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661615009}
   m_MasterData:
@@ -3052,7 +3029,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615011}
   - {fileID: 8926484042661615014}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661615009}
   m_MasterData:
