@@ -961,6 +961,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
         public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
 
+        // Robust Contrast Adaptive Sharpening
+        public static readonly int _RCASScale                      = Shader.PropertyToID("_RCASScale");
+
+        // Edge Adaptive Spatial Upsampling
+        public static readonly int _EASUViewportSize               = Shader.PropertyToID("_EASUViewportSize");
+        public static readonly int _EASUInputImageSize             = Shader.PropertyToID("_EASUInputImageSize");
+        public static readonly int _EASUOutputSize                 = Shader.PropertyToID("_EASUOutputSize");
+
+
         // BlitCubeTextureFace.shader
         public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
         public static readonly int _LoD                            = Shader.PropertyToID("_LoD");

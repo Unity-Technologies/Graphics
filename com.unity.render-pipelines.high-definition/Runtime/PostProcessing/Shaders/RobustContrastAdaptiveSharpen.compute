@@ -1,0 +1,63 @@
+#pragma kernel KMain
+#pragma kernel KInitialize
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#define A_GPU 1
+#define A_HLSL 1
+#define FSR_RCAS_F 1
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
+
+// two elements:
+// [0] = const0
+// [1] = const1
+// ComputeBuffer is allocated with stride sizeof(int)*4, 2 elements
+RWStructuredBuffer<uint4> RCasParameters;
+
+float _RCASScale;
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+AF4 FsrRcasLoadF(ASU2 p)  {return _InputTexture[COORD_TEXTURE2D_X(p)]; }
+void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b) {}
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_fsr1.hlsl"
+
+void WritePix(AU2 gxy, AF4 casPix)
+{
+    _OutputTexture[COORD_TEXTURE2D_X(gxy)] = casPix;
+}
+
+
+[numthreads(64, 1, 1)]
+void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
+    AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x << 3u, WorkGroupId.y << 3u);
+
+    AF4 c = (AF4)0;
+    AU4 con = RCasParameters[0];
+    FsrRcasF(c.r,c.g,c.b,gxy,con);
+    WritePix(gxy, c);
+}
+
+
+/*
+Doing this on the GPU despite the fact that CAS provides a CPU version
+of FsrRcasCon(). This is done to prevent us from having to rewrite a C#
+version every time CAS changes. This is not called from KMain to reduce overhead
+during main render.
+*/
+[numthreads(1,1,1)]
+void KInitialize()
+{
+
+    AU4 con;
+    FsrRcasCon(con, _RCASScale);
+    RCasParameters[0] = con;
+}

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: RT_cam4_material
+  m_Name: RT_cam5_material
   m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -67,7 +67,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 8400000, guid: 63ab1360f23972141b50c41bf71d2afa, type: 2}
+        m_Texture: {fileID: 8400000, guid: d3719e71a73722b48abadac207ee7345, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -107,7 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _UnlitColorMap:
-        m_Texture: {fileID: 8400000, guid: 63ab1360f23972141b50c41bf71d2afa, type: 2}
+        m_Texture: {fileID: 8400000, guid: d3719e71a73722b48abadac207ee7345, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -286,6 +286,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
-  hdPluginSubTargetMaterialVersions:
-    m_Keys: []
-    m_Values: 
