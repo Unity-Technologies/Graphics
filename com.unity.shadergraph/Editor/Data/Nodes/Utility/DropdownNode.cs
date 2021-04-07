@@ -87,14 +87,11 @@ namespace UnityEditor.ShaderGraph
                 // Get slot based on entry id
                 MaterialSlot slot = inputSlots.Where(x =>
                     x.id == dropdown.entries[i].id &&
-                    x.RawDisplayName() == dropdown.entries[i].displayName
-                    //&&x.shaderOutputName == dropdown.entries[i].referenceName
-                    ).FirstOrDefault();
+                    x.RawDisplayName() == dropdown.entries[i].displayName &&
+                    x.shaderOutputName == dropdown.entries[i].displayName).FirstOrDefault();
 
-                // If slot doesnt exist its new so create it
                 if (slot == null)
                 {
-                    // TODO: CHECK REF NAME HERE
                     slot = new DynamicVectorMaterialSlot(dropdown.entries[i].id, dropdown.entries[i].displayName, dropdown.entries[i].displayName, SlotType.Input, Vector4.zero);
                 }
 
