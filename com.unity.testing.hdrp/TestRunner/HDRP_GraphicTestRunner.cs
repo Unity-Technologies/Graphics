@@ -39,10 +39,6 @@ public class HDRP_GraphicTestRunner
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
         bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
-
-        if (useBackBuffer)
-            GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
-
         Time.captureFramerate = settings.captureFramerate;
 
         int waitFrames = settings.waitFrames;
