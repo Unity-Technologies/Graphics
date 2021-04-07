@@ -527,7 +527,8 @@ AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpa
 {
     AmbientOcclusionFactor aoFactor;
     aoFactor.indirectAmbientOcclusion = SampleAmbientOcclusion(normalizedScreenSpaceUV);
-    aoFactor.directAmbientOcclusion = lerp(1.0, aoFactor.indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+    aoFactor.directAmbientOcclusion = lerp(half(1.0), aoFactor.indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+
     return aoFactor;
 }
 
