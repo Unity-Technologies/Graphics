@@ -230,11 +230,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_customInterpErr != ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold)
             {
                 m_customInterpErr = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
-                revalidate = true;                
+                revalidate = true;
             }
-
             if (revalidate)
-                graphEditorView?.graphView?.graph.ValidateGraph();
+            {
+                graphEditorView?.graphView?.graph?.ValidateGraph();
+            }
 
             if (m_AssetMaybeChangedOnDisk)
             {
