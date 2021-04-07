@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
             var stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
 
             //Gets all the ForwardRendererData Assets in project
-            string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData", null);
+            string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
             for (int i = 0; i < allRenderers.Length; i++)
             {
                 string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
             if (editedAssetsCount == 0) return;
 
             //Gets all the UniversalRenderPipeline Assets in project
-            string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset", null);
+            string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
             for (int i = 0; i < allURPassets.Length; i++)
             {
                 string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
