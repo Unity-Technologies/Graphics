@@ -1,7 +1,9 @@
 #ifndef UNITY_HAMMERSLEY_INCLUDED
 #define UNITY_HAMMERSLEY_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 uint ReverseBits32(uint bits)
@@ -422,6 +424,8 @@ real2 Hammersley2d(uint i, uint sampleCount)
     }
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_HAMMERSLEY_INCLUDED
