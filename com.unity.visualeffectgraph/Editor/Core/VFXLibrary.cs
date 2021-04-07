@@ -431,7 +431,7 @@ namespace UnityEditor.VFX
                 return false;
             }
 
-            var hasGraphicsBufferFlag = attribute.flags.HasFlag(VFXTypeAttribute.Flags.GraphicsBuffer);
+            var hasGraphicsBufferFlag = attribute.usage.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer);
             if (hasGraphicsBufferFlag && !Unity.Collections.LowLevel.Unsafe.UnsafeUtility.IsBlittable(type))
             {
                 errors.AppendFormat("The type {0} is using GraphicsBuffer flag but isn't blittable.\n", type);

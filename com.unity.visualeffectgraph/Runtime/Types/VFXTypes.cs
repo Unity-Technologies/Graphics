@@ -11,16 +11,16 @@ namespace UnityEngine.VFX
     public class VFXTypeAttribute : Attribute
     {
         [Flags]
-        public enum Flags
+        public enum Usage
         {
             Default,
             GraphicsBuffer
         }
-        public VFXTypeAttribute(Flags flags = Flags.Default)
+        public VFXTypeAttribute(Usage flags = Usage.Default)
         {
-            this.flags = flags;
+            this.usage = flags;
         }
 
-        public Flags flags { get; private set; }
+        public Usage usage { get; private set; }
     }
 }

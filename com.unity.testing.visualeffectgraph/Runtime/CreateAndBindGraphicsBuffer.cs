@@ -17,7 +17,7 @@ namespace Unity.Testing.VisualEffectGraph
             public Vector3 color;
         }
 
-        [VFXType(VFXTypeAttribute.Flags.GraphicsBuffer)]
+        [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
         struct CustomData
         {
             public Rectangle rectangle;
