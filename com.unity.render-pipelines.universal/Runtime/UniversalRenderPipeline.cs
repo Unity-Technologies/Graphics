@@ -496,12 +496,18 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning disable 0618
                 baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
-
+                
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;
                     // Helper function for updating cameraData with xrPass Data
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+                }
+
+                // Update volume manager to use baseCamera's settings for XR multipass rendering.
+                if (baseCameraData.xr.multipassId > 0)
+                {
+                    UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
                 }
 #endif
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
