@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
 
 ### Added
 - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. Includes an hlsl file that can be included to crossfade between LODs of any prefab with a LODGroup component.
