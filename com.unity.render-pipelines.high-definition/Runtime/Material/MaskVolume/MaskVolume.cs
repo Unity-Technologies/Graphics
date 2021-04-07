@@ -145,6 +145,42 @@ namespace UnityEngine.Rendering.HighDefinition
         public static float FromUNormByte(byte value) => value / 255f;
         public static byte ToUNormByte(float value) => (byte)(Mathf.Clamp01(value) * 255f);
 
+        public static void Resample(ref MaskVolumePayload oldPayload,
+            int index0, float weight0,
+            int index1, float weight1,
+            int index2, float weight2,
+            int index3, float weight3,
+            int index4, float weight4,
+            int index5, float weight5,
+            int index6, float weight6,
+            int index7, float weight7,
+            ref MaskVolumePayload newPayload,
+            int targetIndex)
+        {
+            var shl0Stride = GetDataSHL0Stride();
+            index0 *= shl0Stride;
+            index1 *= shl0Stride;
+            index2 *= shl0Stride;
+            index3 *= shl0Stride;
+            index4 *= shl0Stride;
+            index5 *= shl0Stride;
+            index6 *= shl0Stride;
+            index7 *= shl0Stride;
+            targetIndex *= shl0Stride;
+            for (int i = 0; i < shl0Stride; i++)
+            {
+                var value = oldPayload.dataSHL0[index0 + i] * weight0;
+                value += oldPayload.dataSHL0[index1 + i] * weight1;
+                value += oldPayload.dataSHL0[index2 + i] * weight2;
+                value += oldPayload.dataSHL0[index3 + i] * weight3;
+                value += oldPayload.dataSHL0[index4 + i] * weight4;
+                value += oldPayload.dataSHL0[index5 + i] * weight5;
+                value += oldPayload.dataSHL0[index6 + i] * weight6;
+                value += oldPayload.dataSHL0[index7 + i] * weight7;
+                newPayload.dataSHL0[targetIndex + i] = (byte)value;
+            }
+        }
+        
         /*
         public static void GetSphericalHarmonicsL1FromIndex(ref SphericalHarmonicsL1 sh, ref MaskVolumePayload payload, int indexMask)
         {
@@ -512,47 +548,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-
-        internal MaskVolumeEngineData ConvertToEngineData()
-        {
-            MaskVolumeEngineData data = new MaskVolumeEngineData();
-
-            data.weight = this.weight;
-            data.normalBiasWS = this.normalBiasWS;
-
-            data.debugColor.x = this.debugColor.r;
-            data.debugColor.y = this.debugColor.g;
-            data.debugColor.z = this.debugColor.b;
-
-            // Clamp to avoid NaNs.
-            Vector3 positiveFade = Vector3.Max(this.positiveFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
-            Vector3 negativeFade = Vector3.Max(this.negativeFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
-
-            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
-            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
-            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
-
-            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
-            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
-            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
-
-            data.blendMode = (int)this.blendMode;
-
-            float distFadeLen = Mathf.Max(this.distanceFadeEnd - this.distanceFadeStart, 0.00001526f);
-            data.rcpDistFadeLen = 1.0f / distFadeLen;
-            data.endTimesRcpDistFadeLen = this.distanceFadeEnd * data.rcpDistFadeLen;
-
-            data.scale = this.scale;
-            data.bias = this.bias;
-
-            data.resolution = new Vector3(this.resolutionX, this.resolutionY, this.resolutionZ);
-            data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
-
-            data.lightLayers = (uint)this.lightLayers;
-
-            return data;
-        }
-
     } // class MaskVolumeArtistParameters
 
     [ExecuteAlways]
@@ -624,6 +619,46 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetInstanceID();
         }
 
+        internal MaskVolumeEngineData ConvertToEngineData()
+        {
+            MaskVolumeEngineData data = new MaskVolumeEngineData();
+
+            data.weight = parameters.weight;
+            data.normalBiasWS = parameters.normalBiasWS;
+
+            data.debugColor.x = parameters.debugColor.r;
+            data.debugColor.y = parameters.debugColor.g;
+            data.debugColor.z = parameters.debugColor.b;
+
+            // Clamp to avoid NaNs.
+            Vector3 positiveFade = Vector3.Max(parameters.positiveFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
+            Vector3 negativeFade = Vector3.Max(parameters.negativeFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
+
+            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
+            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
+            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
+
+            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
+            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
+            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
+
+            data.blendMode = (int)parameters.blendMode;
+
+            float distFadeLen = Mathf.Max(parameters.distanceFadeEnd - parameters.distanceFadeStart, 0.00001526f);
+            data.rcpDistFadeLen = 1.0f / distFadeLen;
+            data.endTimesRcpDistFadeLen = parameters.distanceFadeEnd * data.rcpDistFadeLen;
+
+            data.scale = parameters.scale;
+            data.bias = parameters.bias;
+
+            data.resolution = new Vector3(maskVolumeAsset.resolutionX, maskVolumeAsset.resolutionY, maskVolumeAsset.resolutionZ);
+            data.resolutionInverse = new Vector3(1.0f / maskVolumeAsset.resolutionX, 1.0f / maskVolumeAsset.resolutionY, 1.0f / maskVolumeAsset.resolutionZ);
+
+            data.lightLayers = (uint)parameters.lightLayers;
+
+            return data;
+        }
+        
         internal MaskVolumePayload GetPayload()
         {
             dataUpdated = false;
@@ -683,10 +718,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsAssetCompatible()
         {
-            return IsAssetCompatibleResolution();
+            return maskVolumeAsset;
         }
 
-        internal bool IsAssetCompatibleResolution()
+        internal bool IsAssetMatchingResolution()
         {
             if (maskVolumeAsset)
             {
@@ -721,30 +756,96 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void CreateAsset()
         {
-            if (this.gameObject == null || !this.gameObject.activeInHierarchy)
-                return;
-
-            int numMasks = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
-
-            if (!maskVolumeAsset || GetID() != maskVolumeAsset.instanceID)
-                maskVolumeAsset = MaskVolumeAsset.CreateAsset(GetID());
-            else
-                UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);
+            maskVolumeAsset = MaskVolumeAsset.CreateAsset(GetID());
 
             maskVolumeAsset.instanceID = GetID();
             maskVolumeAsset.resolutionX = parameters.resolutionX;
             maskVolumeAsset.resolutionY = parameters.resolutionY;
             maskVolumeAsset.resolutionZ = parameters.resolutionZ;
 
-            MaskVolumePayload.Ensure(ref maskVolumeAsset.payload, numMasks);
-
-            // var validity = maskVolumeAsset.payload.dataValidity;
-            // for (int i = 0; i < numMasks; i++)
-            //     validity[i] = byte.MaxValue;
-
-            ReleaseFromAtlas(this);
+            int numMasks = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
+            MaskVolumePayload.Allocate(ref maskVolumeAsset.payload, numMasks);
 
             dataUpdated = true;
+        }
+
+        internal void ResampleAsset()
+        {
+            MaskVolumePayload oldPayload = maskVolumeAsset.payload;
+            int oldResolutionX = maskVolumeAsset.resolutionX;
+            int oldResolutionY = maskVolumeAsset.resolutionY;
+            int oldResolutionZ = maskVolumeAsset.resolutionZ;
+            
+            int numMasks = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
+            MaskVolumePayload newPayload = default;
+            MaskVolumePayload.Allocate(ref newPayload, numMasks);
+            
+            for (int z = 0; z < parameters.resolutionZ; z++)
+            {
+                CalculateResamplingWeights(oldResolutionZ, parameters.resolutionZ, z, out int oldZLow, out int oldZHigh, out float oldZLowWeight, out float oldZHighWeight);
+                
+                for (int y = 0; y < parameters.resolutionY; y++)
+                {
+                    CalculateResamplingWeights(oldResolutionY, parameters.resolutionY, y, out int oldYLow, out int oldYHigh, out float oldYLowWeight, out float oldYHighWeight);
+                    
+                    for (int x = 0; x < parameters.resolutionX; x++)
+                    {
+                        CalculateResamplingWeights(oldResolutionX, parameters.resolutionX, x, out int oldXLow, out int oldXHigh, out float oldXLowWeight, out float oldXHighWeight);
+                        
+                        MaskVolumePayload.Resample(ref oldPayload,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZLow), oldXLowWeight * oldYLowWeight * oldZLowWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZLow), oldXHighWeight * oldYLowWeight * oldZLowWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZLow), oldXLowWeight * oldYHighWeight * oldZLowWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZLow), oldXHighWeight * oldYHighWeight * oldZLowWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZHigh), oldXLowWeight * oldYLowWeight * oldZHighWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZHigh), oldXHighWeight * oldYLowWeight * oldZHighWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZHigh), oldXLowWeight * oldYHighWeight * oldZHighWeight,
+                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZHigh), oldXHighWeight * oldYHighWeight * oldZHighWeight,
+                            ref newPayload,
+                            PayloadIndex(parameters.resolutionX, parameters.resolutionY, x, y, z));
+                    }
+                }
+            }
+             
+            ReleaseFromAtlas(this);
+
+            maskVolumeAsset.resolutionX = parameters.resolutionX;
+            maskVolumeAsset.resolutionY = parameters.resolutionY;
+            maskVolumeAsset.resolutionZ = parameters.resolutionZ;
+           
+            maskVolumeAsset.payload = newPayload;
+            MaskVolumePayload.Dispose(ref oldPayload);
+            
+            UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);
+
+            dataUpdated = true;
+        }
+
+        static void CalculateResamplingWeights(int oldResolution, int newResolution, int targetTexel, out int oldLowTexel, out int oldHighTexel, out float oldLowWeight, out float oldHighWeight)
+        {
+            float sampleCoord = (targetTexel + 0.5f) / newResolution * oldResolution - 0.5f;
+
+            if (oldResolution > 1)
+            {
+                oldLowTexel = Mathf.Clamp(Mathf.FloorToInt(sampleCoord), 0, oldResolution - 2);
+                oldHighTexel = oldLowTexel + 1;
+            }
+            else
+            {
+                oldLowTexel = 0;
+                oldHighTexel = 0;
+            }
+
+            oldHighWeight = sampleCoord - oldLowTexel;
+            oldLowWeight = 1f - oldHighWeight;
+            
+            if (oldHighTexel == oldResolution)
+                Debug.LogError(oldHighTexel);
+        }
+
+        static int PayloadIndex(int resolutionX, int resolutionY, int x, int y, int z)
+        {
+            return (z * resolutionY + y) * resolutionX + x;
         }
 
         private static MaskVolumeSettingsKey ComputeMaskVolumeSettingsKeyFromMaskVolume(MaskVolume maskVolume)
