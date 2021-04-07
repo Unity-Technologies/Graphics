@@ -700,7 +700,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
 
-#define USE_WORLD_DIFF 0
+#define USE_WORLD_DIFF 1
 
 #if USE_WORLD_DIFF
     float4 dstMotion = float4(motionVectorCenterNDC.xy, LoadCameraDepth(COORD_TEXTURE2D_X(hitSS)), 1.0f);

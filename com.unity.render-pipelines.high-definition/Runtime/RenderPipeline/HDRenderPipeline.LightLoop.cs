@@ -459,8 +459,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // HERE
-            float precision = 0.5f;
-            cb._SsrPBRSpeedRejection = Mathf.Pow(settings.speedRejectionParam.value, precision) * 4096.0f;
+            float precision = 6f;
+            cb._SsrPBRSpeedRejection = Mathf.Pow(settings.speedRejectionParam.value, precision);
             cb._SsrPBRBias = settings.biasFactor.value;
         }
 
