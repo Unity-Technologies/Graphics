@@ -1,3 +1,10 @@
+// Shadergraph-friendly implementation of LODDitheringTransition.
+// The function as defined in Common.hlsl terminates on clip(f).
+// However, since it does not return or output anything, shadergraph
+// doesn't recognize it as code that gets used. This file can be removed
+// and replaced with a string custom function if Shader Graph ever adds
+// support for flagging custom function nodes as used, even if not
+// connected to anything.
 #ifndef CROSSFADE_INCLUDED
 #define CROSSFADE_INCLUDED
 #ifndef UNITY_MATERIAL_INCLUDED
