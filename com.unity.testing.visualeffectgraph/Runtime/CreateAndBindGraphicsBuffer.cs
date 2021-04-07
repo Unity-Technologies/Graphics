@@ -176,8 +176,6 @@ namespace Unity.Testing.VisualEffectGraph
 
             var vfx = GetComponent<VisualEffect>();
             vfx.SetGraphicsBuffer(s_BufferID, m_Buffer);
-
-            m_Random = new System.Random(1245);
         }
 
         void Update()

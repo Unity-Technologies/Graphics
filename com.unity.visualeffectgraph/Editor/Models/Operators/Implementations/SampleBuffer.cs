@@ -34,13 +34,13 @@ namespace UnityEditor.VFX.Operator
 
         protected override Type defaultValueType => validTypes.FirstOrDefault();
 
-        override public string name { get { return "Sample Graphics Buffer"; } }
+        public override string name { get { return "Sample Graphics Buffer"; } }
 
         public class InputProperties
         {
-            [Tooltip("Sets the Signed Distance Field texture to sample from.")]
+            [Tooltip("Sets the Graphics Buffer to sample from.")]
             public GraphicsBuffer buffer = null;
-            [Tooltip("Sets the oriented box containing the SDF.")]
+            [Tooltip("Sets the index of element to sample.")]
             public uint index;
         }
 
