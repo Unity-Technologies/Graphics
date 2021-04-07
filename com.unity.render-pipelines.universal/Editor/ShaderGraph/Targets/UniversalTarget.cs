@@ -546,11 +546,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         public static class Uniforms
         {
-            // TODO: this is a pure copy of HDRP uniforms, renamed -- some might not be needed in URP
-            public static readonly string srcBlend = "[" + Property.SrcBlendSG + "]";
-            public static readonly string dstBlend = "[" + Property.DstBlendSG + "]";
-            public static readonly string cullMode = "[" + Property.Cull + "]";
-            public static readonly string zWrite = "[" + Property.ZWriteSG + "]";
+            public static readonly string srcBlend = "[" + Property.SG_SrcBlend + "]";
+            public static readonly string dstBlend = "[" + Property.SG_DstBlend + "]";
+            public static readonly string cullMode = "[" + Property.SG_Cull + "]";
+            public static readonly string zWrite = "[" + Property.SG_ZWrite + "]";
         }
 
         // used by sprite targets, NOT used by lit/unlit anymore

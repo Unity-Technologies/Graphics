@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,22 +9,19 @@ namespace UnityEditor
     // Used for ShaderGraph Lit shaders
     class URPLitGUI : BaseShaderGUI
     {
-        //private LitGUI.LitProperties litProperties;
         public MaterialProperty workflowMode;
 
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
-
-            //litProperties = new LitGUI.LitProperties(properties);
-            workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
+            workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode(isShaderGraph), properties, false);
         }
 
         public static void UpdateMaterial(Material material)
         {
             BaseShaderGUI.SetMaterialKeywords(material);
-            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
+            LitGUI.SetMaterialKeywordsBase(material, true, out bool isSpecularWorkflow);
         }
 
         public override void MaterialChanged(Material material)

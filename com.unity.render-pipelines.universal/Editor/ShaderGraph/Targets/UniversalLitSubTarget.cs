@@ -92,13 +92,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // (technically not necessary since we are always recreating the material from the shader each time,
             // which will pull over the defaults from the shader definition)
             // but if that ever changes, this will ensure the defaults are set
-            material.SetFloat(Property.SpecularWorkflowMode, (float)workflowMode);
-            material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-            material.SetFloat(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-            material.SetFloat(Property.Surface, (float)target.surfaceType);
-            material.SetFloat(Property.Blend, (float)target.alphaMode);
-            material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            material.SetFloat(Property.Cull, (int)target.renderFace);
+            material.SetFloat(Property.SG_SpecularWorkflowMode, (float)workflowMode);
+            material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+            material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+            material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
+            material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
+            material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+            material.SetFloat(Property.SG_Cull, (int)target.renderFace);
 
             // call the full unlit material setup function
             URPLitGUI.UpdateMaterial(material);
@@ -150,18 +150,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_WorkflowMode_MaterialControl)     // if using material control, add the material property to control it
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
 
-            collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
 
             // setup properties using the defaults
-            collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
-            collector.AddFloatProperty(Property.Blend, (float)target.alphaMode);
-            collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SrcBlendSG, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-            collector.AddFloatProperty(Property.DstBlendSG, 0.0f);    // always set by material inspector
-            collector.AddFloatProperty(Property.ZWriteSG, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
-            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
+            collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
+            collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            collector.AddFloatProperty(Property.SG_QueueOffset, 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
