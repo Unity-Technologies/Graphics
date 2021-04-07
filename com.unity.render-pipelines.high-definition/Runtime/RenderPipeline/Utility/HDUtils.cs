@@ -622,10 +622,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
-                    buildTarget == UnityEditor.BuildTarget.PS4 ||
+                    buildTarget == UnityEditor.BuildTarget.PS4);
                     // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                     // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
-                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
+                    /*buildTarget == UnityEditor.BuildTarget.CloudRendering);*/
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
