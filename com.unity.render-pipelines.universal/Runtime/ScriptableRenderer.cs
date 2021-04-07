@@ -420,6 +420,10 @@ namespace UnityEngine.Rendering.Universal
         // This should be removed when early camera color target assignment is removed.
         internal bool isCameraColorTargetValid = false;
 
+        // Temporary variable to disable custom passes using render pass ( due to it potentially breaking projects with custom render features )
+        // To enable it - override SupportsNativeRenderPass method in the feature and return true
+        internal bool disableNativeRenderPassInFeatures = false;
+
         internal bool useRenderPassEnabled = false;
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -714,6 +718,8 @@ namespace UnityEngine.Rendering.Universal
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
+            if (disableNativeRenderPassInFeatures)
+                pass.useNativeRenderPass = false;
         }
 
         /// <summary>
@@ -776,7 +782,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     continue;
                 }
+
+                if (!rendererFeatures[i].SupportsNativeRenderPass())
+                    disableNativeRenderPassInFeatures = true;
+
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+                disableNativeRenderPassInFeatures = false;
             }
 
             // Remove any null render pass that might have been added by user by mistake
