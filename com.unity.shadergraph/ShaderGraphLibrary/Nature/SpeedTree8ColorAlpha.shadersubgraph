@@ -2635,7 +2635,7 @@
     "m_Group": {
         "m_Id": "f85e92ab41eb4894b6c106bf2eeb8ed7"
     },
-    "m_Name": "DoLODCrossFade (Custom Function)",
+    "m_Name": "LODDitheringTransitionSG (Custom Function)",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2665,7 +2665,7 @@
         "m_SerializableColors": []
     },
     "m_SourceType": 0,
-    "m_FunctionName": "DoLODCrossFade",
+    "m_FunctionName": "LODDitheringTransitionSG",
     "m_FunctionSource": "5248225944112fb418a213fa587fe10d",
     "m_FunctionBody": "Enter function body here..."
 }

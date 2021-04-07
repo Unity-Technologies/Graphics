@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
 
 ### Added
-- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. Includes an hlsl file that can be included to crossfade between LODs of any prefab with a LODGroup component.
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. 
+- Added an HLSL file that implements a ShaderGraph-compatible version of the LODDitheringTransition function defined in core.
 
 ## [10.4.0] - 2021-01-27
 
