@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
-            if (m_Settings.supportAdditionalLights)
+            if (drawSystem == null)
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferProjector));
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -18,19 +16,19 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawScreenSpaceSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
 
-        public ScreenSpaceDecalRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem decalDrawFowardEmissiveSystem)
+        public ScreenSpaceDecalRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques + 1;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
-            m_DrawSystem = decalDrawFowardEmissiveSystem;
+            m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_ProfilingSampler = new ProfilingSampler("Decal Screen Space Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
 
-            if (m_Settings.supportAdditionalLights)
+            if (m_DrawSystem == null)
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceProjector));
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
@@ -38,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;// renderingData.cameraData.defaultOpaqueSortFlags;
+            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
 
             CommandBuffer cmd = CommandBufferPool.Get();

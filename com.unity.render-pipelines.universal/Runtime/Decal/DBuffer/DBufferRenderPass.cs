@@ -23,6 +23,9 @@ namespace UnityEngine.Rendering.Universal
         private int m_DBufferCount;
         private ProfilingSampler m_ProfilingSampler;
 
+        internal RenderTargetIdentifier dBufferIndentifier { get; private set; }
+        internal RenderTargetIdentifier cameraDepthIndentifier { get; private set; }
+
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
@@ -36,6 +39,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
+
+            dBufferIndentifier = new RenderTargetIdentifier(s_DBufferDepthName);
+            cameraDepthIndentifier = new RenderTargetIdentifier("_CameraDepthTexture");
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)

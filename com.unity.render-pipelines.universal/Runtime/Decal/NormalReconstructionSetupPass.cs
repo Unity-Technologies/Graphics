@@ -9,13 +9,14 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
         private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
 
+        private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
+
         private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
         private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
         private Vector4[] m_CameraXExtent = new Vector4[2];
         private Vector4[] m_CameraYExtent = new Vector4[2];
         private Vector4[] m_CameraZExtent = new Vector4[2];
 
-        private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private ProfilingSampler m_ProfilingSampler;
 
         public NormalReconstructionSetupPass(string profilerTag)
