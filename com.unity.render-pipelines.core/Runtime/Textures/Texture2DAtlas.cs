@@ -319,6 +319,9 @@ namespace UnityEngine.Rendering
                 BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // by default to single octahedral 2D texture quad
         }
 
+        /// <summary>
+        /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
+        /// </summary>
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
