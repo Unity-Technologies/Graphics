@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace UnityEngine.Rendering.Universal
 {
     [BurstCompile]
-    unsafe struct TilingJob : IJobFor
+    unsafe struct FineTilingJob : IJobFor
     {
         [ReadOnly]
         public NativeArray<LightMinMaxZ> minMaxZs;

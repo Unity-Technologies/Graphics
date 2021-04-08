@@ -151,37 +151,40 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
 
-            var tileWidth = 16;
+            var tile0Width = 16;
+            var tile1Width = tile0Width * FineTilingJob.groupWidth;
             var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-            var tileResolution = (screenResolution + tileWidth - 1) / tileWidth;
-            var groupResolution = (tileResolution + TilingJob.groupWidth - 1) / TilingJob.groupWidth;
-            var tileCount = tileResolution.x * tileResolution.y;
+            var tile0Resolution = (screenResolution + tile0Width - 1) / tile0Width;
+            var tile1Resolution = (tile0Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
+            var tile2Resolution = (tile1Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
+            var tile0Count = tile0Resolution.x * tile0Resolution.y;
 
-            var tiles = new NativeArray<uint>(tileCount * lightsPerTile / 32, Allocator.TempJob);
+            var tiles = new NativeArray<uint>(tile0Count * lightsPerTile / 32, Allocator.TempJob);
 
-            TilingJob tilingJob;
-            tilingJob.minMaxZs = minMaxZs;
-            tilingJob.lights = reorderedLights;
-            tilingJob.worldToLightMatrices = lightExtractionJob.worldToLightMatrices;
-            tilingJob.viewOriginLs = lightExtractionJob.viewOriginLs;
-            tilingJob.sphereShapes = lightExtractionJob.sphereShapes;
-            tilingJob.coneShapes = lightExtractionJob.coneShapes;
-            tilingJob.lightsPerTile = lightsPerTile;
-            tilingJob.tiles = tiles;
-            tilingJob.screenResolution = screenResolution;
-            tilingJob.groupResolution = groupResolution;
-            tilingJob.tileResolution = tileResolution;
-            tilingJob.tileWidth = tileWidth;
-            tilingJob.viewOrigin = camera.transform.position;
-            tilingJob.viewForward = camera.transform.forward;
-            var nearPlaneHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
-            var nearPlaneHalfWidth = nearPlaneHalfHeight * camera.pixelWidth / camera.pixelHeight;
-            tilingJob.viewRight = camera.transform.right * nearPlaneHalfWidth;
-            tilingJob.viewUp = camera.transform.up * nearPlaneHalfHeight;
-            tilingJob.tileAperture = math.SQRT2 * nearPlaneHalfHeight / (((float)screenResolution.y / (float)tileWidth));
-            var tilingHandle = tilingJob.ScheduleParallel(groupResolution.x * groupResolution.y, 1, lightExtractionHandle);
+            var fovPlaneHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
+            var fovPlaneHalfWidth = fovPlaneHalfHeight * camera.pixelWidth / camera.pixelHeight;
 
-            JobHandle.CompleteAll(ref zBinningHandle, ref tilingHandle);
+            FineTilingJob fineTilingJob;
+            fineTilingJob.minMaxZs = minMaxZs;
+            fineTilingJob.lights = reorderedLights;
+            fineTilingJob.worldToLightMatrices = lightExtractionJob.worldToLightMatrices;
+            fineTilingJob.viewOriginLs = lightExtractionJob.viewOriginLs;
+            fineTilingJob.sphereShapes = lightExtractionJob.sphereShapes;
+            fineTilingJob.coneShapes = lightExtractionJob.coneShapes;
+            fineTilingJob.lightsPerTile = lightsPerTile;
+            fineTilingJob.tiles = tiles;
+            fineTilingJob.screenResolution = screenResolution;
+            fineTilingJob.groupResolution = tile1Resolution;
+            fineTilingJob.tileResolution = tile0Resolution;
+            fineTilingJob.tileWidth = tile0Width;
+            fineTilingJob.viewOrigin = camera.transform.position;
+            fineTilingJob.viewForward = camera.transform.forward;
+            fineTilingJob.viewRight = camera.transform.right * fovPlaneHalfWidth;
+            fineTilingJob.viewUp = camera.transform.up * fovPlaneHalfHeight;
+            fineTilingJob.tileAperture = math.SQRT2 * fovPlaneHalfHeight / (((float)screenResolution.y / (float)tile0Width));
+            var fineTilingHandle = fineTilingJob.ScheduleParallel(tile1Resolution.x * tile1Resolution.y, 1, lightExtractionHandle);
+
+            JobHandle.CompleteAll(ref zBinningHandle, ref fineTilingHandle);
 
             for (var i = 1; i < lightCount; i++)
             {
@@ -216,12 +219,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             Shader.SetGlobalFloat("_InvZBinSize", 1.0f / binSize);
             Shader.SetGlobalInteger("_ZBinLightCount", lightCount);
             Shader.SetGlobalMatrix("_FPWorldToViewMatrix", minMaxZJob.worldToViewMatrix);
-            Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tileWidth)));
-            Shader.SetGlobalFloat("_TileXCount", tileResolution.x);
-            Shader.SetGlobalFloat("_TileYCount", tileResolution.y);
+            Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tile0Width)));
+            Shader.SetGlobalFloat("_TileXCount", tile0Resolution.x);
+            Shader.SetGlobalFloat("_TileYCount", tile0Resolution.y);
             Shader.SetGlobalInteger("_LightCount", lightCount);
             Shader.SetGlobalInteger("_WordsPerTile", lightsPerTile / 32);
-            Shader.SetGlobalFloat("_TileCount", tileCount);
+            Shader.SetGlobalFloat("_TileCount", tile0Count);
 
             minMaxZs.Dispose();
             meanZs.Dispose();
