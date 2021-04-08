@@ -255,6 +255,10 @@ Shader ""Hidden/GraphErrorShader2""
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
             foreach(CategoryData categoryData in graph.categories)
             {
+                // Don't write out empty categories
+                if(categoryData.childCount == 0)
+                    continue;
+
                 MinimalCategoryData mcd = new MinimalCategoryData()
                 {
                     categoryName = categoryData.name,
