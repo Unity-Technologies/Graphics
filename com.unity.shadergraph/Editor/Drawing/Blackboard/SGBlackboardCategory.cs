@@ -68,10 +68,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         int InsertionIndex(Vector2 pos)
         {
             int index = -1;
-            VisualElement owner = contentContainer != null ? contentContainer : this;
-            Vector2 localPos = this.ChangeCoordinatesTo(owner, pos);
 
-            if (owner.ContainsPoint(localPos))
+            if (this.ContainsPoint(pos))
             {
                 index = 0;
 
@@ -79,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     Rect rect = child.layout;
 
-                    if (localPos.y > (rect.y + rect.height / 2))
+                    if (pos.y > (rect.y + rect.height / 2))
                     {
                         ++index;
                     }
@@ -206,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_DragIndicator.visible = visible;
         }
 
-        public bool CanAcceptDrop(List<ISelectable> selection)
+        public bool CategoryContains(List<ISelectable> selection)
         {
             if (selection == null)
                 return false;
@@ -277,12 +275,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
-            if (!CanAcceptDrop(selection))
-            {
-                SetDragIndicatorVisible(false);
-                return;
-            }
-
             VisualElement sourceItem = null;
 
             foreach (ISelectable selectedElement in selection)
@@ -291,12 +283,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (sourceItem == null)
                     continue;
-            }
-
-            if (!Contains(sourceItem))
-            {
-                SetDragIndicatorVisible(false);
-                return;
             }
 
             Vector2 localPosition = evt.localMousePosition;
@@ -309,9 +295,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_InsertIndex == childCount)
                 {
-                    VisualElement lastChild = this[childCount - 1];
+                    //when category is emapty
+                    if (this.childCount == 0)
+                    {
+                        indicatorY = 0;
+                    }
+                    else
+                    {
+                        VisualElement lastChild = this[childCount - 1];
 
-                    indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
+                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
+                    }
                 }
                 else
                 {
@@ -337,21 +331,49 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
-
             evt.StopPropagation();
         }
 
         private void OnDragPerformEvent(DragPerformEvent evt)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-
-            if (!CanAcceptDrop(selection))
+            if (m_InsertIndex == -1)
             {
                 SetDragIndicatorVisible(false);
                 return;
             }
 
-            if (m_InsertIndex != -1)
+            if (!CategoryContains(selection))
+            {
+                List<VisualElement> draggedElements = new List<VisualElement>();
+                foreach (ISelectable selectedElement in selection)
+                {
+                    var draggedElement = selectedElement as VisualElement;
+
+                    if (draggedElement != null)
+                    {
+                        draggedElements.Add(draggedElement);
+                    }
+                }
+                if (draggedElements.Count == 0)
+                {
+                    SetDragIndicatorVisible(false);
+                    return;
+                }
+
+                foreach (var draggedElement in draggedElements)
+                {
+                    var addItemToCategoryAction = new AddItemToCategoryAction();
+                    if (draggedElement.userData is ShaderInput newShaderInput)
+                    {
+                        addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
+                        addItemToCategoryAction.itemToAdd = newShaderInput;
+                        addItemToCategoryAction.indexToAddItemAt = m_InsertIndex;
+                        m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
+                    }
+                }
+            }
+            else
             {
                 List<Tuple<VisualElement, VisualElement>> draggedElements = new List<Tuple<VisualElement, VisualElement>>();
 
@@ -401,7 +423,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    if (insertIndex > indexOfDraggedElement) // No need to increment the insert index for the next dragged element if the current dragged element is above the current insert location.
+                    if (insertIndex > indexOfDraggedElement)     // No need to increment the insert index for the next dragged element if the current dragged element is above the current insert location.
                         continue;
                     insertIndex++;
                 }

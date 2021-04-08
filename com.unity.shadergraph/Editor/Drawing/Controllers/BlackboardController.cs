@@ -202,14 +202,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<ShaderInput> childObjects { get; set; }
     }
 
-    // TODO: These are stub classes, feel free to change them
     class AddItemToCategoryAction : IGraphDataAction
     {
         void AddItemsToCategory(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddItemToCategoryAction");
             graphData.owner.RegisterCompleteObjectUndo("Add Item to Category");
-            graphData.AddItemToCategory(categoryGuid, itemToAdd);
+            graphData.InsertItemIntoCategory(categoryGuid, itemToAdd, indexToAddItemAt);
         }
 
         public Action<GraphData> modifyGraphDataAction => AddItemsToCategory;
@@ -217,9 +216,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string categoryGuid { get; set; }
 
         public ShaderInput itemToAdd { get; set; }
+
+        // By default an item is always added to the end of a category, if this value is set to something other than -1, will insert the item at that position within the category
+        public int indexToAddItemAt { get; set; } = -1;
     }
 
-    // TODO: These are stub classes, feel free to change them
     class RemoveItemsFromCategoryAction : IGraphDataAction
     {
         void RemoveItemsFromCategory(GraphData graphData)

@@ -30,10 +30,23 @@ namespace UnityEditor.ShaderGraph
 
         public int childCount => m_ChildObjectIDSet.Count;
 
-        public void AddItemToCategory(ShaderInput itemToAdd)
+        public void InsertItemIntoCategory(ShaderInput itemToAdd, int insertionIndex = -1)
         {
-            m_ChildObjectList.Add(itemToAdd);
-            m_ChildObjectIDSet.Add(itemToAdd.objectId);
+            if (insertionIndex == -1)
+            {
+                m_ChildObjectList.Add(itemToAdd);
+                m_ChildObjectIDSet.Add(itemToAdd.objectId);
+            }
+            else
+            {
+                m_ChildObjectList.Insert(insertionIndex, itemToAdd);
+                // Recreate the hash-set as the data structure does not allow for moving/inserting elements
+                m_ChildObjectIDSet.Clear();
+                foreach (var childObject in m_ChildObjectList)
+                {
+                    m_ChildObjectIDSet.Add(childObject.value.objectId);
+                }
+            }
         }
 
         public void RemoveItemFromCategory(ShaderInput itemToRemove)
