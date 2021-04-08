@@ -82,10 +82,8 @@ namespace UnityEditor.Rendering
                     if (!(asset is AnimationClip clip))
                         continue;
 
-                    // TODO: only include bindings for material properties?
-                    var bindings = AnimationUtility.GetCurveBindings(clip);
-
-                    if (!bindings.Any(IsMaterialBinding))
+                    var bindings = AnimationUtility.GetCurveBindings(clip).Where(IsMaterialBinding).ToArray();
+                    if (bindings.Length == 0)
                         continue;
 
                     result[(AnimationClipProxy)clip] =
@@ -301,6 +299,9 @@ namespace UnityEditor.Rendering
                     animator.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
                 );
             }
+
+            // TODO. Missing support for custom animation sources other than Animation and Animator.
+            // e.g. Timeline, Custom PlayableGraph.
 
             // release UnityObject references
             s_AnimationBuffer.Clear();
