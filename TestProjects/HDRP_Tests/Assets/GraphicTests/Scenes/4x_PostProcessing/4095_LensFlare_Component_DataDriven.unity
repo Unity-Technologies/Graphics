@@ -235,6 +235,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &37408394
 MonoBehaviour:
@@ -546,6 +547,7 @@ MonoBehaviour:
   occlusionRadius: 0
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1.44
   allowOffScreen: 1
 --- !u!114 &383095064
 MonoBehaviour:
@@ -857,6 +859,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &443413520
 MonoBehaviour:
@@ -1168,6 +1171,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &559707052
 MonoBehaviour:
@@ -1479,6 +1483,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &754434773
 MonoBehaviour:
@@ -1790,6 +1795,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 0.64
   allowOffScreen: 1
 --- !u!114 &767347918
 MonoBehaviour:
@@ -2197,6 +2203,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &1073042793
 MonoBehaviour:
@@ -2565,6 +2572,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &1317154259
 MonoBehaviour:
@@ -2876,6 +2884,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &1640286925
 MonoBehaviour:
@@ -3187,6 +3196,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &1753821208
 MonoBehaviour:
@@ -3498,6 +3508,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 64
   occlusionOffset: 3
+  scale: 0.55
   allowOffScreen: 1
 --- !u!114 &1912143657
 MonoBehaviour:
@@ -3809,6 +3820,7 @@ MonoBehaviour:
   occlusionRadius: 0.94
   sampleCount: 64
   occlusionOffset: 2
+  scale: 1
   allowOffScreen: 1
 --- !u!114 &2034294921
 MonoBehaviour:
