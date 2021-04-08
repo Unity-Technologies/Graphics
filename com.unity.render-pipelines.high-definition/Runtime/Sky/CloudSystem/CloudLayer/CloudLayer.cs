@@ -113,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
         public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
+        /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
+        [Tooltip("Specifies the tiling used for the cloud shadows texture.")]
+        public MinFloatParameter shadowTiling = new MinFloatParameter(500f, 0.0f);
 
 
         /// <summary>
@@ -173,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.")]
+            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
             public BoolParameter castShadows = new BoolParameter(false);
 
 
