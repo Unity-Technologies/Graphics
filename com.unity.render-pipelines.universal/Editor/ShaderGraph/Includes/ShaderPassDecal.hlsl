@@ -88,10 +88,10 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 void GetSurface(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
     surfaceData.albedo = decalSurfaceData.baseColor.rgb;
-    surfaceData.metallic = saturate(decalSurfaceData.mask.x);
+    surfaceData.metallic = saturate(decalSurfaceData.metallic);
     surfaceData.specular = 0;
-    surfaceData.smoothness = saturate(decalSurfaceData.mask.z);
-    surfaceData.occlusion = decalSurfaceData.mask.y;
+    surfaceData.smoothness = saturate(decalSurfaceData.smoothness);
+    surfaceData.occlusion = decalSurfaceData.occlusion;
     surfaceData.emission = decalSurfaceData.emissive;
     surfaceData.alpha = saturate(decalSurfaceData.baseColor.w);
     surfaceData.clearCoatMask = 0;

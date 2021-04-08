@@ -132,8 +132,8 @@ Pass
 
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
-        surfaceData.mask.y = half(1.0);
-        surfaceData.mask.z = half(0.5);
+        surfaceData.occlusion = half(1.0);
+        surfaceData.smoothness = half(0.5);
 
         $SurfaceDescription.Emission:       surfaceData.emissive.rgb = half3(surfaceDescription.Emission.rgb * fadeFactor);
 
@@ -160,10 +160,10 @@ Pass
 
             // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
         #if !defined(_DBUFFER_MRT1) && !defined(_DBUFFER_MRT2)
-            $SurfaceDescription.Metallic:       surfaceData.mask.x = half(surfaceDescription.Metallic);
-            $SurfaceDescription.Occlusion:      surfaceData.mask.y = half(surfaceDescription.Occlusion);
-            $SurfaceDescription.Smoothness:     surfaceData.mask.z = half(surfaceDescription.Smoothness);
-            $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = half(surfaceDescription.MAOSAlpha * fadeFactor);
+            $SurfaceDescription.Metallic:       surfaceData.metallic = half(surfaceDescription.Metallic);
+            $SurfaceDescription.Occlusion:      surfaceData.occlusion = half(surfaceDescription.Occlusion);
+            $SurfaceDescription.Smoothness:     surfaceData.smoothness = half(surfaceDescription.Smoothness);
+            $SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
         #endif
     }
 

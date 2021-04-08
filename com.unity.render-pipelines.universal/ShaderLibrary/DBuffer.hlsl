@@ -85,7 +85,7 @@ void EncodeIntoDBuffer(DecalSurfaceData surfaceData
     outDBuffer1 = half4(surfaceData.normalWS.xyz * 0.5 + 0.5, surfaceData.normalWS.w);
 #endif
 #if defined(_DBUFFER_MRT3)
-    outDBuffer2 = surfaceData.mask;
+    outDBuffer2 = half4(surfaceData.metallic, surfaceData.occlusion, surfaceData.smoothness, surfaceData.MAOSAlpha);
 #endif
 }
 
@@ -109,8 +109,10 @@ void DecodeFromDBuffer(
     surfaceData.normalWS.w = inDBuffer1.w;
 #endif
 #if defined(_DBUFFER_MRT3)
-    surfaceData.mask = inDBuffer2;
-    surfaceData.MAOSBlend = half2(surfaceData.mask.w, surfaceData.mask.w);
+    surfaceData.metallic = inDBuffer2.x;
+    surfaceData.occlusion = inDBuffer2.y;
+    surfaceData.smoothness = inDBuffer2.z;
+    surfaceData.MAOSAlpha = inDBuffer2.w;
 #endif
 }
 
@@ -138,20 +140,18 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
 
 #if defined(_DBUFFER_MRT3)
 #ifdef _SPECULAR_SETUP
-    if (decalSurfaceData.MAOSBlend.x < 1.0)
+    if (decalSurfaceData.MAOSAlpha.x < 1.0)
     {
-        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
-        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor * (1.0f - decalSurfaceData.MAOSBlend.x);
+        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSAlpha + decalSpecularColor * (1.0f - decalSurfaceData.MAOSAlpha);
     }
 #else
-    surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
+    surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSAlpha + decalSurfaceData.metallic;
 #endif
 
-    // TODO MAOSBlend
+    surfaceData.occlusion = surfaceData.occlusion * decalSurfaceData.MAOSAlpha + decalSurfaceData.occlusion;
 
-    surfaceData.occlusion = surfaceData.occlusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
-
-    surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
+    surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.MAOSAlpha + decalSurfaceData.smoothness;
 #endif
 }
 #endif // UNIVERSAL_DBUFFER_INDLUDED
