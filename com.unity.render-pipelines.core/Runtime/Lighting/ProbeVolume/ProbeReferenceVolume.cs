@@ -4,9 +4,98 @@ using UnityEngine.Profiling;
 using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering
 {
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// A manager to enqueue extra probe rendering outside of probe volumes. 
+    /// </summary>
+    public class AdditionalGIBakeRequestsManager
+    {
+        // The baking ID for the extra requests
+        private static int s_BakingID = 912345678;
+
+        private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
+        /// <summary>
+        /// Get the manager that governs the additional light probe rendering requests.
+        /// </summary>
+        public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
+
+        private AdditionalGIBakeRequestsManager()
+        { }
+
+        private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
+        private static List<Vector3> m_RequestPositions = new List<Vector3>();
+
+        /// <summary>
+        /// Enqueue a request for probe rendering at the specified location.
+        /// </summary>
+        /// <param name ="capturePosition"> The position at which a probe is baked.</param>
+        /// <returns>An ID that can be used to retrieve the data once it has been computed</returns>
+        public int EnqueueRequest(Vector3 capturePosition)
+        {
+            int requestID = m_RequestPositions.Count;
+            m_RequestPositions.Add(capturePosition);
+            return requestID;
+        }
+
+        /// <summary>
+        /// Retrieve the result of a capture request, it will return false if the request has not been fulfilled yet or the request ID is invalid.
+        /// </summary>
+        /// <param name ="requestID"> The request ID that has been given by the manager through a previous EnqueueRequest.</param>
+        /// <param name ="sh"> The output SH coefficients that have been computed.</param>
+        /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
+        public bool RetrieveProbeSH(int requestID, out SphericalHarmonicsL2 sh)
+        {
+            if (requestID < m_SHCoefficients.Count)
+            {
+                sh = m_SHCoefficients[requestID];
+                return true;
+            }
+            else
+            {
+                sh = new SphericalHarmonicsL2();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Update the capture location for the probe request.
+        /// </summary>
+        /// <param name ="requestID"> The request ID that has been given by the manager through a previous EnqueueRequest.</param>
+        /// <param name ="newPositionnewPosition"> The position at which a probe is baked.</param>
+        public void UpdatePositionForRequest(int requestID, Vector3 newPosition)
+        {
+            if (requestID < m_RequestPositions.Count)
+            {
+                m_RequestPositions[requestID] = newPosition;
+            }
+        }
+
+        internal void AddRequestsToLightmapper()
+        {
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositions.ToArray());
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+        }
+
+        private static void OnAdditionalProbesBakeCompleted()
+        {
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+
+            var sh = new NativeArray<SphericalHarmonicsL2>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth);
+
+            m_SHCoefficients.AddRange(sh.ToArray());
+        }
+    }
+#endif
+
     /// <summary>
     /// Possible values for the probe volume memory budget (determines the size of the textures used).
     /// </summary>

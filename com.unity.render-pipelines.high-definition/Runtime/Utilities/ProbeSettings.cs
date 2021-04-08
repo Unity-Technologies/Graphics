@@ -243,6 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
                 roughReflections = true,
                 distanceBasedRoughness = false,
+                normalizeWithProbeVolume = false,
             };
             probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
 
@@ -281,6 +282,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
         public bool distanceBasedRoughness;
+
+        /// <summary>Indicates whether the probe sampled result is normalized with the lighting coming from probe volumes when available.</summary>
+        public bool normalizeWithProbeVolume;
 
         /// <summary>
         /// Compute a hash of the settings.

@@ -156,6 +156,10 @@ struct EnvLightData
     float roughReflections;
     float distanceBasedRoughness;
     int envIndex;
+    int normalizeWithAPV;
+    float4 l1R_l0r;
+    float4 l1G_l0g;
+    float4 l1B_l0b;
 };
 
 

@@ -3,6 +3,7 @@ using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -114,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         RenderData m_CustomRenderData;
 
+
         // Runtime Data
         RTHandle m_RealtimeTexture;
         RTHandle m_RealtimeDepthBuffer;
@@ -122,11 +124,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
 #endif
+        int m_SHRequestID = -1;
+        [SerializeField]
+        SphericalHarmonicsL2 m_SHForNormalization;
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
 
-        //This probe object is dumb, its the caller / pipelines responsability
+        //This probe object is dumb, its the caller / pipelines responsibility
         //to calculate its exposure values, since this requires frame data.
         float m_ProbeExposureValue = 1.0f;
 
@@ -526,6 +531,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
+        internal bool GetSHForNormalization(out SphericalHarmonicsL2 shCoeffs)
+        {
+            bool hasValidSHData = settings.normalizeWithProbeVolume;
+#if UNITY_EDITOR
+            // We get stuff from the baked info
+            hasValidSHData = hasValidSHData && (m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization));
+#endif
+            shCoeffs = m_SHForNormalization;
+            return hasValidSHData;
+        }
+
         // Forces the re-rendering for both OnDemand and OnEnable
         internal void ForceRenderingNextUpdate()
         {
@@ -556,6 +572,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
+
+            if (m_SHRequestID < 0 && settings.normalizeWithProbeVolume)
+            {
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
+            }
+            else if (settings.normalizeWithProbeVolume)
+            {
+                AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
+            }
 #endif
         }
 
@@ -575,6 +600,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 PrepareCulling();
                 HDProbeSystem.RegisterProbe(this);
+
+#if UNITY_EDITOR
+                if (m_SHRequestID < 0 && settings.normalizeWithProbeVolume)
+                {
+                    m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
+                }
+                else if (settings.normalizeWithProbeVolume)
+                {
+                    AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
+                }
+#endif
             }
         }
     }

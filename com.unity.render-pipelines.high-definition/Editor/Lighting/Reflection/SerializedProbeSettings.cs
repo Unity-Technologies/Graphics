@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedScalableSettingValue resolutionScalable;
         internal SerializedProperty roughReflections;
         internal SerializedProperty distanceBasedRoughness;
+        internal SerializedProperty normalizeWithProbeVolume;
         internal SerializedProperty frustumFieldOfViewMode;
         internal SerializedProperty frustumFixedValue;
         internal SerializedProperty frustumViewerScale;
@@ -66,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             resolutionScalable = new SerializedScalableSettingValue(root.Find((ProbeSettings p) => p.resolutionScalable));
             roughReflections = root.FindPropertyRelative("roughReflections");
             distanceBasedRoughness = root.FindPropertyRelative("distanceBasedRoughness");
+            normalizeWithProbeVolume = root.FindPropertyRelative("normalizeWithProbeVolume");
             frustumFieldOfViewMode = root.FindPropertyRelative("frustum.fieldOfViewMode");
             frustumFixedValue = root.FindPropertyRelative("frustum.fixedValue");
             frustumViewerScale = root.FindPropertyRelative("frustum.viewerScale");

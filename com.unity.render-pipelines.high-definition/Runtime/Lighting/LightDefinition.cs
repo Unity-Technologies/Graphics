@@ -244,6 +244,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceBasedRoughness;
         // Sampling properties
         public int envIndex;
+
+        // Whether the probe is normalized by probe volume content.
+        public int normalizeWithAPV;
+        // The SH (L1 only) for irradiance at probe location.
+        public Vector4 l1R_l0r;
+        public Vector4 l1G_l0g;
+        public Vector4 l1B_l0b;
     };
 
     [GenerateHLSL]

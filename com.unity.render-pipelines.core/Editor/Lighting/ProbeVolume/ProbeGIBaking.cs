@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering
             Clear();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
 
             var volumeScale = bakingReferenceVolumeAuthoring.transform.localScale;
             var CellSize = bakingReferenceVolumeAuthoring.cellSize;
