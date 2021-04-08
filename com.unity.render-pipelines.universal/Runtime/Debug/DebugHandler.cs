@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +5,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugHandler : IDebugDisplaySettingsQuery
+    class DebugHandler : IDebugDisplaySettingsQuery
     {
         #region Property Id Constants
         private static readonly int kDebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
@@ -71,12 +70,13 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_DebugDisplaySettings.TryGetScreenClearColor(ref color);
         }
+
         #endregion
 
-        public Material ReplacementMaterial => m_ReplacementMaterial;
-        public DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+        internal Material ReplacementMaterial => m_ReplacementMaterial;
+        internal DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
-        public bool IsScreenClearNeeded
+        internal bool IsScreenClearNeeded
         {
             get
             {
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public DebugHandler(ScriptableRendererData scriptableRendererData)
+        internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Texture2D numberFontTexture = scriptableRendererData.debugShaders.NumberFont;
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
@@ -97,21 +97,21 @@ namespace UnityEngine.Rendering.Universal
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
-        public bool IsActiveForCamera(ref CameraData cameraData)
+        internal bool IsActiveForCamera(ref CameraData cameraData)
         {
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
-        public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
+        internal void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
         {
-            if(LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+            if (LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
             {
                 // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                 cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
 
-            switch(RenderingSettings.debugSceneOverrideMode)
+            switch (RenderingSettings.debugSceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
 
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if(passIndex == 1)
+                    if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                     }
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }       // End of switch.
 
-            switch(ValidationSettings.validationMode)
+            switch (ValidationSettings.validationMode)
             {
                 case DebugValidationMode.ValidateAlbedo:
                 {
@@ -172,24 +172,24 @@ namespace UnityEngine.Rendering.Universal
             }       // End of switch.
         }
 
-        public void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
+        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetIdentifier = renderTargetIdentifier;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
         }
 
-        public void ResetDebugRenderTarget()
+        internal void ResetDebugRenderTarget()
         {
             m_HasDebugRenderTarget = false;
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
+        internal void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
             DebugDisplaySettingsValidation validationSettings = m_DebugDisplaySettings.ValidationSettings;
 
-            if(IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(ref cameraData))
             {
                 cmd.EnableShaderKeyword("_DEBUG_SHADER");
             }
@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_SHADER");
             }
 
-            if(m_HasDebugRenderTarget)
+            if (m_HasDebugRenderTarget)
             {
                 cmd.SetGlobalTexture(kDebugTexturePropertyId, m_DebugRenderTargetIdentifier);
                 cmd.SetGlobalVector(kDebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void Setup(ScriptableRenderContext context)
+        internal void Setup(ScriptableRenderContext context)
         {
             var cmd = CommandBufferPool.Get("");
 
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Current?.Dispose();
 
-                    if(++m_Index >= m_NumIterations)
+                    if (++m_Index >= m_NumIterations)
                     {
                         return false;
                     }
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public void Reset()
                 {
-                    if(Current != null)
+                    if (Current != null)
                     {
                         Current.Dispose();
                         Current = null;
@@ -300,6 +300,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Current?.Dispose();
                 }
+
                 #endregion
             }
 
@@ -324,14 +325,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 return GetEnumerator();
             }
+
             #endregion
         }
 
-        public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
-                                                                              CommandBuffer commandBuffer)
+        internal IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
+            CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
         }
+
         #endregion
     }
 }

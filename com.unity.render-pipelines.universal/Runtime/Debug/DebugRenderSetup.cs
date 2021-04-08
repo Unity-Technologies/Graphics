@@ -1,10 +1,9 @@
-
 using System;
 using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugRenderSetup : IDisposable
+    class DebugRenderSetup : IDisposable
     {
         private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
 
@@ -20,15 +19,15 @@ namespace UnityEngine.Rendering.Universal
 
         private bool IsDebugMaterialPassNeeded()
         {
-            if((MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None) ||
-               (RenderingSettings.debugMipInfoMode != DebugMipInfoMode.None) ||
-               (LightingSettings.DebugLightingMode != DebugLightingMode.None) ||
-               (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None))
+            if ((MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None) ||
+                (RenderingSettings.debugMipInfoMode != DebugMipInfoMode.None) ||
+                (LightingSettings.DebugLightingMode != DebugLightingMode.None) ||
+                (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None))
             {
                 return true;
             }
 
-            switch(ValidationSettings.validationMode)
+            switch (ValidationSettings.validationMode)
             {
                 case DebugValidationMode.ValidateAlbedo:
                 case DebugValidationMode.ValidateMetallic:
@@ -38,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            switch(RenderingSettings.debugSceneOverrideMode)
+            switch (RenderingSettings.debugSceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 case DebugSceneOverrideMode.Wireframe:
@@ -60,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
-            switch(sceneOverrideMode)
+            switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
@@ -72,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
                 case DebugSceneOverrideMode.SolidWireframe:
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if(m_Index == 1)
+                    if (m_Index == 1)
                     {
                         m_Context.Submit();
                         GL.wireframe = true;
@@ -91,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
-            switch(sceneOverrideMode)
+            switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
@@ -103,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
                 case DebugSceneOverrideMode.SolidWireframe:
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if(m_Index == 1)
+                    if (m_Index == 1)
                     {
                         m_Context.Submit();
                         GL.wireframe = false;
@@ -118,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
             } // End of switch.
         }
 
-        public DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
+        internal DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
         {
             m_DebugHandler = debugHandler;
             m_Context = context;
@@ -128,11 +127,11 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
+        internal DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
-            if(usesReplacementMaterial)
+            if (usesReplacementMaterial)
             {
                 Material replacementMaterial = m_DebugHandler.ReplacementMaterial;
                 DrawingSettings modifiedDrawingSettings = drawingSettings;
@@ -143,7 +142,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if(IsDebugMaterialPassNeeded())
+                if (IsDebugMaterialPassNeeded())
                 {
                     return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
                 }
@@ -155,21 +154,21 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
+        internal bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
             // Create an empty render-state block and only enable the parts we wish to override...
             renderStateBlock = new RenderStateBlock();
 
-            switch(sceneOverrideMode)
+            switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
                     RenderTargetBlendState additiveBlend = new RenderTargetBlendState(sourceColorBlendMode: BlendMode.One, destinationColorBlendMode: BlendMode.One);
 
                     // Additive-blend but leave z-write and culling as they are when we draw normally...
-                    renderStateBlock.blendState = new BlendState{blendState0 = additiveBlend};
+                    renderStateBlock.blendState = new BlendState {blendState0 = additiveBlend};
                     renderStateBlock.mask = RenderStateMask.Blend;
                     return true;
                 }
@@ -182,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
                 case DebugSceneOverrideMode.SolidWireframe:
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if(m_Index == 1)
+                    if (m_Index == 1)
                     {
                         // Ensure we render the wireframe in front of the solid triangles of the previous pass...
                         renderStateBlock.rasterState = new RasterState(offsetUnits: -1, offsetFactor: -1);
