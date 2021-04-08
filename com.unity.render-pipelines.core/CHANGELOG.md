@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 - Fixed ACES tonemaping on mobile platforms by forcing some shader color conversion functions to full float precision.
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 
 ## [10.2.0] - 2020-10-19
 

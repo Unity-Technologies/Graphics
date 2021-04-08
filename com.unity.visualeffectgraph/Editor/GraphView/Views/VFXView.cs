@@ -1419,7 +1419,6 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
-            OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
 

@@ -106,7 +106,7 @@ Universal_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal on Linux_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -134,7 +134,7 @@ Universal_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: Universal on Linux_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -162,4 +162,4 @@ Universal_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
