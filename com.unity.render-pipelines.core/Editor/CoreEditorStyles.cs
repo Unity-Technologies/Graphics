@@ -122,8 +122,7 @@ namespace UnityEditor.Rendering
             iconFail = EditorGUIUtility.FindTexture("console.erroricon");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
             iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
-
-
+            
             globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
 
             // Make sure that textures are unloaded on domain reloads.
