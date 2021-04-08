@@ -68,7 +68,7 @@ namespace UnityEngine
         /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
-        [Min(0)]
+        [Min(0.0f)]
         public float occlusionRadius = 0.1f;
         /// <summary>
         /// Random Samples Count used inside the disk with 'occlusionRadius'
@@ -80,6 +80,11 @@ namespace UnityEngine
         /// Useful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb
         /// </summary>
         public float occlusionOffset = 0.05f;
+        /// <summary>
+        /// Global Scale
+        /// </summary>
+        [Min(0.0f)]
+        public float scale = 1.0f;
         /// <summary>
         /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
         /// </summary>

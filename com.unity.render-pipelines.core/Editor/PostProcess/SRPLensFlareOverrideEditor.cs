@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;
+        SerializedProperty m_Scale;
         SerializedProperty m_MaxAttenuationDistance;
         SerializedProperty m_MaxAttenuationScale;
         SerializedProperty m_DistanceAttenuationCurve;
@@ -33,6 +34,7 @@ namespace UnityEditor.Rendering
             PropertyFetcher<SRPLensFlareOverride> entryPoint = new PropertyFetcher<SRPLensFlareOverride>(serializedObject);
             m_LensFlareData = entryPoint.Find("m_LensFlareData");
             m_Intensity = entryPoint.Find(x => x.intensity);
+            m_Scale = entryPoint.Find(x => x.scale);
             m_MaxAttenuationDistance = entryPoint.Find(x => x.maxAttenuationDistance);
             m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
             m_MaxAttenuationScale = entryPoint.Find(x => x.maxAttenuationScale);
@@ -69,6 +71,7 @@ namespace UnityEditor.Rendering
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
+                EditorGUILayout.PropertyField(m_Scale, Styles.scale);
                 if (!lightIsDirLight)
                 {
                     if (attachedToLight)
@@ -111,6 +114,7 @@ namespace UnityEditor.Rendering
         {
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the lens flare.");
+            static public readonly GUIContent scale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of the lens flare.");
             static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance", "Sets the distance, in world space, between the start and the end of the Distance Attenuation Curve.");
             static public readonly GUIContent distanceAttenuationCurve = EditorGUIUtility.TrTextContent("Attenuation Distance Curve", "Specifies the curve that reduces the effect of the lens flare  based on the distance between the GameObject this asset is attached to and the Camera.");
             static public readonly GUIContent maxAttenuationScale = EditorGUIUtility.TrTextContent("Scale Distance", "Sets the distance, in world space, between the start and the end of the Scale Attenuation Curve.");

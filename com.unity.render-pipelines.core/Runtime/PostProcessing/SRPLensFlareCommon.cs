@@ -418,7 +418,7 @@ namespace UnityEngine
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
                     float scaleSize = 0.1f; // Arbitrary value
                     Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
-                    float combinedScale = scaleByDistance * scaleSize * element.uniformScale;
+                    float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
                     size *= combinedScale;
 
                     Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
