@@ -466,19 +466,24 @@ namespace UnityEditor.Rendering
                 }
 
                 var renames = kv.Value.PropertyRenames;
-                var bindings = kv.Key.GetCurveBindings();
-                foreach(var binding in bindings)
+                var bindings = kv.Key.GetCurveBindings().Where(IsMaterialBinding).ToArray();
+                if (bindings.Length > 0)
                 {
-                    if (!binding.type.IsSubclassOf(typeof(Renderer)))
-                        continue;
+                    var newBindings = new EditorCurveBinding[bindings.Length];
 
-                    var newBinding = binding;
-                    var shaderProperty = InferShaderProperty(binding);
-                    if (renames.TryGetValue(shaderProperty.Name, out var newName))
-                        newBinding.propertyName = k_MatchMaterialPropertyName.Replace(newBinding.propertyName, $"material.{newName}$2");
+                    for (int i = 0; i < bindings.Length; ++i)
+                    {
+                        var binding = bindings[i];
 
-                    kv.Key.ReplaceBinding(binding, newBinding);
+                        newBindings[i] = binding;
+                        var shaderProperty = InferShaderProperty(binding);
+                        if (renames.TryGetValue(shaderProperty.Name, out var newName))
+                            newBindings[i].propertyName = k_MatchMaterialPropertyName.Replace(newBindings[i].propertyName, $"material.{newName}$2");
+                    }
+
+                    kv.Key.ReplaceBindings(bindings, newBindings);
                 }
+
                 upgraded.Add((kv.Key, kv.Value.Path, kv.Value.Usage));
             }
         }

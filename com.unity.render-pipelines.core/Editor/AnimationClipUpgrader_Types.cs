@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering
             AnimationClip Clip { get; }
             EditorCurveBinding[] GetCurveBindings();
             void ReplaceBinding(EditorCurveBinding oldBinding, EditorCurveBinding newBinding);
+            void ReplaceBindings(EditorCurveBinding[] oldBindings, EditorCurveBinding[] newBindings);
         }
 
         internal struct AnimationClipProxy : IAnimationClip
@@ -36,6 +37,18 @@ namespace UnityEditor.Rendering
                 AnimationUtility.SetEditorCurve(Clip, oldBinding, null);
                 AnimationUtility.SetEditorCurve(Clip, newBinding, curve);
             }
+
+            public void ReplaceBindings(EditorCurveBinding[] oldBindings, EditorCurveBinding[] newBindings)
+            {
+                var curves = new AnimationCurve[oldBindings.Length];
+
+                for (int i = 0; i < oldBindings.Length; ++i)
+                    curves[i] = AnimationUtility.GetEditorCurve(Clip, oldBindings[i]);
+
+                AnimationUtility.SetEditorCurves(Clip, oldBindings, new AnimationCurve[oldBindings.Length]);
+                AnimationUtility.SetEditorCurves(Clip, newBindings, curves);
+            }
+
             public static implicit operator AnimationClip(AnimationClipProxy proxy) => proxy.Clip;
             public static implicit operator AnimationClipProxy(AnimationClip clip) => new AnimationClipProxy { Clip = clip };
             public override string ToString() => Clip.ToString();
