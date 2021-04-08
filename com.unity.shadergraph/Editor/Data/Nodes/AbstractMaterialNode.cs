@@ -748,19 +748,12 @@ namespace UnityEditor.ShaderGraph
 
         public string GetConnnectionStateVariableNameForSlot(int slotId)
         {
-            return ShaderInput.GetConnectionStateName(GetVariableNameForSlot(slotId));
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;
-        }
-
-        public MaterialSlot AddPropertySlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
-        {
-            slot = AddSlot(slot, attemptToModifyExistingInstance);
-            slot.isProperty = true;
-            return slot;
         }
 
         public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)

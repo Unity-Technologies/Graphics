@@ -35,29 +35,6 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        [SerializeField]
-        bool m_UseCustomSlotLabel;
-
-        internal bool useCustomSlotLabel
-        {
-            get => m_UseCustomSlotLabel;
-            set => m_UseCustomSlotLabel = value;
-        }
-
-        [SerializeField]
-        string m_CustomSlotLabel;
-
-        internal string customSlotLabel
-        {
-            get => m_CustomSlotLabel;
-            set => m_CustomSlotLabel = value;
-        }
-
-        static internal string GetConnectionStateName(string baseName)
-        {
-            return baseName + "_IsConnected";
-        }
-
         // This delegate and the associated callback can be bound to in order for any one that cares about display name changes to be notified
         internal delegate void ChangeDisplayNameCallback(string newDisplayName);
         ChangeDisplayNameCallback m_displayNameUpdateTrigger;
@@ -179,14 +156,6 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        internal string connectionStateReferenceName
-        {
-            get
-            {
-                return GetConnectionStateName(referenceName);
-            }
-        }
-
         public override void OnBeforeDeserialize()
         {
             // if serialization doesn't write to m_DefaultRefNameVersion, then it is an old shader input, and should use the old default naming scheme
@@ -251,6 +220,34 @@ namespace UnityEditor.ShaderGraph.Internal
 
         // this controls whether the UI allows the user to rename the display and reference names
         internal abstract bool isRenamable { get; }
+
+        [SerializeField]
+        bool m_UseCustomSlotLabel = false;
+
+        [SerializeField]
+        string m_CustomSlotLabel;
+
+        internal bool useCustomSlotLabel
+        {
+            get => m_UseCustomSlotLabel;
+            set => m_UseCustomSlotLabel = value;
+        }
+		
+        internal string customSlotLabel
+        {
+            get => m_CustomSlotLabel;
+            set => m_CustomSlotLabel = value;
+        }
+
+        internal bool isConnectionTestable
+        {
+            get => m_UseCustomSlotLabel;
+        }
+
+        static internal string GetConnectionStateVariableName(string variableName)
+        {
+            return variableName + "_IsConnected";
+        }
 
         internal abstract ShaderInput Copy();
     }

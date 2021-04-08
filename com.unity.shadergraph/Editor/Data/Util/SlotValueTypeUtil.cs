@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Boolean:
                     return precisionToken;
                 case ConcreteSlotValueType.PropertyConnectionState:
-                    return precisionToken;
+                    return "bool";
                 default:
                     return "Error";
             }

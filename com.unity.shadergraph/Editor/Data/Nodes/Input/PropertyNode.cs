@@ -84,63 +84,63 @@ namespace UnityEditor.ShaderGraph
             switch (property.concreteShaderValueType)
             {
                 case ConcreteSlotValueType.Boolean:
-                    AddPropertySlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
+                    AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    AddPropertySlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector2:
-                    AddPropertySlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector3:
-                    AddPropertySlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector4:
-                    AddPropertySlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Matrix2:
-                    AddPropertySlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Matrix3:
-                    AddPropertySlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Matrix4:
-                    AddPropertySlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Texture2D:
-                    AddPropertySlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture2DArray:
-                    AddPropertySlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture3D:
-                    AddPropertySlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Cubemap:
-                    AddPropertySlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.SamplerState:
-                    AddPropertySlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Gradient:
-                    AddPropertySlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.VirtualTexture:
-                    AddPropertySlot(new VirtualTextureMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                    AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 default:
@@ -226,7 +226,10 @@ namespace UnityEditor.ShaderGraph
                     break;
             }
 
-            sb.AppendLine("$precision {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (generationMode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+            if (property.isConnectionTestable)
+            {
+                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (generationMode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+            }            
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -243,7 +246,7 @@ namespace UnityEditor.ShaderGraph
 
         public string GetConnectionStateVariableNameForSlot(int slotId)
         {
-            return ShaderInput.GetConnectionStateName(GetVariableNameForSlot(slotId));
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         protected override void CalculateNodeHasError()

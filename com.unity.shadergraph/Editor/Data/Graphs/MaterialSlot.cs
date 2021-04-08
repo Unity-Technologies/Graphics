@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -34,9 +33,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ShaderStageCapability m_StageCapability;
 
-        [SerializeField]
-        bool m_IsProperty = false;
-
         bool m_HasError;
 
         protected MaterialSlot() {}
@@ -51,45 +47,38 @@ namespace UnityEditor.ShaderGraph
             this.stageCapability = stageCapability;
         }
 
-        // Perhaps there's a better way of distinguishing whether or not the slot was created from a property?
-        public bool isProperty
-        {
-            get { return this.m_IsProperty; }
-            set { this.m_IsProperty = value; }
-        }
-
         internal void SetInternalData(SlotType slotType, string shaderOutputName)
         {
             this.m_SlotType = slotType;
             this.shaderOutputName = shaderOutputName;
         }
 
-        public bool NeedsCustomLabelControl()
+        public bool IsConnectionTestable()
         {
-            if (!isConnected)
+            if (owner is SubGraphNode sgNode)
             {
-                if (owner is SubGraphNode sgNode)
+                var property = sgNode.GetShaderProperty(id);
+                if (property != null)
                 {
-                    var property = sgNode.GetShaderProperty(id);
-                    if (property != null)
-                    {
-                        return property.useCustomSlotLabel;
-                    }
+                    return property.isConnectionTestable;
                 }
+            }
+            else if (owner is PropertyNode propertyNode)
+            {
+                return propertyNode.property.isConnectionTestable;
             }
             return false;
         }
 
-        public VisualElement InstantiateCustomLabelControl()
+        public VisualElement InstantiateCustomControl()
         {
-            if (!NeedsCustomLabelControl())
+            if (!isConnected && IsConnectionTestable())
             {
-                return null;
+                var sgNode = owner as SubGraphNode;
+                var property = sgNode.GetShaderProperty(id);
+                return new LabelSlotControlView(property.customSlotLabel);
             }
-
-            var sgNode = owner as SubGraphNode;
-            var property = sgNode.GetShaderProperty(id);
-            return new LabelSlotControlView(property.customSlotLabel);
+            return null;
         }
 
         public virtual VisualElement InstantiateControl()
@@ -296,8 +285,8 @@ namespace UnityEditor.ShaderGraph
                 && !hidden
                 && !otherSlot.hidden
                 && ((isInputSlot
-                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType, otherSlot.isProperty)
-                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType, isProperty)));
+                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType, otherSlot.IsConnectionTestable())
+                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType, IsConnectionTestable())));
         }
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)

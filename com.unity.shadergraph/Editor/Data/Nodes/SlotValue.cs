@@ -187,7 +187,7 @@ namespace UnityEditor.ShaderGraph
 
         static Dictionary<ConcreteSlotValueType, List<SlotValueType>> s_ValidConversions;
         static List<SlotValueType> s_ValidSlotTypes;
-        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType, bool outputTypeIsProperty = false)
+        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType, bool outputTypeIsConnectionTestable = false)
         {
             if (s_ValidConversions == null)
             {
@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph
 
             if (inputType == SlotValueType.PropertyConnectionState)
             {
-                return outputTypeIsProperty;
+                return outputTypeIsConnectionTestable;
             }
 
             if (s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
