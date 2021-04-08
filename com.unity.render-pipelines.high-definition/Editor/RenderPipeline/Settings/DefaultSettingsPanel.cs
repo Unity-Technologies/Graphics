@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
             {
-                if (HDRenderPipeline.currentPipeline != null || HDRenderPipelineGlobalSettings.instance != null)
+                if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
@@ -156,11 +156,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawWarnings(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
-            bool isHDRPRunning = HDRenderPipeline.currentPipeline != null;
-            if (isHDRPRunning && serialized != null)
+            bool isHDRPinUse = HDRenderPipeline.currentAsset != null;
+            if (isHDRPinUse && serialized != null)
                 return;
 
-            if (isHDRPRunning)
+            if (isHDRPinUse)
             {
                 EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
             }
