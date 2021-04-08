@@ -1,4 +1,0 @@
-struct FragInputsVFX
-{
-    $splice(FragInputsVFX)
-};

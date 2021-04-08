@@ -29,9 +29,15 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
-    // TODO: Merge FragInputsVFX with CustomInterpolators.
 	$features.graphVFX: #define HAVE_VFX_MODIFICATION
-	$features.graphVFX: $include("VFX/FragInputsDeclaration.template.hlsl")
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
