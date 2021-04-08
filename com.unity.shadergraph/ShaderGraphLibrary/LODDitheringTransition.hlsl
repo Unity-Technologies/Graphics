@@ -5,8 +5,8 @@
 // and replaced with a string custom function if Shader Graph ever adds
 // support for flagging custom function nodes as used, even if not
 // connected to anything.
-#ifndef CROSSFADE_INCLUDED
-#define CROSSFADE_INCLUDED
+#ifndef SHADERGRAPH_CROSSFADE_INCLUDED
+#define SHADERGRAPH_CROSSFADE_INCLUDED
 #ifndef UNITY_MATERIAL_INCLUDED
 uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
 {
@@ -38,7 +38,7 @@ uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
     return fadeMaskSeed;
 }
 #endif
-void DoLODCrossFade_float(float3 viewDirWS, float4 screenPos, out float multiplyAlpha)
+void LODDitheringTransitionSG_float(float3 viewDirWS, float4 screenPos, out float multiplyAlpha)
 {
 #if !defined (SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
     float p = GenerateHashedRandomFloat(ComputeFadeMaskSeed(viewDirWS, screenPos.xy));
