@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Tracing-Path-Tracing" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+                passData.pathTracingShader = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.pathTracing;
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+            RayTracingShader pathTracingShader = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.pathTracing;
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation

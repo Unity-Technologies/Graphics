@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -256,6 +256,23 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV4(Material material, ShaderPathID shaderID)
         {}
+
+        static void UpgradeV5(Material material, ShaderPathID shaderID)
+        {
+            var propertyID = Shader.PropertyToID("_Surface");
+            if (material.HasProperty(propertyID))
+            {
+                float surfaceType = material.GetFloat(propertyID);
+                if (surfaceType >= 1.0f)
+                {
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+                else
+                {
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+            }
+        }
     }
 
     // Upgraders v1

@@ -136,6 +136,10 @@ namespace UnityEngine.Rendering
             if (volumeAsset == null)
                 return;
 
+#if UNITY_EDITOR
+            m_PrevAsset = null;
+#endif
+
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
@@ -144,7 +148,6 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
-
 #endif
             QueueAssetLoading();
         }

@@ -50,7 +50,7 @@ MonoBehaviour:
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
-    debugDensityVolumeAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
+    debugLocalVolumetricFogAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
     cameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
     clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040, type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
@@ -145,7 +145,8 @@ MonoBehaviour:
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
-    DoFCoCPyramidCS: {fileID: 7200000, guid: df41a69211c03fe479b63a8bed3bfbb4, type: 3}
+    dofCoCMinMaxCS: {fileID: 7200000, guid: c70dd492c3d2fe94589d6ca8d4e37915, type: 3}
+    dofMinMaxDilateCS: {fileID: 7200000, guid: 757a3f81b35177b44b2b178909b49172, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6, type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a, type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}

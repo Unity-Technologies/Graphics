@@ -208,8 +208,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
-            //Draw the mode
-            serialized.settings.DrawLightmapping();
+            // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
+            using (new EditorGUI.DisabledScope(serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc))
+                serialized.settings.DrawLightmapping();
 
             if (updatedLightType == HDLightType.Area)
             {
@@ -222,6 +223,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     case AreaLightShape.Disc:
                         if (!serialized.settings.isCompletelyBaked)
                             EditorGUILayout.HelpBox("Disc Area Lights are baked only.", MessageType.Error);
+                        // Disc lights are not supported in Enlighten
+                        if (!Lightmapping.bakedGI && Lightmapping.realtimeGI)
+                            EditorGUILayout.HelpBox("Disc Area Lights are not supported with realtime GI.", MessageType.Error);
                         break;
                 }
             }

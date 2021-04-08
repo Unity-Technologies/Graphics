@@ -7,6 +7,7 @@ The Universal Render Pipeline uses a different shading approach than the Unity b
 - [Simple Lit](simple-lit-shader.md)
 - [Baked Lit](baked-lit-shader.md)
 - [Unlit](unlit-shader.md)
+- [Terrain Lit](shader-terrain-lit.md)
 - [Particles Lit](particles-lit-shader.md)
 - [Particles Simple Lit](particles-simple-lit-shader.md)
 - [Particles Unlit](particles-unlit-shader.md)

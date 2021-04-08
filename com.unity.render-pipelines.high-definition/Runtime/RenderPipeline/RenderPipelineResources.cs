@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("HDRP-Asset")]
     partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -94,8 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
             public Shader combineLightingPS;
 
-            [Reload("Runtime/Lighting/VolumetricLighting/DebugDensityVolumeAtlas.shader")]
-            public Shader debugDensityVolumeAtlasPS;
+            [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
+            public Shader debugLocalVolumetricFogAtlasPS;
 
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
@@ -311,8 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
             public ComputeShader dofGatherCS;
-            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
-            public ComputeShader DoFCoCPyramidCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCMinMax.compute")]
+            public ComputeShader dofCoCMinMaxCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
+            public ComputeShader dofMinMaxDilateCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
