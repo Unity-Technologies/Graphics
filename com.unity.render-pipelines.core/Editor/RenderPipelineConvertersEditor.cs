@@ -48,6 +48,7 @@ class ConverterState
 }
 
 [Serializable]
+[EditorWindowTitle(title = "Render Pipeline Converters")]
 public class RenderPipelineConvertersEditor : EditorWindow
 {
     Texture2D kImgWarn;
@@ -79,19 +80,20 @@ public class RenderPipelineConvertersEditor : EditorWindow
 #if RENDER_PIPELINE_CONVERTER
     [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
 #endif
+
     public static void ShowWindow()
     {
         RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
-        wnd.titleContent = new GUIContent("Render Pipeline Converters");
+        wnd.Show();
     }
 
     void OnEnable()
     {
-        kImgWarn = EditorGUIUtility.FindTexture("console.warnicon");
-        kImgHelp = EditorGUIUtility.FindTexture("_Help");
-        kImgFail = EditorGUIUtility.FindTexture("console.erroricon");
-        kImgSuccess = EditorGUIUtility.FindTexture("TestPassed");
-        kImgPending = EditorGUIUtility.FindTexture("Toolbar Minus");
+        kImgWarn = CoreEditorStyles.iconWarn;
+        kImgHelp = CoreEditorStyles.iconHelp;
+        kImgFail = CoreEditorStyles.iconFail;
+        kImgSuccess = CoreEditorStyles.iconSuccess;
+        kImgPending = CoreEditorStyles.iconPending;
 
         // This is the drop down choices.
         m_Conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
@@ -196,7 +198,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
         // Need to return Name, Path, Initial info, Help link.
         // New empty list of ConverterItemInfos
         List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
-        var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
+        var initCtx = new InitializeConverterContext { items = converterItemInfos };
 
         var conv = m_CoreConvertersList[i];
 
@@ -211,7 +213,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
         // Default all the entries to true
         for (var j = 0; j < converterItemInfos.Count; j++)
         {
-            string message = "";
+            string message = string.Empty;
             Status status;
             bool active = true;
             // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
@@ -356,22 +358,23 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
     void UpdateInfo(int stateIndex, RunConverterContext ctx)
     {
-        var failedItems = ctx.m_FailedItems;
-        var failedCount = failedItems.Count;
-        var successCount = ctx.m_SuccessfulItems.Count;
+        var failedCount = ctx.failedCount;
+        var successCount = ctx.successfulCount;
 
         // Get the pending amount
         m_ConverterStates[stateIndex].pending =  m_ConverterStates[stateIndex].items.Count;
 
-        foreach (FailedItem failedItem in failedItems)
+        for (int i = 0; i < failedCount; i++)
         {
+            var failedItem = ctx.GetFailedItemAtIndex(i);
             // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
             m_ConverterStates[stateIndex].items[failedItem.index].message = failedItem.message;
             m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
         }
 
-        foreach (SuccessfulItem successfulItem in ctx.m_SuccessfulItems)
+        for (int i = 0; i < successCount; i++)
         {
+            var successfulItem = ctx.GetSuccessfulItemAtIndex(i);
             m_ConverterStates[stateIndex].items[successfulItem.index].status = Status.Success;
         }
 
