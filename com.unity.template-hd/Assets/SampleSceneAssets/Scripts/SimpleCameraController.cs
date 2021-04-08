@@ -233,10 +233,11 @@ namespace UnityTemplateProjects
 
         Vector2 GetInputLookRotation()
         {
+            // try to compensate the diff between the two input systems by multiplying with empirical values
 #if ENABLE_INPUT_SYSTEM
-            return lookAction.ReadValue<Vector2>();
+            return lookAction.ReadValue<Vector2>() * 0.7f;
 #else
-            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1)) * 10.0f; // try to compensate the diff between the two input systems
+            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1)) * 10.0f;
 #endif
         }
 
