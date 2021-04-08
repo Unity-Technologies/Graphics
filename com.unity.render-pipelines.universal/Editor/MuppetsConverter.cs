@@ -20,8 +20,8 @@ public sealed class MuppetsConverter : RenderPipelineConverter
             ConverterItemDescriptor info = new ConverterItemDescriptor()
             {
                 name = "Muppet : " + i,
-                path = "Somewhere/On/My/Disk..." + i,
-                initialInfo = "",
+                info = "Somewhere/On/My/Disk..." + i,
+                warningMessage = "",
                 helpLink = "?? yupp",
             };
             ctx.AddAssetToConvert(info);
@@ -33,7 +33,7 @@ public sealed class MuppetsConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
-            ctx.Processing(item.index);
+            //ctx.Processing(item.index);
 
             //var path = m_AssetsToConvert[item.id];
             // if failed.
