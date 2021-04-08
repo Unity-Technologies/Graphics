@@ -10,6 +10,7 @@
 
 // Define the correct matrices
 #undef unity_ObjectToWorld
+#undef unity_PrevObjectToWorld
 #undef unity_MatrixVP
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixVP;
@@ -20,6 +21,12 @@ float4x4 glstate_matrix_projection;
 
 #undef UNITY_MATRIX_I_M
 #define UNITY_MATRIX_I_M Inverse(unity_ObjectToWorld)
+
+#undef UNITY_PREV_MATRIX_M
+#define UNITY_PREV_MATRIX_M unity_PrevObjectToWorld
+
+#undef UNITY_PREV_MATRIX_I_M
+#define UNITY_PREV_MATRIX_I_M Inverse(unity_PrevObjectToWorld)
 
 #undef UNITY_MATRIX_V
 #define UNITY_MATRIX_V unity_MatrixV
@@ -34,6 +41,8 @@ float4x4 glstate_matrix_projection;
 // Overwrite the SpaceTransforms functions
 #define GetObjectToWorldMatrix GetObjectToWorldMatrix_Picking
 #define GetWorldToObjectMatrix GetWorldToObjectMatrix_Picking
+#define GetPrevObjectToWorldMatrix GetPrevObjectToWorldMatrix_Picking
+#define GetPrevWorldToObjectMatrix GetPrevWorldToObjectMatrix_Picking
 #define GetWorldToViewMatrix GetWorldToViewMatrix_Picking
 #define GetWorldToHClipMatrix GetWorldToHClipMatrix_Picking
 #define GetViewToHClipMatrix GetViewToHClipMatrix_Picking

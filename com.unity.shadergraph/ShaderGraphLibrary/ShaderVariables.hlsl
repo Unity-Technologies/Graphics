@@ -234,8 +234,8 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixNonJitteredVP;
     float4x4 unity_MatrixPreviousVP;
-    float4x4 unity_MatrixPreviousM;
-    float4x4 unity_MatrixPreviousMI;
+    float4x4 unity_PrevObjectToWorld;
+    float4x4 unity_PrevWorldToObject;
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value
