@@ -66,8 +66,7 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUI.BeginChangeCheck();
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "     General", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, "    General", EditorStyles.boldLabel);
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
@@ -88,9 +87,7 @@ namespace UnityEditor.Rendering
                 }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-            --EditorGUI.indentLevel;
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "     Occlusion", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, "    Occlusion", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
@@ -101,7 +98,6 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-            --EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
 
             if (EditorGUI.EndChangeCheck())
