@@ -226,6 +226,12 @@ namespace UnityEditor.Rendering
                         if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
                             sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
                     }
+                    else
+                    {
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.sizeXY, sizeXYProp.vector2Value.y)) != sizeXYProp.vector2Value.y)
+                            sizeXYProp.vector2Value = new Vector2(sizeXYProp.vector2Value.x, Mathf.Max(tmp, 1e-6f));
+                    }
 
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
@@ -384,10 +390,7 @@ namespace UnityEditor.Rendering
             float offset = 0.0f;
             if (isFoldOpened.boolValue)
             {
-                if (preserveAspectRatio.boolValue)
-                    coef = 26.0f;
-                else
-                    coef = 27.0f;
+                coef = 27.0f;
 
                 if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                 {
