@@ -1,4 +1,3 @@
-
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
@@ -15,7 +14,7 @@ namespace UnityEngine.Rendering
             go.AddComponent<DebugUpdater>();
 
             var es = GameObject.FindObjectOfType<EventSystem>();
-            if(es == null)
+            if (es == null)
             {
                 go.AddComponent<EventSystem>();
                 go.AddComponent<StandaloneInputModule>();
