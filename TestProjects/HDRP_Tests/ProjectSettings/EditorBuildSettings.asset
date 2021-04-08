@@ -111,6 +111,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1351_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1351_Fabric_Area_Light.unity
+    guid: 671cc97b65e9fff439b889734383db04
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1352_Fabric_Env_Convolution.unity
     guid: 54443f41976c13246b6b67ce1dc2a06f
   - enabled: 1
@@ -120,8 +123,14 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1401_HairGraph_Area_Light.unity
+    guid: 742fd14ea433315428d74ff668204092
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1451_AxF_SVBRDF.unity
     guid: 96afd39d83184974299cc32cded820c5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1451_AxF_SVBRDF_AreaLights.unity
+    guid: 58c04d8d44efb81418e09c89dbdde3d5
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_EyeTestSG.unity
     guid: f62791cf7ace7534680a0f9c461be164
@@ -378,6 +387,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2404_Area_LightOrientation.unity
     guid: e64d4cbd26924f44cb8ecf945d8f899a
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2405_EnlightenDynamicAreaLights.unity
+    guid: 5fe2db8e1b1f1b3448bdcc75bea0e2b8
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1
@@ -525,6 +537,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4081_DepthOfField-FP16Alpha.unity
     guid: ce905d8c0a0497f458dbe86bf3b1f615
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4082_DepthOfField-PB.unity
+    guid: d31e5e20c0b5d8b42af93fda0f5f77a5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4083_DepthOfField-FP16AlphaPB.unity
+    guid: a0fe0a96435b36649a501656437bfdeb
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4090_DRS-Hardware.unity
     guid: 813bead26cd69ed4c9e9726f6670da5f
   - enabled: 1
@@ -617,6 +635,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8206_VertexNormalTangent.unity
     guid: 2ece39f1bf8803a4192cbf5c032b5b7d
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_CustomInterpolators.unity
+    guid: 52d6e6ba6f864c24f9ca8db904b542b0
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9001_LODTransition.unity
     guid: b15315a1f9287fa4dac965a039b3b778

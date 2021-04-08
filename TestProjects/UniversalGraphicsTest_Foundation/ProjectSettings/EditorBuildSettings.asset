@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/001_SimpleCube.unity
     guid: d0462e56cffa64b7e86823f437fc329c
   - enabled: 1
+    path: Assets/Scenes/001_SimpleCube_deferred.unity
+    guid: 8d14b46e105b5f244979e5d6d36bb008
+  - enabled: 1
     path: Assets/Scenes/002_Camera_Clip.unity
     guid: 4be459bb4af62441893ba57ce669de7f
   - enabled: 1
@@ -21,14 +24,23 @@ EditorBuildSettings:
     path: Assets/Scenes/007_LitShaderMaps.unity
     guid: 7f2ec65906a47474383300df9c0aad69
   - enabled: 1
+    path: Assets/Scenes/007_LitShaderMaps_deferred.unity
+    guid: 35b152ab4483ad049a450525e8de6cbf
+  - enabled: 1
     path: Assets/Scenes/008_AdditionalLights.unity
     guid: 8d65e7263d49aea4dad06fbbe0b9f438
   - enabled: 1
     path: Assets/Scenes/010_AdditionalLightsSorted.unity
     guid: 169aede566e462449812f4bfb3f8d20d
   - enabled: 1
+    path: Assets/Scenes/010_AdditionalLightsSorted_Deferred.unity
+    guid: 85cbe36f834a9444681d081748b85f9f
+  - enabled: 1
     path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fddcdd964deca1d42b2952f32f67f694
+  - enabled: 1
+    path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres_deferred.unity
+    guid: 2509810858f319d4c8a9f0ab1803731e
   - enabled: 1
     path: Assets/Scenes/013_CameraMulti_Splitscreen.unity
     guid: 061267518b02f411c9c75f6b52f6d333
@@ -36,8 +48,14 @@ EditorBuildSettings:
     path: Assets/Scenes/014_CameraMulti_MiniMap.unity
     guid: 9225c2f5b8cf84f6bbe7cd83a8c22426
   - enabled: 1
+    path: Assets/Scenes/014_CameraMulti_MiniMap_deferred.unity
+    guid: 0c3534665968e874794d07c8309833d3
+  - enabled: 1
     path: Assets/Scenes/015_CameraMulti_FPSCam.unity
     guid: 9d2d9ca35103040838283b3c356c0250
+  - enabled: 1
+    path: Assets/Scenes/015_CameraMulti_FPSCam_deferred.unity
+    guid: 6f037216af61f0a40875022cae6831ac
   - enabled: 1
     path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
@@ -54,6 +72,9 @@ EditorBuildSettings:
     path: Assets/Scenes/026_Shader_PBRscene.unity
     guid: bcb8635ea84c143f0ae0823f1e9b6f25
   - enabled: 1
+    path: Assets/Scenes/026_Shader_PBRscene_AccurateGBuffer.unity
+    guid: 67452eee845c5ce41a417a871b58cd3d
+  - enabled: 1
     path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
     guid: 2b6b74b7929ae4191b3b936c12236e0a
   - enabled: 1
@@ -63,6 +84,9 @@ EditorBuildSettings:
     path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
   - enabled: 1
+    path: Assets/Scenes/029_Particles_Deferred.unity
+    guid: a21a65517ffcc4449abcc073835e2b4d
+  - enabled: 1
     path: Assets/Scenes/039_Particles_Instanced.unity
     guid: 5fca56b2f8a46664e858cbb290338fc8
   - enabled: 1
@@ -71,6 +95,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graphs.unity
+    guid: 6e7a83866a1e446b3becf7972371c5d0
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graphs_deferred.unity
+    guid: 96da3a5f3f80f534d81098bfe585331d
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
@@ -90,6 +120,9 @@ EditorBuildSettings:
     path: Assets/Scenes/111_CameraStackMSAA.unity
     guid: 83adeebeb3ba74a13816f2b8636588aa
   - enabled: 1
+    path: Assets/Scenes/111_CameraStackMSAA_deferred.unity
+    guid: 2236d967c83ebec47b8616c71fb0be17
+  - enabled: 1
     path: Assets/Scenes/119_CameraToRTWithViewportRect.unity
     guid: c7b61419ee9382545afe530714fda0c2
   - enabled: 1
@@ -105,11 +138,11 @@ EditorBuildSettings:
     path: Assets/Scenes/123_CameraStackingClear.unity
     guid: 9aa9851df0da149c9a83a0f26072e234
   - enabled: 1
+    path: Assets/Scenes/123_CameraStackingClear_deferred.unity
+    guid: 70198edfee594a34986cdc8ee0c077ff
+  - enabled: 1
     path: Assets/Scenes/124_CameraStackingClearRT.unity
     guid: 2fac616c9e61b45ccb7fcfa4fb18ae60
-  - enabled: 1
-    path: Assets/Scenes/125_CameraStackingVolumes.unity
-    guid: 9173c5ffc1365594aa9b927c4cd84c54
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
@@ -117,8 +150,14 @@ EditorBuildSettings:
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677
   - enabled: 1
+    path: Assets/Scenes/129_CameraStack3DOnUI_deferred.unity
+    guid: 810b97dd4e5e5204b9e6ed3d05c42498
+  - enabled: 1
     path: Assets/Scenes/130_ClearCoat.unity
     guid: 2242f9ac270754ebea6016ff9370de29
+  - enabled: 1
+    path: Assets/Scenes/130_ClearCoat_deferred.unity
+    guid: 8f1d00629fb57a8448b38a8822925713
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
@@ -128,4 +167,31 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/132_DetailMapping.unity
     guid: 0ad4d46f32f2cc942b4592c2f4368b83
+  - enabled: 1
+    path: Assets/Scenes/112_FogBasic.unity
+    guid: a13b9207cccbd4cbb99cf2a72b761eef
+  - enabled: 1
+    path: Assets/Scenes/200_DepthDeferred.unity
+    guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
+  - enabled: 1
+    path: Assets/Scenes/200_DepthForward.unity
+    guid: 95be3ed4f14c543b389e8e5a2e3d5187
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsDeferred.unity
+    guid: dafa2658c5a644673a2697d24ad96ffe
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsForward.unity
+    guid: 50a55af44edbd47579041b1556ed9a58
+  - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth.unity
+    guid: 2696010bf40d644cc8abc0b1304c59db
+  - enabled: 1
+    path: Assets/Scenes/203_SSAO_DepthNormal.unity
+    guid: c207f769f3e194ebc8cbd51e788ac65d
+  - enabled: 1
+    path: Assets/Scenes/204_SSAO_Deferred.unity
+    guid: 9033695b731a14fe79156b3c4c827aa0
+  - enabled: 1
+    path: Assets/Scenes/205_SSAO_BackBuffer.unity
+    guid: 72491ed40bf654eec9fef43f455e3916
   m_configObjects: {}

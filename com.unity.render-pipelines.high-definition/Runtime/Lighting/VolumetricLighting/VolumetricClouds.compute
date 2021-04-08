@@ -1,3 +1,4 @@
+#pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
 #pragma kernel RenderClouds
 #pragma kernel ReprojectClouds
@@ -5,6 +6,7 @@
 #pragma kernel ComputeVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
+#pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -34,7 +36,7 @@
 #define MIN_CLOUD_DISTANCE 10.0
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
-#define MAX_EROSION_DISTANCE 100000.0
+#define MAX_EROSION_DISTANCE 300000.0
 // Value that is used to normalize the noise textures
 #define NOISE_TEXTURE_NORMALIZATION_FACTOR 100000.0f
 
@@ -75,10 +77,44 @@ TEXTURE2D_X(_HistoryVolumetricClouds0Texture);
 TEXTURE2D_X(_HistoryVolumetricClouds1Texture);
 
 // Output texture
+RW_TEXTURE2D_X(float, _DepthBufferRW);
 RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
 RW_TEXTURE2D_X(float, _CloudsDepthTextureRW);
 RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
+
+float ConvertObliqueDepthToNonOblique(int2 currentCoord, float obliqueDepth)
+{
+    // Compute the world position of the tapped pixel
+    // Note: the view matrix here is not really used, but a valid matrix needs to be passed to this function.
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _ScreenSize.zw, obliqueDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // For some reason, with oblique matrices, when the point is on the background the reconstructed position ends up behind the camera and at the wrong position
+    float3 rayDirection = normalize(-centralPosInput.positionWS);
+    rayDirection = obliqueDepth == 0.0 ? -rayDirection : rayDirection;
+
+    // Adjust the position
+    centralPosInput.positionWS = obliqueDepth == 0.0 ? rayDirection * _ProjectionParams.z : centralPosInput.positionWS;
+
+    // Re-do the projection, but this time without the oblique part and export it
+    float4 hClip = mul(_CameraViewProjection_NO, float4(centralPosInput.positionWS, 1.0));
+
+    return saturate(hClip.z / hClip.w);
+}
+
+[numthreads(8, 8, 1)]
+void ConvertObliqueDepth(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // If this is bigger than the trace size, we are done
+    if (any(currentCoord.xy > uint2(_ScreenSize.xy)))
+        return;
+
+    // Combine it with the current shift to define which half res depth should be used
+    _DepthBufferRW[COORD_TEXTURE2D_X(currentCoord.xy)] = ConvertObliqueDepthToNonOblique(currentCoord.xy, LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x);
+}
+
 
 [numthreads(8, 8, 1)]
 void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -140,9 +176,13 @@ CloudRay BuildRay(uint2 halfResCoord)
     // Flag is this sky pixel occluded by an object?
     float isOccluded = ray.depthValue != UNITY_RAW_FAR_CLIP_VALUE ? 1.0 : 0.0;
 
+#ifdef PLANAR_REFLECTION_CAMERA
+    // Compute the world space position of the pixel (or at a virtual position is it the sky)
+    float3 pos = ComputeWorldSpacePosition((halfResCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _CameraInverseViewProjection_NO);
+#else
     // Compute the world space position of the pixel (or at a virtual position is it the sky)
     float3 pos = ComputeWorldSpacePosition((halfResCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), UNITY_MATRIX_I_VP);
-
+#endif
     // normalize to get the direction
     ray.direction = normalize(pos);
 
@@ -402,8 +442,8 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
-    shapeFactor = lerp(0, shapeFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
-    erosionFactor = lerp(0, erosionFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
+    shapeFactor = shapeFactor * densityErosionAO.y;
+    erosionFactor = erosionFactor * densityErosionAO.y;
 
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
@@ -414,7 +454,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.ambientOcclusion = densityErosionAO.z;
 
     // Change the sigma based on the rain cloud data
-    properties.sigmaT = lerp(0.04, 0.12, cloudCoverageData.rainClouds);
+    properties.sigmaT = lerp(0.01, 0.12, cloudCoverageData.rainClouds);
 
     // The ambient occlusion value that is baked is less relevant if there is shaping or erosion, small hack to compensate that
     float ambientOcclusionBlend = saturate(1.0 - max(erosionFactor, shapeFactor) * 0.5);
@@ -981,8 +1021,13 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz *= rcp(1.0 - currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
+#ifdef PLANAR_REFLECTION_CAMERA
+    // Compute the pos input of the cloud position
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]), _CameraInverseViewProjection_NO, GetWorldToViewMatrix(), 0);
+#else
     // Compute the pos input of the cloud position
     PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+#endif
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
@@ -1019,7 +1064,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
-    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceCameraPos.z) + t * _SunDirection.xyz;
+    float3 shadowCookieCenter = float3(_WorldSpaceShadowCenter.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);

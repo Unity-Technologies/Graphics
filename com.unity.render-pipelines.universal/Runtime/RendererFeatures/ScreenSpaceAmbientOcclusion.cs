@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal float Intensity = 3.0f;
         [SerializeField] internal float DirectLightingStrength = 0.25f;
         [SerializeField] internal float Radius = 0.035f;
-        [SerializeField] internal int SampleCount = 6;
+        [SerializeField] internal int SampleCount = 4;
 
         // Enums
         internal enum DepthSource
@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.Universal
             private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
 
             // Private Variables
+            private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private Material m_Material;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
@@ -125,7 +126,10 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
-            private RenderTextureDescriptor m_Descriptor;
+            private RenderTargetIdentifier m_SSAOTextureFinalTarget = new RenderTargetIdentifier(s_SSAOTextureFinalID, 0, CubemapFace.Unknown, -1);
+            private RenderTextureDescriptor m_AOPassDescriptor;
+            private RenderTextureDescriptor m_BlurPassesDescriptor;
+            private RenderTextureDescriptor m_FinalDescriptor;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
             // Constants
@@ -138,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
+            private static readonly int s_SSAOTextureFinalID = Shader.PropertyToID("_SSAO_OcclusionTexture");
             private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
             private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
             private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
@@ -164,11 +169,19 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = material;
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
-                renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
 
-                ScreenSpaceAmbientOcclusionSettings.DepthSource source = isRendererDeferred
-                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
-                    : m_CurrentSettings.Source;
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source;
+                if (isRendererDeferred)
+                {
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+                    source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
+                }
+                else
+                {
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
+                    source = m_CurrentSettings.Source;
+                }
+
 
                 switch (source)
                 {
@@ -279,19 +292,27 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                // Get temporary render textures
-                m_Descriptor = cameraTargetDescriptor;
-                m_Descriptor.msaaSamples = 1;
-                m_Descriptor.depthBufferBits = 0;
-                m_Descriptor.width /= downsampleDivider;
-                m_Descriptor.height /= downsampleDivider;
-                m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
-                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
+                // Set up the descriptors
+                RenderTextureDescriptor descriptor = cameraTargetDescriptor;
+                descriptor.msaaSamples = 1;
+                descriptor.depthBufferBits = 0;
 
-                m_Descriptor.width *= downsampleDivider;
-                m_Descriptor.height *= downsampleDivider;
-                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
+                m_AOPassDescriptor = descriptor;
+                m_AOPassDescriptor.width /= downsampleDivider;
+                m_AOPassDescriptor.height /= downsampleDivider;
+                m_AOPassDescriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+                m_BlurPassesDescriptor = descriptor;
+                m_BlurPassesDescriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+                m_FinalDescriptor = descriptor;
+                m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
+
+                // Get temporary render textures
+                cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture2ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture3ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor,       FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
@@ -314,18 +335,20 @@ namespace UnityEngine.Rendering.Universal
                     {
                         CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
                     }
-                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+                    PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
                     // Execute the Blur Passes
                     RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
+
+                    PostProcessUtils.SetSourceSize(cmd, m_BlurPassesDescriptor);
                     RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
+                    RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTextureFinalTarget, ShaderPasses.BlurFinal);
 
                     // Set the global SSAO texture and AO Params
-                    cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
+                    cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTextureFinalTarget);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
 
                     // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
@@ -380,6 +403,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
+                cmd.ReleaseTemporaryRT(s_SSAOTextureFinalID);
             }
         }
     }

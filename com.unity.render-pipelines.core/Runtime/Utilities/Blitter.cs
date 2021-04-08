@@ -9,6 +9,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Various blit (texture copy) utilities for the Scriptable Render Pipelines.
+    /// </summary>
     public static class Blitter
     {
         static Material s_Blit;
@@ -30,6 +33,9 @@ namespace UnityEngine.Rendering
             public static readonly int _InputDepth      = Shader.PropertyToID("_InputDepthTexture");
         }
 
+        /// <summary>
+        /// Initialize Blitter resources. Must be called once before any use.
+        /// </summary>
         public static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
         {
             s_Blit = CoreUtils.CreateEngineMaterial(blitPS);
@@ -45,6 +51,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Release Blitter resources.
+        /// </summary>
         public static void Cleanup()
         {
             CoreUtils.Destroy(s_Blit);
@@ -126,10 +135,6 @@ namespace UnityEngine.Rendering
             cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
-        // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
-        // It means that we can end up rendering inside a partial viewport for one of these "camera space" rendering.
-        // In this case, we need to make sure than when we blit from one such camera texture to another, we only blit the necessary portion corresponding to the camera viewport.
-        // Here, both source and destination are camera-scaled.
         /// <summary>
         /// Blit a RTHandle to another RTHandle.
         /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
