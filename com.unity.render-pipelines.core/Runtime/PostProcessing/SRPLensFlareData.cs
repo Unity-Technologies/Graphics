@@ -265,6 +265,7 @@ namespace UnityEngine
         /// <summary>
         /// Fall of the gradient used for the Procedural Flare.
         /// </summary>
+        [Range(0.0f, 1.0f)]
         public float fallOff;
         /// <summary>
         /// Gradient Offset used for the Procedural Flare.

@@ -164,7 +164,8 @@ namespace UnityEditor.Rendering
                             edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
 
                         rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
+                        //if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
+                        if ((tmp = EditorGUI.Slider(rect, Styles.fallOff, fallOffProp.floatValue, 0.0f, 1.0f)) != fallOffProp.floatValue)
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
                         if (newType == SRPLensFlareType.Polygon)

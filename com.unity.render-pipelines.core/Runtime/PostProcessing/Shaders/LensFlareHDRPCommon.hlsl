@@ -158,15 +158,13 @@ float InverseGradient(float x)
 float4 ComputeCircle(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
-    //v /= float2(ddx(v));
+
+    const float epsilon = 1e-3f;
+    const float epsCoef = pow(epsilon, 1.0f / _FlareFalloff);
 
     float x = length(v);
 
-    //float sdf = saturate((x - 1.0f) / (fwidth(1.0f - x)));
     float sdf = saturate((x - 1.0f) / ((_FlareEdgeOffset - 1.0f)));
-    //float sdf = (x - 1.0f) / (_FlareEdgeOffset - 1.0f);
-
-    //sdf /= fwidth(sdf);
 
 #if FLARE_INVERSE_SDF
     sdf = saturate(sdf);
