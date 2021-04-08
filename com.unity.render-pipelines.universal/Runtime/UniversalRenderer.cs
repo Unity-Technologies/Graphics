@@ -760,8 +760,6 @@ namespace UnityEngine.Rendering.Universal
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
                 bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
-                bool eventBeforeOpaque = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingOpaques;
-                bool eventBetweenOpaqueAndTransparentPass = pass.renderPassEvent > RenderPassEvent.AfterRenderingSkybox && pass.renderPassEvent < RenderPassEvent.BeforeRenderingTransparents;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
