@@ -413,7 +413,7 @@ namespace UnityEngine
 
                     Vector2 elemSizeXY;
                     if (element.preserveAspectRatio)
-                        elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.y);
+                        elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.x);
                     else
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
                     float scaleSize = 0.1f; // Arbitrary value
