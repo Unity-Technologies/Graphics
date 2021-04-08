@@ -26,33 +26,33 @@ editor_versions:
       version: 2020.3.4f1
   2020_3_latest_public:
     Android:
-      revision: 8fd9074bf66c
-      updated_at: '2021-03-29 23:11:29.020373'
-      version: 2020.3.2f1
+      revision: 76626098c1c4
+      updated_at: '2021-04-08 00:04:15.014342'
+      version: 2020.3.3f1
     Linux:
-      revision: 8fd9074bf66c
-      updated_at: '2021-03-30 23:16:53.577407'
-      version: 2020.3.2f1
+      revision: 76626098c1c4
+      updated_at: '2021-04-08 00:04:15.014342'
+      version: 2020.3.3f1
     OSX:
-      revision: 8fd9074bf66c
-      updated_at: '2021-03-30 23:16:53.577407'
-      version: 2020.3.2f1
+      revision: 76626098c1c4
+      updated_at: '2021-04-08 00:04:15.014342'
+      version: 2020.3.3f1
     Win:
-      revision: 8fd9074bf66c
-      updated_at: '2021-03-29 23:11:29.020373'
-      version: 2020.3.2f1
+      revision: 76626098c1c4
+      updated_at: '2021-04-08 00:04:15.014342'
+      version: 2020.3.3f1
     android:
       revision: c7b5465681fb
       updated_at: '2021-02-03 23:59:16.124934'
       version: 2020.3.0f1
     iPhone:
-      revision: 8fd9074bf66c
-      updated_at: '2021-03-30 23:16:53.577407'
-      version: 2020.3.2f1
+      revision: 76626098c1c4
+      updated_at: '2021-04-08 00:04:15.014342'
+      version: 2020.3.3f1
   2020_3_staging:
     Android:
-      revision: 0abb6314276a3d37f1a771c5de766c8578aa14e0
-      updated_at: '2021-04-01 23:45:41.512130'
+      revision: 94e6d1b4b0352a47226cdda070e70a9a70759ec1
+      updated_at: '2021-04-08 00:04:15.014342'
       version: ''
     Linux:
       revision: 0abb6314276a3d37f1a771c5de766c8578aa14e0
@@ -63,8 +63,8 @@ editor_versions:
       updated_at: '2021-04-01 23:45:41.512130'
       version: ''
     Win:
-      revision: 0abb6314276a3d37f1a771c5de766c8578aa14e0
-      updated_at: '2021-04-01 23:45:41.512130'
+      revision: 94e6d1b4b0352a47226cdda070e70a9a70759ec1
+      updated_at: '2021-04-08 00:04:15.014342'
       version: ''
     iPhone:
       revision: 0abb6314276a3d37f1a771c5de766c8578aa14e0
