@@ -689,12 +689,10 @@ namespace UnityEngine
             float paniniD = distance;
             float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), paniniProjectionCropToFit);
 
-            //if (!inverse)
-            //return Panini_UnitDistance(screenPos * viewExtents * paniniS) / (viewExtents);
-            //return Panini_UnitDistance(screenPos * viewExtents * paniniD) / (viewExtents * paniniS);
-            //else
-            //    return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
-            return Panini_Generic(screenPos * viewExtents * paniniS, paniniD) / (viewExtents * paniniD);
+            if (!inverse)
+                return Panini_Generic(screenPos * viewExtents * paniniS, paniniD) / viewExtents;
+            else
+                return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
         }
 
         static Vector2 CalcViewExtents(int actualWidth, int actualHeight, float fieldOfView)
