@@ -13,8 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public const string header = "Surface Inputs";
-
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
             public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal.");
             public static GUIContent baseOpacityText = new GUIContent("Opacity", "Specify the opacity (A) of the decal.");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the normal map for this Material (BC7/BC5/DXT5(nm)).");
@@ -35,8 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent decalLayerText = new GUIContent("Decal Layer", "Specifies the current Decal Layers that the Decal affects.This Decal affect corresponding Material with the same Decal Layer flags.");
             public static GUIContent maskMapText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)");
         }
-
-        ExpandableBit  m_ExpandableBit;
 
         enum BlendSource
         {
@@ -142,8 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state</param>
         public DecalSurfaceInputsUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
         }
 
         /// <summary>
@@ -191,18 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                {
-                    DrawDecalGUI();
-                }
-            }
-        }
-
-        void DrawDecalGUI()
+        protected override void OnGUIOpen()
         {
             var material = materials[0];
             bool affectAlbedo     = material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f;
@@ -296,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (useEmissiveIntensity.floatValue == 0.0f)
                 {
                     EditorGUI.BeginChangeCheck();
-                    EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorLDR);
+                    EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorHDR);
                     if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                         emissiveColor.colorValue = emissiveColorHDR.colorValue;
                 }

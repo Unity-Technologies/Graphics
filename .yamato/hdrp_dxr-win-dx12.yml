@@ -34,7 +34,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -200,7 +200,7 @@ HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_trunk:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -259,9 +259,9 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -295,7 +295,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -326,7 +326,7 @@ HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -357,7 +357,7 @@ HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -388,7 +388,7 @@ HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -419,7 +419,7 @@ HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -448,9 +448,9 @@ HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -484,4 +484,4 @@ Build_HDRP_DXR_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
