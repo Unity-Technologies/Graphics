@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Reflection;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -30,6 +32,22 @@ namespace UnityEditor.ShaderGraph
     Out = Input ? Connected : NotConnected;
 }
 ";
+        }
+
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+            var slot = FindInputSlot<MaterialSlot>(0);
+            if (slot.isConnected)
+            {
+                var property = GetSlotProperty(0);
+                if (!property.isConnectionTestable)
+                {
+                    var edges = owner.GetEdges(GetSlotReference(0));
+                    owner.RemoveElements(new AbstractMaterialNode[] { }, edges.ToArray(), new GroupData[] { }, new StickyNoteData[] { });
+                    owner.AddValidationError(objectId, String.Format("Connected property {0} is not connection testable and was disconnected from the Input port", property.displayName), ShaderCompilerMessageSeverity.Warning);
+                }
+            }
         }
     }
 }

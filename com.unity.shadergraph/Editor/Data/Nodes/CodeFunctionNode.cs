@@ -265,8 +265,6 @@ namespace UnityEditor.ShaderGraph
                     s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
                     s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
-                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(PropertyConnectionState))
-                    s = new PropertyConnectionStateMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                 else if (attribute.binding == Binding.None || par.IsOut)
                     s = MaterialSlot.CreateMaterialSlot(
                         ConvertTypeToSlotValueType(par),
