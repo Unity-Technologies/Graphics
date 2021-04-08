@@ -69,6 +69,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  pip install pywin32
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.XRQuest.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
