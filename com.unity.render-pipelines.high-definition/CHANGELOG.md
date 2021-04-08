@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 - Fixed Decal's UV edit mode with negative UV
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
