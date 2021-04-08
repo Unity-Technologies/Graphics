@@ -82,6 +82,7 @@ Varyings vert(Attributes input)
     DEPTH_TEXTURE_MS(_CameraDepthAttachment, MSAA_SAMPLES);
     float4 _CameraDepthAttachment_TexelSize;
 #endif
+float4 _RTHandleScale;
 
 #if UNITY_REVERSED_Z
     #define DEPTH_DEFAULT_VALUE 1.0
@@ -109,7 +110,7 @@ float SampleDepth(float2 uv)
 float frag(Varyings input) : SV_Depth
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    return SampleDepth(input.uv);
+    return SampleDepth(input.uv * _RTHandleScale.xy);
 }
 
 #endif
