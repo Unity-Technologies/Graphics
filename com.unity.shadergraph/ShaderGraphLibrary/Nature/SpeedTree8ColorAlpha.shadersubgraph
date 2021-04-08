@@ -1609,6 +1609,8 @@
         "m_GuidSerialized": "85075283-3091-4269-8dc9-d91bbfc0ec45"
     },
     "m_Name": "Is Billboard",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_1fdf213a04414788941ddcc9dfd4bab9",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1693,6 +1695,8 @@
         "m_GuidSerialized": "dfabdb20-14a8-4e7b-9ebb-1702c52d497a"
     },
     "m_Name": "Hue Variation Color",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector4_2a0ce4adebe045bd91e0802c61e1f961",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1830,6 +1834,8 @@
         "m_GuidSerialized": "8ecd0068-982c-44b3-8c13-8d4d6c7e83c5"
     },
     "m_Name": "Enable Hue Variation",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_2f2fca5fb4aa4ded99c8f9f47d08f32c",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -2635,7 +2641,7 @@
     "m_Group": {
         "m_Id": "f85e92ab41eb4894b6c106bf2eeb8ed7"
     },
-    "m_Name": "DoLODCrossFade (Custom Function)",
+    "m_Name": "LODDitheringTransitionSG (Custom Function)",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2665,7 +2671,7 @@
         "m_SerializableColors": []
     },
     "m_SourceType": 0,
-    "m_FunctionName": "DoLODCrossFade",
+    "m_FunctionName": "LODDitheringTransitionSG",
     "m_FunctionSource": "5248225944112fb418a213fa587fe10d",
     "m_FunctionBody": "Enter function body here..."
 }
@@ -3390,6 +3396,8 @@
         "m_GuidSerialized": "ff03d852-ed6e-48ef-95fa-bd3890db14dd"
     },
     "m_Name": "Color Tint",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector4_836a6f990f494f91a3238d78b819e4e3",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4213,6 +4221,8 @@
         "m_GuidSerialized": "d82bb612-5994-458e-9251-70a14b4037e2"
     },
     "m_Name": "Base Map",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_a5394c2c9d364826bf2e5aa1b8606b38",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4275,6 +4285,8 @@
         "m_GuidSerialized": "120cb8eb-338a-4dc1-94bf-75ab62348d46"
     },
     "m_Name": "Use Old Hue Variation Behavior",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_aae4eda2032b46628db49f6d51efcbd6",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5948,6 +5960,8 @@
         "m_GuidSerialized": "43586b1c-7edc-4415-bf3d-ba0532c0d6e1"
     },
     "m_Name": "Enable Crossfade",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_fb7d8abd490c4a01b3b1784adcb7b736",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
