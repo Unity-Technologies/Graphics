@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Interface for determining what kind of debug settings are currently active.
+    /// </summary>
     public interface IDebugDisplaySettingsQuery
     {
         /// <summary>

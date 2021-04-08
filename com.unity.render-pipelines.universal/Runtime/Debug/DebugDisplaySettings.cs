@@ -9,11 +9,27 @@ namespace UnityEngine.Rendering.Universal
         private readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
 
         private static readonly Lazy<DebugDisplaySettings> s_Instance = new Lazy<DebugDisplaySettings>(() => new DebugDisplaySettings());
+
+        /// <summary>
+        /// The singleton instance that contains the current settings of URP Rendering Debugger.
+        /// </summary>
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
-        public DebugDisplaySettingsCommon CommonSettings { get; private set; }
+        DebugDisplaySettingsCommon CommonSettings { get; set; }
+
+        /// <summary>
+        /// Material-related Rendering Debugger settings.
+        /// </summary>
         public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+
+        /// <summary>
+        /// Rendering-related Rendering Debugger settings.
+        /// </summary>
         public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+
+        /// <summary>
+        /// Lighting-related Rendering Debugger settings.
+        /// </summary>
         public DebugDisplaySettingsLighting LightingSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
@@ -73,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
             return newData;
         }
 
-        public DebugDisplaySettings()
+        DebugDisplaySettings()
         {
             Reset();
         }
@@ -88,7 +104,7 @@ namespace UnityEngine.Rendering.Universal
             RenderingSettings = Add(new DebugDisplaySettingsRendering());
         }
 
-        public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
+        internal void ForEach(Action<IDebugDisplaySettingsData> onExecute)
         {
             foreach (IDebugDisplaySettingsData setting in m_Settings)
             {

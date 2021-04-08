@@ -50,8 +50,6 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     }
                 });
-
-                // TODO: Overdraw
             }
         }
 

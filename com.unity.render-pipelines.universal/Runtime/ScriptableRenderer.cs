@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
     ///
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
+    /// The renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
@@ -76,7 +76,10 @@ namespace UnityEngine.Rendering.Universal
             public bool msaa { get; set; } = true;
         }
 
-        protected DebugHandler DebugHandler { get; }
+        /// <summary>
+        /// The class responsible for providing access to debug view settings to renderers and render passes.
+        /// </summary>
+        internal DebugHandler DebugHandler { get; }
 
         /// <summary>
         /// The renderer we are currently rendering with, for low-level render control only.

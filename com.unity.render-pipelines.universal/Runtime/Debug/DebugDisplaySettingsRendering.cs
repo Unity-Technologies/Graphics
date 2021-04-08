@@ -68,20 +68,20 @@ namespace UnityEngine.Rendering.Universal
         internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
         internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
 
-        public DebugPostProcessingMode debugPostProcessingMode { get; private set; } = DebugPostProcessingMode.Auto;
-        public bool enableMsaa { get; private set; } = true;
-        public bool enableHDR { get; private set; } = true;
+        internal DebugPostProcessingMode debugPostProcessingMode { get; private set; } = DebugPostProcessingMode.Auto;
+        internal bool enableMsaa { get; private set; } = true;
+        internal bool enableHDR { get; private set; } = true;
 
         #region Pixel validation
 
-        public DebugValidationMode validationMode;
-        public PixelValidationChannels validationChannels = PixelValidationChannels.RGB;
-        public float ValidationRangeMin = 0.0f;
-        public float ValidationRangeMax = 1.0f;
+        internal DebugValidationMode validationMode { get; private set; }
+        internal PixelValidationChannels validationChannels { get; private set; } = PixelValidationChannels.RGB;
+        internal float ValidationRangeMin { get; private set; } = 0.0f;
+        internal float ValidationRangeMax { get; private set; } = 1.0f;
 
         const string k_RangeValidationSettingsContainerName = "Pixel Range Settings";
 
-        internal static void DebugPixelValidationModeChanged(DebugUI.Field<int> field, int value)
+        static void DebugPixelValidationModeChanged(DebugUI.Field<int> field, int value)
         {
             // Hacky way to hide non-relevant UI options based on displayNames.
             var mode = (DebugValidationMode)value;

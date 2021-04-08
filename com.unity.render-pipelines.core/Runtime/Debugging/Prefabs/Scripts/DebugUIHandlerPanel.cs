@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.UI
         public ScrollRect scrollRect;
         /// <summary>Viewport of the panel.</summary>
         public RectTransform viewport;
+        /// <summary>Associated canvas.</summary>
         public DebugUIHandlerCanvas Canvas;
 
         RectTransform m_ScrollTransform;
@@ -40,11 +41,17 @@ namespace UnityEngine.Rendering.UI
             return m_Panel;
         }
 
+        /// <summary>
+        /// Select next panel on the canvas.
+        /// </summary>
         public void SelectNextItem()
         {
             Canvas.SelectNextPanel();
         }
 
+        /// <summary>
+        /// Select previous panel on the canvas.
+        /// </summary>
         public void SelectPreviousItem()
         {
             Canvas.SelectPreviousPanel();

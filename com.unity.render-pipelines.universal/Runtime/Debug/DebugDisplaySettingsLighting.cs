@@ -4,8 +4,8 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
-        public DebugLightingMode DebugLightingMode;
-        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask;
+        internal DebugLightingMode DebugLightingMode { get; private set; }
+        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
 
         internal static class WidgetFactory
         {

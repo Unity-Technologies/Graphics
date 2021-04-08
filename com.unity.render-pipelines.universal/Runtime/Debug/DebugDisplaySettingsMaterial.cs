@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     public class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
     {
         #region Material validation
-        public enum AlbedoDebugValidationPreset
+        internal enum AlbedoDebugValidationPreset
         {
             DefaultLuminance,
             BlackAcrylicPaint,
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
             Foliage,
         }
 
-        public struct AlbedoDebugValidationPresetData
+        struct AlbedoDebugValidationPresetData
         {
             public string name;
             public Color color;
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             public float maxLuminance;
         }
 
-        AlbedoDebugValidationPresetData[] _albedoDebugValidationPresetData = new AlbedoDebugValidationPresetData[]
+        AlbedoDebugValidationPresetData[] m_AlbedoDebugValidationPresetData =
         {
             new AlbedoDebugValidationPresetData()
             {
@@ -135,50 +135,50 @@ namespace UnityEngine.Rendering.Universal
             },
         };
 
-        AlbedoDebugValidationPreset _albedoDebugValidationPreset;
-        public AlbedoDebugValidationPreset albedoDebugValidationPreset
+        AlbedoDebugValidationPreset m_AlbedoDebugValidationPreset;
+        internal AlbedoDebugValidationPreset albedoDebugValidationPreset
         {
-            get => _albedoDebugValidationPreset;
+            get => m_AlbedoDebugValidationPreset;
             set
             {
-                _albedoDebugValidationPreset = value;
-                AlbedoDebugValidationPresetData presetData = _albedoDebugValidationPresetData[(int)value];
+                m_AlbedoDebugValidationPreset = value;
+                AlbedoDebugValidationPresetData presetData = m_AlbedoDebugValidationPresetData[(int)value];
                 AlbedoMinLuminance = presetData.minLuminance;
                 AlbedoMaxLuminance = presetData.maxLuminance;
                 AlbedoCompareColor = presetData.color;
             }
         }
 
-        public float AlbedoMinLuminance = 0.01f;
-        public float AlbedoMaxLuminance = 0.90f;
+        internal float AlbedoMinLuminance = 0.01f;
+        internal float AlbedoMaxLuminance = 0.90f;
 
-        float _albedoHueTolerance = 0.104f;
-        public float AlbedoHueTolerance
+        float m_AlbedoHueTolerance = 0.104f;
+        internal float AlbedoHueTolerance
         {
-            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance;
-            set => _albedoHueTolerance = value;
+            get => m_AlbedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : m_AlbedoHueTolerance;
+            private set => m_AlbedoHueTolerance = value;
         }
 
-        float _albedoSaturationTolerance = 0.214f;
-        public float AlbedoSaturationTolerance
+        float m_AlbedoSaturationTolerance = 0.214f;
+        internal float AlbedoSaturationTolerance
         {
-            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoSaturationTolerance;
-            set => _albedoSaturationTolerance = value;
+            get => m_AlbedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : m_AlbedoSaturationTolerance;
+            private set => m_AlbedoSaturationTolerance = value;
         }
 
-        public Color AlbedoCompareColor = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
+        internal Color AlbedoCompareColor = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
 
-        public float MetallicMinValue = 0.0f;
-        public float MetallicMaxValue = 0.9f;
+        internal float MetallicMinValue = 0.0f;
+        internal float MetallicMaxValue = 0.9f;
 
-        public DebugMaterialValidationMode MaterialValidationMode;
+        internal DebugMaterialValidationMode MaterialValidationMode;
 
         #endregion
 
-        public DebugMaterialMode DebugMaterialModeData;
-        public DebugVertexAttributeMode DebugVertexAttributeIndexData;
+        internal DebugMaterialMode DebugMaterialModeData { get; private set; }
+        internal DebugVertexAttributeMode DebugVertexAttributeIndexData { get; private set; }
 
-        internal static void DebugMaterialValidationModeChanged(DebugUI.Field<int> field, int value)
+        static void DebugMaterialValidationModeChanged(DebugUI.Field<int> field, int value)
         {
             // Hacky way to hide non-relevant UI options based on displayNames.
             var mode = (DebugMaterialValidationMode)value;

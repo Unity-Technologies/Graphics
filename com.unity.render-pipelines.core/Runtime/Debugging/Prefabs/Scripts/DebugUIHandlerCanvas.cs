@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.UI
             }
         }
 
-        public void SetScrollTarget(DebugUIHandlerWidget widget)
+        internal void SetScrollTarget(DebugUIHandlerWidget widget)
         {
             if (m_UIPanels != null && m_SelectedPanel < m_UIPanels.Count && m_UIPanels[m_SelectedPanel] != null)
                 m_UIPanels[m_SelectedPanel].SetScrollTarget(widget);
