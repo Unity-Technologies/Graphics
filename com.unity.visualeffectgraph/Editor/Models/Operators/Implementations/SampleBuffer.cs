@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
                 foreach (var type in VFXLibrary.GetSlotsType())
                 {
                     var typeAttribute = type.GetCustomAttributes(typeof(VFXTypeAttribute), true).FirstOrDefault() as VFXTypeAttribute;
-                    if (typeAttribute != null && typeAttribute.usage.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
+                    if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
                         yield return type;
                 }
             }

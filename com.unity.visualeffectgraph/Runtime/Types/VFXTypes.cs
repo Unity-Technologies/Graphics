@@ -16,11 +16,11 @@ namespace UnityEngine.VFX
             Default,
             GraphicsBuffer
         }
-        public VFXTypeAttribute(Usage flags = Usage.Default)
+        public VFXTypeAttribute(Usage usages = Usage.Default)
         {
-            this.usage = flags;
+            this.usages = usages;
         }
 
-        public Usage usage { get; private set; }
+        internal Usage usages { get; private set; }
     }
 }
