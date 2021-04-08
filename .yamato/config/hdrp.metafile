@@ -130,8 +130,6 @@ pr:
         - playmode_cache
     - project: HDRP_DXR
       pr: true
-    - project: HDRP_Hybrid
-      pr: true
     - project: VFX_HDRP
       pr: true
 nightly:
@@ -139,8 +137,6 @@ nightly:
     - project: HDRP
       pr: true
     - project: HDRP_DXR
-      nightly: true
-    - project: HDRP_Hybrid
       nightly: true
     - project: VFX_HDRP
       nightly: true
