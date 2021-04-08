@@ -219,19 +219,10 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                         rotationProp.floatValue = tmp;
-
-                    if (!preserveAspectRatioProp.boolValue)
-                    {
-                        rect = GetNextRect();
-                        if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
-                            sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
-                    }
-                    else
-                    {
-                        rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.sizeXY, sizeXYProp.vector2Value.y)) != sizeXYProp.vector2Value.y)
-                            sizeXYProp.vector2Value = new Vector2(sizeXYProp.vector2Value.x, Mathf.Max(tmp, 1e-6f));
-                    }
+                    
+                    rect = GetNextRect();
+                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
+                        sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
 
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)

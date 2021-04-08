@@ -401,7 +401,7 @@ namespace UnityEngine
                     float elemAspectRatio = element.sizeXY.x / element.sizeXY.y;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
-                        usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : 1.0f;
+                        usedAspectRatio = element.preserveAspectRatio ? ((((float)texture.height) / (float)texture.width)) : 1.0f;
                     else
                         usedAspectRatio = 1.0f;
 
@@ -413,7 +413,7 @@ namespace UnityEngine
 
                     Vector2 elemSizeXY;
                     if (element.preserveAspectRatio)
-                        elemSizeXY = new Vector2(element.sizeXY.y / usedAspectRatio, element.sizeXY.y);
+                        elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.y);
                     else
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
                     float scaleSize = 0.1f; // Arbitrary value
@@ -506,7 +506,7 @@ namespace UnityEngine
                         }
 
                         float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
-                        return new Vector2(Mathf.Lerp(curSize.x, element.targetSizeDistortion.x * combinedScale, localLerpValue),
+                        return new Vector2(Mathf.Lerp(curSize.x, element.targetSizeDistortion.x * combinedScale / usedAspectRatio, localLerpValue),
                             Mathf.Lerp(curSize.y, element.targetSizeDistortion.y * combinedScale, localLerpValue));
                     }
 
@@ -602,7 +602,7 @@ namespace UnityEngine
                                     localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                                 }
 
-                                localSize += localSize * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(-1.0f, 1.0f));
+                                localSize += localSize * (element.scaleVariation * RandomRange(-1.0f, 1.0f));
 
                                 Color randCol = element.colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
 
