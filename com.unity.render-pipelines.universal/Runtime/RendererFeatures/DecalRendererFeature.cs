@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    public class SharedDecalEntityManager : System.IDisposable
+    internal class SharedDecalEntityManager : System.IDisposable
     {
         private DecalEntityManager m_DecalEntityManager;
         private int m_UseCounter;

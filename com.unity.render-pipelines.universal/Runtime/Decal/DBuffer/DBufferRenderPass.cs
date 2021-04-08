@@ -3,13 +3,13 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawDBufferSystem : DecalDrawSystem
+    internal class DecalDrawDBufferSystem : DecalDrawSystem
     {
         public DecalDrawDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) {}
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexDBuffer;
     }
 
-    public class DBufferRenderPass : ScriptableRenderPass
+    internal class DBufferRenderPass : ScriptableRenderPass
     {
         private static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
         private static string s_DBufferDepthName = "DBufferDepth";

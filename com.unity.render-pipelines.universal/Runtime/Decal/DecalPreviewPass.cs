@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalPreviewPass : ScriptableRenderPass
+    internal class DecalPreviewPass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;

@@ -3,13 +3,13 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawGBufferSystem : DecalDrawSystem
+    internal class DecalDrawGBufferSystem : DecalDrawSystem
     {
         public DecalDrawGBufferSystem(DecalEntityManager entityManager) : base("DecalDrawGBufferSystem.Execute", entityManager) {}
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexGBuffer;
     }
 
-    public class DecalGBufferRenderPass : ScriptableRenderPass
+    internal class DecalGBufferRenderPass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;

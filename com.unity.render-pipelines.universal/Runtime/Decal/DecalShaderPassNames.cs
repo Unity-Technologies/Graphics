@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    public static class DecalShaderPassNames
+    internal static class DecalShaderPassNames
     {
         public const string DecalPreview = "DecalPreview";
 

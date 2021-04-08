@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering.Universal
 {
-    public class NormalReconstructionSetupPass : ScriptableRenderPass
+    internal class NormalReconstructionSetupPass : ScriptableRenderPass
     {
         private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
         private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");

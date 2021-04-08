@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static bool isAnySystemUsing => onDecalAdd != null;
 
-        public DecalEntity decalEntity { get; set; }
+        internal DecalEntity decalEntity { get; set; }
 
         public static Material defaultMaterial { get; set; }
 

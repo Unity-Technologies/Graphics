@@ -4,13 +4,13 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawScreenSpaceSystem : DecalDrawSystem
+    internal class DecalDrawScreenSpaceSystem : DecalDrawSystem
     {
         public DecalDrawScreenSpaceSystem(DecalEntityManager entityManager) : base("DecalDrawScreenSpaceSystem.Execute", entityManager) {}
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexScreenSpace;
     }
 
-    public class ScreenSpaceDecalRenderPass : ScriptableRenderPass
+    internal class ScreenSpaceDecalRenderPass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;

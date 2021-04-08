@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawErrorSystem : DecalDrawSystem
+    internal class DecalDrawErrorSystem : DecalDrawSystem
     {
         private DecalTechnique m_Technique;
 

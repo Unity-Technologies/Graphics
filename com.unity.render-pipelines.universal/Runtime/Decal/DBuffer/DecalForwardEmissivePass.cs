@@ -2,13 +2,13 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DecalDrawFowardEmissiveSystem : DecalDrawSystem
+    internal class DecalDrawFowardEmissiveSystem : DecalDrawSystem
     {
         public DecalDrawFowardEmissiveSystem(DecalEntityManager entityManager) : base("DecalDrawFowardEmissiveSystem.Execute", entityManager) {}
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexEmissive;
     }
 
-    public class DecalForwardEmissivePass : ScriptableRenderPass
+    internal class DecalForwardEmissivePass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;
