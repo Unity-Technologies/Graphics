@@ -327,7 +327,7 @@ namespace UnityEngine
                     positionWS = comp.transform.position;
                 }
                 viewportPos = cam.WorldToViewportPoint(positionWS);
-                if (usePanini)
+                if (usePanini && cam == Camera.main)
                 {
                     viewportPos = DoPaniniProjection(viewportPos, (int)actualWidth, (int)actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance, true);
                 }
