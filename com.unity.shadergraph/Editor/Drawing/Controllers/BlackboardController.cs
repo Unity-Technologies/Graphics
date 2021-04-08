@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (category.IsItemInCategory(shaderInputToCopy))
                 {
-                    graphData.AddItemToCategory(category.objectId, copiedShaderInput);
+                    graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
                     return;
                 }
             }
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if(child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
                     {
-                        graphData.AddItemToCategory(category.objectId, copiedShaderInput);
+                        graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
                         return;
                     }
                 }

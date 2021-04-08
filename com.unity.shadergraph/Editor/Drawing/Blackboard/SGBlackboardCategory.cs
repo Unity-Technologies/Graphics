@@ -288,14 +288,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             Vector2 localPosition = evt.localMousePosition;
 
             m_InsertIndex = InsertionIndex(localPosition);
-
             if (m_InsertIndex != -1)
             {
                 float indicatorY = 0;
 
                 if (m_InsertIndex == childCount)
                 {
-                    //when category is emapty
+                    // When category is empty
                     if (this.childCount == 0)
                     {
                         indicatorY = 0;

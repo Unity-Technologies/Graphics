@@ -147,6 +147,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ScrollBoundaryBottom.RegisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
             m_ScrollBoundaryBottom.RegisterCallback<MouseLeaveEvent>(ScrollRegionBottomLeave);
 
+            this.RegisterCallback<DragPerformEvent>(OnDropCompleted);
+
             m_BottomResizer = m_MainContainer.Q("bottom-resize");
 
             HideScrollBoundaryRegions();
@@ -327,6 +329,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;
+        }
+
+        void OnDropCompleted(DragPerformEvent evt)
+        {
+            // Don't bubble up drop operations onto blackboard upto the graph view, as it leads to nodes being created without users knowledge behind the blackboard
+            evt.StopPropagation();
         }
     }
 }
