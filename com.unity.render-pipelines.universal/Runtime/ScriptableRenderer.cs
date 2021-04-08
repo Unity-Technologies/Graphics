@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
     ///
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
+    /// The renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
@@ -77,7 +77,10 @@ namespace UnityEngine.Rendering.Universal
             public bool msaa { get; set; } = true;
         }
 
-        protected DebugHandler DebugHandler { get; }
+        /// <summary>
+        /// The class responsible for providing access to debug view settings to renderers and render passes.
+        /// </summary>
+        internal DebugHandler DebugHandler { get; }
 
         /// <summary>
         /// The renderer we are currently rendering with, for low-level render control only.
@@ -708,7 +711,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Draw Gizmos...
-                if(drawGizmos)
+                if (drawGizmos)
                 {
                     DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
                 }
@@ -724,7 +727,7 @@ namespace UnityEngine.Rendering.Universal
 
                 DrawWireOverlay(context, camera);
 
-                if(drawGizmos)
+                if (drawGizmos)
                 {
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
                 }
@@ -779,8 +782,8 @@ namespace UnityEngine.Rendering.Universal
                 return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
-            if(Application.isMobilePlatform ||
-               (!cameraData.isPreviewCamera && DebugHandler != null && DebugHandler.IsScreenClearNeeded))
+            if (Application.isMobilePlatform ||
+                (!cameraData.isPreviewCamera && DebugHandler != null && DebugHandler.IsScreenClearNeeded))
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
@@ -1141,7 +1144,7 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
                 // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
-                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     DebugHandler.TryGetScreenClearColor(ref finalClearColor);
                 }

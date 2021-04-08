@@ -1,8 +1,10 @@
-
 using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Interface for determining what kind of debug settings are currently active.
+    /// </summary>
     public interface IDebugDisplaySettingsQuery
     {
         /// <summary>

@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -198,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        public DebugHandler DebugHandler { get; set; }
+        internal DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
         {

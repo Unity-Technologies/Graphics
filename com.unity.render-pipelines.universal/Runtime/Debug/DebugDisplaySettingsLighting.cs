@@ -6,8 +6,8 @@ namespace UnityEditor.Rendering
 {
     public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
-        public DebugLightingMode DebugLightingMode;
-        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask;
+        internal DebugLightingMode DebugLightingMode { get; private set; }
+        internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -15,13 +15,18 @@ namespace UnityEditor.Rendering
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
-                AddWidget(new DebugUI.EnumField { displayName = "Lighting Mode", autoEnum = typeof(DebugLightingMode),
+                AddWidget(new DebugUI.EnumField
+                {
+                    displayName = "Lighting Mode", autoEnum = typeof(DebugLightingMode),
                     getter = () => (int)data.DebugLightingMode,
                     setter = (value) => {},
                     getIndex = () => (int)data.DebugLightingMode,
-                    setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value});
+                    setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
+                });
 
-                AddWidget(new DebugUI.BitField { displayName = "Lighting Features",
+                AddWidget(new DebugUI.BitField
+                {
+                    displayName = "Lighting Features",
                     getter = () => data.DebugLightingFeatureFlagsMask,
                     setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
                     enumType = typeof(DebugLightingFeatureFlags),
@@ -31,7 +36,7 @@ namespace UnityEditor.Rendering
 
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) ||
-                                            (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+        (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
         public bool IsPostProcessingAllowed => true;
 
@@ -46,6 +51,7 @@ namespace UnityEditor.Rendering
         {
             return new SettingsPanel(this);
         }
+
         #endregion
     }
 }
