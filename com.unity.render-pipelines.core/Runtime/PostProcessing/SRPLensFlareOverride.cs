@@ -5,7 +5,7 @@ using UnityEditor;
 namespace UnityEngine
 {
     /// <summary>
-    /// Lens Flare Data-Driven which can but added on any GameObject: SRPLensFlareOverride allow the GameObject to emit a LensFlare
+    /// Data-Driven Lens Flare can be added on any gameobeject
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Rendering/SRP Lens Flare Source Override")]

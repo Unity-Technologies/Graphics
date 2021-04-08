@@ -53,12 +53,12 @@ namespace UnityEditor.Rendering
         /// </summary>
         public override void OnInspectorGUI()
         {
-            SRPLensFlareOverride lensFlareDat = m_Intensity.serializedObject.targetObject as SRPLensFlareOverride;
+            SRPLensFlareOverride lensFlareData = m_Intensity.serializedObject.targetObject as SRPLensFlareOverride;
             bool attachedToLight = false;
             bool lightIsDirLight = false;
             Light light = null;
-            if (lensFlareDat != null &&
-                (light = lensFlareDat.GetComponent<Light>()) != null)
+            if (lensFlareData != null &&
+                (light = lensFlareData.GetComponent<Light>()) != null)
             {
                 attachedToLight = true;
                 if (light.type == LightType.Directional)

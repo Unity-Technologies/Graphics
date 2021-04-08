@@ -329,7 +329,7 @@ namespace UnityEngine
                 viewportPos = cam.WorldToViewportPoint(positionWS);
                 if (usePanini && cam == Camera.main)
                 {
-                    viewportPos = DoPaniniProjection(viewportPos, (int)actualWidth, (int)actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance, true);
+                    viewportPos = DoPaniniProjection(viewportPos, actualWidth, actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance, true);
                 }
 
                 if (viewportPos.z < 0.0f)
@@ -676,17 +676,16 @@ namespace UnityEngine
         }
 
         #region Panini Projection
-        static Vector2 DoPaniniProjection(Vector2 screenPos, int actualWidth, int actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance, bool inverse)
+        static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance, bool inverse)
         {
-            float distance = paniniProjectionDistance;
             Vector2 viewExtents = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
-            Vector2 cropExtents = Panini_Generic_Inv(viewExtents, distance);
+            Vector2 cropExtents = Panini_Generic_Inv(viewExtents, paniniProjectionDistance);
 
             float scaleX = cropExtents.x / viewExtents.x;
             float scaleY = cropExtents.y / viewExtents.y;
             float scaleF = Mathf.Min(scaleX, scaleY);
 
-            float paniniD = distance;
+            float paniniD = paniniProjectionDistance;
             float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), paniniProjectionCropToFit);
 
             if (!inverse)
@@ -695,10 +694,10 @@ namespace UnityEngine
                 return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
         }
 
-        static Vector2 CalcViewExtents(int actualWidth, int actualHeight, float fieldOfView)
+        static Vector2 CalcViewExtents(float actualWidth, float actualHeight, float fieldOfView)
         {
             float fovY = fieldOfView * Mathf.Deg2Rad;
-            float aspect = (float)actualWidth / (float)actualHeight;
+            float aspect = actualWidth / actualHeight;
 
             float viewExtY = Mathf.Tan(0.5f * fovY);
             float viewExtX = aspect * viewExtY;

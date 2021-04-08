@@ -71,7 +71,7 @@ namespace UnityEngine
     }
 
     /// <summary>
-    /// SRPLensFlareDataElement defines a single texture used in a SRPLensFlareData
+    /// SRPLensFlareDataElement defines collection of parameters describing the behavior a Lens Flare Element.
     /// </summary>
     [System.Serializable]
     public sealed class SRPLensFlareDataElement

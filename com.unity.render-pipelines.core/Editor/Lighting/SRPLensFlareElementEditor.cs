@@ -150,10 +150,6 @@ namespace UnityEditor.Rendering
                             lensFlareProp.objectReferenceValue = tmpTex;
                             lensFlareProp.serializedObject.ApplyModifiedProperties();
                         }
-
-                        rect = GetNextRect();
-                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
-                            preserveAspectRatioProp.boolValue = tmpBool;
                     }
                     else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
                     {
@@ -186,6 +182,10 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.inverseSDF, inverseSDFProp.boolValue)) != inverseSDFProp.boolValue)
                             inverseSDFProp.boolValue = tmpBool;
                     }
+
+                    rect = GetNextRect();
+                    if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
+                        preserveAspectRatioProp.boolValue = tmpBool;
                 }
 
                 rect = GetNextRect();
@@ -391,7 +391,7 @@ namespace UnityEditor.Rendering
 
                 if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                 {
-                    coef += 1.0f;
+                    coef += 2.0f;
 
                     if (flareType == SRPLensFlareType.Polygon)
                         coef += 2.0f;

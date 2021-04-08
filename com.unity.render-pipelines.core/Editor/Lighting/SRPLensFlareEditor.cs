@@ -29,18 +29,18 @@ namespace UnityEditor.Rendering
             m_Elements.serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-            SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
-            int countBefore = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;
+            SRPLensFlareData lensFlareData = m_Elements.serializedObject.targetObject as SRPLensFlareData;
+            int countBefore = lensFlareData != null && lensFlareData.elements != null ? lensFlareData.elements.Length : 0;
             EditorGUILayout.PropertyField(m_Elements, Styles.elements);
             if (EditorGUI.EndChangeCheck())
             {
                 m_Elements.serializedObject.ApplyModifiedProperties();
-                int countAfter = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;
+                int countAfter = lensFlareData != null && lensFlareData.elements != null ? lensFlareData.elements.Length : 0;
                 if (countAfter > countBefore)
                 {
                     for (int i = countBefore; i < countAfter; ++i)
                     {
-                        lensFlareDat.elements[i] = new SRPLensFlareDataElement(); // Set Default values
+                        lensFlareData.elements[i] = new SRPLensFlareDataElement(); // Set Default values
                     }
                     m_Elements.serializedObject.Update();
                 }
