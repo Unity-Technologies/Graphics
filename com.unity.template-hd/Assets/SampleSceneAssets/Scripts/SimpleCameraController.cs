@@ -65,6 +65,9 @@ namespace UnityTemplateProjects
         public float positionLerpTime = 0.2f;
 
         [Header("Rotation Settings")]
+        [Tooltip("Multiplier for the sensitivity of the rotation.")]
+        public float mouseSensitivity = 10.0f;
+
         [Tooltip("X = Change in mouse position.\nY = Multiplicative factor for camera rotation.")]
         public AnimationCurve mouseSensitivityCurve = new AnimationCurve(new Keyframe(0f, 0.5f, 0f, 5f), new Keyframe(1f, 2.5f, 0f, 0f));
 
@@ -188,7 +191,7 @@ namespace UnityTemplateProjects
             // Rotation
             if (IsCameraRotationAllowed())
             {
-                var mouseMovement = GetInputLookRotation() * Time.deltaTime * 5;
+                var mouseMovement = GetInputLookRotation() * Time.deltaTime * 6 * mouseSensitivity;
                 if (invertY)
                     mouseMovement.y = -mouseMovement.y;
 
@@ -235,9 +238,12 @@ namespace UnityTemplateProjects
         {
             // try to compensate the diff between the two input systems by multiplying with empirical values
 #if ENABLE_INPUT_SYSTEM
-            return lookAction.ReadValue<Vector2>() * 0.7f;
+            var delta = lookAction.ReadValue<Vector2>();
+            delta *= 0.5f; // Account for scaling applied directly in Windows code by old input system.
+            delta *= 0.1f; // Account for sensitivity setting on old Mouse X and Y axes.
+            return delta;
 #else
-            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1)) * 10.0f;
+            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
 #endif
         }
 
