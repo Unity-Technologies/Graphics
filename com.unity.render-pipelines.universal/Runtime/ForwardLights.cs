@@ -5,6 +5,9 @@ using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using System.Text;
 using Unity.Profiling;
+using Unity.Mathematics;
+using Unity.Collections.LowLevel.Unsafe;
+using System.Linq;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -74,18 +77,24 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         ProfilerMarker mainThreadMarker = new ProfilerMarker("Forward+");
+        ComputeBuffer m_ZBinBuffer;
+        ComputeBuffer m_TileBuffer;
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             mainThreadMarker.Begin();
+
+            var camera = renderingData.cameraData.camera;
             var lightCount = renderingData.lightData.visibleLights.Length;
+            var lightsPerTile = lightCount + (32 - (lightCount % 33));
 
             var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
             var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
 
+            Matrix4x4 worldToViewMatrix = renderingData.cameraData.GetViewMatrix();
             var minMaxZJob = new MinMaxZJob
             {
-                worldToViewMatrix = renderingData.cameraData.GetViewMatrix(),
+                worldToViewMatrix = worldToViewMatrix,
                 lights = renderingData.lightData.visibleLights,
                 minMaxZs = minMaxZs,
                 meanZs = meanZs
@@ -117,17 +126,113 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderMinMaxZsHandle
             );
 
-            reorderHandle.Complete();
+            LightExtractionJob lightExtractionJob;
+            lightExtractionJob.viewOrigin = camera.transform.position;
+            lightExtractionJob.lights = reorderedLights;
+            lightExtractionJob.worldToLightMatrices = new NativeArray<float4x4>(lightCount, Allocator.TempJob);
+            lightExtractionJob.viewOriginLs = new NativeArray<float3>(lightCount, Allocator.TempJob);
+            lightExtractionJob.sphereShapes = new NativeArray<SphereShape>(lightCount, Allocator.TempJob);
+            lightExtractionJob.coneShapes = new NativeArray<ConeShape>(lightCount, Allocator.TempJob);
+            var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
+
+            var binSize = 1.0f;
+            var nearPlane = camera.nearClipPlane;
+            var farPlane = camera.farClipPlane;
+            var binCount = (int)math.ceil((farPlane - nearPlane) / binSize);
+            var zBins = new NativeArray<ZBin>(binCount, Allocator.TempJob);
+
+            var zBinningJob = new ZBinningJob
+            {
+                bins = zBins,
+                minMaxZs = minMaxZs,
+                nearPlane = nearPlane,
+                invBinSize = 1.0f / binSize
+            };
+
+            var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
+
+            var tileWidth = 16;
+            var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+            var tileResolution = (screenResolution + tileWidth - 1) / tileWidth;
+            var groupResolution = (tileResolution + TilingJob.groupWidth - 1) / TilingJob.groupWidth;
+            var tileCount = tileResolution.x * tileResolution.y;
+
+            var tiles = new NativeArray<uint>(tileCount * lightsPerTile / 32, Allocator.TempJob);
+
+            TilingJob tilingJob;
+            tilingJob.minMaxZs = minMaxZs;
+            tilingJob.lights = reorderedLights;
+            tilingJob.worldToLightMatrices = lightExtractionJob.worldToLightMatrices;
+            tilingJob.viewOriginLs = lightExtractionJob.viewOriginLs;
+            tilingJob.sphereShapes = lightExtractionJob.sphereShapes;
+            tilingJob.coneShapes = lightExtractionJob.coneShapes;
+            tilingJob.lightsPerTile = lightsPerTile;
+            tilingJob.tiles = tiles;
+            tilingJob.screenResolution = screenResolution;
+            tilingJob.groupResolution = groupResolution;
+            tilingJob.tileResolution = tileResolution;
+            tilingJob.tileWidth = tileWidth;
+            tilingJob.viewOrigin = camera.transform.position;
+            tilingJob.viewForward = camera.transform.forward;
+            var nearPlaneHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
+            var nearPlaneHalfWidth = nearPlaneHalfHeight * camera.pixelWidth / camera.pixelHeight;
+            tilingJob.viewRight = camera.transform.right * nearPlaneHalfWidth;
+            tilingJob.viewUp = camera.transform.up * nearPlaneHalfHeight;
+            tilingJob.tileAperture = math.SQRT2 * nearPlaneHalfHeight / (((float)screenResolution.y / (float)tileWidth));
+            var tilingHandle = tilingJob.ScheduleParallel(groupResolution.x * groupResolution.y, 1, lightExtractionHandle);
+
+            JobHandle.CompleteAll(ref zBinningHandle, ref tilingHandle);
 
             for (var i = 1; i < lightCount; i++)
             {
                 Assert.IsTrue(meanZs[i] >= meanZs[i - 1]);
             }
 
+            if (m_ZBinBuffer == null || m_ZBinBuffer.count < binCount)
+            {
+                if (m_ZBinBuffer != null)
+                {
+                    m_ZBinBuffer.Dispose();
+                }
+
+                m_ZBinBuffer = new ComputeBuffer(math.ceilpow2(binCount), UnsafeUtility.SizeOf<ZBin>());
+                Shader.SetGlobalBuffer("_ZBinBuffer", m_ZBinBuffer);
+            }
+
+            if (m_TileBuffer == null || m_TileBuffer.count < tiles.Length)
+            {
+                if (m_TileBuffer != null)
+                {
+                    m_TileBuffer.Dispose();
+                }
+
+                m_TileBuffer = new ComputeBuffer(math.ceilpow2(tiles.Length), sizeof(uint));
+                Shader.SetGlobalBuffer("_TileBuffer", m_TileBuffer);
+            }
+
+            m_ZBinBuffer.SetData(zBins, 0, 0, zBins.Length);
+            m_TileBuffer.SetData(tiles, 0, 0, tiles.Length);
+            Shader.SetGlobalFloat("_NearPlane", nearPlane);
+            Shader.SetGlobalFloat("_InvZBinSize", 1.0f / binSize);
+            Shader.SetGlobalInteger("_ZBinLightCount", lightCount);
+            Shader.SetGlobalMatrix("_FPWorldToViewMatrix", minMaxZJob.worldToViewMatrix);
+            Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tileWidth)));
+            Shader.SetGlobalFloat("_TileXCount", tileResolution.x);
+            Shader.SetGlobalFloat("_TileYCount", tileResolution.y);
+            Shader.SetGlobalInteger("_LightCount", lightCount);
+            Shader.SetGlobalInteger("_WordsPerTile", lightsPerTile / 32);
+            Shader.SetGlobalFloat("_TileCount", tileCount);
+
             minMaxZs.Dispose();
             meanZs.Dispose();
             indices.Dispose();
             reorderedLights.Dispose();
+            zBins.Dispose();
+            tiles.Dispose();
+            lightExtractionJob.worldToLightMatrices.Dispose();
+            lightExtractionJob.viewOriginLs.Dispose();
+            lightExtractionJob.sphereShapes.Dispose();
+            lightExtractionJob.coneShapes.Dispose();
 
             mainThreadMarker.End();
 

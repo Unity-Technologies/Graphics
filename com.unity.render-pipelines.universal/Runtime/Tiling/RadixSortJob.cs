@@ -8,13 +8,12 @@ namespace UnityEngine.Rendering.Universal
     [BurstCompile]
     unsafe struct RadixSortJob : IJob
     {
-        fixed int counts[256];
-
         public NativeArray<uint> keys;
         public NativeArray<int> indices;
 
         public void Execute()
         {
+            var counts = new NativeArray<int>(256, Allocator.Temp);
             var n = indices.Length / 2;
 
             for (var i = 0; i < n; i++)
@@ -46,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var key = keys[currentOffset + j];
                     var bucket = (key >> (8 * i)) & 0xFF;
-                    counts[bucket]++;
+                    counts[(int)bucket]++;
                 }
 
                 for (var j = 1; j < 256; j++)
@@ -58,12 +57,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var key = keys[currentOffset + j];
                     var bucket = (key >> (8 * i)) & 0xFF;
-                    var newIndex = counts[bucket] - 1;
-                    counts[bucket]--;
+                    var newIndex = counts[(int)bucket] - 1;
+                    counts[(int)bucket]--;
                     keys[nextOffset + newIndex] = key;
                     indices[nextOffset + newIndex] = indices[currentOffset + j];
                 }
             }
+
+            counts.Dispose();
         }
     }
 }

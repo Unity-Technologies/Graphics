@@ -157,6 +157,18 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
+ByteAddressBuffer _ZBinBuffer;
+ByteAddressBuffer _TileBuffer;
+float _NearPlane;
+float _InvZBinSize;
+int _ZBinLightCount;
+float2 _InvNormalizedTileSize;
+float _TileXCount;
+float _TileYCount;
+float _TileCount;
+int _LightCount;
+int _WordsPerTile;
+
 // Used in Standard (Physically Based) shader
 half4 LitPassFragment(Varyings input) : SV_Target
 {
@@ -178,6 +190,51 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+
+    float z = dot(GetViewForwardDir(), input.positionWS - GetCameraPositionWS());
+    int zBin = (int)((z - _NearPlane) * _InvZBinSize);
+    uint data = _ZBinBuffer.Load(zBin * 4);
+    uint maxIndex = ((data >> 16) & 0xFFFF);
+    uint minIndex = (data & 0xFFFF);
+
+    uint count = data == 0xFFFFFFFF ? 0 : maxIndex + 1 - minIndex;
+    count = 0;
+
+    uint2 tileId = uint2(inputData.normalizedScreenSpaceUV * _InvNormalizedTileSize);
+    uint tileIndex = tileId.y * _TileXCount + tileId.x;
+    uint tileOffset = tileIndex * _WordsPerTile;
+    uint wordMin = minIndex / 32;
+    uint wordMax = maxIndex / 32;
+
+    for (uint i = wordMin; i <= wordMax; i++)
+    {
+        uint mask = _TileBuffer.Load((tileOffset + i) * 4);
+        // TODO: make this nicer
+        if (i == wordMin)
+        {
+            for (uint j = 0; j < (minIndex % 32); j++)
+            {
+                mask &= ~(1 << j);
+            }
+        }
+        if (i == wordMax)
+        {
+            for (uint j = (maxIndex % 32) + 1; j < 32; j++)
+            {
+                mask &= ~(1 << j);
+            }
+        }
+        while (mask != 0)
+        {
+            uint bitIndex = firstbitlow(mask);
+            count++;
+            mask ^= (1 << bitIndex);
+        }
+    }
+
+    //return half4(z, 0, 0, 1);
+    //return half4((float)tileIndex / _TileCount, 0, 0, 1);
+    return half4(((float)count / (float)_ZBinLightCount) * (inputData.normalWS * 0.5 + 0.5), 1.0);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
