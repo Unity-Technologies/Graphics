@@ -627,6 +627,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -679,6 +680,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
+        {
+            { kDBuffer, IncludeLocation.Pregraph },
         };
     }
     #endregion
@@ -872,6 +878,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "UseFragmentFog",
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
+        {
+            displayName = "Decals",
+            referenceName = "_DBUFFER",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "OFF", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "MRT1", referenceName = "MRT1" },
+                new KeywordEntry() { displayName = "MRT2", referenceName = "MRT2" },
+                new KeywordEntry() { displayName = "MRT3", referenceName = "MRT3" },
+            }
         };
     }
     #endregion

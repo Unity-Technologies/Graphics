@@ -337,6 +337,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal void OnValidate()
         {
+            if (!isActiveAndEnabled)
+                return;
+
             if (m_Material != m_OldMaterial)
             {
                 onDecalMaterialChange?.Invoke(this);

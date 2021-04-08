@@ -52,6 +52,7 @@ namespace UnityEngine.Rendering.Universal
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.graphicsFormat = QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
+                desc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
                 dBufferCount++;
@@ -62,6 +63,7 @@ namespace UnityEngine.Rendering.Universal
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
+                desc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
                 dBufferCount++;
@@ -72,6 +74,7 @@ namespace UnityEngine.Rendering.Universal
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
+                desc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
                 dBufferCount++;
@@ -82,6 +85,7 @@ namespace UnityEngine.Rendering.Universal
                 var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
                 depthDesc.graphicsFormat = GraphicsFormat.DepthAuto;
                 depthDesc.depthBufferBits = 24;
+                depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);
             }

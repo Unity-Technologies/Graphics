@@ -118,7 +118,7 @@ void DecodeFromDBuffer(
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
-void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, inout InputData inputData)
+void ApplyDecalToBaseColor(float4 positionCS, inout half3 baseColor)
 {
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(positionCS.xy));
 
@@ -128,13 +128,32 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
 
     // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
-    surfaceData.albedo.xyz = surfaceData.albedo.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    baseColor.xyz = baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+}
+
+void ApplyDecal(float4 positionCS,
+    inout half3 baseColor,
+    inout half3 specularColor,
+    inout half3 normalWS,
+    inout half metallic,
+    inout half occlusion,
+    inout half smoothness)
+{
+    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(positionCS.xy));
+
+    DecalSurfaceData decalSurfaceData;
+    DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
+
+    // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
+    baseColor.xyz = baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 
 #if defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0) // TODO
     {
-        inputData.normalWS.xyz = normalize(inputData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        normalWS.xyz = normalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 #endif
 
@@ -142,16 +161,39 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
 #ifdef _SPECULAR_SETUP
     if (decalSurfaceData.MAOSAlpha.x < 1.0)
     {
-        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.metallic, DEFAULT_SPECULAR_VALUE);
-        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSAlpha + decalSpecularColor * (1.0f - decalSurfaceData.MAOSAlpha);
+        half3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : half3(1.0, 1.0, 1.0), decalSurfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+        specularColor = specularColor * decalSurfaceData.MAOSAlpha + decalSpecularColor * (1.0f - decalSurfaceData.MAOSAlpha);
     }
 #else
-    surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSAlpha + decalSurfaceData.metallic;
+    metallic = metallic * decalSurfaceData.MAOSAlpha + decalSurfaceData.metallic;
 #endif
 
-    surfaceData.occlusion = surfaceData.occlusion * decalSurfaceData.MAOSAlpha + decalSurfaceData.occlusion;
+    occlusion = occlusion * decalSurfaceData.MAOSAlpha + decalSurfaceData.occlusion;
 
-    surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.MAOSAlpha + decalSurfaceData.smoothness;
+    smoothness = smoothness * decalSurfaceData.MAOSAlpha + decalSurfaceData.smoothness;
+#endif
+}
+
+void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, inout InputData inputData)
+{
+#ifdef _SPECULAR_SETUP
+    half metallic = 0;
+    ApplyDecal(positionCS,
+        surfaceData.albedo,
+        surfaceData.specularColor,
+        inputData.normalWS,
+        metallic,
+        surfaceData.occlusion,
+        surfaceData.smoothness);
+#else
+    half3 specular = 0;
+    ApplyDecal(positionCS,
+        surfaceData.albedo,
+        specular,
+        inputData.normalWS,
+        surfaceData.metallic,
+        surfaceData.occlusion,
+        surfaceData.smoothness);
 #endif
 }
 #endif // UNIVERSAL_DBUFFER_INDLUDED

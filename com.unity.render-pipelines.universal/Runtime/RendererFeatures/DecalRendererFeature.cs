@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
                 var decalProjectors = GameObject.FindObjectsOfType<DecalProjector>();
                 foreach (var decalProjector in decalProjectors)
                 {
-                    if (m_DecalEntityManager.IsValid(decalProjector.decalEntity))
+                    if (!decalProjector.isActiveAndEnabled || m_DecalEntityManager.IsValid(decalProjector.decalEntity))
                         continue;
                     decalProjector.decalEntity = m_DecalEntityManager.CreateDecalEntity(decalProjector);
                 }
@@ -426,6 +426,8 @@ namespace UnityEngine.Rendering.Universal
                         new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
                         new RenderTargetHandle(m_DBufferRenderPass.dBufferIndentifier)
                     );
+                    m_CopyDepthPass.MssaSamples = 1;
+
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                     renderer.EnqueuePass(m_ForwardEmissivePass);

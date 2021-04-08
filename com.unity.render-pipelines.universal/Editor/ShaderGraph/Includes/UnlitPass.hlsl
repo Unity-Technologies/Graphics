@@ -28,5 +28,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surfaceDescription.BaseColor *= surfaceDescription.Alpha;
 #endif
 
+#if defined(_DBUFFER)
+    ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);
+#endif
+
     return half4(surfaceDescription.BaseColor, alpha);
 }
