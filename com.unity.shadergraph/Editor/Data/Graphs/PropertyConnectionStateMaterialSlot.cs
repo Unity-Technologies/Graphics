@@ -27,16 +27,22 @@ namespace UnityEditor.ShaderGraph
         {
             return new PropertyConnectionStateSlotControlView(this);
         }
+		
+        protected override string ConcreteSlotValueAsVariable()
+        {
+            // This is a funky slot, that doesn't directly hold a value.
+            return "false";
+        }
 
         public bool defaultValue
         {
-            // This is a funky slot, that doesn't actually hold a value.
+            // This is a funky slot, that doesn't directly hold a value.
             get { return false; }
         }
 
         public bool value
         {
-            // This is a funky slot, that doesn't actually hold a value.
+            // This is a funky slot, that doesn't directly hold a value.
             get { return false; }
         }
 
@@ -64,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            // This is a funky slot, that doesn't actually hold a value.
+            // This is a funky slot, that doesn't directly hold a value.
         }
     }
 }
