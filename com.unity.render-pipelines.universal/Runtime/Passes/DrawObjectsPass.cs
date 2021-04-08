@@ -96,13 +96,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
                 {
-                    foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
 
-                        if(debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {
                             context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref filterSettings, ref renderStateBlock);
                         }
@@ -114,11 +114,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-            	    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
-	                // Render objects that did not match any shader pass with error shader
-    	            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
-        	    }
+                    // Render objects that did not match any shader pass with error shader
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -33,9 +33,9 @@ Shader "Hidden/Universal Render Pipeline/Blit"
 
                 half4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, uv);
 
-             	#ifdef _LINEAR_TO_SRGB_CONVERSION
+                #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
-             	#endif
+                #endif
 
                 #if defined(_DEBUG_SHADER)
                 half4 debugColor = 0;

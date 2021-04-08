@@ -1,4 +1,3 @@
-
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -71,14 +70,14 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
                 {
                     CommandBuffer cmd = CommandBufferPool.Get();
 
-                    foreach(DebugRenderSetup debugRenderPass in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    foreach (DebugRenderSetup debugRenderPass in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it under certain circumstances...
-                        if(!DebugHandler.IsScreenClearNeeded)
+                        if (!DebugHandler.IsScreenClearNeeded)
                         {
                             context.DrawSkybox(camera);
                         }
@@ -87,10 +86,10 @@ namespace UnityEngine.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
                 }
-    	        else
-        	    {
-                	context.DrawSkybox(camera);
-            	}
+                else
+                {
+                    context.DrawSkybox(camera);
+                }
             }
         }
     }

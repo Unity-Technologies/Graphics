@@ -1,4 +1,4 @@
-﻿
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 
 void InitializeInputData(Varyings input, out InputData inputData)

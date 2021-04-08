@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -20,16 +19,16 @@ namespace UnityEditor.Rendering
                 AddWidget(new DebugUI.EnumField
                 {
                     displayName = "Vertex Attribute", autoEnum = typeof(DebugVertexAttributeMode),
-                    getter = () => (int)data.DebugVertexAttributeIndexData, setter = (value) => { },
-                    getIndex = () => (int) data.DebugVertexAttributeIndexData,
-                    setIndex = (value) => data.DebugVertexAttributeIndexData = (DebugVertexAttributeMode) value
+                    getter = () => (int)data.DebugVertexAttributeIndexData, setter = (value) => {},
+                    getIndex = () => (int)data.DebugVertexAttributeIndexData,
+                    setIndex = (value) => data.DebugVertexAttributeIndexData = (DebugVertexAttributeMode)value
                 });
             }
         }
 
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
-                                             (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+        (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
         public bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public bool IsLightingActive => !AreAnySettingsActive;
 
@@ -42,6 +41,7 @@ namespace UnityEditor.Rendering
         {
             return new SettingsPanel(this);
         }
+
         #endregion
     }
 }

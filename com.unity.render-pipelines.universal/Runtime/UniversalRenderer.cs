@@ -1,4 +1,3 @@
-
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -188,29 +187,29 @@ namespace UnityEngine.Rendering.Universal
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
-            if(DebugHandler != null)
+            if (DebugHandler != null)
             {
                 // Hook in the debug-render where appropriate...
                 m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
                 m_FinalBlitPass.DebugHandler = DebugHandler;
 
-                if(m_RenderOpaqueForwardOnlyPass != null)
+                if (m_RenderOpaqueForwardOnlyPass != null)
                 {
                     m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
                 }
-                if(m_RenderTransparentForwardPass != null)
+                if (m_RenderTransparentForwardPass != null)
                 {
                     m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
                 }
-                if(m_DrawSkyboxPass != null)
+                if (m_DrawSkyboxPass != null)
                 {
                     m_DrawSkyboxPass.DebugHandler = DebugHandler;
                 }
-                if(m_PostProcessPasses.postProcessPass != null)
+                if (m_PostProcessPasses.postProcessPass != null)
                 {
                     m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
                 }
-                if(m_PostProcessPasses.finalPostProcessPass != null)
+                if (m_PostProcessPasses.finalPostProcessPass != null)
                 {
                     m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
                 }
@@ -275,9 +274,9 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
         {
-            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                if(DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
                 {
                     Camera camera = cameraData.camera;
                     float screenWidth = camera.pixelWidth;
@@ -287,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
                     float normalizedSizeY = size / screenHeight;
                     Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
 
-                    switch(fullScreenDebugMode)
+                    switch (fullScreenDebugMode)
                     {
                         case DebugFullScreenMode.Depth:
                         {
@@ -328,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
             }
@@ -481,16 +480,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool requiresDepthCopyPass = !requiresDepthPrepass
-                                         && renderingData.cameraData.requiresDepthTexture
-                                         && createDepthTexture;
+                && renderingData.cameraData.requiresDepthTexture
+                && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;
 
-                if(!isSceneViewCamera)
+                if (!isSceneViewCamera)
                 {
                     requiresDepthPrepass = false;
                     generateColorGradingLUT = false;
@@ -579,9 +578,9 @@ namespace UnityEngine.Rendering.Universal
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-            if(camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
+            if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
-                if(RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
+                if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
                     EnqueuePass(m_DrawSkyboxPass);
             }
 

@@ -301,7 +301,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                                           surfaceData.clearCoatMask, specularHighlightsOff);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	uint pixelLightCount = GetAdditionalLightsCount();
+    uint pixelLightCount = GetAdditionalLightsCount();
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
@@ -372,13 +372,13 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	uint pixelLightCount = GetAdditionalLightsCount();
+    uint pixelLightCount = GetAdditionalLightsCount();
 
-	LIGHT_LOOP_BEGIN(pixelLightCount)
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
         lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
-	LIGHT_LOOP_END
+    LIGHT_LOOP_END
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)

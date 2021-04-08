@@ -121,13 +121,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
                 {
-                    foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
 
-                        if(debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {
                             context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref renderStateBlock);
                         }

@@ -104,13 +104,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings, bool debugRender)
         {
-            if(debugRender)
+            if (debugRender)
             {
-                foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                 {
                     DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
 
-                    if(debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                    if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                     {
                         context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings, ref renderStateBlock);
                     }
