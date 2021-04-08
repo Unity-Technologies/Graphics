@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Stores the list of ConverterItemDescriptor that will be filled in during the initialization step.
         /// </summary>
-        internal List<ConverterItemDescriptor> m_Items;
+        internal List<ConverterItemDescriptor> items;
 
         /// <summary>
         /// Add to the list of assets to be converted.
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering
         /// <param name="item">The item to add to the list items to convert</param>
         public void AddAssetToConvert(ConverterItemDescriptor item)
         {
-            m_Items.Add(item);
+            items.Add(item);
         }
     }
 
@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering
     public struct RunConverterContext
     {
         List<ConverterItemInfo> m_Items;
+
         internal List<FailedItem> m_FailedItems;
         internal List<SuccessfulItem> m_SuccessfulItems;
 
@@ -83,6 +84,25 @@ namespace UnityEditor.Rendering
         /// </summary>
         public IEnumerable<ConverterItemInfo> items => m_Items;
 
+        internal int failedCount => m_FailedItems.Count;
+        internal int successfulCount => m_SuccessfulItems.Count;
+
+        internal FailedItem GetFailedItemAtIndex(int index)
+        {
+            if (index < 0 || index > failedCount)
+                throw new ArgumentOutOfRangeException();
+            return m_FailedItems[index];
+        }
+
+        internal SuccessfulItem GetSuccessfulItemAtIndex(int index)
+        {
+            if (index < 0 || index > successfulCount)
+                throw new ArgumentOutOfRangeException();
+            return m_SuccessfulItems[index];
+        }
+
+
+
         /// <summary>
         /// These are the items that the converter needs to iterate over.
         /// The UI will make this list of items only the ones that are ticked and should be converted.
@@ -91,6 +111,7 @@ namespace UnityEditor.Rendering
         public RunConverterContext(List<ConverterItemInfo> items)
         {
             m_Items = items;
+
             m_FailedItems = new List<FailedItem>();
             m_SuccessfulItems = new List<SuccessfulItem>();
         }
