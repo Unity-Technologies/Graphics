@@ -3,6 +3,7 @@
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
 
 #define DEBUGGING 0
+#define SUPPORTS_AREA_LIGHTS 1
 
 #pragma kernel GatherFirstBounceHit HIT
 #pragma kernel GatherFirstBounceMiss MISS
@@ -16,7 +17,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
 #define GROUP_SIZE 64
 
@@ -72,16 +73,6 @@ struct HitData
 };
 
 // -------------------------------------------------------------
-// Deringing stuff
-// -------------------------------------------------------------
-
-#define HANNING 0
-#define LANCZOS 1
-#define GAUSSIAN 2
-#define FILTER LANCZOS
-
-
-// -------------------------------------------------------------
 // Get information from neighbours or hits
 // -------------------------------------------------------------
 
@@ -108,8 +99,22 @@ HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDi
 // Lighting Utils
 // -------------------------------------------------------------
 
-// Ideally we want the list pre-computed. This is easier for prototyping
-bool GetNextValidLightData(inout int currentIndex, out LightData lightData)
+LightLoopContext GetEmptyLightLoopContext()
+{
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    return context;
+}
+
+
+// Ideally we want the list pre-computed. This is easier for prototyping, but inefficient with a lot of lights.
+// The procomputation of the list can be really trivial and done either CPU or GPU side
+bool GetNextValidPunctualLightData(inout int currentIndex, out LightData lightData)
 {
    //currentIndex = ScalarizeElementIndex(currentIndex, false);
     for (; currentIndex < (int)_PunctualLightCount; ++currentIndex)
@@ -125,35 +130,39 @@ bool GetNextValidLightData(inout int currentIndex, out LightData lightData)
     return false;
 }
 
-float3 GetShadowPunctual(LightData light, float3 positionRWS, float4 distances, float3 L)
+// Ideally we want the list pre-computed. This is easier for prototyping, but inefficient with a lot of lights.
+// The procomputation of the list can be really trivial and done either CPU or GPU side
+bool GetNextValidAreaLightData(inout int currentIndex, out LightData lightData)
 {
-    LightLoopContext context;
-    context.shadowContext = InitShadowContext();
-    context.shadowValue = 1.0;
-    context.sampleReflection = false;
-    context.contactShadow = 0;
-    context.contactShadowFade = 0;
+    const int lastAreaLightIndex = _PunctualLightCount + _AreaLightCount;
+    //currentIndex = ScalarizeElementIndex(currentIndex, false);
+    for (; currentIndex < (int)lastAreaLightIndex; ++currentIndex)
+    {
+        lightData = _LightDatas[currentIndex];
+        if (lightData.affectDynamicGI > 0)
+        {
+            currentIndex++;
+            return true;
+        }
+    }
 
+    return false;
+}
+
+float3 GetShadowPunctual(LightData light, float3 positionRWS, float4 distances, float3 L, LightLoopContext context)
+{
     PositionInputs posInput;
     posInput.positionWS = positionRWS;
 
     BuiltinData unused;
-    ZERO_INITIALIZE(BuiltinData, unused);
 
     SHADOW_TYPE shadow = EvaluateShadow_Punctual(context, posInput, light, unused, 0, L, distances);
     return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 }
 
-float3 GetShadowDirectional(DirectionalLightData light, float3 positionRWS)
+float3 GetShadowDirectional(DirectionalLightData light, float3 positionRWS, LightLoopContext context)
 {
-    LightLoopContext context;
-    context.shadowContext = InitShadowContext();
-    context.shadowValue = 1.0;
-    context.sampleReflection = false;
-    context.contactShadow = 0;
-    context.contactShadowFade = 0;
-
     PositionInputs posInput;
     posInput.positionWS = positionRWS;
 
@@ -164,28 +173,21 @@ float3 GetShadowDirectional(DirectionalLightData light, float3 positionRWS)
         light.shadowIndex, L);
 
     BuiltinData unused;
-    ZERO_INITIALIZE(BuiltinData, unused);
 
     SHADOW_TYPE shadow = EvaluateShadow_Directional(context, posInput, light, unused, 0);
     return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 }
 
-float3 EvaluatePunctualLight(LightData light, float3 positionWS, out float3 vec)
+float3 EvaluatePunctualLight(LightData light, float3 positionWS, out float3 L)
 {
-    float3 L;
     float4 distances; // {d, d^2, 1/d, d_proj}
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);
 
     GetPunctualLightVectors(positionRWS, light, L, distances);
     L = normalize(L);
-    // Maybe makes sense to init better (TODO)
-    LightLoopContext context;
-    context.shadowContext = InitShadowContext();
-    context.shadowValue = 1.0;
-    context.sampleReflection = false;
-    context.contactShadow = 0;
-    context.contactShadowFade = 0;
+
+    LightLoopContext context = GetEmptyLightLoopContext();
 
     PositionInputs posInput;
     posInput.positionWS = positionRWS;
@@ -193,22 +195,28 @@ float3 EvaluatePunctualLight(LightData light, float3 positionWS, out float3 vec)
     float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
     lightColor.rgb *= lightColor.a;
 
-    float3 shadows = GetShadowPunctual(light, positionRWS, distances, L);
+    float3 shadows = GetShadowPunctual(light, positionRWS, distances, L, context);
 
-    vec = normalize(positionWS - GetAbsolutePositionWS(light.positionRWS));
     return shadows * lightColor.rgb;
 }
 
-float3 EvaluateDirectionalLight(DirectionalLightData light, float3 positionWS, out float3 vec)
+float3 EvaluateAreaLight(LightData light, float3 positionWS, float3 N)
+{
+    LightLoopContext context = GetEmptyLightLoopContext();
+
+    PositionInputs posInput;
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+    posInput.positionWS = positionRWS;
+
+    BuiltinData unused;
+    return EvaluateLight_RectArea_LambertDiffuseOnly(context, N, posInput, light, unused);
+}
+
+float3 EvaluateDirectionalLight(DirectionalLightData light, float3 positionWS, out float3 L)
 {
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);
 
-    LightLoopContext context;
-    context.shadowContext = InitShadowContext();
-    context.shadowValue = 0.0f;
-    context.sampleReflection = false;
-    context.contactShadow = 0;
-    context.contactShadowFade = 0;
+    LightLoopContext context = GetEmptyLightLoopContext();
 
     PositionInputs posInput;
     posInput.positionWS = positionRWS;
@@ -216,9 +224,9 @@ float3 EvaluateDirectionalLight(DirectionalLightData light, float3 positionWS, o
     float4 lightColor = EvaluateLight_Directional(context, posInput, light);
     lightColor.rgb *= lightColor.a;
 
-    float3 shadows = GetShadowDirectional(light, positionRWS);
+    float3 shadows = GetShadowDirectional(light, positionRWS, context);
 
-    vec = light.forward;
+    L = -light.forward;
     // TODO: WHY? But it matches more...
     float scale =  2.0f / PI;
     return shadows * lightColor.rgb * scale;
@@ -231,7 +239,7 @@ float3 GetLightingForAxisPunctual(LightData light, uint probeIndex, float3 probe
     float3 L;
     outputLighting = EvaluatePunctualLight(light, hit.position, L);
     outputLighting *= hit.albedo;
-    float NdotL = saturate(dot(hit.normal, -L));
+    float NdotL = saturate(dot(hit.normal, L));
 
     float scalarMultiplier = NdotL * INV_PI * _ArtificialScale;
     outputLighting *= scalarMultiplier;
@@ -246,13 +254,27 @@ float3 GetLightingForAxisDirectional(DirectionalLightData light, uint probeIndex
     float3 L;
     outputLighting = EvaluateDirectionalLight(light, hit.position, L);
     outputLighting *= hit.albedo;
-    float NdotL = saturate(dot(hit.normal, -L));
+    float NdotL = saturate(dot(hit.normal, L));
 
     float scalarMultiplier = NdotL * INV_PI * _ArtificialScale;
     outputLighting *= scalarMultiplier;
 
     return outputLighting;
 }
+
+float3 GetLightingForAxisArea(LightData light, uint probeIndex, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    outputLighting = EvaluateAreaLight(light, hit.position, hit.normal);
+    outputLighting *= hit.albedo;
+
+    float scalarMultiplier = _ArtificialScale;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
 
 // -------------------------------------------------------------
 // Actual Light Loop
@@ -268,11 +290,23 @@ bool AccumulateLighting(float3 probeWorldPosition, uint probeIndex, uint2 extraD
 
     {
         // Punctual
-        while (GetNextValidLightData(lightIndex, light))
+        while (GetNextValidPunctualLightData(lightIndex, light))
         {
+            // TODO: -> If needed, reintroduce here the push off of the light position if it matches probeWorldPosition too much.
             lighting.xyz += GetLightingForAxisPunctual(light, probeIndex, probeWorldPosition, hit);
             lighting.w = _PrimaryDecay + 1.0f;
         }
+
+#if SUPPORTS_AREA_LIGHTS
+        // Area light
+        // Fast forward to start of area lights.
+        lightIndex = _PunctualLightCount;
+        while (GetNextValidAreaLightData(lightIndex, light))
+        {
+            lighting.xyz += GetLightingForAxisArea(light, probeIndex, probeWorldPosition, hit);
+            lighting.w = _PrimaryDecay + 1.0f;
+        }
+#endif
 
         // Directional
         for (uint dirLightIdx = 0; dirLightIdx < _DirectionalLightCount; ++dirLightIdx)

@@ -474,13 +474,17 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 #endif
 }
 
+//-----------------------------------------------------------------------------
+// Area light evaluation helpers
+//-----------------------------------------------------------------------------
 
-SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, PositionInputs posInput,
-                                     LightData light, BuiltinData builtinData, float3 N, float3 L, float dist)
+
+SHADOW_TYPE EvaluateShadow_RectArea(LightLoopContext lightLoopContext, PositionInputs posInput,
+    LightData light, BuiltinData builtinData, float3 N, float3 L, float dist)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    float shadow        = 1.0;
-    float shadowMask    = 1.0;
+    float shadow = 1.0;
+    float shadowMask = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -498,15 +502,15 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
         float2 screenSpaceAreaShadow = GetScreenSpaceShadowArea(posInput, light.screenSpaceShadowIndex);
         // If the material has transmission, we want to be able to fallback on an other lighting source outside of the validity of the screen space shadow.
         // Which is wrong, but less shocking visually than the alternative.
-        #if defined(MATERIAL_INCLUDE_TRANSMISSION)
+#if defined(MATERIAL_INCLUDE_TRANSMISSION)
         if (screenSpaceAreaShadow.y > 0.0)
         {
             validScreenSpace = true;
             shadow = screenSpaceAreaShadow.x;
         }
-        #else
+#else
         shadow = screenSpaceAreaShadow.x;
-        #endif
+#endif
     }
 #endif
 
@@ -529,6 +533,119 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 #else // LIGHT_EVALUATION_NO_SHADOWS
     return 1.0;
 #endif
+}
+
+
+float3 EvaluateLight_RectArea_LambertDiffuseOnly(LightLoopContext lightLoopContext, float3 N, PositionInputs posInput, LightData lightData, BuiltinData builtinData)
+{
+    float3 outDiffuseLighting = 0;
+
+    float3 positionWS = posInput.positionWS;
+
+#if SHADEROPTIONS_BARN_DOOR
+    // Apply the barn door modification to the light data
+    RectangularLightApplyBarnDoor(lightData, positionWS);
+#endif
+
+    float3 unL = lightData.positionRWS - positionWS;
+
+    if (dot(lightData.forward, unL) < FLT_EPS)
+    {
+        // Rotate the light direction into the light space.
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
+        unL = mul(unL, transpose(lightToWorld));
+
+        // TODO: This could be precomputed.
+        float halfWidth = lightData.size.x * 0.5;
+        float halfHeight = lightData.size.y * 0.5;
+
+        // Define the dimensions of the attenuation volume.
+        // TODO: This could be precomputed.
+        float  range = lightData.range;
+        float3 invHalfDim = rcp(float3(range + halfWidth,
+            range + halfHeight,
+            range));
+
+        // Compute the light attenuation.
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+            lightData.rangeAttenuationScale,
+            lightData.rangeAttenuationBias);
+
+        // Terminate if the shaded point is too far away.
+        if (intensity != 0.0)
+        {
+            lightData.diffuseDimmer *= intensity;
+            lightData.specularDimmer *= intensity;
+
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            lightData.positionRWS -= positionWS;
+
+            float4x3 lightVerts;
+
+            // TODO: some of this could be precomputed.
+            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
+
+            // Rotate the endpoints into the local coordinate system.
+
+            // The orthonormal basis used here should be GetOrthoBasisViewNormal but we don't have access of V.
+            lightVerts = mul(lightVerts, transpose(GetLocalFrame(N)));
+
+            float3 ltcValue;
+
+            // Evaluate the diffuse part
+            // Polygon irradiance in the transformed configuration.
+
+            // Because we evaluate only lambertian diffuse here, the LTC transform is just identity, hence we skip the multiply.
+            float4x3 LD = lightVerts;
+
+            float3 formFactorD;
+#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+            formFactorD = PolygonFormFactor(LD);
+            ltcValue = PolygonIrradianceFromVectorFormFactor(formFactorD);
+#else
+            ltcValue = PolygonIrradiance(LD, formFactorD);
+#endif
+            ltcValue *= lightData.diffuseDimmer;
+
+            // Only apply cookie if there is one
+            if (lightData.cookieMode != COOKIEMODE_NONE)
+            {
+#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
+                formFactorD = PolygonFormFactor(LD);
+#endif
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LD, formFactorD);
+            }
+
+            outDiffuseLighting = ltcValue;
+
+            // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
+            // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
+#ifndef SKIP_RASTERIZED_AREA_SHADOWS
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, N, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+#endif
+
+            // Save ALU by applying 'lightData.color' only once.
+            outDiffuseLighting *= lightData.color;
+
+#ifdef DEBUG_DISPLAY
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+            {
+                // Only lighting, not BSDF
+                // Apply area light on lambert then multiply by PI to cancel Lambert
+                outDiffuseLighting = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+                outDiffuseLighting *= PI * lightData.diffuseDimmer;
+            }
+#endif
+        }
+    }
+
+    return outDiffuseLighting;
 }
 
 //-----------------------------------------------------------------------------

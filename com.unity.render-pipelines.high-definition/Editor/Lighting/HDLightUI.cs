@@ -895,10 +895,8 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
                 EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
 
-            if (lightType != HDLightType.Area)
-            {
-                EditorGUILayout.PropertyField(serialized.affectsDynamicGI, s_Styles.affectsDynamicGI);
-            }
+
+            EditorGUILayout.PropertyField(serialized.affectsDynamicGI, s_Styles.affectsDynamicGI);
 
             // Emissive mesh for area light only (and not supported on Disc currently)
             if (lightType == HDLightType.Area && serialized.areaLightShape != AreaLightShape.Disc)
