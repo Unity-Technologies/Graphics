@@ -202,8 +202,12 @@ void BuildElementToWorld(VaryingsMeshType input)
 
 void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
 {
+    // Due to a very stubborn compiler bug we cannot refer directly to the redefined UNITY_MATRIX_M / UNITY_MATRIX_I_M here, due to a rare case where the matrix alias
+    // is potentially still the constant object matrices (thus complaining about l-value specifying const object). Note even judicious use of preprocessors seems to
+    // fix it, so we instead we directly refer to the static matrices.
+
     // Element -> World
-    UNITY_MATRIX_M = GetElementToVFXMatrix(
+    elementToWorld = GetElementToVFXMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
@@ -213,13 +217,13 @@ void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
         element.attributes.position);
 
 #if VFX_LOCAL_SPACE
-    UNITY_MATRIX_M = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), UNITY_MATRIX_M);
+    elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
 #else
-    UNITY_MATRIX_M = ApplyCameraTranslationToMatrix(UNITY_MATRIX_M);
+    elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
 #endif
 
     // World -> Element
-    UNITY_MATRIX_I_M = GetVFXToElementMatrix(
+    worldToElement = GetVFXToElementMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
@@ -230,22 +234,22 @@ void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
     );
 
 #if VFX_LOCAL_SPACE
-    UNITY_MATRIX_I_M = mul(UNITY_MATRIX_I_M, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
+    worldToElement = mul(worldToElement, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
 #else
-    UNITY_MATRIX_I_M = ApplyCameraTranslationToInverseMatrix(UNITY_MATRIX_I_M);
+    worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
 
     // Pack matrices into interpolator if requested by any node.
 #ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
-    output.elementToWorld0 = UNITY_MATRIX_M[0];
-    output.elementToWorld1 = UNITY_MATRIX_M[1];
-    output.elementToWorld2 = UNITY_MATRIX_M[2];
+    output.elementToWorld0 = elementToWorld[0];
+    output.elementToWorld1 = elementToWorld[1];
+    output.elementToWorld2 = elementToWorld[2];
 #endif
 
 #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
-    output.worldToElement0 = UNITY_MATRIX_I_M[0];
-    output.worldToElement1 = UNITY_MATRIX_I_M[1];
-    output.worldToElement2 = UNITY_MATRIX_I_M[2];
+    output.worldToElement0 = worldToElement[0];
+    output.worldToElement1 = worldToElement[1];
+    output.worldToElement2 = worldToElement[2];
 #endif
 }
 
