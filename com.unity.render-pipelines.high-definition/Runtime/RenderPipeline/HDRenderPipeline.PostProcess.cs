@@ -3019,6 +3019,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
 
+                    if (m_EnableAlpha)
+                        passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                     passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
 
