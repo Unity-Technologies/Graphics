@@ -50,7 +50,7 @@ namespace Editor.Converters
 
         public override void OnInitialize(InitializeConverterContext ctx)
         {
-            using var context = SearchService.CreateContext("asset", "urp:convert");
+            using var context = SearchService.CreateContext("asset", "urp:convert-readonly");
             using var request = SearchService.Request(context);
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast

@@ -21,7 +21,7 @@ static class ConversionIndexers
 				{
 					if (MaterialReferenceBuilder.GetIsReadonlyMaterial(materialResult))
 					{
-						indexer.AddProperty("urp", "convert", context.documentIndex);
+						indexer.AddProperty("urp", "convert-readonly", context.documentIndex);
 					}
 				}
 				else if (result is Material[] materialArrayResult)
@@ -30,7 +30,7 @@ static class ConversionIndexers
 					{
 						if (material != null && MaterialReferenceBuilder.GetIsReadonlyMaterial(material))
 						{
-							indexer.AddProperty("urp", "convert", context.documentIndex);
+							indexer.AddProperty("urp", "convert-readonly", context.documentIndex);
 						}
 					}
 				}
