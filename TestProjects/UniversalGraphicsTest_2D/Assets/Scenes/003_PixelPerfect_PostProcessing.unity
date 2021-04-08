@@ -744,7 +744,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 0
+  WaitFrames: 15
   XRCompatible: 0
 --- !u!114 &599516828
 MonoBehaviour:
