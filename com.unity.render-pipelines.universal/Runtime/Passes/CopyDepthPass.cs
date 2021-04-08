@@ -111,6 +111,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source);
                 cmd.SetGlobalTexture(destination.name, destination);
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
