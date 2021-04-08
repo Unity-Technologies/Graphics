@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// (Obsolete) During normal usage, HDRP may reset SpeedTree-specific keywords which should not be modified. This method restores these keywords to their original state.
+        /// (Obsolete) HDRP may reset SpeedTree-specific keywords which should not be modified. This method restores these keywords to their original state.
         /// </summary>
         /// <param name="mat">SpeedTree 8 material.</param>
         public static void RestoreHDSpeedTree8Keywords(Material mat)

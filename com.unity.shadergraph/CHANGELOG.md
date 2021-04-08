@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
-  - Added ability to define custom vertex-to-fragment interpolators.
-  - Support for the XboxSeries platform has been added.
-  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
-  - Added View Vector Node doc
-  - Added subshadergraphs for SpeedTree8 wind, color/alpha, billboard, and transforming interpolated normals on backfaces.
+- Added ability to define custom vertex-to-fragment interpolators.
+- Support for the XboxSeries platform has been added.
+- Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+- Added View Vector Node doc
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
+- Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
 
 ### Changed
 - Updated/corrected View Direction doc
