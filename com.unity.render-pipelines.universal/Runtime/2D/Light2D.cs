@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// N-gon shaped lights. Deprecated.
             /// </summary>
-            [Obsolete("Use Freeform or Point to emulate n-gon shapes")]
             Parametric = 0,
             /// <summary>
             /// The shape of the light is based on a user defined closed shape with multiple points.
