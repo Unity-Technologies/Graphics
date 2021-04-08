@@ -329,7 +329,7 @@ namespace UnityEngine
                 viewportPos = cam.WorldToViewportPoint(positionWS);
                 if (usePanini && cam == Camera.main)
                 {
-                    viewportPos = DoPaniniProjection(viewportPos, actualWidth, actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance, true);
+                    viewportPos = DoPaniniProjection(viewportPos, actualWidth, actualHeight, cam.fieldOfView, paniniCropToFit, paniniDistance);
                 }
 
                 if (viewportPos.z < 0.0f)
@@ -676,10 +676,10 @@ namespace UnityEngine
         }
 
         #region Panini Projection
-        static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance, bool inverse)
+        static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance)
         {
             Vector2 viewExtents = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
-            Vector2 cropExtents = Panini_Generic_Inv(viewExtents, paniniProjectionDistance);
+            Vector2 cropExtents = CalcCropExtents(actualWidth, actualHeight, fieldOfView, paniniProjectionDistance);
 
             float scaleX = cropExtents.x / viewExtents.x;
             float scaleY = cropExtents.y / viewExtents.y;
@@ -688,10 +688,11 @@ namespace UnityEngine
             float paniniD = paniniProjectionDistance;
             float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), paniniProjectionCropToFit);
 
-            if (!inverse)
-                return Panini_Generic(screenPos * viewExtents * paniniS, paniniD) / viewExtents;
-            else
-                return Panini_Generic_Inv(screenPos * viewExtents, paniniD) / (viewExtents * paniniS);
+            Vector2 pos = new Vector2(2.0f * screenPos.x - 1.0f, 2.0f * screenPos.y - 1.0f);
+
+            Vector2 projPos = Panini_Generic_Inv(pos * viewExtents, paniniD) / (viewExtents * paniniS);
+
+            return new Vector2(0.5f * projPos.x + 0.5f, 0.5f * projPos.y + 0.5f);
         }
 
         static Vector2 CalcViewExtents(float actualWidth, float actualHeight, float fieldOfView)
@@ -705,52 +706,9 @@ namespace UnityEngine
             return new Vector2(viewExtX, viewExtY);
         }
 
-        static Vector2 Panini_UnitDistance(Vector2 view_pos)
+        static Vector2 CalcCropExtents(float actualWidth, float actualHeight, float fieldOfView, float d)
         {
-            // Given
-            //    S----------- E--X-------
-            //    |      ` .  /,´
-            //    |-- ---    Q
-            //  1 |       ,´/  `
-            //    |     ,´ /    ´
-            //    |   ,´  /      `
-            //    | ,´   /       .
-            //    O`    /        .
-            //    |    /         `
-            //    |   /         ´
-            //  1 |  /         ´
-            //    | /        ´
-            //    |/_  .  ´
-            //    P
-            //
-            // Have E
-            // Want to find X
-            //
-            // First apply tangent-secant theorem to find Q
-            //   PE*QE = SE*SE
-            //   QE = PE-PQ
-            //   PQ = PE-(SE*SE)/PE
-            //   Q = E*(PQ/PE)
-            // Then project Q to find X
-
-            const float d = 1.0f;
-            const float view_dist = 2.0f;
-            const float view_dist_sq = 4.0f;
-
-            float view_hyp = Mathf.Sqrt(view_pos.x * view_pos.x + view_dist_sq);
-
-            float cyl_hyp = view_hyp - (view_pos.x * view_pos.x) / view_hyp;
-            float cyl_hyp_frac = cyl_hyp / view_hyp;
-            float cyl_dist = view_dist * cyl_hyp_frac;
-
-            Vector2 cyl_pos = view_pos * cyl_hyp_frac;
-
-            return cyl_pos / (cyl_dist - d);
-        }
-
-        static Vector2 Panini_Generic(Vector2 view_pos, float d)
-        {
-            // Given
+            // given
             //    S----------- E--X-------
             //    |    `  ~.  /,´
             //    |-- ---    Q
@@ -769,24 +727,19 @@ namespace UnityEngine
             //    |         , ´
             //    +-    ´
             //
-            // Have E
-            // Want to find X
-            //
-            // First compute line-circle intersection to find Q
-            // Then project Q to find X
+            // have X
+            // want to find E
 
-            float view_dist = 1.0f + d;
-            float view_hyp_sq = view_pos.x * view_pos.x + view_dist * view_dist;
+            float viewDist = 1.0f + d;
 
-            float isect_D = view_pos.x * d;
-            float isect_discrim = view_hyp_sq - isect_D * isect_D;
+            Vector2 projPos = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
+            float projHyp = Mathf.Sqrt(projPos.x * projPos.x + 1.0f);
 
-            float cyl_dist_minus_d = (-isect_D * view_pos.x + view_dist * Mathf.Sqrt(isect_discrim)) / view_hyp_sq;
-            float cyl_dist = cyl_dist_minus_d + d;
+            float cylDistMinusD = 1.0f / projHyp;
+            float cylDist = cylDistMinusD + d;
+            Vector2 cylPos = projPos * cylDistMinusD;
 
-            Vector2 cyl_pos = view_pos * (cyl_dist / view_dist);
-
-            return cyl_pos / (cyl_dist - d);
+            return cylPos * (viewDist / cylDist);
         }
 
         static Vector2 Panini_Generic_Inv(Vector2 projPos, float d)
@@ -813,12 +766,12 @@ namespace UnityEngine
             // have X
             // want to find E
 
-            float viewDist = 1f + d;
-            var projHyp = Mathf.Sqrt(projPos.x * projPos.x + 1f);
+            float viewDist = 1.0f + d;
+            float projHyp = Mathf.Sqrt(projPos.x * projPos.x + 1.0f);
 
-            float cylDistMinusD = 1f / projHyp;
+            float cylDistMinusD = 1.0f / projHyp;
             float cylDist = cylDistMinusD + d;
-            var cylPos = projPos * cylDistMinusD;
+            Vector2 cylPos = projPos * cylDistMinusD;
 
             return cylPos * (viewDist / cylDist);
         }
