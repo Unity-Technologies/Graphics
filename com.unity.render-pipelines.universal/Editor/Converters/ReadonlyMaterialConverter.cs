@@ -29,14 +29,14 @@ namespace Editor.Converters
             {"Default-Terrain-Standard", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
             {"Sprites-Default", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
             {"Sprites-Mask", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
+            {"SpatialMappingOcclusion", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingOcclusion.mat"},
+            {"SpatialMappingWireframe", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingWireframe.mat"},
 
             // TODO: Replace these with something more appropriate
             {"Default UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
             {"ETC1 Supported UI Material", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
             {"Default-Line", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
             {"Default-Skybox", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
-            {"SpatialMappingOcclusion", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
-            {"SpatialMappingWireframe", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
         };
     }
 
