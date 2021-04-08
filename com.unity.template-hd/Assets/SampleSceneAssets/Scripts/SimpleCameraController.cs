@@ -66,7 +66,7 @@ namespace UnityTemplateProjects
 
         [Header("Rotation Settings")]
         [Tooltip("Multiplier for the sensitivity of the rotation.")]
-        public float mouseSensitivity = 10.0f;
+        public float mouseSensitivity = 60.0f;
 
         [Tooltip("X = Change in mouse position.\nY = Multiplicative factor for camera rotation.")]
         public AnimationCurve mouseSensitivityCurve = new AnimationCurve(new Keyframe(0f, 0.5f, 0f, 5f), new Keyframe(1f, 2.5f, 0f, 0f));
@@ -191,7 +191,7 @@ namespace UnityTemplateProjects
             // Rotation
             if (IsCameraRotationAllowed())
             {
-                var mouseMovement = GetInputLookRotation() * Time.deltaTime * 6 * mouseSensitivity;
+                var mouseMovement = GetInputLookRotation() * Time.deltaTime * mouseSensitivity;
                 if (invertY)
                     mouseMovement.y = -mouseMovement.y;
 
