@@ -748,7 +748,7 @@ namespace UnityEditor.ShaderGraph
 
         public string GetConnnectionStateVariableNameForSlot(int slotId)
         {
-            return ShaderInput.GetConnectionStateName(GetVariableNameForSlot(slotId));
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         public virtual string GetVariableNameForNode()

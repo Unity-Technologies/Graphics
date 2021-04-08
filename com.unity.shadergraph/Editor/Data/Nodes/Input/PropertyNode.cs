@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
 
         public string GetConnectionStateVariableNameForSlot(int slotId)
         {
-            return ShaderInput.GetConnectionStateName(GetVariableNameForSlot(slotId));
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         protected override void CalculateNodeHasError()

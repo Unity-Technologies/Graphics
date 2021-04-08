@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal string GetConnectionStateHLSLVariableName()
         {
-            return connectionStateReferenceName;
+            return "_" + objectId + "_IsConnected";
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...

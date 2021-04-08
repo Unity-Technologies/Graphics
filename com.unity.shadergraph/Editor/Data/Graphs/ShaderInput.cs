@@ -156,14 +156,6 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        internal string connectionStateReferenceName
-        {
-            get
-            {
-                return GetConnectionStateName(referenceName);
-            }
-        }
-
         public override void OnBeforeDeserialize()
         {
             // if serialization doesn't write to m_DefaultRefNameVersion, then it is an old shader input, and should use the old default naming scheme
@@ -252,9 +244,9 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_UseCustomSlotLabel;
         }
 
-        static internal string GetConnectionStateName(string baseName)
+        static internal string GetConnectionStateVariableName(string variableName)
         {
-            return baseName + "_IsConnected";
+            return variableName + "_IsConnected";
         }
 
         internal abstract ShaderInput Copy();

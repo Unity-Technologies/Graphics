@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph
 					arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                     if (prop.isConnectionTestable)
                     {
-                        arguments.Add($"bool {ShaderInput.GetConnectionStateName(prop.GetHLSLVariableName(true))}");
+                        arguments.Add($"bool {prop.GetConnectionStateHLSLVariableName()}");
                     }                    
                 }
 
