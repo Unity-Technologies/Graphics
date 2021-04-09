@@ -50,6 +50,7 @@ inline $precision Unity_SimpleNoise_RandomValue_$precision ($precision2 uv)
 {
     $precision angle = dot(uv, $precision2(12.9898, 78.233));
     #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
+        // 'sin()' has bad precision on Mali GPUs for inputs > 10000
         angle = fmod(angle, TWO_PI); // Avoid large inputs to sin()
     #endif
     return frac(sin(angle)*43758.5453);
