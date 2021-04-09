@@ -113,9 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
         public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
-        /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
-        [Tooltip("Specifies the tiling used for the cloud shadows texture.")]
-        public MinFloatParameter shadowTiling = new MinFloatParameter(500f, 0.0f);
+        /// <summary>Specifies the size of the projected shadows.</summary>
+        [Tooltip("Specifies the size of the projected shadows.")]
+        public MinFloatParameter shadowSize = new MinFloatParameter(500f, 0.0f);
 
 
         /// <summary>

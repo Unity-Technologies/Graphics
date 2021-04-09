@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
         SerializedDataParameter m_Resolution, m_ShadowResolution;
-        SerializedDataParameter m_ShadowMultiplier, m_ShadowTint, m_ShadowTiling;
+        SerializedDataParameter m_ShadowMultiplier, m_ShadowTint, m_ShadowSize;
         CloudMapParameter[] m_Layers;
 
         public override void OnEnable()
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowMultiplier = Unpack(o.Find(x => x.shadowMultiplier));
             m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
             m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
-            m_ShadowTiling = Unpack(o.Find(x => x.shadowTiling));
+            m_ShadowSize = Unpack(o.Find(x => x.shadowSize));
 
             m_Layers = new CloudMapParameter[]
             {
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (showAdditionalProperties)
                 PropertyField(m_ShadowResolution);
 
-            PropertyField(m_ShadowTiling);
+            PropertyField(m_ShadowSize);
         }
     }
 }

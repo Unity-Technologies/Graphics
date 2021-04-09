@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cloudLayer.CastShadows && m_PrecomputedData?.cloudShadowsRT != null)
             {
                 cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
-                cookieParams.size = new Vector2(cloudLayer.shadowTiling.value, cloudLayer.shadowTiling.value);
+                cookieParams.size = new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
                 return true;
             }
             return false;

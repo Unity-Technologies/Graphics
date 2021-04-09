@@ -75,3 +75,4 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Shadow Multiplier** | The opacity of the cloud shadows. The higher the value, the darker the shadows. |
 | **Shadow Tint**       | The tint HDRP applies to the cloud shadows.                  |
 | **Shadow Resolution** | The resolution of the cloud shadows texture.                 |
+| **Shadow Size**       | The size of the projected cloud shadows.                     |
