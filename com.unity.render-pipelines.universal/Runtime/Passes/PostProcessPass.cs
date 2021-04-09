@@ -382,9 +382,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Lens Flare
             if (!SRPLensFlareCommon.Instance.IsEmpty())
             {
+                bool usePanini;
+                float paniniDistance;
+                float paniniCropToFit;
+                if (m_PaniniProjection.IsActive())
+                {
+                    usePanini = true;
+                    paniniDistance = m_PaniniProjection.distance.value;
+                    paniniCropToFit = m_PaniniProjection.cropToFit.value;
+                }
+                else
+                {
+                    usePanini = false;
+                    paniniDistance = 1.0f;
+                    paniniCropToFit = 1.0f;
+                }
+
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), GetDestination(), usePanini, paniniDistance, paniniCropToFit);
                     Swap();
                 }
             }
@@ -838,9 +854,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             return 1.0f;
         }
 
-        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target)
+        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             SRPLensFlareCommon.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
+                usePanini, paniniDistance, paniniCropToFit,
                 cmd, source, target, GetLensFlareLightAttenuation,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
