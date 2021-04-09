@@ -129,10 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             LightExtractionJob lightExtractionJob;
             lightExtractionJob.viewOrigin = camera.transform.position;
             lightExtractionJob.lights = reorderedLights;
-            lightExtractionJob.worldToLightMatrices = new NativeArray<float4x4>(lightCount, Allocator.TempJob);
-            lightExtractionJob.viewOriginLs = new NativeArray<float3>(lightCount, Allocator.TempJob);
-            lightExtractionJob.sphereShapes = new NativeArray<SphereShape>(lightCount, Allocator.TempJob);
-            lightExtractionJob.coneShapes = new NativeArray<ConeShape>(lightCount, Allocator.TempJob);
+            lightExtractionJob.tilingLights = new NativeArray<TilingLightData>(lightCount, Allocator.TempJob);
             var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
 
             var binSize = 1.0f;
@@ -166,18 +163,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             FineTilingJob fineTilingJob;
             fineTilingJob.minMaxZs = minMaxZs;
-            fineTilingJob.lights = reorderedLights;
-            fineTilingJob.worldToLightMatrices = lightExtractionJob.worldToLightMatrices;
-            fineTilingJob.viewOriginLs = lightExtractionJob.viewOriginLs;
-            fineTilingJob.sphereShapes = lightExtractionJob.sphereShapes;
-            fineTilingJob.coneShapes = lightExtractionJob.coneShapes;
+            fineTilingJob.lights = lightExtractionJob.tilingLights;
             fineTilingJob.lightsPerTile = lightsPerTile;
             fineTilingJob.tiles = tiles;
             fineTilingJob.screenResolution = screenResolution;
             fineTilingJob.groupResolution = tile1Resolution;
             fineTilingJob.tileResolution = tile0Resolution;
             fineTilingJob.tileWidth = tile0Width;
-            fineTilingJob.viewOrigin = camera.transform.position;
             fineTilingJob.viewForward = camera.transform.forward;
             fineTilingJob.viewRight = camera.transform.right * fovPlaneHalfWidth;
             fineTilingJob.viewUp = camera.transform.up * fovPlaneHalfHeight;
@@ -232,10 +224,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             reorderedLights.Dispose();
             zBins.Dispose();
             tiles.Dispose();
-            lightExtractionJob.worldToLightMatrices.Dispose();
-            lightExtractionJob.viewOriginLs.Dispose();
-            lightExtractionJob.sphereShapes.Dispose();
-            lightExtractionJob.coneShapes.Dispose();
+            lightExtractionJob.tilingLights.Dispose();
 
             mainThreadMarker.End();
 

@@ -13,19 +13,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<LightMinMaxZ> minMaxZs;
 
         [ReadOnly]
-        public NativeArray<VisibleLight> lights;
-
-        [ReadOnly]
-        public NativeArray<float4x4> worldToLightMatrices;
-
-        [ReadOnly]
-        public NativeArray<float3> viewOriginLs;
-
-        [ReadOnly]
-        public NativeArray<SphereShape> sphereShapes;
-
-        [ReadOnly]
-        public NativeArray<ConeShape> coneShapes;
+        public NativeArray<TilingLightData> lights;
 
         public int lightsPerTile;
 
@@ -39,8 +27,6 @@ namespace UnityEngine.Rendering.Universal
         public int2 tileResolution;
 
         public int tileWidth;
-
-        public float3 viewOrigin;
 
         public float3 viewForward;
 
@@ -71,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
             var directionWs = stackalloc float3[groupLength];
             var apertures = stackalloc float[groupLength];
             var tilesOffsets = stackalloc int[groupLength];
-            var groupTiles = stackalloc uint[groupLength];
+            var currentLights = stackalloc uint[groupLength];
 
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
@@ -103,35 +89,34 @@ namespace UnityEngine.Rendering.Universal
                     var lightMask = 1u << i;
                     if (light.lightType == LightType.Point)
                     {
-                        ConeMarch(sphereShapes[lightIndex], lightIndex, lightMask, directionWs, apertures, groupTiles);
+                        ConeMarch(light.shape.sphere, ref light, lightIndex, lightMask, directionWs, apertures, currentLights);
                     }
                     else if (light.lightType == LightType.Spot)
                     {
-                        ConeMarch(coneShapes[lightIndex], lightIndex, lightMask, directionWs, apertures, groupTiles);
+                        ConeMarch(light.shape.cone, ref light, lightIndex, lightMask, directionWs, apertures, currentLights);
                     }
                 }
 
                 for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
                 {
                     var tileLightsIndex = tilesOffsets[coneIndexG] + wordIndex;
-                    tiles[tileLightsIndex] = tiles[tileLightsIndex] | groupTiles[coneIndexG];
-                    groupTiles[coneIndexG] = 0;
+                    tiles[tileLightsIndex] = tiles[tileLightsIndex] | currentLights[coneIndexG];
+                    currentLights[coneIndexG] = 0;
                 }
             }
         }
 
         void ConeMarch<T>(
             T shape,
+            ref TilingLightData light,
             int lightIndex,
             uint lightMask,
             [NoAlias] float3* directionWs,
             [NoAlias] float* apertures,
-            [NoAlias] uint* groupTiles
+            [NoAlias] uint* currentLights
         ) where T : ICullingShape
         {
-            var worldToLight = worldToLightMatrices[lightIndex];
             var lightMinMax = minMaxZs[lightIndex];
-            var originL = viewOriginLs[lightIndex];
 
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
@@ -141,11 +126,11 @@ namespace UnityEngine.Rendering.Universal
                 var hit = false;
                 var aperture = apertures[coneIndexG];
 
-                var directionL = math.mul(worldToLight, math.float4(directionW, 0f)).xyz;
+                var directionL = math.mul(light.worldToLightMatrix, math.float4(directionW, 0f)).xyz;
 
                 while (t < tMax)
                 {
-                    var positionL = originL + directionL * t;
+                    var positionL = light.viewOriginL + directionL * t;
                     var distance = shape.SampleDistance(positionL);
                     t += distance;
                     if (distance < tileAperture * t)
@@ -157,7 +142,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (hit)
                 {
-                    groupTiles[coneIndexG] |= lightMask;
+                    currentLights[coneIndexG] |= lightMask;
                 }
             }
         }

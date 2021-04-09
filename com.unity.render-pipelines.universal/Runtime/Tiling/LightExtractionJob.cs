@@ -13,29 +13,27 @@ namespace UnityEngine.Rendering.Universal
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
 
-        public NativeArray<float4x4> worldToLightMatrices;
-
-        public NativeArray<float3> viewOriginLs;
-
-        public NativeArray<SphereShape> sphereShapes;
-
-        public NativeArray<ConeShape> coneShapes;
+        public NativeArray<TilingLightData> tilingLights;
 
         public void Execute(int index)
         {
             var light = lights[index];
+            var data = new TilingLightData();
             var localToWorldMatrix = (float4x4)light.localToWorldMatrix;
             var worldToLightMatrix = math.inverse(localToWorldMatrix);
-            worldToLightMatrices[index] = worldToLightMatrix;
-            viewOriginLs[index] = math.mul(worldToLightMatrix, math.float4(viewOrigin, 1f)).xyz;
+            data.worldToLightMatrix = worldToLightMatrix;
+            data.viewOriginL = math.mul(worldToLightMatrix, math.float4(viewOrigin, 1f)).xyz;
+            data.screenRect = light.screenRect;
+            data.lightType = light.lightType;
             if (light.lightType == LightType.Point)
             {
-                sphereShapes[index] = new SphereShape { radius = light.range };
+                data.shape.sphere = new SphereShape { radius = light.range };
             }
             else if (light.lightType == LightType.Spot)
             {
-                coneShapes[index] = new ConeShape(light.spotAngle, light.range, localToWorldMatrix);
+                data.shape.cone = new ConeShape(light.spotAngle, light.range);
             }
+            tilingLights[index] = data;
         }
     }
 }
