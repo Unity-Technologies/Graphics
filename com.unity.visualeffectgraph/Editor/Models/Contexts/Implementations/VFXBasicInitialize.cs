@@ -47,6 +47,8 @@ namespace UnityEditor.VFX
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
+
+                yield return "VFX_STATIC_SOURCE_COUNT (" + GetData().staticSourceCount + ")";
             }
         }
 
@@ -91,7 +93,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadSource);
                 foreach (var attribute in base.attributes)
                     yield return attribute;
             }

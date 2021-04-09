@@ -235,40 +235,6 @@ namespace UnityEditor.VFX
             return matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
         }
 
-        static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
-        {
-            var r = new VFXShaderWriter();
-            if (!context.GetData().dependenciesIn.Any())
-            {
-                var staticSourceCount = context.GetData().staticSourceCount;
-                var hasDirectLink = context.GetData().hasDynamicSourceCount;
-
-                r.WriteLine("int sourceIndex = 0;");
-
-                if (staticSourceCount > 1 || hasDirectLink)
-                {
-                    if (!hasDirectLink)
-                        r.WriteLineFormat("uint nbEvents = {0};", staticSourceCount);
-                    //else, nbEvents is provided by the constant buffer
-
-                    r.WriteLine("uint currentSumSpawnCount = 0u;");
-                    r.WriteLine("for (sourceIndex=0; sourceIndex < (int)nbEvents; sourceIndex++)");
-                    r.EnterScope();
-                    r.WriteLineFormat("currentSumSpawnCount += (uint){0};", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
-                    r.WriteLine("if (id < currentSumSpawnCount)");
-                    r.EnterScope();
-                    r.WriteLine("break;");
-                    r.ExitScope();
-                    r.ExitScope();
-                }
-            }
-            else
-            {
-                /* context invalid or GPU event */
-            }
-            return r;
-        }
-
         static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines, HashSet<string> dependencies)
         {
             var formattedPath = FormatPath(path);
@@ -510,13 +476,6 @@ namespace UnityEditor.VFX
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
-
-            //< Compute sourceIndex
-            if (stringBuilder.ToString().Contains("${VFXComputeSourceIndex}"))
-            {
-                var r = GenerateComputeSourceIndex(context);
-                ReplaceMultiline(stringBuilder, "${VFXComputeSourceIndex}", r.builder);
-            }
 
             //< Load Attribute
             if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))

@@ -98,6 +98,13 @@ namespace UnityEditor.VFX
         {
             globalEventAttributes.Clear();
 
+            //SpawnCount should always be added first : spawnCount is an implicit parameter from eventAttribute
+            globalEventAttributes.Add(new VFXLayoutElementDesc()
+            {
+                name = VFXAttribute.SpawnCount.name,
+                type = VFXAttribute.SpawnCount.type
+            });
+
             IEnumerable<VFXLayoutElementDesc> globalAttribute = Enumerable.Empty<VFXLayoutElementDesc>();
             foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner || o.contextType == VFXContextType.Event))
             {
@@ -117,14 +124,6 @@ namespace UnityEditor.VFX
                         });
                     }
                 }
-            }
-
-            //Convention : if there is a spawnCount, should be the first attribute
-            if (globalEventAttributes.Any(o => o.name == VFXAttribute.SpawnCount.name) && globalEventAttributes.First().name != VFXAttribute.SpawnCount.name)
-            {
-                var spawnCount = globalEventAttributes.First(o => o.name == VFXAttribute.SpawnCount.name);
-                globalEventAttributes.RemoveAll(o => o.name == VFXAttribute.SpawnCount.name);
-                globalEventAttributes.Insert(0, spawnCount);
             }
 
             var structureLayoutTotalSize = (uint)globalEventAttributes.Sum(e => (long)VFXExpression.TypeToSize(e.type));
