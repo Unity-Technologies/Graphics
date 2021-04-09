@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isActive => m_Active;
 
         /// <summary>
-        /// Initializes this feature's resources. This is called every time serialization happens.
+        /// Initializes this feature's resources. This is called when the feature is added to a <c>ScriptableRenderer</c>.
         /// </summary>
         public abstract void Create();
 
@@ -28,16 +28,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderPasses">List of render passes to add to.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
-
-        void OnEnable()
-        {
-            Create();
-        }
-
-        void OnValidate()
-        {
-            Create();
-        }
 
         /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
