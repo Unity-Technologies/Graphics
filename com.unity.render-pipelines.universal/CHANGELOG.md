@@ -146,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized 2D performance by rendering straight to the backbuffer if possible
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 - Converted XR automated tests to use MockHMD.
+- Improved 2D Renderer performance on mobile GPUs when using MSAA
 - Reduced the size of the fragment input struct of the Terrain and Forward lighting shaders.
 
 ### Fixed
