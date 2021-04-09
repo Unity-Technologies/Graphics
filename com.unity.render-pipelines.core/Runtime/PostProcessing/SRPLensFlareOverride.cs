@@ -8,7 +8,7 @@ namespace UnityEngine
     /// Data-Driven Lens Flare can be added on any gameobeject
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/SRP Lens Flare Source Override")]
+    [AddComponentMenu("Rendering/Lens Flare (SRP)")]
     public sealed class SRPLensFlareOverride : MonoBehaviour
     {
         [SerializeField]
