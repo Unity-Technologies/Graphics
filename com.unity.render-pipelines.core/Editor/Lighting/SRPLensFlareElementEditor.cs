@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "Controls the offset of the Procedural Flare gradient relative to its starting point. A higher value means the gradient starts further from the center of the shape.");
             static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "Specifies the roundness of the polygon flare. A value of 0 creates a sharp polygon, a value of 1 creates a circle.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "Specifies the number of sides of the lens flare polygon.");
-            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "When enabled, inverses the gradient direction.");
+            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Invert", "When enabled, will invert the gradient direction.");
         }
     }
 }

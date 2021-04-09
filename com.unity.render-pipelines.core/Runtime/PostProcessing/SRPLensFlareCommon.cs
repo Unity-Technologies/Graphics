@@ -498,7 +498,7 @@ namespace UnityEngine
                     if (element.lensFlareTexture != null)
                         cmd.SetGlobalTexture(_FlareTex, element.lensFlareTexture);
 
-                    float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
+                    float usedGradientPosition = Mathf.Clamp01((1.0f - element.edgeOffset) - 1e-6f);
                     if (element.flareType == SRPLensFlareType.Polygon)
                         usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
