@@ -114,15 +114,19 @@ namespace UnityEditor.Rendering.Tests
         const string k_ClipPath = "Assets/Clip.anim";
         const string k_RendererPath = "Path/To/Renderer";
 
+        static readonly SerializedShaderPropertyUsage[] k_AllUsages =
+            Enum.GetValues(typeof(SerializedShaderPropertyUsage)).Cast<SerializedShaderPropertyUsage>().ToArray();
+
         [Test]
         public void GatherClipUsage_WhenNoMaterialPropertyBindings_DoesNotModifyUsage(
-            [Values]SerializedShaderPropertyUsage expectedUsage
+            // TODO: use Values[] when SerializedShaderPropertyUsage is public
+            [ValueSource(nameof(k_AllUsages))]object expectedUsage
         )
         {
             var clip = new Mock<IAnimationClip>().Object;
             var clipData = new Dictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)>
             {
-                [clip] = (k_ClipPath, Array.Empty<EditorCurveBinding>(), expectedUsage, new Dictionary<string, string>())
+                [clip] = (k_ClipPath, Array.Empty<EditorCurveBinding>(), (SerializedShaderPropertyUsage)expectedUsage, new Dictionary<string, string>())
             };
 
             AnimationClipUpgrader.GatherClipUsage(
@@ -138,14 +142,15 @@ namespace UnityEditor.Rendering.Tests
 
         [Test]
         public void GatherClipUsage_WhenMaterialPropertyBindings_ButNoMatchingRenderer_DoesNotModifyUsage(
-            [Values]SerializedShaderPropertyUsage expectedUsage
+            // TODO: use Values[] when SerializedShaderPropertyUsage is public
+            [ValueSource(nameof(k_AllUsages))]object expectedUsage
         )
         {
             var clip = new Mock<IAnimationClip>().Object;
             var bindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = k_UpgradableMaterialProp } };
             var clipData = new Dictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)>
             {
-                [clip] = (k_ClipPath, bindings, expectedUsage, new Dictionary<string, string>())
+                [clip] = (k_ClipPath, bindings, (SerializedShaderPropertyUsage)expectedUsage, new Dictionary<string, string>())
             };
             var renderersByPath = new Dictionary<string, (IRenderer Renderer, List<IMaterial> Materials)>
             {
@@ -329,9 +334,10 @@ namespace UnityEditor.Rendering.Tests
         };
 
         [TestCaseSource(nameof(k_UnknownUpgradePathTestCases))]
-        public SerializedShaderPropertyUsage GatherClipUsage_WhenUpgradePathIsUnknown_ReturnsExpectedResult(
+        public object GatherClipUsage_WhenUpgradePathIsUnknown_ReturnsExpectedResult(
             string[] upgradedMaterialShaderNames, string bindingPropertyName,
-            SerializedShaderPropertyUsage expectedUsage, (string From, string To)[] expectedRenames,
+            // TODO: use SerializedShaderPropertyUsage instead of object when it is public
+            object expectedUsage, (string From, string To)[] expectedRenames,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraders
         )
         {
@@ -339,7 +345,7 @@ namespace UnityEditor.Rendering.Tests
             var bindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = bindingPropertyName } };
             var clipData = new Dictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)>
             {
-                [clip] = (k_ClipPath, bindings, expectedUsage, new Dictionary<string, string>())
+                [clip] = (k_ClipPath, bindings, (SerializedShaderPropertyUsage)expectedUsage, new Dictionary<string, string>())
             };
             var renderersByPath = new Dictionary<string, (IRenderer Renderer, List<IMaterial> Materials)>
             {
@@ -386,9 +392,10 @@ namespace UnityEditor.Rendering.Tests
         };
 
         [TestCaseSource(nameof(k_KnownUpgradePathTestCases))]
-        public SerializedShaderPropertyUsage GatherClipUsage_WhenUpgradePathIsKnown_UsesKnownUpgradePath(
+        public object GatherClipUsage_WhenUpgradePathIsKnown_UsesKnownUpgradePath(
             string[] upgradedMaterialShaderNames, string bindingPropertyName,
-            SerializedShaderPropertyUsage expectedUsage, (string From, string To)[] expectedRenames,
+            // TODO: use SerializedShaderPropertyUsage instead of object when it is public
+            object expectedUsage, (string From, string To)[] expectedRenames,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraders
         )
         {
@@ -396,7 +403,7 @@ namespace UnityEditor.Rendering.Tests
             var bindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = bindingPropertyName } };
             var clipData = new Dictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)>
             {
-                [clip] = (k_ClipPath, bindings, expectedUsage, new Dictionary<string, string>())
+                [clip] = (k_ClipPath, bindings, (SerializedShaderPropertyUsage)expectedUsage, new Dictionary<string, string>())
             };
             var renderersByPath = new Dictionary<string, (IRenderer Renderer, List<IMaterial> Materials)>
             {
@@ -462,9 +469,10 @@ namespace UnityEditor.Rendering.Tests
         };
 
         [TestCaseSource(nameof(k_OneKnownUpgradePathTestCases))]
-        public SerializedShaderPropertyUsage GatherClipUsage_WhenTwoMaterials_UpgradePathOnlyKnownForOne_ReturnsExpectedResult(
+        public object GatherClipUsage_WhenTwoMaterials_UpgradePathOnlyKnownForOne_ReturnsExpectedResult(
             string[] upgradedMaterialShaderNames, string bindingPropertyName,
-            SerializedShaderPropertyUsage expectedUsage, (string From, string To)[] expectedRenames,
+            // TODO: use SerializedShaderPropertyUsage instead of object when it is public
+            object expectedUsage, (string From, string To)[] expectedRenames,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] allUpgrades,
             (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] knownUpgrades
         )
@@ -473,7 +481,7 @@ namespace UnityEditor.Rendering.Tests
             var bindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = bindingPropertyName } };
             var clipData = new Dictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)>
             {
-                [clip] = (k_ClipPath, bindings, expectedUsage, new Dictionary<string, string>())
+                [clip] = (k_ClipPath, bindings, (SerializedShaderPropertyUsage)expectedUsage, new Dictionary<string, string>())
             };
             var renderersByPath = new Dictionary<string, (IRenderer Renderer, List<IMaterial> Materials)>
             {
@@ -499,17 +507,20 @@ namespace UnityEditor.Rendering.Tests
             return clipData[clip].Usage;
         }
 
+        static readonly SerializedShaderPropertyUsage[] k_FilterTestCases =
+        {
+            SerializedShaderPropertyUsage.Unknown,
+            SerializedShaderPropertyUsage.NoShaderProperties,
+            SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded,
+            SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            ~SerializedShaderPropertyUsage.UsedByUpgraded
+        };
+
         [Test]
         public void UpgradeClips_WhenClipUsageFiltered_DoesNotChangeClip(
-            [Values(
-                SerializedShaderPropertyUsage.Unknown,
-                SerializedShaderPropertyUsage.NoShaderProperties,
-                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded,
-                SerializedShaderPropertyUsage.UsedByNonUpgraded,
-                SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded,
-                ~SerializedShaderPropertyUsage.UsedByUpgraded
-                )]
-            SerializedShaderPropertyUsage excludeFlags
+            // TODO: use Values[] when SerializedShaderPropertyUsage is public
+            [ValueSource(nameof(k_FilterTestCases))] object excludeFlags
         )
         {
             var bindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = "Old" } };
@@ -525,7 +536,7 @@ namespace UnityEditor.Rendering.Tests
 
             var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
             var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
-            AnimationClipUpgrader.UpgradeClips(clipsToUpgrade, excludeFlags, upgraded, notUpgraded);
+            AnimationClipUpgrader.UpgradeClips(clipsToUpgrade, (SerializedShaderPropertyUsage)excludeFlags, upgraded, notUpgraded);
 
             Assert.That(clip.Object.GetCurveBindings().Single(), Is.EqualTo(expectedBindings[0]), "Did not find a single curve with expected bindings.");
         }

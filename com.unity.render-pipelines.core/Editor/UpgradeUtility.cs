@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering
     /// Flags describing usage of an asset by its dependents, when that asset might have serialized shader property names.
     /// </summary>
     [Flags]
-    public enum SerializedShaderPropertyUsage : byte
+    enum SerializedShaderPropertyUsage : byte
     {
         /// <summary>
         /// Asset's usage is unknown.
