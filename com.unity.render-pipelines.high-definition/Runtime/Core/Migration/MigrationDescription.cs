@@ -114,7 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
-                    UnityEditor.EditorUtility.SetDirty(targetObject);
+                    if (targetObject != null && !targetObject.Equals(null))
+                        UnityEditor.EditorUtility.SetDirty(targetObject);
                 };
             }
 #endif
