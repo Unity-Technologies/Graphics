@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, Styles.generalData.text, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.generalData.text, EditorStyles.boldLabel);
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
@@ -83,8 +83,7 @@ namespace UnityEditor.Rendering
                     EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
                 }
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, Styles.occlusionData.text, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(Styles.occlusionData.text, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
@@ -94,7 +93,6 @@ namespace UnityEditor.Rendering
                 --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
 
             if (EditorGUI.EndChangeCheck())
@@ -105,8 +103,8 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
-            static public readonly GUIContent generalData = EditorGUIUtility.TrTextContent("    General");
-            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("    Occlusion");
+            static public readonly GUIContent generalData = EditorGUIUtility.TrTextContent("General");
+            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("Occlusion");
 
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the lens flare.");
