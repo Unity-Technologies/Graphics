@@ -119,8 +119,8 @@ void RunFXAA(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), inout CTYPE
         a23 = saturate(a23);
         a33 = saturate(a33);
 
-        float3 A = 0.5 * (a13 + a23);
-        float3 B = A * 0.5 + 0.25 * (a03 + a33);
+        float A = 0.5 * (a13 + a23);
+        float B = A * 0.5 + 0.25 * (a03 + a33);
 
         lumaMin = Min3(lumaM, lumaNW, Min3(lumaNE, lumaSW, lumaSE));
         lumaMax = Max3(lumaM, lumaNW, Max3(lumaNE, lumaSW, lumaSE));
