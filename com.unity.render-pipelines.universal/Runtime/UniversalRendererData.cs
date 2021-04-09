@@ -57,14 +57,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
-        public sealed class TextureResources
-        {
-            [SerializeField, Reload("Textures/numberFont.png")]
-            public Texture2D NumberFont;
-        }
-
-        public TextureResources textures = null;
-
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
