@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph
                         case Texture2DShaderProperty.DefaultType.Grey:
                             mat.SetTexture(name, Texture2D.grayTexture);
                             break;
-                        case Texture2DShaderProperty.DefaultType.Bump:
+                        case Texture2DShaderProperty.DefaultType.NormalMap:
                             mat.SetTexture(name, Texture2D.normalTexture);
                             break;
                         case Texture2DShaderProperty.DefaultType.LinearGrey:
