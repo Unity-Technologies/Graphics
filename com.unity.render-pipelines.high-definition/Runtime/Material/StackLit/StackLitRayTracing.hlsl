@@ -74,11 +74,21 @@ void FitToStandardLit( BSDFData bsdfData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
 {
-    outStandardlit.baseColor = bsdfData.diffuseColor;
-    outStandardlit.specularOcclusion = bsdfData.specularOcclusionCustomInput;
+    // TODO: There's space for doing better here:
+
+    // bool hasCoatNormal = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT)
+    //                     && HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP);
+    // outStandardlit.normalWS = hasCoatNormal ? surfaceData.coatNormalWS : surfaceData.normalWS;
+    // Using coatnormal not necessarily better here depends on what each are vs geometric normal and the coat strength
+    // vs base strength. Could do something with that and specular albedos...
     outStandardlit.normalWS = bsdfData.normalWS;
-    outStandardlit.perceptualRoughness = bsdfData.perceptualRoughnessA;
+
+    // StandardLit expects diffuse color in baseColor:
+    outStandardlit.baseColor = bsdfData.diffuseColor;
     outStandardlit.fresnel0 = bsdfData.fresnel0;
+    outStandardlit.specularOcclusion = 1; // TODO
+
+    outStandardlit.perceptualRoughness = lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix);
     outStandardlit.coatMask = bsdfData.coatMask;
     outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * bsdfData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
