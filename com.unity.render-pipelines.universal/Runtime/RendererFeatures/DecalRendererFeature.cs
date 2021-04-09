@@ -326,6 +326,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_DrawErrorSystem = new DecalDrawErrorSystem(m_DecalEntityManager, m_Technique);
 
+            var universalRenderer = renderer as UniversalRenderer;
+            Assert.IsNotNull(universalRenderer);
+
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
@@ -335,8 +338,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 case DecalTechnique.GBuffer:
-                    var universalRenderer = renderer as UniversalRenderer;
-                    Assert.IsNotNull(universalRenderer);
+
                     m_DeferredLights = universalRenderer.deferredLights;
 
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
@@ -350,6 +352,9 @@ namespace UnityEngine.Rendering.Universal
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
+
+                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                        m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
                     break;
             }
 
@@ -417,10 +422,21 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_GBufferRenderPass);
                     break;
                 case DecalTechnique.DBuffer:
-                    m_CopyDepthPass.Setup(
-                        new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
-                        new RenderTargetHandle(m_DBufferRenderPass.dBufferIndentifier)
-                    );
+                    var universalRenderer = renderer as UniversalRenderer;
+                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    {
+                        m_CopyDepthPass.Setup(
+                            new RenderTargetHandle(universalRenderer.deferredLights.DepthAttachmentIdentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier)
+                        );
+                    }
+                    else
+                    {
+                        m_CopyDepthPass.Setup(
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.dBufferIndentifier)
+                        );
+                    }
                     m_CopyDepthPass.MssaSamples = 1;
 
                     renderer.EnqueuePass(m_CopyDepthPass);
