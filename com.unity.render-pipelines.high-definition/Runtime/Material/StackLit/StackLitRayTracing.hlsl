@@ -74,11 +74,24 @@ void FitToStandardLit( SurfaceData surfaceData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
 {
-    outStandardlit.baseColor = surfaceData.baseColor;
-    outStandardlit.specularOcclusion = surfaceData.specularOcclusionCustomInput;
+    // TODO: There's space for doing better here:
+
+    // bool hasCoatNormal = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT)
+    //                     && HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP);
+    // outStandardlit.normalWS = hasCoatNormal ? surfaceData.coatNormalWS : surfaceData.normalWS;
+    // Using coatnormal not necessarily better here depends on what each are vs geometric normal and the coat strength
+    // vs base strength. Could do something with that and specular albedos...
     outStandardlit.normalWS = surfaceData.normalWS;
-    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
+
+    // We set metallic to 0 with SSS and specular color mode
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+
+    // StandardLit expects diffuse color in baseColor:
+    outStandardlit.baseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     outStandardlit.fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
+    outStandardlit.specularOcclusion = 1; // TODO
+
+    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix));
     outStandardlit.coatMask = surfaceData.coatMask;
     outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
