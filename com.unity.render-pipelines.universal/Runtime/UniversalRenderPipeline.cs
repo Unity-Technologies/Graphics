@@ -141,7 +141,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if URP_ENABLE_DEBUG_VIEWS
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
+#endif
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -172,12 +174,16 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+#if URP_ENABLE_DEBUG_VIEWS
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+#endif
         }
 
         protected override void Dispose(bool disposing)
         {
+#if URP_ENABLE_DEBUG_VIEWS
             m_DebugDisplaySettingsUI.UnregisterDebug();
+#endif
 
             base.Dispose(disposing);
 
