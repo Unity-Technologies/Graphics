@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
-            
+
             BeginCameraRendering(renderContext, camera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -212,12 +212,12 @@ namespace UnityEngine.Rendering.Universal
 
             foreach (var renderRequest in renderRequests)
             {
-                
+
                 if (!renderRequest.isValid)
                     continue;
                 RenderWithMode(renderContext, camera, renderRequest);
             }
-            
+
             EndCameraRendering(renderContext, camera);
             EndFrameRendering(renderContext, cameras);
             camera.targetTexture = cameraTarget;
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
 
             public Camera.RenderRequest request { get; set; }
         }
-        
+
         class RenderRequestRenderer : ScriptableRenderer
         {
             DrawObjectsPass m_RenderOpaqueForwardPass;
@@ -311,7 +311,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                     new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
-                    new Tuple<string, int>("UNITY_DataExtraction_Value", 0),
                 };
 
                 m_RenderOpaqueForwardPass.SetAdditionalValues(values);
@@ -323,8 +322,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         new Tuple<string, int>("UNITY_DataExtraction_Mode", (int)data.request.mode),
                         new Tuple<string, int>("UNITY_DataExtraction_Space", (int)data.request.outputSpace),
-                        // TODO: Unique object identifier here?
-                        new Tuple<string, int>("UNITY_DataExtraction_Value", 0),
                     };
 
                     m_RenderOpaqueForwardPassZDisabled.SetAdditionalValues(valuesZDisabled);
@@ -352,13 +349,11 @@ namespace UnityEngine.Rendering.Universal
                 base.FinishRendering(cmd);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Mode", 0);
                 cmd.SetGlobalInt("UNITY_DataExtraction_Space", 0);
-                cmd.SetGlobalInt("UNITY_DataExtraction_Value", 0);
-
             }
 
             public bool IsSelectionMaskRequest => m_Mode == Camera.RenderRequestMode.SelectionMask;
         }
-        
+
 #if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
         {

@@ -3,7 +3,6 @@
 
 int UNITY_DataExtraction_Mode;
 int UNITY_DataExtraction_Space;
-int UNITY_DataExtraction_Value;
 TEXTURE2D(unity_EditorViz_DepthBuffer); SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 
 struct ExtractionInputs
@@ -29,6 +28,20 @@ float4 OutputExtraction(ExtractionInputs inputs)
 {
     float3 specular, diffuse, baseColor;
     float metallic;
+
+    // Outline mask is the most performance sensitive (rendered each frame when selection is active),
+    // so it is tested first.
+    if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
+    {
+        // Red channel = unique identifier, can be used to separate groups of objects from each other
+        //               to get outlines between them.
+        // Green channel = occluded behind depth buffer (0) or not occluded (1)
+        // Blue channel  = always 1 = not cleared to zero = there's an outlined object at this pixel
+        return ComputeSelectionMask(
+            0, // Object unique identifier currently unused
+            ComputeNormalizedDeviceCoordinatesWithZ(inputs.positionWS, UNITY_MATRIX_VP),
+            TEXTURE2D_ARGS(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer));
+    }
 
     #ifdef _SPECULAR_SETUP
         specular = inputs.specular;
@@ -79,17 +92,6 @@ float4 OutputExtraction(ExtractionInputs inputs)
        return float4(inputs.occlusion.xxx, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, inputs.alpha);
-    if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
-    {
-        // Red channel = unique identifier, can be used to separate groups of objects from each other
-        //               to get outlines between them.
-        // Green channel = occluded behind depth buffer (0) or not occluded (1)
-        // Blue channel  = always 1 = not cleared to zero = there's an outlined object at this pixel
-        return ComputeSelectionMask(
-            (float)UNITY_DataExtraction_Value / 255.0,
-            ComputeNormalizedDeviceCoordinatesWithZ(inputs.positionWS, UNITY_MATRIX_VP),
-            TEXTURE2D_ARGS(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer));
-    }
 
     return 0;
 }
