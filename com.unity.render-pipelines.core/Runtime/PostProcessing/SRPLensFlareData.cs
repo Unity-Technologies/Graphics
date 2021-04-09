@@ -121,7 +121,7 @@ namespace UnityEngine
             distortionRelativeToCenter = false;
 
             // Parameters for Procedural
-            fallOff = 1.0f;
+            fallOff = 0.0f;
             edgeOffset = 0.9f;
             sdfRoundness = 0.0f;
             sideCount = 6;

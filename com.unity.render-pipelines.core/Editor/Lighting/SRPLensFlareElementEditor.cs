@@ -150,6 +150,10 @@ namespace UnityEditor.Rendering
                             lensFlareProp.objectReferenceValue = tmpTex;
                             lensFlareProp.serializedObject.ApplyModifiedProperties();
                         }
+
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
+                            preserveAspectRatioProp.boolValue = tmpBool;
                     }
                     else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
                     {
@@ -164,7 +168,6 @@ namespace UnityEditor.Rendering
                             edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
 
                         rect = GetNextRect();
-                        //if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
                         if ((tmp = EditorGUI.Slider(rect, Styles.fallOff, fallOffProp.floatValue, 0.0f, 1.0f)) != fallOffProp.floatValue)
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
@@ -183,10 +186,6 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.inverseSDF, inverseSDFProp.boolValue)) != inverseSDFProp.boolValue)
                             inverseSDFProp.boolValue = tmpBool;
                     }
-
-                    rect = GetNextRect();
-                    if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
-                        preserveAspectRatioProp.boolValue = tmpBool;
                 }
 
                 rect = GetNextRect();
@@ -220,14 +219,9 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                         rotationProp.floatValue = tmp;
-
-                    if (!preserveAspectRatioProp.boolValue)
-                    {
-                        rect = GetNextRect();
-                        if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
-                            sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
-                    }
-
+                    rect = GetNextRect();
+                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
+                        sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
                         uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
@@ -385,7 +379,7 @@ namespace UnityEditor.Rendering
             float offset = 0.0f;
             if (isFoldOpened.boolValue)
             {
-                if (preserveAspectRatio.boolValue)
+                if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                     coef = 26.0f;
                 else
                     coef = 27.0f;
@@ -449,7 +443,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Specifies the Texture this element uses.");
             static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Specifies the tint of the element. If the element type is set to Image, the Flare Texture is multiplied by this color.");
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Specifies the blend mode this element uses.");
-            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Use Original Aspect Ratio", "When enabled, fixes the ratio of the width and height of the element's Flare Texture.");
+            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Use Aspect Ratio", "When enabled, uses original aspect ratio of the width and height of the element's Flare Texture (or 1 for shape).");
 
             static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of this element.");
             static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Strectch", "Sets the strecth of each dimension in relative to the scale. You can use this with Radial Distortion.");
