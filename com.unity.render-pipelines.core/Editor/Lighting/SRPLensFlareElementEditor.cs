@@ -10,15 +10,15 @@ namespace UnityEditor.Rendering
     [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
     internal class SRPLensFlareElementEditor : PropertyDrawer
     {
-        private float m_LastOffset = 0.0f;
-        private Rect m_CurrentRect;
+        float m_LastOffset = 0.0f;
+        Rect m_CurrentRect;
 
-        private void InitFirstRect(Rect position)
+        void InitFirstRect(Rect position)
         {
             m_CurrentRect = new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight);
         }
 
-        private Rect GetNextRect(float xOffset = 0.0f)
+        Rect GetNextRect(float xOffset = 0.0f)
         {
             float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
