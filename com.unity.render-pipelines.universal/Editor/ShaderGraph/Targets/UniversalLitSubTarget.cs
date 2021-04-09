@@ -160,6 +160,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
             collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector
             collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SG_ZWriteControl, (float) target.zWriteControl);
             collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
             collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             collector.AddFloatProperty(Property.SG_QueueOffset, 0.0f);
@@ -188,6 +189,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
+            // TODO: move target common controls to a common location
+            // BaseShaderGUI.GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action < String > registerUndo)
+
             context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
                 if (Equals(target.surfaceType, evt.newValue))
@@ -215,6 +219,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Render Face");
                 target.renderFace = (RenderFace)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
+            {
+                if (Equals(target.zWriteControl, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write Control");
+                target.zWriteControl = (ZWriteControl)evt.newValue;
                 onChange();
             });
 

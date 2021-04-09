@@ -33,6 +33,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Transparent,
     }
 
+    enum ZWriteControl
+    {
+        Auto = 0,
+        ForceEnabled = 1,
+        ForceDisabled = 2
+    }
+
     enum ZTestMode  // the values here match UnityEngine.Rendering.CompareFunction
     {
         Disabled = 0,
@@ -90,6 +97,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         ZTestMode m_ZTestMode = ZTestMode.LEqual;
+
+        [SerializeField]
+        ZWriteControl m_ZWriteControl = ZWriteControl.Auto;
 
         [SerializeField]
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
@@ -156,6 +166,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_SurfaceType;
             set => m_SurfaceType = value;
+        }
+
+        public ZWriteControl zWriteControl
+        {
+            get => m_ZWriteControl;
+            set => m_ZWriteControl = value;
         }
 
         public ZTestMode zTestMode

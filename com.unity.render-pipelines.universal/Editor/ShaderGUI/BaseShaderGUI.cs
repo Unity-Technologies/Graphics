@@ -54,6 +54,7 @@ namespace UnityEditor
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
+            public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl));
             public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode));
 
             // Categories
@@ -74,6 +75,9 @@ namespace UnityEditor
 
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+
+            public static readonly GUIContent zwriteText = EditorGUIUtility.TrTextContent("Depth Write",
+                "Controls whether the shader writes depth.  Auto will write only when the shader is opaque.");
 
             public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
                 "Specifies the depth test mode.  The default is LEqual.");
@@ -123,6 +127,8 @@ namespace UnityEditor
 
         protected MaterialProperty ztestProp { get; set; }
 
+        protected MaterialProperty zwriteProp { get; set; }
+
         protected MaterialProperty alphaClipProp { get; set; }
 
         protected MaterialProperty alphaCutoffProp { get; set; }
@@ -167,6 +173,7 @@ namespace UnityEditor
             surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties);
             blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties);
             cullingProp = FindProperty(Property.Cull(isShaderGraph), properties);
+            zwriteProp = FindProperty(Property.ZWriteControl(isShaderGraph), properties, false);
             ztestProp = FindProperty(Property.ZTest(isShaderGraph), properties, false);
             alphaClipProp = FindProperty(Property.AlphaClip(isShaderGraph), properties);
 
@@ -282,7 +289,7 @@ namespace UnityEditor
                 DoPopup(Styles.blendingMode, blendModeProp, Styles.blendModeNames);
 
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
-
+            DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
             DoPopup(Styles.ztestText, ztestProp, Styles.ztestNames);
 
             // materialEditor.ShaderProperty(alphaClipProp, Styles.alphaClipText);      // this fails for ShaderGraphs, that can't tag it as [ToggleUI]
@@ -504,6 +511,7 @@ namespace UnityEditor
             if (material.HasProperty(surfaceProp))
             {
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(surfaceProp);
+                bool zwrite = false;
                 CoreUtils.SetKeyword(material, Keyword.HW_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
                 {
@@ -524,7 +532,8 @@ namespace UnityEditor
 
                     material.renderQueue = renderQueue;
                     SetMaterialSrcDstBlendProperties(material, isShaderGraph, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
-                    SetMaterialZWriteProperty(material, true);
+                    // SetMaterialZWriteProperty(material, true);
+                    zwrite = true;
                     material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
@@ -565,11 +574,24 @@ namespace UnityEditor
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
-                    SetMaterialZWriteProperty(material, false);
+                    // SetMaterialZWriteProperty(material, false);
+                    zwrite = false;
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.renderQueue += material.HasProperty(queueOffsetProp) ? (int)material.GetFloat(queueOffsetProp) : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
                 }
+
+                // check for override enum
+                var zwriteProp = Property.ZWriteControl(isShaderGraph);
+                if (material.HasProperty(zwriteProp))
+                {
+                    var zwriteControl = (UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl)material.GetFloat(zwriteProp);
+                    if (zwriteControl == UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl.ForceEnabled)
+                        zwrite = true;
+                    else if (zwriteControl == UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl.ForceDisabled)
+                        zwrite = false;
+                }
+                SetMaterialZWriteProperty(material, zwrite);
             }
         }
 
