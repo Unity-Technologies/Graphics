@@ -258,9 +258,11 @@ namespace UnityEngine
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="source">Source Render Target which contains the Color Buffer</param>
-        /// <param name="target">Target Render Target</param>
+        /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="_FlareTex">ShaderID for the FlareTex</param>
         /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
@@ -272,7 +274,8 @@ namespace UnityEngine
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
-            Rendering.CommandBuffer cmd, Rendering.RenderTargetIdentifier source, Rendering.RenderTargetIdentifier target,
+            Rendering.CommandBuffer cmd,
+            Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
         {
@@ -287,13 +290,12 @@ namespace UnityEngine
 
             if (skipCopy)
             {
-                Rendering.CoreUtils.SetRenderTarget(cmd, target);
+                Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
             else
             {
-                cmd.CopyTexture(source, target);
-                Rendering.CoreUtils.SetRenderTarget(cmd, target);
+                Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
             }
 
             foreach (SRPLensFlareOverride comp in lensFlares.GetData())
