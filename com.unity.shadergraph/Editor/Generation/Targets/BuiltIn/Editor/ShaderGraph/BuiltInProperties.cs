@@ -2,7 +2,6 @@ using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 
-
 namespace UnityEditor.Rendering.BuiltIn
 {
     internal static class Property
@@ -36,7 +35,6 @@ namespace UnityEditor.Rendering.BuiltIn
         public static readonly string EmissionMap = "_EmissionMap";
         public static readonly string EmissionColor = "_EmissionColor";
 
-
         public static Vector1ShaderProperty WorkflowModeProperty(WorkflowMode workflowModeDefault)
         {
             return new Vector1ShaderProperty()
@@ -50,8 +48,6 @@ namespace UnityEditor.Rendering.BuiltIn
                 overrideReferenceName = SG_SpecularWorkflowMode,
             };
         }
-
-        //public static readonly string AlphaCutoff = "_Cutoff";
     }
 
     internal static class BuiltInMaterialInspectorUtilities

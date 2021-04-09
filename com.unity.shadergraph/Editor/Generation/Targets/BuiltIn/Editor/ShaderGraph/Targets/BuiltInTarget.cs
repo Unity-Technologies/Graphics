@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 customEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 case PBRMasterNode1 pbrMasterNode:
                     m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
-                    m_RenderFace  = pbrMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
+                    m_RenderFace = pbrMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                     UpgradeAlphaClip();
                     m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
                     break;

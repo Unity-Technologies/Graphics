@@ -1,10 +1,8 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering;
-using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
+    // Currently this is just the base shader gui, but was put in place in case they're separate later
     public class BuiltInLitGUI : BuiltInBaseShaderGUI
     {
         public static void UpdateMaterial(Material material)

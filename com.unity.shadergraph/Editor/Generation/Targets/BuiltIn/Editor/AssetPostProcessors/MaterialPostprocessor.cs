@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.BuiltIn
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
-            
+
         }
     }
 
@@ -128,12 +128,19 @@ namespace UnityEditor.Rendering.BuiltIn
         static void InitializeLatest(Material material, ShaderID id)
         {
             // newly created shadergraph materials should reset their keywords immediately (in case inspector doesn't get invoked)
-            //if (material.IsShaderGraph())
-            //{
+            if (IsShaderGraph(material))
+            {
                 // Debug.Log("Resetting new material: " + material.name);
                 Unity.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
-            //}
+            }
             // TODO: should probably call reset material keywords for all materials, not just shadergraph
+        }
+
+        // Copied from another PR. This will eventually be in GraphUtils.cs
+        public static bool IsShaderGraph(Material material)
+        {
+            var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
+            return (shaderGraphTag != null);
         }
     }
 }

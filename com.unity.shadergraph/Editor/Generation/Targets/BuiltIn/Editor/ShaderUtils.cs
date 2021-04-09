@@ -1,14 +1,9 @@
-using System;
-using UnityEngine;
-using UnityEditor;
-using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
+using UnityEditor.ShaderGraph;
+using UnityEngine;
 
-namespace Unity.Rendering.BuiltIn // Unity.RenderPipelines.BuiltIn.Editor
+namespace Unity.Rendering.BuiltIn
 {
-
-    //using ShaderPathID = UnityEngine.Rendering.BuiltIn.ShaderPathID;
-
     public static class ShaderUtils
     {
         internal enum ShaderID
