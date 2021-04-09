@@ -61,11 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kCoatMask = "_CoatMask";
         protected const string kCoatMaskMap = "_CoatMaskMap";
 
-        protected MaterialProperty emissiveColorMap = null;
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
-
-        protected MaterialProperty UVEmissive = null;
         protected const string kUVEmissive = "_UVEmissive";
+        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
         protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
@@ -120,6 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_BASE", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.SameAsBase && material.GetTexture(kEmissiveColorMap));
                 CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             }
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetFloat(kUseEmissiveIntensity) != 0)
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
 
             if (material.HasProperty(kSpecularOcclusionMode))
             {

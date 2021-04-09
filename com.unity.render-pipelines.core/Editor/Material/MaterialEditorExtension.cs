@@ -155,6 +155,26 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Draw an vector3 field for a vector shader property.
+        /// </summary>
+        /// <param name="editor"><see cref="MaterialEditor"/></param>
+        /// <param name="prop">The MaterialProperty to make a field for</param>
+        /// <param name="label">Label for the property</param>
+        public static void Vector3ShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label)
+        {
+            editor.BeginProperty(prop);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            var vector = EditorGUILayout.Vector3Field(label, prop.vectorValue);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                prop.vectorValue = vector;
+
+            editor.EndProperty();
+        }
+
+        /// <summary>
         /// Draw a popup selection field for a float shader property.
         /// </summary>
         /// <param name="editor"><see cref="MaterialEditor"/></param>

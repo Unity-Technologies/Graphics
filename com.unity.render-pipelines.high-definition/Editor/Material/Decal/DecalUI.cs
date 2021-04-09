@@ -97,6 +97,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kMaskMap = "_MaskMap";
         protected const string kNormalMap = "_NormalMap";
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
+        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+        protected const string kEmissiveColor = "_EmissiveColor";
+        protected const string kEmissiveColorHDR = "_EmissiveColorHDR";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupDecalKeywordsAndPass(Material material)
@@ -108,6 +111,11 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
+
+            if (material.GetFloat(kUseEmissiveIntensity) == 0)
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
+            else
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
         }
 
         public override void ValidateMaterial(Material material) => SetupDecalKeywordsAndPass(material);

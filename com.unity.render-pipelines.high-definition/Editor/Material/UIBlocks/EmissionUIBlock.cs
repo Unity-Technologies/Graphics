@@ -106,13 +106,13 @@ namespace UnityEditor.Rendering.HighDefinition
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive);
         }
 
-        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(Material[] materials)
         {
             foreach (Material target in materials)
                 target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
         }
 
-        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(Material[] materials)
         {
             foreach (Material target in materials)
                 target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
@@ -181,13 +181,13 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (updateEmissiveColor)
-                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(materialEditor, materials);
+                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(materials);
 
                 EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColorLDR);
                 DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
                 if (EditorGUI.EndChangeCheck())
-                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materialEditor, materials);
+                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materials);
             }
 
             materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
