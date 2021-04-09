@@ -12,10 +12,7 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_Elements;
 
-        /// <summary>
-        /// Prepare the code for the UI
-        /// </summary>
-        public void OnEnable()
+        void OnEnable()
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Elements = entryPoint.Find(x => x.elements);

@@ -26,10 +26,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_OcclusionOffset;
         SerializedProperty m_AllowOffScreen;
 
-        /// <summary>
-        /// Prepare the code for the UI
-        /// </summary>
-        public void OnEnable()
+        void OnEnable()
         {
             PropertyFetcher<SRPLensFlareOverride> entryPoint = new PropertyFetcher<SRPLensFlareOverride>(serializedObject);
             m_LensFlareData = entryPoint.Find("m_LensFlareData");
@@ -66,7 +63,7 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "    General", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, Styles.generalData.text, EditorStyles.boldLabel);
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
@@ -87,7 +84,7 @@ namespace UnityEditor.Rendering
                 }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "    Occlusion", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, Styles.occlusionData.text, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
@@ -108,6 +105,9 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
+            static public readonly GUIContent generalData = EditorGUIUtility.TrTextContent("    General");
+            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("    Occlusion");
+
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the lens flare.");
             static public readonly GUIContent scale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of the lens flare.");

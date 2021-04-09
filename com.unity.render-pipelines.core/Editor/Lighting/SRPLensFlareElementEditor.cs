@@ -130,10 +130,11 @@ namespace UnityEditor.Rendering
             float tmp;
             int iTmp;
             Vector2 tmpVec2;
-            if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight), isFoldOpenedProp.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
+            Rect localRect = new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight);
+            if (EditorGUI.BeginFoldoutHeaderGroup(localRect, isFoldOpenedProp.boolValue, Styles.lensFlareElement))
             {
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Type", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.typeElement.text, style: EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     SRPLensFlareType newType;
@@ -189,7 +190,7 @@ namespace UnityEditor.Rendering
                 }
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Color", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.colorElement.text, EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
@@ -208,7 +209,7 @@ namespace UnityEditor.Rendering
                 }
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Transform", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.transformElement.text, EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.positionOffset, positionOffsetProp.vector2Value)) != positionOffsetProp.vector2Value)
@@ -228,7 +229,7 @@ namespace UnityEditor.Rendering
                 }
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Axis Transform", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.axisTransformElement.text, EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
@@ -242,7 +243,7 @@ namespace UnityEditor.Rendering
                 }
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Radial Distortion", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.radialDistortionElement.text, EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     if ((tmpBool = EditorGUI.Toggle(rect, Styles.enableDistortion, enableDistortionProp.boolValue)) != enableDistortionProp.boolValue)
@@ -261,7 +262,7 @@ namespace UnityEditor.Rendering
                 }
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Multiple Elements", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, Styles.multipleElementsElement.text, EditorStyles.boldLabel);
                 {
                     rect = GetNextRect();
                     if ((tmpBool = EditorGUI.Toggle(rect, Styles.allowMultipleElement, allowMultipleElementProp.boolValue)) != allowMultipleElementProp.boolValue)
@@ -367,7 +368,6 @@ namespace UnityEditor.Rendering
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
-            SerializedProperty preserveAspectRatio = property.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
             SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
             SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
@@ -435,6 +435,14 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
+            static public readonly GUIContent lensFlareElement = EditorGUIUtility.TrTextContent("Lens Flare Element");
+            static public readonly GUIContent typeElement = EditorGUIUtility.TrTextContent("Type");
+            static public readonly GUIContent colorElement = EditorGUIUtility.TrTextContent("Color");
+            static public readonly GUIContent transformElement = EditorGUIUtility.TrTextContent("Transform");
+            static public readonly GUIContent axisTransformElement = EditorGUIUtility.TrTextContent("Axis Transform");
+            static public readonly GUIContent radialDistortionElement = EditorGUIUtility.TrTextContent("Radial Distortion");
+            static public readonly GUIContent multipleElementsElement = EditorGUIUtility.TrTextContent("Multiple Elements");
+
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the element.");
             static public readonly GUIContent position = EditorGUIUtility.TrTextContent("Starting Position", "Sets the starting position of this element in screen space relative to its source.");
             static public readonly GUIContent positionOffset = EditorGUIUtility.TrTextContent("Position Offset", "Sets the offset of this element in screen space relative to its source.");
@@ -445,8 +453,8 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Specifies the blend mode this element uses.");
             static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Use Aspect Ratio", "When enabled, uses original aspect ratio of the width and height of the element's Flare Texture (or 1 for shape).");
 
-            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of this element.");
-            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Strectch", "Sets the strecth of each dimension in relative to the scale. You can use this with Radial Distortion.");
+            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Uniform Scale", "Sets the scale of this element.");
+            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Scale", "Sets the stretch of each dimension in relative to the scale. You can use this with Radial Distortion.");
 
             static public readonly GUIContent allowMultipleElement = EditorGUIUtility.TrTextContent("Enable", "When enabled, allows multiple lens flare elements.");
             static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Sets the number of elements.");
