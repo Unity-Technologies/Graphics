@@ -1,5 +1,6 @@
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -71,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             var directionWs = stackalloc float3[groupLength];
             var apertures = stackalloc float[groupLength];
             var tilesOffsets = stackalloc int[groupLength];
+            var groupTiles = stackalloc uint[groupLength];
 
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
@@ -85,25 +87,41 @@ namespace UnityEngine.Rendering.Universal
                 tilesOffsets[coneIndexG] = coneIndexT * (lightsPerTile / 32);
             }
 
-            for (var lightIndex = 0; lightIndex < lights.Length; lightIndex++)
+            var wordCount = lights.Length / 32;
+            for (var wordIndex = 0; wordIndex < wordCount; wordIndex++)
             {
-                var light = lights[lightIndex];
+                UnsafeUtility.MemSet(groupTiles, 0, sizeof(uint) * groupLength);
 
-                if (!light.screenRect.Overlaps(groupRectS))
+                for (var i = 0; i < 32; i++)
                 {
-                    continue;
+                    var lightIndex = wordIndex * 32 + i;
+                    var light = lights[lightIndex];
+
+                    if (!light.screenRect.Overlaps(groupRectS))
+                    {
+                        continue;
+                    }
+
+                    var lightOffset = wordIndex;
+                    var lightMask = 1u << (lightIndex % lightsPerTile);
+
+                    if (light.lightType == LightType.Point)
+                    {
+                        ConeMarch(sphereShapes[lightIndex], lightIndex, lightMask, directionWs, apertures, groupTiles);
+                    }
+                    else if (light.lightType == LightType.Spot)
+                    {
+                        ConeMarch(coneShapes[lightIndex], lightIndex, lightMask, directionWs, apertures, groupTiles);
+                    }
                 }
 
-                var lightOffset = lightIndex / 32;
-                var lightMask = 1u << (lightIndex % lightsPerTile);
-
-                if (light.lightType == LightType.Point)
+                for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
                 {
-                    ConeMarch(sphereShapes[lightIndex], lightIndex, lightOffset, lightMask, actives, directionWs, apertures, tilesOffsets);
-                }
-                else if (light.lightType == LightType.Spot)
-                {
-                    ConeMarch(coneShapes[lightIndex], lightIndex, lightOffset, lightMask, actives, directionWs, apertures, tilesOffsets);
+                    if (actives[coneIndexG])
+                    {
+                        var tileLightsIndex = tilesOffsets[coneIndexG] + wordIndex;
+                        tiles[tileLightsIndex] = tiles[tileLightsIndex] | groupTiles[coneIndexG];
+                    }
                 }
             }
         }
@@ -111,12 +129,10 @@ namespace UnityEngine.Rendering.Universal
         void ConeMarch<T>(
             T shape,
             int lightIndex,
-            int lightOffset,
             uint lightMask,
-            [NoAlias] bool* actives,
             [NoAlias] float3* directionWs,
             [NoAlias] float* apertures,
-            [NoAlias] int* tilesOffsets
+            [NoAlias] uint* groupTiles
         ) where T : ICullingShape
         {
             var worldToLight = worldToLightMatrices[lightIndex];
@@ -125,11 +141,6 @@ namespace UnityEngine.Rendering.Universal
 
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
-                if (!actives[coneIndexG])
-                {
-                    continue;
-                }
-
                 var directionW = directionWs[coneIndexG];
                 var t = math.dot(lightMinMax.minZ * viewForward, directionW);
                 var tMax = math.dot(lightMinMax.maxZ * viewForward, directionW);
@@ -152,8 +163,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (hit)
                 {
-                    var tileLightsIndex = tilesOffsets[coneIndexG] + lightOffset;
-                    tiles[tileLightsIndex] = tiles[tileLightsIndex] | lightMask;
+                    groupTiles[coneIndexG] |= lightMask;
                 }
             }
         }
