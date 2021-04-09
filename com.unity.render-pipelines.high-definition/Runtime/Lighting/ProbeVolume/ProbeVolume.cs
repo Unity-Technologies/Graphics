@@ -377,6 +377,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public float backfaceTolerance;
         public int dilationIterations;
 
+        public static readonly ProbeVolumeSettingsKey zero = new ProbeVolumeSettingsKey()
+        {
+            id = 0,
+            position = Vector3.zero,
+            rotation = Quaternion.identity,
+            size = Vector3.zero,
+            resolutionX = 0,
+            resolutionY = 0,
+            resolutionZ = 0,
+            backfaceTolerance = 0.0f,
+            dilationIterations = 0
+        };
     }
 
     [Serializable]
@@ -604,7 +616,11 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         private bool dataUpdated = false;
+        
+#if UNITY_EDITOR
+        private bool bakingEnabled = false;
         private bool dataNeedsDilation = false;
+#endif
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -633,18 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void BakeKeyClear()
         {
-            bakeKey = new ProbeVolumeSettingsKey
-            {
-                id = 0,
-                position = Vector3.zero,
-                rotation = Quaternion.identity,
-                size = Vector3.zero,
-                resolutionX = 0,
-                resolutionY = 0,
-                resolutionZ = 0,
-                backfaceTolerance = 0.0f,
-                dilationIterations = 0
-            };
+            bakeKey = ProbeVolumeSettingsKey.zero;
         }
 
         internal bool GetDataIsUpdated()
@@ -821,6 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ForceBakingDisabled()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), null);
+            bakingEnabled = false;
         }
 
         protected void OnValidate()
@@ -891,6 +897,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (this.gameObject == null || !this.gameObject.activeInHierarchy)
             {
                 // Debug.Log("OnProbesBakeCompleted() ignored by probe volume " + this.gameObject.name + " because it was inactive in the heirarchy.");
+                return;
+            }
+
+            if (!bakingEnabled)
+            {
+                // Baking was not setup for this probe volume.
+                // This is caused by calls to ForceBakingDisabled()
                 return;
             }
 
@@ -1030,6 +1043,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.dilationIterations == b.dilationIterations);
         }
 
+        private static bool ProbeVolumeSettingsKeyIsCleared(ref ProbeVolumeSettingsKey a)
+        {
+            return (a.id == ProbeVolumeSettingsKey.zero.id)
+                && (a.position == ProbeVolumeSettingsKey.zero.position)
+                && (a.rotation == ProbeVolumeSettingsKey.zero.rotation)
+                && (a.size == ProbeVolumeSettingsKey.zero.size)
+                && (a.resolutionX == ProbeVolumeSettingsKey.zero.resolutionX)
+                && (a.resolutionY == ProbeVolumeSettingsKey.zero.resolutionY)
+                && (a.resolutionZ == ProbeVolumeSettingsKey.zero.resolutionZ)
+                && (a.backfaceTolerance == ProbeVolumeSettingsKey.zero.backfaceTolerance)
+                && (a.dilationIterations == ProbeVolumeSettingsKey.zero.dilationIterations);
+        }
+
         private void SetupProbePositions()
         {
             if (!this.gameObject.activeInHierarchy)
@@ -1119,6 +1145,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Debug.Log("SetAdditionalBakedProbes for probe volume: " + this.gameObject.name);
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), positions);
+            bakingEnabled = true;
         }
 
         private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
