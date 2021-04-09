@@ -471,9 +471,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (settings.cookie != null)
                 {
-                    if (m_AdditionalLightData == null)
+                    if (m_AdditionalLightDataSO == null)
                     {
-                        CreateAdditionalLightData();
+                        MultipleAdditionalLightDataCheck();
+                        SetupSettings();
                     }
 
                     bool isChanged = false;
