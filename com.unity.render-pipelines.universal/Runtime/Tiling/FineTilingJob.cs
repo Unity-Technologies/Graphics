@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [BurstCompile]
+    [BurstCompile(FloatPrecision.Medium, FloatMode.Fast)]
     unsafe struct FineTilingJob : IJobFor
     {
         [ReadOnly]
@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.Universal
             var groupIdT = groupIdG * groupWidth;
             var groupRectS = new Rect((float2)groupIdP / screenResolution, math.float2(groupWidthP, groupWidthP) / screenResolution);
 
-            var actives = stackalloc bool[groupLength];
             var directionWs = stackalloc float3[groupLength];
             var apertures = stackalloc float[groupLength];
             var tilesOffsets = stackalloc int[groupLength];
@@ -82,17 +81,16 @@ namespace UnityEngine.Rendering.Universal
                 var nearPlanePosition = viewForward + viewRight * coneCenterNDC.x + viewUp * coneCenterNDC.y;
                 directionWs[coneIndexG] = nearPlanePosition / math.length(nearPlanePosition);
                 apertures[coneIndexG] = tileAperture / math.length(nearPlanePosition);
-                actives[coneIndexG] = math.all(coneIdT < tileResolution);
                 var coneIndexT = coneIdT.y * tileResolution.x + coneIdT.x;
                 tilesOffsets[coneIndexG] = coneIndexT * (lightsPerTile / 32);
             }
 
-            var wordCount = lights.Length / 32;
+            var lightCount = lights.Length;
+            var wordCount = (lightCount + 31) / 32;
             for (var wordIndex = 0; wordIndex < wordCount; wordIndex++)
             {
-                UnsafeUtility.MemSet(groupTiles, 0, sizeof(uint) * groupLength);
-
-                for (var i = 0; i < 32; i++)
+                int end = math.min(wordIndex * 32 + 32, lightCount) % 33;
+                for (var i = 0; i < end; i++)
                 {
                     var lightIndex = wordIndex * 32 + i;
                     var light = lights[lightIndex];
@@ -102,9 +100,7 @@ namespace UnityEngine.Rendering.Universal
                         continue;
                     }
 
-                    var lightOffset = wordIndex;
-                    var lightMask = 1u << (lightIndex % lightsPerTile);
-
+                    var lightMask = 1u << i;
                     if (light.lightType == LightType.Point)
                     {
                         ConeMarch(sphereShapes[lightIndex], lightIndex, lightMask, directionWs, apertures, groupTiles);
@@ -117,11 +113,9 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
                 {
-                    if (actives[coneIndexG])
-                    {
-                        var tileLightsIndex = tilesOffsets[coneIndexG] + wordIndex;
-                        tiles[tileLightsIndex] = tiles[tileLightsIndex] | groupTiles[coneIndexG];
-                    }
+                    var tileLightsIndex = tilesOffsets[coneIndexG] + wordIndex;
+                    tiles[tileLightsIndex] = tiles[tileLightsIndex] | groupTiles[coneIndexG];
+                    groupTiles[coneIndexG] = 0;
                 }
             }
         }

@@ -154,9 +154,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             var tile0Width = 16;
             var tile1Width = tile0Width * FineTilingJob.groupWidth;
             var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-            var tile0Resolution = (screenResolution + tile0Width - 1) / tile0Width;
-            var tile1Resolution = (tile0Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
-            var tile2Resolution = (tile1Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
+            var tile1Resolution = (screenResolution + tile1Width - 1) / tile1Width;
+            var tile0Resolution = tile1Resolution * FineTilingJob.groupWidth;
+            // var tile2Resolution = (tile1Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
             var tile0Count = tile0Resolution.x * tile0Resolution.y;
 
             var tiles = new NativeArray<uint>(tile0Count * lightsPerTile / 32, Allocator.TempJob);
