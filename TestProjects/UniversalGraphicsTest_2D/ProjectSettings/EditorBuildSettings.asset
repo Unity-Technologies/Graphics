@@ -6,17 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Horizontal.unity
+    guid: 24a1d843260e50e47a977dc5b85f2a1c
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Vertical.unity
+    guid: 8b440042f7e18e54091ec0018f0be114
+  - enabled: 1
     path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Horizontal.unity
     guid: ac09da777fb4f2941aec9e41024e77f3
   - enabled: 1
     path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Vertical.unity
     guid: 8588594b594f43c488b566650e2a619c
-  - enabled: 1
-    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Vertical.unity
-    guid: 8b440042f7e18e54091ec0018f0be114
-  - enabled: 1
-    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Horizontal.unity
-    guid: 24a1d843260e50e47a977dc5b85f2a1c
   - enabled: 1
     path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Pillarbox_Horizontal.unity
     guid: 7d579c3d1dc998f488237ef1937f0d30
