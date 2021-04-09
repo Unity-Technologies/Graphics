@@ -519,8 +519,8 @@ namespace UnityEditor.Rendering.Tests
                 [clip.Object] = (default, default, default, new Dictionary<string, string> { { "Old", "New" } })
             };
             clip.Setup(c => c.GetCurveBindings()).Returns(bindings);
-            clip.Setup(c => c.ReplaceBinding(It.IsAny<EditorCurveBinding>(), It.IsAny<EditorCurveBinding>()))
-                .Callback((EditorCurveBinding b1, EditorCurveBinding b2) => bindings[0] = b2);
+            clip.Setup(c => c.ReplaceBindings(It.IsAny<EditorCurveBinding[]>(), It.IsAny<EditorCurveBinding[]>()))
+                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => bindings[0] = b2[0]);
             var expectedBindings = new[] { new EditorCurveBinding { path = k_RendererPath, type = typeof(MeshRenderer), propertyName = "Old" } };
 
             var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
@@ -611,8 +611,8 @@ namespace UnityEditor.Rendering.Tests
                 [notUpgradedClip.Object] = (default, default, SerializedShaderPropertyUsage.UsedByNonUpgraded, new Dictionary<string, string>())
             };
             upgradedClip.Setup(c => c.GetCurveBindings()).Returns(Array.Empty<EditorCurveBinding>());
-            upgradedClip.Setup(c => c.ReplaceBinding(It.IsAny<EditorCurveBinding>(), It.IsAny<EditorCurveBinding>()))
-                .Callback((EditorCurveBinding b1, EditorCurveBinding b2) => { });
+            upgradedClip.Setup(c => c.ReplaceBindings(It.IsAny<EditorCurveBinding[]>(), It.IsAny<EditorCurveBinding[]>()))
+                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => { });
             var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
             var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
 

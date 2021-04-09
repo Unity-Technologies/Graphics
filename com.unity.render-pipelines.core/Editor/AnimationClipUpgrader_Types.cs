@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering
         {
             AnimationClip Clip { get; }
             EditorCurveBinding[] GetCurveBindings();
-            void ReplaceBinding(EditorCurveBinding oldBinding, EditorCurveBinding newBinding);
             void ReplaceBindings(EditorCurveBinding[] oldBindings, EditorCurveBinding[] newBindings);
         }
 
@@ -31,18 +30,11 @@ namespace UnityEditor.Rendering
         {
             public AnimationClip Clip { get; set; }
             public EditorCurveBinding[] GetCurveBindings() => AnimationUtility.GetCurveBindings(Clip);
-            public void ReplaceBinding(EditorCurveBinding oldBinding, EditorCurveBinding newBinding)
-            {
-                var curve = AnimationUtility.GetEditorCurve(Clip, oldBinding);
-                AnimationUtility.SetEditorCurve(Clip, oldBinding, null);
-                AnimationUtility.SetEditorCurve(Clip, newBinding, curve);
-            }
-
             public void ReplaceBindings(EditorCurveBinding[] oldBindings, EditorCurveBinding[] newBindings)
             {
                 var curves = new AnimationCurve[oldBindings.Length];
 
-                for (int i = 0; i < oldBindings.Length; ++i)
+                for (int i = 0, count = oldBindings.Length; i < count; ++i)
                     curves[i] = AnimationUtility.GetEditorCurve(Clip, oldBindings[i]);
 
                 AnimationUtility.SetEditorCurves(Clip, oldBindings, new AnimationCurve[oldBindings.Length]);
