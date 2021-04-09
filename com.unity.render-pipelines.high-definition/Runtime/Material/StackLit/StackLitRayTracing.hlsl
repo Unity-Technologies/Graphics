@@ -1,15 +1,27 @@
 float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 {
-    float roughness = bsdfData.roughnessAT;
+    float roughness;
     float3x3 localToWorld;
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+
+    if (IsVLayeredEnabled(bsdfData) && (bsdfData.coatMask > 0))
     {
-        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+        roughness = bsdfData.coatRoughness;
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
     else
     {
-        localToWorld = GetLocalFrame(bsdfData.normalWS);
+        roughness = PerceptualRoughnessToRoughness(lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix));
+
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+        {
+            localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+        }
+        else
+        {
+            localToWorld = GetLocalFrame(bsdfData.normalWS);
+        }
     }
+
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
     SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
@@ -28,7 +40,7 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
 
     float3 reflectanceFactor = (float3)0.0;
 
-    if (IsVLayeredEnabled(bsdfData))
+    if (IsVLayeredEnabled(bsdfData) && (bsdfData.coatMask > 0))
     {
         reflectanceFactor = preLightData.specularFGD[COAT_LOBE_IDX];
         reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
