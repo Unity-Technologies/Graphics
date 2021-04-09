@@ -15,7 +15,11 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
 
-    float NdotV = abs(dot(bsdfData.normalWS, WorldRayDirection()));
+    // Make sure that the geometric and shading normals are consistent (reflection vector must be in the proper hemisphere)
+    float3 V = -WorldRayDirection();
+    bsdfData.normalWS = ComputeConsistentShadingNormal(V, bsdfData.geomNormalWS, bsdfData.normalWS);
+
+    float NdotV = abs(dot(bsdfData.normalWS, V));
 
     // Modify fresnel0 value to take iridescence into account (code adapted from Lit.hlsl to produce identical results)
     if (bsdfData.iridescenceMask > 0.0)
@@ -63,12 +67,10 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
 
-        // If N.V < 0 (can happen with normal mapping, or smooth normals on coarsely tesselated objects) we want to avoid spec sampling
-        bool consistentNormal = (NdotV > 0.001);
-        mtlData.bsdfWeight[1] = consistentNormal ? Fcoat : 0.0;
+        mtlData.bsdfWeight[1] = Fcoat;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
-        mtlData.bsdfWeight[2] = consistentNormal ? coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion) : 0.0;
-        mtlData.bsdfWeight[3] = consistentNormal ? (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask : 0.0;
+        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion);
+        mtlData.bsdfWeight[3] = (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask;
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }
 #ifdef _SURFACE_TYPE_TRANSPARENT
@@ -77,10 +79,8 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float NdotV = -dot(mtlData.bsdfData.normalWS, mtlData.V);
         float F = F_FresnelDielectric(1.0 / mtlData.ior, NdotV);
 
-        // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
-        bool consistentNormal = (NdotV > 0.001);
-        mtlData.bsdfWeight[2] = consistentNormal ? F : 0.0;
-        mtlData.bsdfWeight[3] = consistentNormal ? (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.transmittanceMask : 0.0;
+        mtlData.bsdfWeight[2] = F;
+        mtlData.bsdfWeight[3] = (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.transmittanceMask;
     }
 #endif
 

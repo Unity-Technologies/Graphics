@@ -20,6 +20,9 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
     bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
 
+    // Make sure that the geometric and shading normals are consistent (reflection vector must be in the proper hemisphere)
+    bsdfData.normalWS = ComputeConsistentShadingNormal(-WorldRayDirection(), bsdfData.geomNormalWS, bsdfData.normalWS);
+
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
         // This is hacky, but applied to match the raster implementation (Fabric.hlsl)

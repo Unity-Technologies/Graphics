@@ -85,4 +85,22 @@ float3x3 GetTangentFrame(MaterialData mtlData)
         GetLocalFrame(mtlData.bsdfData.normalWS);
 }
 
+float3 ComputeConsistentShadingNormal(float3 Wi, float3 G, float3 N)
+{
+    float GdotWi = dot(G, Wi);
+
+    float3 Wo = reflect(-Wi, N);
+    float GdotWo = dot(G, Wo);
+
+    // Check in which hemisphere are the view vectors
+    float Hi = sign(GdotWi);
+    float Ho = sign(GdotWo);
+
+    // Bring reflection direction back to the right hemisphere (slightly offset from the horizon, for more robustness)
+    Wo = normalize(Wo - (GdotWo + Ho * 0.001) * G);
+
+    // Compute a new, consistent shading normal accordingly
+    return Hi != Ho ? Hi * normalize(Wi + Wo) : N;
+}
+
 #endif // UNITY_PATH_TRACING_MATERIAL_INCLUDED
