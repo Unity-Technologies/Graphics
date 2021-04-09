@@ -70,7 +70,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             }
 
-            ConfigureClear(ClearFlag.All, Color.black);
+            // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
+            ConfigureClear(ClearFlag.Depth, Color.black);
         }
 
         /// <inheritdoc/>
