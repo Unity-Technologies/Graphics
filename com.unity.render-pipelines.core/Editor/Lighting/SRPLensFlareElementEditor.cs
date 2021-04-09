@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering
             return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + offset;
         }
 
-        sealed class Styles
+        static class Styles
         {
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the element.");
             static public readonly GUIContent position = EditorGUIUtility.TrTextContent("Starting Position", "Sets the starting position of this element in screen space relative to its source.");

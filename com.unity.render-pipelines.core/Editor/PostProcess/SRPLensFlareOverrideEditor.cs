@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        sealed class Styles
+        static class Styles
         {
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the intensity of the lens flare.");

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        sealed class Styles
+        static class Styles
         {
             static public readonly GUIContent elements = EditorGUIUtility.TrTextContent("Elements", "List of elements in the Lens Flare.");
         }
