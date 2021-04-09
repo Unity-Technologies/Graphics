@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             CoreUtils.SetKeyword(material, "_AlphaClip", alphaClipping);
 
             var surfaceTypeProp = Property.Surface();
-            if(material.HasProperty(surfaceTypeProp))
+            if (material.HasProperty(surfaceTypeProp))
             {
                 var surfaceType = (SurfaceType)material.GetFloat(surfaceTypeProp);
                 if (surfaceType == SurfaceType.Opaque)
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 else
                 {
                     var blendProp = Property.Blend();
-                    if(material.HasProperty(blendProp))
+                    if (material.HasProperty(blendProp))
                     {
                         var blendMode = (BlendMode)material.GetFloat(blendProp);
                         if (blendMode == BlendMode.Alpha)
@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         else if (blendMode == BlendMode.Multiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.DstColor, UnityEngine.Rendering.BlendMode.Zero);
                     }
-                    
+
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.SetOverrideTag("RenderType", "Transparent");
                     SetMaterialZWriteProperty(material, false);
@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         static void SetMaterialZWriteProperty(Material material, bool state)
         {
             var zWriteProp = Property.ZWrite();
-            if(material.HasProperty(zWriteProp))
+            if (material.HasProperty(zWriteProp))
             {
                 material.SetFloat(zWriteProp, state == true ? 1.0f : 0.0f);
             }
@@ -212,6 +212,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             materialEditor.PopupShaderProperty(property, label, options);
         }
+
         public static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
         {
             if (prop == null)
