@@ -213,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float normalMapDistance => m_NormalMapDistance;
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
         internal int GetTopMostLitLayer()
         {
