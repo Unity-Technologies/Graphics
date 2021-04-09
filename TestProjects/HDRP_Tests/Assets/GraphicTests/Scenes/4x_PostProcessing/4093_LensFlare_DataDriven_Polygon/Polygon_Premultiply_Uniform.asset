@@ -16,8 +16,8 @@ MonoBehaviour:
   - position: 0.03
     positionOffset: {x: -0.39, y: 0.44}
     angularOffset: 19.6
-    translationScale: {x: 1, y: 0}
-    localIntensity: 1
+    translationScale: {x: 0.13, y: -0.26}
+    localIntensity: 5.34
     lensFlareTexture: {fileID: 0}
     uniformScale: 1.2
     sizeXY: {x: 1.48, y: 1.21}
@@ -32,7 +32,7 @@ MonoBehaviour:
     modulateByLightColor: 0
     isFoldOpened: 1
     distribution: 2
-    lengthSpread: 0.46
+    lengthSpread: -2.97
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -112,7 +112,7 @@ MonoBehaviour:
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     intensityVariation: 1
-    positionVariation: {x: -2.3, y: 0.32}
+    positionVariation: {x: 10.86, y: 0.32}
     scaleVariation: 5.4
     rotationVariation: 13.19
     enableRadialDistortion: 0
@@ -151,8 +151,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 1
-    fallOff: 0
-    edgeOffset: 0.213
+    fallOff: 0.802
+    edgeOffset: 0.582
     sideCount: 3
-    sdfRoundness: 0.756
+    sdfRoundness: 0.313
     inverseSDF: 1

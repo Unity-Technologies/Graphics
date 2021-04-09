@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   elements:
   - position: 0.125
-    positionOffset: {x: 0, y: 0}
+    positionOffset: {x: -0.25, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
     localIntensity: 2.93
@@ -24,7 +24,7 @@ MonoBehaviour:
     allowMultipleElement: 1
     count: 6
     preserveAspectRatio: 0
-    rotation: 0
+    rotation: 37.44
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 1
@@ -151,8 +151,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 0.99
-    edgeOffset: 0.459
-    sideCount: 3
-    sdfRoundness: 0
+    fallOff: 1
+    edgeOffset: 0
+    sideCount: 6
+    sdfRoundness: 0.227
     inverseSDF: 0

@@ -19,20 +19,20 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 2
+    uniformScale: 2.42
     sizeXY: {x: 1.48, y: 1.21}
     allowMultipleElement: 1
     count: 6
     preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 1, g: 0.81446993, b: 0, a: 0.5}
+    rotation: 35.2
+    tint: {r: 0.735849, g: 0.735849, b: 0.735849, a: 0.59607846}
     blendMode: 2
     autoRotate: 1
     flareType: 2
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 1
     distribution: 0
-    lengthSpread: 0.8
+    lengthSpread: 1.2
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -84,20 +84,20 @@ MonoBehaviour:
     seed: 0
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0.51841265, b: 0, a: 1}
-      key1: {r: 1, g: 0, b: 0, a: 1}
-      key2: {r: 1, g: 0, b: 0, a: 0}
-      key3: {r: 1, g: 0, b: 0, a: 0}
-      key4: {r: 1, g: 0, b: 0, a: 0}
-      key5: {r: 1, g: 0, b: 0, a: 0}
+      key0: {r: 1, g: 0, b: 0, a: 1}
+      key1: {r: 1, g: 1, b: 0, a: 1}
+      key2: {r: 0, g: 1, b: 0, a: 0}
+      key3: {r: 0, g: 1, b: 1, a: 0}
+      key4: {r: 0, g: 0, b: 1, a: 0}
+      key5: {r: 1, g: 0, b: 1, a: 0}
       key6: {r: 1, g: 0, b: 0, a: 0}
       key7: {r: 1, g: 0, b: 0, a: 0}
       ctime0: 0
-      ctime1: 65535
-      ctime2: 65535
-      ctime3: 65535
-      ctime4: 65535
-      ctime5: 65535
+      ctime1: 10216
+      ctime2: 20432
+      ctime3: 31226
+      ctime4: 42598
+      ctime5: 53392
       ctime6: 65535
       ctime7: 65535
       atime0: 0
@@ -109,7 +109,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_NumColorKeys: 2
+      m_NumColorKeys: 7
       m_NumAlphaKeys: 2
     intensityVariation: 0
     positionVariation: {x: 0, y: 0}
@@ -154,5 +154,5 @@ MonoBehaviour:
     fallOff: 0.99
     edgeOffset: 0.459
     sideCount: 4
-    sdfRoundness: 0
+    sdfRoundness: 0.204
     inverseSDF: 0

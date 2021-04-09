@@ -235,6 +235,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &360477075
 MonoBehaviour:
@@ -546,6 +547,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &754434773
 MonoBehaviour:
@@ -919,6 +921,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1278571984
 MonoBehaviour:
@@ -1230,6 +1233,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1417769158
 MonoBehaviour:
@@ -1541,6 +1545,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1738953282
 MonoBehaviour:
@@ -1852,6 +1857,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1865654975
 MonoBehaviour:

@@ -235,6 +235,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &360477075
 MonoBehaviour:
@@ -466,7 +467,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_LensFlareData: {fileID: 11400000, guid: 84025594d23cfa44f98daac3c8470313, type: 2}
-  intensity: 1
+  intensity: 1.84
   maxAttenuationDistance: 25
   maxAttenuationScale: 100
   distanceAttenuationCurve:
@@ -546,6 +547,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 0.45
   allowOffScreen: 0
 --- !u!114 &754434773
 MonoBehaviour:
@@ -739,7 +741,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 754434771}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 5.5, z: 0}
+  m_LocalPosition: {x: 7.62, y: -4.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -914,6 +916,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1278571984
 MonoBehaviour:
@@ -1107,7 +1110,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1278571982}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.21, y: -0.39, z: 0}
+  m_LocalPosition: {x: 8.68, y: -0.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1225,6 +1228,7 @@ MonoBehaviour:
   occlusionRadius: 1
   sampleCount: 32
   occlusionOffset: 0
+  scale: 1
   allowOffScreen: 0
 --- !u!114 &1417769158
 MonoBehaviour:

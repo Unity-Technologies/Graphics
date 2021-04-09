@@ -17,7 +17,7 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 5.66
+    localIntensity: 48.68
     lensFlareTexture: {fileID: 0}
     uniformScale: 2.91
     sizeXY: {x: 3.74, y: 1.21}
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 0
-    edgeOffset: 0.548
+    fallOff: 1
+    edgeOffset: 0.249
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 1

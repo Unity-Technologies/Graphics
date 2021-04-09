@@ -32,7 +32,7 @@ MonoBehaviour:
     modulateByLightColor: 1
     isFoldOpened: 1
     distribution: 0
-    lengthSpread: 0.8
+    lengthSpread: 0.93
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -152,7 +152,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     distortionRelativeToCenter: 1
     fallOff: 0.99
-    edgeOffset: 0.459
+    edgeOffset: 0.507
     sideCount: 4
     sdfRoundness: 0
     inverseSDF: 0

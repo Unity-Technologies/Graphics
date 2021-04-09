@@ -2623,7 +2623,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public LensFlareParameters parameters;
             public TextureHandle source;
-            //public TextureHandle destination;
             public HDCamera hdCamera;
         }
 

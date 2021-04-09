@@ -151,8 +151,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 0.99
-    edgeOffset: 0.459
+    fallOff: 1
+    edgeOffset: 0.635
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
