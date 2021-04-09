@@ -4208,27 +4208,22 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // if the coat exist, ConvertSurfaceDataToNormalData will output the roughness of the coat and we don't need
     // a boost of sharp reflections from a potentially rough bottom layer.
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
+    float3 reflectanceFactor = (float3)0.0;
+    reflectionHierarchyWeight  = ssrLighting.a;
+
+    if (IsVLayeredEnabled(bsdfData) && (bsdfData.coatMask > 0))
     {
-        float oneMinCoatMask = 1.0 - bsdfData.coatMask;
+        reflectanceFactor = preLightData.specularFGD[COAT_LOBE_IDX];
         // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
         // Incorrect, but for now:
-        float3 reflectanceFactorC = preLightData.specularFGD[COAT_LOBE_IDX];
-        reflectanceFactorC *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
+        reflectanceFactor *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
+        float coatFGD = reflectanceFactor.r; //Max3(reflectanceFactor.r, reflectanceFactor.g, reflectanceFactor.b), but should be scalar anyway (coat)
+        reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
 
-        float coatFGD = reflectanceFactorC.r;
-        reflectionHierarchyWeight = ssrLighting.a * (oneMinCoatMask + coatFGD); // coatMask is already multiplied in specularFGD[COAT_LOBE_IDX]
-
-        reflectanceFactorC *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
-
-        float3 reflectanceFactorB = (preLightData.specularFGD[BASE_LOBEA_IDX] * preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX]);
-        reflectanceFactorB += (preLightData.specularFGD[BASE_LOBEB_IDX] * preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX]);
-
-        lighting.specularReflected = ssrLighting.rgb * (oneMinCoatMask * reflectanceFactorB + reflectanceFactorC);
+        reflectionHierarchyWeight *= coatFGD;
     }
     else
     {
-        float3 reflectanceFactor = (float3)0.0;
         for(int i = 0; i < TOTAL_NB_LOBES; i++)
         {
             float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
@@ -4238,10 +4233,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
             lobeFactor *= preLightData.energyCompensationFactor[i];
             reflectanceFactor += lobeFactor;
         }
-        // Note: RGB is already premultiplied by A.
-        lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
-        reflectionHierarchyWeight  = ssrLighting.a;
     }
+
+    // Note: RGB is already premultiplied by A.
+    lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
 
     return lighting;
 }
