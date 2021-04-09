@@ -63,8 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (this.useDepthPriming)
             {
-                overrideCameraColorTarget = false;
-                overrideCameraDepthTarget = false;
+                overrideCameraTarget = false;
             }
             else
             {
