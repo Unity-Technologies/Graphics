@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: PathTracing
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   enable:
     m_OverrideState: 1
     m_Value: 1
@@ -24,24 +23,16 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 4096
+    m_Value: 128
   minimumDepth:
     m_OverrideState: 0
     m_Value: 1
-    min: 1
-    max: 10
   maximumDepth:
     m_OverrideState: 0
     m_Value: 4
-    min: 1
-    max: 10
   maximumIntensity:
     m_OverrideState: 0
     m_Value: 10
-    min: 0
-    max: 100
 --- !u!114 &-892809174494982102
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -55,17 +46,9 @@ MonoBehaviour:
   m_Name: LightCluster
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
-  maxNumLightsPercell:
-    m_OverrideState: 0
-    m_Value: 10
-    min: 0
-    max: 24
   cameraClusterRange:
     m_OverrideState: 1
     m_Value: 50
-    min: 0.001
-    max: 50
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,10 +79,12 @@ MonoBehaviour:
   m_Name: VisualEnvironment
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 3
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1
@@ -119,12 +104,9 @@ MonoBehaviour:
   m_Name: GradientSky
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 0
     m_Value: 0
@@ -134,11 +116,9 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   upperHemisphereLuxColor:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0, z: 0}
@@ -151,28 +131,18 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
   top:
     m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   middle:
     m_OverrideState: 0
     m_Value: {r: 0.3, g: 0.7, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   bottom:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   gradientDiffusion:
     m_OverrideState: 0
     m_Value: 1

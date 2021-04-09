@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: DepthOfField
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
@@ -23,49 +22,39 @@ MonoBehaviour:
   focusDistance:
     m_OverrideState: 1
     m_Value: 4.75
-    min: 0.1
   nearFocusStart:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   nearFocusEnd:
     m_OverrideState: 0
     m_Value: 4
-    min: 0
   farFocusStart:
     m_OverrideState: 0
     m_Value: 10
-    min: 0
   farFocusEnd:
     m_OverrideState: 0
     m_Value: 20
-    min: 0
   m_NearSampleCount:
     m_OverrideState: 0
     m_Value: 5
-    min: 3
-    max: 8
   m_NearMaxBlur:
     m_OverrideState: 0
     m_Value: 4
-    min: 0
-    max: 8
   m_FarSampleCount:
     m_OverrideState: 0
     m_Value: 7
-    min: 3
-    max: 16
   m_FarMaxBlur:
     m_OverrideState: 0
     m_Value: 8
-    min: 0
-    max: 16
-  m_HighQualityFiltering:
-    m_OverrideState: 0
-    m_Value: 1
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_HighQualityFiltering:
+    m_OverrideState: 0
+    m_Value: 1
+  m_PhysicallyBased:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-100086013113312165
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -79,7 +68,6 @@ MonoBehaviour:
   m_Name: PathTracing
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   enable:
     m_OverrideState: 1
     m_Value: 1
@@ -90,24 +78,16 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 4096
+    m_Value: 128
   minimumDepth:
     m_OverrideState: 1
     m_Value: 1
-    min: 1
-    max: 10
   maximumDepth:
     m_OverrideState: 1
     m_Value: 4
-    min: 1
-    max: 10
   maximumIntensity:
     m_OverrideState: 0
     m_Value: 10
-    min: 0
-    max: 100
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

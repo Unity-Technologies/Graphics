@@ -27,7 +27,6 @@ MonoBehaviour:
   m_Name: PathTracing
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   enable:
     m_OverrideState: 1
     m_Value: 1
@@ -38,21 +37,13 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 4096
+    m_Value: 128
   minimumDepth:
     m_OverrideState: 0
     m_Value: 1
-    min: 1
-    max: 10
   maximumDepth:
     m_OverrideState: 1
     m_Value: 10
-    min: 1
-    max: 10
   maximumIntensity:
     m_OverrideState: 0
     m_Value: 10
-    min: 0
-    max: 100
