@@ -361,7 +361,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     // If the fragment that we are processing has clear cloat, we want to export the clear coat's perceptual roughness and geometric normal
     // instead of the base layer's roughness and the shader normal to be use by SSR
     #if (SHADERPASS == SHADERPASS_DEPTH_ONLY) || (SHADERPASS == SHADERPASS_MOTION_VECTORS) || (SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS)
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && HasClearCoatMask(surfaceData.coatMask))
     {
         normalData.normalWS = surfaceData.geomNormalWS;
         normalData.perceptualRoughness = CLEAR_COAT_PERCEPTUAL_ROUGHNESS;
@@ -1805,21 +1805,23 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ApplyScreenSpaceReflectionWeight(ssrLighting);
 
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    // In case this material has a clear coat, we shou not be using the specularFGD. The condition for it is a combination
-    // of a materia feature and the coat mask.
-    float clampedNdotV = ClampNdotV(preLightData.NdotV);
-    float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
-                                                    lerp(preLightData.specularFGD, F, bsdfData.coatMask)
-                                                    : preLightData.specularFGD);
+    // In case this material has a clear coat, we should not be using the base specularFGD. The condition for it is a combination
+    // of a material feature and the coat mask.
+    // Also note that we dont attenuate the reflection hierarchy consumed when coat feature is on but mask is 0: this mirrors what happens
+    // on the SSR-RTR sampling side, which uses the mask to sample either according to coat roughness or base roughness.
+    bool coatUsed = HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) && HasClearCoatMask(bsdfData.coatMask);
+    lighting.specularReflected = ssrLighting.rgb * (coatUsed ? preLightData.coatIblF : preLightData.specularFGD);
     // Set the default weight value
-    reflectionHierarchyWeight  = ssrLighting.a;
+    reflectionHierarchyWeight = ssrLighting.a;
 
     // In case this is a clear coat material, we only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
     // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
-    // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask);
+    // we do something similar. The base layer is multiplied by (1-coatF)^2, but here we have no lighting to provide for the base layer, so instead,
+    // we leave some room in the hierarchyWeight so there is possibility to use the fallback probes later called in EvaluateBSDF_Env().
+    // The drawback is that the coat will still be evaluated by those, possibly incorrectly adding again coat lighting.
+    if (coatUsed)
+        //reflectionHierarchyWeight  *= 1 - Sq(1 - preLightData.coatIblF);
+        reflectionHierarchyWeight  *= preLightData.coatIblF;
 
     return lighting;
 }
