@@ -199,6 +199,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Global settings check in Wizard
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
+- Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
 
 ## [11.0.0] - 2020-10-21
 
