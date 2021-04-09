@@ -6,6 +6,7 @@
 #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
@@ -108,13 +109,13 @@ void Frag(  PackedVaryingsToPS packedInput
 #elif defined(SCENEPICKINGPASS)
     #ifdef UNITY_DOTS_INSTANCING_ENABLED
     // When rendering EntityIds, GameObjects output EntityId = 0
-    if (_SelectionID.x == 5.0) // EntityId = 5,
+    if (_SelectionID.x == RENDER_ENTITY_ID)
         outColor = PackId32ToRGBA8888(unity_EntityId.x);
     else
         outColor = float4(0, 0, 0, 0);
     #else
     // When rendering ObjectIds, Entities output ObjectId = 0
-    if (_SelectionID.x == 1.0) // ObjectId = 1,
+    if (_SelectionID.x == RENDER_OBJECT_ID)
         outColor = PackId32ToRGBA8888(asuint(unity_LODFade.z));
     else
         outColor = float4(0, 0, 0, 0);

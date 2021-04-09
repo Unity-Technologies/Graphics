@@ -1,24 +1,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
 
 int UNITY_DataExtraction_Mode;
 int UNITY_DataExtraction_Space;
 int UNITY_DataExtraction_Value;
 TEXTURE2D(unity_EditorViz_DepthBuffer); SAMPLER(sampler_unity_EditorViz_DepthBuffer);
-
-#define RENDER_OBJECT_ID               1
-#define RENDER_DEPTH                   2
-#define RENDER_WORLD_NORMALS_FACE_RGB  3
-#define RENDER_WORLD_POSITION_RGB      4
-#define RENDER_ENTITY_ID               5
-#define RENDER_BASE_COLOR_RGBA         6
-#define RENDER_SPECULAR_RGB            7
-#define RENDER_METALLIC_R              8
-#define RENDER_EMISSION_RGB            9
-#define RENDER_WORLD_NORMALS_PIXEL_RGB 10
-#define RENDER_SMOOTHNESS_R            11
-#define RENDER_OCCLUSION_R             12
-#define RENDER_DIFFUSE_COLOR_RGBA      13
-#define RENDER_OUTLINE_MASK            14
 
 struct ExtractionInputs
 {
