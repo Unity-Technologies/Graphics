@@ -54,6 +54,7 @@ namespace UnityEditor
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
+            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode));
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
@@ -73,6 +74,9 @@ namespace UnityEditor
 
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+
+            public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
+                "Specifies the depth test mode.  The default is LEqual.");
 
             public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
@@ -117,6 +121,8 @@ namespace UnityEditor
 
         protected MaterialProperty cullingProp { get; set; }
 
+        protected MaterialProperty ztestProp { get; set; }
+
         protected MaterialProperty alphaClipProp { get; set; }
 
         protected MaterialProperty alphaCutoffProp { get; set; }
@@ -156,9 +162,12 @@ namespace UnityEditor
 
         public virtual void FindProperties(MaterialProperty[] properties)
         {
+            var material = materialEditor.target as Material;
+            bool isShaderGraph = material?.IsShaderGraph() ?? false;
             surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties);
             blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties);
             cullingProp = FindProperty(Property.Cull(isShaderGraph), properties);
+            ztestProp = FindProperty(Property.ZTest(isShaderGraph), properties, false);
             alphaClipProp = FindProperty(Property.AlphaClip(isShaderGraph), properties);
 
             // ShaderGraph Lit and Unlit Subtargets only
@@ -187,7 +196,6 @@ namespace UnityEditor
 
             materialEditor = materialEditorIn;
             Material material = materialEditor.target as Material;
-            isShaderGraph = material.IsShaderGraph();
 
             FindProperties(properties);   // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
 
@@ -274,6 +282,8 @@ namespace UnityEditor
                 DoPopup(Styles.blendingMode, blendModeProp, Styles.blendModeNames);
 
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
+
+            DoPopup(Styles.ztestText, ztestProp, Styles.ztestNames);
 
             // materialEditor.ShaderProperty(alphaClipProp, Styles.alphaClipText);      // this fails for ShaderGraphs, that can't tag it as [ToggleUI]
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
@@ -618,7 +628,8 @@ namespace UnityEditor
 
         public void DoPopup(GUIContent label, MaterialProperty property, string[] options)
         {
-            materialEditor.PopupShaderProperty(property, label, options);
+            if (property != null)
+                materialEditor.PopupShaderProperty(property, label, options);
         }
 
         // Helper to show texture and color properties

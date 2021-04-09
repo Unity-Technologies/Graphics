@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
         public static string SrcBlend(bool isShaderGraph)                      { return isShaderGraph ? SG_SrcBlend : HW_SrcBlend; }
         public static string DstBlend(bool isShaderGraph)                      { return isShaderGraph ? SG_DstBlend : HW_DstBlend; }
         public static string ZWrite(bool isShaderGraph)                        { return isShaderGraph ? SG_ZWrite : HW_ZWrite; }
+        public static string ZTest(bool isShaderGraph)                         { return isShaderGraph ? SG_ZTest : null; }   // no HW equivalent
         public static string Cull(bool isShaderGraph)                          { return isShaderGraph ? SG_Cull : HW_Cull; }
         public static string CastShadows(bool isShaderGraph)                   { return isShaderGraph ? SG_CastShadows : HW_CastShadows; }
         public static string ReceiveShadows(bool isShaderGraph)                { return isShaderGraph ? SG_ReceiveShadows : HW_ReceiveShadows; }
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string SG_AlphaClip = "_URP_AlphaClip";
         public static readonly string SG_SrcBlend = "_URP_SrcBlend";
         public static readonly string SG_DstBlend = "_URP_DstBlend";
+        public static readonly string SG_ZTest = "_URP_ZTest";
         public static readonly string SG_ZWrite = "_URP_ZWrite";
         public static readonly string SG_Cull = "_URP_CullMode";
         public static readonly string SG_CastShadows = "_URP_CastShadows";

@@ -3,6 +3,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor
 {
@@ -14,6 +15,9 @@ namespace UnityEditor
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
+            var material = materialEditor.target as Material;
+            bool isShaderGraph = material?.IsShaderGraph() ?? false;
+
             base.FindProperties(properties);
             workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode(isShaderGraph), properties, false);
         }

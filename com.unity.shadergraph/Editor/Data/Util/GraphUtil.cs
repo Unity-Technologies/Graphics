@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph
         public static bool IsShaderGraph(this Material material)
         {
             var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
-            return (shaderGraphTag != null);
+            return !string.IsNullOrEmpty(shaderGraphTag);
         }
 
         // NOTE: this ONLY works for ASSET based Shaders, if you created a temporary shader in memory, it won't work
