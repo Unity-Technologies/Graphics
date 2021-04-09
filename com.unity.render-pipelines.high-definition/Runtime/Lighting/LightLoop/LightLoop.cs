@@ -1913,18 +1913,7 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.normalizeWithAPV = probe.settings.normalizeWithProbeVolume ? 1 : 0;
             if (probe.settings.normalizeWithProbeVolume)
             {
-                SphericalHarmonicsL2 shCoeffs;
-                if (probe.GetSHForNormalization(out shCoeffs))
-                {
-                    Vector3 L1_R, L1_G, L1_B;
-                    SphericalHarmonicsL2Utils.GetL1(shCoeffs, out L1_R, out L1_G, out L1_B);
-                    Vector3 L0 = SphericalHarmonicsL2Utils.GetCoefficient(shCoeffs, 0);
-
-                    envLightData.l1R_l0r = new Vector4(L1_R.x, L1_R.y, L1_R.z, L0.x);
-                    envLightData.l1G_l0g = new Vector4(L1_G.x, L1_B.y, L1_G.z, L0.y);
-                    envLightData.l1B_l0b = new Vector4(L1_B.x, L1_B.y, L1_B.z, L0.z);
-                }
-                else
+                if (!probe.GetSHForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
                 {
                     // We don't have valid data, hence we disable the feature.
                     envLightData.normalizeWithAPV = 0;

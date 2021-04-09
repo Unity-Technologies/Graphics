@@ -531,14 +531,36 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
-        internal bool GetSHForNormalization(out SphericalHarmonicsL2 shCoeffs)
+        // Return luma of coefficients
+        internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
         {
             bool hasValidSHData = settings.normalizeWithProbeVolume;
 #if UNITY_EDITOR
             // We get stuff from the baked info
             hasValidSHData = hasValidSHData && (m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization));
 #endif
-            shCoeffs = m_SHForNormalization;
+            var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
+            var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 1);
+            var L1_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 2);
+            var L1_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 3);
+            var L2_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 4);
+            var L2_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 5);
+            var L2_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 6);
+            var L2_3 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 7);
+            var L2_4 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 8);
+
+            outL0L1.x = ColorUtils.Luminance(new Vector4(L0.x, L0.y, L0.z, 1.0f));
+            outL0L1.y = ColorUtils.Luminance(new Vector4(L1_0.x, L1_0.y, L1_0.z, 1.0f));
+            outL0L1.z = ColorUtils.Luminance(new Vector4(L1_1.x, L1_1.y, L1_1.z, 1.0f));
+            outL0L1.w = ColorUtils.Luminance(new Vector4(L1_2.x, L1_2.y, L1_2.z, 1.0f));
+
+            outL2_1.x = ColorUtils.Luminance(new Vector4(L2_0.x, L2_0.y, L2_0.z, 1.0f));
+            outL2_1.y = ColorUtils.Luminance(new Vector4(L2_1.x, L2_1.y, L2_1.z, 1.0f));
+            outL2_1.z = ColorUtils.Luminance(new Vector4(L2_2.x, L2_2.y, L2_2.z, 1.0f));
+            outL2_1.w = ColorUtils.Luminance(new Vector4(L2_3.x, L2_3.y, L2_3.z, 1.0f));
+
+            outL2_2 = ColorUtils.Luminance(new Vector4(L2_4.x, L2_4.y, L2_4.z, 1.0f));
+
             return hasValidSHData;
         }
 
