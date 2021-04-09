@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         // Rows should auto-expand when an input is first added
                         // blackboardRow.expanded = true;
-                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        var propertyView = blackboardRow.Q<SGBlackboardField>();
                         if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
                             propertyView.OpenTextEditor();
                     }

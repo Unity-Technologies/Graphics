@@ -8,10 +8,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderGraph.Serialization;
-using UnityEngine.Assertions;
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
 
@@ -202,6 +199,29 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<ShaderInput> childObjects { get; set; }
     }
 
+    class MoveCategoryAction : IGraphDataAction
+    {
+        void MoveCategory(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out MoveCategoryAction");
+            graphData.owner.RegisterCompleteObjectUndo("Move Category");
+            // Handling for out of range moves is slightly different, but otherwise we need to reverse for insertion order.
+            var guids = newIndexValue >= graphData.categories.Count() ? categoryGuids : categoryGuids.Reverse<string>();
+            foreach (var guid in guids)
+            {
+                var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == guid);
+                graphData.MoveCategory(cat, newIndexValue);
+            }
+        }
+
+        public Action<GraphData> modifyGraphDataAction => MoveCategory;
+
+        // Reference to the shader input being modified
+        internal List<string> categoryGuids { get; set; }
+
+        internal int newIndexValue { get; set; }
+    }
+
     class AddItemToCategoryAction : IGraphDataAction
     {
         void AddItemsToCategory(GraphData graphData)
@@ -355,8 +375,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             InitializeViewModel();
 
-            blackboard = new SGBlackboard(ViewModel);
-            blackboard.controller = this;
+            blackboard = new SGBlackboard(ViewModel, this);
 
             // Add default category at the top of the blackboard (create it if it doesn't exist already)
             var existingDefaultCategory = DataStore.State.categories.FirstOrDefault();
@@ -444,7 +463,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         // Rows should auto-expand when an input is first added
                         // blackboardRow.expanded = true;
-                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        var propertyView = blackboardRow.Q<SGBlackboardField>();
                         if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
                             propertyView.OpenTextEditor();
                     }
@@ -473,7 +492,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // This selects the newly created property value without over-riding the undo stack in case user wants to undo
                         var graphView = ViewModel.parentView as MaterialGraphView;
                         graphView?.ClearSelectionNoUndoRecord();
-                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        var propertyView = blackboardRow.Q<SGBlackboardField>();
                         graphView?.AddToSelectionNoUndoRecord(propertyView);
                     }
 
@@ -489,7 +508,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Iterate through anything that is selected currently
                     foreach (var selectedElement in blackboard.selection.ToList())
                     {
-                        if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput })
+                        if (selectedElement is SGBlackboardField { userData: ShaderInput shaderInput })
                         {
                             // If a blackboard item is selected, first remove it from the blackboard
                             RemoveInputFromBlackboard(shaderInput);
@@ -509,6 +528,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         RemoveBlackboardCategory(categoryGUID);
                     }
+                    break;
+
+                case MoveCategoryAction moveCategoryAction:
+                    // TODO: Not this.
+                    ClearBlackboardCategories();
+                    foreach (var categoryData in ViewModel.categoryInfoList)
+                        AddBlackboardCategory(graphData.owner.graphDataStore, categoryData);
                     break;
             }
 
@@ -574,7 +600,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (ISelectable selection in blackboard.selection)
             {
-                if (selection is BlackboardPropertyView blackboardPropertyView)
+                if (selection is SGBlackboardField blackboardPropertyView)
                 {
                     SGBlackboardRow row = blackboardPropertyView.GetFirstAncestorOfType<SGBlackboardRow>();
                     SGBlackboardCategory category = blackboardPropertyView.GetFirstAncestorOfType<SGBlackboardCategory>();

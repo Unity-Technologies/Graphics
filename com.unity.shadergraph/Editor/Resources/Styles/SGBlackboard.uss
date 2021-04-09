@@ -23,6 +23,7 @@
     min-height: 100px;
     width: 200px;
     height: 400px;
+    margin: 5px;
 }
 
 #SGBlackboard.windowed {
@@ -34,6 +35,7 @@
     border-right-width: 0;
     border-bottom-width: 0;
     border-radius: 0;
+    margin: 5px;
     width: initial;
     height: initial;
 }
@@ -50,6 +52,16 @@
 
 #SGBlackboard.windowed > .resizer {
     display: none;
+}
+
+#SGBlackboard > #dragIndicator {
+    background-color: cornflowerblue;
+    min-height: 4px;
+
+    border-left-width: 5px;
+    width: auto;
+    flex-grow: 1;
+    border-right-width: 5px;
 }
 
 #SGBlackboard:selected {
@@ -292,7 +304,7 @@
 #SGBlackboardRow.hovered #pill #selection-border
 {
     background-color:rgba(68,192,255,0.4);
-    border-color: red;
+    border-color: cornflowerblue;
     border-left-width: 2px;
     border-top-width: 2px;
     border-right-width: 2px;
@@ -303,25 +315,25 @@
     bottom: 1px;
 }
 
-#BlackboardPropertyView {
+#SGBlackboardField {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardPropertyView > .mainContainer {
+#SGBlackboardField > .mainContainer {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardPropertyView > .mainContainer > #contentItem {
+#SGBlackboardField > .mainContainer > #contentItem {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardPropertyView > .mainContainer > #textField {
+#SGBlackboardField > .mainContainer > #textField {
     position: absolute;
     left:0;
     right:0;
@@ -331,7 +343,7 @@
     font-size: 11px;
 }
 
-#BlackboardPropertyView > .mainContainer > #contentItem > #typeLabel {
+#SGBlackboardField > .mainContainer > #contentItem > #typeLabel {
     flex: 1 0 0;
     -unity-text-align:middle-right;
     color: #808080;

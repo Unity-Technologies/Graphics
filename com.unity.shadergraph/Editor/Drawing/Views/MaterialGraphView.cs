@@ -56,12 +56,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override bool canCutSelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardPropertyView>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any(); }
         }
 
         protected override bool canCopySelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardPropertyView>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<SGBlackboardField>().Any(); }
         }
 
         public MaterialGraphView(GraphData graph, Action previewUpdateDelegate) : this()
@@ -364,7 +364,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.InsertAction(count, "Delete Group and Contents", (e) => RemoveNodesInsideGroup(e, data), DropdownMenuAction.AlwaysEnabled);
             }
 
-            if (evt.target is BlackboardPropertyView)
+            if (evt.target is SGBlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                 evt.menu.AppendAction("Duplicate %d", (e) => DuplicateSelection(), (a) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
@@ -835,7 +835,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
-                ShaderInput shaderProp = (ShaderInput)((BlackboardPropertyView)selectable).userData;
+                ShaderInput shaderProp = (ShaderInput)((SGBlackboardField)selectable).userData;
                 if (shaderProp != null)
                 {
                     selectedProperties.Add(shaderProp);
@@ -868,7 +868,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => (Graphing.Edge)x.userData);
-            var inputs = selection.OfType<BlackboardPropertyView>().Select(x => x.userData as ShaderInput).ToList();
+            var inputs = selection.OfType<SGBlackboardField>().Select(x => x.userData as ShaderInput).ToList();
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
@@ -909,7 +909,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var selectable in selection)
             {
-                if (selectable is BlackboardPropertyView propertyView && propertyView.userData != null)
+                if (selectable is SGBlackboardField propertyView && propertyView.userData != null)
                 {
                     switch (propertyView.userData)
                     {
@@ -967,7 +967,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             for (int index = 0; index < copiedSelectionList.Count; ++index)
             {
                 var selectable = copiedSelectionList[index];
-                if (selectable is BlackboardPropertyView field && field.userData != null)
+                if (selectable is SGBlackboardField field && field.userData != null)
                 {
                     var input = (ShaderInput)field.userData;
                     deleteShaderInputAction.shaderInputsToDelete.Add(input);
@@ -1025,7 +1025,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // Blackboard
                 bool validFields = false;
-                foreach (BlackboardPropertyView propertyView in selection.OfType<BlackboardPropertyView>())
+                foreach (SGBlackboardField propertyView in selection.OfType<SGBlackboardField>())
                 {
                     if (!(propertyView.userData is MultiJsonInternal.UnknownShaderPropertyType))
                         validFields = true;
@@ -1061,10 +1061,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (selection != null)
             {
                 // Blackboard
-                if (selection.OfType<BlackboardPropertyView>().Any())
+                if (selection.OfType<SGBlackboardField>().Any())
                 {
-                    IEnumerable<BlackboardPropertyView> fields = selection.OfType<BlackboardPropertyView>();
-                    foreach (BlackboardPropertyView field in fields)
+                    IEnumerable<SGBlackboardField> fields = selection.OfType<SGBlackboardField>();
+                    foreach (SGBlackboardField field in fields)
                     {
                         CreateNode(field, localPos);
                     }
@@ -1182,7 +1182,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graph.AddNode(node);
             }
 
-            var blackboardPropertyView = obj as BlackboardPropertyView;
+            var blackboardPropertyView = obj as SGBlackboardField;
             if (blackboardPropertyView?.userData is ShaderInput inputBeingDraggedIn)
             {
                 var dragGraphInputAction = new DragGraphInputAction { nodePosition = nodePosition, graphInputBeingDraggedIn = inputBeingDraggedIn };

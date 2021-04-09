@@ -51,6 +51,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         BlackboardCategoryViewModel m_ViewModel;
         public BlackboardCategoryViewModel viewModel => m_ViewModel;
 
+        const string k_StylePath = "Styles/SGBlackboard";
+        const string k_UxmlPath = "UXML/Blackboard/SGBlackboardSection";
+
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
         VisualElement m_Header;
@@ -59,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal TextField textField => m_TextField;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
-        SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
+        SGBlackboard blackboard => m_ViewModel.parentView as SGBlackboard;
 
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
@@ -88,7 +91,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            return index;
+            // Don't allow the default category to be displaced
+            return Mathf.Clamp(index, 1, index);
         }
 
         VisualElement FindCategoryDirectChild(VisualElement element)
@@ -112,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ViewModel = categoryViewModel;
 
             // Setup VisualElement from Stylesheet and UXML file
-            var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
+            var tpl = Resources.Load(k_UxmlPath) as VisualTreeAsset;
             m_MainContainer = tpl.Instantiate();
             m_MainContainer.AddToClassList("mainContainer");
 
@@ -137,8 +141,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
+
             // add drag and drop manipulator
-            //this.AddManipulator(new SelectionDropper());
+            this.AddManipulator(new SelectionDropper());
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
@@ -151,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 
-            var styleSheet = Resources.Load<StyleSheet>($"Styles/Blackboard");
+            var styleSheet = Resources.Load<StyleSheet>(k_StylePath);
             styleSheets.Add(styleSheet);
 
             m_InsertIndex = -1;
@@ -280,9 +285,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (ISelectable selectedElement in selection)
             {
                 sourceItem = selectedElement as VisualElement;
-
-                if (sourceItem == null)
-                    continue;
+                if (sourceItem is SGBlackboardCategory blackboardCategory && controller.Model.IsNamedCategory() == false)
+                    return;
             }
 
             Vector2 localPosition = evt.localMousePosition;
@@ -336,6 +340,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void OnDragPerformEvent(DragPerformEvent evt)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            foreach (ISelectable selectedElement in selection)
+            {
+                var sourceItem = selectedElement as VisualElement;
+                if (sourceItem is SGBlackboardCategory blackboardCategory && controller.Model.IsNamedCategory() == false)
+                    return;
+            }
+
             if (m_InsertIndex == -1)
             {
                 SetDragIndicatorVisible(false);
@@ -429,7 +441,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             SetDragIndicatorVisible(false);
-            evt.StopPropagation();
+            // The default category should bubble up drop operations so user can re-order underneath it
+            if(controller.Model.IsNamedCategory())
+                evt.StopPropagation();
         }
 
         void OnDragLeaveEvent(DragLeaveEvent evt)
@@ -498,7 +512,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void RequestCategoryDelete()
         {
-            var materialGraphView = Blackboard.ParentView as MaterialGraphView;
+            var materialGraphView = blackboard.ParentView as MaterialGraphView;
             materialGraphView?.deleteSelection?.Invoke("Delete", GraphView.AskUser.DontAskUser);
         }
 

@@ -1480,6 +1480,27 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
+        public void MoveCategory(CategoryData category, int newIndex)
+        {
+            if (newIndex > m_CategoryData.Count || newIndex < 0)
+                throw new ArgumentException("New index is not within categories list.");
+            var currentIndex = m_CategoryData.IndexOf(category);
+            if (currentIndex == -1)
+                throw new ArgumentException("Category is not in graph.");
+            if (newIndex == currentIndex)
+                return;
+            m_CategoryData.RemoveAt(currentIndex);
+            if (newIndex > currentIndex)
+                newIndex--;
+            var isLast = newIndex == m_CategoryData.Count;
+            if (isLast)
+                m_CategoryData.Add(category);
+            else
+                m_CategoryData.Insert(newIndex, category);
+            if (!m_MovedCategories.Contains(category))
+                m_MovedCategories.Add(category);
+        }
+
         public void MoveProperty(AbstractShaderProperty property, int newIndex)
         {
             if (newIndex > m_Properties.Count || newIndex < 0)

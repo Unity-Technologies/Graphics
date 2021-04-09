@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEditor;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -87,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (propData.isCompoundProperty == false)
                     {
                         MaterialProperty prop = FindProperty(propData.referenceName, properties);
-                        DrawProperty(materialEditor, prop, propData);
+                        DrawMaterialProperty(materialEditor, prop, propData.propertyType, propData.isKeyword, propData.keywordType);
                     }
                     else
                     {
@@ -117,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var subProperty in compoundPropertyData.subProperties)
                     {
                         var property = FindProperty(subProperty.referenceName, properties);
-                        DrawProperty(materialEditor, property, subProperty);
+                        DrawMaterialProperty(materialEditor, property, subProperty.propertyType);
                     }
                 EditorGUI.indentLevel--;
             }
@@ -128,11 +129,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
 
-        private static void DrawProperty(MaterialEditor materialEditor, MaterialProperty property, MinimalCategoryData.GraphInputData inputData)
+        private static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean)
         {
-            if(inputData.isKeyword)
+            if(isKeyword)
             {
-                switch (inputData.keywordType)
+                switch (keywordType)
                 {
                     case KeywordType.Boolean:
                         DrawBooleanKeyword(materialEditor, property);
@@ -141,57 +142,56 @@ namespace UnityEditor.ShaderGraph.Drawing
                         DrawEnumKeyword(materialEditor, property);
                         break;
                 }
-
             }
             else
             {
-                switch (inputData.propertyType)
+                switch (propertyType)
                 {
-                    case Internal.PropertyType.SamplerState:
+                    case PropertyType.SamplerState:
                         DrawSamplerStateProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Matrix4:
+                    case PropertyType.Matrix4:
                         DrawMatrix4Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Matrix3:
+                    case PropertyType.Matrix3:
                         DrawMatrix3Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Matrix2:
+                    case PropertyType.Matrix2:
                         DrawMatrix2Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Texture2D:
+                    case PropertyType.Texture2D:
                         DrawTexture2DProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Texture2DArray:
+                    case PropertyType.Texture2DArray:
                         DrawTexture2DArrayProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Texture3D:
+                    case PropertyType.Texture3D:
                         DrawTexture3DProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Cubemap:
+                    case PropertyType.Cubemap:
                         DrawCubemapProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Gradient:
+                    case PropertyType.Gradient:
                         break;
-                    case Internal.PropertyType.Vector4:
+                    case PropertyType.Vector4:
                         DrawVector4Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Vector3:
+                    case PropertyType.Vector3:
                         DrawVector3Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Vector2:
+                    case PropertyType.Vector2:
                         DrawVector2Property(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Float:
+                    case PropertyType.Float:
                         DrawFloatProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Boolean:
+                    case PropertyType.Boolean:
                         DrawBooleanProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.VirtualTexture:
+                    case PropertyType.VirtualTexture:
                         DrawVirtualTextureProperty(materialEditor, property);
                         break;
-                    case Internal.PropertyType.Color:
+                    case PropertyType.Color:
                         DrawColorProperty(materialEditor, property);
                         break;
                 }
