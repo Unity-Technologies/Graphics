@@ -6,10 +6,10 @@ The High Definition Render Pipeline (HDRP) allows you to use Light Layers, which
 
 ## Enabling Light Layers
 
-To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-Asset.md). You can then enable Light Layers in your default [Frame Settings](Frame-Settings.md) to set your Cameras to process Light Layers.
+To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-Asset.md). You can then enable Light Layers in the [Frame Settings](Frame-Settings.md) to set your Cameras to process Light Layers.
 
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Lighting > Light Layers** and enable the **Enable** checkbox.
-2. To enable Light Layers in the default Frame Settings for all Cameras, in the [Default Settings Windows](Default-Settings-Window.md), go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Lighting** section, enable the **Light Layers** checkbox.
+2. To enable Light Layers for all Cameras, open the [HDRP Global Settings](Default-Settings-Window.md), go to the **Frame Settings (Default Values) > Camera** section and, in the **Rendering** section, enable the **Light Layers** checkbox.
 
 To override the Frame Settings for Cameras and set Light Layers on an individual basis:
 
@@ -42,7 +42,7 @@ You can now use the **Light Layers** drop-down in the **Shadows** section to set
 
 ## Renaming Light Layers
 
-By default, in the UI for Lights, Mesh Renderers or Terrain, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Light Layer Names**. Here you can set the name of each Light Layer individually.
+By default, in the UI for Lights, Mesh Renderers or Terrain, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open the [HDRP Global Settings](Default-Settings-Window.md), and go to **Light Layer Names**. Here you can set the name of each Light Layer individually.
 
 ## Example scenario for Light Layers
 
