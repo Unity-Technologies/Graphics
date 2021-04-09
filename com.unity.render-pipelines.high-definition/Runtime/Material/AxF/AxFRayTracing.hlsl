@@ -1,7 +1,7 @@
 float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 {
-    float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    float3x3 localToWorld = GetLocalFrame(bsdfData.normalWS);
+    float roughness = HasClearcoat() ? CLEAR_COAT_ROUGHNESS : PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    float3x3 localToWorld = GetLocalFrame(HasClearcoat() ? bsdfData.clearcoatNormalWS : bsdfData.normalWS);
 
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
