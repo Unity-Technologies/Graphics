@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/StencilDeferred"
+﻿Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
     Properties {
         _StencilRef ("StencilRef", Int) = 0
@@ -250,7 +250,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         [branch] if (!IsMatchingLightLayer(unityLight.lightLayers, meshRenderingLayers))
             return half4(color, alpha); // Cannot discard because stencil must be updated.
 
-        #if defined(_SCREEN_SPACE_OCCLUSION)
+        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
             unityLight.color *= aoFactor.directAmbientOcclusion;
             #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
