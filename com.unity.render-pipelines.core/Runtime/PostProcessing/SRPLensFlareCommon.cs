@@ -129,8 +129,10 @@ namespace UnityEngine
         /// <summary>
         /// Attenuation by Light Shape for Area Light with Tube Shape
         /// </summary>
-        /// <param name="forward">Forward Vector of Directional Light</param>
-        /// <param name="wo">Vector pointing to the eye</param>
+        /// <param name="lightPositionWS">World Space position of the Light</param>
+        /// <param name="lightSide">Vector pointing to the side (right or left) or the light</param>
+        /// <param name="lightWidth">Width (half extent) of the tube light</param>
+        /// <param name="cam">Camera rendering the Tube Light</param>
         /// <returns>Attenuation Factor</returns>
         static public float ShapeAttenuationAreaTubeLight(Vector3 lightPositionWS, Vector3 lightSide, float lightWidth, Camera cam)
         {
@@ -272,12 +274,13 @@ namespace UnityEngine
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
+        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             Rendering.CommandBuffer cmd,
             Rendering.RenderTargetIdentifier colorBuffer,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
+            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool debugView)
         {
             Vector2 vScreenRatio;
 
@@ -288,14 +291,11 @@ namespace UnityEngine
             float screenRatio = screenSize.x / screenSize.y;
             vScreenRatio = new Vector2(screenRatio, 1.0f);
 
-            if (skipCopy)
+            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+            if (debugView)
             {
-                Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+                // Background pitch black to see only the Flares
                 cmd.ClearRenderTarget(false, true, Color.black);
-            }
-            else
-            {
-                Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
             }
 
             foreach (SRPLensFlareOverride comp in lensFlares.GetData())
