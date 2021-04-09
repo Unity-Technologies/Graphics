@@ -17,20 +17,31 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            Camera camera = renderingData.cameraData.camera;
+            CameraData cameraData = renderingData.cameraData;
+            Camera camera = cameraData.camera;
+
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            {
+                // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it
+                // when certain debug modes are active (e.g. wireframe/overdraw modes)
+                if (DebugHandler.IsScreenClearNeeded)
+                {
+                    return;
+                }
+            }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // XRTODO: Remove this code once Skybox pass is moved to SRP land.
-            if (renderingData.cameraData.xr.enabled)
+            if (cameraData.xr.enabled)
             {
                 // Setup Legacy XR buffer states
-                if (renderingData.cameraData.xr.singlePassEnabled)
+                if (cameraData.xr.singlePassEnabled)
                 {
                     // Setup legacy skybox stereo buffer
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.GetProjectionMatrix(0));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.GetViewMatrix(0));
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetProjectionMatrix(1));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetViewMatrix(1));
+                    camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, cameraData.GetProjectionMatrix(0));
+                    camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, cameraData.GetViewMatrix(0));
+                    camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, cameraData.GetProjectionMatrix(1));
+                    camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, cameraData.GetViewMatrix(1));
 
                     CommandBuffer cmd = CommandBufferPool.Get();
 
@@ -40,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.Clear();
 
                     // Calling into built-in skybox pass
-                    context.DrawSkybox(renderingData.cameraData.camera);
+                    context.DrawSkybox(camera);
 
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
@@ -49,47 +60,28 @@ namespace UnityEngine.Rendering.Universal
                     // context.Submit();
                     CommandBufferPool.Release(cmd);
 
-                    renderingData.cameraData.camera.ResetStereoProjectionMatrices();
-                    renderingData.cameraData.camera.ResetStereoViewMatrices();
+                    camera.ResetStereoProjectionMatrices();
+                    camera.ResetStereoViewMatrices();
                 }
                 else
                 {
-                    renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.GetProjectionMatrix(0);
-                    renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
+                    camera.projectionMatrix = cameraData.GetProjectionMatrix(0);
+                    camera.worldToCameraMatrix = cameraData.GetViewMatrix(0);
 
-                    context.DrawSkybox(renderingData.cameraData.camera);
+                    context.DrawSkybox(camera);
 
                     // XRTODO: remove this call because it creates issues with nested profiling scopes
                     // See examples in UniversalRenderPipeline.RenderSingleCamera() and in ScriptableRenderer.Execute()
                     context.Submit(); // Submit and execute the skybox pass before resetting the matrices
 
-                    renderingData.cameraData.camera.ResetProjectionMatrix();
-                    renderingData.cameraData.camera.ResetWorldToCameraMatrix();
+                    camera.ResetProjectionMatrix();
+                    camera.ResetWorldToCameraMatrix();
                 }
             }
             else
 #endif
             {
-                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
-                {
-                    CommandBuffer cmd = CommandBufferPool.Get();
-
-                    foreach (DebugRenderSetup debugRenderPass in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
-                    {
-                        // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it under certain circumstances...
-                        if (!DebugHandler.IsScreenClearNeeded)
-                        {
-                            context.DrawSkybox(camera);
-                        }
-                    }
-
-                    context.ExecuteCommandBuffer(cmd);
-                    CommandBufferPool.Release(cmd);
-                }
-                else
-                {
-                    context.DrawSkybox(camera);
-                }
+                context.DrawSkybox(camera);
             }
         }
     }
