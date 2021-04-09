@@ -7,10 +7,11 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
+using static Unity.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    sealed class BuiltInLitSubTarget : SubTarget<BuiltInTarget>, ILegacyTarget
+    sealed class BuiltInLitSubTarget : BuiltInSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("8c2d5b55aa47443878a55a05f4294270"); // BuiltInLitSubTarget.cs
 
@@ -24,6 +25,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             displayName = "Lit";
         }
+
+        protected override ShaderID shaderID => ShaderID.SG_Lit;
 
         public WorkflowMode workflowMode
         {
@@ -42,7 +45,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            //context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
+            if (!context.HasCustomEditorForRenderPipeline(null))
+                context.customEditorForRenderPipelines.Add((typeof(BuiltInLitGUI).FullName, ""));
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.Lit };
@@ -56,6 +60,24 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 context.AddSubShader(subShaders[i]);
             }
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // copy our target's default settings into the material
+            // (technically not necessary since we are always recreating the material from the shader each time,
+            // which will pull over the defaults from the shader definition)
+            // but if that ever changes, this will ensure the defaults are set
+            material.SetFloat(Property.SpecularWorkflowMode(), (float)workflowMode);
+            //material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+            //material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+            material.SetFloat(Property.Surface(), (float)target.surfaceType);
+            material.SetFloat(Property.Blend(), (float)target.alphaMode);
+            material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            material.SetFloat(Property.Cull(), (int)target.renderFace);
+
+            // call the full unlit material setup function
+            BuiltInLitGUI.UpdateMaterial(material);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -90,8 +112,25 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode == WorkflowMode.Specular);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+
+            // TODO: these should be predicated on transparency and alpha clip ONLY when those values are locked
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+
+            // setup properties using the defaults
+            collector.AddFloatProperty(Property.Surface(), (float)target.surfaceType);
+            collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
+            collector.AddFloatProperty(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -127,7 +166,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
+            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
@@ -137,13 +176,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = target.renderFace }, (evt) =>
             {
-                if (Equals(target.twoSided, evt.newValue))
+                if (Equals(target.renderFace, evt.newValue))
                     return;
 
-                registerUndo("Change Two Sided");
-                target.twoSided = evt.newValue;
+                registerUndo("Change Render Face");
+                target.renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
 
@@ -623,6 +662,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection ForwardAdd = new KeywordCollection
@@ -636,6 +678,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection Deferred = new KeywordCollection
@@ -647,6 +692,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -658,11 +706,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
 
             public static readonly KeywordCollection Meta = new KeywordCollection
             {
                 { CoreKeywordDescriptors.SmoothnessChannel },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
         }
         #endregion

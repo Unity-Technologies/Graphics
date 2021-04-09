@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            if (!context.HasCustomEditorForRenderPipeline(null))
+                context.customEditorForRenderPipelines.Add((typeof(BuiltInUnlitGUI).FullName, ""));
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit };
@@ -56,6 +58,21 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
         }
 
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+
+            // setup properties using the defaults
+            collector.AddFloatProperty(Property.Surface(), (float)target.surfaceType);
+            collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
+            collector.AddFloatProperty(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
+        }
+
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
@@ -78,7 +95,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
+            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
@@ -88,13 +105,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = target.renderFace }, (evt) =>
             {
-                if (Equals(target.twoSided, evt.newValue))
+                if (Equals(target.renderFace, evt.newValue))
                     return;
 
-                registerUndo("Change Two Sided");
-                target.twoSided = evt.newValue;
+                registerUndo("Change Render Face");
+                target.renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
         }
@@ -208,6 +225,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
             };
         }
         #endregion
