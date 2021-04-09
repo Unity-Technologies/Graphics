@@ -34,7 +34,7 @@ URP_2D_Win_DX12_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_mono_Linear_trunk:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -223,7 +223,7 @@ URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -231,7 +231,7 @@ URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -290,9 +290,9 @@ URP_2D_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -326,7 +326,7 @@ Build_URP_2D_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -358,7 +358,7 @@ URP_2D_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -390,7 +390,7 @@ URP_2D_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -421,7 +421,7 @@ URP_2D_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -453,7 +453,7 @@ URP_2D_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -485,7 +485,7 @@ URP_2D_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Win_DX12_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -506,7 +506,7 @@ URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -514,9 +514,9 @@ URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -550,4 +550,4 @@ Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

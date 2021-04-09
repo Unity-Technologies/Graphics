@@ -66,5 +66,12 @@ namespace UnityEditor.VFX
         {
             return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>();
         }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.OnInvalidate(model, cause);
+            if (owner is VFXModel)
+                ((VFXModel)owner).Invalidate(model, cause); // Forward invalidate event to owner
+        }
     }
 }

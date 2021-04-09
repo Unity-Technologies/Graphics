@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Enum volume parameter.
     /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
     {
@@ -83,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
@@ -102,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Controls the tint of the cloud shadows.</summary>
@@ -331,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
+            var asset = HDRenderPipelineGlobalSettings.instance;
             if (asset != null)
                 CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
         }

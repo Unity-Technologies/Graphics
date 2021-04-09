@@ -34,7 +34,7 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -91,7 +91,7 @@ VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:
@@ -328,7 +328,7 @@ VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -336,7 +336,7 @@ VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -394,9 +394,9 @@ VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -429,7 +429,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -458,9 +458,9 @@ VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
@@ -493,7 +493,7 @@ Build_VFX_HDRP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -524,7 +524,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -555,7 +555,7 @@ VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -586,7 +586,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -617,7 +617,7 @@ VFX_HDRP_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -648,7 +648,7 @@ VFX_HDRP_Win_DX11_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -678,7 +678,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -709,7 +709,7 @@ VFX_HDRP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX11_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -730,7 +730,7 @@ VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/VisualEffectGraph_HDRP/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -738,9 +738,9 @@ VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Win_DX11_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -773,4 +773,4 @@ Build_VFX_HDRP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

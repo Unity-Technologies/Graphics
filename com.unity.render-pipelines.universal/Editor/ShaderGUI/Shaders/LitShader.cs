@@ -1,29 +1,19 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class LitShader : BaseShaderGUI
     {
+        static readonly string[] workflowModeNames = Enum.GetNames(typeof(LitGUI.WorkflowMode));
+
         private LitGUI.LitProperties litProperties;
         private LitDetailGUI.LitProperties litDetailProperties;
-        private SavedBool m_DetailInputsFoldout;
 
-        public override void OnOpenGUI(Material material, MaterialEditor materialEditor)
+        public override void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList)
         {
-            base.OnOpenGUI(material, materialEditor);
-            m_DetailInputsFoldout = new SavedBool($"{headerStateKey}.DetailInputsFoldout", true);
-        }
-
-        public override void DrawAdditionalFoldouts(Material material)
-        {
-            m_DetailInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_DetailInputsFoldout.value, LitDetailGUI.Styles.detailInputs);
-            if (m_DetailInputsFoldout.value)
-            {
-                LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor);
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            materialScopesList.RegisterHeaderScope(LitDetailGUI.Styles.detailInputs, (uint)Expandable.Details, _ => LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor));
         }
 
         // collect properties from the material properties
@@ -46,23 +36,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-            // Detect any changes to the material
-            EditorGUI.BeginChangeCheck();
             if (litProperties.workflowMode != null)
-            {
-                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, workflowModeNames);
+
             base.DrawSurfaceOptions(material);
         }
 
@@ -126,8 +105,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 surfaceType = SurfaceType.Transparent;
                 blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Surface", (float)surfaceType);
             material.SetFloat("_Blend", (float)blendMode);
+
+            material.SetFloat("_Surface", (float)surfaceType);
+            if (surfaceType == SurfaceType.Opaque)
+            {
+                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
+            else
+            {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            }
 
             if (oldShader.name.Equals("Standard (Specular setup)"))
             {

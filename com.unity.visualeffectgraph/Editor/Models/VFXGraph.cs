@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/VFX/Rebuild And Save All VFX Graphs", priority = 320)]
+        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effects Graphs", priority = 320)]
         public static void Build()
         {
             var vfxObjects = GetAllVisualEffectObjects();
@@ -517,12 +517,17 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
 
-            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+            if (cause == VFXModel.InvalidationCause.kStructureChanged
+                || cause == VFXModel.InvalidationCause.kSettingChanged
+                || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
 
             base.OnInvalidate(model, cause);
 
-            if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
+            if (model is VFXParameter    //Something changed directly on VFXParameter (e.g. exposed state boolean)
+                || model is VFXSlot && (model as VFXSlot).owner is VFXParameter //Something changed on a slot owned by a VFXParameter (e.g. the default value)
+                || cause == VFXModel.InvalidationCause.kStructureChanged //A VFXParameter could have been removed
+            )
             {
                 BuildParameterInfo();
             }
@@ -551,7 +556,7 @@ namespace UnityEditor.VFX
                 EditorUtility.SetDirty(this);
             }
 
-            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged || cause == VFXModel.InvalidationCause.kConnectionChanged)
+            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
             {
                 m_ExpressionGraphDirty = true;
                 m_DependentDirty = true;
@@ -600,10 +605,10 @@ namespace UnityEditor.VFX
             return m_ExpressionGraphDirty;
         }
 
-        public void SetExpressionGraphDirty()
+        public void SetExpressionGraphDirty(bool dirty = true)
         {
-            m_ExpressionGraphDirty = true;
-            m_DependentDirty = true;
+            m_ExpressionGraphDirty = dirty;
+            m_DependentDirty = dirty;
         }
 
         public void SetExpressionValueDirty()
@@ -697,8 +702,8 @@ namespace UnityEditor.VFX
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
                     operatorChild.RecreateCopy();
-                    operatorChild.ResyncSlots(true);
-                    operatorChild.UpdateOutputExpressions();
+                    if (operatorChild.ResyncSlots(true))
+                        operatorChild.UpdateOutputExpressions();
                 }
             }
         }
