@@ -55,6 +55,9 @@ void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThread
 
     // Fetch the depth
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerGeometryCoord).x;
+    // TODO: Check perf vs removing this and the test on detph.
+    // Maybe faster to always do small depth load here and then larger directionpdf load?
+    // See below for rationale (RaytracingReflections.compute, _RaytracingDirectionBuffer.w will be < 0.0f in this case anyway)
 
     // Fetch the normal
     NormalData normalData;
@@ -69,6 +72,13 @@ void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThread
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
     float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
+    // Note the condition
+    //      (depth[ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex)] == UNITY_RAW_FAR_CLIP_VALUE)
+    // is already included in
+    //      (_DirectionPDFTexture[(halfResCoord * 2)] < 0.0),
+    // see the deferred reflection direction and PDF generation kernels, RaytracingReflectionsHalfRes and RaytracingReflectionsFullRes.
+    // (ie even for the half res case not only the condition is included but we also match the source coords for the respective buffers).
+    // TODO: if (perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, fullResCoord).w < 0.0)
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, fullResCoord).w < 0.0)
     {
         _RaytracingReflectionTexture[COORD_TEXTURE2D_X(halfResCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -90,6 +100,9 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
 
     // Fetch the depth and normal
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, targetCoord).x;
+    // TODO: Check perf if removing this and the test on detph.
+    // Maybe faster to always do small depth load and then directionpdf load?
+    // See below for rationale (RaytracingReflections.compute, _RaytracingDirectionBuffer.w will be < 0.0f in this case anyway)
     NormalData normalData;
     DecodeFromNormalBuffer(targetCoord, normalData);
 
@@ -102,6 +115,13 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
     float perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness);
+    // Note the condition
+    //      (depth[targetCoord] == UNITY_RAW_FAR_CLIP_VALUE)
+    // is already included in
+    //      (_DirectionPDFTexture[targetCoord] < 0.0),
+    // see the deferred reflection direction and PDF generation kernels, RaytracingReflectionsHalfRes and RaytracingReflectionsFullRes in RaytracingReflections.compute.
+    // (ie even for the half res case not only the condition is included but we also match the source coords for the respective buffers).
+    // TODO: if (perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, targetCoord).w < 0.0)
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || perceptualSmoothness < _RaytracingReflectionMinSmoothness || LOAD_TEXTURE2D_X(_DirectionPDFTexture, targetCoord).w < 0.0)
     {
         _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);

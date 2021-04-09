@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
@@ -45,7 +46,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 
     // Then export it to the gbuffer
     EncodeIntoStandardGBuffer(standardLitData, rayIntersectionGbuffer.gbuffer0, rayIntersectionGbuffer.gbuffer1, rayIntersectionGbuffer.gbuffer2, rayIntersectionGbuffer.gbuffer3);
-    rayIntersectionGbuffer.t = standardLitData.isUnlit != 0 ? -1 : RayTCurrent();
+    rayIntersectionGbuffer.t = standardLitData.isUnlit != 0 ? DEFERRED_RAY_DISTANCE_UNLIT : RayTCurrent();
 }
 
 // Generic function that handles the reflection code
