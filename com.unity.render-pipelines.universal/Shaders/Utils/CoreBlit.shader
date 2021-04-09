@@ -24,11 +24,20 @@ Shader "Hidden/Universal/CoreBlit"
         uniform uint _BlitPaddingSize;
         uniform int _BlitTexArraySlice;
 
+    #if SHADER_API_GLES
+        struct Attributes
+        {
+            float4 positionCS       : POSITION;
+            float2 uv               : TEXCOORD0;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+        };
+    #else
         struct Attributes
         {
             uint vertexID : SV_VertexID;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
+    #endif
 
         struct Varyings
         {
@@ -42,8 +51,17 @@ Shader "Hidden/Universal/CoreBlit"
             Varyings output;
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-            output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+
+        #if SHADER_API_GLES
+            float4 pos = input.positionCS;
+            float2 uv  = input.uv;
+        #else
+            float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+            float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
+        #endif
+
+            output.positionCS = pos;
+            output.texcoord   = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
 
@@ -52,9 +70,18 @@ Shader "Hidden/Universal/CoreBlit"
             Varyings output;
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-            output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+
+        #if SHADER_API_GLES
+            float4 pos = input.positionCS;
+            float2 uv  = input.uv;
+        #else
+            float4 pos = GetQuadVertexPosition(input.vertexID);
+            float2 uv  = GetQuadTexCoord(input.vertexID);
+        #endif
+
+            output.positionCS    = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-            output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord      = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
 
@@ -67,9 +94,17 @@ Shader "Hidden/Universal/CoreBlit"
             float2 scalePadding = ((_BlitTextureSize + float(_BlitPaddingSize)) / _BlitTextureSize);
             float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
 
-            output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+        #if SHADER_API_GLES
+            float4 pos = input.positionCS;
+            float2 uv  = input.uv;
+        #else
+            float4 pos = GetQuadVertexPosition(input.vertexID);
+            float2 uv  = GetQuadTexCoord(input.vertexID);
+        #endif
+
+            output.positionCS = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-            output.texcoord = GetQuadTexCoord(input.vertexID);
+            output.texcoord = uv;
             output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
             output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;

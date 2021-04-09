@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
+        static Mesh s_TriangleMesh;
+        static Mesh s_QuadMesh;
+
         static class BlitShaderIDs
         {
             public static readonly int _BlitTexture     = Shader.PropertyToID("_BlitTexture");
@@ -49,6 +52,89 @@ namespace UnityEngine.Rendering
                 s_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(blitPS);
                 s_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
             }
+
+            if (SystemInfo.graphicsShaderLevel < 30)
+            {
+                /*UNITY_NEAR_CLIP_VALUE*/
+                float nearClipZ = -1;
+                if (SystemInfo.usesReversedZBuffer)
+                    nearClipZ = 1;
+
+                if (!s_TriangleMesh)
+                {
+                    s_TriangleMesh = new Mesh();
+                    s_TriangleMesh.vertices = GetFullScreenTriangleVertexPosition(nearClipZ);
+                    s_TriangleMesh.uv = GetFullScreenTriangleTexCoord();
+                    s_TriangleMesh.triangles = new int[3] { 0, 1, 2};
+                }
+
+                if (!s_QuadMesh)
+                {
+                    s_QuadMesh = new Mesh();
+                    s_QuadMesh.vertices = GetQuadVertexPosition(nearClipZ);
+                    s_QuadMesh.uv = GetQuadTexCoord();
+                    s_QuadMesh.triangles = new int[6] { 0, 1, 2, 0, 2, 3};
+                }
+
+                // Should match Common.hlsl
+                static Vector3[] GetFullScreenTriangleVertexPosition(float z /*= UNITY_NEAR_CLIP_VALUE*/)
+                {
+                    var r = new Vector3[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Vector2 uv = new Vector2((i << 1) & 2, i & 2);
+                        r[i] = new Vector3(uv.x * 2.0f - 1.0f, uv.y * 2.0f - 1.0f, z);
+                    }
+                    return r;
+                }
+
+                // Should match Common.hlsl
+                static Vector2[] GetFullScreenTriangleTexCoord()
+                {
+                    var r = new Vector2[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (SystemInfo.graphicsUVStartsAtTop)
+                            r[i] = new Vector2((i << 1) & 2, 1.0f - (i & 2));
+                        else
+                            r[i] = new Vector2((i << 1) & 2, i & 2);
+                    }
+                    return r;
+                }
+
+                // Should match Common.hlsl
+                static Vector3[] GetQuadVertexPosition(float z /*= UNITY_NEAR_CLIP_VALUE*/)
+                {
+                    var r = new Vector3[4];
+                    for (uint i = 0; i < 4; i++)
+                    {
+                        uint topBit = i >> 1;
+                        uint botBit = (i & 1);
+                        float x = topBit;
+                        float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
+                        r[i] = new Vector3(x, y, z);
+                    }
+                    return r;
+                }
+
+                // Should match Common.hlsl
+                static Vector2[] GetQuadTexCoord()
+                {
+                    var r = new Vector2[4];
+                    for (uint i = 0; i < 4; i++)
+                    {
+                        uint topBit = i >> 1;
+                        uint botBit = (i & 1);
+                        float u = topBit;
+                        float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
+                        if (SystemInfo.graphicsUVStartsAtTop)
+                            v = 1.0f - v;
+
+                        r[i] = new Vector2(u, v);
+                    }
+                    return r;
+                }
+            }
         }
 
         /// <summary>
@@ -71,6 +157,22 @@ namespace UnityEngine.Rendering
         {
             bool useTexArray = dimension == TextureDimension.Tex2DArray;
             return useTexArray ? (singleSlice ? s_BlitTexArraySingleSlice : s_BlitTexArray) : s_Blit;
+        }
+
+        static private void DrawTriangle(CommandBuffer cmd, Material material, int shaderPass)
+        {
+            if (SystemInfo.graphicsShaderLevel < 30)
+                cmd.DrawMesh(s_TriangleMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+        }
+
+        static private void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
+        {
+            if (SystemInfo.graphicsShaderLevel < 30)
+                cmd.DrawMesh(s_QuadMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         /// <summary>
@@ -117,7 +219,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, sourceColor);
             if (blitDepth)
                 s_PropertyBlock.SetTexture(BlitShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
-            cmd.DrawProcedural(Matrix4x4.identity, s_BlitColorAndDepth, blitDepth ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            DrawTriangle(cmd, s_BlitColorAndDepth, blitDepth ? 1 : 0);
         }
 
         /// <summary>
@@ -132,7 +234,7 @@ namespace UnityEngine.Rendering
         {
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, source);
-            cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            DrawTriangle(cmd, material, pass);
         }
 
         /// <summary>
@@ -240,7 +342,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
 
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 3 : 2);
         }
 
         /// <summary>
@@ -263,9 +365,9 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 7 : 6);
             else
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 5 : 4, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 5 : 4);
         }
 
         /// <summary>
@@ -288,9 +390,9 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 12 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 12 : 11);
             else
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 10 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+                DrawQuad(cmd, GetBlitMaterial(source.dimension), bilinear ? 10 : 9);
         }
 
         /// <summary>
@@ -312,7 +414,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), 8);
         }
 
         /// <summary>
@@ -334,7 +436,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 13, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), 13);
         }
 
         /// <summary>
@@ -350,7 +452,7 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 14, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), 14);
         }
     }
 }
