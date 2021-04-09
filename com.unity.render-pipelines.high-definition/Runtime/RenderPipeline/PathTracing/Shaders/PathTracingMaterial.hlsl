@@ -87,13 +87,17 @@ float3x3 GetTangentFrame(MaterialData mtlData)
 
 float3 ComputeConsistentShadingNormal(float3 Wi, float3 G, float3 N)
 {
+    // Check in which hemisphere does the incoming view vector fall
     float GdotWi = dot(G, Wi);
-
-    float3 Wo = reflect(-Wi, N);
-    float GdotWo = dot(G, Wo);
-
-    // Check in which hemisphere are the view vectors
     float Hi = sign(GdotWi);
+
+    // First project N back towards Wi if it's on the other side of the view plane
+    float NdotWi = Hi * dot(N, Wi);
+    float3 Ni = N - Hi * min(0.0, NdotWi) * Wi;
+
+    // Then check in which hemisphere does the reflected vector fall
+    float3 Wo = reflect(-Wi, Ni);
+    float GdotWo = dot(G, Wo);
     float Ho = sign(GdotWo);
 
     // Bring reflection direction back to the right hemisphere (slightly offset from the horizon, for more robustness)
