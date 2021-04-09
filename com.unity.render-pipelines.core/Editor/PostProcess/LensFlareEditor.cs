@@ -7,8 +7,8 @@ namespace UnityEngine
     /// <summary>
     /// Editor for LensFlare (builtin): Editor to show an error message
     /// </summary>
-    [CustomEditor(typeof(UnityEngine.Flare))]
-    public class LensFlareEditor : Editor
+    [CustomEditorForRenderPipeline(typeof(UnityEngine.Flare), typeof(Rendering.RenderPipelineAsset))]
+    internal class LensFlareEditor : Editor
     {
         /// <summary>
         /// Implement this function to make a custom inspector

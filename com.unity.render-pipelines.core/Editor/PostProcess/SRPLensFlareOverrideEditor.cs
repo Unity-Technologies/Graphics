@@ -8,8 +8,8 @@ namespace UnityEditor.Rendering
     /// Editor for SRPLensFlareOverride: Lens Flare Data-Driven which can but added on any GameObject
     /// </summary>
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(SRPLensFlareOverride))]
-    public class SRPLensFlareOverrideEditor : Editor
+    [CustomEditorForRenderPipeline(typeof(SRPLensFlareOverride), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
+    internal class SRPLensFlareOverrideEditor : Editor
     {
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;

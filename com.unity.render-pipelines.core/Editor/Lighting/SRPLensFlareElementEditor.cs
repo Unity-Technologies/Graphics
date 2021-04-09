@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering
     /// SRPLensFlareElementEditor shows how each element in the SRP Lens Flare Asset are show in the UI
     /// </summary>
     [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
-    public class SRPLensFlareElementEditor : PropertyDrawer
+    internal class SRPLensFlareElementEditor : PropertyDrawer
     {
         private float m_LastOffset = 0.0f;
         private Rect m_CurrentRect;
