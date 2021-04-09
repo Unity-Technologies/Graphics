@@ -30,6 +30,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/RayTracingFallbackHierarchy.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 #define RAYTRACING_DEFERRED_TILE_SIZE 8
 
@@ -47,7 +48,11 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
 
+    // Pixel coordinate in full res that we will be using to pick depth, normal or smoothness values.
+    uint2 primaryGeometryCoords = currentCoord;
+
     #ifdef HALF_RESOLUTION
+    primaryGeometryCoords = ComputeSourceCoordinates(/*halfres coord:*/currentCoord, _RaytracingFrameIndex);
     currentCoord *=2;
     #endif
 
@@ -55,15 +60,19 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
 
     // Read the depth value
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, primaryGeometryCoords).x;
+    // TODO: depthValue test useful? Same rationale as in RaytracingReflectionFilter.compute, but here we will use the loaded direction data if we continue.
     // If this is a background pixel or an invalid ray, leave right away
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).w < 0.0f)
         return;
 
     // First let's compute the position of the pixel from which the ray has been shot
-    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs sourcePosInput = GetPositionInput(primaryGeometryCoords, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Fetch the intersection distance of the ray
+    // See ClosestHit in ShaderPassRaytracingGBuffer.hlsl or MissShaderGBuffer in RaytracingGBuffer.raytrace:
+    // We use rayhit distance = -1 to indicate unlit or 0 for probes/sky (miss shader).
+    // In those cases no lighting (ie lightloop) is needed, but a fallback on probes/sky might need to be sampled.
     float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x;
 
     // Fetch the direction of the ray
@@ -71,7 +80,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     float3 finalColor = 0.0f;
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
-    if (rayDistance == 0.0f)
+    if (RayDistanceIndicatesHitSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
@@ -88,13 +97,14 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         if (weight > 0.0)
             ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, finalColor);
     }
-    else if (rayDistance < 0.0f)
+    else if (RayDistanceIndicatesUnlit(rayDistance))
     {
+        // The unlit color result was written to _GBufferTexture3.
         finalColor = LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb;
     }
 
-    // If the distance is negative, this means it is a sky pixel or an unlit material
-    if (rayDistance <= 0.0f)
+    // If the distance is negative or zero, this means it is a probe/sky pixel or an unlit material
+    if (RayDistanceIndicatesUnlitOrSky(rayDistance))
     {
         // Convert to HSV space
         finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
@@ -109,6 +119,11 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Then compute the pos input of the intersection vertice
     float3 intersectionPositionWS = sourcePosInput.positionWS + rayDirection * rayDistance;
+    // Note: Using currentCoord here is not a typo (vs primaryGeometryCoords): the function below will set
+    // posInput.positionWS = intersectionPositionWS, but we have to have the SS and NDC match those used
+    // when the data has been written in the gbuffers so that DecodeFromGBuffer() and the lightloop will work correctly.
+    // ie we match the adressing scheme used when writing to _GBufferTexture*RW
+    // in the deferred reflections raygen shader RaytracingGBuffer.raytrace.
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, intersectionPositionWS);
 
     // Read the bsdf data and builtin data from the gbuffer

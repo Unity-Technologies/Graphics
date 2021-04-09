@@ -56,7 +56,7 @@ int _RayCountType;
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    rayIntersection.t = 0;
+    rayIntersection.t = DEFERRED_RAY_DISTANCE_SKY;
 }
 
 struct PixelCoordinates
