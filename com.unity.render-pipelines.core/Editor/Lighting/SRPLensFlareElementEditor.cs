@@ -449,10 +449,10 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Specifies the Texture this element uses.");
             static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Specifies the tint of the element. If the element type is set to Image, the Flare Texture is multiplied by this color.");
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Specifies the blend mode this element uses.");
-            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "When enabled, fixes the ratio of the width and height of the element's Flare Texture.");
+            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Use Original Aspect Ratio", "When enabled, fixes the ratio of the width and height of the element's Flare Texture.");
 
             static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Sets the scale of this element.");
-            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "Sets the size of each dimension in world space. You can use this with Radial Distortion.");
+            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Strectch", "Sets the strecth of each dimension in relative to the scale. You can use this with Radial Distortion.");
 
             static public readonly GUIContent allowMultipleElement = EditorGUIUtility.TrTextContent("Enable", "When enabled, allows multiple lens flare elements.");
             static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Sets the number of elements.");

@@ -119,6 +119,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID % 6) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID % 6);
+    output.texcoord.x = 1.0f - output.texcoord.x;
 
     posPreScale.xy *= _FlareSize;
     float2 local = Rotate(posPreScale.xy, _LocalCos0, _LocalSin0);

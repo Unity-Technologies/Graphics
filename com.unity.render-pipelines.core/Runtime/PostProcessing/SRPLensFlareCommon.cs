@@ -234,7 +234,7 @@ namespace UnityEngine
             else
             {
                 Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
-                rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
+                rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x));
             }
             rotation *= Mathf.Deg2Rad;
             float localCos0 = Mathf.Cos(-rotation);
@@ -413,9 +413,20 @@ namespace UnityEngine
 
                     Vector2 elemSizeXY;
                     if (element.preserveAspectRatio)
-                        elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.x);
+                    {
+                        if (usedAspectRatio >= 1.0f)
+                        {
+                            elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.y);
+                        }
+                        else
+                        {
+                            elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y * usedAspectRatio);
+                        }
+                    }
                     else
+                    {
                         elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
+                    }
                     float scaleSize = 0.1f; // Arbitrary value
                     Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
                     float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
