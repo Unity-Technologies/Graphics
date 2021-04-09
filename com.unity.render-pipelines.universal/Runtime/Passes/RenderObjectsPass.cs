@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
-                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
+                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(this, ref renderingData, drawingSettings);
 
                         if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {

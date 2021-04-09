@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraClearFlags">Camera clear flags.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
-        protected ClearFlag GetCameraClearFlag(ref CameraData cameraData)
+        protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
@@ -783,7 +783,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform ||
-                (!cameraData.isPreviewCamera && DebugHandler != null && DebugHandler.IsScreenClearNeeded))
+                (!cameraData.isPreviewCamera && cameraData.renderer.DebugHandler != null && cameraData.renderer.DebugHandler.IsScreenClearNeeded))
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
