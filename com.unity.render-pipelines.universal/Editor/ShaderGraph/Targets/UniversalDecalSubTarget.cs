@@ -823,7 +823,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                //{ Pragma.EnableD3D11DebugSymbols },
+                { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -948,25 +948,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             static class Descriptors
             {
-                public static KeywordDescriptor Decals = new KeywordDescriptor()
-                {
-                    displayName = "Decals",
-                    referenceName = "_DBUFFER",
-                    type = KeywordType.Enum,
-                    definition = KeywordDefinition.MultiCompile,
-                    scope = KeywordScope.Global,
-                    entries = new KeywordEntry[]
-                    {
-                        new KeywordEntry() { displayName = "MRT1", referenceName = "MRT1" },
-                        new KeywordEntry() { displayName = "MRT2", referenceName = "MRT2" },
-                        new KeywordEntry() { displayName = "MRT3", referenceName = "MRT3" },
-                    }
-                };
-
                 public static KeywordDescriptor DecalsNormalBlend = new KeywordDescriptor()
                 {
                     displayName = "Decal Normal Blend",
-                    referenceName = "DECALS_NORMAL_BLEND",
+                    referenceName = "_DECAL_NORMAL_BLEND",
                     type = KeywordType.Enum,
                     definition = KeywordDefinition.MultiCompile,
                     scope = KeywordScope.Global,
@@ -999,7 +984,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
             }
 
-            public static KeywordCollection DBuffer = new KeywordCollection { { Descriptors.Decals } };
+            public static KeywordCollection DBuffer = new KeywordCollection { { CoreKeywordDescriptors.DBuffer } };
             public static KeywordCollection LodCrossFade = new KeywordCollection { { Descriptors.LodCrossFade }, };
 
             public static readonly KeywordCollection ScreenSpaceMesh = new KeywordCollection
@@ -1036,6 +1021,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { Descriptors.DecalsNormalBlend },
                 { Descriptors.GBufferNormalsOct },
             };
 
@@ -1047,6 +1033,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { Descriptors.DecalsNormalBlend },
                 { Descriptors.GBufferNormalsOct },
             };
         }

@@ -341,6 +341,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DBufferMRT1 = "_DBUFFER_MRT1";
         public static readonly string DBufferMRT2 = "_DBUFFER_MRT2";
         public static readonly string DBufferMRT3 = "_DBUFFER_MRT3";
+        public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+        public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+        public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";

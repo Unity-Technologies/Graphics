@@ -1,12 +1,7 @@
-using System;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
-using System.Collections.Generic;
-using System.Reflection;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [CustomPropertyDrawer(typeof(DecalSettings), true)]
     internal class DecalRendererFeatureEditor : PropertyDrawer

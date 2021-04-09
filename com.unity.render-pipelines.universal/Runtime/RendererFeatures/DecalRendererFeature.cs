@@ -34,31 +34,22 @@ namespace UnityEngine.Rendering.Universal
     public enum DecalNormalBlend
     {
         Off,
-        NormalLow,
-        NormalMedium,
-        NormalHigh,
-    }
-
-    [System.Serializable]
-    public class DecalScreenSpaceSettings
-    {
-        public DecalNormalBlend blend = DecalNormalBlend.NormalLow;
-        public bool useGBuffer = true;
-    }
-
-    [System.Serializable]
-    public enum DecalNormalQuality
-    {
         Low,
         Medium,
         High,
     }
 
     [System.Serializable]
+    public class DecalScreenSpaceSettings
+    {
+        public DecalNormalBlend normalBlend = DecalNormalBlend.Low;
+        public bool useGBuffer = true;
+    }
+
+    [System.Serializable]
     public class DecalSettings
     {
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
-        public DecalNormalQuality normalQuality = DecalNormalQuality.Low;
         public float maxDrawDistance = 1000;
         public DBufferSettings dBufferSettings;
         public DecalScreenSpaceSettings screenSpaceSettings;
@@ -73,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_DecalEntityManager == null)
             {
-                Assertions.Assert.AreEqual(m_ReferenceCounter, 0);
+                Assert.AreEqual(m_ReferenceCounter, 0);
 
                 m_DecalEntityManager = new DecalEntityManager();
 
@@ -155,19 +146,23 @@ namespace UnityEngine.Rendering.Universal
         [UnityEngine.Serialization.FormerlySerializedAs("settings")]
         [SerializeField]
         private DecalSettings m_Settings = new DecalSettings();
+
         [UnityEngine.Serialization.FormerlySerializedAs("copyDepthPS")]
         [SerializeField]
+        [HideInInspector]
         [Reload("Shaders/Utils/CopyDepth.shader")]
         private Shader m_CopyDepthPS;
+
         [UnityEngine.Serialization.FormerlySerializedAs("dBufferClear")]
         [SerializeField]
+        [HideInInspector]
         [Reload("Runtime/Decal/DBuffer/DBufferClear.shader")]
         private Shader m_DBufferClear;
 
         private DecalTechnique m_Technique = DecalTechnique.Invalid;
         private DBufferSettings m_DBufferSettings;
         private DecalScreenSpaceSettings m_ScreenSpaceSettings;
-        private bool m_DirtySystems;
+        private bool m_RecreateSystems;
 
         private CopyDepthPass m_CopyDepthPass;
         private NormalReconstructionSetupPass m_NormalReconstructionSetupPass;
@@ -204,9 +199,9 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
-            m_DecalPreviewPass = new DecalPreviewPass("Decal Preview Render");
-            m_NormalReconstructionSetupPass = new NormalReconstructionSetupPass("Normal Reconstruction Setup");
-            m_DirtySystems = true;
+            m_DecalPreviewPass = new DecalPreviewPass();
+            m_NormalReconstructionSetupPass = new NormalReconstructionSetupPass();
+            m_RecreateSystems = true;
         }
 
         internal DBufferSettings GetDBufferSettings()
@@ -227,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 return new DecalScreenSpaceSettings()
                 {
-                    blend = DecalNormalBlend.NormalLow,
+                    normalBlend = DecalNormalBlend.Low,
                     useGBuffer = false,
                 };
             }
@@ -299,7 +294,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)
         {
-            if (!m_DirtySystems)
+            if (!m_RecreateSystems)
                 return;
 
             m_Technique = GetTechnique(renderer);
@@ -358,7 +353,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
             }
 
-            m_DirtySystems = false;
+            m_RecreateSystems = false;
         }
 
         internal override void OnCull(ScriptableRenderer renderer, in CameraData cameraData)

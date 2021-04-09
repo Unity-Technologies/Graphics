@@ -45,9 +45,9 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_LOW", m_Settings.blend == DecalNormalBlend.NormalLow);
-                CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_MEDIUM", m_Settings.blend == DecalNormalBlend.NormalMedium);
-                CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_HIGH", m_Settings.blend == DecalNormalBlend.NormalHigh);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, m_Settings.normalBlend == DecalNormalBlend.Low);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, m_Settings.normalBlend == DecalNormalBlend.Medium);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, m_Settings.normalBlend == DecalNormalBlend.High);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -67,9 +67,9 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_LOW", false);
-            CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_MEDIUM", false);
-            CoreUtils.SetKeyword(cmd, "DECALS_NORMAL_BLEND_HIGH", false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
         }
     }
 }

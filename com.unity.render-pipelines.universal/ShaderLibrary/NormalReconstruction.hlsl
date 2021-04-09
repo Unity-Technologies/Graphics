@@ -2,6 +2,7 @@
 #define UNIVERSAL_NORMAL_RECONSTRUCTION
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
 #if defined(USING_STEREO_MATRICES)
 #define unity_eyeIndex unity_StereoEyeIndex
@@ -9,20 +10,11 @@
 #define unity_eyeIndex 0
 #endif
 
-//float4 _SourceSize;
 float4 _ProjectionParams2;
 float4 _CameraViewTopLeftCorner[2]; // TODO: check if we can use half type
 float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
-
-#ifdef DECALS_NORMAL_BLEND_LOW
-#define _RECONSTRUCT_NORMAL_LOW
-#endif
-
-#ifdef DECALS_NORMAL_BLEND_MEDIUM
-#define _RECONSTRUCT_NORMAL_MEDIUM
-#endif
 
 float RawToLinearDepth(float rawDepth)
 {
@@ -71,7 +63,7 @@ float3 ReconstructViewPos(float2 uv, float depth)
 // Low:    DDX/DDY on the current pixel
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormal1Tap(float3 vpos)
+float3 ReconstructNormalTap1(float3 vpos)
 {
     return normalize(cross(ddy(vpos), ddx(vpos)));
 }
@@ -80,7 +72,7 @@ float3 ReconstructNormal1Tap(float3 vpos)
 // Medium: 3 taps on each direction | x | * | y |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormal3Tap(float2 uv, float depth, float3 vpos)
+float3 ReconstructNormalTap5(float2 uv, float depth, float3 vpos)
 {
     float2 delta = _ScreenSize.zw * 2.0;
 
@@ -128,11 +120,154 @@ float3 ReconstructNormal3Tap(float2 uv, float depth, float3 vpos)
     return normalize(cross(P2 - vpos, P1 - vpos));
 }
 
+float getRawDepth(float2 uv) { return SampleSceneDepth(uv.xy).r; }
+
+// inspired by keijiro's depth inverse projection
+// https://github.com/keijiro/DepthInverseProjection
+// constructs view space ray at the far clip plane from the screen uv
+// then multiplies that ray by the linear 01 depth
+float3 viewSpacePosAtScreenUV(float2 uv)
+{
+    return ReconstructViewPos(uv, SampleAndGetLinearDepth(uv));
+    //float3 viewSpaceRay = mul(unity_CameraInvProjection, float4(uv * 2.0 - 1.0, 1.0, 1.0) * _ProjectionParams.z);
+    //float rawDepth = getRawDepth(uv);
+    //return viewSpaceRay * Linear01Depth(rawDepth, _ZBufferParams);
+}
+
+float3 viewSpacePosAtPixelPosition(float2 vpos)
+{
+    float2 uv = vpos * _ScreenSize.zw;
+    return viewSpacePosAtScreenUV(uv);
+}
+
+// unity's compiled fragment shader stats: 33 math, 3 tex
+half3 viewNormalAtPixelPositionTap3(float2 vpos)
+{
+    // get current pixel's view space position
+    half3 viewSpacePos_c = viewSpacePosAtPixelPosition(vpos + float2(0.0, 0.0));
+
+    // get view space position at 1 pixel offsets in each major direction
+    half3 viewSpacePos_r = viewSpacePosAtPixelPosition(vpos + float2(1.0, 0.0));
+    half3 viewSpacePos_u = viewSpacePosAtPixelPosition(vpos + float2(0.0, 1.0));
+
+    // get the difference between the current and each offset position
+    half3 hDeriv = viewSpacePos_r - viewSpacePos_c;
+    half3 vDeriv = viewSpacePos_u - viewSpacePos_c;
+
+    // get view space normal from the cross product of the diffs
+    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+
+    return -viewNormal;
+}
+
+// unity's compiled fragment shader stats: 50 math, 4 tex
+half3 viewNormalAtPixelPosition(float2 vpos)
+{
+    // get view space position at 1 pixel offsets in each major direction
+    half3 viewSpacePos_l = viewSpacePosAtPixelPosition(vpos + float2(-1.0, 0.0));
+    half3 viewSpacePos_r = viewSpacePosAtPixelPosition(vpos + float2(1.0, 0.0));
+    half3 viewSpacePos_d = viewSpacePosAtPixelPosition(vpos + float2(0.0, -1.0));
+    half3 viewSpacePos_u = viewSpacePosAtPixelPosition(vpos + float2(0.0, 1.0));
+
+    // get the difference between the current and each offset position
+    half3 hDeriv = viewSpacePos_r - viewSpacePos_l;
+    half3 vDeriv = viewSpacePos_u - viewSpacePos_d;
+
+    // get view space normal from the cross product of the diffs
+    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+
+    return -viewNormal;
+}
+
+// unity's compiled fragment shader stats: 54 math, 5 tex
+half3 viewNormalAtPixelPositionImproved(float2 vpos)
+{
+    // get current pixel's view space position
+    half3 viewSpacePos_c = viewSpacePosAtPixelPosition(vpos + float2(0.0, 0.0));
+
+    // get view space position at 1 pixel offsets in each major direction
+    half3 viewSpacePos_l = viewSpacePosAtPixelPosition(vpos + float2(-1.0, 0.0));
+    half3 viewSpacePos_r = viewSpacePosAtPixelPosition(vpos + float2(1.0, 0.0));
+    half3 viewSpacePos_d = viewSpacePosAtPixelPosition(vpos + float2(0.0, -1.0));
+    half3 viewSpacePos_u = viewSpacePosAtPixelPosition(vpos + float2(0.0, 1.0));
+
+    // get the difference between the current and each offset position
+    half3 l = viewSpacePos_c - viewSpacePos_l;
+    half3 r = viewSpacePos_r - viewSpacePos_c;
+    half3 d = viewSpacePos_c - viewSpacePos_d;
+    half3 u = viewSpacePos_u - viewSpacePos_c;
+
+    // pick horizontal and vertical diff with the smallest z difference
+    half3 hDeriv = abs(l.z) < abs(r.z) ? l : r;
+    half3 vDeriv = abs(d.z) < abs(u.z) ? d : u;
+
+    // get view space normal from the cross product of the two smallest offsets
+    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+
+    return -viewNormal;
+}
+
+// unity's compiled fragment shader stats: 66 math, 9 tex
+half3 viewNormalAtPixelPositionAccurate(float2 vpos)
+{
+    // screen uv from vpos
+    float2 uv = vpos * _ScreenSize.zw;
+
+    // current pixel's depth
+    float c = getRawDepth(uv);
+
+    // get current pixel's view space position
+    half3 viewSpacePos_c = viewSpacePosAtScreenUV(uv);
+
+    // get view space position at 1 pixel offsets in each major direction
+    half3 viewSpacePos_l = viewSpacePosAtScreenUV(uv + float2(-1.0, 0.0) * _ScreenSize.zw);
+    half3 viewSpacePos_r = viewSpacePosAtScreenUV(uv + float2(1.0, 0.0) * _ScreenSize.zw);
+    half3 viewSpacePos_d = viewSpacePosAtScreenUV(uv + float2(0.0, -1.0) * _ScreenSize.zw);
+    half3 viewSpacePos_u = viewSpacePosAtScreenUV(uv + float2(0.0, 1.0) * _ScreenSize.zw);
+
+    // get the difference between the current and each offset position
+    half3 l = viewSpacePos_c - viewSpacePos_l;
+    half3 r = viewSpacePos_r - viewSpacePos_c;
+    half3 d = viewSpacePos_c - viewSpacePos_d;
+    half3 u = viewSpacePos_u - viewSpacePos_c;
+
+    // get depth values at 1 & 2 pixels offsets from current along the horizontal axis
+    half4 H = half4(
+        getRawDepth(uv + float2(-1.0, 0.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(1.0, 0.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(-2.0, 0.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(2.0, 0.0) * _ScreenSize.zw.xy)
+        );
+
+    // get depth values at 1 & 2 pixels offsets from current along the vertical axis
+    half4 V = half4(
+        getRawDepth(uv + float2(0.0, -1.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(0.0, 1.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(0.0, -2.0) * _ScreenSize.zw.xy),
+        getRawDepth(uv + float2(0.0, 2.0) * _ScreenSize.zw.xy)
+        );
+
+    // current pixel's depth difference from slope of offset depth samples
+    // differs from original article because we're using non-linear depth values
+    // see article's comments
+    half2 he = abs((2 * H.xy - H.zw) - c);
+    half2 ve = abs((2 * V.xy - V.zw) - c);
+
+    // pick horizontal and vertical diff with the smallest depth difference from slopes
+    half3 hDeriv = he.x < he.y ? l : r;
+    half3 vDeriv = ve.x < ve.y ? d : u;
+
+    // get view space normal from the cross product of the best derivatives
+    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+
+    return -viewNormal;
+}
+
 // Try reconstructing normal accurately from depth buffer.
 // High:   5 taps on each direction: | z | x | * | y | w |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormal(float2 uv, float depth, float3 vpos)
+float3 ReconstructNormalTap9(float2 uv, float depth, float3 vpos)
 {
     float2 delta = _ScreenSize.zw * 2.0;
 

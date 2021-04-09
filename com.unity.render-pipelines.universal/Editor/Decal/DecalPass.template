@@ -154,6 +154,8 @@ Pass
             #endif
 
             $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+        #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR)
+            surfaceData.normalWS.xyz = normalToWorld[2].xyz;
         #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH)
             surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
         #endif

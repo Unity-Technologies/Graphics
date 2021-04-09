@@ -32,6 +32,9 @@ namespace UnityEditor.Rendering.Universal
         DBufferMRT3 = (1 << 16),
         DecalScreenSpace = (1 << 17),
         DecalGBuffer = (1 << 18),
+        DecalNormalBlendLow = (1 << 19),
+        DecalNormalBlendMedium = (1 << 20),
+        DecalNormalBlendHigh = (1 << 21),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -69,6 +72,10 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DBufferMRT1 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT1);
         ShaderKeyword m_DBufferMRT2 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT2);
         ShaderKeyword m_DBufferMRT3 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT3);
+        ShaderKeyword m_DecalNormalBlendLow = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendLow);
+        ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
+        ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
+
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -210,6 +217,17 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
+                return true;
+
+            // Decal Normal Blend
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendLow) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendLow))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendMedium) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendMedium))
+                return true;
+            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendHigh) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendHigh))
                 return true;
 
             return false;
@@ -503,7 +521,8 @@ namespace UnityEditor.Rendering.Universal
                         DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
                         if (decal != null)
                         {
-                            switch (decal.GetTechnique(renderer))
+                            var technique = decal.GetTechnique(renderer);
+                            switch (technique)
                             {
                                 case DecalTechnique.DBuffer:
                                 {
@@ -527,6 +546,21 @@ namespace UnityEditor.Rendering.Universal
                                 case DecalTechnique.GBuffer:
                                     shaderFeatures |= ShaderFeatures.DecalGBuffer;
                                     break;
+                            }
+                            if (technique == DecalTechnique.ScreenSpace || technique == DecalTechnique.GBuffer)
+                            {
+                                switch (decal.GetScreenSpaceSettings().normalBlend)
+                                {
+                                    case DecalNormalBlend.Low:
+                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
+                                        break;
+                                    case DecalNormalBlend.Medium:
+                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
+                                        break;
+                                    case DecalNormalBlend.High:
+                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;
+                                        break;
+                                }
                             }
                         }
                     }

@@ -8,12 +8,12 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private ProfilingSampler m_ProfilingSampler;
 
-        public DecalPreviewPass(string profilerTag)
+        public DecalPreviewPass()
         {
             renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ProfilingSampler = new ProfilingSampler("Decal Preview Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();

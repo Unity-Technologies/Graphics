@@ -30,16 +30,18 @@
 #define DECAL_FORWARD_EMISSIVE
 #endif
 
-#if defined(DECAL_SCREEN_SPACE) || defined(DECAL_ANGLE_FADE)
+#if defined(_DECAL_NORMAL_BLEND_LOW) ||defined(_DECAL_NORMAL_BLEND_MEDIUM) ||defined(_DECAL_NORMAL_BLEND_HIGH)
 #define DECAL_RECONSTRUCT_NORMAL
-
-#if !defined(DECAL_SCREEN_SPACE)
-#define _RECONSTRUCT_NORMAL_LOW
+#elif defined(DECAL_ANGLE_FADE)
+#define DECAL_LOAD_NORMAL
 #endif
+
+#if defined(DECAL_LOAD_NORMAL)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 #endif
 
 #if defined(DECAL_PROJECTOR) || defined(DECAL_RECONSTRUCT_NORMAL)
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl" // Load Scene Depth
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #endif
 
 #ifdef DECAL_MESH
@@ -165,8 +167,29 @@ void Frag(PackedVaryings packedInput,
 
     half angleFadeFactor = 1.0;
 
-#ifdef DECAL_PROJECTOR
+#if defined(DECAL_PROJECTOR) || defined(DECAL_RECONSTRUCT_NORMAL)
     float depth = LoadSceneDepth(input.positionCS.xy);
+#endif
+
+#if defined(DECAL_RECONSTRUCT_NORMAL)
+    float2 uv = input.positionCS.xy * _ScreenSize.zw;
+
+    float linearDepth = RawToLinearDepth(depth);
+    float3 vpos = ReconstructViewPos(uv, linearDepth);
+
+#if defined(_DECAL_NORMAL_BLEND_HIGH)
+    half3 normalWS = half3(ReconstructNormalTap9(uv, linearDepth, vpos));
+#elif defined(_DECAL_NORMAL_BLEND_MEDIUM)
+    half3 normalWS = half3(ReconstructNormalTap5(uv, linearDepth, vpos));
+#else
+    half3 normalWS = half3(ReconstructNormalTap1(vpos));
+#endif
+
+#elif defined(DECAL_LOAD_NORMAL)
+    half3 normalWS = half3(LoadSceneNormals(input.positionCS.xy));
+#endif
+
+#ifdef DECAL_PROJECTOR
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Transform from relative world space to decal space (DS) to clip the decal
@@ -191,12 +214,6 @@ void Frag(PackedVaryings packedInput,
     input.texCoord3.xy = texCoord;
 #endif
 
-#ifdef DECAL_RECONSTRUCT_NORMAL
-    float linearDepth = RawToLinearDepth(depth);
-    float3 vpos = ReconstructViewPos(posInput.positionNDC, linearDepth);
-    half3 normalWS = half3(ReconstructNormal(posInput.positionNDC, linearDepth, vpos));
-#endif
-
 #ifdef DECAL_ANGLE_FADE
     // Check if this decal projector require angle fading
     half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
@@ -215,15 +232,6 @@ void Frag(PackedVaryings packedInput,
 #else // Decal mesh
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, input.positionCS.z, input.positionCS.w, input.positionWS.xyz, uint2(0, 0));
-
-#ifdef DECAL_RECONSTRUCT_NORMAL
-    float depth = LoadSceneDepth(input.positionCS.xy);
-
-    float linearDepth = RawToLinearDepth(depth);
-    float3 vpos = ReconstructViewPos(posInput.positionNDC, linearDepth);
-    half3 normalWS = half3(ReconstructNormal(posInput.positionNDC, linearDepth, vpos));
-#endif
-
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
@@ -241,7 +249,7 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_SCREEN_SPACE)
 
     // Blend normal with background
-#if defined(DECALS_NORMAL_BLEND_LOW) || defined(DECALS_NORMAL_BLEND_MEDIUM) || defined(DECALS_NORMAL_BLEND_HIGH)
+#if defined(_DECAL_NORMAL_BLEND_LOW) ||defined(_DECAL_NORMAL_BLEND_MEDIUM) ||defined(_DECAL_NORMAL_BLEND_HIGH)
     surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
 #endif
 

@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    internal class NormalReconstructionSetupPass : ScriptableRenderPass
+    public class NormalReconstructionSetupPass : ScriptableRenderPass
     {
         private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
         private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
@@ -19,11 +19,11 @@ namespace UnityEngine.Rendering.Universal
 
         private ProfilingSampler m_ProfilingSampler;
 
-        public NormalReconstructionSetupPass(string profilerTag)
+        public NormalReconstructionSetupPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
 
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ProfilingSampler = new ProfilingSampler("Normal Reconstruction Setup");
         }
 
         private void SetupNormalReconstructProperties(CommandBuffer cmd, ref RenderingData renderingData)
