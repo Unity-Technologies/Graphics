@@ -24,8 +24,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonRef<ShaderInput>> m_ChildObjectList = new List<JsonRef<ShaderInput>>();
 
-        [SerializeField]
-        internal bool isExpanded = true;
 
         public RefValueEnumerable<ShaderInput> Children => m_ChildObjectList.SelectValue();
 

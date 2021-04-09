@@ -65,21 +65,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class ChangeCategoryIsExpandedAction : IGraphDataAction
     {
+        internal const string kEditorPrefKey = ".isCategoryExpanded";
+
         void ChangeIsExpanded(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeIsExpanded on Category");
-
             graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
             foreach (var catid in categoryGuids)
             {
-                var cat = graphData.categories.First(c => c.categoryGuid == catid);
-                if (cat.isExpanded != isExpanded)
-                {                    
-                    cat.isExpanded = isExpanded;
+                var key = $"{editorPrefsBaseKey}.{catid}.{kEditorPrefKey}";
+                var currentValue = EditorPrefs.GetBool(key, true);
+
+                if (currentValue != isExpanded)
+                {
+                    EditorPrefs.SetBool(key, isExpanded);
                 }
             }
         }
 
+        public string editorPrefsBaseKey;
         public List<string> categoryGuids { get; set; }
         public bool isExpanded { get; set; }
 
@@ -93,11 +97,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<string, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<string, ShaderInputViewController>();
         SGBlackboard blackboard { get; set; }
 
-
         internal BlackboardCategoryController(CategoryData categoryData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
             : base(categoryData, categoryViewModel, dataStore)
         {
-            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
+            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel, dataStore.State.objectId);
             m_BlackboardCategoryView.controller = this;
             blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
@@ -204,12 +207,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
                         m_BlackboardCategoryView.TryDoFoldout(changeIsExpandedAction.isExpanded);
                     }
-                    break;
-
-                case HandleUndoRedoAction handleUndoRedoAction:
-                    var cat = graphData.categories.First(c => c.categoryGuid == ViewModel.associatedCategoryGuid);
-                    ViewModel.isExpanded = cat.isExpanded;
-                    m_BlackboardCategoryView.TryDoFoldout(cat.isExpanded);
                     break;
             }
 

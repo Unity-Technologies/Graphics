@@ -59,6 +59,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         Foldout m_Foldout;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
+        string m_graphObjectId;
+
         SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
 
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
@@ -109,9 +111,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
+        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel, string graphObjectId)
         {
             m_ViewModel = categoryViewModel;
+            m_graphObjectId = graphObjectId;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
@@ -138,7 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
-            
+
             // add drag and drop manipulator
             //this.AddManipulator(new SelectionDropper());
 
@@ -165,7 +168,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Foldout.RemoveFromHierarchy();
             }
             else
-            {                
+            {
                 TryDoFoldout(m_ViewModel.isExpanded);
                 m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
             }
@@ -246,6 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     isExpandedAction.categoryGuids = new List<string>() { viewModel.associatedCategoryGuid };
 
                 isExpandedAction.isExpanded = evt.newValue;
+                isExpandedAction.editorPrefsBaseKey = Blackboard.controller.editorPrefsBaseKey;
                 viewModel.requestModelChangeAction(isExpandedAction);
             }
         }
@@ -257,6 +261,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_RowsContainer.RemoveFromHierarchy();
             else
                 m_MainContainer.Add(m_RowsContainer);
+
+            var key = $"{Blackboard.controller.editorPrefsBaseKey}.{viewDataKey}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}";
+            EditorPrefs.SetBool(key, expand);
         }
 
         void OnHoverStartEvent(MouseEnterEvent evt)
