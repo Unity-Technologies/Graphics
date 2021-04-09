@@ -306,7 +306,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
         RTHandle                        m_IntermediateAfterPostProcessBuffer;
         RTHandle                        m_IntermediateAfterPostProcessBufferFloat;
-        RTHandle                        m_HighPrecisionDebugBufferFloat;
+        // These are used to pass scene selection settings to the method that renders it
+        Camera.RenderRequestMode        m_SceneSelectionMode;
+        RenderTexture                   m_SceneSelectionTarget;
 
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
@@ -3209,6 +3211,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_SceneSelectionMode = request.mode;
                         m_SceneSelectionTarget = request.result;
                         Render(renderContext, new[] {camera});
+                        // Clear the target field to make sure we're not leaking a reference to it
+                        m_SceneSelectionTarget = null;
                     }
                     finally
                     {
@@ -3266,8 +3270,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        Camera.RenderRequestMode m_SceneSelectionMode;
-        RenderTexture m_SceneSelectionTarget;
         void RenderSceneSelectionRequest(ScriptableRenderContext context, HDCamera hdCamera)
         {
             var cmd = CommandBufferPool.Get("RenderSceneSelectionRequest");
@@ -4298,10 +4300,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private RTHandle GetDebugViewTargetBuffer()
         {
-            if (m_CurrentDebugDisplaySettings.data.requireHighPrecision)
-                return m_DebugFullScreenTempBuffer;
-            else
-                return m_CameraColorBuffer;
+            // Used to contain a test whether to return a float16 target, but no longer needed
+            return m_CameraColorBuffer;
         }
 
         struct TransparencyOverdrawParameters

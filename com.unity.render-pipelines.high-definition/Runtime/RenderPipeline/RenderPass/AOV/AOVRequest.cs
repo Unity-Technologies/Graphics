@@ -190,14 +190,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RequestMode != Camera.RenderRequestMode.None)
             {
                 debug.SetAllowSRGBConversion(false);
-                debug.SetRequireHighPrecision(false);
 
                 switch (m_RequestMode)
                 {
-                    case Camera.RenderRequestMode.ObjectId:
-                        debug.SetRequireHighPrecision(true);
-                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.ObjectId);
-                        break;
                     case Camera.RenderRequestMode.Depth:
                         debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
                         break;
@@ -206,10 +201,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case Camera.RenderRequestMode.WorldPosition:
                         debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
-                        break;
-                    case Camera.RenderRequestMode.EntityId:
-                        debug.SetRequireHighPrecision(true);
-                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.EntityId);
                         break;
                     case Camera.RenderRequestMode.BaseColor:
                         //@TODO: This should perform metallic / specular conversion

@@ -276,19 +276,6 @@ real3 GetColorCodeFunction(real value, real4 threshold)
     return outColor;
 }
 
-float3 PackIndexToRGB16f(uint entityId)
-{
-    // half can represent up to 2^11 exactly as an integer,
-    // use 10 bits of each channel.
-    uint b0 = (entityId >>  0) & 0x3ff;
-    uint b1 = (entityId >> 10) & 0x3ff;
-    uint b2 = (entityId >> 20) & 0x3ff;
-    float f0 = (float)b0 / 1023.0f;
-    float f1 = (float)b1 / 1023.0f;
-    float f2 = (float)b2 / 1023.0f;
-    return float3(f0, f1, f2);
-}
-
 float4 ComputeSelectionMask(float objectGroupId, float3 ndcWithZ, TEXTURE2D_PARAM(depthBuffer, sampler_depthBuffer))
 {
     float sceneZ = SAMPLE_TEXTURE2D(depthBuffer, sampler_depthBuffer, ndcWithZ.xy).r;

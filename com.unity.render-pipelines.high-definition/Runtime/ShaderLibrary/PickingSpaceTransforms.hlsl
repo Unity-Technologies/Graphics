@@ -1,7 +1,11 @@
+#if 0
+// This file overrides a large amount of macros to be compatible with the old
+// Unity C++ picking. It is no longer necessary with the new SRP based picking.
+
 #ifndef UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 
-#if 0 //def SCENEPICKINGPASS
+#ifdef SCENEPICKINGPASS
 
 // The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices
@@ -64,5 +68,6 @@ float4x4 glstate_matrix_projection;
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 
+#endif
 #endif
 #endif

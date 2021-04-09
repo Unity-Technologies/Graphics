@@ -107,15 +107,17 @@ void Frag(  PackedVaryingsToPS packedInput
         TEXTURE2D_ARGS(unity_EditorViz_DepthBuffer, sampler_unity_EditorViz_DepthBuffer));
 #elif defined(SCENEPICKINGPASS)
     #ifdef UNITY_DOTS_INSTANCING_ENABLED
+    // When rendering EntityIds, GameObjects output EntityId = 0
     if (_SelectionID.x == 5.0) // EntityId = 5,
         outColor = PackId32ToRGBA8888(unity_EntityId.x);
     else
-        outColor = float4(0, 0, 0, 0); // GameObjects output EntityId = 0
+        outColor = float4(0, 0, 0, 0);
     #else
+    // When rendering ObjectIds, Entities output ObjectId = 0
     if (_SelectionID.x == 1.0) // ObjectId = 1,
         outColor = PackId32ToRGBA8888(asuint(unity_LODFade.z));
     else
-        outColor = float4(0, 0, 0, 0); // Entities output ObjectId = 0
+        outColor = float4(0, 0, 0, 0);
     #endif
     //outColor = _SelectionID;
 #else
