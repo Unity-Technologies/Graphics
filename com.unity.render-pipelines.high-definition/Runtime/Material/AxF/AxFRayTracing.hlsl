@@ -14,7 +14,9 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
                                                   BSDFData bsdfData,
                                                   PreLightData preLightData,
-                                                  float3 reflection)
+                                                  float3 reflection,
+                                                  inout float reflectionHierarchyWeight,
+                                                  inout LightHierarchyData lightHierarchyData)
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
@@ -48,6 +50,18 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
     }
 
     lighting.specularReflected = reflection.rgb * reflectanceFactor;
+    if (HasClearcoat())
+    {
+        // Instead of reflectionHierarchyWeight *= preLightData.coatFGD,
+        // with private LightHierarchyData we do:
+        lightHierarchyData.coatReflectionWeight = reflectionHierarchyWeight;
+        reflectionHierarchyWeight = 0;
+    }
+    else
+    {
+        //lightHierarchyData.coatReflectionWeight = will be unused anyway
+        lightHierarchyData.baseReflectionWeight = reflectionHierarchyWeight;
+    }
     return lighting;
 }
 

@@ -303,7 +303,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
 #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
-        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
+        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight), lightHierarchyData); \
         AccumulateIndirectLighting(lighting, aggregateLighting);
 
 // Environment cubemap test lightlayers, sky don't test it
@@ -312,6 +312,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // First loop iteration
     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
     {
+        // This struct is defined in the material and is private to it. It can be used for multiple lobe materials when eg directions are different,
+        // and to avoid double lighting some lobes (eg coat from SSR vs env.)
+        // The Lightloop does not access it but pass it back for SSR and env evaluation.
+        // It is pruned out by the compiler if unused by the material.
+        // Accessed below by EvaluateBSDF_ScreenSpaceReflection and EVALUATE_BSDF_ENV (EvaluateBSDF_Env).
+        LightHierarchyData lightHierarchyData;
+        ZERO_INITIALIZE(LightHierarchyData, lightHierarchyData); // LightLoop is in charge of initializing the struct
+
         float reflectionHierarchyWeight = 0.0; // Max: 1.0
         float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
 
@@ -340,7 +348,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
         {
             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
-                                                                           reflectionHierarchyWeight);
+                                                                           reflectionHierarchyWeight, lightHierarchyData);
             AccumulateIndirectLighting(indirect, aggregateLighting);
         }
     #endif
