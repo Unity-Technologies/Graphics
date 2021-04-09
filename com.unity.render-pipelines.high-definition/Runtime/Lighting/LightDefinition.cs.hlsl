@@ -157,9 +157,10 @@ struct EnvLightData
     float distanceBasedRoughness;
     int envIndex;
     int normalizeWithAPV;
-    float4 l1R_l0r;
-    float4 l1G_l0g;
-    float4 l1B_l0b;
+    float4 L0L1;
+    float4 L2_1;
+    float L2_2;
+    float3 padding;
 };
 
 

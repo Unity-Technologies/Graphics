@@ -361,6 +361,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 
+
+        // We now sample APV if available so we can use it to normalize reflection probes (and later for GI)
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+        APVSample apvSample = SampleAPV(GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS);
+#endif
+
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
@@ -397,7 +403,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     v_envLightListOffset++;
                     if (reflectionHierarchyWeight < 1.0)
                     {
-                        EVALUATE_BSDF_ENV(s_envLightData, REFLECTION, reflection);
+                        if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers))
+                        {
+                            IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
+
+                            if (s_envLightData.normalizeWithAPV > 0)
+                            {
+                                float factor = GetReflectionProbeNormalizationFactor(apvSample, normalize(preLightData.iblR), bsdfData.normalWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
+                                lighting.specularReflected *= factor;
+                            }
+                            //{
+                            //    //GetReflectionProbeNormalizationFactor(APVSample apvSample, float3 reflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+                            //    float factor = GetReflectionProbeNormalizationFactor(envNormalization, posInput.positionWS, normalize(preLightData.iblR));
+                            //    lighting.specularReflected *= factor;
+                            //}
+
+                            AccumulateIndirectLighting(lighting, aggregateLighting);
+                        }
                     }
                     // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
                     // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent

@@ -274,18 +274,16 @@ float3 EvaluateAPVL0(APVSample apvSample)
     return apvSample.L0;
 }
 
-void EvaluateAPVL1(APVSample apvSample, float3 N, float3 backN, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1(APVSample apvSample, float3 N, out float3 diffuseLighting)
 {
     diffuseLighting = SHEvalLinearL1(N, apvSample.L1_R, apvSample.L1_G, apvSample.L1_B);
-    backDiffuseLighting = SHEvalLinearL1(backN, apvSample.L1_R, apvSample.L1_G, apvSample.L1_B);
 }
 
 #ifdef PROBE_VOLUMES_L2
-void EvaluateAPVL1L2(APVSample apvSample, float3 N, float3 backN, out float3 diffuseLighting, out float3 backDiffuseLighting)
+void EvaluateAPVL1L2(APVSample apvSample, float3 N, out float3 diffuseLighting)
 {
-    EvaluateAPVL1(apvSample, N, backN, diffuseLighting, backDiffuseLighting);
+    EvaluateAPVL1(apvSample, N, diffuseLighting);
     diffuseLighting += SHEvalLinearL2(N, apvSample.L2_R, apvSample.L2_G, apvSample.L2_B, float4(apvSample.L2_C, 0.0f));
-    backDiffuseLighting += SHEvalLinearL2(backN, apvSample.L2_R, apvSample.L2_G, apvSample.L2_B, float4(apvSample.L2_C, 0.0f));
 }
 #endif
 
@@ -302,9 +300,11 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
         apvSample.Decode();
 
 #ifdef PROBE_VOLUMES_L1
-        EvaluateAPVL1(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
 #elif PROBE_VOLUMES_L2
-        EvaluateAPVL1L2(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
 #endif
 
         bakeDiffuseLighting += apvSample.L0;
@@ -338,6 +338,38 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir,
+    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
+{
+    APVResources apvRes = FillAPVResources();
+
+    APVSample apvSample = SampleAPV(apvRes, posWS, normalWS);
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+
+#ifdef PROBE_VOLUMES_L1
+        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, reflDir, lightingInReflDir);
+#elif PROBE_VOLUMES_L2
+        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, reflDir, lightingInReflDir);
+#endif
+
+        bakeDiffuseLighting += apvSample.L0;
+        backBakeDiffuseLighting += apvSample.L0;
+        lightingInReflDir += apvSample.L0;
+    }
+    else
+    {
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
+        lightingInReflDir = -1;
+    }
+}
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, out float3 bakeDiffuseLighting)
 {
