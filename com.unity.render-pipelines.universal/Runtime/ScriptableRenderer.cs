@@ -782,8 +782,12 @@ namespace UnityEngine.Rendering.Universal
                 return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
-            if (Application.isMobilePlatform ||
-                (!cameraData.isPreviewCamera && cameraData.renderer.DebugHandler != null && cameraData.renderer.DebugHandler.IsScreenClearNeeded))
+            if (Application.isMobilePlatform)
+                return ClearFlag.All;
+
+            // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
