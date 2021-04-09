@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
         /// <param name="color">The color to fill the texture</param>
+        /// <param name="textureName">The name of the texture</param>
         /// <returns>a <see cref="Texture2D"/></returns>
         public static Texture2D CreateColoredTexture2D(Color color, string textureName)
         {
@@ -86,6 +87,32 @@ namespace UnityEditor.Rendering
             tex2.SetPixel(1, 1, color);
             tex2.Apply();
             return tex2;
+        }
+
+        /// <summary>Loads a <see cref="Texture2D"/> from within the path console.*</summary>
+        /// <param name="iconName">The icon name console.[iconName]</param>
+        /// <returns>a <see cref="Texture2D"/></returns>
+        public static Texture2D LoadConsoleIcon(string iconName)
+        {
+            string pathToIcon = "icons/";
+
+            // Handle different skin
+            if (EditorGUIUtility.isProSkin)
+                pathToIcon += "d_";
+
+            pathToIcon += $"console.{iconName}";
+
+            // Handle different resolution
+            if (EditorGUIUtility.pixelsPerPoint > 1.0f)
+            {
+                pathToIcon += "@2x";
+            }
+
+            pathToIcon += ".png";
+
+            Texture2D icon = EditorGUIUtility.Load(pathToIcon) as Texture2D;
+
+            return icon;
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>

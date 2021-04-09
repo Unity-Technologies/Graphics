@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -34,6 +35,22 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
         public UniversalAdditionalCameraData[] camerasAdditionalData { get; }
+        
+        public Camera this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= numCameras)
+                    return null;
+
+                // Return the camera on that index
+                return cameras
+                    .GetArrayElementAtIndex(index)
+                    .objectReferenceValue as Camera;
+            }
+        }
+
+        public int numCameras => cameras.arraySize;
 
         public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject, CameraEditor.Settings settings)
         {

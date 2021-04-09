@@ -118,8 +118,8 @@ namespace UnityEditor.Rendering
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
             iconHelp = EditorGUIUtility.FindTexture("_Help");
-            iconWarn = EditorGUIUtility.FindTexture("console.warnicon");
-            iconFail = EditorGUIUtility.FindTexture("console.erroricon");
+            iconWarn = CoreEditorUtils.LoadConsoleIcon("warnicon");
+            iconFail = CoreEditorUtils.LoadConsoleIcon("erroricon");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
             iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
 
