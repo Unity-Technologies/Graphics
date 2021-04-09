@@ -59,7 +59,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Foldout m_Foldout;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
-        string m_graphObjectId;
 
         SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
 
@@ -111,10 +110,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel, string graphObjectId)
+
+        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
         {
             m_ViewModel = categoryViewModel;
-            m_graphObjectId = graphObjectId;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
@@ -141,7 +140,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
-
             // add drag and drop manipulator
             //this.AddManipulator(new SelectionDropper());
 
