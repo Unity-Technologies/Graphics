@@ -59,7 +59,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Foldout m_Foldout;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
-
         SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
 
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
@@ -109,7 +108,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             return null;
         }
-
 
         internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
         {

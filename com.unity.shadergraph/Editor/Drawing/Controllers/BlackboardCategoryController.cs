@@ -97,10 +97,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<string, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<string, ShaderInputViewController>();
         SGBlackboard blackboard { get; set; }
 
+
         internal BlackboardCategoryController(CategoryData categoryData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
             : base(categoryData, categoryViewModel, dataStore)
         {
-            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel, dataStore.State.objectId);
+            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
             m_BlackboardCategoryView.controller = this;
             blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
