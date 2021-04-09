@@ -60,9 +60,9 @@ namespace UnityEditor.ShaderGraph
         };
 
         // With ShaderInclude asset type, it should no longer be necessary to soft-check the extension.
-        public static string[] s_ValidExtensions = { ".hlsl", ".cginc", ".cg", ".glslinc" };
-        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl, .cginc, .cg, and .glslinc";
-        const string k_MissingFile = "Source file does not exist. A valid .hlsl, .cginc, .cg or .glslinc file must be referenced";
+        public static string[] s_ValidExtensions = { ".hlsl", ".cginc", ".cg" };
+        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl, .cginc, and .cg";
+        const string k_MissingFile = "Source file does not exist. A valid .hlsl, .cginc, or .cg file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
