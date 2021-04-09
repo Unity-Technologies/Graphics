@@ -294,10 +294,6 @@
             #if UNITY_WORLDTOOBJECTARRAY_CB == 0
                 UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
             #endif
-            UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevObjectToWorldArray)
-            #if UNITY_WORLDTOOBJECTARRAY_CB == 0
-                UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevWorldToObjectArray)
-            #endif
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
@@ -360,6 +356,11 @@
             #define unity_ProbesOcclusion UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_ProbesOcclusionArray)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
+
+    UNITY_INSTANCING_BUFFER_START(PerDraw3)
+        UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevObjectToWorldArray)
+        UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevWorldToObjectArray)
+    UNITY_INSTANCING_BUFFER_END(unity_Builtins3)
     #endif
 
     // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
@@ -396,13 +397,13 @@
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
             #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
             #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray))
-            #define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_PrevObjectToWorldArray))
-            #define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_PrevWorldToObjectArray))
+            #define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevObjectToWorldArray))
+            #define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevWorldToObjectArray))
         #else
             #define UNITY_MATRIX_M         UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
             #define UNITY_MATRIX_I_M       UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray)
-            #define UNITY_PREV_MATRIX_M    UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_PrevObjectToWorldArray)
-            #define UNITY_PREV_MATRIX_I_M  UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_PrevWorldToObjectArray)
+            #define UNITY_PREV_MATRIX_M    UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevObjectToWorldArray)
+            #define UNITY_PREV_MATRIX_I_M  UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevWorldToObjectArray)
         #endif
     #endif
 
