@@ -8,6 +8,7 @@ Shader "Hidden/Universal/CoreBlit"
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -184,9 +185,32 @@ Shader "Hidden/Universal/CoreBlit"
 
         float4 FragOctahedralProject(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 UV = saturate(input.texcoord);
             float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
             return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+        }
+
+        float4 FragBilinearLuminance(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = input.texcoord.xy;
+            // sRGB/Rec.709
+            return Luminance(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel)).xxxx;
+        }
+
+        float4 FragBilinearRedToRGBA(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = input.texcoord.xy;
+            return Luminance(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel)).rrrr;
+        }
+
+        float4 FragBilinearAlphaToRGBA(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = input.texcoord.xy;
+            return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel).aaaa;
         }
     ENDHLSL
 
@@ -362,6 +386,39 @@ Shader "Hidden/Universal/CoreBlit"
             HLSLPROGRAM
                 #pragma vertex VertQuad
                 #pragma fragment FragOctahedralProject
+            ENDHLSL
+        }
+
+        // 15. Bilinear quad with luminance (grayscale), RGBA to YYYY
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragBilinearLuminance
+            ENDHLSL
+        }
+
+        // 16. Bilinear quad with A to RGBA
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragBilinearAlphaToRGBA
+            ENDHLSL
+        }
+
+        // 17. Bilinear quad with R to RGBA
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragBilinearRedToRGBA
             ENDHLSL
         }
     }

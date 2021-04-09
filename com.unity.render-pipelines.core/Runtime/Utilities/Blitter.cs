@@ -454,5 +454,37 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             DrawQuad(cmd, GetBlitMaterial(source.dimension), 14);
         }
+
+        /// <summary>
+        /// Bilinear Blit a texture using a quad in the current render target.
+        /// Single channel conversions.
+        /// RGBA to YYYY (luminance)
+        /// R to RRRR
+        /// A to AAAA
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="scaleBiasTex">Scale and bias for the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        public static void BlitQuadSingleChannel(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex)
+        {
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
+
+            int pass = 15;
+            uint sourceChnCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
+            if (sourceChnCount == 1)
+            {
+                if (GraphicsFormatUtility.IsAlphaOnlyFormat(source.graphicsFormat))
+                    pass = 16;
+                if (GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat) == FormatSwizzle.FormatSwizzleR)
+                    pass = 17;
+            }
+
+            DrawQuad(cmd, GetBlitMaterial(source.dimension), pass);
+        }
     }
 }
