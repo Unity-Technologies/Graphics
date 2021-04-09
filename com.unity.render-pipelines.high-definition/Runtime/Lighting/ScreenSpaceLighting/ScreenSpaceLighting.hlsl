@@ -6,6 +6,11 @@ float EdgeOfScreenFade(float2 coordNDC, float fadeRcpLength)
     return Smoothstep01(t.x) * Smoothstep01(t.y);
 }
 
+bool HasClearCoatMask(float coatMask)
+{
+    return coatMask > 0.001; // If coat mask is positive, it means we're using the clear coat
+}
+
 // Function that unpacks and evaluates the clear coat mask
 // packedMask must be the value of GBuffer2 alpha.
 // Caution: This need to be in sync with Lit.hlsl code
@@ -17,5 +22,5 @@ bool HasClearCoatMask(float4 packedMask)
     float coatMask;
     uint materialFeatureId;
     UnpackFloatInt8bit(packedMask.a, 8, coatMask, materialFeatureId);
-    return coatMask > 0.001; // If coat mask is positive, it mean we use clear coat
+    return HasClearCoatMask(coatMask);
 }
