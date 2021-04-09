@@ -330,7 +330,7 @@ namespace UnityEditor.VFX
         {
             if (from == to)
                 return false;
-            if (from == VFXContextType.Spawner)
+            if (from == VFXContextType.Spawner || from == VFXContextType.Event)
                 return false;
             return true;
         }
