@@ -32,6 +32,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_TempTarget2;
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
+        RTHandle m_FullCoCTextureGaussian;
+        RTHandle m_HalfCoCTextureGaussian;
+        RTHandle m_PingTextureGaussian;
+        RTHandle m_PongTextureGaussian;
+        RTHandle m_FullCoCTextureBokeh;
+        RTHandle m_PingTextureBokeh;
+        RTHandle m_PongTextureBokeh;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -222,6 +229,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 handle.Release();
             }
+            m_FullCoCTextureGaussian?.Release();
+            m_HalfCoCTextureGaussian?.Release();
+            m_PingTextureGaussian?.Release();
+            m_PongTextureGaussian?.Release();
+            m_FullCoCTextureBokeh?.Release();
+            m_PingTextureBokeh?.Release();
+            m_PongTextureBokeh?.Release();
+
         }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
@@ -718,6 +733,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
         {
             int downSample = 2;
+            Vector2 scaleFactor = Vector2.one / downSample;
             var material = m_Materials.gaussianDepthOfField;
             int wh = m_Descriptor.width / downSample;
             int hh = m_Descriptor.height / downSample;
@@ -733,47 +749,80 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(material, ShaderKeywordStrings.HighQualitySampling, m_DepthOfField.highQualitySampling.value);
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
-            // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_GaussianCoCFormat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, GetCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
-            // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
+            // Lazy Allocated RTHandles
+            if (m_FullCoCTextureGaussian == null)
+            {
+                m_FullCoCTextureGaussian = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: m_GaussianCoCFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_FullCoCTexture");
+            }
+            if (m_HalfCoCTextureGaussian == null)
+            {
+                m_HalfCoCTextureGaussian = RTHandles.Alloc(
+                    scaleFactor,
+                    colorFormat: m_GaussianCoCFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_HalfCoCTexture");
+            }
+            if (m_PingTextureGaussian == null)
+            {
+                m_PingTextureGaussian = RTHandles.Alloc(
+                    scaleFactor,
+                    colorFormat: m_DefaultHDRFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_PingTexture");
+            }
+            if (m_PongTextureGaussian == null)
+            {
+                m_PongTextureGaussian = RTHandles.Alloc(
+                    scaleFactor,
+                    colorFormat: m_DefaultHDRFormat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_PongTexture");
+            }
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
-            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(scaleFactor.x, scaleFactor.y, downSample, downSample));
 
             // Compute CoC
-            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
+            Blit(cmd, source, m_FullCoCTextureGaussian, material, 0);
 
             // Downscale & prefilter color + coc
-            m_MRT2[0] = ShaderConstants._HalfCoCTexture;
-            m_MRT2[1] = ShaderConstants._PingTexture;
+            m_MRT2[0] = m_HalfCoCTextureGaussian;
+            m_MRT2[1] = m_PingTextureGaussian;
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
+            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTextureGaussian);
+            cmd.SetRenderTarget(m_MRT2, m_HalfCoCTextureGaussian, 0, CubemapFace.Unknown, -1);
             DrawFullscreenMesh(cmd, material, 1);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
-            cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTextureGaussian);
+            Blit(cmd, m_PingTextureGaussian, m_PongTextureGaussian, material, 2);
+            Blit(cmd, m_PongTextureGaussian, BlitDstDiscardContent(cmd, m_PingTextureGaussian), material, 3);
 
             // Composite
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_PingTextureGaussian);
+            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTextureGaussian);
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
-
-            // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._HalfCoCTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
         void PrepareBokehKernel(float maxRadius, float rcpAspect)
@@ -836,6 +885,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void DoBokehDepthOfField(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
         {
             int downSample = 2;
+            Vector2 scaleFactor = Vector2.one / downSample;
             var material = m_Materials.bokehDepthOfField;
             int wh = m_Descriptor.width / downSample;
             int hh = m_Descriptor.height / downSample;
@@ -863,37 +913,62 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, m_BokehKernel);
 
-            // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+            // Lazy Allocated RTHandles
+            if (m_FullCoCTextureBokeh == null)
+            {
+                m_FullCoCTextureBokeh = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: GraphicsFormat.R8_UNorm,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_FullCoCTexture");
+            }
+            if (m_PingTextureBokeh == null)
+            {
+                m_PingTextureBokeh = RTHandles.Alloc(
+                    scaleFactor,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_PingTexture");
+            }
+            if (m_PongTextureBokeh == null)
+            {
+                m_PongTextureBokeh = RTHandles.Alloc(
+                    scaleFactor,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
+                    filterMode: FilterMode.Bilinear,
+                    wrapMode: TextureWrapMode.Clamp,
+                    dimension: m_Descriptor.dimension,
+                    memoryless: m_Descriptor.memoryless,
+                    name: "_PongTexture");
+            }
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
-            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
+            cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(scaleFactor.x, scaleFactor.y, downSample, downSample));
             float uvMargin = (1.0f / m_Descriptor.height) * downSample;
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
 
             // Compute CoC
-            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+            RenderingUtils.Blit(cmd, source, m_FullCoCTextureBokeh, material, 0);
+            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTextureBokeh);
 
             // Downscale & prefilter color + coc
-            Blit(cmd, source, ShaderConstants._PingTexture, material, 1);
+            Blit(cmd, source, m_PingTextureBokeh, material, 1);
 
             // Bokeh blur
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+            Blit(cmd, m_PingTextureBokeh, m_PongTextureBokeh, material, 2);
 
             // Post-filtering
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            Blit(cmd, m_PongTextureBokeh, BlitDstDiscardContent(cmd, m_PingTextureBokeh), material, 3);
 
             // Composite
-            cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
+            cmd.SetGlobalTexture(ShaderConstants._DofTexture, m_PingTextureBokeh);
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
-
-            // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
         #endregion
