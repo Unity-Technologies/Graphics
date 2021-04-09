@@ -400,8 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
-                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), GetDestination(), usePanini, paniniDistance, paniniCropToFit);
-                    Swap();
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                 }
             }
 
@@ -854,11 +853,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             return 1.0f;
         }
 
-        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, bool usePanini, float paniniDistance, float paniniCropToFit)
+        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             SRPLensFlareCommon.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
-                cmd, source, target, GetLensFlareLightAttenuation,
+                cmd, source,
+                GetLensFlareLightAttenuation,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
         }

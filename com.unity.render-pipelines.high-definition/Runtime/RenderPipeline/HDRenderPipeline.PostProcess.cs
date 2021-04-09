@@ -2623,7 +2623,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public LensFlareParameters parameters;
             public TextureHandle source;
-            public TextureHandle destination;
+            //public TextureHandle destination;
             public HDCamera hdCamera;
         }
 
@@ -2633,11 +2633,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
-                    passData.source = builder.ReadTexture(source);
+                    passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.hdCamera = hdCamera;
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
-                    passData.destination = builder.WriteTexture(dest);
+                    //passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
@@ -2645,15 +2645,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             SRPLensFlareCommon.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, (float)data.hdCamera.actualWidth, (float)data.hdCamera.actualHeight,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
-                                ctx.cmd, data.source, data.destination,
+                                ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, data.parameters.skipCopy);
                         });
-
-                    source = passData.destination;
 
                     PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
                 }
