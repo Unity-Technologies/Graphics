@@ -626,13 +626,10 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 
     // When using clear cloat we want to use the coat normal for the various deferred effect
     // as it is the most dominant one
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT) && (surfaceData.coatMask > 0))
     {
-        float hasCoat = saturate(surfaceData.coatMask * FLT_MAX);
-        normalData.normalWS = lerp(surfaceData.coatNormalWS, surfaceData.normalWS, hasCoat);
-        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix),
-                                            surfaceData.coatPerceptualSmoothness,
-                                            hasCoat));
+        normalData.normalWS = surfaceData.coatNormalWS;
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness);
     }
     else
     {
@@ -4213,25 +4210,21 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
+        float oneMinCoatMask = 1.0 - bsdfData.coatMask;
         // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
         // Incorrect, but for now:
         float3 reflectanceFactorC = preLightData.specularFGD[COAT_LOBE_IDX];
-        reflectanceFactorC *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
         reflectanceFactorC *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
 
-        float3 reflectanceFactorB = (float3)0.0;
-        for(int i = 0; i < TOTAL_NB_LOBES; i++)
-        {
-            float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
-            lobeFactor *= preLightData.hemiSpecularOcclusion[i];
-            // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
-            // Incorrect, but for now:
-            lobeFactor *= preLightData.energyCompensationFactor[i];
-            reflectanceFactorB += lobeFactor;
-        }
+        float coatFGD = reflectanceFactorC.r;
+        reflectionHierarchyWeight = ssrLighting.a * (oneMinCoatMask + coatFGD); // coatMask is already multiplied in specularFGD[COAT_LOBE_IDX]
 
-        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
-        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
+        reflectanceFactorC *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
+
+        float3 reflectanceFactorB = (preLightData.specularFGD[BASE_LOBEA_IDX] * preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX]);
+        reflectanceFactorB += (preLightData.specularFGD[BASE_LOBEB_IDX] * preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX]);
+
+        lighting.specularReflected = ssrLighting.rgb * (oneMinCoatMask * reflectanceFactorB + reflectanceFactorC);
     }
     else
     {
