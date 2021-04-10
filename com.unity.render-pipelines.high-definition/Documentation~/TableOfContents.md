@@ -70,7 +70,7 @@
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
-  * [Default Settings](Default-Settings-Window.md)
+  * [HDRP Global Settings](Default-Settings-Window.md)
   * [HDRP Config Package](HDRP-Config-Package.md)
   * [Scalability](Scalability-Manual.md)
 * Materials
@@ -133,7 +133,7 @@
   * [Environment Lighting](Environment-Lighting.md)
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
-  * [Density Volume](Density-Volume.md)
+  * [Local Volumetric Fog](Local-Volumetric-Fog.md)
   * [Light Layers](Light-Layers.md)
   * [Shadows](Shadows-in-HDRP.md)
   * [Shadowmasks](Lighting-Mode-Shadowmask.md)

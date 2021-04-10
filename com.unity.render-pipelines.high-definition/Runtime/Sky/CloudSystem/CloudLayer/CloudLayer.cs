@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
@@ -333,9 +333,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
-            if (asset != null)
-                CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
+                CloudMap.s_DefaultTexture = globalSettings.renderPipelineResources?.textures.defaultCloudMap;
         }
     }
 }
