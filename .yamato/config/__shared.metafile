@@ -414,7 +414,7 @@ platforms:
                     set jenkinsNodeLabel="Quest"
                     set runTests="True"
                     set cmd=<UTR_FLAGS>
-                    python xr.xrautomatedtests/.yamato/CheckIfPlayerExistsAndBuild.py -s
+                    python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
