@@ -400,7 +400,9 @@ platforms:
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
-        setup_utr: 
+        setup_utr:
+          - pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
           - git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
         call_utr:
           - |5-
@@ -418,7 +420,6 @@ platforms:
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-          - pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
         turn_off_firewall: 
           - NetSh Advfirewall set allprofiles state off
         connect_bokken:
