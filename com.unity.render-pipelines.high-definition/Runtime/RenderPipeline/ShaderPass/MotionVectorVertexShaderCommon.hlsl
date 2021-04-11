@@ -113,7 +113,6 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
 
 #if defined(HAVE_VFX_MODIFICATION)
         GetMeshAndElementIndex(inputMesh, inputElement);
-        inputMesh = TransformMeshToPreviousElement(inputMesh, inputElement);
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
@@ -135,6 +134,11 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
             , inputElement
     #endif
             );
+
+#if defined(HAVE_VFX_MODIFICATION)
+        // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
+        previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
+#endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else

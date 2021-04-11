@@ -31,11 +31,18 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
-                if (!supportsQueueSelection)
+                if (!supportsQueueSelection || GeneratesWithShaderGraph())
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
@@ -44,14 +51,6 @@ namespace UnityEditor.VFX
                     yield return "transparentRenderQueue";
                 else
                     yield return "opaqueRenderQueue";
-
-                if (owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
-                    shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
-                    shaderGraphOutput.shaderGraph.generatesWithShaderGraph)
-                {
-                    yield return "transparentRenderQueue";
-                    yield return "opaqueRenderQueue";
-                }
             }
         }
 

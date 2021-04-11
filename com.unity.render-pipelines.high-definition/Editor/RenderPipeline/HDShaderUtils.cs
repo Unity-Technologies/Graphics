@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
             // no entry for ShaderID.SG_Decal
-            // no entry for ShaderID.SG_Eye
+            { ShaderID.SG_Eye, LightingShaderGraphGUI.SetupLightingKeywordsAndPass }
         };
 
         /// <summary>

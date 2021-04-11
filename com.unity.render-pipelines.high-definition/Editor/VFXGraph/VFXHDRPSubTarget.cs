@@ -14,6 +14,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
 
+        public static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
+        {
+            // Interpolator dependency.
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement0),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement1),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement2),
+
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld0),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld1),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld2),
+
+            // Note: Normal is dependent on elementToWorld for inverse transpose multiplication.
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             HDStructFields.FragInputs.elementToWorld),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,            HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,          HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,           HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
+
+            new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld)
+        };
+
         static VFXHDRPSubTarget()
         {
             VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;
@@ -68,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
-                    GenerateFragInputs(context, data),
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
@@ -80,11 +101,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.pragmas,
                     Pragma.MultiCompileInstancing
                 };
-
-                // passDescriptor.defines = new DefineCollection
-                // {
-                //     passDescriptor.defines,
-                // };
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
@@ -101,7 +117,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     loadCropFactorAttributesDescriptor,
                     loadTexcoordAttributesDescriptor,
                     vertexPropertiesGenerationDescriptor,
-                    vertexPropertiesAssignDescriptor
+                    vertexPropertiesAssignDescriptor,
+                    GenerateFragInputs(context, data)
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -138,55 +155,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
-        static StructDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
-        {
-            var fields = new List<FieldDescriptor>();
-
-            // Default
-            // Note: These are all already defined in HDStructFields, but marked as "Optional".
-            //       For now just be explicit here that we NEED everything to define the struct.
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionSS", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionRWS", "", ShaderValueType.Float3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "tangentToWorld", "", ShaderValueType.Matrix3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord0", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord1", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord2", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord3", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "color", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "primitiveID", "", ShaderValueType.Uint));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean));
-
-            // VFX Material Properties
-            // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
-
-            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-
-            foreach (string fragmentParameter in context.fragmentParameters)
-            {
-                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-
-                if (filteredNamedExpression.exp != null)
-                {
-                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
-
-                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
-                        continue;
-
-                    fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, filteredNamedExpression.name, "", shaderValueType));
-                }
-            }
-
-            var fragInputs = new StructDescriptor
-            {
-                name = HDStructFields.FragInputs.name,
-                fields = fields.ToArray()
-            };
-
-            return fragInputs;
-        }
-
         // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
         // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
         // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
@@ -212,15 +180,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
 
-                    if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+                    if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
                         continue;
 
                     // TODO: NoInterpolation only for non-strips.
-                    var interpolationModifier = InterpolationModifier.NoInterpolation;
-
-                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, interpolationModifier));
+                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, "nointerpolation"));
                 }
             }
+
+            // VFX Object Space Interpolators
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement2);
+
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld2);
 
             interpolator.fields = fields.ToArray();
             return interpolator;
@@ -234,8 +209,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] kVFXAttributeStructNames =
         {
-            "Attributes",
-            "SourceAttributes"
+            "InternalAttributesElement",
+            "InternalSourceAttributesElement"
         };
 
         static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,
@@ -328,6 +303,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
         }
 
+        static AdditionalCommandDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
+        {
+            var builder = new ShaderStringBuilder();
+
+            // VFX Material Properties
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
+
+                    if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
+                        continue;
+
+                    builder.AppendLine($"{shaderValueType.ToShaderString("float")} {filteredNamedExpression.name};");
+                }
+            }
+
+            return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
+        }
+
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
         {
             IEnumerable<VFXAttributeInfo> attributeInfos;
@@ -373,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(bool),      typeof(BooleanShaderProperty) },
         };
 
-        static readonly Dictionary<Type, ShaderValueType> kVFXShaderValueTypeyMap = new Dictionary<Type, ShaderValueType>
+        static readonly Dictionary<Type, ShaderValueType> kVFXShaderValueTypeMap = new Dictionary<Type, ShaderValueType>
         {
             { typeof(float),     ShaderValueType.Float   },
             { typeof(Vector2),   ShaderValueType.Float2  },
@@ -389,7 +392,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var type = VFXExpression.TypeToType(attribute.type);
 
-            if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
+            if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
                 return null;
 
             return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);

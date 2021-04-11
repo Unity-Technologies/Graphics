@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
         public string tag { get; }
         public string name { get; }
         public string define { get; }
+        public string interpolation { get; }
 
         // StructField
         public string type { get; }
@@ -14,8 +15,6 @@ namespace UnityEditor.ShaderGraph
         public string semantic { get; }
         public string preprocessor { get; }
         public StructFieldOptions subscriptOptions { get; }
-
-        public InterpolationModifier interpolationModifier { get; }
 
         public FieldDescriptor(string tag, string name, string define)
         {
@@ -25,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public FieldDescriptor(string tag, string name, string define, ShaderValueType type,
-                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, InterpolationModifier interpolationModifier = InterpolationModifier.Linear)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, string interpolation = "")
         {
             this.tag = tag;
             this.name = name;
@@ -34,12 +33,12 @@ namespace UnityEditor.ShaderGraph
             this.vectorCount = type.GetVectorCount();
             this.semantic = semantic;
             this.preprocessor = preprocessor;
+            this.interpolation = interpolation;
             this.subscriptOptions = subscriptOptions;
-            this.interpolationModifier = interpolationModifier;
         }
 
         public FieldDescriptor(string tag, string name, string define, string type,
-                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, InterpolationModifier interpolationModifier = InterpolationModifier.Linear)
+                               string semantic = "", string preprocessor = "", StructFieldOptions subscriptOptions = StructFieldOptions.Static, string interpolation = "")
         {
             this.tag = tag;
             this.name = name;
@@ -48,8 +47,8 @@ namespace UnityEditor.ShaderGraph
             this.vectorCount = 0;
             this.semantic = semantic;
             this.preprocessor = preprocessor;
+            this.interpolation = interpolation;
             this.subscriptOptions = subscriptOptions;
-            this.interpolationModifier = interpolationModifier;
         }
     }
 }

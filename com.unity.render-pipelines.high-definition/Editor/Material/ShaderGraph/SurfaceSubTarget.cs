@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
@@ -60,8 +61,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
-            if (supportRaytracing || supportPathtracing)
-                yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+
+            // Always omit DXR SubShader for VFX until DXR support is added.
+            if (!TargetsVFX())
+            {
+                if (supportRaytracing || supportPathtracing)
+                    yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+            }
         }
 
         protected virtual SubShaderDescriptor GetSubShaderDescriptor()
@@ -155,6 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
             pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
+            pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
+
             pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
             pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
             pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
@@ -218,6 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass);
 
             context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+            context.AddField(HDFields.ConservativeDepthOffset, builtinData.conservativeDepthOffset && builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
 
             // Depth offset needs positionRWS and is now a multi_compile
             if (builtinData.depthOffset)
@@ -315,6 +324,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kDepthOffsetEnable
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.conservativeDepthOffset,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kConservativeDepthOffsetEnable
             });
 
             collector.AddShaderProperty(new BooleanShaderProperty

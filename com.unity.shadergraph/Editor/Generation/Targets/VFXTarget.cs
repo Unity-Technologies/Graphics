@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class VFXTarget : Target, ILegacyTarget
+    sealed class VFXTarget : Target, ILegacyTarget, IMaySupportVFX
     {
         [SerializeField]
         bool m_Lit;
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
             return GraphicsSettings.currentRenderPipeline != null && scriptableRenderPipeline?.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
         }
 
-        public override bool WorksWithVFX() => true;
+        public bool SupportsVFX() => true;
     }
 }
 #endif

@@ -1,8 +1,10 @@
 # Screen Space Global Illumination
 
-The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
+The **Screen Space Global Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
-HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) (RTGI) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+
+SSGI and RTGI completely replace all [lightmap](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) data. If you enable this override and the Volume affects the Camera, Light Probes, and the ambient probe, stop contributing to lighting for GameObjects.
 
 ![](Images/HDRPFeatures-SSGI.png)
 
@@ -53,6 +55,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ray Tracing**                | Enable this to make HDRP use ray tracing to evaluate indirect diffuse lighting. This makes extra properties available that you can use to adjust the quality of Ray-Traced Global Illumination. |
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
+| **Texture Lod Bias** | The LOD Bias HDRP applies to textures in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity. |
 | **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
 | **Quality**                    | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Max Ray Length**             | Controls the maximal length of rays. The higher this value is, the more resource-intensive ray traced global illumination is. |

@@ -26,18 +26,5 @@ namespace UnityEditor.ShaderGraph
             else
                 return descriptor.name;
         }
-
-        public static string ToInterpolationModifierString(this FieldDescriptor descriptor)
-        {
-            switch (descriptor.interpolationModifier)
-            {
-                // Only handle the nointerpolation case (for VFX) for now.
-                // The default interpolation modifier is linear.
-                case InterpolationModifier.NoInterpolation:
-                    return "nointerpolation";
-                default:
-                    return "";
-            }
-        }
     }
 }

@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+        public virtual bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
         public virtual bool hasMotionVector
         {

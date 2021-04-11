@@ -37,7 +37,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    if (ShouldCull(index))
+    if (ShouldCullElement(index))
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
@@ -57,7 +57,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             uv.x = PARTICLE_IN_EDGE;
         #else
             GetElementData(element);
-            const Attributes attributes = element.attributes;
+            const InternalAttributesElement attributes = element.attributes;
             $splice(VFXLoadTexcoordParameter)
             uv.x = texCoord;
         #endif
@@ -98,8 +98,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             float2(-0.5f, -0.5f),
         };
 
-    GetElementData(element);
-    const Attributes attributes = element.attributes;
+        GetElementData(element);
+        const InternalAttributesElement attributes = element.attributes;
+
         // Here we have to explicitly splice in the crop factor.
         $splice(VFXLoadCropFactorParameter)
 
@@ -111,6 +112,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
     input.positionOS = float3(vOffsets, 0.0);
 #ifdef ATTRIBUTES_NEED_NORMAL
     input.normalOS = float3(0, 0, -1);
+#endif
+#ifdef ATTRIBUTES_NEED_TANGENT
+    input.tangentOS = float4(1, 0, 0, 1);
 #endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     input.uv0 = uv;

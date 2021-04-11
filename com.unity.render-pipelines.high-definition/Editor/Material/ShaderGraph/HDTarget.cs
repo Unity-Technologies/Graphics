@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -201,9 +201,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                 {
                     m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
                     {
                         m_SupportVFX = m_SupportVFXToggle.value;
+                        onChange();
                     });
                 }
             }
@@ -364,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
         }
 
-        public override bool WorksWithVFX()
+        public bool SupportsVFX()
         {
             if (m_ActiveSubTarget.value == null)
                 return false;
@@ -373,6 +375,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return false;
 
             return m_SupportVFX;
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
         }
     }
 
@@ -647,7 +657,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
@@ -914,6 +923,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
+        public static DefineCollection ForwardLit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { CoreKeywordDescriptors.ShaderLit, 1 },
+        };
+
         public static DefineCollection ForwardUnlit = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -954,6 +971,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kFabricPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricPathTracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
@@ -1023,8 +1041,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Pregraph includes
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
         };
 
@@ -1230,6 +1248,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static KeywordDescriptor ShaderLit = new KeywordDescriptor()
+        {
+            displayName = "Lit shader",
+            referenceName = "SHADER_LIT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
         public static KeywordDescriptor DoubleSided = new KeywordDescriptor()
         {
             displayName = "Double Sided",
@@ -1428,6 +1455,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Depth Offset",
             referenceName = "_DEPTHOFFSET_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
+        };
+
+        public static KeywordDescriptor ConservativeDepthOffset = new KeywordDescriptor
+        {
+            displayName = "Conservative Depth Offset",
+            referenceName = "_CONSERVATIVE_DEPTH_OFFSET",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

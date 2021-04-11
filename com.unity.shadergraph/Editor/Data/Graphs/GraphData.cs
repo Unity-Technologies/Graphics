@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -70,6 +71,15 @@ namespace UnityEditor.ShaderGraph
         public bool movedContexts => m_MovedContexts;
 
         public string assetGuid { get; set; }
+
+        #endregion
+
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 
@@ -503,7 +513,7 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.WorksWithVFX());
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
         public bool hasVFXTarget
         {
             get
@@ -516,7 +526,9 @@ namespace UnityEditor.ShaderGraph
                 return supports;
             }
         }
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1 && !hasVFXCompatibleTarget;
+
+        public bool isOnlyVFXTarget => activeTargets.Count() == 1 &&
+        activeTargets.Count(t => t is VFXTarget) == 1;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
@@ -1220,7 +1232,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
                 // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
-                if (generationMode == GenerationMode.VFX)
+                if (generationMode == GenerationMode.VFX && prop.isExposed)
                 {
                     prop.overrideHLSLDeclaration = true;
                     prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
@@ -1289,6 +1301,8 @@ namespace UnityEditor.ShaderGraph
                         m_Keywords.Add(keyword);
                     else
                         m_Keywords.Insert(index, keyword);
+
+                    OnKeywordChangedNoValidate();
 
                     break;
                 default:

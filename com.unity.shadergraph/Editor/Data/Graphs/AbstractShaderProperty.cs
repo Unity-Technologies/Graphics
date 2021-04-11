@@ -25,7 +25,14 @@ namespace UnityEditor.ShaderGraph.Internal
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
             if (mode == GenerationMode.VFX)
-                return $"PROP.{referenceName}";
+            {
+                // Per-element exposed properties are provided by the properties structure filled by VFX.
+                if (overrideHLSLDeclaration)
+                    return $"PROP.{referenceName}";
+                // For un-exposed global properties, just read from the cbuffer.
+                else
+                    return referenceName;
+            }
 
             return referenceName;
         }

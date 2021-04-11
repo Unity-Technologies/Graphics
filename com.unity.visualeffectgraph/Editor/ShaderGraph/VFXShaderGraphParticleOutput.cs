@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
-            if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.shaderGraph == null))
+            if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.GetOrRefreshShaderGraphObject() == null))
             {
                 base.OnInspectorGUI();
                 return;
@@ -92,15 +92,15 @@ namespace UnityEditor.VFX
 
                     materialChanged = EditorGUI.EndChangeCheck();
                 }
-            }
 
-            // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
-            if ((m_MaterialEditor.target != null) &&
-                ((VFXAbstractParticleOutput)target).hasMotionVector &&
-                ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
-                !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
-            {
-                EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
+                // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
+                if ((m_MaterialEditor.target != null) &&
+                    ((VFXAbstractParticleOutput)target).hasMotionVector &&
+                    ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
+                    !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
+                {
+                    EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
+                }
             }
 
             base.OnInspectorGUI();
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
     {
         //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
         [SerializeField, VFXSetting]
-        internal ShaderGraphVfxAsset shaderGraph;
+        protected ShaderGraphVfxAsset shaderGraph;
 
         [SerializeField]
         internal VFXMaterialSerializedSettings materialSettings = new VFXMaterialSerializedSettings();
@@ -180,6 +180,16 @@ namespace UnityEditor.VFX
 
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
+                // In certain scenarios the context might not be configured with any serialized material information
+                // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
+                // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
+                if (materialSettings.NeedsSync())
+                {
+                    materialSettings.SyncFromMaterial(material);
+                    Invalidate(InvalidationCause.kSettingChanged);
+                    return;
+                }
+
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
@@ -266,7 +276,20 @@ namespace UnityEditor.VFX
         public override bool HasSorting()
         {
             var materialBlendMode = GetMaterialBlendMode();
-            return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
+
+            return base.HasSorting() || ((sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
+        }
+
+        public override bool isBlendModeOpaque
+        {
+            get
+            {
+                if (GetOrRefreshShaderGraphObject() != null &&
+                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                    return GetMaterialBlendMode() == BlendMode.Opaque;
+
+                return base.isBlendModeOpaque;
+            }
         }
 
         protected string shaderName
@@ -295,6 +318,7 @@ namespace UnityEditor.VFX
             yield return "onlyAmbientLighting";
             yield return "useExposureWeight";
             yield return "alphaThreshold";
+            yield return "normalBending";
         }
 
         protected override IEnumerable<string> filteredOutSettings
@@ -303,6 +327,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
+
                 if (GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return "colorMapping";
@@ -332,6 +357,9 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    if (shaderGraph.generatesWithShaderGraph)
+                        return false;
+
                     if (!shaderGraph.alphaClipping)
                     {
                         //alpha clipping isn't enabled in shaderGraph, we implicitly still allows clipping for shadow & motion vector passes.
@@ -360,6 +388,11 @@ namespace UnityEditor.VFX
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
 
             ResyncSlots(true);
+
+            // Ensure that the output context name is in sync with the shader graph shader enum name.
+            if (GetOrRefreshShaderGraphObject() != null &&
+                GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                Invalidate(InvalidationCause.kStructureChanged);
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

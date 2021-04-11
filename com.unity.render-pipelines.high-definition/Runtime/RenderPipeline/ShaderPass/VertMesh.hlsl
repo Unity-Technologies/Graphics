@@ -148,8 +148,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     if(!GetInterpolatorAndElementData(output, element))
         return output; // Dead particle.
 
-    // In VFX, "Element Space" is treated as Object Space.
-    input = TransformMeshToElement(input, element);
+    SetupVFXMatrices(element, output);
 #endif
 
 #if defined(HAVE_MESH_MODIFICATION)

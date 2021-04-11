@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
 namespace UnityEditor.VFX.HDRP
 {
@@ -15,6 +19,16 @@ namespace UnityEditor.VFX.HDRP
 
         public override string SRPAssetTypeStr  { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType  { get { return typeof(VFXHDRPSubOutput); } }
+
+        static Dictionary<HDShaderUtils.ShaderID, string> s_ShaderNames = new Dictionary<HDShaderUtils.ShaderID, string>()
+        {
+            { HDShaderUtils.ShaderID.SG_Lit,      "Lit"      },
+            { HDShaderUtils.ShaderID.SG_StackLit, "StackLit" },
+            { HDShaderUtils.ShaderID.SG_Hair,     "Hair"     },
+            { HDShaderUtils.ShaderID.SG_Eye,      "Eye"      },
+            { HDShaderUtils.ShaderID.SG_Fabric,   "Fabric"   },
+            { HDShaderUtils.ShaderID.SG_Unlit,    "Unlit"    },
+        };
 
         HDShaderUtils.ShaderID GetShaderEnumFromShaderGraph(ShaderGraphVfxAsset shaderGraph)
         {
@@ -115,8 +129,47 @@ namespace UnityEditor.VFX.HDRP
             // Recover the HDRP Shader Enum from the VFX Shader Graph.
             var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
 
-            // Remove the HDRP Enum Prefix of "SG_".
-            return shaderID.ToString().Remove(0, 3);
+            if (s_ShaderNames.ContainsKey(shaderID))
+                return s_ShaderNames[shaderID];
+
+            return string.Empty;
+        }
+
+        // List of shader properties that currently are not supported for exposure in VFX shaders.
+        private static readonly Dictionary<Type, string> s_UnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        {
+            { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
+            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
+            { typeof(GradientShaderProperty),         "Gradient"          }
+        };
+
+        public override bool IsGraphDataValid(GraphData graph)
+        {
+            var valid = true;
+
+            var warnings = new List<string>();
+
+            // Filter property list for any unsupported shader properties.
+            foreach (var property in graph.properties)
+            {
+                if (s_UnsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                {
+                    warnings.Add(s_UnsupportedShaderPropertyTypes[property.GetType()]);
+                    valid = false;
+                }
+            }
+
+            // VFX currently does not support the concept of per-particle keywords.
+            if (graph.keywords.Any())
+            {
+                warnings.Add("Keyword");
+                valid = false;
+            }
+
+            if (!valid)
+                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
+
+            return valid;
         }
     }
 }

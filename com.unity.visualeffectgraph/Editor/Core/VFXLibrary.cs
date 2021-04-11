@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -171,6 +172,8 @@ namespace UnityEditor.VFX
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
+
+        public virtual bool IsGraphDataValid(GraphData graph) => false;
     }
 
     // This is the default binder used if no SRP is used in the project

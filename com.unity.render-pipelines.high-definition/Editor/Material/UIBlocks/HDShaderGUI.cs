@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var defaultProperties = new Material(material.shader);
             foreach (var floatToSync in floatPropertiesToSynchronize)
-                if (material.HasProperty(floatToSync))
+                if (material.HasProperty(floatToSync) && defaultProperties.HasProperty(floatToSync))
                     material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
 
             CoreUtils.Destroy(defaultProperties);

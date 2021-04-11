@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Init the ray count manager
             m_RayCountManager = new RayCountManager();
-            m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
+            m_RayCountManager.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources);
 
             // Build the light cluster
             m_RayTracingLightCluster = new HDRaytracingLightCluster();
@@ -168,6 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
             bool singleSided = false;
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
+
+            // We disregard the ray traced shadows option when in Path Tracing
+            rayTracedShadow &= !pathTracingEnabled;
+
+            // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
+            pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
 
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
@@ -269,26 +275,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (reflEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Screen Space Reflection if needed
+                // Raise the Screen Space Reflection flag if needed
                 instanceFlag |= ((reflLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
             }
 
             if (giEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Global Illumination flag if needed
                 instanceFlag |= ((giLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
             }
 
             if (recursiveEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Recursive Rendering flag if needed
                 instanceFlag |= ((rrLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
             }
 
             if (pathTracingEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
-                instanceFlag |= ((ptLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.PathTracing) : 0x00;
+                // Raise the Path Tracing flag if needed
+                instanceFlag |= (uint)(RayTracingRendererFlag.PathTracing);
             }
 
             // If the object was not referenced
@@ -662,7 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TemporalFilter == null && m_RayTracingSupported)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
+                m_TemporalFilter.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources);
             }
             return m_TemporalFilter;
         }
@@ -672,7 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SimpleDenoiser == null)
             {
                 m_SimpleDenoiser = new HDSimpleDenoiser();
-                m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+                m_SimpleDenoiser.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources);
             }
             return m_SimpleDenoiser;
         }
@@ -682,7 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SSGIDenoiser == null)
             {
                 m_SSGIDenoiser = new SSGIDenoiser();
-                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources);
+                m_SSGIDenoiser.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineResources);
             }
             return m_SSGIDenoiser;
         }
@@ -692,7 +698,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, this);
+                m_DiffuseDenoiser.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineResources, HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources, this);
             }
             return m_DiffuseDenoiser;
         }
@@ -702,7 +708,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ReflectionDenoiser == null)
             {
                 m_ReflectionDenoiser = new HDReflectionDenoiser();
-                m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+                m_ReflectionDenoiser.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources);
             }
             return m_ReflectionDenoiser;
         }
@@ -712,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseShadowDenoiser == null)
             {
                 m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
-                m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+                m_DiffuseShadowDenoiser.Init(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources);
             }
             return m_DiffuseShadowDenoiser;
         }

@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(111, Extension, -902)]
+    [ScriptedImporter(113, Extension, -902)]
 #else
-    [ScriptedImporter(44, Extension, -902)]
+    [ScriptedImporter(47, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -281,7 +281,7 @@ Shader ""Hidden/GraphErrorShader2""
                 Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null)
         {
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -289,7 +289,13 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
+
+                Generator generator;
+                if (targets != null)
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets);
+                else
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
+
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
 
@@ -344,7 +350,7 @@ Shader ""Hidden/GraphErrorShader2""
         // remove this container.
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
-            var target = graph.activeTargets.FirstOrDefault(x => x.WorksWithVFX());
+            var target = graph.activeTargets.FirstOrDefault(x => x.SupportsVFX());
 
             if (target == null)
                 return null;
@@ -387,10 +393,15 @@ Shader ""Hidden/GraphErrorShader2""
                 NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
             }
 
-            //Remove inactive blocks from generation
+            //Remove inactive blocks from legacy generation
+            if (!asset.generatesWithShaderGraph)
             {
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+
+                // NOTE: For whatever reason, this call fails for custom interpolator ports (ie, active ones are not detected as active).
+                // For the sake of compatibility with custom interpolator with shadergraph generation, skip the removal of inactive blocks.
                 target.GetActiveBlocks(ref tmpCtx);
+
                 ports.RemoveAll(materialSlot =>
                 {
                     return !tmpCtx.activeBlocks.Any(o => materialSlot.RawDisplayName() == o.displayName);

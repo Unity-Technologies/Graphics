@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class VFXShaderGraphGUI : LightingShaderGraphGUI
     {
-        // TODO: Sort out which surface options VFX needs
         const SurfaceOptionUIBlock.Features vfxSurfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
             | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 

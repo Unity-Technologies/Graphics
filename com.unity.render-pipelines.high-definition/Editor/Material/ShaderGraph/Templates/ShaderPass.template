@@ -29,25 +29,20 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-	$features.graphVFX: #define HAVE_VFX_MODIFICATION
-
-    // [NOTE-FRAG-INPUTS]
-    // Omit the HDRP FragInput struct definition since VFX provides an arbitrary number of interpolators
-    // (this is because properties are evaluated by the graph on the fly in the vertex stage)
-    // These interpolates must be transfered into the FragInputs so they are available for the Surface evaluation.
-    // Thus we procedurally generate a FragInput struct.
-    // Warning: Omitting this means we no longer define the GetVaryingsDataDebug..
-    #ifndef HAVE_VFX_MODIFICATION
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #else
-    // For now, move the full struct splice to this point (contains FragInputs).
-    $splice(PassStructs)
-    #endif
-
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
@@ -71,6 +66,8 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
 
@@ -120,6 +117,14 @@ Pass
     #endif
     #endif
 
+    // NOTE: disabling de exposure usage on unlit shader graphs (caused by virtual texture constant buffer binding).
+    // If we turn this on, in vulkan, virtual texture offsets are corrupted. It is likely caused by the stack
+    // textures constant buffers, which utilize arrays. Something is happening to the reflection data of vulkan which completely displaces
+    // the constant buffer. A bug is filed and is being looked at.
+    #if defined(SHADER_API_VULKAN)
+    #define DISABLE_UNLIT_DEEXPOSURE
+    #endif
+
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
@@ -130,6 +135,11 @@ Pass
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #endif
         #endif
+    #endif
+
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #if defined(SHADER_LIT) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _DEFERRED_CAPABLE_MATERIAL
     #endif
 
     // Translate transparent motion vector define
@@ -160,14 +170,12 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
 
-    // See: [NOTE-FRAG-INPUTS]
-    #ifndef HAVE_VFX_MODIFICATION
     $splice(PassStructs)
-    #endif
 
     $splice(InterpolatorPack)
 

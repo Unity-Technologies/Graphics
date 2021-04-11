@@ -44,6 +44,12 @@ namespace UnityEditor.VFX
             "TranslucentProperties",
         };
 
+        protected bool GeneratesWithShaderGraph()
+        {
+            return GetOrRefreshShaderGraphObject() != null &&
+                GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Standard;
 

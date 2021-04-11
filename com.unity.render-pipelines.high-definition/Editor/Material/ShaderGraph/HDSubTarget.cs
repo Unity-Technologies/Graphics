@@ -15,7 +15,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     abstract class HDSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>
+        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>, IRequireVFXContext
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
@@ -34,6 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SystemData;
             set => m_SystemData = value;
         }
+
+        // VFX Properties
+        protected VFXContext m_ContextVFX = null;
+        protected VFXContextCompiledData m_ContextDataVFX;
+        protected bool TargetsVFX() => m_ContextVFX != null;
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
@@ -92,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            var inspector = VFXSubTarget.IsConfigured() ? VFXHDRPSubTarget.Inspector : customInspector;
+            var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
                 context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 
@@ -121,8 +126,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
-            if (VFXSubTarget.IsConfigured())
-                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor);
+            if (TargetsVFX())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
 
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
@@ -181,8 +186,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
                     passDescriptor.structs = CoreStructCollections.Default;
+
                 if (passDescriptor.fieldDependencies == null)
-                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                {
+                    if (TargetsVFX())
+                        passDescriptor.fieldDependencies = new DependencyCollection()
+                        {
+                            CoreFieldDependencies.Default,
+                            VFXHDRPSubTarget.ElementSpaceDependencies
+                        };
+                    else
+                        passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                }
+                else if (TargetsVFX())
+                {
+                    var fieldDependencies = passDescriptor.fieldDependencies;
+                    passDescriptor.fieldDependencies = new DependencyCollection()
+                    {
+                        fieldDependencies,
+                        VFXHDRPSubTarget.ElementSpaceDependencies
+                    };
+                }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
@@ -201,7 +225,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DotsInstancing, systemData.dotsInstancing);
 
             // VFX Setup
-            VFXSubTarget.GetFields(ref context);
+            if (TargetsVFX())
+                VFXSubTarget.GetFields(ref context, m_ContextVFX);
         }
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
@@ -226,6 +251,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return new HDSaveContext { updateMaterials = needsUpdate };
             }
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            m_ContextVFX = context;
+            m_ContextDataVFX = data;
         }
     }
 }

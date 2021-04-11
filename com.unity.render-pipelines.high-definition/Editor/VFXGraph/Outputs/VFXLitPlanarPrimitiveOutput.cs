@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             get
             {
                 var properties = base.inputProperties;
-                if (normalBending)
+                if (normalBending && !GeneratesWithShaderGraph())
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (normalBending)
+            if (normalBending && !GeneratesWithShaderGraph())
                 yield return slotExpressions.First(o => o.name == "normalBendingFactor");
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (normalBending)
+                if (normalBending && !GeneratesWithShaderGraph())
                     yield return "USE_NORMAL_BENDING";
 
                 yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest

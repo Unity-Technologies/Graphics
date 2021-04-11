@@ -5,6 +5,12 @@ $splice(VFXDefines)
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
 #define HAS_ATTRIBUTES 1
 
+#if HAS_STRIPS
+// VFX has some internal functions for strips that assume the generically named "Attributes" struct as input.
+// For now, override it. TODO: Improve the generic struct name for VFX shader library.
+#define Attributes InternalAttributesElement
+#endif
+
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
 #define VFX_OPTIONAL_INTERPOLATION
@@ -26,9 +32,9 @@ ByteAddressBuffer deadListCount;
 Buffer<uint> stripDataBuffer;
 #endif
 
-// #if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
 ByteAddressBuffer elementToVFXBufferPrevious;
-// #endif
+#endif
 
 CBUFFER_START(outputParams)
     float nbMax;
@@ -54,14 +60,18 @@ $splice(VFXGeneratedBlockFunction)
 struct AttributesElement
 {
     uint index;
-    Attributes attributes;
+
+    // Internal attributes sub-struct used by VFX code-gen property mapping.
+    InternalAttributesElement attributes;
+
+    // Additional attribute information for particle strips.
 #if HAS_STRIPS
     uint relativeIndexInStrip;
     StripData stripData;
 #endif
 };
 
-bool ShouldCull(uint index)
+bool ShouldCullElement(uint index)
 {
     uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
@@ -70,7 +80,7 @@ bool ShouldCull(uint index)
     return (index >= asuint(nbMax) - deadCount);
 }
 
-float3 GetSize(Attributes attributes)
+float3 GetElementSize(InternalAttributesElement attributes)
 {
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
@@ -97,7 +107,8 @@ float3 GetSize(Attributes attributes)
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index)
 {
-    struct Attributes attributes = (Attributes)0;
+    InternalAttributesElement attributes;
+    ZERO_INITIALIZE(InternalAttributesElement, attributes);
 
     // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
     $splice(VFXLoadPositionAttribute)
@@ -129,7 +140,9 @@ void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
 
-    Attributes attributes;
+    InternalAttributesElement attributes;
+    ZERO_INITIALIZE(InternalAttributesElement, attributes);
+
     $splice(VFXLoadAttribute)
 
     #if HAS_STRIPS
@@ -149,10 +162,12 @@ $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS
+
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
-    const Attributes attributes = element.attributes;
+
+    InternalAttributesElement attributes = element.attributes;
 
     #if !HAS_STRIPS
     if (!attributes.alive)
@@ -164,40 +179,83 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
     return true;
 }
 
-// Transform utility for going from object space into particle space.
-// For the current frame, this is done by constructing the particle (element) space matrix.
-// For the previous frame, the element matrices are cached and read back by the mesh element index.
-AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement element)
+// Reconstruct the VFX/World to Element matrix provided by interpolator.
+void BuildWorldToElement(VaryingsMeshType input)
 {
-    float3 size = GetSize(element.attributes);
+#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    UNITY_MATRIX_I_M[0] = input.worldToElement0;
+    UNITY_MATRIX_I_M[1] = input.worldToElement1;
+    UNITY_MATRIX_I_M[2] = input.worldToElement2;
+    UNITY_MATRIX_I_M[3] = float4(0,0,0,1);
+#endif
+}
 
-    float4x4 elementToVFX = GetElementToVFXMatrix(
+void BuildElementToWorld(VaryingsMeshType input)
+{
+#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
+    UNITY_MATRIX_M[0] = input.elementToWorld0;
+    UNITY_MATRIX_M[1] = input.elementToWorld1;
+    UNITY_MATRIX_M[2] = input.elementToWorld2;
+    UNITY_MATRIX_M[3] = float4(0,0,0,1);
+#endif
+}
+
+void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
+{
+    // Due to a very stubborn compiler bug we cannot refer directly to the redefined UNITY_MATRIX_M / UNITY_MATRIX_I_M here, due to a rare case where the matrix alias
+    // is potentially still the constant object matrices (thus complaining about l-value specifying const object). Note even judicious use of preprocessors seems to
+    // fix it, so we instead we directly refer to the static matrices.
+
+    // Element -> World
+    elementToWorld = GetElementToVFXMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
         float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
         float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
-        size,
+        GetElementSize(element.attributes),
         element.attributes.position);
 
-    input.positionOS = mul(elementToVFX, float4(input.positionOS, 1.0f)).xyz;
+#if VFX_LOCAL_SPACE
+    elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
+#else
+    elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
+#endif
 
-#ifdef ATTRIBUTES_NEED_NORMAL
-    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+    // World -> Element
+    worldToElement = GetVFXToElementMatrix(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
-        float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
-        size);
+        float3(element.attributes.angleX,element.attributes.angleY,element.attributes.angleZ),
+        float3(element.attributes.pivotX,element.attributes.pivotY,element.attributes.pivotZ),
+        GetElementSize(element.attributes),
+        element.attributes.position
+    );
 
-    input.normalOS = normalize(mul(elementToVFX_N, input.normalOS));
+#if VFX_LOCAL_SPACE
+    worldToElement = mul(worldToElement, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
+#else
+    worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
 
-    return input;
+    // Pack matrices into interpolator if requested by any node.
+#ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
+    output.elementToWorld0 = elementToWorld[0];
+    output.elementToWorld1 = elementToWorld[1];
+    output.elementToWorld2 = elementToWorld[2];
+#endif
+
+#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    output.worldToElement0 = worldToElement[0];
+    output.worldToElement1 = worldToElement[1];
+    output.worldToElement2 = worldToElement[2];
+#endif
 }
 
 AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesElement element)
 {
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
     uint elementToVFXBaseIndex = element.index * 13;
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
 
@@ -212,43 +270,15 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesEl
     }
 
     input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
-
-#ifdef ATTRIBUTES_NEED_NORMAL
-    // TODO? Not necesarry for MV?
-#endif
+#endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
 
     return input;
 }
 
-// Here we define some overrides of the core space transforms.
-// VFX lets users work in two spaces: Local and World.
-// Local means local to "Particle Space" (or Element) which in this case we treat similarly to Object Space.
-// World means that position users define in their graph are placed in the absolute world.
-// Becuase of these two spaces we must be careful how we transform into world space for current and previous frame.
-#define TransformObjectToWorld TransformObjectToWorldVFX
-float3 TransformObjectToWorldVFX(float3 positionOS)
-{
-    float3 positionWS = TransformPositionVFXToWorld(positionOS);
-
-#ifdef VFX_WORLD_SPACE
-    positionWS = GetCameraRelativePositionWS(positionOS);
-#endif
-
-    return positionWS;
-}
-
-#ifdef VFX_WORLD_SPACE
-#define TransformPreviousObjectToWorld TransformPreviousObjectToWorldVFX
-float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
-{
-    return GetCameraRelativePositionWS(positionOS);
-}
-#endif
-
 // Vertex + Pixel Graph Properties Generation
 void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
 {
-    const Attributes attributes = element.attributes;
+    InternalAttributesElement attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
     $splice(VFXVertexPropertiesAssign)
 }
@@ -256,41 +286,4 @@ void GetElementVertexProperties(AttributesElement element, inout GraphProperties
 void GetElementPixelProperties(FragInputs fragInputs, inout GraphProperties properties)
 {
     $splice(VFXPixelPropertiesAssign)
-}
-
-// Need to redefine GetVaryingsDataDebug since we omit FragInputs.hlsl and generate one procedurally.
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MaterialDebug.cs.hlsl"
-
-void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-    case DEBUGVIEWVARYING_TEXCOORD0:
-        result = input.texCoord0.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD1:
-        result = input.texCoord1.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD2:
-        result = input.texCoord2.xyz;
-        break;
-    case DEBUGVIEWVARYING_TEXCOORD3:
-        result = input.texCoord3.xyz;
-        break;
-    case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:
-        result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
-        break;
-    case DEBUGVIEWVARYING_VERTEX_BITANGENT_WS:
-        result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
-        break;
-    case DEBUGVIEWVARYING_VERTEX_NORMAL_WS:
-        result = IsNormalized(input.tangentToWorld[2].xyz) ?  input.tangentToWorld[2].xyz * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-        break;
-    case DEBUGVIEWVARYING_VERTEX_COLOR:
-        result = input.color.rgb; needLinearToSRGB = true;
-        break;
-    case DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA:
-        result = input.color.aaa;
-        break;
-    }
 }

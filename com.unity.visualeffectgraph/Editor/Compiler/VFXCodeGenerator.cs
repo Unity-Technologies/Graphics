@@ -412,7 +412,7 @@ namespace UnityEditor.VFX
 
                 if (filteredNamedExpression.exp != null)
                 {
-                    additionalVertexProperties.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "0");
+                    additionalVertexProperties.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
                     var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
                     additionalVertexProperties.EnterScope();
                     {
@@ -421,7 +421,7 @@ namespace UnityEditor.VFX
                             additionalVertexProperties.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
                             additionalVertexProperties.WriteLine();
                         }
-                        additionalVertexProperties.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalVertexProperties.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
                         additionalVertexProperties.WriteLine();
                     }
                     additionalVertexProperties.ExitScope();
@@ -444,7 +444,12 @@ namespace UnityEditor.VFX
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
 
-                vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}");
+                // If the parameter is in the global scope, read from the cbuffer directly (no suffix).
+                if (!(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name))
+                    vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}__");
+                else
+                    vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}");
+
                 vertexInputsGeneration.WriteLine();
             }
 
@@ -504,7 +509,7 @@ namespace UnityEditor.VFX
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
-                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.vfx.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
 
@@ -523,7 +528,7 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"fragInputs.{filteredNamedExpression.name}");
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"fragInputs.vfx.{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
 
@@ -536,8 +541,8 @@ namespace UnityEditor.VFX
                 return null;
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
-                shaderGraphContext.shaderGraph != null &&
-                shaderGraphContext.shaderGraph.generatesWithShaderGraph &&
+                shaderGraphContext.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph &&
                 VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
@@ -745,7 +750,7 @@ namespace UnityEditor.VFX
             var stringBuilder = new StringBuilder();
 
             // Reconstruct the ShaderGraph.
-            var path = AssetDatabase.GetAssetPath(context.shaderGraph);
+            var path = AssetDatabase.GetAssetPath(context.GetOrRefreshShaderGraphObject());
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             AssetCollection assetCollection = new AssetCollection();
@@ -760,16 +765,21 @@ namespace UnityEditor.VFX
             graph.OnEnable();
             graph.ValidateGraph();
 
-            // Configure the state of VFX target generation utils.
-            using (new VFXSubTarget.CompilationScope(context, contextData))
-            {
-                // Use ShaderGraph to generate the VFX shader.
-                var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX);
+            // Check the validity of the shader graph (unsupported keywords or shader property usage).
+            if (!VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+                return null;
 
-                // Append the shader + strip the name header (VFX stamps one in later on).
-                stringBuilder.Append(text);
-                stringBuilder.Remove(0, text.IndexOf("{", StringComparison.Ordinal));
-            }
+            var target = graph.activeTargets.FirstOrDefault();
+
+            if (!target.TryConfigureContextData(context, contextData))
+                return null;
+
+            // Use ShaderGraph to generate the VFX shader.
+            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
+
+            // Append the shader + strip the name header (VFX stamps one in later on).
+            stringBuilder.Append(text);
+            stringBuilder.Remove(0, text.IndexOf("{", StringComparison.Ordinal));
 
             return stringBuilder;
         }

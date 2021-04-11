@@ -102,8 +102,7 @@ namespace UnityEditor.ShaderGraph
 
                         //check for a semantic, build string if valid
                         string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
-                        string modifier = subscript.ToInterpolationModifierString();
-                        structBuilder.AppendLine($"{modifier} {subscript.type} {subscript.name}{semantic};");
+                        structBuilder.AppendLine($"{subscript.interpolation} {subscript.type} {subscript.name}{semantic};");
 
                         //if in permutation, add permutation endif
                         if (!string.IsNullOrEmpty(keywordIfDefs))
@@ -405,6 +404,9 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+
+                new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
+                new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
             };
         }
 
@@ -452,6 +454,9 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
+
+                new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
+                new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
             };
         }
 
