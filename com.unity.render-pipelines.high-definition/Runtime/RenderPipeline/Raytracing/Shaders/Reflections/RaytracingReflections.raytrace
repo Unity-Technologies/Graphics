@@ -1,4 +1,3 @@
-// We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
 #pragma max_recursion_depth 31
 
 // HDRP include
@@ -21,6 +20,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingReflectionCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -32,6 +32,7 @@ TEXTURE2D_X(_SsrClearCoatMaskTexture);
 // Flag value that defines if a given pixel recieves reflections or not
 TEXTURE2D_X_UINT2(_StencilTexture);
 int _SsrStencilBit;
+int _AffectSmoothSurfaces; // see ReflectionDenoiser.compute: if history accumulation is used for smooth surfaces
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
@@ -96,14 +97,33 @@ void RayGenIntegration()
     if (_RaytracingReflectionMinSmoothness > perceptualSmoothness)
         return;
 
-    // Compute the actual roughness
-    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+    // Mirror what the denoiser will do: if we know it will escape history accumulation, don't sample.
+    // Keep in sync with the denoiser in ReflectionDenoiser.compute! (along with _RaytracingMaxRecursion here vs _SingleReflectionBounce in the former)
+    bool allowSampling = !SkipReflectionDenoiserHistoryAccumulation((_AffectSmoothSurfaces == 1), (_RaytracingMaxRecursion == 1), normalData.perceptualRoughness);
+    allowSampling = true;
+    // TODO: Subtle, forcing allowSampling = true is the behavior before merge: always allow sampling even if we end up sampling a single sample,
+    // which could even end up not sampling at all (eg under surface) or being an outlier.
+    // This will show as sharp "speckles" (because the surface is smooth) when we don't have history accumulation (ie when _AffectSmoothSurfaces == 0)
+    //
+    // TODO: In the case we use !SkipReflectionDenoiserHistoryAccumulation to escape sampling, is _AffectSmoothSurfaces even useful then?
+    // ie if accumulation gave too much ghosting for smooth surfaces, then systematically disable it (_AffectSmoothSurfaces == 0), but dont sample
+    // here either (ie check allowSampling = !SkipReflectionDenoiserHistoryAccumulation) like done now.
 
-    // If we only have one bounce, we don't need more than one ray to evaluate the exact signal. However, if we are going for multiple bounces, we may need more, so we cannot clamp the sample count to 1.
-    int realSampleCount = _RaytracingMaxRecursion == 1 ? (normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples) : _RaytracingNumSamples;
+    // If we only have one bounce, we don't need more than one ray to evaluate the exact signal of smooth surfaces.
+    // However, if we are going for multiple bounces, we may need more, so we cannot clamp the sample count to 1.
+    int realSampleCount = _RaytracingMaxRecursion == 1 ? (normalData.perceptualRoughness < REFLECTION_SAMPLING_MAX_ROUGHNESS_THRESHOLD ? 1 : _RaytracingNumSamples)
+                                                         : _RaytracingNumSamples;
+    // ...note that the compiler will optimize the subexpressions between the above and the SkipReflectionDenoiserHistoryAccumulation() call
+    // Also note we don't need to further check allowSampling to clamp realSampleCount:
+    // realSampleCount will always be 1 if we dont allowSampling, which is what we would want in the loop below,
+    // and even if we allowSampling, realSampleCount could still be clamped to 1.
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
+    // Ray dir if we escape sampling altogether
+    float3 defaultSampleDir = reflect(-viewWS, normalData.normalWS);
+    // Compute the actual roughness
+    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
     // Loop through the samples and add their contribution
     for (int sampleIndex = 0; sampleIndex < realSampleCount; ++sampleIndex)
@@ -116,10 +136,11 @@ void RayGenIntegration()
         theSample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
         theSample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
-        // Importance sample the direction using GGX
-        float3 sampleDir = float3(0.0, 0.0, 0.0);
+        float3 sampleDir = defaultSampleDir;
         float NdotL, NdotH, VdotH;
-        SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        // Importance sample the direction using GGX
+        if (allowSampling)
+            SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
         // If the sample is under the surface
         if (dot(sampleDir, normalData.normalWS) <= 0.0)

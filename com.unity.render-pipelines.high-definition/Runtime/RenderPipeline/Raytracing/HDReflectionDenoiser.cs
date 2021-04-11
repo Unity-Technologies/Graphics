@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public TextureHandle historyDepth;
             public TextureHandle normalBuffer;
+            public TextureHandle clearCoatMaskBuffer;
             public TextureHandle motionVectorBuffer;
             public TextureHandle intermediateBuffer0;
             public TextureHandle intermediateBuffer1;
@@ -75,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseRTR(RenderGraph renderGraph, HDCamera hdCamera, float historyValidity, int maxKernelSize, bool fullResolution, bool singleReflectionBounce, bool affectSmoothSurfaces,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
+            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatMaskBuffer, TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {
@@ -106,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                passData.clearCoatMaskBuffer = builder.ReadTexture(clearCoatMaskBuffer);
                 RTHandle depthT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 passData.historyDepth = depthT != null ? renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)) : renderGraph.defaultResources.blackTextureXR;
 
@@ -136,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, data.historySignal);
+                    ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMaskBuffer);
 
                     // Output texture
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, data.intermediateBuffer0);
@@ -155,6 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer0);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                    ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMaskBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, data.intermediateBuffer1);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, data.reflectionFilterMapping);
                     ctx.cmd.DispatchCompute(data.reflectionDenoiserCS, data.bilateralFilterHKernel, numTilesX, numTilesY, data.viewCount);
@@ -164,6 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer1);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                    ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMaskBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, data.noisyToOutputSignal);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, data.reflectionFilterMapping);
                     ctx.cmd.DispatchCompute(data.reflectionDenoiserCS, data.bilateralFilterVKernel, numTilesX, numTilesY, data.viewCount);

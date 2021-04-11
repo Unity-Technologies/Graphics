@@ -26,7 +26,7 @@ struct BilateralData
     float  z01;
     float  zNF;
     float3 normal;
-    #ifdef BILATERAL_ROUGHNESS
+    #ifdef BILATERAL_ROUGHNESS // in that case, _SsrClearCoatMaskTexture is required
     float roughness;
     #endif
 };
@@ -56,6 +56,8 @@ BilateralData TapBilateralData(uint2 coordSS)
         DecodeFromNormalBuffer(normalBuffer, normalData);
         key.normal = normalData.normalWS;
     #ifdef BILATERAL_ROUGHNESS
+        const float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, coordSS);
+        normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
         key.roughness = normalData.perceptualRoughness;
     #endif
     }

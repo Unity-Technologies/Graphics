@@ -11,11 +11,14 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingReflectionCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 #define BILATERAL_ROUGHNESS
+TEXTURE2D_X(_SsrClearCoatMaskTexture);
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DenoisingUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.cs.hlsl"
@@ -26,9 +29,9 @@
 
 // #pragma enable_d3d11_debug_symbols
 
-// Thereshold at which we decide to reject the reflection history
+// Threshold at which we decide to reject the reflection history
 #define REFLECTION_HISTORY_REJECTION_THRESHOLD 0.75
-// Threshold at which we go from accumulation to clampiong
+// Threshold at which we go from accumulation to clamping
 #define ROUGHNESS_ACCUMULATION_THRESHOLD 0.5
 
 // Input textures
@@ -75,9 +78,11 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         return;
     }
 
-    // Real the normal data for this pixel
+    // Read and decode the normal data
     NormalData normalData;
     DecodeFromNormalBuffer(geometryCoords, normalData);
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, geometryCoords);
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 
     // Read the depth and velocity vectors
     float2 velocity;
@@ -93,7 +98,10 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float4 historyRaw = Fetch4(_HistoryBuffer, historyUV, 0.0, 1.0);
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 
-    if (_AffectSmoothSurfaces == 0 && _SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
+    // If this is close to a perfectly smooth surface, we may not want to use the history (depending on _AffectSmoothSurfaces)
+    // In thise case, see RaytracingReflections.raytrace: make sure we don't sample otherwise we could have noisy artifacts.
+    // Keep in sync with the sampling in the raygen program in RaytracingReflections.raytrace (along with _SingleReflectionBounce here vs _RaytracingMaxRecursion in the former)
+    if (SkipReflectionDenoiserHistoryAccumulation((_AffectSmoothSurfaces == 1), (_SingleReflectionBounce == 1), normalData.perceptualRoughness))
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
         _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = 1;
