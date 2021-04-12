@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.Universal
                         return -1;
                     if (a.cachedChunk.drawOrder > b.cachedChunk.drawOrder)
                         return 1;
-                    return a.GetHashCode().CompareTo(b.GetHashCode());
+                    return a.entityChunk.material.GetHashCode().CompareTo(b.entityChunk.material.GetHashCode());
                 });
 
                 // Early out if nothing changed

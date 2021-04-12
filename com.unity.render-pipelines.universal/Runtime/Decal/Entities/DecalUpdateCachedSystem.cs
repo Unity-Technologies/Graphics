@@ -153,8 +153,8 @@ namespace UnityEngine.Rendering.Universal
             if (!cachedChunk.isCreated)
 #endif
             {
-                int passIndex = material.FindPass(DecalShaderPassNames.DBufferProjector);
-                cachedChunk.passIndexDBuffer = passIndex;
+                int passIndexDBuffer = material.FindPass(DecalShaderPassNames.DBufferProjector);
+                cachedChunk.passIndexDBuffer = passIndexDBuffer;
 
                 int passIndexEmissive = material.FindPass(DecalShaderPassNames.DecalProjectorForwardEmissive);
                 cachedChunk.passIndexEmissive = passIndexEmissive;

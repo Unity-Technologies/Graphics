@@ -165,7 +165,6 @@ namespace UnityEngine.Rendering.Universal
         private bool m_RecreateSystems;
 
         private CopyDepthPass m_CopyDepthPass;
-        private NormalReconstructionSetupPass m_NormalReconstructionSetupPass;
         private DecalPreviewPass m_DecalPreviewPass;
 
         // Entities
@@ -200,7 +199,6 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
             m_DecalPreviewPass = new DecalPreviewPass();
-            m_NormalReconstructionSetupPass = new NormalReconstructionSetupPass();
             m_RecreateSystems = true;
         }
 
@@ -402,8 +400,6 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            renderer.EnqueuePass(m_NormalReconstructionSetupPass);
-
             RecreateSystemsIfNeeded(renderer);
 
             if (intermmediateRendering)
@@ -434,7 +430,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         m_CopyDepthPass.Setup(
                             new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.dBufferIndentifier)
+                            new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
                     }
                     m_CopyDepthPass.MssaSamples = 1;

@@ -26,7 +26,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal DeferredLights deferredLights { get; set; }
         private bool isDeferred => deferredLights != null;
-        internal RenderTargetIdentifier dBufferIndentifier { get; private set; }
+        internal RenderTargetIdentifier[] dBufferColorIndentifiers { get; private set; }
+        internal RenderTargetIdentifier dBufferDepthIndentifier { get; private set; }
         internal RenderTargetIdentifier cameraDepthIndentifier { get; private set; }
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
@@ -43,13 +44,18 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
 
-            dBufferIndentifier = new RenderTargetIdentifier(s_DBufferDepthName);
+            int dBufferCount = (int)settings.surfaceData + 1;
+            dBufferColorIndentifiers = new RenderTargetIdentifier[dBufferCount];
+            for (int dbufferIndex = 0; dbufferIndex < dBufferCount; ++dbufferIndex)
+                dBufferColorIndentifiers[dbufferIndex] = new RenderTargetIdentifier(s_DBufferNames[dbufferIndex]);
+            m_DBufferCount = dBufferCount;
+
+            dBufferDepthIndentifier = new RenderTargetIdentifier(s_DBufferDepthName);
             cameraDepthIndentifier = new RenderTargetIdentifier("_CameraDepthTexture");
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            int dBufferCount = 0;
             // base
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
@@ -57,8 +63,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
-                dBufferCount++;
+                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[0]), desc);
             }
 
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
@@ -68,8 +73,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
-                dBufferCount++;
+                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[1]), desc);
             }
 
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
@@ -79,8 +83,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
-                dBufferCount++;
+                cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[2]), desc);
             }
 
             // depth
@@ -100,13 +103,7 @@ namespace UnityEngine.Rendering.Universal
                 depthIdentifier = deferredLights.DepthAttachmentIdentifier;
             }
 
-            m_DBufferCount = dBufferCount;
-
-            var colorAttachments = new RenderTargetIdentifier[dBufferCount];
-            for (int dbufferIndex = 0; dbufferIndex < dBufferCount; ++dbufferIndex)
-                colorAttachments[dbufferIndex] = new RenderTargetIdentifier(s_DBufferNames[dbufferIndex]);
-
-            ConfigureTarget(colorAttachments, depthIdentifier);
+            ConfigureTarget(dBufferColorIndentifiers, depthIdentifier);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

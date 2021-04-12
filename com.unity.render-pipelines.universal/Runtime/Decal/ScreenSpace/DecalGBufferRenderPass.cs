@@ -55,6 +55,8 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                NormalReconstruction.SetupProperties(cmd, renderingData.cameraData);
+
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, m_Settings.normalBlend == DecalNormalBlend.Low);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, m_Settings.normalBlend == DecalNormalBlend.Medium);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, m_Settings.normalBlend == DecalNormalBlend.High);
