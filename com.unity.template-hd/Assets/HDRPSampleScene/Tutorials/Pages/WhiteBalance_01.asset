@@ -40,20 +40,20 @@ MonoBehaviour:
         m_Untranslated: What is white balance?
       Text:
         m_Untranslated: 'In real life, cameras and the human brain attempt to compensate
-          for strong color casts. This principle is called white balancing.
+          for strong color casts. This principle is called <b>white balancing</b>.
 
-
+          
 
           It
-          is especially important to balance scenes with a warm artificial lighting,
-          because the corresponding lamps have a very strong red color cast that
-          might be unwanted, depending on color accuracy or style requirements.
+          is especially important to balance Scenes with warm artificial lighting,
+          because the corresponding lamps have a strong red color cast that might
+          be unwanted depending on color accuracy or style requirements.
 
+          
 
-
-          To
-          put it simply, the white balancing allows you to adjust the overall temperature
-          of the scene to feel colder or warmer.
+          In
+          addition, white balancing allows you to adjust the overall temperature
+          of the Scene to feel colder or warmer.
 
 '
       m_Summary: 

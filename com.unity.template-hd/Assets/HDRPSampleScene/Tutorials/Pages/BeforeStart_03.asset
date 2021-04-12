@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: fcf416fb0faed3f488683ba53ea1301b, type: 3}
+      m_Image: {fileID: 2800000, guid: 4e47698a7516ca94a98f4e1345391f75, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,13 +37,13 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Scene settings
+        m_Untranslated: More HDRP
       Text:
-        m_Untranslated: 'For most of the tutorial steps, we recommend turning off
-          the Gizmos and Grid, highlighted red in the image. The picture above is
-          taken with Gizmos turned on.
-
-'
+        m_Untranslated: "You can now explore the template on your own or complete
+          the tutorials in any order you choose.\r\n\r\nYou can also try the build
+          on <b>Furioos</b> <a href=\"https://portal.furioos.com/share/935.024\">here</a>.\r\n\r\nHelp:\r\n<a
+          href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Getting-started-with-HDRP.html\">\r\nDocumentation</a>\r\n<a
+          href=\"https://forum.unity.com/tags/hdrp/\">\r\nForum</a>\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

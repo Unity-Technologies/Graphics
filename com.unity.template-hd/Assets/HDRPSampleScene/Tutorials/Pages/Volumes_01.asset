@@ -39,25 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: What are volumes?
       Text:
-        m_Untranslated: 'Volumes in HDRP allow you to apply effects to your camera.
-          This includes post processing effects, shadows, lighting, fog and sky settings.
-
-          
-
-          Volumes
-          can be <b>Global</b> or <b>Local</b>.
-
-          
-
-          <b>Global</b>
-          - applied to all cameras in the scene regardless of their position
-
-          
-
-          <b>Local</b>
-          - applied only to cameras whose position is inside said Local Volume
-
-'
+        m_Untranslated: "In HDRP, Volumes allow you to apply and override effects
+          on your camera. This includes post-processing effects, shadows, lighting,
+          Fog and Sky settings.\r\n\r\nVolumes can be <b>Global</b> or <b>Local</b>.\r\n\r\n<b>Global</b>
+          volumes are applied to all cameras in the Scene regardless of their position.\r\n\r\n<b>Local</b>
+          volumes are applied only to cameras whose position is inside said Local
+          Volume.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

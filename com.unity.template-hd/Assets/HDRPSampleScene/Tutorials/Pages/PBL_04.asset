@@ -39,31 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You completed the tutorial. Learning how to use Physically
-          Based Light values can greatly help you to achieve realistic looks.
-
-
-
-          Here
-          is a <a href="https://youtu.be/yqCHiZrgKzs?t=1936">video</a> tutorial on
-          the subject.
-
-
-
-          HDRP also supports <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html">IES
-          profiles</a> profiles, a type of file storing the distribution of light
-          around a source of light.
-
-          When talking about physically correct
-          lighting, it is crucial to also understand Exposure, which we will cover
-          in the next chapter.
-
-
-
-          Note: You do not need to save in order
-          to follow other tutorials.
-
-'
+        m_Untranslated: "In this tutorial, you learned how to use Physically Based
+          Light values to achieve realistic lighting of an environment.\r\n\r\nFor
+          more information on lighting, watch this  <a href=\"https://youtu.be/yqCHiZrgKzs?t=1936\">video
+          tutorial</a>.\r\n\r\nHDRP also supports <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html\">IES
+          profiles</a> profiles, a type of file that stores the distribution of light
+          around a source of light.\r\n\r\nWhen talking about physically correct
+          lighting, it\u2019s crucial to understand Exposure, which we will cover
+          in the next tutorial.\r\n\r\n<b>Note:</b> You do not need to save your
+          changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

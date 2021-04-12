@@ -37,37 +37,20 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Using provided presets
+        m_Untranslated: Using the provided presets
       Text:
-        m_Untranslated: 'The lighting in this scene was already generated and therefore
-          you do not need to generate it again, except if you want to experiment
-          with the different provided presets to compare quality. The following instructions
-          are therefore optional and should only be attempted with a powerful machine.
-
-
-
-          1)
-          Open Lighting tab <b>Window</b> > <b>Rendering</b> > <b>Lighting</b>
-
-
-
-          2)
-          In the scene tab, assign one of the presets into <b>Lighting Settings</b>
-          field. For example <b>LightingSettings1Draft</b>
-
-
-
-          3) In the
-          bottom right corner of the Lighting tab, click <b>Generate Lighting</b>
-
-
-
-          Notice
-          how the quality of the lightmaps is now much lower with the Draft preset,
-          with apparent blotches of light in certain areas. Experiment with the other
-          Lighting Settings presets to compare the results.
-
-'
+        m_Untranslated: "The lighting in the Scene has already been generated and
+          you don't need to generate it again. The following instructions focus on
+          generating the lighting with the different Lighting Settings assets to
+          explore the variance in quality. \r\n\r\nThese steps are optional and recommended
+          on powerful machines. \r\n\r\n1) Open the Lighting tab. Go to <b>Window</b>
+          > <b>Rendering</b> > <b>Lighting</b>.\r\n\r\n2) In the Scene tab, assign
+          one of the Lighting Settings assets to the <b>Lighting Settings</b> field.
+          For example, <b>LightingSettings1Draft</b>.\r\n\r\n3) In the bottom right
+          corner of the Lighting tab, click <b>Generate Lighting</b>.\r\n\r\nNotice
+          how with the Draft Lighting Settings asset, the quality of the lightmaps
+          is now much lower, with apparent blotches of light in certain areas. Experiment
+          with other Lighting Settings assets and compare the results.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -37,41 +37,19 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Quality settings
+        m_Untranslated: Setup the quality settings
       Text:
-        m_Untranslated: 'It is good practice to have multiple HDRP assets with different
-          settings for different performance targets.
-
-          
-
-          1)
-          Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b>, we have 3
-          quality levels <b>High, Medium, Low</b>
-
-          
-
-          2) <b>Medium</b>
-          is currently active and the default one. Let''s switch to <b>Low Quality</b>
-
-          
-
-          3)
-          Notice the fog is now gone and it should increase your framerate
-
-          
-
-          4)
-          Change back to <b>Medium Quality</b>
-
-          
-
-          Optionally
-          you can locate the <b>Low</b> asset in Settings folder and verify that
+        m_Untranslated: "It\u2019s good practice to have multiple HDRP assets with
+          different settings for different performance targets.\r\n\r\n1) Go to <b>Edit</b>
+          > <b>Project Settings</b> > <b>Quality</b>, we have 3 quality levels <b>High,
+          Medium,</b> and <b>Low</b>. <b>Medium</b> is currently active and the default
+          one. \r\n\r\n2) Switch to <b>Low Quality</b> and observe the Fog disappearing.
+          This occurs because in the Low Quality HDRP asset the Fog is disabled.
+          \r\n\r\n3) Change back to <b>Medium Quality</b>.\r\n\r\nAlternatively,
+          you can locate the <b>Low</b> asset in the Settings folder and verify that
           indeed <b>Lighting</b> > <b>Volumetrics</b> is off in the <b>Low Quality</b>
-          level. Also you can try switching to <b>High Quality</b> and see what effect
-          it has on the shadow filtering quality.
-
-'
+          level. You can also try switching to <b>High Quality</b> and see what effect
+          it has on the shadow filtering quality.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

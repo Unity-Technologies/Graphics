@@ -39,18 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: 'A complex room like room 2, which has curved walls, a sloped
-          ceiling, and a wide range of lighting intensities, requires a large number
-          of probes to reach a high reflection quality.
-
-
-
-          The size of
-          the probe directly influences how it is sorted and blended with other probes:
-          smaller Reflection Probes tend to have higher importance than larger ones
-          and will most likely have a higher influence on the nearby objects.
-
-'
+        m_Untranslated: "A complex room like the second room, which has curved walls,
+          a sloped ceiling, and a wide range of lighting intensities, requires a
+          large number of probes to reach a high reflection quality.\r\n\r\nThe size
+          of the probe directly influences how it is sorted and blended with other
+          probes: smaller Reflection Probes tend to have more influence on nearby
+          objects than larger ones. \r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

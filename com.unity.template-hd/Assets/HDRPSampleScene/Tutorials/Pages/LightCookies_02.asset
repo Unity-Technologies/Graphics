@@ -37,27 +37,13 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Inspect Light cookie
+        m_Untranslated: Inspect the Light cookie
       Text:
-        m_Untranslated: 'Light cookies can be assigned in the Light component.
-
-
-
-          1)
-          Select the light illuminating the wall, it should be called <b>Light_Spot_1600lm</b>
-
-
-
-          2)
-          Scroll down in the inspector window until you see <b>Cookie</b> field,
-          in the <b>Emission</b> foldout
-
-
-
-          3) Notice a texture called
-          <b>SpotLight_Cookie</b> is assigned
-
-'
+        m_Untranslated: "You can assign Light cookies in the Light component.\r\n\r\n1)
+          Select <b>Light_Spot_1600lm</b>, the spotlight illuminating the wall.\r\n\r\n2)
+          In the Inspector, scroll down until you see the <b>Cookie</b> field, in
+          the <b>Emission</b> foldout.\r\n\r\n3) Notice that a texture called <b>SpotLight_Cookie</b>
+          is assigned.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

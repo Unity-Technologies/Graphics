@@ -39,11 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Baking settings
       Text:
-        m_Untranslated: "In the Lighting window, you can see all of the baking settings,
-          they can be stored into a <b>Lighting Settings</b> asset.\r\n\r\nWe offer
-          4 different assets in this template, with different levels of quality,
-          which will have a direct impact on how long the bake will take: the higher
-          the quality, the longer the bake. \r\n\r\nAll 4 presets take advantage
+        m_Untranslated: "In the Lighting window, you\u2019ll find all of the baking
+          settings. These can be stored as a <b>Lighting Settings</b> assets.\r\n\r\nIn
+          this template there are 4 assets with different levels of quality, which
+          have a direct impact on how long the bake will take: the higher the quality,
+          the longer the bake. \r\n\r\nAll 4 Lighting Settings assets take advantage
           of the GPU Lightmapper, which offers much faster baking speed compared
           to the CPU Lightmapper, as long as you use a discrete GPU with sufficient
           processing power.\r\n"

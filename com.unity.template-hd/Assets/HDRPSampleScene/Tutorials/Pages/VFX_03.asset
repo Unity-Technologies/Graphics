@@ -39,10 +39,34 @@ MonoBehaviour:
       Title:
         m_Untranslated: Butterflies
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> GameObject\r\n\r\n2)
-          Select <b>ButterFlies</b> GameObject\r\n\r\n3) Go to <i>Inspector</i> window
-          > <i>Properties</i>\r\n\r\n4) Set <b>Wing Animation Speed</b> to 0.1 \r\n\r\nNotice
-          how the animation slows down.\r\n"
+        m_Untranslated: 'Take a look at another more complex visual effect in the
+          scene.
+
+          
+
+          1) In the <i>Hierarchy</i>, expand the <b>VFX</b>
+          GameObject.
+
+          
+
+          2) Select the <b>ButterFlies</b> GameObject.
+
+          
+
+          3)
+          In the <i>Inspector</i>, view the <i>Properties</i>.
+
+          
+
+          4)
+          Set the <b>Wing Animation Speed</b> to 0.1.
+
+          
+
+          Notice
+          how the animation slows down.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

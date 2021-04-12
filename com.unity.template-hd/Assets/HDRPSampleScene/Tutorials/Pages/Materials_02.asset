@@ -39,37 +39,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Mask map
       Text:
-        m_Untranslated: 'The materials in HDRP use a Mask Map, to define different
-          texture properties, such as metalness, smoothness, ambient occlusion, and
-          detail mask. We combine these four textures into one to save memory space.
-
-
-
-          1)
-          In the <i>Hierarchy</i> window expand <b>Props</b> > <b>Room3</b> > <b>Ball_PF
-          (1)</b> GameObject
-
-
-
-          2) Select <b>Ball</b> GameObject
-
-
-
-          3)
-          Go to <i>Inspector</i> window > expand the <i>Brass_Mat</i> Material
-
-
-
-          4)
-          Remove the <b>Mask Map</b> or set it to None.The smoothness map is removed
-          and you can see that the Ball is equally smooth.
-
-
-
-          5) Undo your
-          change
-
-'
+        m_Untranslated: "The materials in HDRP use an RGBA Mask Map to define different
+          texture properties, such as metalness (R), smoothness (G), ambient occlusion
+          (B), and detail mask (A).\r\n\r\n1) In the <i>Hierarchy</i>, expand the
+          <b>Props</b> > <b>Room3</b> > <b>Ball_PF (1)</b> GameObject.\r\n\r\n2)
+          Select the <b>Ball</b> GameObject.\r\n\r\n3) Go to the <i>Inspector</i>
+          and expand the <i>Brass_Mat</i> Material.\r\n\r\n4) Remove the <b>Mask
+          Map</b> or set it to None, and see that the ball becomes uniformly smooth
+          as the smoothness variations from the Mask Map texture are removed.\r\n\r\n5)
+          Undo your change.\r\n\r\nThis step shows how the smoothness parameters
+          of a material are controlled with a Mask Map. \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

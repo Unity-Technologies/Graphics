@@ -39,18 +39,45 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore the scene
       Text:
-        m_Untranslated: "Let\u2019s explore how the feature was utilized in this
-          template.\r\n\r\n1) In the <i>Hierarchy</i> window, select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Room 3 Sitting</b>\r\n\r\n2) Disable the White
-          balance volume override and notice how it impacts the colors overall, the
-          strip light on the curved wall and the white floor tiles.\r\n\r\n3) Undo
-          your change\r\n\r\nThe white balance here applies a cool color filter to
-          the image, to counterbalance the strong orange color cast from the lamps
-          above the chairs.\r\n\r\nOften, artificial lighting falls on the warm side
-          of the color temperature range, and white balance is a way to adjust the
-          perception of white color in a scene.\r\n\r\nThe opposite effect can be
-          applied to an outdoor scene with a blue sky, which tends to have a bluer
-          color cast, and therefore requires warmer white balance settings.\r\n"
+        m_Untranslated: 'Explore the scene to see how white balancing is utilized
+          in this template.
+
+          
+
+          1) In the <i>Hierarchy</i>,
+          select <b>Lighting</b> > <b>Volumes</b> > <b>Volume Room 3 Sitting</b>.
+
+          
+
+          2)
+          Disable the White balance volume override and notice how it impacts the
+          strip light on the curved wall, the white floor tiles, and the colors overall.
+
+          
+
+          3)
+          Undo this change.
+
+          
+
+          The white balance here applies
+          a cool color filter to the image, to counterbalance the strong orange color
+          cast from the lamps above the chairs.
+
+          
+
+          Artificial
+          lighting often falls on the warm side of the color temperature range, and
+          white balance is a way to adjust the perception of white color in a Scene.
+
+          
+
+          The
+          opposite effect can be applied to an outdoor Scene with a blue Sky, which
+          tends to have a bluer color cast, and therefore requires warmer white balance
+          settings.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -39,35 +39,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Butterflies
       Text:
-        m_Untranslated: 'Let''s open the VFX graph to see how the butterflies are
-          generated using VFX nodes.
-
-
-
-          1) In <i>Project</i> window select
-          <b>Art</b> > <b>Particles</b> and open <b>ButterFlies.vfx</b>
-
-
-
-          2)
-          Find <b>Spawn</b> node, remove connection to <b>Count</b> node
-
-
-
-          3)
-          Change <b>Count</b> from 10 to 30
-
-
-
-          4) Press Compile at the
-          top left of the window
-
-
-
-          Now you should notice more butterflies
-          flying around the trees.
-
-'
+        m_Untranslated: "Open the VFX graph to see how the butterflies are generated
+          using a nodal system.\r\n\r\n1) In the <i>Project</i> window, go to <b>Art</b>
+          > <b>Particles</b> and open <b>ButterFlies.vfx</b>.\r\n\r\n2) Find the
+          <b>Spawn</b> block at the top of the graph and delete the <b>Count</b>
+          node.\r\n\r\n3) In the Spawn block, increase the <b>Count</b> from 10 to
+          50.\r\n\r\n4) Select <b>Compile</b> at the top left of the window.\r\n\r\nYou
+          can now notice many more butterflies flying around the trees.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

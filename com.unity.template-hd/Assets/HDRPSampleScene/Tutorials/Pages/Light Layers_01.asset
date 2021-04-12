@@ -39,8 +39,8 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: Light layers can be used to dictate which objects can be
-          affected by a Light or a Reflection Probe.
+        m_Untranslated: You can use <b>light layers</b> to dictate which objects
+          can be affected by a light or a Reflection Probe.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

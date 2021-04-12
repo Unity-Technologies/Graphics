@@ -37,30 +37,32 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Explore light probes
+        m_Untranslated: Explore the Light Probes
       Text:
         m_Untranslated: "Let\u2019s take a look at how Light Probes are set up in
-          this scene.\r\n\r\nTip: If you'd like to match the image above, make sure
-          Gizmos are on, light probes are not selected and at the bottom of the <b>Window</b>
-          > <b>Rendering</b> > <b>Lighting</b>, set Light Probe Visualization to
-          <b>All probes no cells</b>.\r\n\r\nThe Light Probe Group can be found in
-          <i>Hierarchy</i> window <b>Lighting</b> > <b>Light Probe Group</b>. They
-          were placed by hand. Select Light Probe Group and in the <i>Inspector</i>
-          click <b>Edit Light Probes</b> button to select, move or add new probes.\r\n\r\nTips:\r\n\r\n*
-          Light probes are not realtime, remember to generate the lighting again
-          if you made noticeable changes to the lighting.\r\n\r\n* Spheres in the
-          image above show the indirect lighting sampling location. Whenever an object
-          is set to receive lighting from light probes (default), the object will
-          receive the lighting using a blend from the 4 closest probes. So it is
-          important to increase the density of probes in areas of high lighting contrast
-          to ensure more accurate interpolation between probes.\r\n\r\n* Light Probes
-          are baked considerably faster than lightmaps, and Light Probe data is considerably
-          smaller than lightmaps. Therefore, it is also recommended to set smaller
-          stationary objects to receive Global Illumination from Light Probes, rather
-          than Lightmaps. Apart from the main structures (walls, floors, etc.), most
-          objects in this scene are tagged to receive Global Illumination from Light
-          Probes. This will reduce baking times and the overall memory footprint
-          of the lighting.\r\n"
+          this Scene.\r\n\r\n<b>Tip:</b> If you'd like your Scene to match the image
+          above, make sure Gizmos are on, Light Probes are not selected, and at the
+          bottom of the <b>Window</b> > <b>Rendering</b> > <b>Lighting</b>, set <b>Light
+          Probe Visualization</b> to <b>All probes no cells</b>.\r\n\r\nThe <b>Light
+          Probe Group</b> can be found in the <i>Hierarchy</i> <b>Lighting</b> >
+          <b>Light Probe Group</b>. These Light Probes were placed by hand. Select
+          the Light Probe Group, then in the <i>Inspector</i>, click the <b>Edit
+          Light Probes</b> button to select, move or add new probes.\r\n\r\n<b>Tips:</b>\r\n\r\n\u2022
+          Light Probes are not real-time, so remember to generate the lighting again
+          if you have made noticeable changes to it\r\n\r\n\u2022 The spheres in
+          the image above are a visualisation of the lighting captured by the Light
+          Probes at their corresponding locations. Objects are set by default to
+          receive lighting from Light Probes, and will receive the lighting as a
+          blend from the 4 closest probes. Therefore, it\u2019s important to increase
+          the density of probes in areas of high lighting contrast to ensure more
+          accurate interpolation between probes.\r\n\r\n\u2022 It\u2019s recommended
+          to set smaller stationary objects to receive Global Illumination from Light
+          Probes, rather than from Lightmaps. Light Probes are baked considerably
+          faster than lightmaps, and Light Probe data is considerably smaller than
+          that of lightmaps. Apart from the main structures (walls, floors, etc.),
+          most objects in this sample Scene are tagged to receive Global Illumination
+          from Light Probes. This will reduce baking times and the overall memory
+          footprint of the lighting."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -39,32 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Minimal set up
       Text:
-        m_Untranslated: 'Setting up a Sky in HDRP is composed of 3 steps:
-
-
-
-          1)
-          Choose the type of Sky using the Visual Environment override
-
-
-
-          2)
-          Configure the selected Sky using specific overrides, such as HDRI Sky
-
-
-
-          3)
-          Enable the Ambient Lighting in the Lighting tab. The chosen sky will also
-          be used for baking lightmaps
-
-
-
-          Currently, there are 3 types
-          of sky to choose from: HDRI Sky, Physically Based Sky, and Gradient Sky.
-          We will take a look at how the Sky is set up for this scene in the next
-          step.
-
-'
+        m_Untranslated: "In HDRP, the following steps are required to set up a <b>Sky</b>:\r\n\r\n1)
+          Choose the type of Sky with an <b>Visual Environment</b> override added
+          to a volume.\r\n\r\n2) Configure the selected Sky type by adding the corresponding
+          override, such as HDRI Sky.\r\n\r\nCurrently, there are 3 types of Sky
+          to choose from: HDRI Sky, Physically Based Sky, and Gradient Sky. \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

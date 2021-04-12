@@ -37,14 +37,40 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Remove the light cookie
+        m_Untranslated: Remove the Light cookie
       Text:
-        m_Untranslated: "Let\u2019s see what impact the cookie have on this particular
-          light.\r\n\r\n1) While the light is selected, click on <b>SpotLight_Cookie</b>
-          in the <i>Inspector</i> window\r\n\r\n2) Press <b>Delete</b> key\r\n\r\n3)
-          Notice the light shape changes, the edges no longer have a smooth transition,
-          and some fine details are lost around the center\r\n\r\n4) Press <b>Ctrl+Z</b>
-          to undo the change\r\n"
+        m_Untranslated: 'Observe what impact light cookies have on <b>Light_Spot_1600lm</b>.
+
+          
+
+          1)
+          With the spotlight selected, click on <b>SpotLight_Cookie</b> in the <i>Inspector</i>.
+
+          
+
+          2)
+          Press <b>Delete</b> to delete the spotlight
+
+          
+
+          3)
+          Notice how the light shape changes: the edges no longer have a smooth transition,
+          and some fine details are lost around the center.
+
+          
+
+          4)
+          Undo this change.
+
+          
+
+          
+
+          Notice how the
+          light cookie adds variation to the spotlight to create a more realistic
+          effect.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

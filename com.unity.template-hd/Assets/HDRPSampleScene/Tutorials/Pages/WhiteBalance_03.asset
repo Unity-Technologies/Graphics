@@ -39,11 +39,21 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: "You completed the tutorial. That\u2019s it for the White
-          Balance, it\u2019s a simple but very useful feature.\r\n\r\nHere is a<a
-          href=\"https://youtu.be/yqCHiZrgKzs?t=3749\">video</a> tutorial on the
-          subject.\r\nYou can always find more information in our href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Post-Processing-White-Balance.html\"<a>documentation.</a>\r\n\r\nNote:
-          You do not need to save in order to follow other tutorials.\r\n"
+        m_Untranslated: 'In this tutorial, you learned how white balance can help
+          you improve visual fidelity.
+
+          
+
+          For more information
+          about white balancing, you can check out this <a href="https://youtu.be/yqCHiZrgKzs?t=3749">video</a>
+          tutorial, or read more about it in the href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Post-Processing-White-Balance.html"<a>documentation</a>.
+
+          
+
+          <b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

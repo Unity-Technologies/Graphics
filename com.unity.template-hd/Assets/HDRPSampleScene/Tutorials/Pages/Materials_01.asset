@@ -41,7 +41,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: HDRP uses Physically Based Rendering (PBR), a technique that
           more accurately models the lighting and its interaction with materials
-          in the real world. PBR is an industry standard in the CGI world.
+          in the real world.  In the CGI world, PBR is an industry standard.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

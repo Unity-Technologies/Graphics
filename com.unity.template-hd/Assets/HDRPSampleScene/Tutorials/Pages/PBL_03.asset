@@ -37,21 +37,23 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Artificial Lights
+        m_Untranslated: Artificial lights
       Text:
-        m_Untranslated: "Select the light illuminating the wall and inspect its properties.
-          The GameObject is called Light_Spot_1600lm.\r\n\r\nThe intensity of the
-          light bulb is usually provided by the manufacturer, usually in Lumen or
-          Candela.\r\n\r\nThe selected lamps intensity is <b>1600 Lumen</b> and the
-          temperature is <b>3500 Kelvin</b>. This corresponds to the intensity of
-          a powerful 100W halogen bulb. \r\n\r\nCreating realistic lighting becomes
-          as simple as looking up bulb values online or using the slider ranges if
-          you don\u2019t have a particular light in mind.\r\n\r\nWhen dealing with
-          lumen and Spot lights, make sure you enable the <b>Reflector</b> checkbox
-          in the Emission foldout, under the <b>Intensity</b> field. If you cannot
-          see this checkbox, enable <i>More Options</i> for the Emission foldout.\r\n\r\n<b>Performance
-          tip:</b> Keep the <b>Fade Distance</b> property as low as possible, so
-          that the light disappears beyond a certain distance (in meter).\r\n"
+        m_Untranslated: "Select the GameObject <b>Light_Spot_1600lm,</b> which is
+          the light illuminating the wall. Take a look at its properties.\r\n\r\nThe
+          intensity of this lamp is <b>1600 Lumen</b> and the temperature is <b>3500
+          Kelvin</b>. This corresponds to the intensity of a powerful 100W halogen
+          bulb. \r\n\r\nThe intensity of the light bulb is usually provided by the
+          manufacturer, in Lumen or Candela.\r\n\r\nCreating realistic lighting is
+          as simple as looking up bulb values online, or using the slider ranges
+          if you don\u2019t have a particular light in mind.\r\n\r\nWhen using Lumens
+          with Spot lights, make sure you enable the <b>Reflector</b> checkbox in
+          the Emission foldout, under the <b>Intensity</b> field, in order to have
+          a correct simulation of the light intensity based on its cone angle. If
+          you cannot see this checkbox, enable <i>More Options</i> for the Emission
+          foldout.\r\n\r\n<b>Performance tip:</b> Keep the <b>Fade Distance</b> property
+          as low as possible, so that the light disappears beyond a certain distance
+          (in meters).\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

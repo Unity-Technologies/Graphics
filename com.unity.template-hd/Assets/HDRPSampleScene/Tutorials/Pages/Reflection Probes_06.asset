@@ -39,15 +39,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You have finished the <b>Reflection Probes</b> tutorial.
-          For more information, check out the Reflection Probes <a href="https://docs.unity3d.com/Manual/class-ReflectionProbe.html">documentation</a>.
-
-
-
-          Note:
-          You do not need to save in order to follow other tutorials.
-
-'
+        m_Untranslated: "In this tutorial, you learned how reflections from the environment
+          are captured.\r\n\r\nFor more information, check out the Reflection Probes
+          <a href=\"https://docs.unity3d.com/Manual/class-ReflectionProbe.html\">documentation</a>.\r\n\r\n<b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

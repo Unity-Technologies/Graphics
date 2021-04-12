@@ -39,15 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: Who is this tutorial for?
       Text:
-        m_Untranslated: "This tutorial is designed for intermediate users who already
-          know how to use Unity, but are new to the High Definition Rendering Pipeline.\r\n\r\nThe
-          goal of this project is to help you understand HDRP\u2019s core features
-          and best practices for lighting and rendering.\r\n\r\nIf you do not wish
-          to follow this tutorial and do not want to use the data associated with
-          this template in this new HDRP project, feel free to delete the <b>HDRPSampleScene</b>
-          folder in your <b>Project Window</b>, and create a new Scene. You will
-          still be able to create projects with this sample via the Unity Hub at
-          a later time.\r\n"
+        m_Untranslated: "This tutorial is designed for intermediate users who are
+          new to the High Definition Rendering Pipeline.\r\n\r\nThis project will
+          help you understand HDRP\u2019s core features and best practices for lighting
+          and rendering.\r\n\r\nIf you do not wish to follow this tutorial or use
+          the data associated with this template, feel free to delete the <b>SampleSceneAssets</b>
+          folder in your <b>Project Window</b> and create a new Scene. If you delete
+          the aforementioned folder, you will still be able to create projects with
+          this sample via the Unity Hub at a later time.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

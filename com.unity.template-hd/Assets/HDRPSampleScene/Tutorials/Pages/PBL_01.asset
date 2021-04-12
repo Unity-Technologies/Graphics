@@ -39,23 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: What is Physically Based Lighting?
       Text:
-        m_Untranslated: 'Physically based lighting relies on real-life lighting intensities,
-          like those you find on light bulb packaging or a light meter.
-
-
-
-          While
-          this is a difficult topic to grasp for beginners, learning to work with
-          real-life values will make work much easier in the future and improve lighting
-          consistency. No more guessing what values to set for light sources; simply
-          look up the measurements on the web and input them in Unity.
-
-
-
-          Here
-          are some href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html"<a>examples</a>.
-
-'
+        m_Untranslated: "<b>Physically based lighting</b> relies on real-life lighting
+          intensities, like those found on light bulbs or with a light meter.\r\n\r\nWhile
+          this is often a new topic to grasp, learning to work with real-life values
+          will make your work much easier in the future and improve lighting consistency.
+          \r\n\r\nNo more guessing what values to set for light sources; simply look
+          up the measurements on the web and input them in Unity.\r\n\r\nHere are
+          some href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Physical-Light-Units.html\"<a>examples</a>
+          of different light sources and their respective lighting values."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

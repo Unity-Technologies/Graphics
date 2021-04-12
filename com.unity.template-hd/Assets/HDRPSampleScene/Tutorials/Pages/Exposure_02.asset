@@ -37,55 +37,21 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Fixed exposure
+        m_Untranslated: Fixed Exposure
       Text:
-        m_Untranslated: 'Exposure is easiest to explain when it is not set up properly.
-          Let''s override the exposure globally.
-
-          
-
-          1) Right
-          click in the <i>Hierarchy</i> window, <b>Volume</b> > <b>Global Volume</b>
-
-          
-
-          2)
-          In the <i>Inspector</i>, click the <b>New</b> button
-
-          
-
-          3)
-          Set the Priority to 10. This way we will ignore all the existing exposure
-          settings in the scene set by other volumes which use a lower priority.
-
-          
-
-          4)
-          Add Override <b>Exposure</b>
-
-          
-
-          5) Set Mode to Fixed
-
-          
-
-          6)
-          Set the Fixed Exposure value to 0. Notice everything is suddenly very bright.
-          Look around in the scene: other rooms are almost solidwhite
-
-          
-
-          7)
-          Using the slider, increase the Exposure to 3. The 3rd room should look
-          more correct now, but the other ones are still overexposed.
-
-          
-
-          This
-          is the downside of the fixed exposure, it works well in an evenly lit environment
-          but would require additional work to set up the other rooms.
-
-'
+        m_Untranslated: "Exposure is easiest to understand when it\u2019s not set
+          up properly. In this example, let's override the exposure globally.\r\n\r\n1)
+          Right click in the <i>Hierarchy</i>, <b>Volume</b> > <b>Global Volume</b>.\r\n\r\n2)
+          In the <i>Inspector</i>, click the <b>New</b> button.\r\n\r\n3) Set the
+          <b>Priority</b> to 10 to ignore all existing exposure settings in the Scene
+          set by other volumes using lower priorities.\r\n\r\n4) Add Override <b>Exposure</b>.\r\n\r\n5)
+          Set the <b>Mode</b> to <b>Fixed</b>.\r\n\r\n6) Set the Fixed Exposure value
+          to 0. Notice that everything is suddenly very bright. Look around the Scene:
+          other rooms appear almost solid white.\r\n\r\n7) Using the slider, increase
+          the Exposure to 3. The room should look more correct now, but the others
+          are still overexposed.\r\n\r\nThis is the downside of the fixed exposure:
+          it works well in an evenly lit environment but would require additional
+          work to set up the other rooms.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

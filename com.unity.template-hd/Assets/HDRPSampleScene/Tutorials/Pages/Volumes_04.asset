@@ -39,23 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You completed the Volumes tutorial!
-
-
-
-          Here is
-          a<a href="https://youtu.be/yqCHiZrgKzs?t=771">video</a> tutorial on the
-          subject.
-
-          For more details check out the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html">Volumes
-          documentation</a>.
-
-
-
-          Note: You do not need to save in order
-          to follow other tutorials.
-
-'
+        m_Untranslated: "In this tutorial, you learned how volumes work and how to
+          set them up to override HDRP settings.\r\n\r\nHere is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=771\">video</a>
+          tutorial on the subject.\r\nFor more details, check out the <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html\">Volumes
+          documentation</a>.\r\n\r\n<b>Note:</b> You do not need to save your changes
+          in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

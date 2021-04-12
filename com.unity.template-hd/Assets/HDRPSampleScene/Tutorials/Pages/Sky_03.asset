@@ -39,21 +39,9 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You completed the tutorial. It should help you understand
-          the core principles of setting up a sky in HDRP.
-
-
-
-          For more
-          information about the subject, please check out our href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Physically-Based-Sky.html"<a>documentation
-          page</a>.
-
-
-
-          Note: You do not need to save in order to follow
-          other tutorials.
-
-'
+        m_Untranslated: "In this tutorial, you learned about setting up Sky and intensity
+          values in HDRP.\r\n\r\nFor more information, you can check out the href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Physically-Based-Sky.html\"<a>documentation</a>.\r\n\r\n<b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

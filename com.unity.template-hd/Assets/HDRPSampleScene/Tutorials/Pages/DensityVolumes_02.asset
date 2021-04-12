@@ -39,10 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Density Volume
       Text:
-        m_Untranslated: "Let\u2019s toggle  the existing density volume off and on,
-          and notice how the sunlight interacts with the fog. \r\n\r\nIn the <i>Hierarchy</i>
-          window under <b>Lightning</b> disable and re-enable the <b>Density Volumes</b>.
-          \r\n"
+        m_Untranslated: "Disable and re-enable the existing density volume and notice
+          how the Sunlight interacts with the Fog. \r\n\r\nIn the <i>Hierarchy</i>
+          under <b>Lighting</b>, disable and re-enable the <b>Density Volumes</b>.
+          \r\n\r\nNotice how disabling the <b>Density Volumes</b> reduces the local
+          fog density, and how enabling it again increases the density and how it
+          reacts to the sunlight. \r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

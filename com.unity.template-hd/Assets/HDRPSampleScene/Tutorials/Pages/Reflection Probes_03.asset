@@ -39,10 +39,9 @@ MonoBehaviour:
       Title:
         m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: You can switch between different types of shapes for the
-          Reflection Probe, such as the box and sphere. A box shape will be useful
-          for setting up reflections for an indoor environment like a room, whereas
-          a spherical shape might be more suitable to an open environment.
+        m_Untranslated: Reflection Probes come in two shapes. A box is useful for
+          setting up reflections for an indoor environment like a room, whereas a
+          sphere may be more suited to an open outdoor environment.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -39,10 +39,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Density Volume
       Text:
-        m_Untranslated: A Density Volume is an additive Volume of fog represented
-          as an oriented bounding box. By default, the fog in the Density Volume
-          is constant (homogeneous), but you can alter it by assigning a 3D texture
-          to the Texture field under the Density Mask Texture section.
+        m_Untranslated: A <b>Density Volume</b> increases the local density of fog.
+          By default, the fog in the Density Volume is constant (homogeneous), but
+          you can alter it by assigning a 3D texture to the Texture field under the
+          Density Mask Texture section.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

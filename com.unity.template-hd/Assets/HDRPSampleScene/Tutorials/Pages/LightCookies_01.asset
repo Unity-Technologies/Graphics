@@ -37,12 +37,12 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: What are Light Cookies?
+        m_Untranslated: What are Light cookies?
       Text:
-        m_Untranslated: A Light Cookie is a 2D or cubemap Texture that can be assigned
-          to a Light in order to control the shape, intensity and color of the emitted
-          light. They can simulate self-occlusion and defects of the lamp and light
-          bulbs.
+        m_Untranslated: A <b>Light cookie</b> is a 2D or cubemap texture that can
+          be assigned to a light in order to control the shape, intensity and color
+          of the emitted light. They can simulate self-occlusion and defects of lamps
+          and light bulbs.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

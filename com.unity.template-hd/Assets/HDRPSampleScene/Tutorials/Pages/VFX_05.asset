@@ -39,11 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: "You have finished the <b>Visual Effects</b> tutorial. For
-          more details check out <a href=\"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@6.9/manual/index.html\">Visual
-          Effect Graph</a> and <a href=\"https://github.com/Unity-Technologies/VisualEffectGraph-Samples\">more
-          samples.</a>\r\n\r\nNote: You do not need to save in order to follow other
-          tutorials.\r"
+        m_Untranslated: "In this tutorial, you learned how dust and butterflies were
+          added into the project using the VFX graph.\r\n\r\nFor more information,
+          check out the <a href=\"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@6.9/manual/index.html\">documentation</a>
+          and more <a href=\"https://github.com/Unity-Technologies/VisualEffectGraph-Samples\">samples</a>.\r\n\r\n<b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

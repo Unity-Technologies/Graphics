@@ -37,21 +37,16 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: HDRP asset
+        m_Untranslated: HDRP Asset configuration
       Text:
-        m_Untranslated: "The global rendering settings of your Project are controlled
-          by the HDRP asset. If a feature is disabled in the asset, Unity will not
-          allocate memory or execute code for that specific feature. Therefore, it
-          is highly recommended to turn off unused features in your project to avoid
-          impacting performance, reduce memory consumption, and minimize build time.\r\n\r\nLet\u2019s
-          quickly check how that works.\r\n\r\n1) Select the <b>HDRPMediumQuality</b>
-          asset from the previous step. It is located in the Project Window, in the
-          <b>Assets</b> > <b>Settings</b> folder\r\n\r\n2) In the <i>Inspector</i>
-          window expand the <b>Lighting</b> foldout and disable <b>Screen Space Ambient
-          Occlusion</b>\r\n\r\n3) Notice the visual change it has on the flower pot\r\n\r\n4)
-          Turn the feature back on\r\n\r\nYou might have noticed we have 2 more HDRP
-          asset files in the Settings folder. We will see how they\u2019re used in
-          the next step.\r\n"
+        m_Untranslated: "It\u2019s highly recommended to turn off unused features
+          in your project to avoid impacting performance, reduce memory consumption,
+          and minimize build time.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
+          > <b>Quality</b>.\r\n\r\n2) Double-click the asset assigned to the <b>Render
+          Pipeline Asset</b> field.\r\n\r\n3) In the <i>Inspector</i>, expand the
+          <b>Lighting</b> foldout and disable the <b>Screen Space Ambient Occlusion</b>.\r\n\r\n4)
+          Notice the darkening effect on the flower pot disappear.\r\n\r\n5) Re-enable
+          the feature.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

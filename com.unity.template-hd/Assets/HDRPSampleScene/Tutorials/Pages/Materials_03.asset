@@ -39,46 +39,15 @@ MonoBehaviour:
       Title:
         m_Untranslated: Refraction model
       Text:
-        m_Untranslated: 'The High Definition Render Pipeline (HDRP) uses a refraction
-          algorithm to simulate light deviation and absorption within Materials.
-
-          
-
-          Select
-          the glass by following the steps:
-
-          1) In the <i>Hierarchy</i>
-          window expand <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0</b>
-
-          
-
-          2)
-          Select <b>RoundTable_GLass_01_LOD00</b> GameObject
-
-          
-
-          3)
-          Go to <i>Inspector</i> window > expand the <i>Glass Dark_Mat Material</i>
-
-          
-
-          4)
-          The <b>Surface Type</b> must be set to <b>Transparent</b>. This exposes
-          the <b>Transparency Inputs</b> section in the <i>Inspector</i>
-
-          
-
-          5)
-          Click the <b>Refraction Model</b> drop-down and set the <b>Refraction Model</b>
-          to None and back
-
-          
-
-          Refraction allows us to create
-          this frosted glass effect which you can adjust using the smoothness slider
-          above.
-
-'
+        m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
+          algorithm to simulate light deviation and absorption within Materials.\r\n\r\nSelect
+          the glass by following the steps:\r\n1) In the <i>Hierarchy</i>, expand
+          <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0</b>.\r\n\r\n2)
+          Select the <b>RoundTable_GLass_01_LOD00</b> GameObject.\r\n\r\n3) In the
+          <i>Inspector</i>, expand the <i>Glass Dark_Mat Material</i>.\r\n\r\n4)
+          Set the <b>Refraction Model</b> to None to disable the refraction entirely.
+          \r\n\r\n5) Undo your change.\r\n\r\nRefraction allows us to create a frosted
+          glass effect which you can adjust by tuning the Smoothness of the material.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

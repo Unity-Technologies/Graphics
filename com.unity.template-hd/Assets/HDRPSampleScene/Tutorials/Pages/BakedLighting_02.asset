@@ -39,14 +39,19 @@ MonoBehaviour:
       Title:
         m_Untranslated: Lighting Modes
       Text:
-        m_Untranslated: "Open the Lighting tab by going to <b>Window</b> > <b>Rendering</b>
-          > <b>Lighting</b> > <b>Scene</b>\r\n\r\nNotice we\u2019re using <b>Baked
-          Indirect</b> mode, HDRP also supports Shadowmask.\r\n\r\n<b>Baked Indirect</b>
-          - Only captures indirect lighting, allowing us to have real time shadows.\r\n\r\n<b>Shadowmask</b>
-          - Enables baked shadows for distant GameObjects and blends them automatically
-          with real-time shadows. Can also be used to fully bake all lights and shadows
-          to have a completely static scene.\r\n\r\nLearn more about <a href=\"https://docs.unity3d.com/2020.2/Documentation/Manual/lighting-mode.html\">Light
-          Modes</a>.\r\n"
+        m_Untranslated: 'Open the Lighting tab by going to <b>Window</b> > <b>Rendering</b>
+          > <b>Lighting</b> > <b>Scene</b>.
+
+
+          Notice that the Lighting
+          Mode is set to <b>Baked Indirect</b>, to only capture the indirect lighting
+          produced by the sky and the artificial lights placed in the scene. HDRP
+          also supports a Shadowmask mode for a mixed approach between real-time
+          and baked shadows.
+
+
+          Learn more about <a href="https://docs.unity3d.com/2020.2/Documentation/Manual/lighting-mode.html">Light
+          Modes</a>.'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

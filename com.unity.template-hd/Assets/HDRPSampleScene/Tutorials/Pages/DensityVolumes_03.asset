@@ -39,17 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'You have finished the <b>Density Volume</b> tutorial. For
-          more details, check out this at this<a href="https://youtu.be/yqCHiZrgKzs?t=3204">video</a>
-          or the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Density-Volume.html">Density
-          Volume documentation.</a>
-
-
-
-          Note: You do not need to save in
-          order to follow other tutorials.
-
-'
+        m_Untranslated: "In this tutorial, you learned how to control the local fog
+          more precisely by adding density variations to create a more realistic
+          fog effect.\r\n\r\nFor more information, you can check out the<a href=\"https://youtu.be/yqCHiZrgKzs?t=3204\">video</a>
+          or the <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Density-Volume.html\">Density
+          Volume documentation</a>.\r\n\r\n<b>Note:</b> You do not need to save your
+          changes in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

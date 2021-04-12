@@ -37,14 +37,14 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Automatic exposure
+        m_Untranslated: Automatic Histogram exposure
       Text:
-        m_Untranslated: "Let\u2019s reuse the same Global Volume we created in the
-          last step to study Automatic Histogram Exposure.\r\n\r\n1) In the <i>Hierarchy</i>
-          window, select the Global volume\r\n\r\n2) Switch the Mode to <b>Automatic</b>\r\n\r\nNavigate
-          the environment, and notice how HDRP imitates the eye adaptation or the
-          automatic exposure system of a camera Dark areas may become brighter, and
-          bright ones may turn darker.\r\n"
+        m_Untranslated: "In the same Global Volume from the last step, set the Expose
+          Mode to Automatic Histogram. \r\n\r\n1) In the <i>Hierarchy</i>, select
+          the Global volume.\r\n\r\n2) Switch the Mode to <b>Automatic Histogram</b>.\r\n\r\nExplore
+          the Scene and notice how HDRP imitates human eye adaptation or the automatic
+          exposure system of a camera. Dark areas may become brighter, and bright
+          ones may turn darker.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

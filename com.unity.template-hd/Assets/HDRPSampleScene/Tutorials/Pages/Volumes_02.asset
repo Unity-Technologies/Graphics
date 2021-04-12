@@ -37,17 +37,17 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Explore global volume
+        m_Untranslated: Explore the Global Volume
       Text:
-        m_Untranslated: "Let\u2019s see how volumes are being used in this scene.\r\n\r\n1)
-          In the <i>Hierarchy</i> window, expand <b>Lighting</b> > <b>Volumes</b>\r\n\r\n2)
-          Select the <b>Volume Global</b> GameObject\r\n\r\n3) Notice the <b>Mode</b>
-          is <b>Global</b> in the <i>Inspector</i>\r\nDisable the <b>Tonemapping</b>
-          Override\r\n\r\n4) Undo your change\r\n\r\nNotice it has an effect no matter
-          where the camera is located. This Global Volume is important to set up
-          a baseline for the effects which usually remain constant, no matter the
-          location of the camera, such as Shadows, Motion Blur, Bloom, Ambient Occlusion,
-          Film Grain, etc. \r\n"
+        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1)
+          In the <i>Hierarchy</i>, expand <b>Lighting</b> > <b>Volumes</b>.\r\n\r\n2)
+          Select the <b>Volume Global</b> GameObject.\r\n\r\n3) Notice the <b>Mode</b>
+          is <b>Global</b> in the <i>Inspector</i>.\r\nDisable the <b>Tonemapping</b>
+          Override.\r\n\r\n4) Undo your change.\r\n\r\nNotice that Global volume
+          has an effect no matter where the camera is located. This is important
+          for setting up a baseline for effects which usually remain constant, no
+          matter the location of the camera, such as Shadows, Motion Blur, Bloom,
+          Ambient Occlusion, Film Grain, etc. \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

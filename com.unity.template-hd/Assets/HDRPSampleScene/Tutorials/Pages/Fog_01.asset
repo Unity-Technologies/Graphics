@@ -39,13 +39,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog hierarchy
       Text:
-        m_Untranslated: 'One common atmospheric effect is fog. It can be used to
-          simulate actual fog or increase the perception of depth in a scene.
+        m_Untranslated: 'In HDRP, the <b>Fog</b> system can be used to simulate actual
+          Fog or increase the perception of depth in a Scene.
 
+          
 
-
-          The
-          global fog in HDRP is set via a volume override.
+          Global
+          Fog can be set via a volume override.
 
 '
       m_Summary: 

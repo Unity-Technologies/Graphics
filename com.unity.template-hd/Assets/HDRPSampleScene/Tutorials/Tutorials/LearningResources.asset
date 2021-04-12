@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
-  m_Name: DensityVolumes
+  m_Name: LearningResources
   m_EditorClassIdentifier: 
   TutorialTitle:
-    m_Untranslated: Density Volumes
+    m_Untranslated: Explore other learning resources
   m_TutorialTitle: 
-  m_LessonId: 1015
-  m_Version: 1
+  m_LessonId: 1018
+  m_Version: 0
   m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
   m_DefaultSceneCameraSettings:
     m_CameraMode: 0
@@ -42,6 +42,4 @@ MonoBehaviour:
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:
-    - {fileID: 11400000, guid: 74f88c881f5e3324fa2007de8ef89d32, type: 2}
-    - {fileID: 11400000, guid: d787d8bff7cf1b349afccda228d376c6, type: 2}
-    - {fileID: 11400000, guid: 9bc5e0638b9ffe645b70ccefb37b9060, type: 2}
+    - {fileID: 11400000, guid: 4f7145d7466de53469f19f598f183d21, type: 2}

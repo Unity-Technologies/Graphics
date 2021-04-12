@@ -39,24 +39,26 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog settings
       Text:
-        m_Untranslated: "Select <b>Volumes Global</b> which is in the <i>Hierarchy</i>
-          window under Lighting > Volumes and let's take a look at the Fog overrides.\r\n\r\n<b>Fog
-          Attenuation Distance</b> - Determines how far you can see through the fog
-          in meters. Lower values will produce denser levels of fog. \r\n\r\n<b>Ambient
-          Probe Light Dimmer</b> - Reduces the influence of the sky ambient probe
-          on the fog. It is useful for darker indoor scenes.\r\n\r\n<b>Volumetric
-          Fog Distance</b> - Determines how far away the volumetric fog can be rendered.
-          \r\n\r\n<b>Denoising Mode</b>:\r\n* Gaussian - Applies blur to smooth out
-          the fog, might lead to loss of detail.\r\n* Reprojection - Preserves detail
-          over multiple frames, which may result in ghosting during movement.\r\n*
-          Both - Can produce very smooth fog. May introduce ghosting, the most expensive
-          solution.\r\n\r\n <b>Slice Distribution Uniformity</b> - The lower the
-          value, the more precise the nearby fog is, at the expense of the distant
-          fog. A value of 1 gives an equal distribution of quality across the near
-          and far fog.\r\n\r\n<b>Quality</b> - Provides 3 presets that aim to find
-          a balance between quality and performance.\r\n\r\n<b>Directional Lights
-          Only</b> - Improves performance by discarding local lights. Use this option
-          if you only require volumetric effects from the main directional light.\r\n"
+        m_Untranslated: "In the <i>Hierarchy</i>, select <b>Volumes Global</b> under
+          Lighting > Volumes, then let's take a look at the Fog overrides.\r\n\r\n<b>Fog
+          Attenuation Distance</b>: Determines how far you can see through the Fog
+          in meters. Lower values will produce denser levels of Fog. \r\n\r\n<b>Ambient
+          Probe Light Dimmer</b>: Reduces the influence of the Sky ambient probe
+          on the Fog. It\u2019s useful for darker indoor Scenes.\r\n\r\n<b>Volumetric
+          Fog Distance</b>: Determines how far from the camera the volumetric fog
+          will be rendered. \r\n\r\n<b>Denoising Mode</b>: Reduces noise in the Fog,
+          at a cost of reducing details:\n\r\n\u2022 <b>Gaussian</b> applies blur
+          to smooth out the Fog, might lead to loss of detail.\r\n\u2022 <b>Reprojection</b>
+          preserves detail over multiple frames, which may result in ghosting during
+          movement.\r\n\u2022 <b>Both</b> can produce very smooth Fog. The <b>Both</b>
+          setting can introduce ghosting and is the most expensive solution.\r\n\r\n
+          <b>Slice Distribution Uniformity</b>: The lower the value, the more precise
+          the nearby Fog is, at the expense of the distant Fog. A value of 1 gives
+          an equal distribution of quality between the nearby and distant Fog.\r\n\r\n<b>Quality</b>:
+          Provides 3 presets that aim to balance quality and performance.\r\n\r\n<b>Directional
+          Lights Only</b>: Improves performance by discarding local lights. Use this
+          option if you only require volumetric effects from the main directional
+          light.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

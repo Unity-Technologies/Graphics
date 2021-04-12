@@ -39,22 +39,27 @@ MonoBehaviour:
       Title:
         m_Untranslated: Dust
       Text:
-        m_Untranslated: '1) In the <i>Hierarchy</i> window expand the <b>VFX</b>
-          GameObject
+        m_Untranslated: 'Inspect the Dust visual effect created for this scene.
 
+          
 
+          1)
+          In the <i>Hierarchy</i> expand the <b>VFX</b> GameObject.
 
-          2) Select <b>FloatingDust Cage</b> GameObject
+          
 
+          2)
+          Select the <b>FloatingDust Cage</b> GameObject.
 
+          
 
           3)
-          Toggle it <b>on</b> and <b>off</b> in the <i>Inspector</i>
+          Toggle it <b>on</b> and <b>off</b> in the <i>Inspector</i>.
 
-
+          
 
           Notice
-          the impact they have on the scene.
+          how the dust particles contribute to the realism of the Scene.
 
 '
       m_Summary: 

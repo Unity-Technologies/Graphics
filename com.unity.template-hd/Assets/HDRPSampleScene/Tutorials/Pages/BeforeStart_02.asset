@@ -39,29 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: Quality and Performance
       Text:
-        m_Untranslated: 'If you plan to complete any of the tutorials or explore
-          the scene on your own, it is a good idea to adjust your settings.
-
-          
-
-          Look
-          around the scene, does it feel too slow? Or maybe it runs well and you
-          want to use the highest possible quality?
-
-          
-
-          The
+        m_Untranslated: "If you plan to complete any of the tutorials or explore
+          the Scene on your own, it\u2019s a good idea to adjust your Quality Settings.\r\n\r\nLook
+          around the Scene: does the framerate feel too low or choppy? Or maybe it
+          runs well and you want to use the highest possible quality?\r\n\r\nThe
           default quality is set to <b>Medium</b>, which will be enough for the tutorial.
-          You can navigate to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b>
-          and try Low or High.
-
-          
-
-          The Volumetric Fog is disabled
-          when using the <b>Low</b> quality level. Therefore, you will need to use
-          at least the <b>Medium</b> quality level to complete the Fog tutorial.
-
-'
+          You can go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> and
+          try Low or High.\r\n\r\nTo complete the Fog tutorial, you will need to
+          use at least the <b>Medium</b> quality level. \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

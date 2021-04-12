@@ -39,17 +39,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: Sunlight
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window, select <b>Lighting</b>
-          > <b>Directional Light Sun</b>\r\n\r\n2) Notice in the <i>Inspector</i>
-          window, under <b>Emission</b> the <b>Intensity</b> is <b>100 000 lux</b>\r\n\r\n3)
-          Take a look at the <b>Temperature</b>, it is <b>5500 Kelvin</b>\r\n\r\n<b>Intensity</b>
-          - 100 000 lux is a common value for direct sunlight on a clear day.\r\n\r\nWhile
-          measuring sunlight requires proper equipment, most of the time you don\u2019t
-          need to have that exact value and can achieve realistic results by just
-          using the ranges of our slider.\r\n\r\n<b>Temperature</b> - The color of
-          natural lights (sun and sky) and incandescent lamps can be defined by a
-          color temperature in Kelvin. Look up the temperature of the light you want
-          to simulate on the web.\r\n"
+        m_Untranslated: "The <b>Sunlight</b> in Unity is simulated via a directional
+          light. In HDRP, we provide physically based units for its intensity and
+          color. The unit of intensity for the sunlight is set in Lux, whereas the
+          one for its color temperature is set in Kelvin.\r\n\r\nLet\u2019s see how
+          the sun is set up in this scene.\r\n\r\n1) In the <i>Hierarchy</i>, select
+          <b>Lighting</b> > <b>Directional Light Sun</b>.\r\n\r\n2) Notice in the
+          <i>Inspector</i>, under <b>Emission</b> the <b>Intensity</b> is <b>100
+          000 lux</b>, is a common value for direct Sunlight on a clear day.\r\n\r\n3)
+          Take a look at the <b>Temperature</b>, it is <b>5500 Kelvin</b>.\r\n\nThese
+          two examples illustrate the values commonly used for a realistic clear
+          sky sun setup."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

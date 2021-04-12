@@ -201,3 +201,13 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 2800000, guid: 72ae5899b6349c14ca51d46e3b5b8927, type: 3}
     Tutorial: {fileID: 11400000, guid: ab22ccf2c27371b4ab9628308bfe0ddf, type: 2}
+  - OrderInView: 34
+    Heading:
+      m_Untranslated: Explore other learning resources
+    Text:
+      m_Untranslated: Explore other learning resources
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 2800000, guid: 0724f780cf76db44d9cbaabfce208968, type: 3}
+    Tutorial: {fileID: 11400000, guid: 1d0536e5ec610ca4f871097b8440fcfe, type: 2}

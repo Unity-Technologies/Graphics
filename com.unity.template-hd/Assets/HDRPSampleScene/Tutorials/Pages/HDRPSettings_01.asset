@@ -39,14 +39,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: HDRP asset
       Text:
-        m_Untranslated: "First, let\u2019s make sure Unity uses the High Definition
+        m_Untranslated: "First, make sure Unity is set to run the High Definition
           Render Pipeline.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Graphics</b>\r\n\r\n2) Verify that in the <i>Scriptable Render Pipeline
-          Settings</i> field, <b>HDRPMediumQuality</b> is assigned\r\n\r\nIf you
-          were to clear this field, Unity would revert back to the Built-in Render
-          Pipeline, and most objects would no longer be visible due to HDRP-specific
-          shaders being used.\r\n\r\nFor more information about different Scriptable
-          Pipelines visit <a href=\"https://unity.com/srp\">https://unity.com/srp</a>\r\n"
+          > <b>Graphics</b>.\r\n\r\n2) Verify that in the <i>Scriptable Render Pipeline
+          Settings</i> field, an HDRP asset is assigned.\r\n\r\nFor more information
+          about Scriptable Pipelines, visit <a href=\"https://unity.com/srp\">https://unity.com/srp</a>\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
