@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Linq;
 
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
@@ -58,6 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_MainContainer;
         VisualElement m_Header;
         Label m_TitleLabel;
+        Foldout m_Foldout;
         TextField m_TextField;
         internal TextField textField => m_TextField;
         VisualElement m_RowsContainer;
@@ -121,6 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Header = m_MainContainer.Q("categoryHeader");
             m_TitleLabel = m_MainContainer.Q<Label>("categoryTitleLabel");
+			m_Foldout = m_MainContainer.Q<Foldout>("categoryTitleFoldout");
             m_RowsContainer = m_MainContainer.Q("rowsContainer");
             m_TextField = m_MainContainer.Q<TextField>("textField");
             m_TextField.style.display = DisplayStyle.None;
@@ -164,6 +167,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update category title from view model
             title = m_ViewModel.name;
             this.viewDataKey = viewModel.associatedCategoryGuid;
+
+            if (String.IsNullOrEmpty(title))
+            {
+                m_Foldout.visible = false;
+                m_Foldout.RemoveFromHierarchy();
+            }
+            else
+            {
+                TryDoFoldout(m_ViewModel.isExpanded);
+                m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
+            }
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
@@ -229,6 +243,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             return false;
         }
 
+        void OnFoldoutToggle(ChangeEvent<bool> evt)
+        {
+            if (evt.previousValue != evt.newValue)
+            {
+                var isExpandedAction = new ChangeCategoryIsExpandedAction();
+                if (selection.Contains(this)) // expand all selected if the foldout is part of a selection
+                    isExpandedAction.categoryGuids = selection.OfType<SGBlackboardCategory>().Select(s => s.viewModel.associatedCategoryGuid).ToList();
+                else
+                    isExpandedAction.categoryGuids = new List<string>() { viewModel.associatedCategoryGuid };
+
+                isExpandedAction.isExpanded = evt.newValue;
+                isExpandedAction.editorPrefsBaseKey = blackboard.controller.editorPrefsBaseKey;
+                viewModel.requestModelChangeAction(isExpandedAction);
+            }
+        }
+
+        internal void TryDoFoldout(bool expand)
+        {
+            m_Foldout.SetValueWithoutNotify(expand);
+            if (!expand)
+                m_RowsContainer.RemoveFromHierarchy();
+            else
+                m_MainContainer.Add(m_RowsContainer);
+
+            var key = $"{blackboard.controller.editorPrefsBaseKey}.{viewDataKey}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}";
+            EditorPrefs.SetBool(key, expand);
+        }
+
         void OnMouseDownEvent(MouseDownEvent e)
         {
             if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
@@ -283,11 +325,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             VisualElement sourceItem = null;
 
             bool fieldInSelection = false;
+
             foreach (ISelectable selectedElement in selection)
             {
                 sourceItem = selectedElement as VisualElement;
                 if (sourceItem is SGBlackboardField blackboardField)
                     fieldInSelection = true;
+                // Don't show drag indicator if selection has categories,
+                // We don't want category drag & drop to be ambiguous with shader input drag & drop
+                if (sourceItem is SGBlackboardCategory blackboardCategory)
+                {
+                    SetDragIndicatorVisible(false);
+                    return;
+                }
+
             }
 
             // If can't find at least one blackboard field in the selection, don't update drag indicator
@@ -348,8 +399,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (ISelectable selectedElement in selection)
             {
                 var sourceItem = selectedElement as VisualElement;
-                if (sourceItem is SGBlackboardCategory blackboardCategory && controller.Model.IsNamedCategory() == false)
+
+                // Don't show drag indicator if selection has categories,
+                // We don't want category drag & drop to be ambiguous with shader input drag & drop
+                if (sourceItem is SGBlackboardCategory blackboardCategory)
+                {
+                    SetDragIndicatorVisible(false);
                     return;
+                }
             }
 
             if (m_InsertIndex == -1)

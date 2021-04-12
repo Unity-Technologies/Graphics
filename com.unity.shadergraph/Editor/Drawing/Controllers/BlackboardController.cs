@@ -411,6 +411,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        internal string editorPrefsBaseKey => "unity.shadergraph." + DataStore.State.objectId;
+
         BlackboardCategoryController AddBlackboardCategory(GraphDataStore graphDataStore, CategoryData categoryInfo)
         {
             var blackboardCategoryViewModel = new BlackboardCategoryViewModel();
@@ -418,6 +420,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
             blackboardCategoryViewModel.name = categoryInfo.name;
             blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
+            blackboardCategoryViewModel.isExpanded = EditorPrefs.GetBool($"{editorPrefsBaseKey}.{categoryInfo.categoryGuid}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}", true);
+
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
             if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
             {

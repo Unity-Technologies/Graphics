@@ -63,6 +63,33 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HashSet<string> categoriesToRemoveGuids { get; set; } = new HashSet<string>();
     }
 
+    class ChangeCategoryIsExpandedAction : IGraphDataAction
+    {
+        internal const string kEditorPrefKey = ".isCategoryExpanded";
+
+        void ChangeIsExpanded(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeIsExpanded on Category");
+            graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
+            foreach (var catid in categoryGuids)
+            {
+                var key = $"{editorPrefsBaseKey}.{catid}.{kEditorPrefKey}";
+                var currentValue = EditorPrefs.GetBool(key, true);
+
+                if (currentValue != isExpanded)
+                {
+                    EditorPrefs.SetBool(key, isExpanded);
+                }
+            }
+        }
+
+        public string editorPrefsBaseKey;
+        public List<string> categoryGuids { get; set; }
+        public bool isExpanded { get; set; }
+
+        public Action<GraphData> modifyGraphDataAction => ChangeIsExpanded;
+    }
+
     class ChangeCategoryNameAction : IGraphDataAction
     {
         void ChangeCategoryName(GraphData graphData)
@@ -189,6 +216,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var existingBlackboardRow = FindBlackboardRow(childInput);
                         if (existingBlackboardRow == null)
                             InsertBlackboardRow(childInput);
+                    }
+                    break;
+
+                case ChangeCategoryIsExpandedAction changeIsExpandedAction:
+                    if (changeIsExpandedAction.categoryGuids.Contains(ViewModel.associatedCategoryGuid))
+                    {
+                        ViewModel.isExpanded = changeIsExpandedAction.isExpanded;
+                        m_BlackboardCategoryView.TryDoFoldout(changeIsExpandedAction.isExpanded);
                     }
                     break;
 
