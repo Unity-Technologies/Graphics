@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// (Obsolete) HDRP may reset SpeedTree-specific keywords which should not be modified. This method restores these keywords to their original state.
         /// </summary>
         /// <param name="mat">SpeedTree 8 material.</param>
+        [System.Obsolete("No longer needed from 21.2 onwards.")]
         public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
             // Since ShaderGraph now supports toggling keywords via float properties, keywords get
