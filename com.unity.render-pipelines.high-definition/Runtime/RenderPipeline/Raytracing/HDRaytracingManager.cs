@@ -120,8 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             // For the time being, we only consider non-decal HDRP materials as valid
-            if (currentMaterial.shader.name.Substring(0, 5) != "HDRP/" ||
-                currentMaterial.shader.name.Substring(5) == "Decal")
+            if (currentMaterial.GetTag("RenderPipeline", false) != "HDRenderPipeline"
+                || DecalSystem.IsDecalMaterial(currentMaterial))
                 return false;
 
             return true;
