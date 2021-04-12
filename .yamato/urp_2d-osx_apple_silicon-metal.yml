@@ -20,14 +20,9 @@ URP_2D_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -49,17 +44,12 @@ Build_URP_2D_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
             paths:
@@ -81,17 +71,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -110,17 +95,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -139,17 +119,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -168,17 +143,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_XR_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -197,14 +167,9 @@ URP_2D_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -226,17 +191,12 @@ Build_URP_2D_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
             paths:
@@ -259,14 +219,9 @@ URP_2D_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -291,17 +246,12 @@ Build_URP_2D_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
             paths:
@@ -327,17 +277,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -360,17 +305,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -393,17 +333,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -426,17 +361,12 @@ URP_2D_OSX_Apple_Silicon_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -459,14 +389,9 @@ URP_2D_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -491,17 +416,12 @@ Build_URP_2D_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISIO
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c editor -c il2cpp --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
-              ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000"
-              UTR_RESULT=$?
-              mkdir -p TestProjects/UniversalGraphicsTest_2D/test-results/
-              scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D/test-results/
-              exit $UTR_RESULT
+              export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
             paths:
