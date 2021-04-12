@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private readonly AOVRequestBufferAllocator m_BufferAllocator;
         private readonly AOVRequestCustomPassBufferAllocator m_CustomPassBufferAllocator;
         private List<GameObject> m_LightFilter;
+        private BufferedRTHandleSystem m_HistoryRTSystem; // Each AOV render request gets a separate set of history buffers (to avoid mixing history data between different AOVs)
 
         /// <summary>Whether this frame pass is valid.</summary>
         public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
@@ -89,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CallbackEx = null;
             m_CustomPassAOVBuffers = null;
             m_CustomPassBufferAllocator = null;
+
+            m_HistoryRTSystem = new BufferedRTHandleSystem();
         }
 
         /// <summary>Create a new frame pass.</summary>
@@ -117,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightFilter = lightFilter;
             m_Callback = null;
             m_CallbackEx = callback;
+
+            m_HistoryRTSystem = new BufferedRTHandleSystem();
         }
 
         /// <summary>Allocate texture if required.</summary>
@@ -335,5 +340,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="gameObject">The game object of the light to be rendered.</param>
         /// <returns><c>true</c> when the light must be rendered, <c>false</c> when it should be ignored.</returns>
         public bool IsLightEnabled(GameObject gameObject) => m_LightFilter == null || m_LightFilter.Contains(gameObject);
+
+        internal BufferedRTHandleSystem GetHistoryRTHandleSystem()
+        {
+            return m_HistoryRTSystem;
+        }
     }
 }
