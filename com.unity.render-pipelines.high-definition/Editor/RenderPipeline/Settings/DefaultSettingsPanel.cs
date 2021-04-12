@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
                 {
-                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
+                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
                 }
