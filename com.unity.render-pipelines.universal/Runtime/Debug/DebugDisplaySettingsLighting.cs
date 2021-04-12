@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
+    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
     {
         internal DebugLightingMode DebugLightingMode { get; private set; }
         internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
@@ -49,8 +49,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) ||
-        (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+        public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) || (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
         public bool IsPostProcessingAllowed => true;
 

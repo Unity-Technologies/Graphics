@@ -20,19 +20,23 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Material-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+        internal DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
 
         /// <summary>
         /// Rendering-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+        internal DebugDisplaySettingsRendering RenderingSettings { get; private set; }
 
         /// <summary>
         /// Lighting-related Rendering Debugger settings.
         /// </summary>
-        public DebugDisplaySettingsLighting LightingSettings { get; private set; }
+        internal DebugDisplaySettingsLighting LightingSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
+
+        /// <summary>
+        /// Returns true if any of the debug settings are currently active.
+        /// </summary>
         public bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
         LightingSettings.AreAnySettingsActive ||
         RenderingSettings.AreAnySettingsActive;
@@ -44,10 +48,16 @@ namespace UnityEngine.Rendering.Universal
                 LightingSettings.TryGetScreenClearColor(ref color);
         }
 
+        /// <summary>
+        /// Returns true if lighting is active for current state of debug settings.
+        /// </summary>
         public bool IsLightingActive => MaterialSettings.IsLightingActive &&
         RenderingSettings.IsLightingActive &&
         LightingSettings.IsLightingActive;
 
+        /// <summary>
+        /// Returns true if the current state of debug settings allows post-processing.
+        /// </summary>
         public bool IsPostProcessingAllowed
         {
             get
@@ -94,7 +104,7 @@ namespace UnityEngine.Rendering.Universal
             Reset();
         }
 
-        public void Reset()
+        internal void Reset()
         {
             m_Settings.Clear();
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
+    class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
     {
         #region Material validation
         internal enum AlbedoDebugValidationPreset

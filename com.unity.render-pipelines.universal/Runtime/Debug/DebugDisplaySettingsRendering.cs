@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
+    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
         // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI, we have split
         // this enum into WireframeMode and a separate Overdraw boolean.
