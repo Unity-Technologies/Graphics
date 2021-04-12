@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ClearGBuffers, ignoreDependencies: true);
-            area.AmmendInfo(FrameSettingsField.MSAA, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.MSAAMode, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.AlphaToMask, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
@@ -190,25 +190,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
                 ignoreDependencies: true,
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
-
-            // Due to various reasons, MSAA and ray tracing are not compatible, if ray tracing is enabled on the asset. MSAA can not be enabled on the frame settings.
-            bool msaaEnablable = ((hdrpAssetSupportForward && (frameSettingsOverrideToForward || defaultForwardUsed)) || hdrpAssetIsForward) && !hdrpSettings.supportRayTracing;
-            area.AmmendInfo(
-                FrameSettingsField.MSAAMode,
-                overrideable: () => msaaEnablable,
-                ignoreDependencies: true,
-                overridedDefaultValue: defaultFrameSettings.msaaMode,
-                customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
-                customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
-                hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues);
-
-            bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAAMode))
-                ? serialized.msaaMode.GetEnumValue<MSAAMode>() == MSAAMode.None
-                : defaultFrameSettings.msaaMode == MSAAMode.None;
-            area.AmmendInfo(FrameSettingsField.AlphaToMask,
-                overrideable: () => msaaEnablable && !msaaIsOff,
-                ignoreDependencies: true,
-                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.AlphaToMask) && !msaaIsOff);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: hdrpAsset ? qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue] : 0,
