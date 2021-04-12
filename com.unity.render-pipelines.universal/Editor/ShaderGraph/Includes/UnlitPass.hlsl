@@ -12,7 +12,7 @@ PackedVaryings vert(Attributes input)
     if (!GetInterpolatorAndElementData(output, element))
         return output; // Dead particle.
 
-    input = TransformMeshToElement(input, element);
+    SetupVFXMatrices(element, output);
     output = BuildVaryings(input, element, output);
 #else
     output = BuildVaryings(input);

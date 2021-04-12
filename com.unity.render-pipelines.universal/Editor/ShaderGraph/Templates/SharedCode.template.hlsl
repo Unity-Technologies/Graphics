@@ -56,8 +56,12 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 #undef BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN
 
 #ifdef HAVE_VFX_MODIFICATION
+        //There isn't fragInput in URP N.B from TODOPAUL
         // FragInputs from VFX come from two places: Interpolator or CBuffer.
         $splice(VFXSetFragInputs)
+
+        $SurfaceDescriptionInputs.elementToWorld: BuildElementToWorld(input);
+        $SurfaceDescriptionInputs.worldToElement: BuildWorldToElement(input);
 #endif
 
         return output;

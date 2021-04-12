@@ -7,10 +7,16 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
+#if USE_VFX
+using UnityEditor.VFX;
+#endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
+#if USE_VFX
+        , IRequireVFXContext
+#endif
     {
         static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
 
@@ -20,6 +26,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
+
+#if USE_VFX
+        // VFX Properties
+        VFXContext m_ContextVFX = null;
+        VFXContextCompiledData m_ContextDataVFX;
+        bool TargetsVFX() => m_ContextVFX != null;
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            m_ContextVFX = context;
+            m_ContextDataVFX = data;
+        }
+
+#endif
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -34,10 +54,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 subShaders[i].renderQueue = target.renderQueue;
 
 #if USE_VFX
-                if (VFX.VFXSubTarget.IsConfigured())
-                    subShaders[i] = VFX.VFXSubTarget.PostProcessSubShader(subShaders[i]);
+                if (TargetsVFX())
+                    subShaders[i] = VFX.VFXSubTarget.PostProcessSubShader(subShaders[i], m_ContextVFX, m_ContextDataVFX);
 #endif
-
                 // Add
                 context.AddSubShader(subShaders[i]);
             }
@@ -55,7 +74,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
 
 #if USE_VFX
-            VFX.VFXSubTarget.GetFields(ref context);
+            if (TargetsVFX())
+                VFXSubTarget.GetFields(ref context, m_ContextVFX);
 #endif
         }
 

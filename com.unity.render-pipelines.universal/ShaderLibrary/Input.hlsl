@@ -91,4 +91,7 @@ CBUFFER_END
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UniversalDOTSInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
+// VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VisualEffectMatrices.hlsl"
+
 #endif

@@ -509,7 +509,11 @@ namespace UnityEditor.VFX
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
-                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.vfx.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
+                //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
+                bool isHDRP = UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline");
+                var surfaceSetter = isHDRP ? "output.vfx" : "output";
+
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"{surfaceSetter}.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
 
@@ -528,7 +532,11 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"fragInputs.vfx.{filteredNamedExpression.name}");
+
+                //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
+                bool isHDRP = UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline");
+                var surfaceGetter = isHDRP ? "fragInputs.vfx" : "fragInputs";
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{surfaceGetter}.{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
 

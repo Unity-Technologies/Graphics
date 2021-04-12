@@ -45,6 +45,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 
     sealed class UniversalTarget : Target, ILegacyTarget
+#if USE_VFX
+        , IMaySupportVFX, IRequireVFXContext
+#endif
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
@@ -362,7 +365,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
 
-        public override bool WorksWithVFX()
+#if USE_VFX
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
+        }
+
+#endif
+
+        public bool SupportsVFX()
         {
 #if USE_VFX
             /* TODOPAUL : See if it's relevant

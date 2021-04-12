@@ -15,6 +15,12 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return typeof(VFXUniversalSubOutput); } }
 
+        public override bool IsGraphDataValid(ShaderGraph.GraphData graph)
+        {
+            //TODOPAUL : Probably filter todo
+            return true;
+        }
+
         public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             //TODOPAUL (N.B. conflict on this function definition incoming ^)

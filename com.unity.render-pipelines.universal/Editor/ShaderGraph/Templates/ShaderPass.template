@@ -29,6 +29,16 @@ $splice(GraphKeywords)
 
 // Defines
 $features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+// TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+// TODOPAUL: FragIinputsVFX is really specific to HDRP
+#ifdef HAVE_VFX_MODIFICATION
+struct FragInputsVFX
+{
+    $splice(FragInputsVFX)
+};
+#endif
+
 $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
 $AlphaClip: #define _AlphaClip 1
 $Normal: #define _NORMALMAP 1
@@ -54,6 +64,8 @@ $Varyings.texCoord1: #define VARYINGS_NEED_TEXCOORD1
 $Varyings.texCoord2: #define VARYINGS_NEED_TEXCOORD2
 $Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
 $Varyings.color: #define VARYINGS_NEED_COLOR
+$Varyings.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+$Varyings.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 $Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
 $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
