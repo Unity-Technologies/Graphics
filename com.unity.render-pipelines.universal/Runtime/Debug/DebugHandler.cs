@@ -191,11 +191,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (IsActiveForCamera(ref cameraData))
             {
-                cmd.EnableShaderKeyword("_DEBUG_SHADER");
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
             }
             else
             {
-                cmd.DisableShaderKeyword("_DEBUG_SHADER");
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
             }
 
             if (m_HasDebugRenderTarget)
