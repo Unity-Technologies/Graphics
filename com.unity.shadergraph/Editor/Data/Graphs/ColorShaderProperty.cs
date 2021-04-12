@@ -32,11 +32,16 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
+        [SerializeField]
+        internal bool isMainColor = false;
+
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
+
+        internal string mainColorString => isMainColor ? "[MainColor]" : "";
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.r)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.g)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.b)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.a)})";
+            return $"{hideTagString}{hdrTagString}{mainColorString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.r)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.g)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.b)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.a)})";
         }
 
         internal override string GetPropertyAsArgumentString(string precisionString)

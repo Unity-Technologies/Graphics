@@ -112,6 +112,52 @@ namespace UnityEditor.ShaderGraph
                     },
                     DropdownMenuAction.AlwaysEnabled);
             }
+
+            if (property is ColorShaderProperty colorProp)
+            {
+                if (!colorProp.isMainColor)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Color",
+                        e =>
+                        {
+                            foreach (var input in node.owner.properties)
+                            {
+                                if (input is ColorShaderProperty col && col != colorProp)
+                                {
+                                    if (col.isMainColor)
+                                    {
+                                        if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                        {
+                                            node.owner.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                            col.isMainColor = false;
+                                            colorProp.isMainColor = true;
+                                            m_propertyViewUpdateTrigger();
+                                        }
+                                        return;
+                                    }
+                                }
+                            }
+
+                            node.owner.owner.RegisterCompleteObjectUndo("Set Main Color");
+                            colorProp.isMainColor = true;
+                            m_propertyViewUpdateTrigger();
+
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Color",
+                        e =>
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Clear Main Color");
+                            colorProp.isMainColor = false;
+                            m_propertyViewUpdateTrigger();
+                        });
+                }
+            }
+
         }
 
         void RegisterPropertyChangeUndo(string actionName)

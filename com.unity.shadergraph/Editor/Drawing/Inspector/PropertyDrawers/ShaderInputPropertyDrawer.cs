@@ -299,6 +299,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Upgrade To New Reference Name",
                     e => { UpgradeDefaultReferenceName(); },
                     DropdownMenuAction.AlwaysEnabled);
+
         }
 
         public void ResetReferenceName()
@@ -655,6 +656,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
+            if(!isSubGraph)
+            {
+                if (colorProperty.isMainColor)
+                {
+                    var mainColorLabel = new IMGUIContainer(() =>
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Main Color", EditorStyles.largeLabel);
+                        EditorGUILayout.Space();
+                        EditorGUI.indentLevel--;
+                    });
+                    propertySheet.Insert(2, mainColorLabel);
+                }
+
+            }
+
             propertySheet.Add(colorPropertyDrawer.CreateGUI(
                 newValue =>
                 {
@@ -684,6 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Mode",
                     ColorMode.Default,
                     out var colorModeField));
+
             }
         }
 

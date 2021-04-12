@@ -165,6 +165,52 @@ namespace UnityEditor.ShaderGraph.Drawing
                     },
                     DropdownMenuAction.AlwaysEnabled);
             }
+
+            if (shaderInput is ColorShaderProperty colorProp)
+            {
+                if (!colorProp.isMainColor)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Color",
+                        e =>
+                        {
+                            foreach (var input in controller.graphData.properties)
+                            {
+                                if (input is ColorShaderProperty col && col != colorProp)
+                                {
+                                    if (col.isMainColor)
+                                    {
+                                        if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                        {
+                                            controller.graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                            col.isMainColor = false;
+                                            colorProp.isMainColor = true;
+                                            m_InspectorUpdateDelegate();
+                                        }
+                                        return;
+                                    }
+                                }
+                            }
+
+                            controller.graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
+                            colorProp.isMainColor = true;
+                            m_InspectorUpdateDelegate();
+                           
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Color",
+                        e =>
+                        {
+                            controller.graphData.owner.RegisterCompleteObjectUndo("Clear Main Color");
+                            colorProp.isMainColor = false;
+                            m_InspectorUpdateDelegate();
+                        });
+                }
+            }
+
         }
 
         internal void UpdateFromViewModel()
