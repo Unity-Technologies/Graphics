@@ -148,6 +148,18 @@ inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData brdfData)
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 }
 
+BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)
+{
+    BRDFData brdfDataClearCoat = (BRDFData)0;
+
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+    #endif
+
+    return brdfDataClearCoat;
+}
+
 // Computes the specular term for EnvironmentBRDF
 half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)
 {

@@ -211,32 +211,6 @@ LightingData CreateLightingData(InputData inputData, SurfaceData surfaceData)
     return lightingData;
 }
 
-BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)
-{
-    BRDFData brdfDataClearCoat = (BRDFData)0;
-
-    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
-    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
-    #endif
-
-    return brdfDataClearCoat;
-}
-
-half4 CalculateShadowMask(InputData inputData)
-{
-    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
-    #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    half4 shadowMask = inputData.shadowMask;
-    #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = unity_ProbesOcclusion;
-    #else
-    half4 shadowMask = half4(1, 1, 1, 1);
-    #endif
-
-    return shadowMask;
-}
-
 half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
