@@ -13,10 +13,7 @@ VaryingsDepthNormalsParticle DepthNormalsVertex(AttributesDepthNormalsParticle i
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-    #if !SHADER_HINT_NICE_QUALITY
-        viewDirWS = SafeNormalize(viewDirWS);
-    #endif
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
     #if defined(_NORMALMAP)
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
@@ -89,7 +86,7 @@ half4 DepthNormalsFragment(VaryingsDepthNormalsParticle input) : SV_TARGET
 
     // Output...
     #if defined(_GBUFFER_NORMALS_OCT)
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
+        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
         float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
         return half4(packedNormalWS, 0.0);

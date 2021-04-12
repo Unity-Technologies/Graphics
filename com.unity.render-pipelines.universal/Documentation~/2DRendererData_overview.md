@@ -18,7 +18,6 @@ __Custom__: Unity assigns a Material with the Custom type. When you select this 
 
 ![The 2D Renderer Data Asset property settings](Images/2D/Default_Custom_Material.png)
 
-
 ## Use Depth/Stencil Buffer
 
 This option is enabled by default. Clear this option to disable the Depth/[Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html) Buffer. Doing so might improve your project’s performance, especially on mobile platforms. You should clear this option if you are not using any features that require the Depth/Stencil Buffer (such as [Sprite Mask](https://docs.unity3d.com/Manual/class-SpriteMask.html)).
@@ -32,3 +31,7 @@ All layers captured for use in the supplied texture will be drawn from the very 
 
 ### Downsampling Method
 Downsampling will reduce the texture resolution used by _CameraSortingLayerTexture_. The options are: __None__, __2x Bilinear__, __4x Box__, __4x Bilinear__
+
+## Renderer Features
+
+The 2D Renderer supports [URP Renderer Features](urp-renderer-features). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-features) documentation for more information.

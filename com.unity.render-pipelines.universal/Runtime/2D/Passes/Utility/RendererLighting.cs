@@ -156,6 +156,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.DisableShaderKeyword(keyword);
         }
 
+        public static void DisableAllKeywords(this IRenderPass2D pass, CommandBuffer cmd)
+        {
+            foreach (var keyword in k_UseBlendStyleKeywords)
+            {
+                cmd.DisableShaderKeyword(keyword);
+            }
+        }
+
         public static void ReleaseRenderTextures(this IRenderPass2D pass, CommandBuffer cmd)
         {
             pass.rendererData.isNormalsRenderTargetValid = false;
@@ -267,16 +275,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue,
+            RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, RenderBufferStoreAction intermediateStoreAction,
+            RenderBufferStoreAction finalStoreAction, bool requiresRTInit, List<Light2D> lights)
         {
             var maxShadowTextureCount = ShadowRendering.maxTextureCount;
-            var requiresRTInit = true;
 
             // This case should never happen, but if it does it may cause an infinite loop later.
             if (maxShadowTextureCount < 1)
             {
                 Debug.LogError("maxShadowTextureCount cannot be less than 1");
                 return;
+            }
+
+            // Determine last light with volumetric shadows to be rendered if we want to use a different store action after using rendering its volumetric shadows
+            int useFinalStoreActionAfter = lights.Count;
+            if (intermediateStoreAction != finalStoreAction)
+            {
+                for (int i = lights.Count - 1; i >= 0; i--)
+                {
+                    if (lights[i].renderVolumetricShadows)
+                    {
+                        useFinalStoreActionAfter = i;
+                        break;
+                    }
+                }
             }
 
             // Break up light rendering into batches for the purpose of shadow casting
@@ -291,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowTextureCount)
                 {
                     var light = lights[lightIndex + batchedLights];
-                    if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
+                    if (light.renderVolumetricShadows)
                     {
                         ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowLightCount);
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
@@ -303,7 +326,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // Set the current RT to the light RT
                 if (shadowLightCount > 0 || requiresRTInit)
                 {
-                    cmd.SetRenderTarget(renderTexture, depthTexture);
+                    var storeAction = lightIndex + batchedLights >= useFinalStoreActionAfter ? finalStoreAction : intermediateStoreAction;
+                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, storeAction, depthTexture, RenderBufferLoadAction.Load, storeAction);
                     requiresRTInit = false;
                 }
 
@@ -469,18 +493,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 pass.CreateNormalMapRenderTexture(renderingData, cmd, normalRTScale);
 
+
+                var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
+                var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 if (depthTarget != BuiltinRenderTextureType.None)
                 {
                     cmd.SetRenderTarget(
                         pass.rendererData.normalsRenderTarget.Identifier(),
                         RenderBufferLoadAction.DontCare,
-                        RenderBufferStoreAction.Store,
+                        storeAction,
                         depthTarget,
                         RenderBufferLoadAction.Load,
                         RenderBufferStoreAction.Store);
                 }
                 else
-                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, storeAction);
 
                 cmd.ClearRenderTarget(false, true, k_NormalClearColor);
 

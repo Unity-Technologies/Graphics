@@ -660,7 +660,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera && isGizmosEnabled)
+            if (isSceneViewCamera || isGizmosEnabled)
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
@@ -807,7 +807,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth, bool primedDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
                 if (createColor)
                 {
