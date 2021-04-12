@@ -1,5 +1,7 @@
 # SRP Lens Flare Override Component
 
+![](images/LensFlareHeader.png)
+
 Unity’s Scriptable Render Pipeline (SRP) includes the SRP Lens Flare Override component to control a [SRP Lens Flare Data](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset. You can attach an SRP Lens Flare Override component to any GameObject.
 Some properties only appear when you attach this component to a light.
 
