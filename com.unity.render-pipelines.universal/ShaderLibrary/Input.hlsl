@@ -40,7 +40,7 @@ struct InputData
     half3x3 tangentMatrixWS;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half3 brdfDiffuse;
     half3 brdfSpecular;
     float2 uv;

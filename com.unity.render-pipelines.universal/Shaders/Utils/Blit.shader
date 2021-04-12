@@ -17,7 +17,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma fragment Fragment
             #pragma multi_compile_fragment _ _LINEAR_TO_SRGB_CONVERSION
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-            #pragma multi_compile _ _DEBUG_SHADER
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
@@ -37,7 +37,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
                 col = LinearToSRGB(col);
                 #endif
 
-                #if defined(_DEBUG_SHADER)
+                #if defined(DEBUG_DISPLAY)
                 half4 debugColor = 0;
 
                 if(CanDebugOverrideOutputColor(col, uv, debugColor))

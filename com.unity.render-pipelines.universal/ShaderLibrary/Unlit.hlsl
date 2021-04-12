@@ -14,7 +14,7 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     albedo *= surfaceData.alpha;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))

@@ -392,7 +392,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #pragma fragment ParticlesLitFragment
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitForwardPass.hlsl"

@@ -191,7 +191,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
@@ -653,7 +653,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"

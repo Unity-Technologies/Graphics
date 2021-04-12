@@ -7,7 +7,7 @@ struct InputData2D
     float2 uv;
     half2 lightingUV;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     float3 positionWS;
     float4 texelSize;
     float4 mipInfo;

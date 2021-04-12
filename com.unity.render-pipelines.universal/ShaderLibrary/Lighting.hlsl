@@ -272,7 +272,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     BRDFData brdfData;
     InitializeBRDFData(surfaceData, brdfData);
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
@@ -351,7 +351,7 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
@@ -422,7 +422,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     surfaceData.albedo *= surfaceData.alpha;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))

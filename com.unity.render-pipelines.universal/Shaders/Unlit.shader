@@ -128,7 +128,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma vertex UniversalVertexUnlit
             #pragma fragment UniversalFragmentUnlit
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
@@ -238,7 +238,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma vertex UniversalVertexUnlit
             #pragma fragment UniversalFragmentUnlit
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"

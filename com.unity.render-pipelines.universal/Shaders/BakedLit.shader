@@ -253,7 +253,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
@@ -448,7 +448,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"

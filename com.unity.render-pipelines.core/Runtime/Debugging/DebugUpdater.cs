@@ -4,7 +4,6 @@ namespace UnityEngine.Rendering
 {
     class DebugUpdater : MonoBehaviour
     {
-#if URP_ENABLE_DEBUG_VIEWS
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
@@ -22,8 +21,6 @@ namespace UnityEngine.Rendering
             }
             DontDestroyOnLoad(go);
         }
-
-#endif
 
         void Update()
         {

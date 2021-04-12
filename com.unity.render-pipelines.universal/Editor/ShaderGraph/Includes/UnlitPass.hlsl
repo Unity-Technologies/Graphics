@@ -5,7 +5,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirectionWS;

@@ -154,7 +154,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma shader_feature_local EFFECT_HUE_VARIATION
 
             #define ENABLE_WIND
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"

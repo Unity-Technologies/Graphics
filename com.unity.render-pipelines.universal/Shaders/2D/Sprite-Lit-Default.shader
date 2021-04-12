@@ -226,7 +226,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             Tags { "LightMode" = "DebugMaterial" }
 
             HLSLPROGRAM
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 

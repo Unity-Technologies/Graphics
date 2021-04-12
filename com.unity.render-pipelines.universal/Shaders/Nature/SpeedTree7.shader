@@ -241,7 +241,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             #define ENABLE_WIND
             #define VERTEX_COLOR
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"

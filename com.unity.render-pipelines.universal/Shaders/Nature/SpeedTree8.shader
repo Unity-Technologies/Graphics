@@ -271,7 +271,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
             #define ENABLE_WIND
             #define EFFECT_BACKSIDE_NORMALS
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"

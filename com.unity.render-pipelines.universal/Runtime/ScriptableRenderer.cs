@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
-#if URP_ENABLE_DEBUG_VIEWS
+#if URP_ENABLE_DEBUG_DISPLAY
             DebugHandler = new DebugHandler(data);
 #endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");

@@ -393,7 +393,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
 
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"

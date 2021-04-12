@@ -222,10 +222,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Defines
         static class SpriteLitDefines
         {
-            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
+            public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
             {
-                displayName = "Debug Shader",
-                referenceName = "_DEBUG_SHADER",
+                displayName = "Debug Display",
+                referenceName = "DEBUG_DISPLAY",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,
@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly DefineCollection DebugMaterial = new DefineCollection()
             {
-                {DebugShader, 1},
+                {DebugDisplay, 1},
             };
         }
         #endregion

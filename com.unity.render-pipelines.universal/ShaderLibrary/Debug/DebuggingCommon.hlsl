@@ -13,7 +13,7 @@
 #define kOrangeBrownColor float4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor float4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
@@ -215,7 +215,7 @@ bool CalculateColorForDebugSceneOverride(out half4 color)
 
 bool IsAlphaDiscardEnabled()
 {
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     return (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE);
     #else
     return true;
@@ -224,7 +224,7 @@ bool IsAlphaDiscardEnabled()
 
 bool IsFogEnabled()
 {
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     return (_DebugMaterialMode == DEBUGMATERIALMODE_NONE) &&
            (_DebugVertexAttributeMode == DEBUGVERTEXATTRIBUTEMODE_NONE) &&
            (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE) &&
@@ -239,7 +239,7 @@ bool IsFogEnabled()
 
 bool IsLightingFeatureEnabled(uint bitMask)
 {
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     return (_DebugLightingFeatureFlags == 0) || ((_DebugLightingFeatureFlags & bitMask) != 0);
     #else
     return true;

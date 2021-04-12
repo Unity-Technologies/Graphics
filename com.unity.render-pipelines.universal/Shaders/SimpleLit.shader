@@ -353,7 +353,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma fragment LitPassFragmentSimple
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl"
@@ -595,7 +595,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma fragment LitPassFragmentSimple
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #define _DEBUG_SHADER
+            #define DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl"

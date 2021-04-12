@@ -468,7 +468,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
     inputData.uv = uv;
 #endif
 
