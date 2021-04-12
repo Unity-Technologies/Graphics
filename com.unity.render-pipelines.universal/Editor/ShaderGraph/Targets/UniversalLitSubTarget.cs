@@ -295,7 +295,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
+                    { PassVariant(CorePasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
                 },
@@ -314,7 +314,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit) },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
+                    { PassVariant(CorePasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault)   },
                 },
@@ -331,7 +331,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.Forward },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
-                    { LitPasses.DepthNormalOnly },
+                    { CorePasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
                 },
@@ -349,7 +349,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.ForwardOnly },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
-                    { LitPasses.DepthNormalOnly },
+                    { CorePasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
                 },
@@ -513,36 +513,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
-
-            public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormals",
-                useInPreview = false,
-
-                // Template
-                passTemplatePath = UniversalTarget.kTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly,
-                pragmas = CorePragmas.Instanced,
-                includes = CoreIncludes.DepthNormalsOnly,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
         }
         #endregion
 
@@ -588,15 +558,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
-
-            public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
-            {
-                BlockFields.SurfaceDescription.NormalOS,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalWS,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-            };
         }
         #endregion
 
@@ -627,13 +588,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-            };
-
-            public static readonly FieldCollection DepthNormals = new FieldCollection()
-            {
-                StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
             };
 
             public static readonly FieldCollection Meta = new FieldCollection()
