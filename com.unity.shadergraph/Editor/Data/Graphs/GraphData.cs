@@ -1725,6 +1725,8 @@ namespace UnityEditor.ShaderGraph
                     inputsToRemove.Add(property);
                 foreach (var keyword in m_Keywords.SelectValue())
                     inputsToRemove.Add(keyword);
+                foreach (var dropdown in m_Dropdowns.SelectValue())
+                    inputsToRemove.Add(dropdown);
                 foreach (var input in inputsToRemove)
                     RemoveGraphInputNoValidate(input);
             }
@@ -1735,6 +1737,10 @@ namespace UnityEditor.ShaderGraph
             foreach (var otherKeyword in other.keywords)
             {
                 AddGraphInputNoSanitization(otherKeyword);
+            }
+            foreach (var otherDropdown in other.dropdowns)
+            {
+                AddGraphInputNoSanitization(otherDropdown);
             }
 
             other.ValidateGraph();
@@ -1867,6 +1873,9 @@ namespace UnityEditor.ShaderGraph
             {
                 // cannot paste block nodes, or unknown node types
                 if ((node is BlockNode) || (node is MultiJsonInternal.UnknownNodeType))
+                    continue;
+
+                if ((isSubGraph && !node.allowedInSubGraph) || (!isSubGraph && !node.allowedInMainGraph))
                     continue;
 
                 AbstractMaterialNode pastedNode = node;

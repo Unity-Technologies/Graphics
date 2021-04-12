@@ -1301,7 +1301,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
                     else
-                        keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
+                        keyword.entries[index] = new KeywordEntry(GetFirstUnusedKeywordID(), displayName, referenceName);
 
                     this._postChangeValueCallback(true);
                 }
@@ -1541,7 +1541,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
                     else
-                        dropdown.entries[index] = new DropdownEntry(index + 1, displayName);
+                        dropdown.entries[index] = new DropdownEntry(GetFirstUnusedDropdownID(), displayName);
 
                     this._postChangeValueCallback(true);
                 }
@@ -1594,8 +1594,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 if (!ids.Contains(x))
                     return x;
             }
-
-            return -1;
         }
 
         void DropdownAddEntry(ReorderableList list)
@@ -1642,7 +1640,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void DropdownReorderEntries(ReorderableList list)
         {
             this._postChangeValueCallback(true);
-            this._dropdownChangedCallback();
         }
 
         public string GetSafeDropdownDisplayName(int id, string name)

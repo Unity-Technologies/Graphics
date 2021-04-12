@@ -94,10 +94,10 @@ namespace UnityEditor.ShaderGraph
         List<int> m_PropertyIds = new List<int>();
 
         [SerializeField]
-        List<string> m_DropdownNames = new List<string>();
+        List<string> m_Dropdowns = new List<string>();
 
         [SerializeField]
-        List<int> m_DropdownValues = new List<int>();
+        List<string> m_DropdownSelectedEntries = new List<string>();
 
         public string subGraphGuid
         {
@@ -232,8 +232,11 @@ namespace UnityEditor.ShaderGraph
             var dropdowns = asset.dropdowns;
             foreach (var dropdown in dropdowns)
             {
-                int value = GetDropDownValue(dropdown.referenceName, dropdown.value);
-                arguments.Add(value.ToString());
+                var name = GetDropdownEntryName(dropdown.referenceName);
+                if (dropdown.ContainsEntry(name))
+                    arguments.Add(dropdown.IndexOf(name).ToString());
+                else
+                    arguments.Add(dropdown.value.ToString());
             }
 
             // pass surface inputs through
@@ -770,28 +773,23 @@ namespace UnityEditor.ShaderGraph
             return asset.requirements.requiresVertexID;
         }
 
-        public int GetDropDownValue(string referenceName, int defaultValue)
+        public string GetDropdownEntryName(string referenceName)
         {
-            var index = m_DropdownNames.IndexOf(referenceName);
-            if (index >= 0)
-            {
-                return m_DropdownValues[index];
-            }
-
-            return defaultValue;
+            var index = m_Dropdowns.IndexOf(referenceName);
+            return index >= 0 ? m_DropdownSelectedEntries[index] : string.Empty;
         }
 
-        public void SetDropDownValue(string referenceName, int value)
+        public void SetDropdownEntryName(string referenceName, string value)
         {
-            var index = m_DropdownNames.IndexOf(referenceName);
+            var index = m_Dropdowns.IndexOf(referenceName);
             if (index >= 0)
             {
-                m_DropdownValues[index] = value;
+                m_DropdownSelectedEntries[index] = value;
             }
             else
             {
-                m_DropdownNames.Add(referenceName);
-                m_DropdownValues.Add(value);
+                m_Dropdowns.Add(referenceName);
+                m_DropdownSelectedEntries.Add(value);
             }
         }
     }

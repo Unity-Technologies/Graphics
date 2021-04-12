@@ -115,6 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
                     || type == typeof(KeywordNode)
+                    || type == typeof(DropdownNode)
                     || type == typeof(SubGraphNode))
                     continue;
 
@@ -182,6 +183,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = new KeywordNode();
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
+            }
+            foreach (var dropdown in m_Graph.dropdowns)
+            {
+                var node = new DropdownNode();
+                node.dropdown = dropdown;
+                AddEntries(node, new[] { "Dropdowns", "dropdown: " + dropdown.displayName }, nodeEntries);
             }
             if (!hideCustomInterpolators)
             {
@@ -426,6 +433,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 keywordNode.owner = m_Graph;
                 keywordNode.keyword = ((KeywordNode)oldNode).keyword;
                 keywordNode.owner = null;
+            }
+            else if (newNode is DropdownNode dropdownNode)
+            {
+                dropdownNode.owner = m_Graph;
+                dropdownNode.dropdown = ((DropdownNode)oldNode).dropdown;
+                dropdownNode.owner = null;
             }
             else if (newNode is BlockNode blockNode)
             {

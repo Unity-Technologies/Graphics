@@ -263,12 +263,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (dropdown.isExposed)
                     {
-                        int value = subGraphNode.GetDropDownValue(dropdown.referenceName, dropdown.value);
-                        value = Mathf.Clamp(value, 0, dropdown.entries.Count - 1);
-                        var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), value);
+                        var name = subGraphNode.GetDropdownEntryName(dropdown.referenceName);
+                        if (!dropdown.ContainsEntry(name))
+                        {
+                            name = dropdown.entryName;
+                            subGraphNode.SetDropdownEntryName(dropdown.referenceName, name);
+                        }                            
+
+                        var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), name);
                         field.RegisterValueChangedCallback(evt =>
                         {
-                            subGraphNode.SetDropDownValue(dropdown.referenceName, field.index);
+                            subGraphNode.SetDropdownEntryName(dropdown.referenceName, field.value);
                             subGraphNode.Dirty(ModificationScope.Topological);
                         });
 

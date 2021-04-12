@@ -1206,20 +1206,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     case ShaderDropdown dropdown:
                     {
-                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.dropdowns.FirstOrDefault(k => k == dropdown) == null)
-                        {
-                            dropdown = (ShaderDropdown)graph.AddCopyOfShaderInput(dropdown);
+                        {                            
+                            var node = new DropdownNode();
+                            if ((graph.isSubGraph && node.allowedInSubGraph) || (!graph.isSubGraph && node.allowedInMainGraph))
+                            {
+                                // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                                if (graph.dropdowns.FirstOrDefault(k => k == dropdown) == null)
+                                {
+                                    dropdown = (ShaderDropdown)graph.AddCopyOfShaderInput(dropdown);
+                                }
+
+                                var drawState = node.drawState;
+                                drawState.position = new Rect(nodePosition, drawState.position.size);
+                                node.drawState = drawState;
+                                graph.AddNode(node);
+
+                                // Setting the guid requires the graph to be set first.
+                                node.dropdown = dropdown;
+                            }
                         }
-
-                        var node = new DropdownNode();
-                        var drawState = node.drawState;
-                        drawState.position = new Rect(nodePosition, drawState.position.size);
-                        node.drawState = drawState;
-                        graph.AddNode(node);
-
-                        // Setting the guid requires the graph to be set first.
-                        node.dropdown = dropdown;
                         break;
                     }
 
