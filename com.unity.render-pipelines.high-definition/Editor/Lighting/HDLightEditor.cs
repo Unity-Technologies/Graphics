@@ -18,6 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition
         HDAdditionalLightData targetAdditionalData
             => m_AdditionalLightDatas[ReferenceTargetIndex(this)];
 
+        public HDAdditionalLightData GetAdditionalDataForTargetIndex(int i)
+            => m_AdditionalLightDatas[i];
+
         static Func<Editor, int> ReferenceTargetIndex;
 
         static HDLightEditor()
