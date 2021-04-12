@@ -96,6 +96,11 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
 }
 
+inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfData)
+{
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+}
+
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
 #if defined(SHADER_API_MOBILE)
@@ -141,11 +146,6 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
     baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
-}
-
-inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData brdfData)
-{
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 }
 
 BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)

@@ -242,8 +242,9 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #else
     bool specularHighlightsOff = false;
     #endif
-    // NOTE: can modify alpha
     BRDFData brdfData;
+
+    // NOTE: can modify "surfaceData"...
     InitializeBRDFData(surfaceData, brdfData);
 
     #if defined(DEBUG_DISPLAY)
