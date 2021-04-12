@@ -335,5 +335,44 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="gameObject">The game object of the light to be rendered.</param>
         /// <returns><c>true</c> when the light must be rendered, <c>false</c> when it should be ignored.</returns>
         public bool IsLightEnabled(GameObject gameObject) => m_LightFilter == null || m_LightFilter.Contains(gameObject);
+
+        internal int GetHash()
+        {
+            int hash = m_Settings.GetHashCode();
+
+            if (m_LightFilter != null)
+            {
+                foreach (var obj in m_LightFilter)
+                {
+                    hash += obj.GetHashCode();
+                }
+            }
+
+            return hash;
+        }
+
+        internal bool HasSameSettings(AOVRequestData other)
+        {
+            if (m_Settings != other.m_Settings)
+                return false;
+
+            if (m_LightFilter != null)
+                return m_LightFilter.Equals(other.m_LightFilter);
+
+            return true;
+        }
+    }
+
+    internal class AOVRequestDataComparer : IEqualityComparer<AOVRequestData>
+    {
+        public bool Equals(AOVRequestData x, AOVRequestData y)
+        {
+            return x.HasSameSettings(y);
+        }
+
+        public int GetHashCode(AOVRequestData obj)
+        {
+            return obj.GetHash();
+        }
     }
 }

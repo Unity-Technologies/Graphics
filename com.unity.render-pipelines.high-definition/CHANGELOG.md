@@ -136,6 +136,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 - Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
 - Fixed camera preview with multi selection (case 1324126).
 
 ### Changed
@@ -199,6 +201,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 - Added Global settings check in Wizard
 - Added localization on Wizard window
+- Added an info box for micro shadow editor (case 1322830).
+- Increased path tracing max samples from 4K to 16K (case 1327729).
 
 ## [11.0.0] - 2020-10-21
 
