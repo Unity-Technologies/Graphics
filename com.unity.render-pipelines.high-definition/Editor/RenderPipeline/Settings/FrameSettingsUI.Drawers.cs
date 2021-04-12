@@ -191,6 +191,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 ignoreDependencies: true,
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
 
+            area.AmmendInfo(FrameSettingsField.LODBias,
+                overridedDefaultValue: hdrpAsset ? qualityLevelSettings.lodBias[serialized.lodBiasQualityLevel.intValue] : 0,
+                customGetter: () => serialized.lodBias.floatValue,
+                customSetter: v => serialized.lodBias.floatValue = (float)v,
+                overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                ignoreDependencies: true,
+                labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
+                hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
+
+            area.AmmendInfo(
+                FrameSettingsField.MaximumLODLevelMode,
+                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
+                customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
+                customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v),
+                hasMixedValues: serialized.maximumLODLevelMode.hasMultipleDifferentValues
+            );
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
+                customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
+                overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
+                ignoreDependencies: true,
+                hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
+
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: hdrpAsset ? qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue] : 0,
                 customGetter: () => serialized.maximumLODLevel.intValue,
