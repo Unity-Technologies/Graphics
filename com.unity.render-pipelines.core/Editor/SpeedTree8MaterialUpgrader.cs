@@ -74,6 +74,9 @@ namespace UnityEditor.Rendering
                 int wq = Mathf.Min(stImporter.windQualities[l], stImporter.bestWindQuality);
                 foreach (Renderer r in lod.renderers)
                 {
+                    // Override default motion vector generation mode pending
+                    // proper motion vector integration in SRPs. 
+                    r.motionVectorGenerationMode = MotionVectorGenerationMode.Camera; 
                     foreach (Material m in r.sharedMaterials)
                     {
                         ImportNewSpeedTree8Material(m, wq, isBillboard);
