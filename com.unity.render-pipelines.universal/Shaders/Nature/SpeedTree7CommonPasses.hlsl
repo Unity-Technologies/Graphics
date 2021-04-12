@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "SpeedTreeUtility.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -56,6 +57,7 @@ struct SpeedTreeVertexOutput
 struct SpeedTreeVertexDepthOutput
 {
     half3 uvHueVariation            : TEXCOORD0;
+    half3 viewDirWS                 : TEXCOORD1;
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -108,7 +110,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -122,10 +124,16 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 #endif
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #ifdef EFFECT_BUMP
+            half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+        #else
+            half3 viewDirectionWS = input.viewDirWS;
+        #endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -181,6 +189,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         surfaceData.smoothness = 0;
         surfaceData.albedo = diffuseColor.rgb;
         surfaceData.specular = half3(0, 0, 0);
+        surfaceData.occlusion = 1.0;
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
@@ -193,10 +202,11 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -219,10 +229,16 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #ifdef EFFECT_BUMP
+            half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+        #else
+            half3 viewDirectionWS = input.viewDirWS;
+        #endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
         #endif
     #endif
 
@@ -234,8 +250,20 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         clip(diffuse.a - _Cutoff);
     #endif
 
-    float3 normalWS = input.normalWS;
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    #if defined(EFFECT_BUMP)
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half4 detailColor = tex2D(_DetailTex, input.detail.xy);
+            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            normalTS = lerp(normalTS, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+        #endif
+
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+    #else
+        half3 normalWS = input.normalWS.xyz;
+    #endif
+
+    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
 }
 
 #endif

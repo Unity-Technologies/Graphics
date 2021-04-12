@@ -6,7 +6,6 @@ using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -90,6 +89,21 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : Editor
 {
+#if UNITY_2021_1_OR_NEWER
+    [OnOpenAsset(OnOpenAssetAttributeMode.Validate)]
+    public static bool WillOpenInUnity(int instanceID)
+    {
+        var obj = EditorUtility.InstanceIDToObject(instanceID);
+        if (obj is VFXGraph || obj is VFXModel || obj is VFXUI)
+            return true;
+        else if (obj is VisualEffectAsset)
+            return true;
+        else if (obj is VisualEffectSubgraph)
+            return true;
+        return false;
+    }
+
+#endif
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
     {

@@ -58,7 +58,16 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
+#if defined(_FOG_FRAGMENT)
+    float clipZ = input.clipPos.z;
+    #if !UNITY_REVERSED_Z
+    clipZ = lerp(UNITY_NEAR_CLIP_VALUE, 1, clipZ);    // OpenGL NDC, -1 < z < 1
+    #endif
+    clipZ *= input.clipPos.w;
+    inputData.fogCoord = ComputeFogFactor(clipZ);
+#else
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
+#endif
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -92,7 +101,11 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_SH(vertData.normal, vertData.vertexSH);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
+#if defined(_FOG_FRAGMENT)
+    half fogFactor = 0;
+#else
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -161,7 +174,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     outSurfaceData.specular = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     outSurfaceData.smoothness = input.posWSShininess.w;
     outSurfaceData.normalTS = 0.0; // unused
-    outSurfaceData.occlusion = 1.0; // unused
+    outSurfaceData.occlusion = 1.0;
     outSurfaceData.emission = 0.0;
 }
 
@@ -241,57 +254,4 @@ half4 DepthOnlyFragment(GrassVertexDepthOnlyOutput input) : SV_TARGET
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
     return 0;
 }
-
-struct GrassVertexDepthNormalInput
-{
-    float4 vertex       : POSITION;
-    float3 normal       : NORMAL;
-    float4 tangent      : TANGENT;
-    half4 color         : COLOR;
-    float2 texcoord     : TEXCOORD0;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct GrassVertexDepthNormalOutput
-{
-    float2 uv           : TEXCOORD0;
-    half3 normal        : TEXCOORD1;
-    half4 color         : TEXCOORD2;
-    float4 clipPos      : SV_POSITION;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
-void InitializeVertData(GrassVertexDepthNormalInput input, inout GrassVertexDepthNormalOutput vertData)
-{
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-
-    vertData.uv = input.texcoord;
-    vertData.normal = TransformObjectToWorldNormal(input.normal);
-    vertData.clipPos = vertexInput.positionCS;
-}
-
-GrassVertexDepthNormalOutput DepthNormalOnlyVertex(GrassVertexDepthNormalInput v)
-{
-    GrassVertexDepthNormalOutput o = (GrassVertexDepthNormalOutput)0;
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_TRANSFER_INSTANCE_ID(v, o);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-    // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
-    // _WaveAndDistance.z == 0 for MeshLit
-    float waveAmount = v.color.a * _WaveAndDistance.z;
-    o.color = TerrainWaveGrass(v.vertex, waveAmount, v.color);
-
-    InitializeVertData(v, o);
-
-    return o;
-}
-
-half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
-{
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(NormalizeNormalPerPixel(input.normal), true)), 0.0, 0.0);
-}
-
 #endif

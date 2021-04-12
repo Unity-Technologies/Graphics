@@ -6,13 +6,14 @@ using UnityEngine.Experimental.Rendering.Universal;
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
-    internal class Renderer2DDataEditor : Editor
+    internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
         class Styles
         {
             public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
             public static readonly GUIContent lightRenderTexturesHeader = EditorGUIUtility.TrTextContent("Light Render Textures");
             public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
+            public static readonly GUIContent postProcessHeader = EditorGUIUtility.TrTextContent("Post-processing");
 
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
@@ -27,6 +28,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
+            public static readonly GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
+            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
 
             public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
@@ -53,6 +56,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
         SerializedProperty m_MaxShadowRenderTextureCount;
+        SerializedProperty m_PostProcessData;
 
         SerializedProperty m_UseCameraSortingLayersTexture;
         SerializedProperty m_CameraSortingLayersTextureBound;
@@ -62,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SavedBool m_LightRenderTexturesFoldout;
         SavedBool m_LightBlendStylesFoldout;
         SavedBool m_CameraSortingLayerTextureFoldout;
+        SavedBool m_PostProcessingFoldout;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -92,6 +97,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
             m_MaxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
+            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
 
             m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
             m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
@@ -125,6 +131,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightRenderTexturesFoldout = new SavedBool($"{target.GetType()}.LightRenderTexturesFoldout", true);
             m_LightBlendStylesFoldout = new SavedBool($"{target.GetType()}.LightBlendStylesFoldout", true);
             m_CameraSortingLayerTextureFoldout = new SavedBool($"{target.GetType()}.CameraSortingLayerTextureFoldout", true);
+            m_PostProcessingFoldout = new SavedBool($"{target.GetType()}.PostProcessingFoldout", true);
         }
 
         private void OnDestroy()
@@ -140,9 +147,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawLightRenderTextures();
             DrawLightBlendStyles();
             DrawCameraSortingLayerTexture();
+            DrawPostProcessing();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space();
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()
@@ -238,6 +249,28 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+
+            EditorGUILayout.Space();
+        }
+
+        private void DrawPostProcessing()
+        {
+            CoreEditorUtils.DrawSplitter();
+            m_PostProcessingFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.postProcessHeader, m_PostProcessingFoldout.value);
+            if (!m_PostProcessingFoldout.value)
+                return;
+
+            EditorGUI.BeginChangeCheck();
+            var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
+            }
+
+            // this field is no longer hidden by the checkbox. It is bad UX to begin with
+            // also, if the field is hidden, the user could still use Asset Selector to set the value, but it won't stick
+            // making it look like a bug(1307128)
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
 
             EditorGUILayout.Space();
         }

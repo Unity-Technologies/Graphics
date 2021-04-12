@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] bool m_UseNativeRenderPass = false;
         [SerializeField] internal List<VolumeComponent> m_VolumeComponents = new List<VolumeComponent>();
 
         /// <summary>
@@ -65,6 +66,16 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void OnEnable()
         {
             SetDirty();
+        }
+
+        public bool useNativeRenderPass
+        {
+            get => m_UseNativeRenderPass;
+            set
+            {
+                SetDirty();
+                m_UseNativeRenderPass = value;
+            }
         }
 
 #if UNITY_EDITOR

@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -90,17 +91,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
 
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CorePregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
 
                 return includes;
@@ -126,6 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -169,12 +172,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
                     HDBlockFields.SurfaceDescription.DepthOffset,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 },
 
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -264,23 +269,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
             {
                 var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
-
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 1 (normal buffer)
-                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
-                }
-
                 return renderState;
             }
 
@@ -342,16 +336,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             DefineCollection GenerateDefines()
             {
                 if (!supportLighting)
-                    return null;
+                {
+                    // For shadow matte (unlit SG only) we need to enable write normal buffer
+                    return CoreDefines.MotionVectorUnlit;
+                }
 
                 var defines = new DefineCollection { Defines.raytracingDefault };
 
-                //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
+                // TODO: do a #define WRITE_NORMAL_BUFFER for motion vector in forward only material case instead of a multi-compile
                 // if (supportForward)
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
@@ -364,18 +362,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var renderState = new RenderStateCollection();
                 renderState.Add(CoreRenderStates.MotionVectors);
-
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 2 (normal buffer)
-                    // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 2"));
-                }
-
                 return renderState;
             }
 
@@ -422,6 +408,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
+                customInterpolators = CoreCustomInterpolators.Common
             };
 
             FieldCollection GenerateRequiredFields()
@@ -470,6 +457,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
+        #region Forward Emissive For Deferred
+
+        public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "ForwardEmissiveForDeferred",
+                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
+                lightMode = "ForwardEmissiveForDeferred",
+                useInPreview = false,
+
+                // Collections
+                requiredFields = GenerateRequiredFields(),
+                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ForwardEmissiveForDeferred,
+                includes = GenerateIncludes(),
+
+                virtualTextureFeedback = true,
+            };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                return CoreRequiredFields.LitFull;
+            }
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
+                return includes;
+            }
+        }
+
+        #endregion
+
         #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
@@ -488,6 +516,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common
             };
 
             IncludeCollection GenerateIncludes()
@@ -545,6 +574,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.NormalWS,
                     BlockFields.SurfaceDescription.NormalOS,
                     BlockFields.SurfaceDescription.Smoothness,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 } :
                 new BlockFieldDescriptor[]
                 {
@@ -552,6 +582,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
                     HDBlockFields.SurfaceDescription.DepthOffset,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 },
 
                 // Collections
@@ -560,6 +591,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -577,17 +609,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         Pass = "Replace",
                     }) },
                 };
-
-                if (!supportLighting)
-                {
-                    // Caution: When using MSAA we have normal and depth buffer bind.
-                    // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-                    // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-                    // - When MSAA: disable target 1 (normal buffer)
-                    // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
-                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
-                }
 
                 return renderState;
             }
@@ -657,6 +678,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPostpass,
                 includes = GenerateIncludes(),
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -713,6 +735,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -754,7 +777,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
-
+                customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
             };
         }
@@ -807,9 +830,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.Forward,
+                defines = CoreDefines.ForwardLit,
                 includes = ForwardIncludes,
-
+                customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
             };
         }
@@ -875,6 +898,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Raytracing Indirect
 
+        public static KeywordCollection IndirectDiffuseKeywordCollection = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.multiBounceIndirect },
+        };
+
         public static PassDescriptor GenerateRaytracingIndirect(bool supportLighting)
         {
             return new PassDescriptor
@@ -884,10 +912,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
                 lightMode = "IndirectDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
+                keywords = supportLighting ? IndirectDiffuseKeywordCollection : null,
                 includes = GenerateIncludes(),
             };
 
@@ -995,6 +1025,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1060,6 +1091,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Port Mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
@@ -1173,7 +1205,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Raytracing Subsurface
 
-        public static PassDescriptor GenerateRaytracingSubsurface()
+        public static PassDescriptor GenerateRaytracingSubsurface(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -1182,6 +1214,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
                 lightMode = "SubSurfaceDXR",
                 useInPreview = false,
+                requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Template
                 // passTemplatePath = passTemplatePath,

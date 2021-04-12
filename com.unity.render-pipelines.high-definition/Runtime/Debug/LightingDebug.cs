@@ -242,8 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
-                || shadowDebugMode == ShadowMapDebugMode.SingleShadow
-                || probeVolumeDebugMode != ProbeVolumeDebugMode.None;
+                || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -262,14 +261,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4[]            debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
         /// <summary>Current Shadow Maps debug mode.</summary>
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
-        /// <summary>Current Probe Volume Debug Mode.</summary>
-        [SerializeField] internal ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
-        /// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
-        [SerializeField] internal ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
-        /// <summary>The minimum display threshold for atlas slices.</summary>
-        [SerializeField] internal float probeVolumeMinValue = 0.0f;
-        /// <summary>The maximum display threshold for atlas slices.</summary>
-        [SerializeField] internal float probeVolumeMaxValue = 1.0f;
         /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
@@ -322,8 +313,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
-        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Default Settings.</summary>
-        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
+        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Global Settings.</summary>
+        [Obsolete("Please use the lens attenuation mode in HDRP Global Settings", true)]
         public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
@@ -360,6 +351,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 showAreaLight = true;
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
         public bool                 showReflectionProbe = true;
+
+        /// <summary>Display the Local Volumetric Fog atlas.</summary>
+        public bool displayLocalVolumetricFogAtlas = false;
+        /// <summary>Local Volumetric Fog atlas slice.</summary>
+        public uint localVolumetricFogAtlasSlice = 0;
+        /// <summary>True if Local Volumetric Fog Atlas debug mode should be displayed for the currently selected Local Volumetric Fog.</summary>
+        public bool localVolumetricFogUseSelection = false;
 
         /// <summary>Tile and Cluster debug mode.</summary>
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;

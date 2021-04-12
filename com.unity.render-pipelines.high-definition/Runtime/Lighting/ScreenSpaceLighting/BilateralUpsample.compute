@@ -9,9 +9,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
-
-#define _UpsampleTolerance 1e-7f
-#define _NoiseFilterStrength 0.99999f
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 
 // Mip chain depth buffer
 TEXTURE2D_X(_DepthTexture);
@@ -26,34 +24,6 @@ CBUFFER_END
 
 // The output of our upscaling pass
 RW_TEXTURE2D_X(float4, _OutputUpscaledTexture);
-
-// THe bilateral upscale fonction (color version)
-float4 BilUpColor(float HiDepth, float4 LowDepths, float4 lowValue0, float4 lowValue1, float4 lowValue2, float4 lowValue3)
-{
-    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
-    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
-    float4 WeightedSum = lowValue0 * weights.x
-                        + lowValue1 * weights.y
-                        + lowValue2 * weights.z
-                        + lowValue3 * weights.w
-                        + _NoiseFilterStrength;
-    return WeightedSum / TotalWeight;
-}
-
-// THe bilateral upscale fonction (single channel version)
-float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
-{
-    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
-    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
-    float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
-    return WeightedSum / TotalWeight;
-}
-
-// This table references the set of pixels that are used for bilateral upscale based on the expected order
-static const int2 UpscaleBilateralPixels[16] = {int2(0, 0), int2(0, -1),  int2(-1, -1), int2(-1, 0)
-                                                , int2(0, 0), int2(0, -1),  int2(1, -1), int2(1, 0)
-                                                , int2(0, 0) , int2(-1, 0), int2(-1, 1), int2(0, 1)
-                                                , int2(0, 0), int2(1, 0), int2(1, 1), int2(0, 1), };
 
 [numthreads(BILATERAL_UPSAMPLE_TILE_SIZE, BILATERAL_UPSAMPLE_TILE_SIZE, 1)]
 void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)

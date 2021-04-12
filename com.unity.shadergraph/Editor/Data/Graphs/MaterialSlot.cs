@@ -250,6 +250,8 @@ namespace UnityEditor.ShaderGraph
             return otherSlot != null
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
+                && !hidden
+                && !otherSlot.hidden
                 && ((isInputSlot
                     ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
                     : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
@@ -257,8 +259,11 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
         {
-            var candidateStage = otherSlot.stageCapability;
-            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
+            var startStage = otherSlot.stageCapability;
+            if (startStage == ShaderStageCapability.All)
+                startStage = NodeUtils.GetEffectiveShaderStageCapability(otherSlot, true)
+                    & NodeUtils.GetEffectiveShaderStageCapability(otherSlot, false);
+            return startStage == ShaderStageCapability.All || stageCapability == ShaderStageCapability.All || stageCapability == startStage;
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)
@@ -291,6 +296,13 @@ namespace UnityEditor.ShaderGraph
             properties.Add(default(PreviewProperty));
         }
 
+        public virtual void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
+        {
+            sb.Append(concreteValueType.ToShaderString());
+            sb.Append(" ");
+            sb.Append(paramName);
+        }
+
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
 
         public bool Equals(MaterialSlot other)
@@ -313,6 +325,10 @@ namespace UnityEditor.ShaderGraph
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
         }
+
+        // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs
+        // rather than the new structure-based inputs
+        internal virtual bool bareResource { get { return false; } set {} }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

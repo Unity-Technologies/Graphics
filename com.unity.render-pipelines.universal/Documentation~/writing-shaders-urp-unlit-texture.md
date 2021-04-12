@@ -8,16 +8,18 @@ Use the Unity shader source file from section [URP unlit shader with color input
 
     ```c++
     Properties
-    { 
-        _BaseMap("Base Map", 2D) = "white"
+    {
+        [MainTexture] _BaseMap("Base Map", 2D) = "white"
     }
     ```
 
     When you declare a texture property in the Properties block, Unity adds the `_BaseMap` property with the label __Base Map__ to the Material, and adds the Tiling and the Offset controls.
 
     !["Texture property with Tiling and Offset controls"](Images/shader-examples/unlit-shader-tutorial-texture-property-in-inspector.png)
-    
-    The `_BaseMap` property name is a reserved name. When you declare a property with this name, Unity uses this property as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) of the Material. 
+
+    When you declare a property with the `[MainTexture]` attribute, Unity uses this property as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) of the Material.
+
+    > **Note**: For compatibility reasons, the `_MainTex` property name is a reserved name. Unity uses a property with the name `_MainTex` as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) even it does not have the `[MainTexture]` attribute.
 
 2. In `struct Attributes` and `struct Varyings`, add the `uv` variable for the UV coordinates on the texture:
 
@@ -37,7 +39,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
 4. For tiling and offset to work, it's necessary to declare the texture property with the `_ST` suffix in the 'CBUFFER' block. The `_ST` suffix is necessary because some macros (for example, `TRANSFORM_TEX`) use it.
 
     > __NOTE__: To ensure that the Unity shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`. For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
-    
+
     ```c++
     CBUFFER_START(UnityPerMaterial)
         float4 _BaseMap_ST;
@@ -75,22 +77,22 @@ Shader "Example/URPUnlitShaderTexture"
     // The _BaseMap variable is visible in the Material's Inspector, as a field
     // called Base Map.
     Properties
-    { 
-        _BaseMap("Base Map", 2D) = "white"
+    {
+        [MainTexture] _BaseMap("Base Map", 2D) = "white"
     }
 
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
-                
+
         Pass
         {
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
-            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             struct Attributes
             {
                 float4 positionOS   : POSITION;
@@ -114,7 +116,7 @@ Shader "Example/URPUnlitShaderTexture"
 
             CBUFFER_START(UnityPerMaterial)
                 // The following line declares the _BaseMap_ST variable, so that you
-                // can use the _BaseMap variable in the fragment shader. The _ST 
+                // can use the _BaseMap variable in the fragment shader. The _ST
                 // suffix is necessary for the tiling and offset function to work.
                 float4 _BaseMap_ST;
             CBUFFER_END

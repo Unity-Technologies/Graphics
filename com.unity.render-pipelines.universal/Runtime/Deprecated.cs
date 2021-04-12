@@ -13,6 +13,53 @@ namespace UnityEngine.Rendering.Universal
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
     }
 
+    /// <summary>
+    /// Default renderer for Universal RP.
+    /// This renderer is supported on all Universal RP supported platforms.
+    /// It uses a classic forward rendering strategy with per-object light culling.
+    /// </summary>
+    [Obsolete("ForwardRenderer has been deprecated (UnityUpgradable) -> UniversalRenderer", true)]
+    public sealed class ForwardRenderer : ScriptableRenderer
+    {
+        private static readonly string k_ErrorMessage = "ForwardRenderer has been deprecated. Use UniversalRenderer instead";
+
+        public ForwardRenderer(ForwardRendererData data) : base(data)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void FinishRendering(CommandBuffer cmd)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+    }
+
+    namespace Internal
+    {
+        public partial class AdditionalLightsShadowCasterPass
+        {
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsBufferId was deprecated. Shadow slice matrix is now passed to the GPU using an entry in buffer m_AdditionalLightsWorldToShadow_SSBO", false)]
+            public static int m_AdditionalShadowsBufferId;
+            [Obsolete("AdditionalLightsShadowCasterPass.m_AdditionalShadowsIndicesId was deprecated. Shadow slice index is now passed to the GPU using last member of an entry in buffer m_AdditionalShadowParams_SSBO", false)]
+            public static int m_AdditionalShadowsIndicesId;
+        }
+    }
+
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
     {

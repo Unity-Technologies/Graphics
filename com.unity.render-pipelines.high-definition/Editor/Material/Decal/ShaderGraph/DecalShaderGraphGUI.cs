@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
         {
             new DecalSurfaceOptionsUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.SurfaceOptions),
-            new ShaderGraphUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.SurfaceInputs, ShaderGraphUIBlock.Features.None),
+            new ShaderGraphUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.SurfaceInputs, ShaderGraphUIBlock.Features.ExposedProperties),
             new DecalSortingInputsUIBlock((MaterialUIBlock.ExpandableBit)ExpandableBit.Sorting),
         };
 

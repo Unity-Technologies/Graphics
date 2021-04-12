@@ -39,6 +39,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphParameters
     {
+        ///<summary>Identifier for this render graph execution.</summary>
+        public string executionName;
         ///<summary>Index of the current frame being rendered.</summary>
         public int currentFrameIndex;
         ///<summary>Scriptable Render Context used by the render pipeline.</summary>
@@ -49,51 +51,71 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphDebugParams
     {
+        DebugUI.Widget[] m_DebugItems;
+        DebugUI.Panel m_DebugPanel;
+
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
         public bool immediateMode;
+        public bool enableLogging;
         public bool logFrameInformation;
         public bool logResources;
 
-        public void RegisterDebug(string name)
+        public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
-            // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
-            //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-            list.Add(new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value });
-            list.Add(new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value });
-            list.Add(new DebugUI.Button
+            list.Add(new DebugUI.Container
             {
-                displayName = "Log Frame Information",
-                action = () =>
+                displayName = $"{name} Render Graph",
+                children =
                 {
-                    logFrameInformation = true;
-                #if UNITY_EDITOR
-                    UnityEditor.SceneView.RepaintAll();
-                #endif
-                }
-            });
-            list.Add(new DebugUI.Button
-            {
-                displayName = "Log Resources",
-                action = () =>
-                {
-                    logResources = true;
-                #if UNITY_EDITOR
-                    UnityEditor.SceneView.RepaintAll();
-                #endif
+                    new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value },
+                    // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
+                    //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
+                    new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value },
+                    new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value },
+                    new DebugUI.BoolField { displayName = "Enable Logging", getter = () => enableLogging, setter = value => enableLogging = value },
+                    new DebugUI.Button
+                    {
+                        displayName = "Log Frame Information",
+                        action = () =>
+                        {
+                            if (!enableLogging)
+                                Debug.Log("You must first enable logging before this logging frame information.");
+                            logFrameInformation = true;
+            #if UNITY_EDITOR
+                            UnityEditor.SceneView.RepaintAll();
+            #endif
+                        }
+                    },
+                    new DebugUI.Button
+                    {
+                        displayName = "Log Resources",
+                        action = () =>
+                        {
+                            if (!enableLogging)
+                                Debug.Log("You must first enable logging before this logging resources.");
+                            logResources = true;
+            #if UNITY_EDITOR
+                            UnityEditor.SceneView.RepaintAll();
+            #endif
+                        }
+                    }
                 }
             });
 
-            var panel = DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
-            panel.children.Add(list.ToArray());
+            m_DebugItems = list.ToArray();
+            m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
+            m_DebugPanel.children.Add(m_DebugItems);
         }
 
         public void UnRegisterDebug(string name)
         {
-            DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
+            //DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
+            m_DebugPanel.children.Remove(m_DebugItems);
+            m_DebugPanel = null;
+            m_DebugItems = null;
         }
     }
 
@@ -161,7 +183,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public List<int>    producers;
             public List<int>    consumers;
-            public bool         resourceCreated;
             public int          refCount;
 
             public void Reset()
@@ -173,7 +194,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 producers.Clear();
                 consumers.Clear();
-                resourceCreated = false;
                 refCount = 0;
             }
         }
@@ -250,30 +270,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourceRegistry             m_Resources;
-        RenderGraphObjectPool                   m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderGraphPass>                   m_RenderPasses = new List<RenderGraphPass>(64);
-        List<RendererListHandle>                m_RendererLists = new List<RendererListHandle>(32);
-        RenderGraphDebugParams                  m_DebugParameters = new RenderGraphDebugParams();
-        RenderGraphLogger                       m_Logger = new RenderGraphLogger();
-        RenderGraphDefaultResources             m_DefaultResources = new RenderGraphDefaultResources();
-        Dictionary<int, ProfilingSampler>       m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
-        bool                                    m_ExecutionExceptionWasRaised;
-        RenderGraphContext                      m_RenderGraphContext = new RenderGraphContext();
-        CommandBuffer                           m_PreviousCommandBuffer;
-        int                                     m_CurrentImmediatePassIndex;
-        List<int>[]                             m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
+        RenderGraphResourceRegistry                 m_Resources;
+        RenderGraphObjectPool                       m_RenderGraphPool = new RenderGraphObjectPool();
+        List<RenderGraphPass>                       m_RenderPasses = new List<RenderGraphPass>(64);
+        List<RendererListHandle>                    m_RendererLists = new List<RendererListHandle>(32);
+        RenderGraphDebugParams                      m_DebugParameters = new RenderGraphDebugParams();
+        RenderGraphLogger                           m_FrameInformationLogger = new RenderGraphLogger();
+        RenderGraphDefaultResources                 m_DefaultResources = new RenderGraphDefaultResources();
+        Dictionary<int, ProfilingSampler>           m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
+        bool                                        m_ExecutionExceptionWasRaised;
+        RenderGraphContext                          m_RenderGraphContext = new RenderGraphContext();
+        CommandBuffer                               m_PreviousCommandBuffer;
+        int                                         m_CurrentImmediatePassIndex;
+        List<int>[]                                 m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
 
         // Compiled Render Graph info.
-        DynamicArray<CompiledResourceInfo>[]    m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
-        DynamicArray<CompiledPassInfo>          m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
-        Stack<int>                              m_CullingStack = new Stack<int>();
+        DynamicArray<CompiledResourceInfo>[]        m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
+        DynamicArray<CompiledPassInfo>              m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
+        Stack<int>                                  m_CullingStack = new Stack<int>();
 
-        int                                     m_ExecutionCount;
-        RenderGraphDebugData                    m_RenderGraphDebugData = new RenderGraphDebugData();
+        int                                         m_ExecutionCount;
+        int                                         m_CurrentFrameIndex;
+        bool                                        m_HasRenderGraphBegun;
+        string                                      m_CurrentExecutionName;
+        Dictionary<string, RenderGraphDebugData>    m_DebugData = new Dictionary<string, RenderGraphDebugData>();
 
         // Global list of living render graphs
-        static List<RenderGraph>                s_RegisteredGraphs = new List<RenderGraph>();
+        static List<RenderGraph>                    s_RegisteredGraphs = new List<RenderGraph>();
 
         #region Public Interface
         /// <summary>Name of the Render Graph.</summary>
@@ -299,14 +322,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraph(string name = "RenderGraph")
         {
             this.name = name;
-            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
+            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
                 m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
             }
-
-            m_DebugParameters.RegisterDebug(this.name);
 
             s_RegisteredGraphs.Add(this);
             onGraphRegistered?.Invoke(this);
@@ -317,7 +338,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
-            m_DebugParameters.UnRegisterDebug(this.name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
 
@@ -326,12 +346,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Register the render graph to the debug window.
+        /// </summary>
+        /// <param name="panel"></param>
+        public void RegisterDebug(DebugUI.Panel panel = null)
+        {
+            m_DebugParameters.RegisterDebug(name, panel);
+        }
+
+        /// <summary>
+        /// Unregister render graph from the debug window.
+        /// </summary>
+        public void UnRegisterDebug()
+        {
+            m_DebugParameters.UnRegisterDebug(this.name);
+        }
+
+        /// <summary>
+        /// Get the list of all registered render graphs.
+        /// </summary>
+        /// <returns>The list of all registered render graphs.</returns>
+        public static List<RenderGraph> GetRegisteredRenderGraphs()
+        {
+            return s_RegisteredGraphs;
+        }
+
+        /// <summary>
         /// Returns the last rendered frame debug data. Can be null if requireDebugData is set to false.
         /// </summary>
         /// <returns>The last rendered frame debug data</returns>
-        internal RenderGraphDebugData GetDebugData()
+        internal RenderGraphDebugData GetDebugData(string executionName)
         {
-            return m_RenderGraphDebugData;
+            if (m_DebugData.TryGetValue(executionName, out var debugData))
+                return debugData;
+
+            return null;
         }
 
         /// <summary>
@@ -340,9 +389,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void EndFrame()
         {
-            m_Resources.PurgeUnusedResources();
-            m_DebugParameters.logFrameInformation = false;
-            m_DebugParameters.logResources = false;
+            m_Resources.PurgeUnusedGraphicsResources();
+
+            if (m_DebugParameters.logFrameInformation)
+            {
+                Debug.Log(m_FrameInformationLogger.GetAllLogs());
+                m_DebugParameters.logFrameInformation = false;
+            }
+            if (m_DebugParameters.logResources)
+            {
+                m_Resources.FlushLogs();
+                m_DebugParameters.logResources = false;
+            }
         }
 
         /// <summary>
@@ -377,6 +435,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Create a new Render Graph Shared Texture resource.
+        /// This texture will be persistent across render graph executions.
+        /// </summary>
+        /// <param name="desc">Creation descriptor of the texture.</param>
+        /// <param name="explicitRelease">Set to true if you want to manage the lifetime of the resource yourself. Otherwise the resource will be released automatically if unused for a time.</param>
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease = false)
+        {
+            if (m_HasRenderGraphBegun)
+                throw new InvalidOperationException("A shared texture can only be created outside of render graph execution.");
+
+            return m_Resources.CreateSharedTexture(desc, explicitRelease);
+        }
+
+        /// <summary>
+        /// Release a Render Graph shared texture resource.
+        /// </summary>
+        /// <param name="texture">The handle to the texture that needs to be release.</param>
+        public void ReleaseSharedTexture(TextureHandle texture)
+        {
+            if (m_HasRenderGraphBegun)
+                throw new InvalidOperationException("A shared texture can only be release outside of render graph execution.");
+
+            m_Resources.ReleaseSharedTexture(texture);
+        }
+
+        /// <summary>
         /// Create a new Render Graph Texture resource using the descriptor from another texture.
         /// </summary>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
@@ -390,8 +475,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Create a new Render Graph Texture if the passed handle is invalid and use said handle as output.
         /// If the passed handle is valid, no texture is created.
         /// </summary>
+        /// <param name="desc">Desc used to create the texture.</param>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
-        /// <returns>A new TextureHandle.</returns>
         public void CreateTextureIfInvalid(in TextureDesc desc, ref TextureHandle texture)
         {
             if (!texture.IsValid())
@@ -498,11 +583,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="parameters">Parameters necessary for the render graph execution.</param>
         public void Begin(in RenderGraphParameters parameters)
         {
-            m_ExecutionCount++;
+            m_CurrentFrameIndex = parameters.currentFrameIndex;
+            m_CurrentExecutionName = parameters.executionName;
+            m_HasRenderGraphBegun = true;
 
-            m_Logger.Initialize();
+            m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
-            m_Resources.BeginRender(parameters.currentFrameIndex, m_ExecutionCount);
+            if (m_DebugParameters.enableLogging)
+            {
+                m_FrameInformationLogger.Initialize(m_CurrentExecutionName);
+            }
+
             m_DefaultResources.InitializeForRendering(this);
 
             m_RenderGraphContext.cmd = parameters.commandBuffer;
@@ -527,6 +618,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     m_ImmediateModeResourceList[i].Clear();
                 }
+
+                m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
         }
 
@@ -542,11 +635,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (m_RenderGraphContext.cmd == null)
                     throw new InvalidOperationException("RenderGraph.Begin was not called before executing the render graph.");
 
+
                 if (!m_DebugParameters.immediateMode)
                 {
                     LogFrameInformation();
 
                     CompileRenderGraph();
+
+                    m_Resources.BeginExecute(m_CurrentFrameIndex);
+
                     ExecuteRenderGraph();
                 }
             }
@@ -559,20 +656,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             finally
             {
-                if (!m_ExecutionExceptionWasRaised && requireDebugData)
-                    GenerateDebugData();
+                GenerateDebugData();
 
                 if (m_DebugParameters.immediateMode)
                     ReleaseImmediateModeResources();
 
                 ClearCompiledGraph();
 
-                if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
-                    Debug.Log(m_Logger.GetLog());
-
-                m_Resources.EndRender();
+                m_Resources.EndExecute();
 
                 InvalidateContext();
+
+                m_HasRenderGraphBegun = false;
             }
         }
 
@@ -620,11 +715,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
-        internal static List<RenderGraph>  GetRegisteredRenderGraphs()
-        {
-            return s_RegisteredGraphs;
-        }
-
         // Internal for testing purpose only
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
 
@@ -657,6 +747,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal delegate void OnGraphRegisteredDelegate(RenderGraph graph);
         internal static event OnGraphRegisteredDelegate onGraphRegistered;
         internal static event OnGraphRegisteredDelegate onGraphUnregistered;
+        internal delegate void OnExecutionRegisteredDelegate(RenderGraph graph, string executionName);
+        internal static event OnExecutionRegisteredDelegate onExecutionRegistered;
+        internal static event OnExecutionRegisteredDelegate onExecutionUnregistered;
 
         #endregion
 
@@ -695,7 +788,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         info.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceReads[type].Add(m_Resources.GetResourceName(resource));
+                        passInfo.debugResourceReads[type].Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -707,11 +800,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         passInfo.refCount++;
 
                         // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
-                        if (m_Resources.IsResourceImported(resource))
+                        if (m_Resources.IsRenderGraphResourceImported(resource))
                             passInfo.hasSideEffect = true;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceWrites[type].Add(m_Resources.GetResourceName(resource));
+                        passInfo.debugResourceWrites[type].Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -726,47 +819,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void CullOutputlessPasses()
-        {
-            // Gather passes that don't produce anything and cull them.
-            m_CullingStack.Clear();
-            for (int pass = 0; pass < m_CompiledPassInfos.size; ++pass)
-            {
-                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[pass];
-
-                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassCulling)
-                {
-                    // Producer is not necessary as it produces zero resources
-                    // Cull it and decrement refCount of all the resources it reads.
-                    // We don't need to go recursively here because we decrement ref count of read resources
-                    // so the subsequent passes of culling will detect those and remove the related passes.
-                    passInfo.culled = true;
-                    for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
-                    {
-                        foreach (var index in passInfo.pass.resourceReadLists[type])
-                        {
-                            m_CompiledResourcesInfos[type][index].refCount--;
-                        }
-                    }
-                }
-            }
-        }
-
         void CullUnusedPasses()
         {
             if (m_DebugParameters.disablePassCulling)
             {
-                if (m_DebugParameters.logFrameInformation)
+                if (m_DebugParameters.enableLogging)
                 {
-                    m_Logger.LogLine("- Pass Culling Disabled -\n");
+                    m_FrameInformationLogger.LogLine("- Pass Culling Disabled -\n");
                 }
                 return;
             }
-
-            // TODO RENDERGRAPH: temporarily remove culling of passes without product.
-            // Many passes are used just to set global variables so we don't want to force users to disallow culling on those explicitly every time.
-            // This will cull passes with no outputs.
-            //CullOutputlessPasses();
 
             // This will cull all passes that produce resource that are never read.
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
@@ -965,11 +1027,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     if (firstWriteIndex != -1)
                         m_CompiledPassInfos[firstWriteIndex].resourceCreateList[type].Add(i);
 
-                    // Texture release
+                    var latestValidReadIndex = GetLatestValidReadIndex(resourceInfo);
+                    var latestValidWriteIndex = GetLatestValidWriteIndex(resourceInfo);
+
                     // Sometimes, a texture can be written by a pass after the last pass that reads it.
                     // In this case, we need to extend its lifetime to this pass otherwise the pass would get an invalid texture.
-                    int lastReadPassIndex = Math.Max(GetLatestValidReadIndex(resourceInfo), GetLatestValidWriteIndex(resourceInfo));
+                    // This is exhibited in cases where a pass might produce more than one output and one of them isn't used.
+                    // Ex: Transparent pass in HDRP that writes to the color buffer and motion vectors.
+                    // If TAA/MotionBlur aren't used, the movecs are never read after the transparent pass and it would raise this error.
+                    // Because of that, it's hard to make this an actual error.
+                    // Commented out code to check such cases if needed.
+                    //if (latestValidReadIndex != -1 && (latestValidWriteIndex > latestValidReadIndex))
+                    //{
+                    //    var name = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                    //    var lastPassReadName = m_CompiledPassInfos[latestValidReadIndex].pass.name;
+                    //    var lastPassWriteName = m_CompiledPassInfos[latestValidWriteIndex].pass.name;
+                    //    Debug.LogError($"Resource {name} is written again after the last pass that reads it.\nLast pass read: {lastPassReadName}\nLast pass write: {lastPassWriteName}");
+                    //}
 
+                    int lastReadPassIndex = Math.Max(latestValidWriteIndex, latestValidReadIndex);
+
+                    // Texture release
                     if (lastReadPassIndex != -1)
                     {
                         // In case of async passes, we need to extend lifetime of resource to the first pass on the graphics pipeline that wait for async passes to be over.
@@ -1002,6 +1080,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
                             passInfo.resourceReleaseList[type].Add(i);
                         }
+                    }
+
+                    if (m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i)
+                        && (firstWriteIndex != -1 || lastReadPassIndex != -1)) // A shared resource is considered used if it's either read or written at any pass.
+                    {
+                        m_Resources.UpdateSharedResourceLastFrameIndex(type, i);
                     }
                 }
             }
@@ -1042,14 +1126,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var res in pass.resourceWriteLists[iType])
                 {
-                    if (!m_Resources.IsResourceCreated(res))
+                    if (!m_Resources.IsGraphicsResourceCreated(res))
                     {
                         passInfo.resourceCreateList[iType].Add(res);
                         m_ImmediateModeResourceList[iType].Add(res);
                     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
@@ -1059,15 +1143,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     passInfo.resourceReleaseList[iType].Add(res);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
                 foreach (var res in pass.resourceReadLists[iType])
                 {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
             }
@@ -1104,7 +1188,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 using (new ProfilingScope(m_RenderGraphContext.cmd, passInfo.pass.customSampler))
                 {
                     LogRenderPassBegin(passInfo);
-                    using (new RenderGraphLogIndent(m_Logger))
+                    using (new RenderGraphLogIndent(m_FrameInformationLogger))
                     {
                         PreRenderPassExecute(passInfo, m_RenderGraphContext);
                         passInfo.pass.Execute(m_RenderGraphContext);
@@ -1175,17 +1259,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PreRenderPassExecute(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
         {
-            // TODO RENDERGRAPH merge clear and setup here if possible
             RenderGraphPass pass = passInfo.pass;
 
             // Need to save the command buffer to restore it later as the one in the context can changed if running a pass async.
             m_PreviousCommandBuffer = rgContext.cmd;
 
-            foreach (var texture in passInfo.resourceCreateList[(int)RenderGraphResourceType.Texture])
-                m_Resources.CreateAndClearTexture(rgContext, texture);
-
-            foreach (var buffer in passInfo.resourceCreateList[(int)RenderGraphResourceType.ComputeBuffer])
-                m_Resources.CreateComputeBuffer(rgContext, buffer);
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            {
+                foreach (int resource in passInfo.resourceCreateList[type])
+                {
+                    m_Resources.CreatePooledResource(rgContext, type, resource);
+                }
+            }
 
             PreRenderPassSetRenderTargets(passInfo, rgContext);
 
@@ -1224,10 +1309,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
 
-            foreach (var texture in passInfo.resourceReleaseList[(int)RenderGraphResourceType.Texture])
-                m_Resources.ReleaseTexture(rgContext, texture);
-            foreach (var buffer in passInfo.resourceReleaseList[(int)RenderGraphResourceType.ComputeBuffer])
-                m_Resources.ReleaseComputeBuffer(rgContext, buffer);
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            {
+                foreach (var resource in passInfo.resourceReleaseList[type])
+                {
+                    m_Resources.ReleasePooledResource(rgContext, type, resource);
+                }
+            }
         }
 
         void ClearRenderPasses()
@@ -1239,62 +1327,65 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ReleaseImmediateModeResources()
         {
-            foreach (var texture in m_ImmediateModeResourceList[(int)RenderGraphResourceType.Texture])
-                m_Resources.ReleaseTexture(m_RenderGraphContext, texture);
-            foreach (var buffer in m_ImmediateModeResourceList[(int)RenderGraphResourceType.ComputeBuffer])
-                m_Resources.ReleaseComputeBuffer(m_RenderGraphContext, buffer);
+            for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+            {
+                foreach (var resource in m_ImmediateModeResourceList[type])
+                {
+                    m_Resources.ReleasePooledResource(m_RenderGraphContext, type, resource);
+                }
+            }
         }
 
         void LogFrameInformation()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("==== Staring render graph frame ====");
+                m_FrameInformationLogger.LogLine($"==== Staring render graph frame for: {m_CurrentExecutionName} ====");
 
                 if (!m_DebugParameters.immediateMode)
-                    m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
+                    m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
         }
 
         void LogRendererListsCreation()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
+                m_FrameInformationLogger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
             }
         }
 
         void LogRenderPassBegin(in CompiledPassInfo passInfo)
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
                 RenderGraphPass pass = passInfo.pass;
 
-                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
-                using (new RenderGraphLogIndent(m_Logger))
+                m_FrameInformationLogger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
+                using (new RenderGraphLogIndent(m_FrameInformationLogger))
                 {
                     if (passInfo.syncToPassIndex != -1)
-                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
+                        m_FrameInformationLogger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
                 }
             }
         }
 
         void LogCulledPasses()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("Pass Culling Report:");
-                using (new RenderGraphLogIndent(m_Logger))
+                m_FrameInformationLogger.LogLine("Pass Culling Report:");
+                using (new RenderGraphLogIndent(m_FrameInformationLogger))
                 {
                     for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                     {
                         if (m_CompiledPassInfos[i].culled)
                         {
                             var pass = m_RenderPasses[i];
-                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
+                            m_FrameInformationLogger.LogLine("[{0}] {1}", pass.index, pass.name);
                         }
                     }
-                    m_Logger.LogLine("\n");
+                    m_FrameInformationLogger.LogLine("\n");
                 }
             }
         }
@@ -1329,7 +1420,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void GenerateDebugData()
         {
-            m_RenderGraphDebugData.Clear();
+            if (m_ExecutionExceptionWasRaised)
+                return;
+
+            if (!requireDebugData)
+            {
+                CleanupDebugData();
+                return;
+            }
+
+            if (!m_DebugData.TryGetValue(m_CurrentExecutionName, out var debugData))
+            {
+                onExecutionRegistered?.Invoke(this, m_CurrentExecutionName);
+                debugData = new RenderGraphDebugData();
+                m_DebugData.Add(m_CurrentExecutionName, debugData);
+            }
+
+            debugData.Clear();
 
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
@@ -1337,8 +1444,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     ref var resourceInfo = ref m_CompiledResourcesInfos[type][i];
                     RenderGraphDebugData.ResourceDebugData newResource = new RenderGraphDebugData.ResourceDebugData();
-                    newResource.name = m_Resources.GetResourceName((RenderGraphResourceType)type, i);
-                    newResource.imported = m_Resources.IsResourceImported((RenderGraphResourceType)type, i);
+                    newResource.name = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                    newResource.imported = m_Resources.IsRenderGraphResourceImported((RenderGraphResourceType)type, i);
                     newResource.creationPassIndex = -1;
                     newResource.releasePassIndex = -1;
 
@@ -1351,7 +1458,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         UpdateImportedResourceLifeTime(ref newResource, newResource.producerList);
                     }
 
-                    m_RenderGraphDebugData.resourceLists[type].Add(newResource);
+                    debugData.resourceLists[type].Add(newResource);
                 }
             }
 
@@ -1378,25 +1485,35 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     foreach (var resourceCreate in passInfo.resourceCreateList[type])
                     {
-                        var res = m_RenderGraphDebugData.resourceLists[type][resourceCreate];
+                        var res = debugData.resourceLists[type][resourceCreate];
                         if (res.imported)
                             continue;
                         res.creationPassIndex = i;
-                        m_RenderGraphDebugData.resourceLists[type][resourceCreate] = res;
+                        debugData.resourceLists[type][resourceCreate] = res;
                     }
 
                     foreach (var resourceRelease in passInfo.resourceReleaseList[type])
                     {
-                        var res = m_RenderGraphDebugData.resourceLists[type][resourceRelease];
+                        var res = debugData.resourceLists[type][resourceRelease];
                         if (res.imported)
                             continue;
                         res.releasePassIndex = i;
-                        m_RenderGraphDebugData.resourceLists[type][resourceRelease] = res;
+                        debugData.resourceLists[type][resourceRelease] = res;
                     }
                 }
 
-                m_RenderGraphDebugData.passList.Add(newPass);
+                debugData.passList.Add(newPass);
             }
+        }
+
+        void CleanupDebugData()
+        {
+            foreach (var kvp in m_DebugData)
+            {
+                onExecutionUnregistered?.Invoke(this, kvp.Key);
+            }
+
+            m_DebugData.Clear();
         }
 
         #endregion

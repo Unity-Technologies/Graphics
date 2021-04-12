@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -23,7 +24,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
         }
@@ -36,7 +38,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
         }
@@ -49,6 +52,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+
+            if (!m_Resources.IsRenderGraphResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
+            {
+                var texDimension = m_Resources.GetTextureResourceDesc(input.handle).dimension;
+                if (texDimension == TextureXR.dimension)
+                {
+                    return m_RenderGraph.defaultResources.blackTextureXR;
+                }
+                else if (texDimension == TextureDimension.Tex3D)
+                {
+                    return m_RenderGraph.defaultResources.blackTexture3DXR;
+                }
+                else
+                {
+                    return m_RenderGraph.defaultResources.blackTexture;
+                }
+            }
+
             m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
@@ -61,8 +82,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
-            // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Texture resource to read and write to during the pass.
+        /// </summary>
+        /// <param name="input">The Texture resource to read and write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public TextureHandle ReadWriteTexture(in TextureHandle input)
+        {
+            CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
+            m_RenderPass.AddResourceWrite(input.handle);
+            m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
 
@@ -125,6 +160,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             return input;
         }
 
@@ -215,13 +251,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Disposed = true;
         }
 
-        void CheckResource(in ResourceHandle res)
+        void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (res.IsValid())
             {
-                int transientIndex = m_Resources.GetResourceTransientIndex(res);
-                if (transientIndex == m_RenderPass.index)
+                int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
+                // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
+                if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
                 {
                     Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
                 }

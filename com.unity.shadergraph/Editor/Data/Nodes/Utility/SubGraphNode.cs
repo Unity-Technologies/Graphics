@@ -129,7 +129,6 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
-                concretePrecision = m_SubGraph.outputPrecision;
             }
         }
 
@@ -164,10 +163,10 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (asset == null)
-                    return PreviewMode.Preview2D;
-
-                return PreviewMode.Preview3D;
+                PreviewMode mode = m_PreviewMode;
+                if ((mode == PreviewMode.Inherit) && (asset != null))
+                    mode = asset.previewMode;
+                return mode;
             }
         }
 
@@ -183,16 +182,19 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return false; }
+            get { return asset.subGraphGraphPrecision == GraphPrecision.Graph; }
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            var outputGraphPrecision = asset?.outputGraphPrecision ?? GraphPrecision.Single;
+            var outputPrecision = outputGraphPrecision.ToConcrete(concretePrecision);
+
             if (asset == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
+
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -205,33 +207,17 @@ namespace UnityEditor.ShaderGraph
 
             GenerationUtils.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
+            // declare output variables
             foreach (var outSlot in asset.outputs)
-                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(asset.outputPrecision), GetVariableNameForSlot(outSlot.id));
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(outputPrecision), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
-            foreach (var prop in asset.inputs)
+            foreach (AbstractShaderProperty prop in asset.inputs)
             {
-                prop.ValidateConcretePrecision(asset.graphPrecision);
+                // setup the property concrete precision (fallback to node concrete precision when it's switchable)
+                prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
-
-                switch (prop)
-                {
-                    case Texture2DShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture2DArrayShaderProperty texture2DArrayProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture3DShaderProperty texture3DProp:
-                        arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case CubemapShaderProperty cubemapProp:
-                        arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    default:
-                        arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                }
+                arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
             }
 
             // pass surface inputs through
@@ -247,7 +233,19 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+            sb.AppendIndentation();
+            sb.Append(asset.functionName);
+            sb.Append("(");
+            bool firstArg = true;
+            foreach (var arg in arguments)
+            {
+                if (!firstArg)
+                    sb.Append(", ");
+                firstArg = false;
+                sb.Append(arg);
+            }
+            sb.Append(");");
+            sb.AppendNewLine();
         }
 
         public void OnEnable()
@@ -255,9 +253,9 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
 
-        public bool Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencyGUIDs)
         {
-            if (!changedFileDependencies.Contains(subGraphGuid))
+            if (!changedFileDependencyGUIDs.Contains(subGraphGuid))
             {
                 return false;
             }
@@ -268,7 +266,7 @@ namespace UnityEditor.ShaderGraph
                 return true;
             }
 
-            if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
+            if (changedFileDependencyGUIDs.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencyGUIDs.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
@@ -284,6 +282,29 @@ namespace UnityEditor.ShaderGraph
             }
 
             return true;
+        }
+
+        public override void UpdatePrecision(List<MaterialSlot> inputSlots)
+        {
+            if (asset != null)
+            {
+                if (asset.subGraphGraphPrecision == GraphPrecision.Graph)
+                {
+                    // subgraph is defined to be switchable, so use the default behavior to determine precision
+                    base.UpdatePrecision(inputSlots);
+                }
+                else
+                {
+                    // subgraph sets a specific precision, force that
+                    graphPrecision = asset.subGraphGraphPrecision;
+                    concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
+                }
+            }
+            else
+            {
+                // no subgraph asset; use default behavior
+                base.UpdatePrecision(inputSlots);
+            }
         }
 
         public virtual void UpdateSlots()
@@ -569,12 +590,38 @@ namespace UnityEditor.ShaderGraph
             if (asset == null || hasError)
                 return;
 
+            registry.RequiresIncludes(asset.includes);
+
+            var graphData = registry.builder.currentNode.owner;
+            var graphDefaultConcretePrecision = graphData.graphDefaultConcretePrecision;
+
             foreach (var function in asset.functions)
             {
-                registry.ProvideFunction(function.key, s =>
+                var name = function.key;
+                var source = function.value;
+                var graphPrecisionFlags = function.graphPrecisionFlags;
+
+                // the subgraph may use multiple precision variants of this function internally
+                // here we iterate through all the requested precisions and forward those requests out to the graph
+                for (int requestedGraphPrecision = 0; requestedGraphPrecision <= (int)GraphPrecision.Half; requestedGraphPrecision++)
                 {
-                    s.AppendLines(function.value);
-                });
+                    // only provide requested precisions
+                    if ((graphPrecisionFlags & (1 << requestedGraphPrecision)) != 0)
+                    {
+                        // when a function coming from a subgraph asset has a graph precision of "Graph",
+                        // that means it is up to the subgraph NODE to decide (i.e. us!)
+                        GraphPrecision actualGraphPrecision = (GraphPrecision)requestedGraphPrecision;
+
+                        // subgraph asset setting falls back to this node setting (when switchable)
+                        actualGraphPrecision = actualGraphPrecision.GraphFallback(this.graphPrecision);
+
+                        // which falls back to the graph default concrete precision
+                        ConcretePrecision actualConcretePrecision = actualGraphPrecision.ToConcrete(graphDefaultConcretePrecision);
+
+                        // forward the function into the current graph
+                        registry.ProvideFunction(name, actualGraphPrecision, actualConcretePrecision, sb => sb.AppendLines(source));
+                    }
+                }
             }
         }
 

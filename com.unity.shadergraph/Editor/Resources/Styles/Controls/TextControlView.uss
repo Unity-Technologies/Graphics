@@ -1,0 +1,34 @@
+TextCotrolView {
+    -unity-text-align: middle-left;
+
+}
+
+TextControlView > #container{
+    flex-direction: row;
+    flex-grow: 1;
+    padding-left: 8px;
+    padding-right: 16px;
+    align-items: center;
+}
+
+TextCotrolView > #container > Label {
+    flex-wrap: wrap;
+    max-width: 94px;
+    width: 30px;
+    flex-grow: 1;
+
+}
+
+.unity-base-field {
+    width: 60px;
+    flex-grow: 1;
+    margin-left: 20%;
+    margin-right: 0;
+    padding-right: 10;
+}
+
+.unity-base-field__input {
+    margin-left: 0;
+    margin-right: 0;
+    -unity-text-align: middle-left;
+}

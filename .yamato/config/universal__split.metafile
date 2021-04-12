@@ -1,0 +1,46 @@
+project:
+  name: Universal_Split
+expression_trigger:
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+pr:
+  dependencies:
+    - project: URP_2D
+      pr: true
+    - project: URP_Foundation
+      pr: true
+    - project: URP_Lighting
+      pr: true
+    - project: URP_PostPro
+      pr: true
+    - project: URP_Terrain
+      pr: true
+    - project: Universal_Stereo
+      pr: true
+    - project: VFX_URP
+      pr: true
+    - project: ShaderGraph
+      pr: true
+    - project: URPUpdate
+      pr: true
+nightly:
+  dependencies:
+    - project: URP_2D
+      nightly: true
+    - project: URP_Foundation
+      nightly: true
+    - project: URP_Lighting
+      nightly: true
+    - project: URP_PostPro
+      nightly: true
+    - project: URP_Terrain
+      nightly: true
+    - project: Universal_Stereo
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - project: URPUpdate
+      nightly: true

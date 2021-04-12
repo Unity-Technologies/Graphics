@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent k_NearFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the near field does not blur anymore.");
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
-            public static GUIContent k_PhysicallyBased = new GUIContent("Physically Based (Preview)", "Uses a more accurate but slower physically based method to compute DoF.");
+            public static GUIContent k_PhysicallyBased = new GUIContent("Physically Based", "Uses a more accurate but slower physically based method to compute DoF.");
 
             public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
         }
@@ -45,8 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
-
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -106,11 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
             {
-                EditorGUILayout.LabelField("Near Range", EditorStyles.miniLabel);
                 PropertyField(m_NearFocusStart, Styles.k_NearFocusStart);
                 PropertyField(m_NearFocusEnd, Styles.k_NearFocusEnd);
-
-                EditorGUILayout.LabelField("Far Range", EditorStyles.miniLabel);
                 PropertyField(m_FarFocusStart, Styles.k_FarFocusStart);
                 PropertyField(m_FarFocusEnd, Styles.k_FarFocusEnd);
             }
@@ -120,22 +115,22 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new QualityScope(this))
             {
-                EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
                 PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
                 PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
-
-                EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
                 PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
 
-                if (isInAdvancedMode)
+                PropertyField(m_Resolution);
+                PropertyField(m_HighQualityFiltering);
+                PropertyField(m_PhysicallyBased);
+                if (m_PhysicallyBased.value.boolValue)
                 {
-                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                    PropertyField(m_Resolution);
-                    PropertyField(m_HighQualityFiltering);
-                    PropertyField(m_PhysicallyBased);
-                    if (m_PhysicallyBased.value.boolValue == true)
+                    if (BeginAdditionalPropertiesScope())
+                    {
+                        EditorGUILayout.Space();
                         EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                    }
+                    EndAdditionalPropertiesScope();
                 }
             }
         }

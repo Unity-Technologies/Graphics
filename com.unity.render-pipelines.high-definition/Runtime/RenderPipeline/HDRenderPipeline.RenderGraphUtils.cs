@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawTransparentRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
         }
 
-        static int SampleCountToPassIndex(MSAASamples samples)
+        internal static int SampleCountToPassIndex(MSAASamples samples)
         {
             switch (samples)
             {
@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
+
+            if (CoreUtils.IsSceneFilteringEnabled())
+                clearColor.a = 0.0f;
 
             return clearColor;
         }
@@ -135,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderXROcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
+            if (hdCamera.xr.hasValidOcclusionMesh && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {

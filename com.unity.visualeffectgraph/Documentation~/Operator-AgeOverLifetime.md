@@ -1,6 +1,6 @@
 # Age Over Lifetime
 
-Menu Path : **Operator > Attribute > Age over Lifetime** 
+Menu Path : **Operator > Attribute > Age over Lifetime**
 
 The **Age Over Lifetime** Operator returns the age of a particle relative to its lifetime, as a value between 0.0 and 1.0.
 

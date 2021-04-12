@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Public properties
         public BoolParameter Downsample = new BoolParameter(false);
+        public BoolParameter AfterOpaque = new BoolParameter(false);
         public DepthSourceSetting Source = new DepthSourceSetting(ScreenSpaceAmbientOcclusion.DepthSource.DepthNormals);
         public NormalQualitySetting NormalSamples = new NormalQualitySetting(ScreenSpaceAmbientOcclusion.NormalQuality.Medium);
         public ClampedFloatParameter Intensity = new ClampedFloatParameter(3.0f, 0.0f, 10.0f);

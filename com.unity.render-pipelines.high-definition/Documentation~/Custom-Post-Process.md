@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.md). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
 
-* **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > C# Post Process Volume**.
+* **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > HDRP C# Post Process Volume**.
 
 * **FullScreen Shader**: Right click in the Assets folder and select **Create > Shader > HDRP > Post Process**.
 
@@ -12,7 +12,7 @@ Note that by default, your custom effect does not run if you just add it to a Vo
 
 This example shows you how to create a **grayscale** effect. To get started:
 
-1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create > Rendering > C# Post Process Volume**) and call it **GrayScale**. Note that, because of how serialization works in Unity, the file name and the class name must be identical or Unity does not serialize it properly.
+1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create > Rendering > HDRP C# Post Process Volume**) and call it **GrayScale**. Note that, because of how serialization works in Unity, the file name and the class name must be identical or Unity does not serialize it properly.
 
 2. Copy the example code from the [GrayScale C# script section](#CSharp) into your **C# Post Process Volume**.
 
@@ -42,29 +42,29 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
 {
     [Tooltip("Controls the intensity of the effect.")]
     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
-    
+
     Material m_Material;
-    
+
     public bool IsActive() => m_Material != null && intensity.value > 0f;
-    
+
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
-    
+
     public override void Setup()
     {
         if (Shader.Find("Hidden/Shader/GrayScale") != null)
             m_Material = new Material(Shader.Find("Hidden/Shader/GrayScale"));
     }
-    
+
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
     {
         if (m_Material == null)
             return;
-    
+
         m_Material.SetFloat("_Intensity", intensity.value);
         m_Material.SetTexture("_InputTexture", source);
         HDUtils.DrawFullScreen(cmd, m_Material, destination);
     }
-    
+
     public override void Cleanup() => CoreUtils.Destroy(m_Material);
 
 }
@@ -79,7 +79,7 @@ Firstly, the example code uses a ClampedFloatParameter which is a type that you 
 
 Next, there is the **IsActive()** function. HDRP calls this function before the **Render** function make sure it is possible to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, **IsActive()** makes sure that it can find the **GrayScale.shader** and that the intensity is greater than 0.
 
-The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently three injection points: 
+The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently three injection points:
 
 * **AfterOpaqueAndSky.**
 
@@ -103,51 +103,51 @@ HDRP gives you total control over the vertex and fragment Shader so you can edit
 Shader "Hidden/Shader/GrayScale"
 {
     HLSLINCLUDE
-    
+
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
-    
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
-    
+
     struct Attributes
     {
         uint vertexID : SV_VertexID;
         UNITY_VERTEX_INPUT_INSTANCE_ID
     };
-    
+
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
         float2 texcoord   : TEXCOORD0;
         UNITY_VERTEX_OUTPUT_STEREO
-    
+
     };
-    
+
     Varyings Vert(Attributes input)
     {
         Varyings output;
-    
+
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    
+
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
         output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
-    
+
         return output;
     }
-    
+
     // List of properties to control your post process effect
     float _Intensity;
     TEXTURE2D_X(_InputTexture);
-    
+
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    
+
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
 
@@ -155,27 +155,27 @@ Shader "Hidden/Shader/GrayScale"
         // It's necessary because the color buffer contains garbage from the previous post process effect.
         return float4(lerp(outColor, Luminance(outColor).xxx, _Intensity), 1);
     }
-    
+
     ENDHLSL
-    
+
     SubShader
     {
         Pass
         {
             Name "GrayScale"
-    
+
             ZWrite Off
             ZTest Always
             Blend Off
             Cull Off
-    
+
             HLSLPROGRAM
                 #pragma fragment CustomPostProcess
                 #pragma vertex Vert
             ENDHLSL
         }
     }
-    
+
     Fallback Off
 }
 ```
@@ -203,7 +203,7 @@ By default, the Shader template provides you with the following inputs:
 
 HDRP allows you to customize the order of your custom post-processing effect at each injection point. To order your effects:
 
-1. Go to **Edit > Project Settings** and select the **HDRP Default Settings** tab.
+1. Go to **Edit > Project Settings > Graphics** and select the [HDRP Global Settings](Default-Settings-Window.md) tab.
 
 2. Scroll down until you find the **Custom Post Process Orders** section. This section contains three lists, one for each injection point.
 
@@ -245,32 +245,32 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 {
 
     SerializedDataParameter m_Intensity;
-    
+
     public override bool hasAdvancedMode => false;
-    
+
     public override void OnEnable()
-    
+
     {
-    
+
         base.OnEnable();
-    
+
         var o = new PropertyFetcher<GrayScale>(serializedObject);
-    
+
         m_Intensity = Unpack(o.Find(x => x.intensity));
-    
+
     }
-    
+
     public override void OnInspectorGUI()
-    
+
     {
-    
+
         PropertyField(m_Intensity);
-    
+
     }
 
 }
 ```
-This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
+This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
 ## TroubleShooting
 

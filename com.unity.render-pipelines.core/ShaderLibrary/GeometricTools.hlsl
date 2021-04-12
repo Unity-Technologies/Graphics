@@ -29,15 +29,16 @@ float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
 
 // Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
 // Returns 'false' if there are no real roots, 'true' otherwise.
-// Numerically stable.
-// Ref: Numerical Recipes in C++ (3rd Edition)
+// Ensures that roots.x <= roots.y.
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
-    float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + CopySign(sqrt(d), b));
-    roots   = float2(c / q, q / a);
+    float det = Sq(b) - 4.0 * a * c;
 
-    return (d >= 0);
+    float sqrtDet = sqrt(det);
+    roots.x = (-b - sign(a) * sqrtDet) / (2.0 * a);
+    roots.y = (-b + sign(a) * sqrtDet) / (2.0 * a);
+
+    return (det >= 0.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -159,8 +160,8 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     // Check whether we have at least 1 root.
     bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
 
-    tEntr = min(roots.x, roots.y);
-    tExit = max(roots.x, roots.y);
+    tEntr = roots.x;
+    tExit = roots.y;
     float3 pEntr = o + tEntr * d;
     float3 pExit = o + tExit * d;
 
@@ -179,6 +180,15 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     if (tEntr == tExit) { hit = false; }
 
     return hit;
+}
+
+bool IntersectSphereAABB(float3 position, float radius, float3 aabbMin, float3 aabbMax)
+{
+  float x = max(aabbMin.x, min(position.x, aabbMax.x));
+  float y = max(aabbMin.y, min(position.y, aabbMax.y));
+  float z = max(aabbMin.z, min(position.z, aabbMax.z));
+  float distance2 = ((x - position.x) * (x - position.x) + (y - position.y) * (y - position.y) + (z - position.z) * (z - position.z));
+  return distance2 < radius * radius;
 }
 
 //-----------------------------------------------------------------------------
@@ -224,9 +234,12 @@ bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 
 // Returns 'true' if the edge of the triangle is outside of the frustum.
 // The edges are defined s.t. they are on the opposite side of the point with the given index.
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
-bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+//output packing:
+// x,y,z - one component per triangle edge, true if outside, false otherwise
+// w - true if entire triangle is outside of at least 1 plane of the frustum, false otherwise
+bool4 CullFullTriangleAndEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
 {
-    bool3 edgesOutside = false;
+    bool4 edgesOutsideXYZ_triangleOutsideW = false;
 
     for (int i = 0; i < numPlanes; i++)
     {
@@ -234,13 +247,26 @@ bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, f
                                     DistanceFromPlane(p1, frustumPlanes[i]) < epsilon,
                                     DistanceFromPlane(p2, frustumPlanes[i]) < epsilon);
 
-        // If both points of the edge are behind any of the planes, we cull.
-        edgesOutside.x = edgesOutside.x || (pointsOutside.y && pointsOutside.z);
-        edgesOutside.y = edgesOutside.y || (pointsOutside.x && pointsOutside.z);
-        edgesOutside.z = edgesOutside.z || (pointsOutside.x && pointsOutside.y);
+        bool3 edgesOutside;
+            // If both points of the edge are behind any of the planes, we cull.
+        edgesOutside.x = pointsOutside.y && pointsOutside.z;
+        edgesOutside.y = pointsOutside.x && pointsOutside.z;
+        edgesOutside.z = pointsOutside.x && pointsOutside.y;
+
+        edgesOutsideXYZ_triangleOutsideW = edgesOutsideXYZ_triangleOutsideW || bool4(edgesOutside.xyz, all(pointsOutside));
     }
 
-    return edgesOutside;
+    return edgesOutsideXYZ_triangleOutsideW;
+}
+
+// Returns 'true' if the edge of the triangle is outside of the frustum.
+// The edges are defined s.t. they are on the opposite side of the point with the given index.
+// 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
+//output packing:
+// x,y,z - one component per triangle edge, true if outside, false otherwise
+bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
+{
+    return CullFullTriangleAndEdgesFrustum(p0, p1, p2, epsilon, frustumPlanes, numPlanes).xyz;
 }
 
 bool CullTriangleBackFaceView(float3 p0, float3 p1, float3 p2, float epsilon, float3 V, float winding)
