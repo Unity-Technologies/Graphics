@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Make sure draw order is up to date
             var material = entityChunk.material;
-            if (material != null)
+            if (material.HasProperty("_DrawOrder"))
                 cachedChunk.drawOrder = material.GetInt("_DrawOrder");
 
             // Shader can change any time in editor, so we have to update passes each time
