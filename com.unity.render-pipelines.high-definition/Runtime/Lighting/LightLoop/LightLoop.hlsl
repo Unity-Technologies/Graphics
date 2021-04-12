@@ -10,7 +10,7 @@
 #ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && !defined(SHADER_API_GAMECORE) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
 
@@ -81,6 +81,17 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
 #endif
 }
 
+bool UseScreenSpaceShadow(DirectionalLightData light, float3 normalWS)
+{
+    // Two different options are possible here
+    // - We have a ray trace shadow in which case we have no valid signal for a transmission and we need to fallback on the rasterized shadow
+    // - We have a screen space shadow and it already contains the transmission shadow and we can use it straight away
+    bool visibleLight = dot(normalWS, -light.forward) > 0.0;
+    bool validScreenSpaceShadow = (light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW;
+    bool rayTracedShadow = (light.screenSpaceShadowIndex & RAY_TRACED_SCREEN_SPACE_SHADOW_FLAG) != 0;
+    return (validScreenSpaceShadow && ((rayTracedShadow && visibleLight) || !rayTracedShadow));
+}
+
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout LightLoopOutput lightLoopOutput)
 {
 #ifdef DEBUG_DISPLAY
@@ -122,7 +133,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
-                    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                    if (UseScreenSpaceShadow(light, bsdfData.normalWS))
                     {
                         shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
                     }
@@ -202,7 +213,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+            if (UseScreenSpaceShadow(light, bsdfData.normalWS))
             {
                 context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
             }

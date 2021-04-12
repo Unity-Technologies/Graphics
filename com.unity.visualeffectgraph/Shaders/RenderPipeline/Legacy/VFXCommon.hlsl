@@ -134,3 +134,8 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
     return color;
 }
+
+float3 VFXGetCameraWorldDirection()
+{
+    return unity_CameraToWorld._m02_m12_m22;
+}

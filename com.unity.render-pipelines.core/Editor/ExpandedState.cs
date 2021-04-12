@@ -15,13 +15,13 @@ namespace UnityEditor.Rendering
         /// <param name="prefix">[Optional] Prefix scope of the key (Default is CoreRP)</param>
         public ExpandedState(TState defaultValue, string prefix = "CoreRP")
         {
-            String Key = string.Format("{0}:{1}:UI_State", prefix, typeof(TTarget).Name);
-            m_State = new EditorPrefBoolFlags<TState>(Key);
+            string key = $"{prefix}:{typeof(TTarget).Name}:{typeof(TState).Name}:UI_State";
+            m_State = new EditorPrefBoolFlags<TState>(key);
 
             //register key if not already there
-            if (!EditorPrefs.HasKey(Key))
+            if (!EditorPrefs.HasKey(key))
             {
-                EditorPrefs.SetInt(Key, (int)(object)defaultValue);
+                EditorPrefs.SetInt(key, (int)(object)defaultValue);
             }
         }
 

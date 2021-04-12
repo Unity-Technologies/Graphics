@@ -1,10 +1,22 @@
-# What's new in version 11
+# What's new in HDRP version 11 / Unity 2021.1
 
-This page contains an overview of new features, improvements, and issues resolved in version 11 of the High Definition Render Pipeline (HDRP).
+This page contains an overview of new features, improvements, and issues resolved in version 11 of the High Definition Render Pipeline (HDRP), embedded in Unity 2021.1.
 
 ## Features
 
-The following is a list of features Unity added to version 11 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 11 of the High Definition Render Pipeline, embedded in Unity 2021.1. Each entry includes a summary of the feature and a link to any relevant documentation.
+
+### SRP packages are part of the core
+
+With the release of Unity 2021.1, graphics packages are relocating to the core of Unity. This move simplifies the experience of working with new Unity graphics features, as well as ensuring that your projects are always running on the latest verified graphics code.
+
+For each release of Unity (alpha / beta / patch release) the graphics code is embedded within the main Unity installer. When you install the latest release of Unity, you also get the latest URP, HDRP, Shader Graph, VFX Graph, and more.
+
+Tying graphics packages more closely to the main Unity release allows better testing to ensure that the graphics packages you use have been tested extensively with the version of Unity you have downloaded.
+
+You can also use a local copy or a custom version of the graphics packages by overriding them in the manifest file.
+
+For more information, see the following post on the forum: [SRP v11 beta is available now](https://forum.unity.com/threads/srp-v11-beta-is-available-now.1046539/).
 
 ### Mixed cached shadow maps
 
@@ -14,11 +26,32 @@ This can result in significant performance improvements for projects that have l
 
 For more information about the future, see the [Shadow](Shadows-in-HDRP.md) section of the documentation.
 
+## Improvements
+
+### Support for exposure for planar reflection probe.
+
+From HDRP 11.0, [Planar Reflection Probes](Planar-Reflection-Probe.md) now consider exposure mode when they calculate reflections for emissive Materials. Previously, Planar Reflection Probes did not correctly reflect emissive Materials that had expose weight attenuations of 0.0 due to using the wrong exposure value.
+
+### AxF Material
+
+From HDRP 11.0, the AxF Material supports ray tracing. It also supports rasterized area light shadows.
+
+![](Images/AxFRaytracing.png)
+
+### Decal widget
+
+From HDRP 11.0, the decal widget includes more functionality to help you create decals in a Scene. It now includes pivot point manipulation (both in the Inspector and Scene view), UV manipulation (in the Scene view only), and color and intensity customization.
+
+![](Images/DecalWidget-1.gif)
+
+![](Images/DecalWidget-2.gif)
+
 ### Cubemap fields in Volume components
 
 Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they use the cubemap mode / dimension. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
 
 For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
+
 ### Volume System API
 
 #### Nested Volume Component Parameters
@@ -53,26 +86,6 @@ public class ExampleComponent : VolumeComponent
     }
 }
 ```
-
-### Density Volume Improvements
-
-Density Volumes masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
-
-The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the density volume resolution.
-
-There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
-
-Finally, the minimal value of the **Fog Distance** parameter was lowered to 0.05 instead of 1 and now allows thicker fog effects to be created.
-
-### Cloud System
-
-![](Images/HDRPFeatures-CloudLayer.png)
-
-From HDRP 11.0, HDRP introduces a cloud system, which can be controlled through the volume framework in a similar way to the sky system.
-
-HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
-
-For detailed steps on how to create your custom cloud solution, see the documentation about [creating custom clouds](Creating-Custom-Clouds.md).
 
 ## Issues resolved
 

@@ -1567,7 +1567,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
         // todo_modes todo_pseudorefract: commented, cant use undercoat like that.
         //float2   UV = LTCGetSamplingUV(NdotV_UnderCoat, preLightData.iblPerceptualRoughness[lobeIndex]);
         float2   UV = LTCGetSamplingUV(NdotV_Clearcoat, preLightData.iblPerceptualRoughness[lobeIndex]);
-        preLightData.ltcTransformSpecularCT[lobeIndex] = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_COOK_TORRANCE);
+        preLightData.ltcTransformSpecularCT[lobeIndex] = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
 #endif
     }
 
@@ -1605,7 +1605,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // todo_modes todo_pseudorefract: cant use undercoat like that:
     //float2 UV = LTCGetSamplingUV(NdotV_UnderCoat, FLAKES_PERCEPTUAL_ROUGHNESS);
     float2 UV = LTCGetSamplingUV(NdotV_Clearcoat, FLAKES_PERCEPTUAL_ROUGHNESS);
-    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_GGX));
+    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX));
 
 #endif//#ifdef _AXF_BRDF_TYPE_SVBRDF
 
@@ -1628,7 +1628,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // Load diffuse LTC & FGD
     if (AXF_SVBRDF_BRDFTYPE_DIFFUSETYPE)
     {
-        preLightData.ltcTransformDiffuse = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_OREN_NAYAR);
+        preLightData.ltcTransformDiffuse = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_OREN_NAYAR);
     }
     else
     {
@@ -1643,13 +1643,13 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     // conversion formula for Beckmann NDF (exp) based BRDFs
     // (see switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE) above and usage of PerceptualRoughnessBeckmannToGGX)
     //
-    case 0: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_WARD); break;
-    case 2: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_COOK_TORRANCE); break;
-    case 3: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_GGX); break;
+    case 0: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_WARD); break;
+    case 2: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE); break;
+    case 3: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX); break;
     case 1: // BLINN-PHONG
     case 4: // PHONG;
     {
-        preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_COOK_TORRANCE);
+        preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
         break;
     }
 
@@ -1674,7 +1674,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     if (HasClearcoat())
     {
         float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, CLEAR_COAT_PERCEPTUAL_ROUGHNESS);
-        preLightData.ltcTransformClearcoat = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_GGX);
+        preLightData.ltcTransformClearcoat = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX);
 #if defined(_AXF_BRDF_TYPE_CAR_PAINT)
         IF_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = preLightData.ltcTransformClearcoat);
 #endif

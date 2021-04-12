@@ -1,21 +1,20 @@
+using UnityEditor.SceneManagement;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering.HighDefinition.Compositor;
 
-using UnityEditor;
-using UnityEditorInternal;
-using UnityEditor.ShaderGraph;
-using UnityEditor.SceneManagement;
-
 namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
-    internal class CompositorWindow : EditorWindow
+    [HDRPHelpURLAttribute("Compositor-User-Guide")]
+    internal class CompositorWindow : EditorWindowWithHelpButton
     {
-        static partial class Styles
+        static class Styles
         {
-            static public readonly GUIContent k_EnableCompositor = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
-            static public readonly GUIContent k_RemoveCompositor = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
+            static public GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Graphics Compositor");
+            static public GUIContent enableCompositor { get; } = EditorGUIUtility.TrTextContent("Enable Compositor", "Enabled the compositor and creates a default composition profile.");
+            static public GUIContent removeCompositor { get; } = EditorGUIUtility.TrTextContent("Remove compositor from scene", "Removes the compositor and any composition settings from the scene.");
         }
 
         static CompositorWindow s_Window;
@@ -28,12 +27,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         bool m_RequiresRedraw = false;
         float m_TimeSinceLastRepaint = 0;
 
-        [MenuItem("Window/Render Pipeline/Graphics Compositor", false, 10400)]
+        [MenuItem("Window/Rendering/Graphics Compositor", false, 10400)]
         static void Init()
         {
             // Get existing open window or if none, make a new one:
-            s_Window = (CompositorWindow)EditorWindow.GetWindow(typeof(CompositorWindow));
-            s_Window.titleContent = new GUIContent("Graphics Compositor");
+            s_Window = GetWindow(typeof(CompositorWindow)) as CompositorWindow;
+            if (s_Window == null)
+                return;
+
+            s_Window.titleContent = Styles.windowTitle;
             s_Window.Show();
         }
 
@@ -67,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                         {
                             compositor.Repaint();
 #if UNITY_2021_1_OR_NEWER
-                            // [case 1290622] For version 2021.1 we have to explicitely request an update of the gameview with the following call
+                            // [case 1290622] For version 2021.1 we have to explicitly request an update of the gameview with the following call
                             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
                         }
@@ -87,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             bool enableCompositorCached = enableCompositor;
-            enableCompositor = EditorGUILayout.Toggle(Styles.k_EnableCompositor, enableCompositor);
+            enableCompositor = EditorGUILayout.Toggle(Styles.enableCompositor, enableCompositor);
 
             // Track if the user changed the compositor enable state and mark the scene dirty if necessary
             if (enableCompositorCached != enableCompositor && compositor != null)
@@ -127,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (compositor && !compositor.enabled)
             {
-                if (GUILayout.Button(new GUIContent(Styles.k_RemoveCompositor)))
+                if (GUILayout.Button(new GUIContent(Styles.removeCompositor)))
                 {
                     if (compositor.outputCamera)
                     {

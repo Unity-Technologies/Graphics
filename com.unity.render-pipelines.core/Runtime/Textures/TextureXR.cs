@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering
 
                 // Clear
                 RTHandles.Release(m_ClearTextureRTH);
-                m_ClearTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Clear Texture" };
+                m_ClearTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Clear Texture" };
                 m_ClearTexture.SetPixel(0, 0, Color.clear);
                 m_ClearTexture.Apply();
                 m_ClearTextureRTH = RTHandles.Alloc(m_ClearTexture);
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering
 
                 // Magenta
                 RTHandles.Release(m_MagentaTextureRTH);
-                m_MagentaTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Magenta Texture" };
+                m_MagentaTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Magenta Texture" };
                 m_MagentaTexture.SetPixel(0, 0, Color.magenta);
                 m_MagentaTexture.Apply();
                 m_MagentaTextureRTH = RTHandles.Alloc(m_MagentaTexture);
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering
 
         static Texture3D CreateBlackTexture3D(string name)
         {
-            Texture3D texture3D = new Texture3D(width: 1, height: 1, depth: 1, textureFormat: TextureFormat.RGBA32, mipChain: false);
+            Texture3D texture3D = new Texture3D(width: 1, height: 1, depth: 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             texture3D.name = name;
             texture3D.SetPixel(0, 0, 0, Color.black, 0);
             texture3D.Apply(updateMipmaps: false);

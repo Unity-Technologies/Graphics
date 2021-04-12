@@ -55,27 +55,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
         {
-            var mode = camera.transparencySortMode;
+            var mode = m_Renderer2DData.transparencySortMode;
 
             if (mode == TransparencySortMode.Default)
             {
-                mode = m_Renderer2DData.transparencySortMode;
-                if (mode == TransparencySortMode.Default)
-                    mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
+                mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
             }
 
-            if (mode == TransparencySortMode.Perspective)
+            switch (mode)
             {
-                sortingSettings.distanceMetric = DistanceMetric.Perspective;
-            }
-            else if (mode == TransparencySortMode.Orthographic)
-            {
-                sortingSettings.distanceMetric = DistanceMetric.Orthographic;
-            }
-            else
-            {
-                sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
-                sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
+                case TransparencySortMode.Perspective:
+                    sortingSettings.distanceMetric = DistanceMetric.Perspective;
+                    break;
+                case TransparencySortMode.Orthographic:
+                    sortingSettings.distanceMetric = DistanceMetric.Orthographic;
+                    break;
+                default:
+                    sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
+                    sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
+                    break;
             }
         }
 
@@ -285,6 +283,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchesDrawn)
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
+                this.DisableAllKeywords(cmd);
                 this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -310,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
+                this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 

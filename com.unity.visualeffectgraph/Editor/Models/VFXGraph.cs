@@ -13,6 +13,8 @@ using UnityEngine.Profiling;
 
 
 using UnityObject = UnityEngine.Object;
+using UnityEditor.Graphs;
+using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX
 {
@@ -114,7 +116,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/Visual Effects//Rebuild And Save All Visual Effect Graphs", priority = 320)]
+        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effects Graphs", priority = 320)]
         public static void Build()
         {
             var vfxObjects = GetAllVisualEffectObjects();
@@ -199,6 +201,11 @@ namespace UnityEditor.VFX
         {
             resource.GetOrCreateGraph().UpdateSubAssets();
         }
+
+        public static bool IsAssetEditable(this VisualEffectResource resource)
+        {
+            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+        }
     }
 
     static class VisualEffectObjectExtensions
@@ -237,7 +244,8 @@ namespace UnityEditor.VFX
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
         // 6: Remove automatic strip orientation from quad strip context
-        public static readonly int CurrentVersion = 6;
+        // 7: Add CameraBuffer type
+        public static readonly int CurrentVersion = 7;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -364,6 +372,11 @@ namespace UnityEditor.VFX
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
 
+            if (version < 7)
+            {
+                SanitizeCameraBuffers(objs);
+            }
+
             foreach (var model in objs.OfType<VFXModel>())
                 try
                 {
@@ -429,6 +442,51 @@ namespace UnityEditor.VFX
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
+        private void SanitizeCameraBuffers(HashSet<ScriptableObject> objs)
+        {
+            List<Tuple<int, string, int, string>> links = new List<Tuple<int, string, int, string>>();
+            var cameraSlots = objs.Where(obj => obj is VFXSlot && (obj as VFXSlot).value is CameraType).ToArray();
+            for (int i = 0; i < cameraSlots.Length; ++i)
+            {
+                var cameraSlot = cameraSlots[i] as VFXSlot;
+
+                var depthBufferSlot = cameraSlot.children.First(slot => slot.name == "depthBuffer");
+                SanitizeCameraBufferLinks(depthBufferSlot, i, cameraSlots, links);
+
+                var colorBufferSlot = cameraSlot.children.First(slot => slot.name == "colorBuffer");
+                SanitizeCameraBufferLinks(colorBufferSlot, i, cameraSlots, links);
+
+                objs.Remove(cameraSlots[i]);
+                cameraSlots[i] = cameraSlot.Recreate();
+                objs.Add(cameraSlots[i]);
+            }
+            foreach (var link in links)
+            {
+                var cameraSlotFrom = cameraSlots[link.Item1] as VFXSlot;
+                var slotFrom = cameraSlotFrom.children.First(slot => slot.name == link.Item2);
+
+                var cameraSlotTo = cameraSlots[link.Item3] as VFXSlot;
+                var slotTo = cameraSlotTo.children.First(slot => slot.name == link.Item4);
+
+                slotFrom.Link(slotTo);
+            }
+        }
+
+        private void SanitizeCameraBufferLinks(VFXSlot slotFrom, int indexFrom, ScriptableObject[] cameraSlots, List<Tuple<int, string, int, string>> links)
+        {
+            if (slotFrom != null && !(slotFrom is VFXSlotCameraBuffer))
+            {
+                foreach (var slotTo in slotFrom.LinkedSlots)
+                {
+                    int indexTo = Array.IndexOf(cameraSlots, slotTo.GetMasterSlot());
+                    if (indexTo >= 0)
+                    {
+                        links.Add(new Tuple<int, string, int, string>(indexFrom, slotFrom.name, indexTo, slotTo.name));
+                    }
+                }
+            }
+        }
+
         public void ClearCompileData()
         {
             m_CompiledData = null;
@@ -467,12 +525,17 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
 
-            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+            if (cause == VFXModel.InvalidationCause.kStructureChanged
+                || cause == VFXModel.InvalidationCause.kSettingChanged
+                || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
 
             base.OnInvalidate(model, cause);
 
-            if (model is VFXParameter || model is VFXSlot && (model as VFXSlot).owner is VFXParameter)
+            if (model is VFXParameter    //Something changed directly on VFXParameter (e.g. exposed state boolean)
+                || model is VFXSlot && (model as VFXSlot).owner is VFXParameter //Something changed on a slot owned by a VFXParameter (e.g. the default value)
+                || cause == VFXModel.InvalidationCause.kStructureChanged //A VFXParameter could have been removed
+            )
             {
                 BuildParameterInfo();
             }
@@ -501,7 +564,7 @@ namespace UnityEditor.VFX
                 EditorUtility.SetDirty(this);
             }
 
-            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged || cause == VFXModel.InvalidationCause.kConnectionChanged)
+            if (cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
             {
                 m_ExpressionGraphDirty = true;
                 m_DependentDirty = true;
@@ -550,10 +613,10 @@ namespace UnityEditor.VFX
             return m_ExpressionGraphDirty;
         }
 
-        public void SetExpressionGraphDirty()
+        public void SetExpressionGraphDirty(bool dirty = true)
         {
-            m_ExpressionGraphDirty = true;
-            m_DependentDirty = true;
+            m_ExpressionGraphDirty = dirty;
+            m_DependentDirty = dirty;
         }
 
         public void SetExpressionValueDirty()
@@ -647,8 +710,8 @@ namespace UnityEditor.VFX
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
                     operatorChild.RecreateCopy();
-                    operatorChild.ResyncSlots(true);
-                    operatorChild.UpdateOutputExpressions();
+                    if (operatorChild.ResyncSlots(true))
+                        operatorChild.UpdateOutputExpressions();
                 }
             }
         }

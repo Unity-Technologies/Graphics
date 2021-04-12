@@ -68,6 +68,10 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
+            var referenceContext = serializedObject.targetObject as VFXContext;
+            var resource = referenceContext.GetResource();
+            GUI.enabled = resource != null ? resource.IsAssetEditable() : true;
+
             DisplaySpace();
             DisplayName();
 
