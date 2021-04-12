@@ -94,7 +94,7 @@ half4 MetaFragment(v2f_surf IN, SurfaceOutputStandard o)
     #else
         UNITY_EXTRACT_TBN(IN);
     #endif
-    
+
     float3 worldPos = IN.worldPos.xyz;//float3(IN.tSpace0.w, IN.tSpace1.w, IN.tSpace2.w);
     #ifndef USING_DIRECTIONAL_LIGHT
         fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
@@ -153,4 +153,3 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 }
 
 #endif
-
