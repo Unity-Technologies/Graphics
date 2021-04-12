@@ -37,8 +37,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Initialize Blitter resources. Must be called once before any use.
+        /// Initialize Blitter resources. Must be called once before any use
         /// </summary>
+        /// <param name="blitPS"></param> Blit shader
+        /// <param name="blitColorAndDepthPS"></param> Blit shader
         public static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
         {
             s_Blit = CoreUtils.CreateEngineMaterial(blitPS);
@@ -211,7 +213,7 @@ namespace UnityEngine.Rendering
         /// <param name="sourceDepth">Source RenderTexture for depth.</param>
         /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
         /// <param name="mipLevel">Mip level to blit.</param>
-        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="blitDepth">Enable depth blit.</param>
         public static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
@@ -457,10 +459,10 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Bilinear Blit a texture using a quad in the current render target.
-        /// Single channel conversions.
-        /// RGBA to YYYY (luminance)
-        /// R to RRRR
-        /// A to AAAA
+        /// Mapping between single and multi channel formats.
+        /// RGB(A) to YYYY (luminance).
+        /// R to RRRR.
+        /// A to AAAA.
         /// </summary>
         /// <param name="cmd">Command buffer used for rendering.</param>
         /// <param name="source">Source texture.</param>
