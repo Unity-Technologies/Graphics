@@ -10,7 +10,8 @@ Material:
   m_Name: 034_Hole_mesh_highlights
   m_Shader: {fileID: -6465566751694194690, guid: d74c78e8d22184340bee728f89f0c967,
     type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _AlphaClip _METALLICSPECGLOSSMAP _NORMALMAP
+  m_ShaderKeywords: _ALPHATEST_ON _AlphaClip _BUILTIN_ALPHATEST_ON _BUILTIN_AlphaClip
+    _METALLICSPECGLOSSMAP _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -104,7 +105,9 @@ Material:
     - _BUILTIN_QueueOffset: 0
     - _BUILTIN_SrcBlend: 1
     - _BUILTIN_Surface: 0
+    - _BUILTIN_ZTest: 4
     - _BUILTIN_ZWrite: 1
+    - _BUILTIN_ZWriteControl: 0
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoat: 0

@@ -54,6 +54,27 @@ namespace UnityEditor.Rendering.BuiltIn
         }
     }
 
+    internal static class Keyword
+    {
+        // for internal definitions that legacy built-in may rely on
+        public static readonly string HW_ReceiveShadowsOff = "_RECEIVE_SHADOWS_OFF";
+        public static readonly string HW_Emission = "_EMISSION";
+        public static readonly string HW_AlphaTestOn = "_ALPHATEST_ON";
+        public static readonly string HW_SurfaceTypeTransparent = "_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string HW_AlphaPremultiplyOn = "_ALPHAPREMULTIPLY_ON";
+        public static readonly string HW_AlphaModulateOn = "_ALPHAMODULATE_ON";
+
+        // for ShaderGraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP and user keywords).
+        // These should be used to control the above (currently in the template)
+        public static readonly string SG_ReceiveShadowsOff = "_BUILTIN_RECEIVE_SHADOWS_OFF";
+        public static readonly string SG_Emission = "_BUILTIN_EMISSION";
+        public static readonly string SG_AlphaTestOn = "_BUILTIN_ALPHATEST_ON";
+        public static readonly string SG_AlphaClip = "_BUILTIN_AlphaClip";
+        public static readonly string SG_SurfaceTypeTransparent = "_BUILTIN_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string SG_AlphaPremultiplyOn = "_BUILTIN_ALPHAPREMULTIPLY_ON";
+        public static readonly string SG_AlphaModulateOn = "_BUILTIN_ALPHAMODULATE_ON";
+    }
+
     internal static class BuiltInMaterialInspectorUtilities
     {
         internal static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)

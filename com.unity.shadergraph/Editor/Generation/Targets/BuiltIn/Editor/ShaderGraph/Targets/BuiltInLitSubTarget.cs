@@ -687,6 +687,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 CoreKeywordDescriptors.AlphaClip,
                 CoreKeywordDescriptors.AlphaTestOn,
                 CoreKeywordDescriptors.SurfaceTypeTransparent,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
 
             public static readonly KeywordCollection ForwardAdd = new KeywordCollection
@@ -717,6 +718,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 CoreKeywordDescriptors.AlphaClip,
                 CoreKeywordDescriptors.AlphaTestOn,
                 CoreKeywordDescriptors.SurfaceTypeTransparent,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection

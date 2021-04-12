@@ -250,6 +250,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 CoreKeywordDescriptors.AlphaClip,
                 CoreKeywordDescriptors.AlphaTestOn,
                 CoreKeywordDescriptors.SurfaceTypeTransparent,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
         }
         #endregion

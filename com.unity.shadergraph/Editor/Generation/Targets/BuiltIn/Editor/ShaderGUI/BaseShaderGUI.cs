@@ -146,8 +146,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             if (material.HasProperty(alphaClipProp))
                 alphaClipping = material.GetFloat(alphaClipProp) >= 0.5;
 
-            CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaClipping);
-            CoreUtils.SetKeyword(material, "_AlphaClip", alphaClipping);
+            CoreUtils.SetKeyword(material, Keyword.SG_AlphaTestOn, alphaClipping);
+            CoreUtils.SetKeyword(material, Keyword.SG_AlphaClip, alphaClipping);
 
             var surfaceTypeProp = Property.Surface();
             if (material.HasProperty(surfaceTypeProp))
@@ -169,11 +169,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         renderType = "Opaque";
                     }
 
-                    CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetOverrideTag("RenderType", renderType);
                     material.renderQueue = (int)renderQueue;
                     SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
+                    material.DisableKeyword(Keyword.SG_AlphaPremultiplyOn);
                     zwrite = true;
                 }
                 else
@@ -190,11 +190,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.One);
                         else if (blendMode == BlendMode.Multiply)
                             SetBlendMode(material, UnityEngine.Rendering.BlendMode.DstColor, UnityEngine.Rendering.BlendMode.Zero);
+                        CoreUtils.SetKeyword(material, Keyword.SG_AlphaPremultiplyOn, blendMode == BlendMode.Premultiply);
                     }
 
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.SetOverrideTag("RenderType", "Transparent");
                 }
+                CoreUtils.SetKeyword(material, Keyword.SG_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
 
                 // check for override enum
                 var zwriteProp = Property.ZWriteControl();

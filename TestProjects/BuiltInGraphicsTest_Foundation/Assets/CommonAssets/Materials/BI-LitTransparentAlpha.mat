@@ -10,7 +10,7 @@ Material:
   m_Name: BI-LitTransparentAlpha
   m_Shader: {fileID: -6465566751694194690, guid: 27c161e68703f204cb9c0a9b59f44c9d,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _BUILTIN_SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -103,7 +103,9 @@ Material:
     - _BUILTIN_QueueOffset: 0
     - _BUILTIN_SrcBlend: 5
     - _BUILTIN_Surface: 1
+    - _BUILTIN_ZTest: 4
     - _BUILTIN_ZWrite: 0
+    - _BUILTIN_ZWriteControl: 0
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoat: 0
