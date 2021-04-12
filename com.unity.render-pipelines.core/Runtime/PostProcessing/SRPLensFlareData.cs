@@ -367,7 +367,7 @@ namespace UnityEngine
         private static void CreateSRPLensFlareAsset()
         {
             string className = typeof(SRPLensFlareData).Name;
-            string assetName = "New Lens Flare";
+            string assetName = "New Lens Flare (SRP)";
             string folder = GetSelectedAssetFolder();
 
             string[] standardNames = new string[] { "Asset", "Attributes", "Container" };
