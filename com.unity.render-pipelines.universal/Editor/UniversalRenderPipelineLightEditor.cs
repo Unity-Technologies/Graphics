@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
             };
 
             public readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
-            public readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layer", "When disabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When enabled, you can use the Layer property below to specify the light layers for shadows seperately to lighting.");
+            public readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
             public readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
         }
 
@@ -189,10 +189,7 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (!m_CustomShadowLayers.boolValue)
-                    {
-                        m_ShadowLayersMask.intValue = m_LightLayersMask.intValue;
-                        lightProperty.renderingLayerMask = m_LightLayersMask.intValue;
-                    }
+                        SyncLightAndShadowLayers(m_LightLayersMask);
 
                     m_AdditionalLightDataSO.ApplyModifiedProperties();
                 }
@@ -346,6 +343,22 @@ namespace UnityEditor.Rendering.Universal
             init(additionalLightList);
         }
 
+        void SyncLightAndShadowLayers(SerializedProperty serialized)
+        {
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
+            // In mixed state, it make sens to do it only on Light that links the mode.
+            foreach (var lightTarget in targets)
+            {
+                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                if (additionData.customShadowLayers)
+                    continue;
+
+                Light target = lightTarget as Light;
+                if (target.renderingLayerMask != serialized.intValue)
+                    target.renderingLayerMask = serialized.intValue;
+            }
+        }
+
         void SetupSettings()
         {
             var asset = UniversalRenderPipeline.asset;
@@ -484,8 +497,16 @@ namespace UnityEditor.Rendering.Universal
                 // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                 if (EditorGUI.EndChangeCheck())
                 {
-                    lightProperty.renderingLayerMask = m_CustomShadowLayers.boolValue ? m_ShadowLayersMask.intValue : m_LightLayersMask.intValue;
-                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    if (m_CustomShadowLayers.boolValue)
+                    {
+                        lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                        m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    }
+                    else
+                    {
+                        m_AdditionalLightDataSO.ApplyModifiedProperties(); //we need to push above modification the modification on object as it is used to sync
+                        SyncLightAndShadowLayers(m_LightLayersMask);
+                    }
                 }
 
                 if (m_CustomShadowLayers.boolValue)
