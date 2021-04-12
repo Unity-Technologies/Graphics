@@ -81,8 +81,8 @@ namespace UnityEditor.Rendering
                 foreach (Renderer r in lod.renderers)
                 {
                     // Override default motion vector generation mode pending
-                    // proper motion vector integration in SRPs. 
-                    r.motionVectorGenerationMode = MotionVectorGenerationMode.Camera; 
+                    // proper motion vector integration in SRPs.
+                    r.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
                     foreach (Material m in r.sharedMaterials)
                     {
                         float cutoff = stImporter.alphaTestRef;
