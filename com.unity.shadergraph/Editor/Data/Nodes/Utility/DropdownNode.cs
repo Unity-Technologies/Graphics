@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview => true;
         public const int OutputSlotId = 0;
 
+        public override bool allowedInMainGraph { get => false; }
+
         public void UpdateNodeDisplayName(string newDisplayName)
         {
             MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);

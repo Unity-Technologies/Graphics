@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         public ShaderDropdown()
         {
-            this.displayName = ConcreteSlotValueType.Vector1.ToString();
+            this.displayName = "Dropdown";
             // Add sensible default entries for Enum type
             m_Entries = new List<DropdownEntry>();
             m_Entries.Add(new DropdownEntry(1, "A"));
@@ -34,6 +34,31 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_Value;
             set => m_Value = value;
+        }
+
+        public string entryName
+        {
+            get => entries[value].displayName;
+        }
+
+        public bool ContainsEntry(string entryName)
+        {
+            return entries.Any(x => x.displayName.Equals(entryName));
+        }
+
+        public int IndexOf(string entryName)
+        {
+            for (var index = 0; index < entries.Count; ++index)
+            {
+                if (entries[index].displayName.Equals(entryName))
+                    return index;
+            }
+            return -1;
+        }
+
+        public int count
+        {
+            get { return m_Entries.Count; }
         }
 
         internal override bool isExposable => true;

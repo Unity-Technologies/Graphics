@@ -38,6 +38,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             }
         }
 
+        bool useDropdowns
+        {
+            get { return m_Graph.isSubGraph; }
+        }
+
         public BlackboardProvider(GraphData graph, GraphView associatedGraphView)
         {
             m_Graph = graph;
@@ -56,14 +61,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             {
                 m_PropertySection.OnDragActionCanceled();
                 m_KeywordSection.OnDragActionCanceled();
-                m_DropdownSection.OnDragActionCanceled();
+                if (useDropdowns)
+                    m_DropdownSection.OnDragActionCanceled();
             });
 
             blackboard.RegisterCallback<DragExitedEvent>(evt =>
             {
                 m_PropertySection.OnDragActionCanceled();
                 m_KeywordSection.OnDragActionCanceled();
-                m_DropdownSection.OnDragActionCanceled();
+                if (useDropdowns)
+                    m_DropdownSection.OnDragActionCanceled();
             });
 
 
@@ -85,10 +92,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
 
-            m_DropdownSection = new SGBlackboardSection { title = "dropdowns" };
-            foreach (var dropdown in graph.dropdowns)
-                AddInputRow(dropdown);
-            blackboard.Add(m_DropdownSection);
+            if (useDropdowns)
+            {
+                m_DropdownSection = new SGBlackboardSection { title = "dropdowns" };
+                foreach (var dropdown in graph.dropdowns)
+                    AddInputRow(dropdown);
+                blackboard.Add(m_DropdownSection);
+            }
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -282,7 +292,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         void AddDropdownItems(GenericMenu gm)
         {
-            gm.AddItem(new GUIContent($"Dropdown"), false, () => AddInputRow(new ShaderDropdown(), true));
+            if (useDropdowns)
+            {
+                gm.AddItem(new GUIContent($"Dropdown"), false, () => AddInputRow(new ShaderDropdown(), true));
+            }            
         }
 
         void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
@@ -349,8 +362,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
 
-                foreach (var dropdown in m_Graph.dropdowns)
-                    m_DropdownSection.Add(m_InputRows[dropdown]);
+                if (useDropdowns)
+                {
+                    foreach (var dropdown in m_Graph.dropdowns)
+                        m_DropdownSection.Add(m_InputRows[dropdown]);
+                }
             }
         }
 
@@ -362,6 +378,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         {
             if (m_InputRows.ContainsKey(input))
                 return;
+
+            bool allowedInGraph;
+            switch (input)
+            {
+                case ShaderDropdown dropdown:
+                    allowedInGraph = useDropdowns;
+                    break;
+                default:
+                    allowedInGraph = true;
+                    break;
+            }
+            if (!allowedInGraph)
+            {
+                // This could be a paste action from subgraph to parent graph.
+                return;
+            }
 
             if (addToGraph)
             {
