@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.BuiltIn
         public static string SrcBlend()                      { return SG_SrcBlend; }
         public static string DstBlend()                      { return SG_DstBlend; }
         public static string ZWrite()                        { return SG_ZWrite; }
+        public static string ZTest()                         { return SG_ZTest; }   // no HW equivalent
         public static string Cull()                          { return SG_Cull; }
         public static string CastShadows()                   { return SG_CastShadows; }
         public static string ReceiveShadows()                { return SG_ReceiveShadows; }
@@ -26,6 +27,7 @@ namespace UnityEditor.Rendering.BuiltIn
         public static readonly string SG_SrcBlend = "_BUILTIN_SrcBlend";
         public static readonly string SG_DstBlend = "_BUILTIN_DstBlend";
         public static readonly string SG_ZWrite = "_BUILTIN_ZWrite";
+        public static readonly string SG_ZTest = "_BUILTIN_ZTest";
         public static readonly string SG_Cull = "_BUILTIN_CullMode";
         public static readonly string SG_CastShadows = "_BUILTIN_CastShadows";
         public static readonly string SG_ReceiveShadows = "_BUILTIN_ReceiveShadows";

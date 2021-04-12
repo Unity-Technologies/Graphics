@@ -69,6 +69,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
             collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
             collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.ZTest(), (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
             collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
         }
@@ -92,6 +93,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 registerUndo("Change Blend");
                 target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = target.zTestMode }, (evt) =>
+            {
+                if (Equals(target.zTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                target.zTestMode = (ZTestMode)evt.newValue;
                 onChange();
             });
 

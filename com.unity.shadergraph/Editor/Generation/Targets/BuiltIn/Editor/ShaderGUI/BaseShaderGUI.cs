@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
+            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
 
             public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
                 "Select a surface type for your texture. Choose between Opaque or Transparent.");
@@ -40,6 +41,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+            public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
+                "Specifies the depth test mode.  The default is LEqual.");
             public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
         }
@@ -97,6 +100,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             }
             var cullingProp = FindProperty(Property.Cull(), properties, false);
             DoPopup(Styles.cullingText, materialEditor, cullingProp, Enum.GetNames(typeof(RenderFace)));
+
+            var ztestProp = FindProperty(Property.ZTest(), properties, false);
+            DoPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames);
 
             var alphaClipProp = FindProperty(Property.AlphaClip(), properties, false);
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);

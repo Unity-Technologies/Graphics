@@ -30,6 +30,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         Transparent,
     }
 
+    enum ZTestMode  // the values here match UnityEngine.Rendering.CompareFunction
+    {
+        Disabled = 0,
+        Never = 1,
+        Less = 2,
+        Equal = 3,
+        LEqual = 4,     // default for most rendering
+        Greater = 5,
+        NotEqual = 6,
+        GEqual = 7,
+        Always = 8,
+    }
+
     enum AlphaMode
     {
         Alpha,
@@ -70,6 +83,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
+
+        [SerializeField]
+        ZTestMode m_ZTestMode = ZTestMode.LEqual;
 
         [SerializeField]
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
@@ -128,6 +144,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             get => m_SurfaceType;
             set => m_SurfaceType = value;
+        }
+
+        public ZTestMode zTestMode
+        {
+            get => m_ZTestMode;
+            set => m_ZTestMode = value;
         }
 
         public AlphaMode alphaMode
@@ -503,11 +525,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly string dstBlend = "[" + Property.SG_DstBlend + "]";
             public static readonly string cullMode = "[" + Property.SG_Cull + "]";
             public static readonly string zWrite = "[" + Property.SG_ZWrite + "]";
+            public static readonly string zTest = "[" + Property.SG_ZTest + "]";
         }
 
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
+            { RenderState.ZTest(Uniforms.zTest) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
@@ -516,7 +539,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly RenderStateCollection Forward = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
+            { RenderState.ZTest(Uniforms.zTest) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
