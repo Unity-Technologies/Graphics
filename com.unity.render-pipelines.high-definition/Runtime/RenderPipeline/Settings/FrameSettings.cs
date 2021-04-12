@@ -120,10 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete]
         MSAA = 31,
         /// <summary>Specify the level of MSAA used when rendering the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "MSAA", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
+        [FrameSettingsField(0, displayedName: "MSAA Within Forward", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings. Set Lit Shader Mode to Forward to access this option. Note that MSAA is disabled when using ray tracing.")]
         MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", negativeDependencies: new[] { LitShaderMode }, positiveDependencies: new[] { MSAAMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAAMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
