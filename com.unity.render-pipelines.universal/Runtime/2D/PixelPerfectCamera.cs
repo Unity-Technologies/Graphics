@@ -311,6 +311,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
+
+            if (!m_CinemachineCompatibilityMode)
+            {
+                m_Camera.orthographicSize = m_Internal.orthoSize;
+            }
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
