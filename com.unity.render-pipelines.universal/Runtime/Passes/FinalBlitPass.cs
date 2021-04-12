@@ -9,8 +9,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        RTHandle m_Source;
         Material m_BlitMaterial;
+        RTHandle m_CameraTarget;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -26,14 +26,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle cameraTarget)
         {
-            m_Source = colorHandle;
+            m_CameraTarget = cameraTarget;
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            RTHandle source = renderingData.cameraData.renderer.cameraColorTarget;
+
             if (m_BlitMaterial == null)
             {
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_BlitMaterial, GetType().Name);
@@ -52,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
 
-                cmd.SetGlobalTexture(URPShaderIDs._SourceTex, m_Source);
+                cmd.SetGlobalTexture(URPShaderIDs._SourceTex, source);
                 cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -89,7 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
+                    cmd.Blit(source.nameID, cameraTarget, m_BlitMaterial);
                 }
                 else
                 {

@@ -213,8 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
-                    colorTargetHandle,
-                    postProcessDestHandle,
+                    k_CameraTarget,
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
@@ -229,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(colorTargetHandle, true);
                 EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && colorTargetHandle.nameID != BuiltinRenderTextureType.CameraTarget)
@@ -245,6 +244,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
             m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
+        }
+
+        internal override void SwapColorBuffer()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -258,6 +258,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        //TODO: Verify this get
+        internal RTHandle cameraColorFrontBuffer
+        {
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorFrontBuffer inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                }
+                return m_ColorFrontBuffer;
+            }
+        }
+
         /// <summary>
         /// Returns the camera depth target for this renderer.
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
@@ -275,6 +288,14 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 return m_CameraDepthTarget;
+            }
+        }
+
+        internal RTHandle sampleableDepthTarget
+        {
+            get
+            {
+                return m_SampleableDepthTexture;
             }
         }
 
@@ -329,8 +350,10 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RTHandle m_CameraColorTarget;
+        RTHandle m_ColorFrontBuffer;
         RTHandle m_CameraDepthTarget;
         RTHandle m_CameraResolveTarget;
+        RTHandle m_SampleableDepthTexture;
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
@@ -437,11 +460,22 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+        internal void ConfigureCameraTarget(RTHandle colorBackBuffer, RTHandle depthTarget, RTHandle colorFrontBuffer)
+        {
+            m_CameraColorTarget = colorBackBuffer;
+            m_CameraDepthTarget = depthTarget;
+            m_ColorFrontBuffer = colorFrontBuffer;
+        }
 
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
             m_CameraColorTarget = colorTarget;
+        }
+
+        internal void SetSampleableDepthTexture(RTHandle depthTexture)
+        {
+            m_SampleableDepthTexture = depthTexture;
         }
 
         /// <summary>
@@ -846,6 +880,9 @@ namespace UnityEngine.Rendering.Universal
             if (validColorBuffersCount == 0)
                 return;
 
+            ////Set correct depth RT for shaders that sample depth
+            cmd.SetGlobalTexture("_CameraDepthTexture", cameraData.renderer.sampleableDepthTarget);
+
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (RenderingUtils.IsMRT(renderPass.colorAttachments))
             {
@@ -1198,6 +1235,8 @@ namespace UnityEngine.Rendering.Universal
 
             CoreUtils.SetRenderTarget(cmd, colorAttachmentIdentifiers, depthAttachment, clearFlag, clearColor);
         }
+
+        internal abstract void SwapColorBuffer();
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)

@@ -23,6 +23,7 @@ float4 _CameraViewTopLeftCorner[2]; // TODO: check if we can use half type
 float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
+float4 _RTHandleScale;
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
@@ -252,7 +253,7 @@ void SampleDepthNormalView(float2 uv, out float depth, out float3 normal, out fl
 float4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
+    float2 uv = input.uv * _RTHandleScale;
 
     // Parameters used in coordinate conversion
     float2 p11_22, p13_31;

@@ -54,7 +54,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
             float2 positionNDC = uv;
             int2   positionSS  = uv * _SourceSize.xy;
 

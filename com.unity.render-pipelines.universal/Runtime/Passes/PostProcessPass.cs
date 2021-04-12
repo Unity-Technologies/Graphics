@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_TempTarget2;
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
+        RTHandle m_ScreenRT;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -83,8 +84,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
 
-        // Do not allocate temporary RT
-        private bool m_DestinationIsInternalRT;
+        // Render final blit to screen instead of color backbuffer
+        private bool m_ResolveToScreen;
 
         Material m_BlitMaterial;
 
@@ -209,45 +210,41 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, in RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle screenRT, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool resolvePostProcessingToCameraTarget)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
-            m_Source = source;
-            m_Destination = destination;
-            m_DestinationIsInternalRT = resolvePostProcessingToCameraTarget;
+            m_ResolveToScreen = resolvePostProcessingToCameraTarget;
             m_Depth = depth;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = resolvePostProcessingToCameraTarget;
+            m_ScreenRT = screenRT;
         }
 
-        public void SetupFinalPass(in RTHandle source)
+        public void SetupFinalPass(in RTHandle source, bool resolvePostProcessingToCameraTarget)
         {
             m_Source = source;
             m_Destination = k_CameraTarget;
-            m_DestinationIsInternalRT = true;
+            m_ResolveToScreen = true;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
+            m_ResolveToScreen = resolvePostProcessingToCameraTarget;
         }
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
-            if (m_DestinationIsInternalRT)
-                return;
         }
 
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
             // Logic here matches the if check in OnCameraSetup
-            if (m_DestinationIsInternalRT)
-                return;
         }
 
         public void ResetHistory()
@@ -264,6 +261,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            var renderer = renderingData.cameraData.renderer;
+            m_Source = renderer.cameraColorTarget;
+            m_Destination = renderer.cameraColorFrontBuffer;
+
             // Start by pre-fetching all builtin effect settings we need
             // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
@@ -385,11 +386,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref var cameraData = ref renderingData.cameraData;
-
+            var renderer = cameraData.renderer;
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
             RTHandle source = m_Source;
-            RTHandle destination = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+            RTHandle destination = m_Destination;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // Utilities to simplify intermediate target management
@@ -397,20 +398,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RTHandle GetDestination()
             {
-                if (destination.nameID == BuiltinRenderTextureType.CameraTarget)
-                {
-                    destination = m_TempTarget;
-                }
-                else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
-                {
-                    // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
-                    destination = m_TempTarget2;
-                }
-
-                return destination;
+                return m_Destination;
             }
 
-            void Swap() => CoreUtils.Swap(ref source, ref destination);
+            void Swap()
+            {
+                renderer.SwapColorBuffer();
+                source = renderer.cameraColorTarget;
+                m_Destination = renderer.cameraColorFrontBuffer;
+            }
 
             // Setup projection matrix for cmd.DrawMesh()
             cmd.SetGlobalMatrix(URPShaderIDs._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
@@ -514,26 +510,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RTHandle cameraTarget;
-                if (m_Destination.nameID != BuiltinRenderTextureType.CameraTarget)
-                    cameraTarget = m_Destination;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                else if (cameraData.xr.enabled)
-                    cameraTarget = RTHandles.Alloc(cameraData.xr.renderTarget);
-#endif
-                else if (cameraData.targetTexture == null)
-                    cameraTarget = k_CameraTarget;
+                RenderTargetIdentifier cameraTarget;
+                if (m_ResolveToScreen)
+                {
+                    cameraTarget = (cameraData.camera.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+                }
                 else
-                    cameraTarget = RTHandles.Alloc(cameraData.targetTexture);
-
-                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                bool finishPostProcessOnScreen = cameraData.resolveFinalTarget || m_HasFinalPass || m_Destination.nameID == BuiltinRenderTextureType.CameraTarget;
+                {
+                    cameraTarget = m_Destination;
+                }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
                     CoreUtils.SetRenderTarget(cmd, cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
 
+                    if (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget)
+                        cmd.SetViewport(cameraData.pixelRect);
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
@@ -545,45 +538,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(URPShaderIDs._ScaleBias, scaleBias);
                     cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
-
-                    // TODO: We need a proper camera texture swap chain in URP.
-                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
-                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
-                    // in the pipeline to avoid this extra blit.
-                    if (!finishPostProcessOnScreen)
-                    {
-                        cmd.SetGlobalTexture(URPShaderIDs._SourceTex, cameraTarget);
-                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
-                            colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                        scaleBias = new Vector4(1, 1, 0, 0);;
-                        cmd.SetGlobalVector(URPShaderIDs._ScaleBias, scaleBias);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
-                    }
                 }
                 else
 #endif
                 {
+                    if (m_ResolveToScreen)
+                    {
+                        cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
+                    }
+                    else
+                    {
+                        cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, new Vector4(1.0f,1.0f,1.0f,1.0f));
+                    }
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
-                    if (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget)
-                        cmd.SetViewport(cameraData.pixelRect);
-
+                    
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
-
-                    // TODO: We need a proper camera texture swap chain in URP.
-                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
-                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
-                    // in the pipeline to avoid this extra blit.
-                    if (!finishPostProcessOnScreen)
-                    {
-                        cmd.SetGlobalTexture(URPShaderIDs._SourceTex, cameraTarget);
-                        cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                    }
-
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                }
+
+                //If not resolving to screen then swap the color buffers
+                if (!m_ResolveToScreen)
+                {
+                    renderer.SwapColorBuffer();
                 }
             }
         }
@@ -1270,6 +1247,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture(URPShaderIDs._SourceTex, m_Source);
+            if (m_ResolveToScreen)
+            {
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
+            }
+            else
+            {
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+            }
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -1287,8 +1272,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
 
-                cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
-                    colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(URPShaderIDs._ScaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
@@ -1298,7 +1282,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+                RenderTargetIdentifier cameraTarget = (cameraData.camera.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

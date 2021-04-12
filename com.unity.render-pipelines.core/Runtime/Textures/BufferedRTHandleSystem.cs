@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering
             return m_RTHandles[bufferId][frameIndex];
         }
 
+        public void Initialize(MSAASamples msaaSamples, bool supportScaledMSAA)
+        {
+            m_RTHandleSystem.Initialize(maxWidth, maxHeight, supportScaledMSAA, msaaSamples);
+        }
+
         /// <summary>
         /// Allocate RT handles for a buffer.
         /// </summary>
