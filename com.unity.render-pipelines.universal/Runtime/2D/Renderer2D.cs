@@ -53,12 +53,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass.DebugHandler = DebugHandler;
             m_FinalBlitPass.DebugHandler = DebugHandler;
 
-            if(m_PostProcessPasses.finalPostProcessPass != null)
+            if (m_PostProcessPasses.finalPostProcessPass != null)
             {
                 m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
             }
 
-            if(m_PostProcessPasses.postProcessPass != null)
+            if (m_PostProcessPasses.postProcessPass != null)
             {
                 m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
             }
@@ -156,14 +156,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
-            if(DebugHandler != null)
+            if (DebugHandler != null)
             {
-                if(DebugHandler.AreAnySettingsActive)
+                if (DebugHandler.AreAnySettingsActive)
                 {
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
 
-                if(DebugHandler.IsActiveForCamera(ref cameraData))
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     DebugHandler.Setup(context);
                 }

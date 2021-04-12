@@ -467,7 +467,9 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
+#if URP_ENABLE_DEBUG_VIEWS
             DebugHandler = new DebugHandler(data);
+#endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
@@ -752,7 +754,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraClearFlags">Camera clear flags.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
-        protected ClearFlag GetCameraClearFlag(ref CameraData cameraData)
+        protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
 
@@ -781,8 +783,12 @@ namespace UnityEngine.Rendering.Universal
                 return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
-            if (Application.isMobilePlatform ||
-                (!cameraData.isPreviewCamera && DebugHandler != null && DebugHandler.IsScreenClearNeeded))
+            if (Application.isMobilePlatform)
+                return ClearFlag.All;
+
+            // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||

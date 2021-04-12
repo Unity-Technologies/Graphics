@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)

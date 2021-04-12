@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugHandler : IDebugDisplaySettingsQuery
+    class DebugHandler : IDebugDisplaySettingsQuery
     {
         #region Property Id Constants
         static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
@@ -64,10 +64,7 @@ namespace UnityEngine.Rendering.Universal
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
-        /// <summary>
-        /// Returns true if forward rendering is used to render this debug mode, even if deferred rendering is active.
-        /// </summary>
-        public bool IsActiveModeUnsupportedForDeferred =>
+        internal bool IsActiveModeUnsupportedForDeferred =>
             m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw ||
             m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None;
 
@@ -81,10 +78,7 @@ namespace UnityEngine.Rendering.Universal
         internal Material ReplacementMaterial => m_ReplacementMaterial;
         internal DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
-        /// <summary>
-        /// Returns true if the current debug mode requires screen to be cleared.
-        /// </summary>
-        public bool IsScreenClearNeeded
+        internal bool IsScreenClearNeeded
         {
             get
             {
@@ -94,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public DebugHandler(ScriptableRendererData scriptableRendererData)
+        internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Texture2D numberFontTexture = scriptableRendererData.debugShaders.NumberFont;
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
@@ -105,23 +99,12 @@ namespace UnityEngine.Rendering.Universal
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
-        /// <summary>
-        /// Returns true if any debug mode is active for the provided camera.
-        /// </summary>
-        /// <param name="cameraData"></param>
-        /// <returns></returns>
-        public bool IsActiveForCamera(ref CameraData cameraData)
+        internal bool IsActiveForCamera(ref CameraData cameraData)
         {
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
-        /// <summary>
-        /// Returns information about a possibly active on-screen debug mode.
-        /// </summary>
-        /// <param name="debugFullScreenMode">Currently active on-screen debug mode.</param>
-        /// <param name="outputHeight">The expected pixel height of the debug view on screen.</param>
-        /// <returns>True if an on-screen debug mode is active.</returns>
-        public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
+        internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
             outputHeight = RenderingSettings.debugFullScreenModeOutputSize;
@@ -188,41 +171,28 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <summary>
-        /// Sets the provided render target to be displayed by the Rendering Debugger.
-        /// </summary>
-        /// <param name="renderTargetIdentifier">Render target identifier.</param>
-        /// <param name="displayRect">Pixel dimensions of the rectangle used to render the debug texture.</param>
-        public void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
+        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetIdentifier = renderTargetIdentifier;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
         }
 
-        /// <summary>
-        /// Clear currently active debug render target.
-        /// </summary>
-        public void ResetDebugRenderTarget()
+        internal void ResetDebugRenderTarget()
         {
             m_HasDebugRenderTarget = false;
         }
 
-        /// <summary>
-        /// Sets the shader properties and keywords for the final debug pass.
-        /// </summary>
-        /// <param name="cmd">Associated command buffer.</param>
-        /// <param name="cameraData">Camera being rendered.</param>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
+        internal void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
             if (IsActiveForCamera(ref cameraData))
             {
-                cmd.EnableShaderKeyword("_DEBUG_SHADER");
+                cmd.EnableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
             }
             else
             {
-                cmd.DisableShaderKeyword("_DEBUG_SHADER");
+                cmd.DisableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
             }
 
             if (m_HasDebugRenderTarget)
@@ -240,16 +210,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <summary>
-        /// Sets the majority of shader properties and keywords.
-        /// </summary>
-        /// <param name="context"></param>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void Setup(ScriptableRenderContext context)
+        internal void Setup(ScriptableRenderContext context)
         {
             var cmd = CommandBufferPool.Get("");
 
-            cmd.DisableShaderKeyword("_DEBUG_SHADER");
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
 
             // Material settings...
             cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
@@ -363,7 +329,7 @@ namespace UnityEngine.Rendering.Universal
             #endregion
         }
 
-        public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
+        internal IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
             CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);

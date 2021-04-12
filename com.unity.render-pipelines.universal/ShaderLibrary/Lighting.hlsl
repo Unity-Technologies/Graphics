@@ -1,7 +1,7 @@
 #ifndef UNIVERSAL_LIGHTING_INCLUDED
 #define UNIVERSAL_LIGHTING_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDFData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
@@ -301,7 +301,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                                           surfaceData.clearCoatMask, specularHighlightsOff);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	uint pixelLightCount = GetAdditionalLightsCount();
+    uint pixelLightCount = GetAdditionalLightsCount();
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
@@ -372,13 +372,13 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	uint pixelLightCount = GetAdditionalLightsCount();
+    uint pixelLightCount = GetAdditionalLightsCount();
 
-	LIGHT_LOOP_BEGIN(pixelLightCount)
+    LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
         lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
-	LIGHT_LOOP_END
+    LIGHT_LOOP_END
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)

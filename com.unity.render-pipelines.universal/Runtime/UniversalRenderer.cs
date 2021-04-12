@@ -33,9 +33,10 @@ namespace UnityEngine.Rendering.Universal
         internal RenderingMode renderingMode => m_RenderingMode;
 
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
-        internal RenderingMode actualRenderingMode => (GL.wireframe || DebugHandler.IsActiveModeUnsupportedForDeferred || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
+        internal RenderingMode actualRenderingMode => (GL.wireframe || (DebugHandler != null && DebugHandler.IsActiveModeUnsupportedForDeferred) || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
         ? RenderingMode.Forward
         : this.renderingMode;
+
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
         internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;

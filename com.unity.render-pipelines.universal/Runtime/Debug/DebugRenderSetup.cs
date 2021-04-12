@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugRenderSetup : IDisposable
+    class DebugRenderSetup : IDisposable
     {
         private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
 
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
             } // End of switch.
         }
 
-        public DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
+        internal DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
         {
             m_DebugHandler = debugHandler;
             m_Context = context;
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
+        internal DrawingSettings CreateDrawingSettings(ScriptableRenderPass pass, ref RenderingData renderingData, DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (IsDebugMaterialPassNeeded())
                 {
-                    return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
+                    return pass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
                 }
                 else
                 {
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
+        internal bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 

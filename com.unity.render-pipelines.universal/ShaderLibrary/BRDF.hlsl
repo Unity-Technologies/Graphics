@@ -1,6 +1,5 @@
-
-#ifndef BRDF_DATA_INCLUDED
-#define BRDF_DATA_INCLUDED
+#ifndef UNIVERSAL_BRDF_INCLUDED
+#define UNIVERSAL_BRDF_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"

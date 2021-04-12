@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
@@ -228,9 +227,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = UnlitDefines.Debug,
             };
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class UnlitRequiredFields
         {
             public static readonly FieldCollection DebugMaterial = new FieldCollection()
@@ -243,9 +242,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.viewDirectionWS,
             };
         }
-#endregion
+        #endregion
 
-#region Defines
+        #region Defines
         static class UnlitDefines
         {
             public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
