@@ -5,7 +5,7 @@ using ShaderPathID = UnityEngine.Rendering.Universal.ShaderPathID;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGraph;
 
-namespace Unity.Rendering.Universal // Unity.RenderPipelines.Universal.Editor
+namespace Unity.Rendering.Universal
 {
     public static class ShaderUtils
     {
@@ -30,9 +30,14 @@ namespace Unity.Rendering.Universal // Unity.RenderPipelines.Universal.Editor
             SG_Lit,                 // UniversalLitSubTarget
         }
 
+        internal static bool IsShaderGraph(this ShaderID id)
+        {
+            return ((int) id >= 1000);
+        }
+
+        // NOTE: this won't work for non-Asset shaders... (i.e. shadergraph preview shaders)
         internal static ShaderID GetShaderID(Shader shader)
         {
-            // TODO: this won't work for non-Asset shaders...  luckily I think that's the only kind we care about versioning properly..
             if (shader.IsShaderGraphAsset())
             {
                 UniversalMetadata meta;
@@ -47,32 +52,25 @@ namespace Unity.Rendering.Universal // Unity.RenderPipelines.Universal.Editor
             }
         }
 
-        public static void ResetMaterialKeywords(Material material)
+        // this is used to reset a material's keywords, based on the ShaderID it is using
+        internal static void ResetMaterialKeywords(Material material, ShaderID shaderID = ShaderID.Unknown)
         {
-            var sgTargetId = material.GetTag("ShaderGraphTargetId", false, null);
-            if (sgTargetId == "UniversalLitSubTarget")
+            // if unknown, look it up from the material's shader
+            // NOTE: this will only work for asset-based shaders..
+            if (shaderID == ShaderID.Unknown)
+                shaderID = GetShaderID(material.shader);
+
+            switch (shaderID)
             {
-                URPLitGUI.UpdateMaterial(material);
-            }
-            else if (sgTargetId == "UniversalUnlitSubTarget")
-            {
-                URPUnlitGUI.UpdateMaterial(material);
-            }
-            else
-            {
-                ShaderID shaderID = GetShaderID(material.shader);
-                switch (shaderID)
-                {
-                    case ShaderID.SG_Lit:
-                        URPLitGUI.UpdateMaterial(material);
-                        break;
-                    case ShaderID.SG_Unlit:
-                        URPUnlitGUI.UpdateMaterial(material);
-                        break;
-                    // TODO: handle other shaders that need keyword resets here
-                    default:
-                        break;
-                }
+                case ShaderID.SG_Lit:
+                    URPLitGUI.UpdateMaterial(material);
+                    break;
+                case ShaderID.SG_Unlit:
+                    URPUnlitGUI.UpdateMaterial(material);
+                    break;
+                // TODO: handle other shaders that need keyword resets here
+                default:
+                    break;
             }
         }
     }

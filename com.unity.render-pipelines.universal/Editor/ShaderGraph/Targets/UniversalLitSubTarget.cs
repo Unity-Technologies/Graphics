@@ -76,9 +76,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
             {
                 context.AddCustomEditorForRenderPipeline("UnityEditor.URPLitGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset));
-
-                // old editor
-                // context.AddCustomEditorForRenderPipeline("UnityEditor.ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset));
             }
 
             // Process SubShaders
