@@ -1,16 +1,16 @@
 # Frame Settings
 
-Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default Frame Settings for each of these three individually from within the [HDRP Default Settings](Default-Settings-Window.md) tab (menu: **Edit > Project Settings > HDRP Default Settings**).
+Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values for Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit > Project Settings > Graphics > HDRP Settings**).
 
 ![](Images/FrameSettings1.png)
 
-**Default Frame Settings For** is not just the title of the section, it also corresponds to the drop-down menu, to its right, that allows you to select which component to change the default Frame Settings for. Before you change any Frame Settings, select a component from the drop-down menu. The options are Camera, Baked or Custom Reflection, and Realtime Reflection. After you select a component, you can change the default settings HDRP uses to render a frame using that component. To make Cameras and Reflection Probes use their respective default Frame Settings, disable the **Custom Frame Settings** checkbox under the **General** settings of Cameras or under **Capture Settings** of Reflection Probes.
+To make Cameras and Reflection Probes use their respective default values for Frame Settings, disable the **Custom Frame Settings** checkbox under the **General** settings of Cameras or under **Capture Settings** of Reflection Probes.
 
-You can override the default Frame Settings on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes.This exposes the Frame Settings Override which gives you access to the same settings as in default Frame Settings within the HDRP Asset. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.
+You can override the default value of a Frame Setting on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes. This exposes the Frame Settings Override which gives you access to the same settings as within the HDRP Global Settings. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.
 
 Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings.
 
-Note: Some options are grayed-out depending on whether you have enabled/disabled them in the Render Pipeline Supported Features section of your HDRP Asset.
+Note: If [Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html) is disabled in your project, the **Virtual Texturing** setting is grayed-out.
 
 Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene.
 
@@ -83,7 +83,7 @@ These settings control lighting features for your rendering components. Here you
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Transmission**                   | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
 | **Fog**                            | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.md#fog) from your Scene’s Volumes. |
-| - **Volumetrics**                    | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
+| - **Volumetrics**                  | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
 | - - **Reprojection**   | Enable the checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
 | **Light Layers**                   | Enable the checkbox to make HDRP process Light Layers.       |
 | **Exposure Control**               | Enable the checkbox to use the exposure values you can set on relevant components in HDRP. Disable this checkbox to use a neutral value (0 Ev100) instead. |
