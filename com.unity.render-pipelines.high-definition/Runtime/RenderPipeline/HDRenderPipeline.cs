@@ -1696,7 +1696,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
                                     // Before rendering the AOV, bind the correct history buffers
-                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovRequest.GetHistoryRTHandleSystem());
+                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
