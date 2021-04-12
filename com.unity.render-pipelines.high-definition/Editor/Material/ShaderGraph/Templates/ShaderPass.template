@@ -149,6 +149,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
