@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
+            public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl));
             public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.BuiltIn.ShaderGraph.ZTestMode));
 
             public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
@@ -41,6 +42,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+            public static readonly GUIContent zwriteText = EditorGUIUtility.TrTextContent("Depth Write",
+                "Controls whether the shader writes depth.  Auto will write only when the shader is opaque.");
             public static readonly GUIContent ztestText = EditorGUIUtility.TrTextContent("Depth Test",
                 "Specifies the depth test mode.  The default is LEqual.");
             public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
@@ -101,6 +104,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var cullingProp = FindProperty(Property.Cull(), properties, false);
             DoPopup(Styles.cullingText, materialEditor, cullingProp, Enum.GetNames(typeof(RenderFace)));
 
+            var zWriteProp = FindProperty(Property.ZWriteControl(), properties, false);
+            DoPopup(Styles.zwriteText, materialEditor, zWriteProp, Styles.zwriteNames);
+
             var ztestProp = FindProperty(Property.ZTest(), properties, false);
             DoPopup(Styles.ztestText, materialEditor, ztestProp, Styles.ztestNames);
 
@@ -146,6 +152,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var surfaceTypeProp = Property.Surface();
             if (material.HasProperty(surfaceTypeProp))
             {
+                bool zwrite = false;
                 var surfaceType = (SurfaceType)material.GetFloat(surfaceTypeProp);
                 if (surfaceType == SurfaceType.Opaque)
                 {
@@ -167,7 +174,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     material.SetOverrideTag("RenderType", renderType);
                     material.renderQueue = (int)renderQueue;
                     SetBlendMode(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
-                    SetMaterialZWriteProperty(material, true);
+                    zwrite = true;
                 }
                 else
                 {
@@ -187,8 +194,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.SetOverrideTag("RenderType", "Transparent");
-                    SetMaterialZWriteProperty(material, false);
                 }
+
+                // check for override enum
+                var zwriteProp = Property.ZWriteControl();
+                if (material.HasProperty(zwriteProp))
+                {
+                    var zwriteControl = (UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl)material.GetFloat(zwriteProp);
+                    if (zwriteControl == UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl.ForceEnabled)
+                        zwrite = true;
+                    else if (zwriteControl == UnityEditor.Rendering.BuiltIn.ShaderGraph.ZWriteControl.ForceDisabled)
+                        zwrite = false;
+                }
+                SetMaterialZWriteProperty(material, zwrite);
             }
         }
 
