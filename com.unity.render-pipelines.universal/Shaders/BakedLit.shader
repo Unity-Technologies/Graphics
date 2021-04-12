@@ -75,7 +75,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 staticLightmapUV       : TEXCOORD1;
+                float2 staticLightmapUV : TEXCOORD1;
                 float3 normalOS         : NORMAL;
                 float4 tangentOS        : TANGENT;
 

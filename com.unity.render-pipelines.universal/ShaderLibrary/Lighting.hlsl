@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-// If lightmap is not defined than we evaluate GI (ambient + probes) from SH
+// If lightmap is not defined then we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
 // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
