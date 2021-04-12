@@ -16,7 +16,7 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trun
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -49,11 +49,11 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  git clone https://github.com/Unity-Technologies/VikingVillage.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -101,11 +101,11 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  git clone https://github.com/Unity-Technologies/VikingVillage.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -151,7 +151,7 @@ VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUST
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -187,11 +187,11 @@ Build_VikingVillage_URP_Android_Vulkan_performance_playmode_runtime_il2cpp_Linea
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  git clone https://github.com/Unity-Technologies/VikingVillage.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -243,11 +243,11 @@ VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: master
-        VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+        VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+      -  git clone https://github.com/Unity-Technologies/VikingVillage.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config

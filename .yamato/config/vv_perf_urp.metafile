@@ -3,12 +3,12 @@ project:
   folder: Viking-Village-Perf
   variables:
     VV_URP_BRANCH: master
-    VV_URP_REVISION: 0546e39c0bb651be5d1f6d76a4f884417997a22a
+    VV_URP_REVISION: fe0b9a08753e3b0b873a0be53cffd37b8f5f2f18
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/VikingVillage.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/VikingVillage.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
