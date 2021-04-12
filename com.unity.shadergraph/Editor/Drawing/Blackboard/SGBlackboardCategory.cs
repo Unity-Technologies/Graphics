@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardCategoryViewModel viewModel => m_ViewModel;
 
         const string k_StylePath = "Styles/SGBlackboard";
-        const string k_UxmlPath = "UXML/Blackboard/SGBlackboardSection";
+        const string k_UxmlPath = "UXML/Blackboard/SGBlackboardCategory";
 
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
@@ -91,8 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            // Don't allow the default category to be displaced
-            return Mathf.Clamp(index, 1, index);
+            return Mathf.Clamp(index, 0, index);
         }
 
         VisualElement FindCategoryDirectChild(VisualElement element)
@@ -120,8 +119,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MainContainer = tpl.Instantiate();
             m_MainContainer.AddToClassList("mainContainer");
 
-            m_Header = m_MainContainer.Q("sectionHeader");
-            m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
+            m_Header = m_MainContainer.Q("categoryHeader");
+            m_TitleLabel = m_MainContainer.Q<Label>("categoryTitleLabel");
             m_RowsContainer = m_MainContainer.Q("rowsContainer");
             m_TextField = m_MainContainer.Q<TextField>("textField");
             m_TextField.style.display = DisplayStyle.None;
@@ -136,14 +135,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
             ClearClassList();
-            AddToClassList("blackboardSection");
+            AddToClassList("blackboardCategory");
 
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
 
             // add drag and drop manipulator
-            this.AddManipulator(new SelectionDropper());
+            var selectionDropperManipulator = new SelectionDropper();
+            this.AddManipulator(selectionDropperManipulator);
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private void SetDragIndicatorVisible(bool visible)
+        void SetDragIndicatorVisible(bool visible)
         {
             m_DragIndicator.visible = visible;
         }
@@ -276,17 +276,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             RemoveFromClassList("hovered");
         }
 
-        private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+        void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
             VisualElement sourceItem = null;
 
+            bool fieldInSelection = false;
             foreach (ISelectable selectedElement in selection)
             {
                 sourceItem = selectedElement as VisualElement;
-                if (sourceItem is SGBlackboardCategory blackboardCategory && controller.Model.IsNamedCategory() == false)
-                    return;
+                if (sourceItem is SGBlackboardField blackboardField)
+                    fieldInSelection = true;
+            }
+
+            // If can't find at least one blackboard field in the selection, don't update drag indicator
+            if (fieldInSelection == false)
+            {
+                SetDragIndicatorVisible(false);
+                return;
             }
 
             Vector2 localPosition = evt.localMousePosition;
@@ -306,14 +314,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                     {
                         VisualElement lastChild = this[childCount - 1];
-
                         indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
                     }
                 }
-                else
+                else if(this.childCount > 0)
                 {
                     VisualElement childAtInsertIndex = this[m_InsertIndex];
-
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
@@ -326,7 +332,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 SetDragIndicatorVisible(false);
-
                 m_InsertIndex = -1;
             }
 
@@ -334,10 +339,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
-            evt.StopPropagation();
         }
 
-        private void OnDragPerformEvent(DragPerformEvent evt)
+        void OnDragPerformEvent(DragPerformEvent evt)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
 
@@ -441,9 +445,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             SetDragIndicatorVisible(false);
-            // The default category should bubble up drop operations so user can re-order underneath it
-            if(controller.Model.IsNamedCategory())
-                evt.StopPropagation();
         }
 
         void OnDragLeaveEvent(DragLeaveEvent evt)
@@ -459,13 +460,21 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void Select(VisualElement selectionContainer, bool additive)
         {
             // Don't add the un-named/default category to graph selections
-            if(controller.Model.IsNamedCategory())
+            if (controller.Model.IsNamedCategory())
+            {
                 base.Select(selectionContainer, additive);
+            }
         }
 
         public override void OnSelected()
         {
             AddToClassList("selected");
+            // Select the child elements within this category (the field views)
+            var fieldViews = this.Query<SGBlackboardField>();
+            foreach (var child in fieldViews.ToList())
+            {
+                this.AddToSelection(child);
+            }
         }
 
         public override void OnUnselected()
@@ -485,10 +494,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void RemoveFromSelection(ISelectable selectable)
         {
-            if (selectable == this)
-                RemoveFromClassList("selected");
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.RemoveFromSelection(selectable);
+
+            // Also deselect the child elements within this category (the field views)
+            var fieldViews = this.Query<SGBlackboardField>();
+            foreach (var child in fieldViews.ToList())
+            {
+                materialGraphView?.RemoveFromSelection(child);
+            }
         }
 
         public void ClearSelection()
@@ -505,8 +519,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var selectionProvider = m_ViewModel.parentView.GetFirstAncestorOfType<ISelectionProvider>();
                 if (selectionProvider?.GetSelection != null)
                     return selectionProvider.GetSelection;
-                else
-                    return new List<ISelectable>();
+
+                return new List<ISelectable>();
             }
         }
 

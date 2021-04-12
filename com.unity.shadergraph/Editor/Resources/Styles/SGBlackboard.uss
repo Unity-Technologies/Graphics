@@ -11,19 +11,13 @@
 
 #SGBlackboard {
     position:absolute;
-    border-left-width: 1px;
-    border-top-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
-    border-radius: 5px;
     flex-direction: column;
-    background-color: #2b2b2b;
-    border-color: #191919;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
     min-width: 100px;
     min-height: 100px;
     width: 200px;
     height: 400px;
-    margin: 5px;
 }
 
 #SGBlackboard.windowed {
@@ -35,7 +29,6 @@
     border-right-width: 0;
     border-bottom-width: 0;
     border-radius: 0;
-    margin: 5px;
     width: initial;
     height: initial;
 }
@@ -54,14 +47,11 @@
     display: none;
 }
 
-#SGBlackboard > #dragIndicator {
+#SGBlackboard > #categoryDragIndicator {
     background-color: cornflowerblue;
     min-height: 4px;
-
-    border-left-width: 5px;
-    width: auto;
-    flex-grow: 1;
-    border-right-width: 5px;
+    left:0;
+    right:0;
 }
 
 #SGBlackboard:selected {
@@ -69,6 +59,14 @@
 }
 
 #SGBlackboard > .mainContainer {
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 5px;
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin: 3px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -127,9 +125,6 @@
 
 #SGBlackboard > .mainContainer > #content > #contentContainer {
     min-height: 50px;
-    padding-left: 0;
-    padding-top: 0;
-    padding-right: 0;
     padding-bottom: 15px;
     flex-direction: column;
     align-items: stretch;
@@ -202,24 +197,24 @@
     background-color: #393939;
 }
 
-.blackboardSection {
+.blackboardCategory {
     padding: 1px;
     border-color: dimgray;
     border-width: 0.5px;
     border-radius: 3px;
 }
 
-.blackboardSection  > .mainContainer > #sectionHeader {
+.blackboardCategory  > .mainContainer > #categoryHeader {
     flex-direction: row;
     align-items: stretch;
 }
 
-.blackboardSection > .mainContainer > #sectionHeader > #sectionTitleLabel {
+.blackboardCategory > .mainContainer > #categoryHeader > #categoryTitleLabel {
     color: #606060;
     font-size: 11px;
 }
 
-.blackboardSection > .mainContainer > #sectionHeader > #textField {
+.blackboardCategory > .mainContainer > #categoryHeader > #textField {
     position: absolute;
     top:0;
     left:0;
@@ -230,22 +225,22 @@
     font-size: 11px;
 }
 
-.blackboardSection > #dragIndicator {
+.blackboardCategory > #dragIndicator {
     background-color: #44C0FF;
     position: absolute;
     min-height: 2px;
 }
 
-.blackboardSection.selected {
+.blackboardCategory.selected {
     border-color: cornflowerblue;
 }
 
-.blackboardSection.unnamed {
+.blackboardCategory.unnamed {
     border-width: 0;
     border-radius: 0;
     border-color: black;
 }
-.blackboardSection.hovered {
+.blackboardCategory.hovered {
     border-color: lightskyblue;
 }
 

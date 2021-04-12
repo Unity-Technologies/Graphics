@@ -254,6 +254,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 OpenTextEditor();
                 e.PreventDefault();
             }
+            else
+            {
+                e.StopPropagation();
+            }
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)

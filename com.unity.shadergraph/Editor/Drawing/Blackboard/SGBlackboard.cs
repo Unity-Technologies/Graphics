@@ -140,8 +140,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
 
             // These callbacks make sure the scroll boundary regions and drag indicator don't show up user is not dragging/dropping properties/categories
-            this.RegisterCallback<MouseUpEvent>((evt => this.HideScrollBoundaryRegions()));
-            this.RegisterCallback<DragExitedEvent>(OnDragExitedEvent);
+            RegisterCallback<MouseUpEvent>(OnMouseUpEvent);
+            RegisterCallback<DragExitedEvent>(OnDragExitedEvent);
 
             // Register drag callbacks
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
@@ -172,22 +172,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             focusable = true;
 
             m_DragIndicator = new VisualElement();
-            m_DragIndicator.name = "dragIndicator";
+            m_DragIndicator.name = "categoryDragIndicator";
             m_DragIndicator.style.position = Position.Absolute;
-            this.Add(m_DragIndicator);
+            hierarchy.Add(m_DragIndicator);
             SetDragIndicatorVisible(false);
         }
 
-        private void SetDragIndicatorVisible(bool visible)
+        void SetDragIndicatorVisible(bool visible)
         {
             if (visible && (m_DragIndicator.parent == null))
             {
-                this.Add(m_DragIndicator);
+                hierarchy.Add(m_DragIndicator);
                 m_DragIndicator.visible = true;
             }
             else if ((visible == false) && (m_DragIndicator.parent != null))
             {
-                //this.Remove(m_DragIndicator);
+                hierarchy.Remove(m_DragIndicator);
             }
         }
 
@@ -221,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ScrollBoundaryBottom.RemoveFromHierarchy();
         }
 
-        private int InsertionIndex(Vector2 pos)
+        int InsertionIndex(Vector2 pos)
         {
             int index = -1;
             VisualElement owner = contentContainer != null ? contentContainer : this;
@@ -255,7 +255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return Mathf.Clamp(index, 1, index);
         }
 
-        private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+        void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             if (selection == null)
@@ -280,7 +280,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
             }
-
+            SetDragIndicatorVisible(true);
 
             Vector2 localPosition = evt.localMousePosition;
             m_InsertIndex = InsertionIndex(localPosition);
@@ -319,8 +319,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.StopPropagation();
         }
 
-        private void OnDragPerformEvent(DragPerformEvent evt)
+        void OnDragPerformEvent(DragPerformEvent evt)
         {
+            // Don't bubble up drop operations onto blackboard upto the graph view, as it leads to nodes being created without users knowledge behind the blackboard
+            evt.StopPropagation();
+
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             if (selection == null)
             {
@@ -331,6 +334,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!selection.OfType<SGBlackboardCategory>().Any())
             {
                 SetDragIndicatorVisible(false);
+
                 return;
             }
 
@@ -349,12 +353,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             ViewModel.requestModelChangeAction(moveCategoryAction);
 
             SetDragIndicatorVisible(false);
-
-            // Don't bubble up drop operations onto blackboard upto the graph view, as it leads to nodes being created without users knowledge behind the blackboard
-            evt.StopPropagation();
         }
 
-        private void OnDragLeaveEvent(DragLeaveEvent evt)
+        void OnDragLeaveEvent(DragLeaveEvent evt)
         {
             DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
             SetDragIndicatorVisible(false);
@@ -449,6 +450,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ShowAddPropertyMenu()
         {
             m_AddBlackboardItemMenu.ShowAsContext();
+        }
+
+        void OnMouseUpEvent(MouseUpEvent evt)
+        {
+            this.HideScrollBoundaryRegions();
         }
 
         void OnMouseDownEvent(MouseDownEvent evt)
