@@ -2,7 +2,10 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+#if ENABLE_VR && USE_XR_MOCK_HMD
 using UnityEngine.XR;
+#endif
 
 namespace Unity.Testing.XR.Runtime
 {
