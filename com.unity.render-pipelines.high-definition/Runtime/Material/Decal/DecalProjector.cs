@@ -237,7 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private Material m_OldMaterial = null;
-        private DecalSystem.DecalHandle m_Handle = null;
 
         /// <summary>A scale that should be used for rendering and handles.</summary>
         internal Vector3 effectiveScale => m_ScaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
@@ -299,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal DecalSystem.DecalHandle Handle
+        internal DecalHandle Handle
         {
             get
             {

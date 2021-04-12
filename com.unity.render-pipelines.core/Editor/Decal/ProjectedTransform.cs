@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
-    class ProjectedTransform
+    public class ProjectedTransform
     {
         struct PositionHandleIds
         {

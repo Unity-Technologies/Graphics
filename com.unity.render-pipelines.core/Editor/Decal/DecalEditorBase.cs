@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering
 {
     public partial class DecalEditorBase : Editor
     {
-        const float k_Limit = 100000;
-        const float k_LimitInv = 1 / k_Limit;
+        protected const float k_Limit = 100000;
+        protected const float k_LimitInv = 1 / k_Limit;
 
         protected static Color fullColor
         {
@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip)
         });
 
-        static List<DecalEditorBase> s_Instances = new List<DecalEditorBase>();
+        protected static List<DecalEditorBase> s_Instances = new List<DecalEditorBase>();
 
         protected static DecalEditorBase FindEditorFromSelection()
         {

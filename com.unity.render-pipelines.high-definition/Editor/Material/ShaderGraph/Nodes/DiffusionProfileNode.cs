@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL => Documentation.GetPageLink("SGNode-Diffusion-Profile");
+        public override string documentationURL => UnityEngine.Rendering.HighDefinition.Documentation.GetPageLink("SGNode-Diffusion-Profile");
 
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
         UnityEditor.ShaderGraph.Drawing.Controls.PopupList m_DiffusionProfile = new UnityEditor.ShaderGraph.Drawing.Controls.PopupList();
