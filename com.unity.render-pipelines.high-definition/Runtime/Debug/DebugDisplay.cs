@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
         public int _DebugIsLitShaderModeDeferred;
+
+        public int _DebugAOVOutput;
     }
 
     /// <summary>
