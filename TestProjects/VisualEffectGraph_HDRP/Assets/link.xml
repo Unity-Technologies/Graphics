@@ -1,9 +1,9 @@
 <linker>
-  <assembly fullname="Unity.PerformanceTesting">
+  <assembly fullname="Unity.PerformanceTesting" ignoreIfMissing="1">
     <namespace fullname="Unity.PerformanceTesting" preserve="all"/>
     <namespace fullname="Unity.PerformanceTesting.Data" preserve="all"/>
   </assembly>
-  <assembly fullname="Assembly-CSharp-Editor-testable">
+  <assembly fullname="Unity.Testing.VisualEffectGraph.EditorTests" ignoreIfMissing="1">
     <type fullname="SetupGraphicsTestCases" preserve="all"/>
   </assembly>
 </linker>
