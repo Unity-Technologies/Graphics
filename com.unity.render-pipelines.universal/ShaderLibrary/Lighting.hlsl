@@ -294,7 +294,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     return CalculateFinalColor(lightingData, surfaceData.alpha);
 }
 
-// TODO: Legacy code - is it safe to remove this?
+// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
@@ -363,7 +363,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     return CalculateFinalColor(lightingData, surfaceData.alpha);
 }
 
-// TODO: Legacy code - is it safe to remove this?
+// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
 {
     SurfaceData surfaceData;
@@ -417,7 +417,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     return CalculateFinalColor(lightingData, surfaceData.albedo, surfaceData.alpha, inputData.fogCoord);
 }
 
-// TODO: Legacy code - is it safe to remove this?
+// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments...
 half4 UniversalFragmentBakedLit(InputData inputData, half3 color, half alpha, half3 normalTS)
 {
     SurfaceData surfaceData;
