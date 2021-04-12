@@ -28,11 +28,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -40,11 +40,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
@@ -105,11 +105,11 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enabledxrtargets=OculusXRSDK" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-stereoRenderingMode=MultiPass" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -117,11 +117,11 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enabledxrtargets=OculusXRSDK" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-stereoRenderingMode=MultiPass" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
@@ -181,11 +181,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -193,11 +193,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
@@ -227,11 +227,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -239,11 +239,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
@@ -307,11 +307,11 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enabledxrtargets=OculusXRSDK" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-stereoRenderingMode=MultiPass" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=2700
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -319,11 +319,11 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enabledxrtargets=OculusXRSDK" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --extra-editor-arg="-stereoRenderingMode=MultiPass" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=2700
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
@@ -387,11 +387,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
@@ -399,11 +399,11 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-              set artifactPath="Boatattack/Quest"
-              set jenkinsJob="SBR_Quest_RunTest"
-              set jenkinsNodeLabel="Quest"
-              set runTests="True"
+              set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+              set artifactPath=Boatattack/Quest
+              set jenkinsJob=SBR_Quest_RunTest
+              set jenkinsNodeLabel=Quest
+              set runTests=True
               set cmd=--artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:

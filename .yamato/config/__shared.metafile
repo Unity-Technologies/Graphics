@@ -410,11 +410,11 @@ platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
-                    set unityVersion="{{editor_versions.trunk_latest_internal.XRQuest.revision}}"
-                    set artifactPath="Boatattack/Quest"
-                    set jenkinsJob="SBR_Quest_RunTest"
-                    set jenkinsNodeLabel="Quest"
-                    set runTests="True"
+                    set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+                    set artifactPath=Boatattack/Quest
+                    set jenkinsJob=SBR_Quest_RunTest
+                    set jenkinsNodeLabel=Quest
+                    set runTests=True
                     set cmd=<UTR_FLAGS>
                     python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
         unity_downloader_cli:
