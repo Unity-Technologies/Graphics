@@ -278,6 +278,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
+
         internal int GetTopMostLitLayer()
         {
             var largestIndex = Int32.MinValue;

@@ -24,9 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline : RenderPipeline
     {
         #region Global Settings
-        internal static HDRenderPipelineGlobalSettings defaultAsset
-            => HDRenderPipelineGlobalSettings.instance;
-
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
@@ -50,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return HDRenderPipelineGlobalSettings.instance.renderPipelineResources; } }
+        internal RenderPipelineResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -449,20 +446,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
+            bool requiresRayTracingResources = false;
             if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
             {
-                m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
+                requiresRayTracingResources = true;
             }
-            else
+            // Also make sure to include ray-tracing resources if at least one of the quality levels needs it
+            else if (rayTracingSupportedBySystem)
             {
-                // If ray tracing is not enabled we do not want to have ray tracing resources referenced
-                m_GlobalSettings.ClearRayTracingResources();
+                int qualityLevelCount = QualitySettings.names.Length;
+                for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
+                {
+                    var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                    if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                        requiresRayTracingResources = true;
+                }
             }
-        }
-
-        void ValidateResources()
-        {
-            HDRenderPipelineGlobalSettings.instance.EnsureShadersCompiled();
+            // If ray tracing is not enabled we do not want to have ray tracing resources referenced
+            if (requiresRayTracingResources)
+                m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
+            else
+                m_GlobalSettings.ClearRayTracingResources();
         }
 
 #endif
@@ -1004,10 +1008,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not ncessarily null)
+            // or been deleted/moved (m_globalSettings is not necessarily null)
             if (m_GlobalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
             {
-                Debug.LogError("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                 m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
                 m_GlobalSettings.EnsureShadersCompiled();
                 return;
