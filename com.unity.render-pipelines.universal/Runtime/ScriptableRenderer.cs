@@ -932,7 +932,7 @@ namespace UnityEngine.Rendering.Universal
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
         {
             Camera camera = cameraData.camera;
-            ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
+            ClearFlag cameraClearFlag = renderPass.overrideCameraClear ? ClearFlag.None : GetCameraClearFlag(ref cameraData);
 
             // Invalid configuration - use current attachment setup
             // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes

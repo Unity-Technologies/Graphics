@@ -176,6 +176,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
+        // Use this flag to override the clear logic in ScriptableRenderer and assume responsibility of manually clearing the pass's targets (Color & Depth).
+        internal bool overrideCameraClear { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
         internal bool useNativeRenderPass { get; set; }
@@ -204,6 +206,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
+            overrideCameraClear = false;
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
