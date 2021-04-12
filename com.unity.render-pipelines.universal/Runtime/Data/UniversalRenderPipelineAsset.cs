@@ -7,6 +7,7 @@ using System.IO;
 using UnityEditorInternal;
 #endif
 using System.ComponentModel;
+using System.ComponentModel.Design.Serialization;
 using System.Linq;
 
 namespace UnityEngine.Rendering.LWRP
@@ -97,6 +98,13 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    public enum StoreActionsOptimization
+    {
+        Auto,
+        Discard,
+        Store
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
@@ -121,6 +129,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -517,6 +526,11 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsTerrainHoles
         {
             get { return m_SupportsTerrainHoles; }
+        }
+
+        public StoreActionsOptimization storeActionsOptimization
+        {
+            get { return m_StoreActionsOptimization; }
         }
 
         public bool supportsHDR

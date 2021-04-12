@@ -401,6 +401,9 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
+        private static bool m_UseOptimizedStoreActions = false;
+
         const int k_RenderPassBlockCount = 4;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -484,6 +487,9 @@ namespace UnityEngine.Rendering.Universal
             useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
+
+            m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
         public void Dispose()
@@ -795,6 +801,10 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
+
+                // if any render feature is added, the "automatic" store optimization policy will disable the optimized load actions
+                if (m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                    m_UseOptimizedStoreActions = false;
             }
 
             // Remove any null render pass that might have been added by user by mistake
@@ -1273,6 +1283,9 @@ namespace UnityEngine.Rendering.Universal
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            colorStoreAction = m_UseOptimizedStoreActions ? colorStoreAction : RenderBufferStoreAction.Store;
+            depthStoreAction = m_UseOptimizedStoreActions ? depthStoreAction : RenderBufferStoreAction.Store;
 
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
