@@ -310,7 +310,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &507852418
 GameObject:
@@ -5174,7 +5174,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1 &787570588
 GameObject:
@@ -5387,7 +5387,7 @@ MonoBehaviour:
   m_CameraType: 0
   m_Cameras:
   - {fileID: 787570591}
-  m_RendererIndex: 8
+  m_RendererIndex: 5
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1

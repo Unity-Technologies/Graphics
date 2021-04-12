@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Box Volume Profile
+  m_Name: BoxVolumeProfile
   m_EditorClassIdentifier: 
   components:
   - {fileID: 1669951838852580981}
@@ -28,31 +28,21 @@ MonoBehaviour:
   m_Name: ColorAdjustments
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   postExposure:
     m_OverrideState: 0
     m_Value: 0
   contrast:
     m_OverrideState: 0
     m_Value: 0
-    min: -100
-    max: 100
   colorFilter:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 1
-    showAlpha: 0
-    showEyeDropper: 1
   hueShift:
     m_OverrideState: 1
     m_Value: 90
-    min: -180
-    max: 180
   saturation:
     m_OverrideState: 0
     m_Value: 0
-    min: -100
-    max: 100
 --- !u!114 &4049420037280651543
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -66,26 +56,18 @@ MonoBehaviour:
   m_Name: Vignette
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   color:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   center:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 0
     m_Value: 0.727
-    min: 0
-    max: 1
   smoothness:
     m_OverrideState: 1
     m_Value: 0.01
-    min: 0.01
-    max: 1
   rounded:
     m_OverrideState: 0
     m_Value: 0
