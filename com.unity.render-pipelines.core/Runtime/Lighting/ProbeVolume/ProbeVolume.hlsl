@@ -414,18 +414,11 @@ float GetReflProbeNormalizationFactor(float3 sampleDir, float4 reflProbeSHL0L1, 
     return outFactor;
 }
 
-float GetReflectionProbeNormalizationFactor(APVSample apvSample, float3 reflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
 {
     float refProbeNormalization = GetReflProbeNormalizationFactor(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
-
-    // Evaluate APV in reflection direction.
-    float3 diffLighting, backDiffuse;
-
-    float3 unusedBackNormal = 0;
-    EvaluateAdaptiveProbeVolume(apvSample, reflDir, unusedBackNormal, diffLighting, backDiffuse);
-    float localNormalization = Luminance(diffLighting);
+    float localNormalization = Luminance(lightingInReflDir);
 
     return localNormalization / refProbeNormalization;
-
 }
 #endif // __PROBEVOLUME_HLSL__
