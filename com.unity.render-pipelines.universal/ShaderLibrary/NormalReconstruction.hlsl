@@ -16,7 +16,7 @@ float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
 
-float4 _NormalReconstruction_DepthInverse;
+float4x4 _NormalReconstructionMatrix;
 
 float RawToLinearDepth(float rawDepth)
 {
@@ -188,10 +188,9 @@ float getRawDepth(float2 uv) { return SampleSceneDepth(uv.xy).r; }
 // then multiplies that ray by the linear 01 depth
 float3 viewSpacePosAtScreenUV(float2 uv)
 {
-    return ReconstructViewPos(uv, SampleAndGetLinearDepth(uv));
-    //float3 viewSpaceRay = mul(unity_MatrixInvVP, float4(uv * 2.0 - 1.0, 1.0, 1.0) * _ProjectionParams.z);
-    //float rawDepth = getRawDepth(uv);
-    //return viewSpaceRay * Linear01Depth(rawDepth, _ZBufferParams);
+    float3 viewSpaceRay = mul(_NormalReconstructionMatrix, float4(uv * 2.0 - 1.0, 1.0, 1.0) * _ProjectionParams.z);
+    float rawDepth = getRawDepth(uv);
+    return viewSpaceRay * Linear01Depth(rawDepth, _ZBufferParams);
 }
 
 float3 viewSpacePosAtPixelPosition(float2 positionSS)
@@ -222,9 +221,9 @@ half3 ReconstructNormalTap3(float2 positionSS)
     half3 vDeriv = viewSpacePos_u - viewSpacePos_c;
 
     // get view space normal from the cross product of the diffs
-    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+    half3 viewNormal = normalize(cross(vDeriv, hDeriv));
 
-    return -viewNormal;
+    return viewNormal;
 }
 
 // Taken from https://gist.github.com/bgolus/a07ed65602c009d5e2f753826e8078a0
@@ -242,9 +241,9 @@ half3 ReconstructNormalTap4(float2 positionSS)
     half3 vDeriv = viewSpacePos_u - viewSpacePos_d;
 
     // get view space normal from the cross product of the diffs
-    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+    half3 viewNormal = normalize(cross(vDeriv, hDeriv));
 
-    return -viewNormal;
+    return viewNormal;
 }
 
 // Taken from https://gist.github.com/bgolus/a07ed65602c009d5e2f753826e8078a0
@@ -271,9 +270,9 @@ half3 ReconstructNormalTap5(float2 positionSS)
     half3 vDeriv = abs(d.z) < abs(u.z) ? d : u;
 
     // get view space normal from the cross product of the two smallest offsets
-    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+    half3 viewNormal = normalize(cross(vDeriv, hDeriv));
 
-    return -viewNormal;
+    return viewNormal;
 }
 
 // Taken from https://gist.github.com/bgolus/a07ed65602c009d5e2f753826e8078a0
@@ -328,8 +327,8 @@ half3 ReconstructNormalTap9(float2 positionSS)
     half3 vDeriv = ve.x < ve.y ? d : u;
 
     // get view space normal from the cross product of the best derivatives
-    half3 viewNormal = normalize(cross(hDeriv, vDeriv));
+    half3 viewNormal = normalize(cross(vDeriv, hDeriv));
 
-    return -viewNormal;
+    return viewNormal;
 }
 #endif // UNIVERSAL_NORMAL_RECONSTRUCTION

@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
                 s_CameraXExtent[eyeIndex] = topRightCorner - topLeftCorner;
                 s_CameraYExtent[eyeIndex] = bottomLeftCorner - topLeftCorner;
                 s_CameraZExtent[eyeIndex] = farCentre;
+
+                cmd.SetGlobalMatrix("_NormalReconstructionMatrix", cviewProjInv);
             }
 
             cmd.SetGlobalVector(s_ProjectionParams2ID, new Vector4(1.0f / cameraData.camera.nearClipPlane, 0.0f, 0.0f, 0.0f));
