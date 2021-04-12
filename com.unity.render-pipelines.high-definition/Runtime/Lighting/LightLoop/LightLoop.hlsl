@@ -534,8 +534,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
             float3x3 orthoBasis = GetOrthoBasisViewNormal(V, bsdfData.normalWS, dot(bsdfData.normalWS, V));
 
-            float noise1D_0 = (InterleavedGradientNoise(posInput.positionSS, 0) * 2.0f - 1.0f) * 0.2f;
-            float noise1D_1 = (InterleavedGradientNoise(posInput.positionSS, 1) * 2.0f - 1.0f) * 0.2f;
+            float noise1D_0 = (InterleavedGradientNoise(posInput.positionSS, 0) * 2.0f - 1.0f) * 0.1f;
+            float noise1D_1 = (InterleavedGradientNoise(posInput.positionSS, 1) * 2.0f - 1.0f) * 0.1f;
             noise = orthoBasis[0] * noise1D_1 + noise1D_0 * orthoBasis[1];
 #endif
 
