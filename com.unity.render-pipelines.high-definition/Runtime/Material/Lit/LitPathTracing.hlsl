@@ -9,17 +9,13 @@
 // bsdfWeight2  Spec GGX BRDF
 // bsdfWeight3  Spec GGX BTDF
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
     bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
 
-    // Make sure that the geometric and shading normals are consistent (reflection vector must be in the proper hemisphere)
-    float3 V = -WorldRayDirection();
-    bsdfData.normalWS = ComputeConsistentShadingNormal(V, bsdfData.geomNormalWS, bsdfData.normalWS);
-
-    float NdotV = abs(dot(bsdfData.normalWS, V));
+    float NdotV = abs(dot(GetSpecularNormal(mtlData), mtlData.V));
 
     // Modify fresnel0 value to take iridescence into account (code adapted from Lit.hlsl to produce identical results)
     if (bsdfData.iridescenceMask > 0.0)
@@ -50,20 +46,21 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
+    mtlData.V = -WorldRayDirection();
+    mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
     mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
+    ProcessBSDFData(pathIntersection, builtinData, mtlData, mtlData.bsdfData);
 
     mtlData.bsdfWeight = 0.0;
     mtlData.ior = mtlData.bsdfData.ior;
-    mtlData.V = -WorldRayDirection();
 
     // Assume no coating by default
     float coatingTransmission = 1.0;
 
     // First determine if our incoming direction V is above (exterior) or below (interior) the surface
-    if (IsAbove(mtlData.bsdfData.geomNormalWS, mtlData.V))
+    if (IsAbove(mtlData))
     {
-        float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
+        float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
 
@@ -76,7 +73,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 #ifdef _SURFACE_TYPE_TRANSPARENT
     else // Below
     {
-        float NdotV = -dot(mtlData.bsdfData.normalWS, mtlData.V);
+        float NdotV = -dot(GetSpecularNormal(mtlData), mtlData.V);
         float F = F_FresnelDielectric(1.0 / mtlData.ior, NdotV);
 
         mtlData.bsdfWeight[2] = F;
@@ -105,7 +102,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         SSS::Result subsurfaceResult;
         float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-        if (!SSS::RandomWalk(shadingPosition, mtlData.bsdfData.normalWS, mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
+        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
             return false;
 
         shadingPosition = subsurfaceResult.exitPosition;
@@ -236,7 +233,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
                 return false;
 
     #ifdef _REFRACTION_THIN
-            sampleDir = refract(sampleDir, mtlData.bsdfData.normalWS, mtlData.ior);
+            sampleDir = refract(sampleDir, GetSpecularNormal(mtlData), mtlData.ior);
             if (!any(sampleDir))
                 return false;
     #endif

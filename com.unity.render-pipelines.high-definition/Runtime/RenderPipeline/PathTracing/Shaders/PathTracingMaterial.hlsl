@@ -16,8 +16,10 @@ struct MaterialData
     // Index of refraction (if relevant)
     float    ior;
 
-    // View vector
+    // View vector, and altered shading normal
+    // (to be consistent with the view vector and geometric normal)
     float3   V;
+    float3   Nv;
 };
 
 struct MaterialResult
@@ -78,11 +80,26 @@ bool IsBelow(MaterialData mtlData)
     return !IsAbove(mtlData);
 }
 
-float3x3 GetTangentFrame(MaterialData mtlData)
+float3 GetDiffuseNormal(MaterialData mtlData)
+{
+    return mtlData.bsdfData.normalWS;
+}
+
+float3 GetSpecularNormal(MaterialData mtlData)
+{
+    return mtlData.Nv;
+}
+
+float3 GetLightNormal(MaterialData mtlData)
+{
+    return GetDiffuseNormal(mtlData) == GetSpecularNormal(mtlData) ? GetDiffuseNormal(mtlData) : float3(0.0, 0.0, 0.0);
+}
+
+float3x3 GetSpecularTangentFrame(MaterialData mtlData)
 {
     return mtlData.bsdfData.anisotropy != 0.0 ?
-        float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, mtlData.bsdfData.normalWS) :
-        GetLocalFrame(mtlData.bsdfData.normalWS);
+        float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, GetSpecularNormal(mtlData)) :
+        GetLocalFrame(GetSpecularNormal(mtlData));
 }
 
 float3 ComputeConsistentShadingNormal(float3 Wi, float3 G, float3 N)
