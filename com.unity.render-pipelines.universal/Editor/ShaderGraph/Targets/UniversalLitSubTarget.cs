@@ -189,88 +189,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            // TODO: move target common controls to a common location
-            // BaseShaderGUI.GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action < String > registerUndo)
-
-            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
-            {
-                if (Equals(target.surfaceType, evt.newValue))
-                    return;
-
-                registerUndo("Change Surface");
-                target.surfaceType = (SurfaceType)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend");
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = target.renderFace }, (evt) =>
-            {
-                if (Equals(target.renderFace, evt.newValue))
-                    return;
-
-                registerUndo("Change Render Face");
-                target.renderFace = (RenderFace)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
-            {
-                if (Equals(target.zWriteControl, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Write Control");
-                target.zWriteControl = (ZWriteControl)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = target.zTestMode }, (evt) =>
-            {
-                if (Equals(target.zTestMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Test");
-                target.zTestMode = (ZTestMode) evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
-            {
-                if (Equals(target.alphaClip, evt.newValue))
-                    return;
-
-                registerUndo("Change Alpha Clip");
-                target.alphaClip = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Cast Shadows", new Toggle() { value = target.castShadows }, (evt) =>
-            {
-                if (Equals(target.castShadows, evt.newValue))
-                    return;
-
-                registerUndo("Change Cast Shadows");
-                target.castShadows = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Receive Shadows", new Toggle() { value = target.receiveShadows }, (evt) =>
-            {
-                if (Equals(target.receiveShadows, evt.newValue))
-                    return;
-
-                registerUndo("Change Receive Shadows");
-                target.receiveShadows = evt.newValue;
-                onChange();
-            });
+            // show the target default surface properties
+            var universalTarget = (target as UniversalTarget);
+            universalTarget.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: true);
 
             context.AddProperty("Fragment Normal Space", new EnumField(NormalDropOffSpace.Tangent) { value = normalDropOffSpace }, (evt) =>
             {
