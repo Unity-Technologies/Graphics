@@ -485,48 +485,49 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
 float3 EvaluateSunLuminance(float3 position, in EnvironmentLighting envLighting, float density, float powderEffect, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
 {
     // Compute the Ray to the limits of the cloud volume in the direction of the light
-    float totalLightDistance = 0.0f;
+    float totalLightDistance = 0.0;
+    float3 luminance = float3(0.0, 0.0, 0.0);
 
     // If we early out, this means we've hit the earth itself
-    if(!GetCloudVolumeIntersection_Light(position, envLighting.sunDirection, totalLightDistance))
-        return 0.0;
-
-    // Initially the transmittance is one for all octaves
-    float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
-    int o;
-    for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-        sunLightTransmittance[o] = 1.0;
-
-    // Collect total density along light ray.
-    float lastDist = 0;
-    for (int j = 1; j <= _NumLightSteps; j++)
+    if (GetCloudVolumeIntersection_Light(position, envLighting.sunDirection, totalLightDistance))
     {
-        // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
-        float dist = totalLightDistance * PositivePow(j / (float)_NumLightSteps, WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR);
 
-        // Compute the size of the current step
-        float stepSize = (dist - lastDist);
+        // Initially the transmittance is one for all octaves
+        float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
+        int o;
+        for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+            sunLightTransmittance[o] = 1.0;
 
-        // Evaluate the current sample point
-        float3 currentSamplePoint = position + envLighting.sunDirection * dist;
-        // Get the cloud properties at the sample point
-        CloudProperties lightRayCloudProperties;
-        EvaluateCloudProperties(currentSamplePoint, 7.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
+        // Collect total density along light ray.
+        float lastDist = 0;
+        for (int j = 1; j <= _NumLightSteps; j++)
+        {
+            // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
+            float dist = totalLightDistance * PositivePow(j / (float)_NumLightSteps, WEIGHTED_LIGHT_SAMPLE_DISTRIBUTION_FACTOR);
 
-        // Compute the extinction
-        const float3 mediaExtinction = max(_ScatteringTint.xyz * lightRayCloudProperties.density * lightRayCloudProperties.sigmaT, float3(1e-6, 1e-6, 1e-6));
+            // Compute the size of the current step
+            float stepSize = (dist - lastDist);
 
-        // Update the transmittance for every octave
-        for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-            sunLightTransmittance[o] *= exp(- stepSize * mediaExtinction * PositivePow(_MultiScattering, o));
+            // Evaluate the current sample point
+            float3 currentSamplePoint = position + envLighting.sunDirection * dist;
+            // Get the cloud properties at the sample point
+            CloudProperties lightRayCloudProperties;
+            EvaluateCloudProperties(currentSamplePoint, 7.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
 
-        lastDist = dist;
+            // Compute the extinction
+            const float3 mediaExtinction = max(_ScatteringTint.xyz * lightRayCloudProperties.density * lightRayCloudProperties.sigmaT, float3(1e-6, 1e-6, 1e-6));
+
+            // Update the transmittance for every octave
+            for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+                sunLightTransmittance[o] *= exp(-stepSize * mediaExtinction * PositivePow(_MultiScattering, o));
+
+            lastDist = dist;
+        }
+
+        // Compute the luminance for each octave
+        for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+            luminance += sunLightTransmittance[o] * envLighting.sunColor * powderEffect * phaseFunction[o] * PositivePow(_MultiScattering, o);
     }
-
-    // Compute the luminance for each octave
-    float3 luminance = 0.0;
-    for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-        luminance += sunLightTransmittance[o] * envLighting.sunColor * powderEffect * phaseFunction[o] * PositivePow(_MultiScattering, o);
 
     // return the combined luminance
     return luminance;
@@ -577,139 +578,139 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay, float offset)
 
     // Determine if ray intersects bounding volume, if the ray does not intersect the cloud volume AABB, skip right away
     RayMarchRange rayMarchRange;
-    if (!GetCloudVolumeIntersection(cloudRay.origin, cloudRay.direction, cloudRay.insideClouds, cloudRay.toEarthCenter, rayMarchRange))
-        return volumetricRay;
-
-    // Total distance that the ray must travel including empty spaces
-    float totalDistance = rayMarchRange.distance;
-
-    if (cloudRay.maxRayLength < rayMarchRange.start)
-        return volumetricRay;
-
-    volumetricRay.invalidRay = false;
-
-    // Initialize the depth for accumulation
-    volumetricRay.meanDistance = 0.0;
-
-    // Clamp the travel distance to whatever is closer
-    // - Sky Occluder
-    // - Volume end
-    // - Far plane
-    totalDistance = min(totalDistance, cloudRay.maxRayLength - rayMarchRange.start);
-
-    // Evaluate our integration step
-    float stepS = totalDistance / (float)_NumPrimarySteps;
-
-    // Offset the starting point using our dithering pattern.
-    rayMarchRange.start += stepS * offset;
-    rayMarchRange.distance -= stepS * offset;
-
-    // Evaluate cos of the theta angle between the view and light vectors
-    float cosAngle = dot(cloudRay.direction, cloudRay.envLighting.sunDirection);
-
-    // Evaluate the phase function for our ray direction
-    float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
-    for(int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+    if (GetCloudVolumeIntersection(cloudRay.origin, cloudRay.direction, cloudRay.insideClouds, cloudRay.toEarthCenter, rayMarchRange))
     {
-        const float forwardP = HenyeyGreenstein(cosAngle,  FORWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
-        const float backwardsP = HenyeyGreenstein(cosAngle, -BACKWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
-        phaseFunction[o] = lerp(backwardsP, forwardP, _ScatteringDirection);
-    }
+        // Total distance that the ray must travel including empty spaces
+        float totalDistance = rayMarchRange.distance;
 
-    // Initialize the cloud properties structure
-    CloudProperties cloudProperties;
-    ZERO_INITIALIZE(CloudProperties, cloudProperties);
-
-    // Tracking the number of steps that have been made
-    int currentIndex = 0;
-
-    // Normalization value of the depth
-    float meanDistanceDivider = 0.0f;
-
-    // Current position for the evaluation
-    float3 currentPosition = cloudRay.origin + (rayMarchRange.start + stepS) * cloudRay.direction;
-
-    // Current Distance that has been marched
-    float currentDistance = stepS;
-
-    // Initialize the values for the optimized ray marching
-    bool activeSampling = false;
-    int sequentialEmptySamples = 0;
-
-    // Do the ray march for every step that we can.
-    while (currentIndex < _NumPrimarySteps && currentDistance < totalDistance)
-    {
-        // Should we be evaluating the clouds or just doing the large ray marching
-        if (activeSampling)
+        if (cloudRay.maxRayLength >= rayMarchRange.start)
         {
-            // Compute the mip offset for the erosion texture
-            float erosionMipOffset = lerp(0.0, 2.0, saturate((currentDistance - MIN_EROSION_DISTANCE) / (MAX_EROSION_DISTANCE - MIN_EROSION_DISTANCE)));
+            volumetricRay.invalidRay = false;
 
-            // If the density is null, we can skip as there will be no contribution
-            EvaluateCloudProperties(currentPosition, 0.0f, erosionMipOffset, false, false, cloudProperties);
-            if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
+            // Initialize the depth for accumulation
+            volumetricRay.meanDistance = 0.0;
+
+            // Clamp the travel distance to whatever is closer
+            // - Sky Occluder
+            // - Volume end
+            // - Far plane
+            totalDistance = min(totalDistance, cloudRay.maxRayLength - rayMarchRange.start);
+
+            // Evaluate our integration step
+            float stepS = totalDistance / (float)_NumPrimarySteps;
+
+            // Offset the starting point using our dithering pattern.
+            rayMarchRange.start += stepS * offset;
+            rayMarchRange.distance -= stepS * offset;
+
+            // Evaluate cos of the theta angle between the view and light vectors
+            float cosAngle = dot(cloudRay.direction, cloudRay.envLighting.sunDirection);
+
+            // Evaluate the phase function for our ray direction
+            float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
+            for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
             {
-                // Contribute to the average depth (must be done first in case we end up inside a cloud at the next step)
-                float transmitanceXdensity = volumetricRay.transmittance * cloudProperties.density;
-                volumetricRay.meanDistance += (rayMarchRange.start + currentDistance) * transmitanceXdensity;
-                meanDistanceDivider += transmitanceXdensity;
-
-                // Evaluate the cloud at the position
-                EvaluateCloud(cloudProperties, cloudRay, phaseFunction, currentPosition, stepS, cosAngle, volumetricRay);
-
-                // if most of the energy is absorbed, just leave.
-                if (volumetricRay.transmittance < 0.003)
-                {
-                    volumetricRay.transmittance = 0.0;
-                    break;
-                }
-
-                // Reset the empty sample counter
-                sequentialEmptySamples = 0;
+                const float forwardP = HenyeyGreenstein(cosAngle, FORWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
+                const float backwardsP = HenyeyGreenstein(cosAngle, -BACKWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
+                phaseFunction[o] = lerp(backwardsP, forwardP, _ScatteringDirection);
             }
-            else
-                sequentialEmptySamples++;
 
-            // If it has been more than EMPTY_STEPS_BEFORE_LARGE_STEPS, disable active sampling and start large steps
-            if (sequentialEmptySamples == EMPTY_STEPS_BEFORE_LARGE_STEPS)
-                activeSampling = false;
-            // Do the next step
-            currentPosition += cloudRay.direction * stepS;
-            currentDistance += stepS;
-        }
-        else
-        {
-            // Sample the cheap version of the clouds
+            // Initialize the cloud properties structure
             CloudProperties cloudProperties;
-            EvaluateCloudProperties(currentPosition, 1.0f, 0.0, true, false, cloudProperties);
+            ZERO_INITIALIZE(CloudProperties, cloudProperties);
 
-            // If the density is lower than our tolerance,
-            if (cloudProperties.density < CLOUD_DENSITY_TRESHOLD)
+            // Tracking the number of steps that have been made
+            int currentIndex = 0;
+
+            // Normalization value of the depth
+            float meanDistanceDivider = 0.0f;
+
+            // Current position for the evaluation
+            float3 currentPosition = cloudRay.origin + (rayMarchRange.start + stepS) * cloudRay.direction;
+
+            // Current Distance that has been marched
+            float currentDistance = stepS;
+
+            // Initialize the values for the optimized ray marching
+            bool activeSampling = false;
+            int sequentialEmptySamples = 0;
+
+            // Do the ray march for every step that we can.
+            while (currentIndex < _NumPrimarySteps && currentDistance < totalDistance)
             {
-                currentPosition += cloudRay.direction * stepS * 2.0f;
-                currentDistance += stepS * 2.0f;
+                // Should we be evaluating the clouds or just doing the large ray marching
+                if (activeSampling)
+                {
+                    // Compute the mip offset for the erosion texture
+                    float erosionMipOffset = lerp(0.0, 2.0, saturate((currentDistance - MIN_EROSION_DISTANCE) / (MAX_EROSION_DISTANCE - MIN_EROSION_DISTANCE)));
+
+                    // If the density is null, we can skip as there will be no contribution
+                    EvaluateCloudProperties(currentPosition, 0.0f, erosionMipOffset, false, false, cloudProperties);
+                    if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
+                    {
+                        // Contribute to the average depth (must be done first in case we end up inside a cloud at the next step)
+                        float transmitanceXdensity = volumetricRay.transmittance * cloudProperties.density;
+                        volumetricRay.meanDistance += (rayMarchRange.start + currentDistance) * transmitanceXdensity;
+                        meanDistanceDivider += transmitanceXdensity;
+
+                        // Evaluate the cloud at the position
+                        EvaluateCloud(cloudProperties, cloudRay, phaseFunction, currentPosition, stepS, cosAngle, volumetricRay);
+
+                        // if most of the energy is absorbed, just leave.
+                        if (volumetricRay.transmittance < 0.003)
+                        {
+                            volumetricRay.transmittance = 0.0;
+                            break;
+                        }
+
+                        // Reset the empty sample counter
+                        sequentialEmptySamples = 0;
+                    }
+                    else
+                        sequentialEmptySamples++;
+
+                    // If it has been more than EMPTY_STEPS_BEFORE_LARGE_STEPS, disable active sampling and start large steps
+                    if (sequentialEmptySamples == EMPTY_STEPS_BEFORE_LARGE_STEPS)
+                        activeSampling = false;
+                    // Do the next step
+                    currentPosition += cloudRay.direction * stepS;
+                    currentDistance += stepS;
+                }
+                else
+                {
+                    // Sample the cheap version of the clouds
+                    CloudProperties cloudProperties;
+                    EvaluateCloudProperties(currentPosition, 1.0f, 0.0, true, false, cloudProperties);
+
+                    // If the density is lower than our tolerance,
+                    if (cloudProperties.density < CLOUD_DENSITY_TRESHOLD)
+                    {
+                        currentPosition += cloudRay.direction * stepS * 2.0f;
+                        currentDistance += stepS * 2.0f;
+                    }
+                    else
+                    {
+                        // Somewhere between this step and the previous clouds started
+                        // We reset all the counters and enable active sampling
+                        currentPosition -= cloudRay.direction * stepS;
+                        currentDistance -= stepS;
+                        activeSampling = true;
+                        sequentialEmptySamples = 0;
+                    }
+                }
+                currentIndex++;
             }
+
+            // Compute the effective number of steps that have been marched
+            volumetricRay.numRealSteps = (float)currentIndex / _NumPrimarySteps;
+
+            // Normalized the depth we computed
+            if (volumetricRay.meanDistance == 0.0)
+                volumetricRay.invalidRay = true;
             else
-            {
-                // Somewhere between this step and the previous clouds started
-                // We reset all the counters and enable active sampling
-                currentPosition -= cloudRay.direction * stepS;
-                currentDistance -= stepS;
-                activeSampling = true;
-                sequentialEmptySamples = 0;
-            }
+                volumetricRay.meanDistance /= meanDistanceDivider;
         }
-        currentIndex++;
     }
-
-    // Compute the effective number of steps that have been marched
-    volumetricRay.numRealSteps = (float)currentIndex / _NumPrimarySteps;
-
-    // Normalized the depth we computed
-    if (volumetricRay.meanDistance == 0.0)
-        volumetricRay.invalidRay = true;
-    else
-        volumetricRay.meanDistance /= meanDistanceDivider;
 
     // return the final ray result
     return volumetricRay;
