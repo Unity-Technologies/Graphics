@@ -60,7 +60,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
 
-#if defined(SENSORSDK_NVL) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         float Fspec = F_Schlick(mtlData.bsdfData.fresnel0, NdotV);
 #else
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
@@ -71,7 +71,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
         mtlData.bsdfWeight[2] = consistentNormal ? coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion) : 0.0;
         mtlData.bsdfWeight[3] = consistentNormal ? (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask : 0.0;
-#ifdef SHADERGRAPH_SENSOR_DXR
+#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * mtlData.bsdfData.diffuseColor * mtlData.bsdfData.ambientOcclusion;
 #else
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
