@@ -1,13 +1,9 @@
-using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine.Assertions;
-using System.Text;
 using Unity.Profiling;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
-using System.Linq;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -148,35 +144,80 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
 
+            var tilingLevels = 4;
             var tile0Width = 16;
-            var tile1Width = tile0Width * FineTilingJob.groupWidth;
             var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-            var tile1Resolution = (screenResolution + tile1Width - 1) / tile1Width;
-            var tile0Resolution = tile1Resolution * FineTilingJob.groupWidth;
-            // var tile2Resolution = (tile1Resolution + FineTilingJob.groupWidth - 1) / FineTilingJob.groupWidth;
-            var tile0Count = tile0Resolution.x * tile0Resolution.y;
 
-            var tiles = new NativeArray<uint>(tile0Count * lightsPerTile / 32, Allocator.TempJob);
+            NativeArray<uint> tiles = default;
 
-            var fovPlaneHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
-            var fovPlaneHalfWidth = fovPlaneHalfHeight * camera.pixelWidth / camera.pixelHeight;
+            var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
+            var fovHalfWidth = fovHalfHeight * camera.pixelWidth / camera.pixelHeight;
 
-            FineTilingJob fineTilingJob;
-            fineTilingJob.minMaxZs = minMaxZs;
-            fineTilingJob.lights = lightExtractionJob.tilingLights;
-            fineTilingJob.lightsPerTile = lightsPerTile;
-            fineTilingJob.tiles = tiles;
-            fineTilingJob.screenResolution = screenResolution;
-            fineTilingJob.groupResolution = tile1Resolution;
-            fineTilingJob.tileResolution = tile0Resolution;
-            fineTilingJob.tileWidth = tile0Width;
-            fineTilingJob.viewForward = camera.transform.forward;
-            fineTilingJob.viewRight = camera.transform.right * fovPlaneHalfWidth;
-            fineTilingJob.viewUp = camera.transform.up * fovPlaneHalfHeight;
-            fineTilingJob.tileAperture = math.SQRT2 * fovPlaneHalfHeight / (((float)screenResolution.y / (float)tile0Width));
-            var fineTilingHandle = fineTilingJob.ScheduleParallel(tile1Resolution.x * tile1Resolution.y, 1, lightExtractionHandle);
+            var tilingHandle = lightExtractionHandle;
 
-            JobHandle.CompleteAll(ref zBinningHandle, ref fineTilingHandle);
+            var groupWidth = tile0Width;
+            for (var i = 0; i < tilingLevels; i++)
+            {
+                groupWidth *= FineTilingJob.groupWidth;
+            }
+            var groupResolution = (screenResolution + groupWidth - 1) / groupWidth;
+
+            for (var i = 0; i < tilingLevels; i++)
+            {
+                var tileWidth = groupWidth / FineTilingJob.groupWidth;
+                var tileResolution = groupResolution * FineTilingJob.groupWidth;
+                var tileCount = tileResolution.x * tileResolution.y;
+                var groupCount = groupResolution.x * groupResolution.y;
+
+                NativeArray<uint> groupTiles;
+                if (i == 0)
+                {
+                    // TODO: Screen rect initialization?
+                    int groupWordCount = groupCount * lightsPerTile / 32;
+                    groupTiles = new NativeArray<uint>(groupWordCount, Allocator.TempJob);
+                    for (var groupIndex = 0; groupIndex < groupCount; groupIndex++)
+                    {
+                        for (var lightIndex = 0; lightIndex < reorderedLights.Length; lightIndex++)
+                        {
+                            var lightOffset = lightIndex / 32;
+                            var lightMask = 1u << (lightIndex % 32);
+                            int groupOffset = groupIndex * (lightsPerTile / 32);
+                            groupTiles[groupOffset + lightOffset] = groupTiles[groupOffset + lightOffset] | lightMask;
+                        }
+                    }
+                }
+                else
+                {
+                    groupTiles = tiles;
+                    Assert.AreEqual(groupCount * lightsPerTile / 32, groupTiles.Length);
+                }
+
+                tiles = new NativeArray<uint>(tileCount * lightsPerTile / 32, Allocator.TempJob);
+
+                FineTilingJob tilingJob;
+                tilingJob.minMaxZs = minMaxZs;
+                tilingJob.lights = lightExtractionJob.tilingLights;
+                tilingJob.lightsPerTile = lightsPerTile;
+                tilingJob.tiles = tiles;
+                tilingJob.groupTiles = groupTiles;
+                tilingJob.screenResolution = screenResolution;
+                tilingJob.groupResolution = groupResolution;
+                tilingJob.tileResolution = tileResolution;
+                tilingJob.tileWidth = tileWidth;
+                tilingJob.viewForward = camera.transform.forward;
+                tilingJob.viewRight = camera.transform.right * fovHalfWidth;
+                tilingJob.viewUp = camera.transform.up * fovHalfHeight;
+                tilingJob.tileAperture = math.SQRT2 * fovHalfHeight / (((float)screenResolution.y / (float)tileWidth));
+                tilingHandle = tilingJob.ScheduleParallel(groupCount, 1, tilingHandle);
+                groupTiles.Dispose(tilingHandle);
+
+                groupResolution = tileResolution;
+                groupWidth = tileWidth;
+            }
+
+            // Note: From this point, groupResolution and groupWidth are actually tile rather than group.
+
+            JobHandle.CompleteAll(ref zBinningHandle, ref tilingHandle);
 
             for (var i = 1; i < lightCount; i++)
             {
@@ -205,18 +246,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Shader.SetGlobalBuffer("_TileBuffer", m_TileBuffer);
             }
 
-            m_ZBinBuffer.SetData(zBins, 0, 0, zBins.Length);
-            m_TileBuffer.SetData(tiles, 0, 0, tiles.Length);
-            Shader.SetGlobalFloat("_NearPlane", nearPlane);
-            Shader.SetGlobalFloat("_InvZBinSize", 1.0f / binSize);
-            Shader.SetGlobalInteger("_ZBinLightCount", lightCount);
-            Shader.SetGlobalMatrix("_FPWorldToViewMatrix", minMaxZJob.worldToViewMatrix);
-            Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tile0Width)));
-            Shader.SetGlobalFloat("_TileXCount", tile0Resolution.x);
-            Shader.SetGlobalFloat("_TileYCount", tile0Resolution.y);
-            Shader.SetGlobalInteger("_LightCount", lightCount);
-            Shader.SetGlobalInteger("_WordsPerTile", lightsPerTile / 32);
-            Shader.SetGlobalFloat("_TileCount", tile0Count);
+            {
+                var tileResolution = groupResolution;
+                var tileCount = tileResolution.x * tileResolution.y;
+                m_ZBinBuffer.SetData(zBins, 0, 0, zBins.Length);
+                m_TileBuffer.SetData(tiles, 0, 0, tiles.Length);
+                Shader.SetGlobalFloat("_NearPlane", nearPlane);
+                Shader.SetGlobalFloat("_InvZBinSize", 1.0f / binSize);
+                Shader.SetGlobalInteger("_ZBinLightCount", lightCount);
+                Shader.SetGlobalMatrix("_FPWorldToViewMatrix", minMaxZJob.worldToViewMatrix);
+                Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tile0Width)));
+                Shader.SetGlobalFloat("_TileXCount", tileResolution.x);
+                Shader.SetGlobalFloat("_TileYCount", tileResolution.y);
+                Shader.SetGlobalInteger("_LightCount", lightCount);
+                Shader.SetGlobalInteger("_WordsPerTile", lightsPerTile / 32);
+                Shader.SetGlobalFloat("_TileCount", tileCount);
+            }
 
             minMaxZs.Dispose();
             meanZs.Dispose();

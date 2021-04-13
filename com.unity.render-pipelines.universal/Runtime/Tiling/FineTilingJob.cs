@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.Universal
         [NativeDisableParallelForRestriction]
         public NativeArray<uint> tiles;
 
+        [ReadOnly]
+        public NativeArray<uint> groupTiles;
+
         public int2 screenResolution;
 
         public int2 groupResolution;
@@ -50,9 +53,8 @@ namespace UnityEngine.Rendering.Universal
             // - W world
             var groupWidthP = groupWidth * tileWidth;
             var groupIdG = math.int2(groupIndex % groupResolution.x, groupIndex / groupResolution.x);
-            var groupIdP = groupIdG * groupWidthP;
             var groupIdT = groupIdG * groupWidth;
-            var groupRectS = new Rect((float2)groupIdP / screenResolution, math.float2(groupWidthP, groupWidthP) / screenResolution);
+            var groupOffset = groupIndex * (lightsPerTile / 32);
 
             var directionWs = stackalloc float3[groupLength];
             var apertures = stackalloc float[groupLength];
@@ -75,18 +77,18 @@ namespace UnityEngine.Rendering.Universal
             var wordCount = (lightCount + 31) / 32;
             for (var wordIndex = 0; wordIndex < wordCount; wordIndex++)
             {
-                int end = math.min(wordIndex * 32 + 32, lightCount) % 33;
-                for (var i = 0; i < end; i++)
+                var groupTilesIndex = groupOffset + wordIndex;
+                var active = groupTiles[groupTilesIndex];
+
+                while (active != 0)
                 {
-                    var lightIndex = wordIndex * 32 + i;
+                    var bitIndex = math.tzcnt(active);
+                    active &= ~(1u << bitIndex);
+
+                    var lightIndex = wordIndex * 32 + bitIndex;
                     var light = lights[lightIndex];
+                    var lightMask = 1u << bitIndex;
 
-                    if (!light.screenRect.Overlaps(groupRectS))
-                    {
-                        continue;
-                    }
-
-                    var lightMask = 1u << i;
                     if (light.lightType == LightType.Point)
                     {
                         ConeMarch(light.shape.sphere, ref light, lightIndex, lightMask, directionWs, apertures, currentLights);
@@ -99,8 +101,8 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
                 {
-                    var tileLightsIndex = tilesOffsets[coneIndexG] + wordIndex;
-                    tiles[tileLightsIndex] = tiles[tileLightsIndex] | currentLights[coneIndexG];
+                    var tilesIndex = tilesOffsets[coneIndexG] + wordIndex;
+                    tiles[tilesIndex] = tiles[tilesIndex] | currentLights[coneIndexG];
                     currentLights[coneIndexG] = 0;
                 }
             }
