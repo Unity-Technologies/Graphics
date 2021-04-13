@@ -225,14 +225,6 @@ namespace UnityEngine.Rendering.Universal
                 bindTextureMS: bindMS,
                 name: "_CameraDepthAttachment");
 
-            m_DepthTexture = RTHandles.Alloc(
-                Vector2.one,
-                depthBufferBits: DepthBits.Depth32,
-                colorFormat: GraphicsFormat.DepthAuto,
-                filterMode: FilterMode.Point,
-                dimension: TextureDimension.Tex2D,
-                name: "_CameraDepthTexture");
-
             if (renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferHandles = new RTHandle[(int)DeferredLights.GBufferHandles.Count];
@@ -321,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraAttachments.color.Release();
             m_CameraAttachments.depth.Release();
             m_OpaqueColor.Release();
-            m_DepthTexture.Release();
+            m_DepthTexture?.Release();
             m_NormalsTexture?.Release();
             if (m_GBufferHandles != null)
             {
@@ -515,7 +507,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, m_ActiveCameraAttachments.depth, ref m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
+                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, ref m_ActiveCameraAttachments.depth, ref m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -526,7 +518,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, m_DepthTexture, ref m_NormalsTexture);
+                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, ref m_DepthTexture, ref m_NormalsTexture);
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);
@@ -536,7 +528,7 @@ namespace UnityEngine.Rendering.Universal
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
                     if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                        m_DepthPrepass.Setup(context, cameraTargetDescriptor, ref m_DepthTexture);
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
@@ -554,7 +546,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             if (this.actualRenderingMode == RenderingMode.Deferred)
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
+                EnqueueDeferred(context, ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
@@ -570,7 +562,7 @@ namespace UnityEngine.Rendering.Universal
                 && createDepthTexture;
             if (requiresDepthCopyPass)
             {
-                m_CopyDepthPass.Setup(m_ActiveCameraAttachments.depth, m_DepthTexture);
+                m_CopyDepthPass.Setup(context, m_ActiveCameraAttachments.depth, ref m_DepthTexture, renderingData.cameraData);
 
                 EnqueuePass(m_CopyDepthPass);
             }
@@ -691,7 +683,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (!depthTargetResolved && cameraData.xr.copyDepth)
                 {
-                    m_XRCopyDepthPass.Setup(m_ActiveCameraAttachments.depth, cameraData);
+                    m_XRCopyDepthPass.Setup(m_ActiveCameraAttachments.depth);
                     EnqueuePass(m_XRCopyDepthPass);
                 }
 #endif
@@ -708,7 +700,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
-                m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget);
+                m_FinalDepthCopyPass.Setup(m_DepthTexture);
                 m_FinalDepthCopyPass.MssaSamples = 0;
                 EnqueuePass(m_FinalDepthCopyPass);
             }
@@ -766,7 +758,7 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveCameraAttachments.depth = null;
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
+        void EnqueueDeferred(ScriptableRenderContext context, ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             // the last slice is the lighting buffer created in DeferredRenderer.cs
             m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraAttachments.color;
@@ -785,7 +777,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            m_GBufferCopyDepthPass.Setup(m_CameraAttachments.depth, m_DepthTexture);
+            m_GBufferCopyDepthPass.Setup(context, m_CameraAttachments.depth, ref m_DepthTexture, renderingData.cameraData);
             EnqueuePass(m_GBufferCopyDepthPass);
 
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).

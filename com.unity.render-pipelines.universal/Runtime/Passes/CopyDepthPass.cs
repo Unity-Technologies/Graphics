@@ -32,9 +32,35 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RTHandle source, RTHandle destination)
+        public void Setup(ScriptableRenderContext context, RTHandle source, ref RTHandle destination, CameraData cameraData)
         {
             this.source = source;
+
+            var descriptor = cameraData.cameraTargetDescriptor;
+            descriptor.msaaSamples = 1;
+
+            if (destination == null || destination.rt.depth != descriptor.depthBufferBits)
+            {
+                destination?.Release();
+                destination = RTHandles.Alloc(Vector2.one,
+                    dimension: descriptor.dimension,
+                    enableRandomWrite: descriptor.enableRandomWrite,
+                    msaaSamples: (MSAASamples)descriptor.msaaSamples,
+                    autoGenerateMips: descriptor.autoGenerateMips,
+                    bindTextureMS: descriptor.bindMS,
+                    memoryless: descriptor.memoryless,
+                    colorFormat: GraphicsFormat.DepthAuto,
+                    depthBufferBits: DepthBits.Depth32,
+                    filterMode: FilterMode.Point,
+                    wrapMode: TextureWrapMode.Clamp,
+                    name: "_CameraDepthTexture");
+
+                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd.SetGlobalTexture(destination.name, destination);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+
+            }
             this.destination = destination;
         }
 
@@ -43,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RTHandle source, CameraData cameraData)
+        public void Setup(RTHandle source)
         {
             this.source = source;
             this.destination = null;
