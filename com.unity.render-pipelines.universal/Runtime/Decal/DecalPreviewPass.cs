@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
         public DecalPreviewPass()
         {
-            renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+            renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
             m_ProfilingSampler = new ProfilingSampler("Decal Preview Render");
