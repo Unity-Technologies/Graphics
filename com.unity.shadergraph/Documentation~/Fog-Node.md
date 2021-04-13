@@ -19,7 +19,7 @@ The High Definition Render Pipeline does **not** support this Node.
 |:------------ |:-------------|:-----|:---|:---|
 | Position      | Output | Vector 3 | Position (object space) | Mesh vertex/fragment's position |
 | Color      | Output | Vector 4 | None | Fog color |
-| Density       | Output | Float    | None | Fog density at the vertex or fragment's clip space depth |
+| Density       | Output | Float    | None | Fog density based on depth. Returns a value between 0 and 1, where 0 is no fog and 1 is full fog. |
 
 ## Generated Code Example
 
