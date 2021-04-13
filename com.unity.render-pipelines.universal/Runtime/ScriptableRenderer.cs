@@ -1284,8 +1284,13 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            colorStoreAction = m_UseOptimizedStoreActions ? colorStoreAction : RenderBufferStoreAction.Store;
-            depthStoreAction = m_UseOptimizedStoreActions ? depthStoreAction : RenderBufferStoreAction.Store;
+            // if we shouldn't use optimized store actions then fall back to the conservative safe (un-optimal!) route and just store everything
+            if (!m_UseOptimizedStoreActions)
+            {
+                colorStoreAction = RenderBufferStoreAction.Store;
+                depthStoreAction = RenderBufferStoreAction.Store;
+            }
+
 
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);

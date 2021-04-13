@@ -249,9 +249,10 @@ namespace UnityEngine.Rendering.Universal
             m_ColorStoreActions[attachmentIndex] = storeAction;
         }
 
-        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions, uint attachmentsCount)
+        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
         {
-            for (uint i = 0; i < attachmentsCount; ++i)
+            int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
+            for (uint i = 0; i < count; ++i)
             {
                 m_ColorStoreActions[i] = storeActions[i];
             }

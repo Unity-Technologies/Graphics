@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
             public static GUIContent opaqueDownsamplingText = EditorGUIUtility.TrTextContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
             public static GUIContent supportsTerrainHolesText = EditorGUIUtility.TrTextContent("Terrain Holes", "When disabled, Universal Rendering Pipeline removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
-            public static GUIContent StoreActionsOptimizationText = EditorGUIUtility.TrTextContent("Store Actions", "Sets the store actions policy on mobile GPUs. 'Discard': discard as much as possible, 'Store': always store, 'Auto': Discard if no custom passes are injected, otherwise Store.");
+            public static GUIContent storeActionsOptimizationText = EditorGUIUtility.TrTextContent("Store Actions", "Sets the store actions policy on mobile GPUs. 'Discard': discard as much as possible, 'Store': always store, 'Auto': Discard if no custom passes are injected, otherwise Store.");
 
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
                 EditorGUILayout.PropertyField(m_SupportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-                EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.StoreActionsOptimizationText);
+                EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

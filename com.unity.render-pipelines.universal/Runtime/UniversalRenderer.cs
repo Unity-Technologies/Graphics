@@ -485,20 +485,12 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
             {
-                RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
-                RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.Store;
-                if (requiresCopyColorPass || requiresDepthCopyPass)
-                {
-                    opaquePassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
-                    opaquePassDepthStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
-                }
-                else
-                {
-                    opaquePassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                    opaquePassDepthStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                }
-                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassColorStoreAction);
-                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+                RenderBufferStoreAction opaquePassStoreAction = RenderBufferStoreAction.Store;
+                if (cameraTargetDescriptor.msaaSamples > 1)
+                    opaquePassStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
+
+                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassStoreAction);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
             }
