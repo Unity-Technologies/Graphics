@@ -20,14 +20,19 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
+        [SerializeField]
+        internal bool isMainTexture = false;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
+        internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
+
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{mainTextureString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice

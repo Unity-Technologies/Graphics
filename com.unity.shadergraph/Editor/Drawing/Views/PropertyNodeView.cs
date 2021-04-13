@@ -158,6 +158,53 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            if (property is Texture2DShaderProperty texProp)
+            {
+                if (!texProp.isMainTexture)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Texture",
+                        e =>
+                        {
+                            foreach (var input in node.owner.properties)
+                            {
+                                if (input is Texture2DShaderProperty tex && tex != texProp)
+                                {
+                                    if (tex.isMainTexture)
+                                    {
+                                        if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
+                                        {
+                                            node.owner.owner.RegisterCompleteObjectUndo("Change Main Texture");
+                                            tex.isMainTexture = false;
+                                            texProp.isMainTexture = true;
+                                            m_propertyViewUpdateTrigger();
+                                        }
+                                        return;
+                                    }
+                                }
+                            }
+
+                            node.owner.owner.RegisterCompleteObjectUndo("Set Main Texture");
+                            texProp.isMainTexture = true;
+                            m_propertyViewUpdateTrigger();
+
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Texture",
+                        e =>
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Clear Main Texture");
+                            texProp.isMainTexture = false;
+                            m_propertyViewUpdateTrigger();
+                        });
+                }
+            }
+
+
+
         }
 
         void RegisterPropertyChangeUndo(string actionName)
