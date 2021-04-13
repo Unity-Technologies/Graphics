@@ -120,11 +120,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             // For the time being, we only consider non-decal HDRP materials as valid
-            if (currentMaterial.GetTag("RenderPipeline", false) != "HDRenderPipeline"
-                || DecalSystem.IsDecalMaterial(currentMaterial))
-                return false;
+            // (testing the shader name is faster, but won't work on shader graph materials)
+            bool isValid;
+            if (currentMaterial.shader.name.Substring(0, 5) == "HDRP/")
+                isValid = currentMaterial.shader.name.Substring(5) != "Decal";
+            else if (currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline")
+                isValid = !DecalSystem.IsDecalMaterial(currentMaterial);
+            else
+                isValid = false;
 
-            return true;
+            return isValid;
         }
 
         static bool IsTransparentMaterial(Material currentMaterial)
