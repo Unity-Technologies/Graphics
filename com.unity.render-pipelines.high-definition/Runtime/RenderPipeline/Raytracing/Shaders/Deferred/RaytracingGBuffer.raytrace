@@ -63,6 +63,8 @@ void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayl
     }
     // We output a negative value as we check the output _RaytracingDistanceBuffer later in the reflection deferred lighting compute
     // to know if the gbuffer entry corresponds to an unlit material or a sky hit (and thus where no lighting is required to be computed).
+    // We use -2.0 here to distinguish the sky hit later to enable the weight in the final buffer to be optionally set to zero in that case
+    // (for pre-integrated sky fallback)
     rayIntersection.t = DEFERRED_RAY_DISTANCE_SKY;
 }
 

@@ -591,6 +591,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ValidationBufferRW              = Shader.PropertyToID("_ValidationBufferRW");
         public static readonly int _HistoryDepthTexture             = Shader.PropertyToID("_HistoryDepthTexture");
         public static readonly int _HistoryNormalTexture            = Shader.PropertyToID("_HistoryNormalTexture");
+        public static readonly int _HistorySampleCountTexture       = Shader.PropertyToID("_HistorySampleCountTexture");
         public static readonly int _RaytracingDenoiseRadius         = Shader.PropertyToID("_RaytracingDenoiseRadius");
         public static readonly int _DenoiserFilterRadius            = Shader.PropertyToID("_DenoiserFilterRadius");
         public static readonly int _NormalHistoryCriterion          = Shader.PropertyToID("_NormalHistoryCriterion");
@@ -614,6 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistoryBufferSize               = Shader.PropertyToID("_HistoryBufferSize");
         public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
         public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
+        public static readonly int _HistorySampleCountTextureRW     = Shader.PropertyToID("_HistorySampleCountTextureRW");
         public static readonly int _AffectSmoothSurfaces            = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit          = Shader.PropertyToID("_ObjectMotionStencilBit");
 
@@ -626,6 +628,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingHitDistanceTexture    = Shader.PropertyToID("_RaytracingHitDistanceTexture");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingReflectionTexture     = Shader.PropertyToID("_RaytracingReflectionTexture");
+        public static readonly int _RaytracingReflectionMissInWeight = Shader.PropertyToID("_RaytracingReflectionMissInWeight");
 
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");

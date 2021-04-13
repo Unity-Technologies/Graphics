@@ -199,6 +199,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// When enabled, ray tracing flags sky hits as zero weight in the SSR buffer.
+        /// </summary>
+        public BoolParameter skyHitsHaveZeroWeight = new BoolParameter(false);
+
+        /// <summary>
         /// Controls which version of the effect should be used.
         /// </summary>
         public RayTracingModeParameter mode = new RayTracingModeParameter(RayTracingMode.Quality);

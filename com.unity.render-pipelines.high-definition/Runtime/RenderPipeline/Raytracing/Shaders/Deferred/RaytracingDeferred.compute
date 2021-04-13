@@ -78,7 +78,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
 
         // Convert back to HSV space
-        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(HsvToRgb(finalColor) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
+        finalColor = HsvToRgb(finalColor) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, RayDistanceIndicatesHitSky(rayDistance) ? 0.0 : 1.0);
         return;
     }
 

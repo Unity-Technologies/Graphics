@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool frozenCullingParamAvailable = false;
 
         // RENDER GRAPH
-        RenderGraph m_RenderGraph = new RenderGraph("HDRP");
+        RenderGraph m_RenderGraph = null;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -322,6 +322,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Initialize(Screen.width, Screen.height, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
 
             m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
+
+            m_RenderGraph = new RenderGraph("HDRP");
 
             m_MipGenerator = new MipGenerator(defaultResources);
             m_BlueNoise = new BlueNoise(defaultResources);

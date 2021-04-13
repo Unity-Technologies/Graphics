@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_AffectsSmoothSurfaces;
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_SkyHitsHaveZeroWeight;
 
         // Performance
         SerializedDataParameter m_FullResolution;
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DenoiserRadius                = Unpack(o.Find(x => x.denoiserRadius));
             m_AffectsSmoothSurfaces         = Unpack(o.Find(x => x.affectSmoothSurfaces));
             m_Mode                          = Unpack(o.Find(x => x.mode));
+            m_SkyHitsHaveZeroWeight         = Unpack(o.Find(x => x.skyHitsHaveZeroWeight));
 
             // Performance
             m_FullResolution                = Unpack(o.Find(x => x.fullResolution));
@@ -94,6 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SampleCountText = EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for reflections.");
         static public readonly GUIContent k_BounceCountText = EditorGUIUtility.TrTextContent("Bounce Count", "Number of bounces for reflection rays.");
         static public readonly GUIContent k_ModeText = EditorGUIUtility.TrTextContent("Mode", "Controls which version of the effect should be used.");
+        static public readonly GUIContent k_SkyHitsHaveZeroWeight = EditorGUIUtility.TrTextContent("Sky Hits Use Pre-integrated Sky", "When enabled, primary sky reflections have no lighting weight in the reflection hierarchy and pre-integrated sky is used instead.");
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced reflections.");
         static public readonly GUIContent k_FullResolutionText = EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode.");
         static public readonly GUIContent k_DenoiseRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of reflection denoiser.");
@@ -116,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
+                PropertyField(m_SkyHitsHaveZeroWeight, k_SkyHitsHaveZeroWeight);
             }
         }
 
@@ -138,6 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
                     PropertyField(m_AffectsSmoothSurfaces, k_AffectsSmoothSurfacesText);
                 }
+                PropertyField(m_SkyHitsHaveZeroWeight, k_SkyHitsHaveZeroWeight);
             }
         }
 

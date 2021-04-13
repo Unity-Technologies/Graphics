@@ -33,6 +33,8 @@ TEXTURE2D_X(_SsrClearCoatMaskTexture);
 // Output Textures for the spatial filtering
 RW_TEXTURE2D_X(float4, _RaytracingReflectionTexture);
 
+int _RaytracingReflectionMissInWeight;
+
 // Compute the weight of this pixel based on the smoothness of the pixel and the min and fadestart values
 float ComputeWeightValue(float perceptualSmoothness)
 {
@@ -87,7 +89,10 @@ void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThread
 
     // We also need to compute the fade factor for this sample
     float weight = ComputeWeightValue(perceptualSmoothness);
-    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(halfResCoord)] = float4(LOAD_TEXTURE2D_X(_SsrLightingTextureRW, fullResCoord).xyz, weight);
+    float4 lightingTexture = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, fullResCoord);
+
+    weight = (_RaytracingReflectionMissInWeight > 0) ? lightingTexture.w * weight : weight;
+    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(halfResCoord)] = float4(lightingTexture.xyz, weight);
 }
 
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
@@ -129,11 +134,12 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     }
 
     // Fetch the lighting and compute the weight
-    float3 lighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, targetCoord).rgb;
+    float4 lighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, targetCoord);
     float weight = ComputeWeightValue(perceptualSmoothness);
 
+    weight = (_RaytracingReflectionMissInWeight > 0) ? lighting.w * weight : weight;
     // Output the result to the half resolution part of the texture
-    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(lighting, weight);
+    _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(lighting.xyz, weight);
 }
 
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]

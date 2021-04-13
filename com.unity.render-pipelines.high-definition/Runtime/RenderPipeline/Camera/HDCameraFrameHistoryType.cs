@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Count, // TODO: Obsolete
         // TODO: Move before count for 11.0
         /// <summary>Screen Space Reflection Accumulation.</summary>
-        ScreenSpaceReflectionAccumulation
+        ScreenSpaceReflectionAccumulation,
+        /// <summary>Ray traced reflections sample count buffer (if needed when using ray miss ratio in .w channel of SSR-RTR buffer).</summary>
+        RaytracedReflectionSampleCount,
     }
 }

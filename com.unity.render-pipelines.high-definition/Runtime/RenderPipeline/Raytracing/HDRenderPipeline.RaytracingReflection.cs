@@ -43,6 +43,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        static RTHandle ReflectionHistorySampleCountBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension,
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_ReflectionHistorySampleCountBuffer{1}", viewName, frameIndex));
+        }
+
         private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
@@ -158,6 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float minSmoothness;
             public float smoothnessFadeStart;
+            public int rayMissInWeight;
 
             // Other parameters
             public ComputeShader reflectionFilterCS;
@@ -186,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Requires parameters
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
+                passData.rayMissInWeight = settings.skyHitsHaveZeroWeight.value ? 1 : 0;
 
                 // Other parameters
                 passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
@@ -207,6 +216,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
+                        ctx.cmd.SetComputeIntParam(data.reflectionFilterCS, HDShaderIDs._RaytracingReflectionMissInWeight, data.rayMissInWeight);
 
                         // Source input textures
                         ctx.cmd.SetComputeTextureParam(data.reflectionFilterCS, data.adjustWeightKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
@@ -296,6 +307,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReflectionHistoryBufferAllocatorFunction, 1);
         }
 
+        static RTHandle RequestRayTracedReflectionsHistorySampleCountTexture(HDCamera hdCamera)
+        {
+            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflectionSampleCount)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflectionSampleCount,
+                ReflectionHistorySampleCountBufferAllocatorFunction, 1);
+        }
+
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
@@ -369,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Denoise if required
             if (settings.denoise && !transparent)
             {
-                rtrResult = DenoiseReflection(renderGraph, hdCamera, settings.fullResolution, settings.denoiserRadius, singleReflectionBounce: true, settings.affectSmoothSurfaces,
+                rtrResult = DenoiseReflection(renderGraph, hdCamera, settings.fullResolution, settings.denoiserRadius, singleReflectionBounce: true, settings.affectSmoothSurfaces, settings.skyHitsHaveZeroWeight.value,
                     rtrResult, depthPyramid, normalBuffer, motionVectors, clearCoatTexture);
             }
 
@@ -393,6 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reflection evaluation parameters
             public float clampValue;
             public int reflectSky;
+            public int rayMissInWeight;
             public float rayLength;
             public int sampleCount;
             public int bounceCount;
@@ -433,6 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reflection evaluation parameters
                 passData.clampValue = settings.clampValue;
                 passData.reflectSky = settings.reflectSky.value ? 1 : 0;
+                passData.rayMissInWeight = settings.skyHitsHaveZeroWeight.value ? 1 : 0;
                 passData.rayLength = settings.rayLength;
                 passData.sampleCount = settings.sampleCount.value;
                 passData.bounceCount = settings.bounceCount.value;
@@ -491,6 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.reflectionShader, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetRayTracingIntParams(data.reflectionShader, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+                        ctx.cmd.SetRayTracingIntParams(data.reflectionShader, HDShaderIDs._RaytracingReflectionMissInWeight, data.rayMissInWeight);
                         ctx.cmd.SetRayTracingIntParams(data.reflectionShader, HDShaderIDs._AffectSmoothSurfaces, data.historyAffectSmoothSurfaces);
 
                         // Set ray count texture
@@ -531,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Denoise if required
             if (settings.denoise && !transparent)
             {
-                rtrResult = DenoiseReflection(renderGraph, hdCamera, fullResolution: true, settings.denoiserRadius, settings.bounceCount == 1, settings.affectSmoothSurfaces,
+                rtrResult = DenoiseReflection(renderGraph, hdCamera, fullResolution: true, settings.denoiserRadius, settings.bounceCount == 1, settings.affectSmoothSurfaces, settings.skyHitsHaveZeroWeight.value,
                     rtrResult, depthPyramid, normalBuffer, motionVectors, clearCoatTexture);
             }
 
@@ -540,14 +561,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        TextureHandle DenoiseReflection(RenderGraph renderGraph, HDCamera hdCamera, bool fullResolution, int denoiserRadius, bool singleReflectionBounce, bool affectSmoothSurfaces,
+        TextureHandle DenoiseReflection(RenderGraph renderGraph, HDCamera hdCamera, bool fullResolution, int denoiserRadius, bool singleReflectionBounce, bool affectSmoothSurfaces, bool skyHitsHaveZeroWeight,
             TextureHandle input, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture)
         {
             // Prepare the parameters and the resources
             HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
             float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, fullResolution, true);
+
             RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-            var rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, hdCamera, historyValidity, denoiserRadius, fullResolution, singleReflectionBounce, affectSmoothSurfaces, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, input, historySignal);
+            RTHandle historySampleCount = skyHitsHaveZeroWeight ? RequestRayTracedReflectionsHistorySampleCountTexture(hdCamera) : renderGraph.defaultResources.emptyReadWriteXRRTH;
+            // See DenoiseBuffer in HDReflectionDenoiser.cs : guards in compute dont seem to work so always bind something on the UAV with emptyReadWriteXRRTH.
+            var rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, hdCamera, historyValidity, denoiserRadius, fullResolution, singleReflectionBounce, affectSmoothSurfaces, skyHitsHaveZeroWeight, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, input, historySignal, historySampleCount);
             PropagateRayTracedReflectionsHistoryValidity(hdCamera, fullResolution, true);
 
             return rtrResult;
