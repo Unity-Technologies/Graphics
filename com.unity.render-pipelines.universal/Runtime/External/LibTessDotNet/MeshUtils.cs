@@ -36,7 +36,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     using Real = System.Single;
     namespace LibTessDotNet

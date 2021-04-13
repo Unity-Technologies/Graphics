@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     internal class SortingLayerDropDown
     {
