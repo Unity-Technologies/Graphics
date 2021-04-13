@@ -32,13 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // The render pipeline will ensure target setup and clearing happens in an performance manner.
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (!HDRenderPipeline.isReady)
-                return;
-
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
-            m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customClearPS);
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset != null)
+                m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.customClearPS);
         }
 
         protected override void Execute(CustomPassContext ctx)

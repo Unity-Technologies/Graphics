@@ -98,7 +98,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/iridescence-coat-fixup-tir-clamp.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-thickness.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-mask.md)]
-[!include[](snippets/shader-graph-blocks/haze-extent.md)]
+[!include[](snippets/shader-graph-blocks/haze-extents.md)]
 [!include[](snippets/shader-graph-blocks/haziness.md)]
 [!include[](snippets/shader-graph-blocks/hazy-gloss-max-dielectric-f0.md)]
 [!include[](snippets/shader-graph-blocks/lobe-mix.md)]
@@ -147,10 +147,9 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
-[!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/base-color-parametrization.md)]
 [!include[](snippets/shader-properties/surface-options/energy-conserving-specular.md)]
-[!include[](snippets/shader-properties/surface-options/anisotropy-stacklit.md)]
+[!include[](snippets/shader-properties/surface-options/anisotropy.md)]
 [!include[](snippets/shader-properties/surface-options/coat.md)]
 [!include[](snippets/shader-properties/surface-options/coat-normal.md)]
 [!include[](snippets/shader-properties/surface-options/dual-specular-lobe.md)]
@@ -161,8 +160,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/specular-occlusion-mode-stacklit.md)]
 [!include[](snippets/shader-properties/surface-options/anisotropy-for-area-lights.md)]
 [!include[](snippets/shader-properties/surface-options/base-layer-uses-refracted-angles.md)]
-[!include[](snippets/shader-properties/surface-options/recompute-stack-and-iridescence.md)]
-[!include[](snippets/shader-properties/surface-options/honor-per-light-max-smoothness.md)]
+[!include[](snippets/shader-properties/surface-options/recompute-stack-and-iridescence.md
+[!include[](snippets/shader-properties/surface-options/honor-per-light-max-smoothness.md
 </table>
 
 ### Distortion

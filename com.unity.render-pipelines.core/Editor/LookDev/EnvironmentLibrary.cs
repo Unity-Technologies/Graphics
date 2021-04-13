@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    [CoreRPHelpURL("Environment-Library")]
+    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Environment-Library" + Documentation.endURL)]
     public class EnvironmentLibrary : ScriptableObject
     {
         [field: SerializeField]

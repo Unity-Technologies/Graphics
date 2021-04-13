@@ -101,7 +101,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
     #else
-        float3 lightNormal = mtlData.bsdfData.normalWS;
+        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
     #endif
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
@@ -192,7 +192,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 }
 
                 // Apply material absorption
-                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);
+                float dist = min(nextPathIntersection.t, surfaceData.atDistance * 10.0);
+                nextPathIntersection.value = ApplyAbsorption(mtlData, dist, isSampleBelow, nextPathIntersection.value);
 
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }

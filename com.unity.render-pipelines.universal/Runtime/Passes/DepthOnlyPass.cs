@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -56,8 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
-            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
+            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

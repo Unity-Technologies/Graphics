@@ -195,7 +195,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
-                customPass.managedReferenceValue = m_Volume.customPasses[index];
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     drawer.OnGUI(rect, customPass, null);

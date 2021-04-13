@@ -138,9 +138,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
-            if (activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
+            if (activeBuildTarget == UnityEditor.BuildTarget.XboxOne || activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
 #else
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
 #endif
             {
                 EditorGUILayout.Space();
@@ -166,7 +166,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
             PropertyField(m_CloudControl);
             VolumetricClouds.CloudControl controlMode = (VolumetricClouds.CloudControl)m_CloudControl.value.enumValueIndex;
-            bool hasCloudMap = true;
             using (new HDEditorUtils.IndentScope())
             {
                 bool needsIntendation = false;
@@ -192,7 +191,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    hasCloudMap = false;
                     needsIntendation = true;
                     PropertyField(m_CloudPreset);
                 }
@@ -215,25 +213,31 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_LowestCloudAltitude);
             PropertyField(m_CloudThickness);
 
-            DrawHeader("Wind");
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
             PropertyField(m_GlobalWindSpeed);
-            using (new HDEditorUtils.IndentScope())
+            if (BeginAdditionalPropertiesScope())
             {
-                PropertyField(m_Orientation);
-                if (hasCloudMap)
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_Orientation);
                     PropertyField(m_CloudMapSpeedMultiplier);
-                PropertyField(m_ShapeSpeedMultiplier);
-                PropertyField(m_ErosionSpeedMultiplier);
+                    PropertyField(m_ShapeSpeedMultiplier);
+                    PropertyField(m_ErosionSpeedMultiplier);
+                }
             }
+            EndAdditionalPropertiesScope();
 
-            DrawHeader("Quality");
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Quality", EditorStyles.miniLabel);
             {
                 PropertyField(m_TemporalAccumulationFactor);
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
             }
 
-            DrawHeader("Lighting");
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
             {
                 PropertyField(m_AmbientLightProbeDimmer);
                 PropertyField(m_ScatteringDirection);
@@ -242,16 +246,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MultiScattering);
             }
 
-            DrawHeader("Shadows");
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Shadows", EditorStyles.miniLabel);
             {
                 PropertyField(m_Shadows);
                 using (new HDEditorUtils.IndentScope())
                 {
                     PropertyField(m_ShadowResolution);
-                    PropertyField(m_ShadowOpacity);
-                    PropertyField(m_ShadowDistance);
-                    PropertyField(m_ShadowPlaneHeightOffset);
-                    PropertyField(m_ShadowOpacityFallback);
+                    if (BeginAdditionalPropertiesScope())
+                    {
+                        PropertyField(m_ShadowOpacity);
+                        PropertyField(m_ShadowDistance);
+                        PropertyField(m_ShadowPlaneHeightOffset);
+                        PropertyField(m_ShadowOpacityFallback);
+                    }
+                    EndAdditionalPropertiesScope();
                 }
             }
         }

@@ -157,11 +157,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            #if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
-            // attempt to workaround an issue with file timestamp granularity
-            yield return new WaitForSecondsRealtime(1.5f);
-            #endif
-
             // Load!
             OpenGraphWindow(assetPath);
 

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -94,6 +93,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
+                decalLayerName0 = "Decal Layer default",
+                decalLayerName1 = "Decal Layer 1",
+                decalLayerName2 = "Decal Layer 2",
+                decalLayerName3 = "Decal Layer 3",
+                decalLayerName4 = "Decal Layer 4",
+                decalLayerName5 = "Decal Layer 5",
+                decalLayerName6 = "Decal Layer 6",
+                decalLayerName7 = "Decal Layer 7",
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeDebugDisplay = false,
@@ -119,6 +126,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+                lightLayerName0 = "Light Layer default",
+                lightLayerName1 = "Light Layer 1",
+                lightLayerName2 = "Light Layer 2",
+                lightLayerName3 = "Light Layer 3",
+                lightLayerName4 = "Light Layer 4",
+                lightLayerName5 = "Light Layer 5",
+                lightLayerName6 = "Light Layer 6",
+                lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
@@ -181,53 +196,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName0; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName0 = value; }
-        }
+        public string lightLayerName0;
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName1; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName1 = value; }
-        }
+        public string lightLayerName1;
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName2; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName2 = value; }
-        }
+        public string lightLayerName2;
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName3; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName3 = value; }
-        }
+        public string lightLayerName3;
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName4; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName4 = value; }
-        }
+        public string lightLayerName4;
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName5; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName5 = value; }
-        }
+        public string lightLayerName5;
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName6; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName6 = value; }
-        }
+        public string lightLayerName6;
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName7; }
-            set { HDRenderPipelineGlobalSettings.instance.lightLayerName7 = value; }
-        }
+        public string lightLayerName7;
         /// <summary>Support distortion.</summary>
         public bool supportDistortion;
         /// <summary>Support transparent backface pass.</summary>
@@ -252,53 +235,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
         /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName0; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName0 = value; }
-        }
+        public string decalLayerName0;
         /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName1; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName1 = value; }
-        }
+        public string decalLayerName1;
         /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName2; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName2 = value; }
-        }
+        public string decalLayerName2;
         /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName3; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName3 = value; }
-        }
+        public string decalLayerName3;
         /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName4; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName4 = value; }
-        }
+        public string decalLayerName4;
         /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName5; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName5 = value; }
-        }
+        public string decalLayerName5;
         /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName6; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName6 = value; }
-        }
+        public string decalLayerName6;
         /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7
-        {
-            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName7; }
-            set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
-        }
+        public string decalLayerName7;
 
         /// <summary>Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
@@ -306,10 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
         // Returns true if the output of the rendering passes support an alpha channel
-        internal bool SupportsAlpha()
-        {
-            return CoreUtils.IsSceneFilteringEnabled() || (colorBufferFormat == ColorBufferFormat.R16G16B16A16);
-        }
+        internal bool supportsAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
@@ -363,56 +311,6 @@ namespace UnityEngine.Rendering.HighDefinition
     #pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
-
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName0"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName0;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName1"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName1;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName2"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName2;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName3"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName3;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName4"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName4;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName5"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName5;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName6"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName6;
-        [SerializeField]
-        [FormerlySerializedAs("lightLayerName7"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteLightLayerName7;
-
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName0"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName0;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName1"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName1;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName2"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName2;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName3"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName3;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName4"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName4;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName5"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName5;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName6"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName6;
-        [SerializeField]
-        [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
-        internal string m_ObsoleteDecalLayerName7;
     #pragma warning restore 618
     }
 }

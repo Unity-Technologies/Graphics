@@ -1,10 +1,6 @@
 #ifndef UNITY_COMMON_MATERIAL_INCLUDED
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
-#pragma warning (disable : 3205) // conversion of larger type to smaller
-#endif
-
 //-----------------------------------------------------------------------------
 // Define constants
 //-----------------------------------------------------------------------------
@@ -333,9 +329,4 @@ real3 LerpWhiteTo(real3 b, real t)
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
-
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
-#pragma warning (enable : 3205) // conversion of larger type to smaller
-#endif
-
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

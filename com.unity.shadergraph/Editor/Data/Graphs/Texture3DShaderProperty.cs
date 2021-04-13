@@ -39,11 +39,6 @@ namespace UnityEditor.ShaderGraph.Internal
             return "UnityTexture3D " + referenceName;
         }
 
-        internal override string GetPropertyAsArgumentStringForVFX(string precisionString)
-        {
-            return "TEXTURE3D(" + referenceName + ")";
-        }
-
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
         {
             if (isSubgraphProperty)

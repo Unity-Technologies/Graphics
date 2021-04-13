@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public class SurfaceOptionUIBlock : MaterialUIBlock
     {
         /// <summary>
-        /// Options for surface option features. This allows you to display or hide certain parts of the UI.
+        /// Options for surface option features. This allows you to display or hide certain parts f the UI.
         /// </summary>
         [Flags]
         public enum Features
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static class Styles
         {
-            public static GUIContent optionText { get; } = EditorGUIUtility.TrTextContent("Surface Options");
+            public const string optionText = "Surface Options";
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
@@ -105,7 +105,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
-            public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
 
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
@@ -220,7 +219,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
-        MaterialProperty conservativeDepthOffsetEnable = null;
 
         MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
@@ -297,6 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
 
@@ -307,8 +306,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerCount">Number of layers available in the shader.</param>
         /// <param name="features">Features of the block.</param>
         public SurfaceOptionUIBlock(ExpandableBit expandableBit, int layerCount = 1, Features features = Features.All)
-            : base(expandableBit, Styles.optionText)
         {
+            m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
         }
@@ -367,7 +366,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             doubleSidedGIMode = FindProperty(kDoubleSidedGIMode);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable);
-            conservativeDepthOffsetEnable = FindProperty(kConservativeDepthOffsetEnable);
 
             // MaterialID
             materialID = FindProperty(kMaterialID);
@@ -419,7 +417,19 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        protected override void OnGUIOpen()
+        public override void OnGUI()
+        {
+            using (var header = new MaterialHeaderScope(Styles.optionText, (uint)m_ExpandableBit, materialEditor))
+            {
+                if (header.expanded)
+                    DrawSurfaceOptionGUI();
+            }
+        }
+
+        /// <summary>
+        /// Draws the entire Surface Options GUI.
+        /// </summary>
+        protected void DrawSurfaceOptionGUI()
         {
             if ((m_Features & Features.Surface) != 0)
                 DrawSurfaceGUI();
@@ -566,7 +576,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(Styles.blendModeText, Styles.notSupportedInMultiEdition);
                 }
                 else if (blendMode != null)
-                    materialEditor.IntPopupShaderProperty(blendMode, Styles.blendModeText, Styles.blendModeNames, Styles.blendModeValues);
+                    BlendModePopup();
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
@@ -581,7 +591,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    materialEditor.IntShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
+                    IntegerShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
@@ -659,7 +669,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // with default render-states.
             bool renderQueueTypeMismatchRenderQueue = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue) != renderQueueType;
 
-            var newMode = (SurfaceType)materialEditor.PopupShaderProperty(surfaceType, Styles.surfaceTypeText, Styles.surfaceTypeNames);
+            var newMode = (SurfaceType)PopupShaderProperty(surfaceType, Styles.surfaceTypeText, Styles.surfaceTypeNames);
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
@@ -707,6 +717,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty("_RenderQueueType"))
                 material.SetFloat("_RenderQueueType", (float)renderQueueType);
+        }
+
+        void BlendModePopup()
+        {
+            IntPopupShaderProperty(blendMode, Styles.blendModeText, Styles.blendModeNames, Styles.blendModeValues);
         }
 
         int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
@@ -815,15 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // We only display Depth offset option when it's enabled in the ShaderGraph, otherwise the default value for depth offset is 0 does not make sense.
                 if (!AreMaterialsShaderGraphs() || (AreMaterialsShaderGraphs() && GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f == true))
-                {
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
-                    if (conservativeDepthOffsetEnable != null)
-                    {
-                        EditorGUI.indentLevel++;
-                        materialEditor.ShaderProperty(conservativeDepthOffsetEnable, Styles.conservativeDepthOffsetEnableText);
-                        EditorGUI.indentLevel--;
-                    }
-                }
             }
             else if (displacementMode != null)
             {
@@ -849,15 +856,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
 
-                    materialEditor.IntSliderShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                    IntSliderShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
                     ppdMaxSamples.floatValue = Mathf.Max(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                    materialEditor.IntSliderShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                    IntSliderShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
                     ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
 
                     materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
 
-                    materialEditor.MinFloatShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength, 0.01f);
-                    materialEditor.MinFloatShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth, 0.01f);
+                    MinFloatShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength, 0.01f);
+                    MinFloatShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth, 0.01f);
                     invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
 
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);

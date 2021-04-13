@@ -247,12 +247,8 @@ namespace UnityEditor.VFX.UI
             set
             {
                 if (m_ComponentBoard.parent == null)
-                    m_ToggleComponentBoard.value = true;
-
-                if (value == null)
-                    m_ComponentBoard.Detach();
-                else
-                    m_ComponentBoard.Attach(value);
+                    ToggleComponentBoard();
+                m_ComponentBoard.Attach(value);
             }
         }
 
@@ -803,11 +799,6 @@ namespace UnityEditor.VFX.UI
             ToggleComponentBoard();
         }
 
-        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
-        {
-            m_ComponentBoard.OnVisualEffectComponentChanged(visualEffects);
-        }
-
         void Delete(string cmd, AskUser askUser)
         {
             var selection = this.selection.ToArray();
@@ -910,7 +901,7 @@ namespace UnityEditor.VFX.UI
 
         public bool IsAssetEditable()
         {
-            return controller.model != null && controller.model.IsAssetEditable();
+            return controller.model.IsAssetEditable();
         }
 
         void NewControllerSet()
@@ -1428,6 +1419,7 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
+            OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
 

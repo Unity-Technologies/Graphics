@@ -270,6 +270,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _GlobalTessellationFactorMultiplier;
 
         public float    _SpecularOcclusionBlend;
-        public float    _DeExposureMultiplier;
+        public float    _Pad9;
     }
 }

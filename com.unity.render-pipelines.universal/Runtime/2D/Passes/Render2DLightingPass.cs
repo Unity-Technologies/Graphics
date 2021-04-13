@@ -55,29 +55,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
         {
-            var mode = m_Renderer2DData.transparencySortMode;
+            var mode = camera.transparencySortMode;
 
             if (mode == TransparencySortMode.Default)
             {
-                mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
+                mode = m_Renderer2DData.transparencySortMode;
+                if (mode == TransparencySortMode.Default)
+                    mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
             }
 
-            switch (mode)
+            if (mode == TransparencySortMode.Perspective)
             {
-                case TransparencySortMode.Perspective:
-                    sortingSettings.distanceMetric = DistanceMetric.Perspective;
-                    break;
-                case TransparencySortMode.Orthographic:
-                    sortingSettings.distanceMetric = DistanceMetric.Orthographic;
-                    break;
-                default:
-                    sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
-                    sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
-                    break;
+                sortingSettings.distanceMetric = DistanceMetric.Perspective;
+            }
+            else if (mode == TransparencySortMode.Orthographic)
+            {
+                sortingSettings.distanceMetric = DistanceMetric.Orthographic;
+            }
+            else
+            {
+                sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
+                sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
             }
         }
 
-        private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData, RenderBufferStoreAction mainTargetStoreAction)
+        private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
             cmd.Clear();
@@ -85,8 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
             RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction,
-                depthAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction);
+            cmd.SetRenderTarget(colorAttachment);
             cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
         }
@@ -101,55 +102,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             return short.MinValue;
-        }
-
-        private void DetermineWhenToResolve(int startIndex, int batchesDrawn, int batchCount, LayerBatch[] layerBatches,
-            out int resolveDuringBatch, out bool resolveIsAfterCopy)
-        {
-            bool anyLightWithVolumetricShadows = false;
-            var lights = m_Renderer2DData.lightCullResult.visibleLights;
-            for (int i = 0; i < lights.Count; i++)
-            {
-                anyLightWithVolumetricShadows = lights[i].renderVolumetricShadows;
-                if (anyLightWithVolumetricShadows)
-                    break;
-            }
-
-            var lastVolumetricLightBatch = -1;
-            if (anyLightWithVolumetricShadows)
-            {
-                for (int i = startIndex + batchesDrawn - 1; i >= startIndex; i--)
-                {
-                    if (layerBatches[i].lightStats.totalVolumetricUsage > 0)
-                    {
-                        lastVolumetricLightBatch = i;
-                        break;
-                    }
-                }
-            }
-
-            if (m_Renderer2DData.useCameraSortingLayerTexture)
-            {
-                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
-                var copyBatch = -1;
-                for (int i = startIndex; i < startIndex + batchesDrawn; i++)
-                {
-                    var layerBatch = layerBatches[i];
-                    if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex <= layerBatch.layerRange.upperBound)
-                    {
-                        copyBatch = i;
-                        break;
-                    }
-                }
-
-                resolveIsAfterCopy = copyBatch > lastVolumetricLightBatch;
-                resolveDuringBatch = resolveIsAfterCopy ? copyBatch : lastVolumetricLightBatch;
-            }
-            else
-            {
-                resolveDuringBatch = lastVolumetricLightBatch;
-                resolveIsAfterCopy = false;
-            }
         }
 
         private int DrawLayerBatches(
@@ -202,25 +154,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
             }
 
-            // Determine when to resolve in case we use MSAA
-            var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
-            var isFinalBatchSet = startIndex + batchesDrawn >= batchCount;
-            var resolveDuringBatch = -1;
-            var resolveIsAfterCopy = false;
-            if (msaaEnabled && isFinalBatchSet)
-                DetermineWhenToResolve(startIndex, batchesDrawn, batchCount, layerBatches, out resolveDuringBatch, out resolveIsAfterCopy);
-
-
             // Draw renderers
             var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
             using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
             {
-                RenderBufferStoreAction initialStoreAction;
-                if (msaaEnabled)
-                    initialStoreAction = resolveDuringBatch < startIndex ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
-                else
-                    initialStoreAction = RenderBufferStoreAction.Store;
-                cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, initialStoreAction, depthAttachment, RenderBufferLoadAction.Load, initialStoreAction);
+                cmd.SetRenderTarget(colorAttachment, depthAttachment);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -259,17 +197,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
-                        RenderBufferStoreAction copyStoreAction;
-                        if (msaaEnabled)
-                            copyStoreAction = resolveDuringBatch == i && resolveIsAfterCopy ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
-                        else
-                            copyStoreAction = RenderBufferStoreAction.Store;
                         // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
                             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
-                            CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
+                            CopyCameraSortingLayerRenderTexture(context, renderingData);
 
                             filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
                             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
@@ -279,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
                             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
-                                CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
+                                CopyCameraSortingLayerRenderTexture(context, renderingData);
                         }
 
                         // Draw light volumes
@@ -288,13 +221,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
 
-                            RenderBufferStoreAction storeAction;
-                            if (msaaEnabled)
-                                storeAction = resolveDuringBatch == i && !resolveIsAfterCopy ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
-                            else
-                                storeAction = RenderBufferStoreAction.Store;
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment,
-                                RenderBufferStoreAction.Store, storeAction, false, m_Renderer2DData.lightCullResult.visibleLights);
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
                         }
@@ -358,7 +285,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchesDrawn)
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
-                this.DisableAllKeywords(cmd);
                 this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -370,9 +296,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
-                    var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
-                    var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                    cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, storeAction, depthAttachment, RenderBufferLoadAction.Load, storeAction);
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
 
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
@@ -386,7 +310,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 

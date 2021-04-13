@@ -3,9 +3,7 @@
         <ui:VisualElement name="header" pickingMode="Ignore">
             <ui:VisualElement name="labelContainer" pickingMode="Ignore">
                 <ui:Label name="titleLabel" text="" />
-                <ui:Label name="subTitleLabel" text="Blackboard">
-                    <ui:TextField name="subTitleTextField" text="Blackboard" />
-                </ui:Label>
+                <ui:Label name="subTitleLabel" text="Blackboard" />
             </ui:VisualElement>
             <ui:Button name="addButton" text="+" />
         </ui:VisualElement>

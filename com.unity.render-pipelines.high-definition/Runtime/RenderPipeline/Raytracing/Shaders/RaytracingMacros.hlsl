@@ -1,6 +1,6 @@
 #ifdef SAMPLE_TEXTURE2D
 #undef SAMPLE_TEXTURE2D
-#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                              textureName.SampleLevel(samplerName, coord2, _RayTracingLodBias)
+#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                              textureName.SampleLevel(samplerName, coord2, 0)
 #endif
 
 #ifdef SAMPLE_TEXTURE3D

@@ -5,14 +5,14 @@
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.LocalVolumetricFogFalloffMode:  static fields
+// UnityEngine.Rendering.HighDefinition.DensityVolumeFalloffMode:  static fields
 //
-#define LOCALVOLUMETRICFOGFALLOFFMODE_LINEAR (0)
-#define LOCALVOLUMETRICFOGFALLOFFMODE_EXPONENTIAL (1)
+#define DENSITYVOLUMEFALLOFFMODE_LINEAR (0)
+#define DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL (1)
 
-// Generated from UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
+// Generated from UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 // PackingRules = Exact
-struct LocalVolumetricFogEngineData
+struct DensityVolumeEngineData
 {
     float3 scattering;
     float extinction;
@@ -34,7 +34,7 @@ struct LocalVolumetricFogEngineData
 CBUFFER_START(ShaderVariablesVolumetric)
     float4x4 _VBufferCoordToViewDirWS[2];
     float _VBufferUnitDepthTexelSpacing;
-    uint _NumVisibleLocalVolumetricFog;
+    uint _NumVisibleDensityVolumes;
     float _CornetteShanksConstant;
     uint _VBufferHistoryIsValid;
     float4 _VBufferSampleOffset;
@@ -56,57 +56,57 @@ CBUFFER_START(ShaderVariablesVolumetric)
 CBUFFER_END
 
 //
-// Accessors for UnityEngine.Rendering.HighDefinition.LocalVolumetricFogEngineData
+// Accessors for UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 //
-float3 GetScattering(LocalVolumetricFogEngineData value)
+float3 GetScattering(DensityVolumeEngineData value)
 {
     return value.scattering;
 }
-float GetExtinction(LocalVolumetricFogEngineData value)
+float GetExtinction(DensityVolumeEngineData value)
 {
     return value.extinction;
 }
-float3 GetTextureTiling(LocalVolumetricFogEngineData value)
+float3 GetTextureTiling(DensityVolumeEngineData value)
 {
     return value.textureTiling;
 }
-int GetInvertFade(LocalVolumetricFogEngineData value)
+int GetInvertFade(DensityVolumeEngineData value)
 {
     return value.invertFade;
 }
-float3 GetTextureScroll(LocalVolumetricFogEngineData value)
+float3 GetTextureScroll(DensityVolumeEngineData value)
 {
     return value.textureScroll;
 }
-float GetRcpDistFadeLen(LocalVolumetricFogEngineData value)
+float GetRcpDistFadeLen(DensityVolumeEngineData value)
 {
     return value.rcpDistFadeLen;
 }
-float3 GetRcpPosFaceFade(LocalVolumetricFogEngineData value)
+float3 GetRcpPosFaceFade(DensityVolumeEngineData value)
 {
     return value.rcpPosFaceFade;
 }
-float GetEndTimesRcpDistFadeLen(LocalVolumetricFogEngineData value)
+float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 {
     return value.endTimesRcpDistFadeLen;
 }
-float3 GetRcpNegFaceFade(LocalVolumetricFogEngineData value)
+float3 GetRcpNegFaceFade(DensityVolumeEngineData value)
 {
     return value.rcpNegFaceFade;
 }
-int GetUseVolumeMask(LocalVolumetricFogEngineData value)
+int GetUseVolumeMask(DensityVolumeEngineData value)
 {
     return value.useVolumeMask;
 }
-float3 GetAtlasOffset(LocalVolumetricFogEngineData value)
+float3 GetAtlasOffset(DensityVolumeEngineData value)
 {
     return value.atlasOffset;
 }
-int GetFalloffMode(LocalVolumetricFogEngineData value)
+int GetFalloffMode(DensityVolumeEngineData value)
 {
     return value.falloffMode;
 }
-float4 GetMaskSize(LocalVolumetricFogEngineData value)
+float4 GetMaskSize(DensityVolumeEngineData value)
 {
     return value.maskSize;
 }

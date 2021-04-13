@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
     public class LitSurfaceInputsUIBlock : MaterialUIBlock
     {
         /// <summary>Options for lit surface input features.</summary>
-        [Flags]
         public enum Features
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
@@ -38,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Inputs");
+            public const string header = "Surface Inputs";
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
 
@@ -258,10 +257,12 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
         int         m_LayerCount;
         int         m_LayerIndex;
         bool        m_UseHeightBasedBlend;
+        Color       m_DotColor;
 
         bool        isLayeredLit => m_LayerCount > 1;
 
@@ -272,12 +273,14 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerCount">Number of layers in the shader.</param>
         /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
         /// <param name="features">Features of the block.</param>
-        public LitSurfaceInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All)
-            : base(expandableBit, Styles.header)
+        /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
+        public LitSurfaceInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
         {
+            m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerCount = layerCount;
             m_LayerIndex = layerIndex;
+            m_DotColor = dotColor;
         }
 
         /// <summary>
@@ -373,19 +376,22 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Property that specifies if the scope is a subheader
-        /// </summary>
-        protected override bool isSubHeader => (m_Features & Features.SubHeader) != 0;
-
-        /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        protected override void OnGUIOpen()
+        public override void OnGUI()
         {
-            if ((m_Features & Features.Standard) != 0)
-                DrawSurfaceInputsGUI();
-            if ((m_Features & Features.LayerOptions) != 0)
-                DrawLayerOptionsGUI();
+            bool subHeader = (m_Features & Features.SubHeader) != 0;
+
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: subHeader, colorDot: m_DotColor))
+            {
+                if (header.expanded)
+                {
+                    if ((m_Features & Features.Standard) != 0)
+                        DrawSurfaceInputsGUI();
+                    if ((m_Features & Features.LayerOptions) != 0)
+                        DrawLayerOptionsGUI();
+                }
+            }
         }
 
         void DrawSurfaceInputsGUI()
@@ -409,10 +415,10 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (hasMetallic)
-                    materialEditor.MinMaxShaderProperty(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.metallicRemappingText);
+                    MinMaxShaderProperty(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.metallicRemappingText);
 
-                materialEditor.MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
-                materialEditor.MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
+                MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
+                MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
 
             materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
@@ -586,7 +592,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                     // Display the remap of texture values.
-                    materialEditor.MinMaxShaderProperty(thicknessRemap[m_LayerIndex], 0.0f, 1.0f, Styles.thicknessRemapText);
+                    MinMaxShaderProperty(thicknessRemap[m_LayerIndex], 0.0f, 1.0f, Styles.thicknessRemapText);
                 }
                 else
                 {
@@ -626,7 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
-                materialEditor.MinMaxShaderProperty(iridescenceThicknessRemap, 0.0f, 1.0f, Styles.iridescenceThicknessRemapText);
+                MinMaxShaderProperty(iridescenceThicknessRemap, 0.0f, 1.0f, Styles.iridescenceThicknessRemapText);
             }
             else
             {
@@ -642,7 +648,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawLayerOptionsGUI()
         {
-            materialEditor.IntSliderShaderProperty(layerCount, 2, 4, Styles.layerCountText);
+            IntSliderShaderProperty(layerCount, 2, 4, Styles.layerCountText);
 
             materialEditor.TexturePropertySingleLine(Styles.layerMapMaskText, layerMaskMap);
 

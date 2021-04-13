@@ -9,11 +9,10 @@ Shader "Universal Render Pipeline/Simple Lit"
 
         _Cutoff("Alpha Clipping", Range(0.0, 1.0)) = 0.5
 
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _SpecColor("Specular Color", Color) = (0.5, 0.5, 0.5, 0.5)
         _SpecGlossMap("Specular Map", 2D) = "white" {}
-        _SmoothnessSource("Smoothness Source", Float) = 0.0
-        _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [Enum(Specular Alpha,0,Albedo Alpha,1)] _SmoothnessSource("Smoothness Source", Float) = 0.0
+        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
 
         [HideInInspector] _BumpScale("Scale", Float) = 1.0
         [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
@@ -22,17 +21,19 @@ Shader "Universal Render Pipeline/Simple Lit"
         [NoScaleOffset]_EmissionMap("Emission Map", 2D) = "white" {}
 
         // Blending state
-        _Surface("__surface", Float) = 0.0
-        _Blend("__blend", Float) = 0.0
-        _Cull("__cull", Float) = 2.0
-        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
+        [HideInInspector] _Surface("__surface", Float) = 0.0
+        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
+        [ToggleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
+
         // Editmode props
-        _QueueOffset("Queue offset", Float) = 0.0
+        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        [HideInInspector] _Smoothness("Smoothness", Float) = 0.5
 
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
@@ -67,23 +68,22 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
@@ -255,7 +255,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitDepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -319,28 +319,27 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
 
@@ -370,7 +369,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             // -------------------------------------
@@ -402,7 +401,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -427,7 +426,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex
@@ -444,7 +443,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitDepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -457,7 +456,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -478,7 +477,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Tags{ "RenderType" = "Transparent" "Queue" = "Transparent" }
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex vert

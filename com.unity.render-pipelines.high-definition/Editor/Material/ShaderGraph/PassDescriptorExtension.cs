@@ -37,10 +37,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || pass.lightMode == HDShaderPassNames.s_ForwardStr
                 || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
         }
-
-        public static bool NeedsDebugDisplay(this PassDescriptor pass)
-        {
-            return IsLightingOrMaterial(pass) || pass.lightMode == HDShaderPassNames.s_ForwardEmissiveForDeferredStr;
-        }
     }
 }

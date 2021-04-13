@@ -19,18 +19,17 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>Enumerates the keywords corresponding to frame settings properties.</summary>
         internal static readonly string[] frameSettingsKeywords;
 
-        FrameSettings? defaultFrameSettings;
+        FrameSettings defaultFrameSettings;
         SerializedFrameSettings serializedFrameSettings;
 
         static OverridableFrameSettingsArea()
         {
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
             attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
-            Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
             Type type = typeof(FrameSettingsField);
-            foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
+            foreach (FrameSettingsField value in Enum.GetValues(type))
             {
-                attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
 
             frameSettingsKeywords = attributes
@@ -42,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public FrameSettingsField field;
             public Func<bool> overrideable;
-            public bool ignoreDependencies;
+            public Func<bool> customOverrideable;
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
@@ -55,16 +54,13 @@ namespace UnityEditor.Rendering.HighDefinition
             /// </summary>
             public bool hasMixedValues;
             public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
-            public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings? defaultFrameSettings)
+            public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings defaultFrameSettings)
             {
                 FrameSettingsFieldAttribute attribute = attributes[field];
                 bool locallyOverrideable = overrideable == null || overrideable();
                 FrameSettingsField[] dependencies = attribute.dependencies;
-                if (dependencies == null || ignoreDependencies || !locallyOverrideable)
+                if (dependencies == null || !locallyOverrideable)
                     return locallyOverrideable;
-
-                if (!defaultFrameSettings.HasValue)
-                    return true;
 
                 bool dependenciesOverrideable = true;
                 for (int index = dependencies.Length - 1; index >= 0 && dependenciesOverrideable; --index)
@@ -77,14 +73,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         private List<Field> fields;
 
-        public OverridableFrameSettingsArea(int capacity, FrameSettings? defaultFrameSettings, SerializedFrameSettings serializedFrameSettings)
+        public OverridableFrameSettingsArea(int capacity, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings)
         {
             fields = new List<Field>(capacity);
             this.defaultFrameSettings = defaultFrameSettings;
             this.serializedFrameSettings = serializedFrameSettings;
         }
 
-        public static OverridableFrameSettingsArea GetGroupContent(int groupIndex, FrameSettings? defaultFrameSettings, SerializedFrameSettings serializedFrameSettings)
+        public static OverridableFrameSettingsArea GetGroupContent(int groupIndex, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings)
         {
             if (!attributesGroup.ContainsKey(groupIndex) || attributesGroup[groupIndex] == null)
                 attributesGroup[groupIndex] = attributes?.Where(pair => pair.Value?.group == groupIndex)?.OrderBy(pair => pair.Value.orderInGroup);
@@ -99,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, bool ignoreDependencies = false, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, string labelOverride = null, bool hasMixedValues = false)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null, string labelOverride = null, bool hasMixedValues = false)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);
 
@@ -109,7 +105,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var match = fields[matchIndex];
             if (overrideable != null)
                 match.overrideable = overrideable;
-            match.ignoreDependencies = ignoreDependencies;
+            if (customOverrideable != null)
+                match.customOverrideable = customOverrideable;
             if (customGetter != null)
                 match.customGetter = customGetter;
             if (customSetter != null)
@@ -122,13 +119,16 @@ namespace UnityEditor.Rendering.HighDefinition
             fields[matchIndex] = match;
         }
 
-        static bool EvaluateBoolWithOverride(FrameSettingsField field, Field forField, FrameSettings? defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
+        static bool EvaluateBoolWithOverride(FrameSettingsField field, Field forField, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
         {
-            bool value = false;
+            bool value;
+            if (forField.customOverrideable != null)
+                return forField.customOverrideable() ^ negative;
+
             if (serializedFrameSettings.GetOverrides(field))
                 value = serializedFrameSettings.IsEnabled(field) ?? false;
-            else if (defaultFrameSettings.HasValue)
-                value = defaultFrameSettings.Value.IsEnabled(field);
+            else
+                value = defaultFrameSettings.IsEnabled(field);
             return value ^ negative;
         }
 
@@ -220,12 +220,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             switch (attributes[field.field].type)
                             {
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
-                                    DrawFieldShape(fieldRect, defaultFrameSettings.HasValue ? defaultFrameSettings.Value.IsEnabled(field.field) : false);
+                                    DrawFieldShape(fieldRect, defaultFrameSettings.IsEnabled(field.field));
                                     break;
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
                                     //shame but it is not possible to use Convert.ChangeType to convert int into enum in current C#
                                     //rely on string parsing for the moment
-                                    var oldEnumValue = Enum.Parse(attributes[field.field].targetType, (defaultFrameSettings.HasValue && defaultFrameSettings.Value.IsEnabled(field.field)) ? "1" : "0");
+                                    var oldEnumValue = Enum.Parse(attributes[field.field].targetType, defaultFrameSettings.IsEnabled(field.field) ? "1" : "0");
                                     DrawFieldShape(fieldRect, oldEnumValue);
                                     break;
                                 case FrameSettingsFieldAttribute.DisplayType.Others:
@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         else
                             DrawFieldShape(fieldRect, field.overridedDefaultValue);
                     }
-                    else //is enabled
+                    else
                     {
                         switch (attributes[field.field].type)
                         {
@@ -278,7 +278,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                 }
                                 break;
                             case FrameSettingsFieldAttribute.DisplayType.Others:
-                                // TODO: refactor to get a default customGetter from GetGroupContent
                                 var oldValue = field.customGetter();
                                 EditorGUI.BeginChangeCheck();
                                 var newValue = DrawFieldShape(fieldRect, oldValue);

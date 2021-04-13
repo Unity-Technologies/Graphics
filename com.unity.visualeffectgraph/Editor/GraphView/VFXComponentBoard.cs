@@ -323,21 +323,8 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.Notify(VFXUIDebug.Events.VFXReset);
         }
 
-        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
-        {
-            OnSelectionChanged();
-            if (m_AttachedComponent != null
-                && visualEffects.Contains(m_AttachedComponent)
-                && m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
-            {
-                //The Visual Effect Asset has been changed and is no longer valid, we don't want to modify capacity on the wrong graph. We have to detach.
-                m_View.attachedComponent = null;
-            }
-        }
-
         void OnAttachToPanel(AttachToPanelEvent e)
         {
-            OnSelectionChanged();
             Selection.selectionChanged += OnSelectionChanged;
         }
 
@@ -397,7 +384,7 @@ namespace UnityEditor.VFX.UI
             m_AttachButton.text = m_AttachedComponent != null ? "Detach" : "Attach";
         }
 
-        public void Detach()
+        void Detach()
         {
             if (m_AttachedComponent != null)
             {

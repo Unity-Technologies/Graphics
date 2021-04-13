@@ -20,7 +20,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowIndex;
             internal int viewportSize;                               // We assume only square shadows maps.
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
-            internal bool rendersOnPlacement;
         }
 
         // We need an extra struct to track differences in the light transform
@@ -350,9 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
-                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
-                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDomandShadowRenderOnPlacement) : true;
-                    currentLightData.forceRenderOnPlacement = false; // reset the force flag as we scheduled the rendering forcefully already.
+
                     recordList.Add(record);
                 }
             }
@@ -392,10 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     record.offsetInAtlas = new Vector4(placements[j].x * m_MinSlotSize, placements[j].y * m_MinSlotSize, placements[j].x, placements[j].y);
 
-                    if (record.rendersOnPlacement)
-                    {
-                        m_ShadowsPendingRendering.Add(record.shadowIndex, record);
-                    }
+                    m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                     m_PlacedShadows.Add(record.shadowIndex, record);
                 }
 
@@ -446,10 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Convert offset to atlas offset.
                         record.offsetInAtlas = new Vector4(x * m_MinSlotSize, y * m_MinSlotSize, x, y);
 
-                        if (record.rendersOnPlacement)
-                        {
-                            m_ShadowsPendingRendering.Add(record.shadowIndex, record);
-                        }
+                        m_ShadowsPendingRendering.Add(record.shadowIndex, record);
                         m_PlacedShadows.Add(record.shadowIndex, record);
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);
                         m_RecordsPendingPlacement.Remove(record.shadowIndex);
@@ -582,7 +573,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RegisteredLightDataPendingPlacement.ContainsKey(lightIdx))
                     return;
 
-                lightData.forceRenderOnPlacement = true;
                 RegisterLight(lightData);
             }
             else

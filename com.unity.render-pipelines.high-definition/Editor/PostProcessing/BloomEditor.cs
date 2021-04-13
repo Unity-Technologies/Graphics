@@ -49,14 +49,18 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            using (new QualityScope(this))
+            if (BeginAdditionalPropertiesScope())
             {
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityPrefiltering);
-                PropertyField(m_HighQualityFiltering);
-            }
+                using (new QualityScope(this))
+                {
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityPrefiltering);
+                    PropertyField(m_HighQualityFiltering);
+                }
 
-            PropertyField(m_Anamorphic);
+                PropertyField(m_Anamorphic);
+            }
+            EndAdditionalPropertiesScope();
         }
 
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)

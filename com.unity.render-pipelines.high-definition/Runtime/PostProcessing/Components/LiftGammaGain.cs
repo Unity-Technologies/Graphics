@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Lift, Gamma, Gain effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
-    [HDRPHelpURLAttribute("Post-Processing-Lift-Gamma-Gain")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Lift-Gamma-Gain" + Documentation.endURL)]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

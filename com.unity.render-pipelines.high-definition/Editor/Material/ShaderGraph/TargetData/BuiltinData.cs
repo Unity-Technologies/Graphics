@@ -63,14 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_ConservativeDepthOffset;
-        public bool conservativeDepthOffset
-        {
-            get => m_ConservativeDepthOffset;
-            set => m_ConservativeDepthOffset = value;
-        }
-
-        [SerializeField]
         bool m_TransparencyFog = true;
         public bool transparencyFog
         {

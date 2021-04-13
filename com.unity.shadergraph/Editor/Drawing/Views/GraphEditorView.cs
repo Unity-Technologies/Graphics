@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -16,6 +15,7 @@ using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -51,21 +51,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
-
-        BlackboardController m_BlackboardController;
-
-        internal BlackboardController blackboardController
-        {
-            get => m_BlackboardController;
-            set
-            {
-                if (value != null)
-                    m_BlackboardController = value;
-            }
-        }
-
+        BlackboardProvider m_BlackboardProvider;
         ColorManager m_ColorManager;
         EditorWindow m_EditorWindow;
+
+        public BlackboardProvider blackboardProvider
+        {
+            get { return m_BlackboardProvider; }
+        }
 
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
@@ -104,12 +97,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string assetName
         {
-            get => m_AssetName;
+            get { return m_BlackboardProvider.assetName; }
             set
             {
-                m_AssetName = value;
-                // Also update blackboard title
-                m_BlackboardController.UpdateBlackboardTitle(m_AssetName);
+                m_BlackboardProvider.assetName = value;
             }
         }
 
@@ -120,7 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
         private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
-        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager, string graphName)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
             m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
@@ -128,12 +119,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_EditorWindow = editorWindow;
             m_Graph = graph;
-            m_AssetName = graphName;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.RenderPreviews(false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
+
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
@@ -213,12 +204,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Bugfix 1312222. Running 'ResetSelectedBlockNodes' on all mouse up interactions will break selection
                 // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
                 m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
-                // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions and drag indicator if so
-                m_GraphView.RegisterCallback<DragExitedEvent>(evt =>
-                {
-                    blackboardController.blackboard.HideScrollBoundaryRegions();
-                    blackboardController.blackboard.hideDragIndicatorAction?.Invoke();
-                });
+                // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions if so
+                m_GraphView.RegisterCallback<DragExitedEvent>(evt => { m_BlackboardProvider.blackboard.HideScrollBoundaryRegions(); });
 
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
@@ -229,9 +216,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
                 }
 
-                CreateMasterPreview();
-                CreateInspector();
                 CreateBlackboard();
+                CreateMasterPreview();
+                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
+                CreateInspector();
 
                 UpdateSubWindowsVisibility();
 
@@ -291,8 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void CreateBlackboard()
         {
-            var blackboardViewModel = new BlackboardViewModel() { parentView = graphView, model = m_Graph, title = assetName };
-            m_BlackboardController = new BlackboardController(m_Graph, blackboardViewModel, m_Graph.owner.graphDataStore);
+            m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
         }
 
         void AddContexts()
@@ -359,15 +346,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                blackboardController.blackboard.ShowWindow();
+                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
-                blackboardController.blackboard.HideWindow();
+                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
 
             // Same for the inspector
             if (m_UserViewSettings.isInspectorVisible)
-                m_InspectorView.ShowWindow();
+                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
             else
-                m_InspectorView.HideWindow();
+                m_InspectorView.RemoveFromHierarchy();
 
             m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
@@ -404,11 +391,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
-            m_InspectorView = new InspectorView(inspectorViewModel);
-            graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
-            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
+            m_InspectorView = new InspectorView(graphView);
+            m_GraphView.Add(m_InspectorView);
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -660,7 +644,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             UnregisterGraphViewCallbacks();
 
             previewManager.HandleGraphChanges();
-            m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
@@ -670,13 +653,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-
-            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
+            m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+            if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
                 m_InspectorView.Update();
-
-            if (wasUndoRedoPerformed)
-                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
-
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)
@@ -1193,7 +1172,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<Node> m_NodeStack = new Stack<Node>();
-        string m_AssetName;
 
         void UpdateEdgeColors(HashSet<IShaderNodeView> nodeViews)
         {
@@ -1275,8 +1253,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ApplyMasterPreviewLayout();
 
-            m_BlackboardController.blackboard.DeserializeLayout();
-
+            m_BlackboardProvider.blackboard.DeserializeLayout();
             m_InspectorView.DeserializeLayout();
         }
 
@@ -1309,8 +1286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
-            blackboardController.blackboard.ClampToParentLayout(m_GraphView.layout);
-
+            blackboardProvider.blackboard.ClampToParentLayout(m_GraphView.layout);
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 
             if (m_MasterPreviewView.visible)

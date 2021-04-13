@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 
@@ -53,39 +55,38 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
-            PropertyField(m_DepthCmpScale);
 
-            PropertyField(m_CameraMotionBlur);
-            using (new EditorGUI.DisabledScope(!m_CameraMotionBlur.value.boolValue))
+            if (BeginAdditionalPropertiesScope())
             {
-                PropertyField(m_CameraMVClampMode, EditorGUIUtility.TrTextContent("Camera Clamp Mode", "Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion."));
-                using (new HDEditorUtils.IndentScope())
+                PropertyField(m_DepthCmpScale);
+
+                PropertyField(m_CameraMotionBlur);
+                using (new EditorGUI.DisabledScope(!m_CameraMotionBlur.value.boolValue))
                 {
-                    var mode = m_CameraMVClampMode.value.intValue;
-                    using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Rotation ||
-                                                         mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
-                    {
-                        PropertyField(m_CameraRotClamp, EditorGUIUtility.TrTextContent("Rotation Clamp",
-                            "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have." +
-                            " Only valid if Camera clamp mode is set to Rotation or Separate Translation And Rotation."));
-                    }
+                    PropertyField(m_CameraMVClampMode, EditorGUIUtility.TrTextContent("Camera Clamp Mode", "Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion."));
 
-                    using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Translation ||
-                                                         mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
+                    using (new HDEditorUtils.IndentScope())
                     {
-                        PropertyField(m_CameraTransClamp, EditorGUIUtility.TrTextContent("Translation Clamp",
-                            "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera translation can have." +
-                            " Only valid if Camera clamp mode is set to Translation or Separate Translation And Rotation."));
-                    }
-
-                    using (new EditorGUI.DisabledScope(mode != (int)CameraClampMode.FullCameraMotionVector))
-                    {
-                        PropertyField(m_CameraFullClamp, EditorGUIUtility.TrTextContent("Motion Vector Clamp",
-                            "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have." +
-                            " Only valid if Camera clamp mode is set to Full Camera Motion Vector."));
+                        var mode = m_CameraMVClampMode.value.intValue;
+                        using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Rotation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
+                        {
+                            PropertyField(m_CameraRotClamp, EditorGUIUtility.TrTextContent("Rotation Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have." +
+                                " Only valid if Camera clamp mode is set to Rotation or Separate Translation And Rotation."));
+                        }
+                        using (new EditorGUI.DisabledScope(!(mode == (int)CameraClampMode.Translation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)))
+                        {
+                            PropertyField(m_CameraTransClamp, EditorGUIUtility.TrTextContent("Translation Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera translation can have." +
+                                " Only valid if Camera clamp mode is set to Translation or Separate Translation And Rotation."));
+                        }
+                        using (new EditorGUI.DisabledScope(mode != (int)CameraClampMode.FullCameraMotionVector))
+                        {
+                            PropertyField(m_CameraFullClamp, EditorGUIUtility.TrTextContent("Motion Vector Clamp", "Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have." +
+                                " Only valid if Camera clamp mode is set to Full Camera Motion Vector."));
+                        }
                     }
                 }
             }
+            EndAdditionalPropertiesScope();
         }
 
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)

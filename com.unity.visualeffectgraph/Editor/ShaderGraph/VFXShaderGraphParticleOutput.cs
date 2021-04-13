@@ -341,25 +341,24 @@ namespace UnityEditor.VFX
                     var shaderGraph = GetOrRefreshShaderGraphObject();
                     if (shaderGraph != null)
                     {
-                        foreach (var tex in shaderGraph.textureInfos)
+                        foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
                         {
-                            switch (tex.dimension)
+                            switch (tex.texture.dimension)
                             {
-                                default:
                                 case TextureDimension.Tex2D:
-                                    mapper.AddExpression(new VFXTexture2DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex3D:
-                                    mapper.AddExpression(new VFXTexture3DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Cube:
-                                    mapper.AddExpression(new VFXTextureCubeValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex2DArray:
-                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.CubeArray:
-                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                             }
                         }
@@ -566,7 +565,7 @@ namespace UnityEditor.VFX
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if (graphCode.properties.Any())
-                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(true)).Aggregate((s, t) => s + ", " + t));
+                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(false)).Aggregate((s, t) => s + ", " + t));
 
                         callSG.builder.AppendLine(");");
 

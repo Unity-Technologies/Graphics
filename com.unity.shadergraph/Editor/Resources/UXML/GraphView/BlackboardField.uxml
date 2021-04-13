@@ -1,8 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements"
-    xmlns:gv="UnityEditor.Experimental.GraphView">
-    <ui:VisualElement name="contentItem" picking-mode="Ignore">
-        <gv:Pill name="pill" picking-mode="Ignore" />
-        <ui:Label name="typeLabel" text = "" picking-mode="Ignore" />
-    </ui:VisualElement>
-    <ui:TextField name="textField" text="" />
-</ui:UXML>

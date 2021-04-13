@@ -1,25 +1,10 @@
 using System;
-using UnityEditor.Graphs;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    class HandleUndoRedoAction : IGraphDataAction
-    {
-        void HandleGraphUndoRedo(GraphData graphData)
-        {
-            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out HandleUndoRedoAction");
-            AssertHelpers.IsNotNull(newGraphData, "NewGraphData is null while carrying out HandleUndoRedoAction");
-            graphData?.ReplaceWith(newGraphData);
-        }
-
-        public Action<GraphData> modifyGraphDataAction => HandleGraphUndoRedo;
-
-        public GraphData newGraphData { get; set; }
-    }
-
     class GraphObject : ScriptableObject, ISerializationCallbackReceiver
     {
         [SerializeField]
@@ -37,28 +22,11 @@ namespace UnityEditor.Graphing
         [SerializeField]
         string m_AssetGuid;
 
-        internal string AssetGuid
-        {
-            get => m_AssetGuid;
-        }
-
         [NonSerialized]
         GraphData m_Graph;
 
         [NonSerialized]
         int m_DeserializedVersion;
-
-        public DataStore<GraphData> graphDataStore
-        {
-            get => m_DataStore;
-            private set
-            {
-                if (m_DataStore != value && value != null)
-                    m_DataStore = value;
-            }
-        }
-
-        DataStore<GraphData> m_DataStore;
 
         public GraphData graph
         {
@@ -68,7 +36,6 @@ namespace UnityEditor.Graphing
                 if (m_Graph != null)
                     m_Graph.owner = null;
                 m_Graph = value;
-                graphDataStore = new DataStore<GraphData>(ReduceGraphDataAction, m_Graph);
                 if (m_Graph != null)
                     m_Graph.owner = this;
             }
@@ -111,10 +78,7 @@ namespace UnityEditor.Graphing
         {
             Debug.Assert(wasUndoRedoPerformed);
             var deserializedGraph = DeserializeGraph();
-
-            var handleUndoRedoAction = new HandleUndoRedoAction();
-            handleUndoRedoAction.newGraphData = deserializedGraph;
-            graphDataStore.Dispatch(handleUndoRedoAction);
+            m_Graph.ReplaceWith(deserializedGraph);
         }
 
         GraphData DeserializeGraph()
@@ -134,13 +98,6 @@ namespace UnityEditor.Graphing
                 graph.OnEnable();
                 graph.ValidateGraph();
             }
-        }
-
-        // This is a very simple reducer, all it does is take the action and apply it to the graph data, which causes some mutation in state
-        // This isn't strictly redux anymore but its needed given that our state tree is quite large and we don't want to be creating copies of it everywhere by unboxing
-        void ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
-        {
-            graphDataAction.modifyGraphDataAction(initialState);
         }
 
         void OnEnable()

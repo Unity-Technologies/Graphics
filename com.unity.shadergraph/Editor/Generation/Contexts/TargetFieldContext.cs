@@ -11,12 +11,11 @@ namespace UnityEditor.ShaderGraph
         public List<BlockFieldDescriptor> connectedBlocks { get; private set; }
         public bool hasDotsProperties { get; private set; }
 
-        // NOTE: active blocks (and connectedBlocks) do not include temporarily added default blocks
-        public TargetFieldContext(PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> activeBlocks, List<BlockFieldDescriptor> connectedBlocks, bool hasDotsProperties)
+        public TargetFieldContext(PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks, List<BlockFieldDescriptor> connectedBlocks, bool hasDotsProperties)
         {
             conditionalFields = new List<ConditionalField>();
             this.pass = pass;
-            this.blocks = activeBlocks;
+            this.blocks = blocks;
             this.connectedBlocks = connectedBlocks;
             this.hasDotsProperties = hasDotsProperties;
         }

@@ -830,7 +830,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ForwardLit,
+                defines = CoreDefines.Forward,
                 includes = ForwardIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,

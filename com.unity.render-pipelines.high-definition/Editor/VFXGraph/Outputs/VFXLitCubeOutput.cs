@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
         public override string name { get { return "Output Particle Lit Cube"; } }

@@ -127,7 +127,6 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
-[!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
 </table>
 
 ### Advanced Options
@@ -142,3 +141,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 [!include[](snippets/shader-properties/advanced-options/use-light-facing-normal.md)]
 </table>
+
+## Limitations
+
+[!include[](snippets/area-light-material-support-disclaimer.md)]

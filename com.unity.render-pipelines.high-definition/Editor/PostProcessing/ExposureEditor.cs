@@ -39,9 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static LightUnitSliderUIDrawer k_LightUnitSlider;
 
-        int m_RepaintsAfterChange = 0;
-        int m_SettingsForDoubleRefreshHash = 0;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -123,8 +120,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
                     PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
-                    PropertyField(m_ProceduralMinIntensity);
-                    PropertyField(m_ProceduralMaxIntensity);
+
+                    if (BeginAdditionalPropertiesScope())
+                    {
+                        PropertyField(m_ProceduralMinIntensity);
+                        PropertyField(m_ProceduralMaxIntensity);
+                    }
+                    EndAdditionalPropertiesScope();
 
                     EditorGUILayout.Space();
                 }
@@ -169,31 +171,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
-            }
-
-            // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if
-            // some of the changes that will lead to different results are changed.
-            int automaticCurrSettingHash = m_LimitMin.value.floatValue.GetHashCode() +
-                17 * m_LimitMax.value.floatValue.GetHashCode() +
-                17 * m_Compensation.value.floatValue.GetHashCode();
-
-            if (mode == (int)ExposureMode.Automatic || mode == (int)ExposureMode.AutomaticHistogram)
-            {
-                if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
+                if (BeginAdditionalPropertiesScope())
                 {
-                    m_RepaintsAfterChange = 2;
+                    PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
                 }
-                else
-                {
-                    m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
-                }
-                m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
-
-                if (m_RepaintsAfterChange > 0)
-                {
-                    SceneView.RepaintAll();
-                }
+                EndAdditionalPropertiesScope();
             }
         }
 

@@ -9,7 +9,6 @@ using UnityEngine.VFX;
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
@@ -30,8 +29,6 @@ namespace UnityEditor.VFX
         //This function insure to keep padding while replacing a specific string
         private static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
         {
-            Profiler.BeginSample("ReplaceMultiline");
-
             string[] delim = { System.Environment.NewLine, "\n" };
             var valueLines = value.ToString().Split(delim, System.StringSplitOptions.None);
             if (valueLines.Length <= 1)
@@ -58,8 +55,6 @@ namespace UnityEditor.VFX
                     target.Replace(indent + targetQuery, currentValue.ToString());
                 }
             }
-
-            Profiler.EndSample();
         }
 
         static private VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
@@ -146,7 +141,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat("for (uint i{0} = 0; i{0} < {1}_{0}; ++i{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
                 }
             }
             return r;
@@ -487,27 +482,22 @@ namespace UnityEditor.VFX
 
                 if (filteredNamedExpression.exp != null)
                 {
-                    if (!filteredNamedExpression.exp.Is(VFXExpression.Flags.Constant))
+                    additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
+                    additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
+                    var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                    additionalInterpolantsGeneration.EnterScope();
                     {
-                        additionalInterpolantsDeclaration.WriteDeclaration(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, $"NORMAL{normSemantic++}");
-                        additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
-                        var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
-                        additionalInterpolantsGeneration.EnterScope();
+                        if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
                         {
-                            if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
-                            {
-                                additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
-                                additionalInterpolantsGeneration.WriteLine();
-                            }
-                            additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
+                            additionalInterpolantsGeneration.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
                             additionalInterpolantsGeneration.WriteLine();
                         }
-                        additionalInterpolantsGeneration.ExitScope();
-                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
-                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
+                        additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalInterpolantsGeneration.WriteLine();
                     }
-                    else
-                        additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, filteredNamedExpression.exp.GetCodeString(null));
+                    additionalInterpolantsGeneration.ExitScope();
+                    additionalInterpolantsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, "o." + filteredNamedExpression.name, filteredNamedExpression.name + "__");
+                    additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "i." + filteredNamedExpression.name);
                 }
             }
             ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);

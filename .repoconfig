@@ -9,9 +9,7 @@ path-ignore=<<EOT
 |.yamato
 |artifacts
 |imgs
-|com\.unity\.testing\.graphics-performance
-|com\.unity\.testing\.hdrp
-|com\.unity\.testing\.visualeffectgraph
+|com\.unity\.testing\..*
 )(/|$)
 |
 # rooted folder paths
@@ -29,6 +27,7 @@ path-ignore=<<EOT
  |TestProjects\/SRP_SmokeTest
  |TestProjects\/UniversalGfxTestStereo
  |TestProjects\/UniversalHybridTest
+ |TestProjects\/UniversalGraphicsTest
  |TestProjects\/UniversalGraphicsTest_2D
  |TestProjects\/UniversalGraphicsTest_PostPro
  |TestProjects\/UniversalGraphicsTest_Terrain

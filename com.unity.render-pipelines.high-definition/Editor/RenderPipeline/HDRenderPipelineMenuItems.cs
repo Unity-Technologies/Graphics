@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("GameObject/Volume/Sky and Fog Global Volume", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]
+        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Global Volume", parent);
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -439,7 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return anyMaterialDirty;
         }
 
-        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 1)]
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateGlobalVolume(MenuCommand menuCommand)
         {
             var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
@@ -528,8 +528,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
-                bool singleSided = true;
-                bool hasSingleSided = false;
 
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                 {
@@ -549,13 +547,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;
                             hasTransparentSubMaterial |= materialIsTransparent;
-
-                            // Evaluate if it is single sided
-                            bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
-
-                            // Aggregate the double sided information
-                            hasSingleSided |= !doubleSided;
-                            singleSided &= !doubleSided;
                         }
                         else
                         {
@@ -568,12 +559,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
                 {
                     Debug.LogWarning("The object " + currentRenderer.name + " has both transparent and opaque sub-meshes. This may cause performance issues");
-                    generalErrorFlag = true;
-                }
-
-                if (!singleSided && hasSingleSided)
-                {
-                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. The double sided flag will be ignored.");
                     generalErrorFlag = true;
                 }
             }

@@ -1,91 +1,18 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing.Views;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.ShaderGraph.Drawing
+namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
-    class BlackboardGroupInfo
-    {
-        [SerializeField]
-        SerializableGuid m_Guid = new SerializableGuid();
-
-        internal Guid guid => m_Guid.guid;
-
-        [SerializeField]
-        string m_GroupName;
-
-        internal string GroupName
-        {
-            get => m_GroupName;
-            set => m_GroupName = value;
-        }
-
-        BlackboardGroupInfo()
-        {
-        }
-    }
-
-    class SGBlackboard : GraphSubWindow, ISGControlledElement<BlackboardController>
+    class SGBlackboard : GraphSubWindow, ISelection
     {
         VisualElement m_ScrollBoundaryTop;
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
-        TextField m_PathLabelTextField;
 
-        // --- Begin ISGControlledElement implementation
-        public void OnControllerChanged(ref SGControllerChangedEvent e)
-        {
-        }
-
-        public void OnControllerEvent(SGControllerEvent e)
-        {
-        }
-
-        public BlackboardController controller
-        {
-            get => m_Controller;
-            set
-            {
-                if (m_Controller != value)
-                {
-                    if (m_Controller != null)
-                    {
-                        m_Controller.UnregisterHandler(this);
-                    }
-                    m_Controller = value;
-
-                    if (m_Controller != null)
-                    {
-                        m_Controller.RegisterHandler(this);
-                    }
-                }
-            }
-        }
-
-        SGController ISGControlledElement.controller => m_Controller;
-
-        // --- ISGControlledElement implementation
-
-        BlackboardController m_Controller;
-
-        BlackboardViewModel m_ViewModel;
-
-        BlackboardViewModel ViewModel
-        {
-            get => m_ViewModel;
-            set => m_ViewModel = value;
-        }
-
-        // List of user-made blackboard sections
-        IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
-
-        bool m_ScrollToTop = false;
-        bool m_ScrollToBottom = false;
-        bool m_EditPathCancelled = false;
+        bool m_scrollToTop = false;
+        bool m_scrollToBottom = false;
         bool m_IsFieldBeingDragged = false;
 
         const int k_DraggedPropertyScrollSpeed = 6;
@@ -96,41 +23,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override string UxmlName => "GraphView/Blackboard";
         public override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
 
-        Action addItemRequested { get; set; }
+        public Action<SGBlackboard> addItemRequested { get; set; }
+        public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
+        public Action<SGBlackboard, VisualElement, string> editTextRequested { get; set; }
 
-        internal Action hideDragIndicatorAction { get; set; }
-
-        GenericMenu m_AddBlackboardItemMenu;
-        internal GenericMenu addBlackboardItemMenu => m_AddBlackboardItemMenu;
-
-        public SGBlackboard(BlackboardViewModel viewModel) : base(viewModel)
+        public SGBlackboard(GraphView associatedGraphView) : base(associatedGraphView)
         {
-            ViewModel = viewModel;
-
-            InitializeAddPropertyMenu();
-
-            // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
 
-            if (m_MainContainer.Q(name: "addButton") is Button addButton)
-                addButton.clickable.clicked += () =>
+            var addButton = m_MainContainer.Q(name: "addButton") as Button;
+            addButton.clickable.clicked += () => {
+                if (addItemRequested != null)
                 {
-                    addItemRequested?.Invoke();
-                    ShowAddPropertyMenu();
-                };
+                    addItemRequested(this);
+                }
+            };
 
-            ParentView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
-
-            m_TitleLabel.text = ViewModel.title;
-
-            m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-            m_SubTitleLabel.text = ViewModel.subtitle;
-
-            m_PathLabelTextField = this.Q<TextField>("subTitleTextField");
-            m_PathLabelTextField.value = ViewModel.subtitle;
-            m_PathLabelTextField.visible = false;
-            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
-            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            associatedGraphView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
 
             // These callbacks make sure the scroll boundary regions don't show up user is not dragging/dropping properties
             this.RegisterCallback<MouseUpEvent>((evt => HideScrollBoundaryRegions()));
@@ -151,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             HideScrollBoundaryRegions();
 
             // Sets delegate association so scroll boundary regions are hidden when a blackboard property is dropped into graph
-            if (ParentView is MaterialGraphView materialGraphView)
+            if (associatedGraphView is MaterialGraphView materialGraphView)
                 materialGraphView.blackboardFieldDropDelegate = HideScrollBoundaryRegions;
 
             isWindowScrollable = true;
@@ -189,137 +98,53 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_IsFieldBeingDragged)
             {
-                m_ScrollToTop = true;
-                m_ScrollToBottom = false;
+                m_scrollToTop = true;
+                m_scrollToBottom = false;
             }
         }
 
         void ScrollRegionTopLeave(MouseLeaveEvent mouseLeaveEvent)
         {
             if (m_IsFieldBeingDragged)
-                m_ScrollToTop = false;
+                m_scrollToTop = false;
         }
 
         void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
         {
             if (m_IsFieldBeingDragged)
             {
-                m_ScrollToBottom = true;
-                m_ScrollToTop = false;
+                m_scrollToBottom = true;
+                m_scrollToTop = false;
             }
         }
 
         void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
         {
             if (m_IsFieldBeingDragged)
-                m_ScrollToBottom = false;
+                m_scrollToBottom = false;
         }
 
         void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
         {
-            if (m_ScrollToTop)
+            if (m_scrollToTop)
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y - k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
-            else if (m_ScrollToBottom)
+            else if (m_scrollToBottom)
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
         }
 
-        void InitializeAddPropertyMenu()
+        public virtual void AddToSelection(ISelectable selectable)
         {
-            m_AddBlackboardItemMenu = new GenericMenu();
-
-            if (ViewModel == null)
-            {
-                AssertHelpers.Fail("SGBlackboard: View Model is null.");
-                return;
-            }
-
-            foreach (var nameToAddActionTuple in ViewModel.propertyNameToAddActionMap)
-            {
-                string propertyName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddBlackboardItemMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
-            }
-            m_AddBlackboardItemMenu.AddSeparator($"/");
-
-            foreach (var nameToAddActionTuple in ViewModel.defaultKeywordNameToAddActionMap)
-            {
-                string defaultKeywordName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
-            }
-            m_AddBlackboardItemMenu.AddSeparator($"Keyword/");
-
-            foreach (var nameToAddActionTuple in ViewModel.builtInKeywordNameToAddActionMap)
-            {
-                string builtInKeywordName = nameToAddActionTuple.Key;
-                IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
-            }
-
-            foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)
-            {
-                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
-            }
+            graphView?.AddToSelection(selectable);
         }
 
-        void ShowAddPropertyMenu()
+        public virtual void RemoveFromSelection(ISelectable selectable)
         {
-            m_AddBlackboardItemMenu.ShowAsContext();
+            graphView?.RemoveFromSelection(selectable);
         }
 
-        void OnMouseDownEvent(MouseDownEvent evt)
+        public virtual void ClearSelection()
         {
-            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
-            {
-                StartEditingPath();
-                evt.PreventDefault();
-            }
-        }
-
-        void StartEditingPath()
-        {
-            m_SubTitleLabel.visible = false;
-            m_PathLabelTextField.visible = true;
-            m_PathLabelTextField.value = m_SubTitleLabel.text;
-            m_PathLabelTextField.Q("unity-text-input").Focus();
-            m_PathLabelTextField.SelectAll();
-        }
-
-        void OnPathTextFieldKeyPressed(KeyDownEvent evt)
-        {
-            switch (evt.keyCode)
-            {
-                case KeyCode.Escape:
-                    m_EditPathCancelled = true;
-                    m_PathLabelTextField.Q("unity-text-input").Blur();
-                    break;
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    m_PathLabelTextField.Q("unity-text-input").Blur();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void OnEditPathTextFinished()
-        {
-            m_SubTitleLabel.visible = true;
-            m_PathLabelTextField.visible = false;
-
-            var newPath = m_PathLabelTextField.text;
-            if (!m_EditPathCancelled && (newPath != m_SubTitleLabel.text))
-            {
-                newPath = BlackboardUtils.SanitizePath(newPath);
-            }
-
-            // Request graph path change action
-            var pathChangeAction = new ChangeGraphPathAction();
-            pathChangeAction.NewGraphPath = newPath;
-            ViewModel.requestModelChangeAction(pathChangeAction);
-
-            m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
-            m_EditPathCancelled = false;
+            graphView?.ClearSelection();
         }
     }
 }

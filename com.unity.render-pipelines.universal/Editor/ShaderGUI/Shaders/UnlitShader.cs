@@ -76,17 +76,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 surfaceType = SurfaceType.Transparent;
                 blendMode = BlendMode.Alpha;
             }
-            material.SetFloat("_Blend", (float)blendMode);
-
             material.SetFloat("_Surface", (float)surfaceType);
-            if (surfaceType == SurfaceType.Opaque)
-            {
-                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            }
-            else
-            {
-                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            }
+            material.SetFloat("_Blend", (float)blendMode);
 
             MaterialChanged(material);
         }

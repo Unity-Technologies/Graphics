@@ -127,6 +127,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma vertex VertDefault
                 #pragma fragment FragAfterOpaque
 
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
                 half4 FragAfterOpaque(Varyings input) : SV_Target
@@ -134,7 +135,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.uv);
-                    half occlusion = aoFactor.indirectAmbientOcclusion;
+                    half occlusion = aoFactor.directAmbientOcclusion;
                     return half4(0.0, 0.0, 0.0, occlusion);
                 }
 

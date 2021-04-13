@@ -131,10 +131,10 @@ Shader "Hidden/PostProcessing/FinalPass"
         Pass
         {
             HLSLPROGRAM
-                #pragma only_renderers gles3
+                #pragma only_renderers gles
 
                 #pragma multi_compile __ STEREO_INSTANCING_ENABLED STEREO_DOUBLEWIDE_TARGET
-                #pragma target 3.0
+                #pragma target es3.0
 
             ENDHLSL
         }

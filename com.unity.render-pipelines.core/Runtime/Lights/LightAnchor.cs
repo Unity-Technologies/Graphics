@@ -2,7 +2,6 @@
 using UnityEditor;
 #endif
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEngine
 {
@@ -13,7 +12,7 @@ namespace UnityEngine
     [RequireComponent(typeof(Light))]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [CoreRPHelpURLAttribute("View-Lighting-Tool")]
+    [HelpURL(Rendering.Documentation.baseURL + Rendering.Documentation.version + Rendering.Documentation.subURL + "View-Lighting-Tool" + Rendering.Documentation.endURL)]
     public class LightAnchor : MonoBehaviour
     {
         const float k_ArcRadius = 5;

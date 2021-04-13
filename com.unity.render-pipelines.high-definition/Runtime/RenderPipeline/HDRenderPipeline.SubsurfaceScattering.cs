@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = m_GlobalSettings.diffusionProfileSettingsList;
+            var currentDiffusionProfiles = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList;
             var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
 
             // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
@@ -155,9 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 &&
                 SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12 &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxOne &&
-                SystemInfo.graphicsDeviceType != GraphicsDeviceType.GameCoreXboxSeries);
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12);
         }
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
@@ -216,9 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
-                CoreUtils.SetKeyword(m_SubsurfaceScatteringCS, "ENABLE_MSAA", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                {
+                    m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
+                }
 
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
+                passData.subsurfaceScatteringCS.shaderKeywords = null;
                 passData.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
                 passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;

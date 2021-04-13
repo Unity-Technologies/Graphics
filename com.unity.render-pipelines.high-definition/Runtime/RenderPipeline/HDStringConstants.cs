@@ -459,7 +459,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
-        public static readonly int _DepthBufferRW = Shader.PropertyToID("_DepthBufferRW");
         public static readonly int _CloudsDepthTexture = Shader.PropertyToID("_CloudsDepthTexture");
         public static readonly int _DepthStatusTexture = Shader.PropertyToID("_DepthStatusTexture");
         public static readonly int _CloudsDepthTextureRW = Shader.PropertyToID("_CloudsDepthTextureRW");
@@ -722,13 +721,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SubSurfaceLightingBuffer        = Shader.PropertyToID("_SubSurfaceLightingBuffer");
         public static readonly int _IndirectDiffuseLightingBuffer   = Shader.PropertyToID("_IndirectDiffuseLightingBuffer");
 
-        // Accumulation and path tracing
+        // Accumulation
         public static readonly int _AccumulationFrameIndex          = Shader.PropertyToID("_AccumulationFrameIndex");
         public static readonly int _AccumulationNumSamples          = Shader.PropertyToID("_AccumulationNumSamples");
         public static readonly int _AccumulationWeights             = Shader.PropertyToID("_AccumulationWeights");
         public static readonly int _AccumulationNeedsExposure       = Shader.PropertyToID("_AccumulationNeedsExposure");
-        public static readonly int _FrameTexture                    = Shader.PropertyToID("_FrameTexture");
-        public static readonly int _SkyCameraTexture                = Shader.PropertyToID("_SkyCameraTexture");
+        public static readonly int _RadianceTexture                 = Shader.PropertyToID("_RadianceTexture");
 
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
@@ -1024,8 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
         /// <summary>Enable Depth Offset.</summary>
         public const string kDepthOffsetEnable = "_DepthOffsetEnable";
-        /// <summary>Enable Depth Offset.</summary>
-        public const string kConservativeDepthOffsetEnable = "_ConservativeDepthOffsetEnable";
+
         /// <summary>Enable affect Albedo (decal only).</summary>
         public const string kAffectAlbedo   = "_AffectAlbedo";
         /// <summary>Enable affect Normal (decal only.</summary>
@@ -1055,6 +1052,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kDecalStencilRef = "_DecalStencilRef";
 
         internal const string kUseSplitLighting = "_RequireSplitLighting";
+
+        internal static readonly Color[] kLayerColors =
+        {
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.blue
+        };
 
         internal const string kDecalColorMask0 = "_DecalColorMask0";
         internal const string kDecalColorMask1 = "_DecalColorMask1";

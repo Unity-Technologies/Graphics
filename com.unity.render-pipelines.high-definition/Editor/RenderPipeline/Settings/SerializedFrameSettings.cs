@@ -46,21 +46,30 @@ namespace UnityEditor.Rendering.HighDefinition
             => m_BitDatas.HasBitMultipleDifferentValue((uint)field);
 
         public bool GetOverrides(FrameSettingsField field)
-            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrp global settings
+            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrpAsset defaults
         public void SetOverrides(FrameSettingsField field, bool value)
-            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrp global settings
+            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrpAsset defaults
         public bool HaveMultipleOverride(FrameSettingsField field)
             => m_BitOverrides?.HasBitMultipleDifferentValue((uint)field) ?? false;
 
         ref FrameSettings GetData(Object obj)
         {
-            switch (obj)
-            {
-                case HDAdditionalCameraData data:
-                    return ref data.renderingPathCustomFrameSettings;
-                case HDProbe probe:
-                    return ref probe.frameSettings;
-            }
+            if (obj is HDAdditionalCameraData)
+                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
+            if (obj is HDProbe)
+                return ref (obj as HDProbe).frameSettings;
+            if (obj is HDRenderPipelineAsset)
+                switch (HDRenderPipelineUI.selectedFrameSettings)
+                {
+                    case HDRenderPipelineUI.SelectedFrameSettings.Camera:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                    case HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                    case HDRenderPipelineUI.SelectedFrameSettings.RealtimeReflection:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                    default:
+                        throw new System.ArgumentException("Unknown kind of HDRenderPipelineUI.SelectedFrameSettings");
+                }
             throw new System.ArgumentException("Unknown kind of object");
         }
 
@@ -70,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
-            if (obj is HDRenderPipelineGlobalSettings)
+            if (obj is HDRenderPipelineAsset)
                 return null;
             throw new System.ArgumentException("Unknown kind of object");
         }

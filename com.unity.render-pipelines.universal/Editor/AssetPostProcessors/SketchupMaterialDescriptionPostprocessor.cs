@@ -67,7 +67,6 @@ namespace UnityEditor.Rendering.Universal
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                 material.SetFloat("_Surface", 1.0f);
-                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             }
             else
             {
@@ -81,7 +80,6 @@ namespace UnityEditor.Rendering.Universal
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = -1;
                 material.SetFloat("_Surface", 0.0f);
-                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
             }
         }
 

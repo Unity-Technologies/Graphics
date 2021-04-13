@@ -31,10 +31,9 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// An attribute to hide the volume component to be added through `Add Override` button on the volume component list
+    /// An attribute set on deprecated volume components.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    [Obsolete("VolumeComponentDeprecated has been deprecated (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector", false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentDeprecated : Attribute
     {
     }

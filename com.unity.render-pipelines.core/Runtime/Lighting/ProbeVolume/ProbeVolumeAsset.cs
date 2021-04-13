@@ -22,8 +22,6 @@ namespace UnityEngine.Rendering
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
-        [SerializeField] internal Vector3Int maxCellIndex;
-
         [SerializeField] internal ProbeVolumeSHBands bands;
 
         [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";

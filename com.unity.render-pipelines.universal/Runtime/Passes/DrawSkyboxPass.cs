@@ -56,10 +56,8 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
 
                     context.DrawSkybox(renderingData.cameraData.camera);
-
-                    // XRTODO: remove this call because it creates issues with nested profiling scopes
-                    // See examples in UniversalRenderPipeline.RenderSingleCamera() and in ScriptableRenderer.Execute()
-                    context.Submit(); // Submit and execute the skybox pass before resetting the matrices
+                    // Submit and execute the skybox pass before resetting the matrices
+                    context.Submit();
 
                     renderingData.cameraData.camera.ResetProjectionMatrix();
                     renderingData.cameraData.camera.ResetWorldToCameraMatrix();

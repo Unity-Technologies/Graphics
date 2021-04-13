@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.PostProcessing
                     || t == BuildTarget.XboxOne
 #if UNITY_GAMECORE
                     || t == BuildTarget.GameCoreXboxSeries
-                    || t == BuildTarget.GameCoreXboxOne
+                    || t == BuiltTarget.GameCoreXboxone
 #endif
                     || t == BuildTarget.Switch;
             }

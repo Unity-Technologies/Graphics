@@ -10,8 +10,6 @@ SAMPLER(sampler_MaskMap);
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
 
-CBUFFER_START(UnityPerMaterial)
-
 float _NormalBlendSrc;
 float _MaskBlendSrc;
 float _DecalBlend;
@@ -36,7 +34,5 @@ float _Metallic;
 #ifdef SCENEPICKINGPASS
     float4 _SelectionID;
 #endif
-
-CBUFFER_END
 
 #endif

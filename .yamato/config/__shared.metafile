@@ -9,7 +9,7 @@ conditional_jobs: # some jobs are relevent only depending on the branch
 editors: # applied for all yml files
   - track: trunk
     name: trunk
-    rerun_strategy: on_new_revision
+    rerun_strategy: on-new-revision
     editor_pinning:
       enabled: True
       green_abv_required: False
@@ -19,7 +19,7 @@ editors: # applied for all yml files
       weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
-    rerun_strategy: on_new_revision
+    rerun_strategy: always
     editor_pinning:
       enabled: False
       green_abv_required: False
@@ -110,7 +110,7 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3, XRQuest_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
       - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
       
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
@@ -238,13 +238,6 @@ platforms:
                     utr <UTR_FLAGS>
         call_utr_without_git:
           - utr <UTR_FLAGS>
-        call_utr_and_exit_0:
-          - |5-
-                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                    set /p GIT_REVISIONDATE=<revdate.tmp
-                    echo %GIT_REVISIONDATE%
-                    del revdate.tmp
-                    utr <UTR_FLAGS> & exit 0
         unity_downloader_cli: 
           - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
@@ -473,10 +466,6 @@ non_project_agents:
   package_ci_ubuntu_small:
     type: Unity::VM
     image: package-ci/ubuntu:stable
-    flavor: b1.small
-  package_ci_ubuntu_small_v124:
-    type: Unity::VM
-    image: package-ci/ubuntu:v1.2.4-701242
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM

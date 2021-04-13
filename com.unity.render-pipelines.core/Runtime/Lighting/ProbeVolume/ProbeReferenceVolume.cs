@@ -229,15 +229,6 @@ namespace UnityEngine.Rendering
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
 
-        internal float normalBiasFromProfile;
-
-        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
-
-        /// <summary>
-        /// Get the memory budget for the Probe Volume system.
-        /// </summary>
-        public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
-
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
@@ -251,18 +242,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        /// <summary>
-        /// Set the memory budget for the Probe Volume System.
-        /// </summary>
-        /// <param name="budget"></param>
-        public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
+        internal void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
         {
-            if (m_MemoryBudget != budget)
-            {
-                m_MemoryBudget = budget;
-                Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
-            }
+            m_PendingIndexDimChange = indexDimensions;
+            m_NeedsIndexDimChange = true;
+            m_NeedLoadAsset = true;
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -274,16 +258,6 @@ namespace UnityEngine.Rendering
             }
             m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
             m_NeedLoadAsset = true;
-
-            // Compute the max index dimension from all the loaded assets + assets we need to load
-            Vector3Int indexDimension = Vector3Int.zero;
-            foreach (var a in m_PendingAssetsToBeLoaded.Values)
-                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
-            foreach (var a in m_ActiveAssets.Values)
-                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
-
-            m_PendingIndexDimChange = indexDimension;
-            m_NeedsIndexDimChange = true;
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -323,23 +297,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void PerformPendingIndexDimensionChangeAndInit()
+        private void PerformPendingIndexDimensionChange()
         {
             if (m_NeedsIndexDimChange)
             {
                 Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
-            }
-        }
-
-        private void PerformPendingNormalBiasChange()
-        {
-            if (m_NormalBias != normalBiasFromProfile)
-            {
-                m_NormalBias = normalBiasFromProfile;
-                if (m_Index != null)
-                    m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
             }
         }
 
@@ -362,8 +326,6 @@ namespace UnityEngine.Rendering
 
                 cells[cell.index] = cell;
                 m_AssetPathToBricks[path].Add(regId);
-
-                dataLocation.Cleanup();
             }
         }
 
@@ -397,10 +359,10 @@ namespace UnityEngine.Rendering
 
         private void PerformPendingDeletion()
         {
-            if (!m_ProbeReferenceVolumeInit)
-            {
-                m_PendingAssetsToBeUnloaded.Clear(); // If we are not init, we have not loaded yet.
-            }
+            if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
+                return;
+
+            m_Pool.EnsureTextureValidity();
 
             var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
             foreach (var asset in dictionaryValues)
@@ -417,8 +379,7 @@ namespace UnityEngine.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
-            PerformPendingNormalBiasChange();
-            PerformPendingIndexDimensionChangeAndInit();
+            PerformPendingIndexDimensionChange();
             PerformPendingLoading();
         }
 
@@ -430,31 +391,23 @@ namespace UnityEngine.Rendering
         /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
         public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
         {
-            if (!m_ProbeReferenceVolumeInit)
-            {
-                Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
-                m_Index = new ProbeBrickIndex(indexDimensions);
+            Profiler.BeginSample("Initialize Reference Volume");
+            m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+            m_Index = new ProbeBrickIndex(indexDimensions);
 
-                m_TmpBricks[0] = new List<Brick>();
-                m_TmpBricks[1] = new List<Brick>();
-                m_TmpBricks[0].Capacity = m_TmpBricks[1].Capacity = 1024;
+            m_TmpBricks[0] = new List<Brick>();
+            m_TmpBricks[1] = new List<Brick>();
+            m_TmpBricks[0].Capacity = m_TmpBricks[1].Capacity = 1024;
 
-                // initialize offsets
-                m_PositionOffsets[0] = 0.0f;
-                float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
-                for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
-                    m_PositionOffsets[i] = i * probeDelta;
-                m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
-                Profiler.EndSample();
+            // initialize offsets
+            m_PositionOffsets[0] = 0.0f;
+            float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
+            for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
+                m_PositionOffsets[i] = i * probeDelta;
+            m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
+            Profiler.EndSample();
 
-                m_ProbeReferenceVolumeInit = true;
-
-                // Write constants on init to start with right data.
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-                // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor
-                normalBiasFromProfile = m_NormalBias;
-            }
+            m_ProbeReferenceVolumeInit = true;
             m_NeedLoadAsset = true;
         }
 
@@ -474,9 +427,6 @@ namespace UnityEngine.Rendering
         /// <returns>The resources to bind to runtime shaders.</returns>
         public RuntimeResources GetRuntimeResources()
         {
-            if (!m_ProbeReferenceVolumeInit)
-                return default(RuntimeResources);
-
             RuntimeResources rr = new RuntimeResources();
             m_Index.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
@@ -805,11 +755,10 @@ namespace UnityEngine.Rendering
 
             if (m_ProbeReferenceVolumeInit)
             {
+                m_ProbeReferenceVolumeInit = false;
                 m_Index.Cleanup();
                 m_Pool.Cleanup();
             }
-
-            m_ProbeReferenceVolumeInit = false;
         }
     }
 }

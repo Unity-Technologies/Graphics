@@ -1,6 +1,11 @@
-// Include material common properties names
-
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
+using UnityEditor;
+
+// Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -12,17 +17,15 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public static Vector2 layerIconSize = new Vector2(5, 5);
-
-            public static GUIContent[] layers { get; } =
+            public static readonly string[] headers =
             {
-                EditorGUIUtility.TrTextContent(" Main layer", icon: Texture2D.whiteTexture),
-                EditorGUIUtility.TrTextContent(" Layer 1", icon: CoreEditorStyles.redTexture),
-                EditorGUIUtility.TrTextContent(" Layer 2", icon: CoreEditorStyles.greenTexture),
-                EditorGUIUtility.TrTextContent(" Layer 3", icon: CoreEditorStyles.blueTexture),
+                "Main layer",
+                "Layer 1",
+                "Layer 2",
+                "Layer 3",
             };
 
-            public static ExpandableBit[] layerExpandableBits { get; } =
+            public static readonly ExpandableBit[] layerExpandableBits =
             {
                 ExpandableBit.MainLayer,
                 ExpandableBit.Layer1,
@@ -31,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             // We need this because LayeringOption values are not contiguous
-            public static ExpandableBit[] layeringOptionsExpandableBits { get; } =
+            public static readonly ExpandableBit[] layeringOptionsExpandableBits =
             {
                 ExpandableBit.LayeringOptionMain,
                 ExpandableBit.LayeringOption1,
@@ -79,16 +82,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (layerUIBlocks == null)
                 CreateUIBlockLayers();
 
-            using (new EditorGUIUtility.IconSizeScope(Styles.layerIconSize))
+            for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
             {
-                for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
+                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor, colorDot: kLayerColors[layerIndex]))
                 {
-                    using (var header = new MaterialHeaderScope(Styles.layers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
+                    if (header.expanded)
                     {
-                        if (header.expanded)
-                        {
-                            DrawLayerGUI(layerIndex);
-                        }
+                        DrawLayerGUI(layerIndex);
                     }
                 }
             }

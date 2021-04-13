@@ -170,8 +170,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static void DoClearCoat(LitProperties properties, MaterialEditor materialEditor, Material material)
         {
-            materialEditor.ShaderProperty(properties.clearCoat , Styles.clearCoatText);
-            var coatEnabled = material.GetFloat("_ClearCoat") > 0.0;
+            var coatEnabled = ClearCoatEnabled(material);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.Toggle(EditorGUILayout.GetControlRect(), Styles.clearCoatText, coatEnabled);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (coatEnabled)
+                    material.SetFloat("_ClearCoat", 0); // Toggle off
+                else
+                    material.SetFloat("_ClearCoat", 1);
+
+                coatEnabled = !coatEnabled;
+            }
 
             EditorGUI.BeginDisabledGroup(!coatEnabled);
             {
@@ -206,39 +216,42 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap,
                     hasGlossMap ? null : properties.specColor);
             }
-            DoSmoothness(materialEditor, material, properties.smoothness, properties.smoothnessMapChannel, smoothnessChannelNames);
+            EditorGUI.indentLevel++;
+            DoSmoothness(properties, material, smoothnessChannelNames);
+            EditorGUI.indentLevel--;
         }
 
-        public static void DoSmoothness(MaterialEditor materialEditor, Material material, MaterialProperty smoothness, MaterialProperty smoothnessMapChannel, string[] smoothnessChannelNames)
+        public static void DoSmoothness(LitProperties properties, Material material, string[] smoothnessChannelNames)
         {
-            EditorGUI.indentLevel += 2;
+            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
+                BaseShaderGUI.SurfaceType.Opaque);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
+            var smoothness = EditorGUILayout.Slider(Styles.smoothnessText, properties.smoothness.floatValue, 0f, 1f);
+            if (EditorGUI.EndChangeCheck())
+                properties.smoothness.floatValue = smoothness;
+            EditorGUI.showMixedValue = false;
 
-            materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
-
-            if (smoothnessMapChannel != null) // smoothness channel
+            if (properties.smoothnessMapChannel != null) // smoothness channel
             {
-                var opaque = (BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") == BaseShaderGUI.SurfaceType.Opaque;
-
                 EditorGUI.indentLevel++;
-                EditorGUI.showMixedValue = smoothnessMapChannel.hasMixedValue;
+                EditorGUI.BeginDisabledGroup(!opaque);
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
+                var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
                 if (opaque)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    var smoothnessSource = (int)smoothnessMapChannel.floatValue;
-                    smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, smoothnessChannelNames);
-                    if (EditorGUI.EndChangeCheck())
-                        smoothnessMapChannel.floatValue = smoothnessSource;
-                }
+                    smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource,
+                        smoothnessChannelNames);
                 else
-                {
-                    EditorGUI.BeginDisabledGroup(true);
                     EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
-                    EditorGUI.EndDisabledGroup();
-                }
+                if (EditorGUI.EndChangeCheck())
+                    properties.smoothnessMapChannel.floatValue = smoothnessSource;
                 EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
-            EditorGUI.indentLevel -= 2;
+            EditorGUI.indentLevel--;
         }
 
         public static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)

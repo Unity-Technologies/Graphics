@@ -43,9 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing,
         /// <summary>Temporal antialiasing history after DoF.</summary>
         TemporalAntialiasingPostDoF,
-        /// <summary>Volumetric clouds buffer 0.</summary>
         VolumetricClouds0,
-        /// <summary>Volumetric clouds buffer 1.</summary>
         VolumetricClouds1,
         /// <summary>Number of history buffers.</summary>
         Count, // TODO: Obsolete

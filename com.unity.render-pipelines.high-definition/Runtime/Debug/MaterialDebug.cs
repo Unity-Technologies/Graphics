@@ -83,8 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmap,
             /// <summary>Display materials using instancing.</summary>
             Instancing,
-            /// <summary>Display deferred/forward shading capable materials.</summary>
-            DeferredMaterials,
         }
 
         /// <summary>

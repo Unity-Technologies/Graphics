@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    [HDRPHelpURLAttribute("Diffusion-Profile")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Diffusion-Profile" + Documentation.endURL)]
     internal partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]

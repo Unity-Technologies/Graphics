@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // Injects an external alpha texture into the alpha channel. Used for controlling which pixels will be affected by post processing.
     // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal compositor use only)
-    [Serializable, HideInInspector]
+    [Serializable, VolumeComponentDeprecated]
     internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
@@ -24,10 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public override void Setup()
         {
-            if (!HDRenderPipeline.isReady)
-                return;
-
-            m_Material = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.alphaInjectionPS);
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset != null)
+                m_Material = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.alphaInjectionPS);
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

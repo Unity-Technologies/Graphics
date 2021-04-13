@@ -33,11 +33,11 @@ This group of menu items is useful when you upgrade your Unity Project from usin
 
 ### Other items
 
-| **Item**                                                     | **Description**                                              |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **Render Selected HDRP Camera to Log EXR**                   | Exports the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. This is useful when [authoring lookup textures](Authoring-LUTs.md). |
-| **Export HDRP Sky to Image**                                 | Exports the current sky as a static HDRI.                    |
-| **Check Scene Content for HDRP Ray Tracing**                 | Checks every GameObject in the current scene and throws warnings if:<br/>&#8226; A Mesh Filter references a null Mesh.<br/>&#8226; A Mesh Renderer references a null Material.<br/>&#8226; A sub-mesh within a single Renderer reference both a transparent and opaque Material.<br/>&#8226; A Mesh has more than 32 sub-meshes.<br/>&#8226; A Mesh contains both double-sided and single-sided sub-meshes.|
+| **Item**                                     | **Description**                                              |
+| -------------------------------------------- | ------------------------------------------------------------ |
+| **Render Selected HDRP Camera to Log EXR**   | Exports the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. This is useful when [authoring lookup textures](Authoring-LUTs.md). |
+| **Export HDRP Sky to Image**                 | Exports the current sky as a static HDRI.                    |
+| **Check Scene Content for HDRP Ray Tracing** | Checks every GameObject in the current scene and throws warnings if:A Mesh Filter references a null Mesh.A Mesh Renderer references a null Material.A Submesh within a single Renderer reference both a transparent and opaque Material. |
 | **Enable HDRP Force Forward Emissive on Selected Materials** | Checks every Material in the current selection and Enable the Force Emissive Forward property if it exist. |
-| **Enable HDRP Force Forward Emissive on Scene Materials**    | Checks every Material in the current scene and Enable the Force Emissive Forward property if it exist. |
-| **Disable HDRP Force Forward Emissive on Scene Materials**   | Checks every Material and Material in the current scene and Enable the Force Emissive Forward property if it exist. |
+| **Enable HDRP Force Forward Emissive on Scene Materials**      | Checks every Material in the current scene and Enable the Force Emissive Forward property if it exist. |
+| **Disable HDRP Force Forward Emissive on Scene Materials**     | Checks every Material and Material in the current scene and Enable the Force Emissive Forward property if it exist. |

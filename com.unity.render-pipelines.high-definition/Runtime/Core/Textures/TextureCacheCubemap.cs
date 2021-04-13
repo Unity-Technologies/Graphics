@@ -22,8 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureCacheCubemap(string cacheName = "", int sliceSize = 1)
             : base(cacheName, sliceSize)
         {
-            if (HDRenderPipeline.isReady)
-                m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.blitCubeTextureFacePS);
+            var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
+            m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(res.shaders.blitCubeTextureFacePS);
             m_BlitCubemapFaceProperties = new MaterialPropertyBlock();
         }
 
@@ -162,10 +162,16 @@ namespace UnityEngine.Rendering.HighDefinition
             var desc = m_Cache.descriptor;
             bool isMipped = desc.useMipMap;
             int mipCount = isMipped ? GetNumMips(desc.width, desc.height) : 1;
-            for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+            for (int depthSlice = 0; depthSlice < desc.volumeDepth; ++depthSlice)
             {
-                Graphics.SetRenderTarget(m_Cache, mipIdx, CubemapFace.Unknown, -1);
-                GL.Clear(false, true, Color.clear);
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
+                    {
+                        Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
+                        GL.Clear(false, true, Color.clear);
+                    }
+                }
             }
         }
 

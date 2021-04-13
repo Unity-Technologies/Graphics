@@ -102,7 +102,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -132,11 +132,11 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation, ignoreActiveState: ignoreActiveState);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include && (node.isActive || ignoreActiveState))
+            if (includeSelf == IncludeSelf.Include && node.isActive)
                 nodeList.Add(node);
         }
 

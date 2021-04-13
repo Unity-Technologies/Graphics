@@ -120,18 +120,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
 
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-                PropertyField(m_PhysicallyBased);
-                if (m_PhysicallyBased.value.boolValue)
+                if (BeginAdditionalPropertiesScope())
                 {
-                    if (BeginAdditionalPropertiesScope())
-                    {
-                        EditorGUILayout.Space();
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityFiltering);
+                    PropertyField(m_PhysicallyBased);
+                    if (m_PhysicallyBased.value.boolValue == true)
                         EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
-                    }
-                    EndAdditionalPropertiesScope();
                 }
+                EndAdditionalPropertiesScope();
             }
         }
 

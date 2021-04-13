@@ -1,7 +1,12 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
+using System.Linq;
+
+// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -10,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Main Mapping Configuration");
+            public const string header = "Main Mapping Configuration";
 
             public static GUIContent mappingModeText = new GUIContent("Mapping Mode");
             public static GUIContent planarSpaceText = new GUIContent("Planar Space");
@@ -36,9 +41,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static string m_RayTracingTexFilteringScaleText = "_RayTracingTexFilteringScale";
         MaterialProperty m_RayTracingTexFilteringScale = null;
 
+        ExpandableBit  m_ExpandableBit;
+
         public AxfMainSurfaceInputsUIBlock(ExpandableBit expandableBit)
-            : base(expandableBit, Styles.header)
         {
+            m_ExpandableBit = expandableBit;
         }
 
         public override void LoadMaterialProperties()
@@ -51,10 +58,18 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RayTracingTexFilteringScale = FindProperty(m_RayTracingTexFilteringScaleText);
         }
 
-        /// <summary>
-        /// Renders the properties in the block.
-        /// </summary>
-        protected override void OnGUIOpen()
+        public override void OnGUI()
+        {
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
+            {
+                if (header.expanded)
+                {
+                    DrawMainAxfSurfaceInputsGUI();
+                }
+            }
+        }
+
+        void DrawMainAxfSurfaceInputsGUI()
         {
             EditorGUI.BeginChangeCheck();
             float val = EditorGUILayout.Popup(Styles.mappingModeText, (int)m_MappingMode.floatValue, MappingModeNames);

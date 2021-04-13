@@ -20,15 +20,18 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
         {
-            var lookDevVolumeProfile = m_GlobalSettings.GetOrAssignLookDevVolumeProfile();
-            int newHashCode = lookDevVolumeProfile.GetHashCode();
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdrpAsset.defaultLookDevProfile == null)
+                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+
+            int newHashCode = hdrpAsset.defaultLookDevProfile.GetHashCode();
             if (newHashCode != volumeProfileHash)
             {
                 VolumeProfile oldProfile = volume.sharedProfile;
 
                 volumeProfileHash = newHashCode;
 
-                VolumeProfile profile = ScriptableObject.Instantiate(lookDevVolumeProfile);
+                VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
                 profile.hideFlags = HideFlags.HideAndDontSave;
                 volume.sharedProfile = profile;
 

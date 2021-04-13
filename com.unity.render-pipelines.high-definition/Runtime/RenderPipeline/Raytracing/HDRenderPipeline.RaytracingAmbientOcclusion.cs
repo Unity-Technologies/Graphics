@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitRayTracingAmbientOcclusion()
         {
             // Grab the kernels we need
-            m_RTAOApplyIntensityKernel = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
+            m_RTAOApplyIntensityKernel = asset.renderPipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
         float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Other parameters
                 passData.raytracingCB = shaderVariablesRaytracing;
-                passData.aoShaderRT = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingRT;
+                passData.aoShaderRT = asset.renderPipelineRayTracingResources.aoRaytracingRT;
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
@@ -167,12 +167,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
+                HDTemporalFilter temporalFilter = GetTemporalFilter();
+                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, singleChannel: true, historyValidity, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: true, kernelSize: aoSettings.denoiserRadius, halfResolutionFilter: false, jitterFilter: false, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
+                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
             }
             else
                 return traceAOResult.signalBuffer;
@@ -209,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.actualWidth = hdCamera.actualWidth;
                 passData.actualHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-                passData.aoShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingCS;
+                passData.aoShaderCS = asset.renderPipelineRayTracingResources.aoRaytracingCS;
                 passData.intensityKernel = m_RTAOApplyIntensityKernel;
                 passData.outputTexture = builder.ReadWriteTexture(aoTexture);
 

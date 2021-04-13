@@ -17,7 +17,7 @@ RefractionModelResult RefractionModelSphere(real3 V, float3 positionWS, real3 no
     // Sphere shape model:
     //  We approximate locally the shape of the object as sphere, that is tangent to the shape.
     //  The sphere has a diameter of {thickness}
-    //  The center of the sphere is at {positionWS} - {normalWS} * {thickness} * 0.5
+    //  The center of the sphere is at {positionWS} - {normalWS} * {thickness}
     //
     //  So the light is refracted twice: in and out of the tangent sphere
 

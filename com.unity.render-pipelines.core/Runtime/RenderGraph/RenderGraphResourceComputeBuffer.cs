@@ -189,11 +189,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return "ComputeBuffer";
         }
 
-        override protected int GetSortIndex(ComputeBuffer res)
-        {
-            return res.GetHashCode();
-        }
-
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
         // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
@@ -202,26 +197,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             // Update the frame index for the lambda. Static because we don't want to capture.
             s_CurrentFrameIndex = currentFrameIndex;
-            m_RemoveList.Clear();
 
             foreach (var kvp in m_ResourcePool)
             {
-                // WARNING: No foreach here. Sorted list GetEnumerator generates garbage...
                 var list = kvp.Value;
-                var keys = list.Keys;
-                var values = list.Values;
-                for (int i = 0; i < list.Count; ++i)
+                list.RemoveAll(obj =>
                 {
-                    var value = values[i];
-                    if (ShouldReleaseResource(value.frameIndex, s_CurrentFrameIndex))
+                    if (ShouldReleaseResource(obj.frameIndex, s_CurrentFrameIndex))
                     {
-                        value.resource.Release();
-                        m_RemoveList.Add(keys[i]);
+                        obj.resource.Release();
+                        return true;
                     }
-                }
-
-                foreach (var key in m_RemoveList)
-                    list.Remove(key);
+                    return false;
+                });
             }
         }
     }

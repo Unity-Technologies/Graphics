@@ -42,11 +42,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugLightVolumeColorsKernel = m_DebugLightVolumeCompute.FindKernel("LightVolumeColors");
             m_ColorGradientTexture = renderPipelineResources.textures.colorGradient;
 
-            m_Blit = Blitter.GetBlitMaterial(TextureDimension.Tex2D);
+            m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
         }
 
         public void ReleaseData()
         {
+            CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_DebugLightVolumeMaterial);
         }
 

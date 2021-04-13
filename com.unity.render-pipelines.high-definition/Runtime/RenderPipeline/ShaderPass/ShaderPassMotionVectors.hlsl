@@ -72,7 +72,7 @@ void Frag(  PackedVaryingsToPS packedInput
             #endif
 
             #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
+            , out float outputDepth : SV_Depth
             #endif
         )
 {

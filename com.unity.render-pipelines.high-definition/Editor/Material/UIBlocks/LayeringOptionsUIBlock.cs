@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Layering Options");
+            public const string header = "Layering Options";
             public static readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");
             public static readonly GUIContent opacityAsDensityText = EditorGUIUtility.TrTextContent("Use Opacity map as Density map", "When enabled, HDRP uses the opacity map (alpha channel of Base Color) as the Density map.");
             public static readonly GUIContent inheritBaseNormalText = EditorGUIUtility.TrTextContent("Normal influence", "Controls the strength of the normals inherited from the base layer.");
@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty useMainLayerInfluence = null;
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
 
+        ExpandableBit  m_ExpandableBit;
         int         m_LayerIndex;
 
         // Density/opacity mode
@@ -50,8 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="layerIndex">Current layer index. For non-layered shader, indicate 0.</param>
         public LayeringOptionsUIBlock(ExpandableBit expandableBit, int layerIndex)
-            : base(expandableBit, Styles.header)
         {
+            m_ExpandableBit = expandableBit;
             m_LayerIndex = layerIndex;
         }
 
@@ -75,14 +76,21 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Property that specifies if the scope is a subheader
-        /// </summary>
-        protected override bool isSubHeader => true;
-
-        /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        protected override void OnGUIOpen()
+        public override void OnGUI()
+        {
+            // We're using a subheader here because we know that layering options are only used within layers
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: true))
+            {
+                if (header.expanded)
+                {
+                    DrawLayeringOptionsGUI();
+                }
+            }
+        }
+
+        void DrawLayeringOptionsGUI()
         {
             bool mainLayerInfluenceEnable = useMainLayerInfluence.floatValue > 0.0f;
             // Main layer does not have any options but height base blend.

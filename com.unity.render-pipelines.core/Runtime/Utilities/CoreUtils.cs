@@ -74,36 +74,26 @@ namespace UnityEngine.Rendering
             public const int assetsCreateRenderingMenuPriority = 308;
             /// <summary>Edit Menu base priority</summary>
             public const int editMenuPriority = 320;
-            /// <summary>Game Object Menu priority</summary>
-            public const int gameObjectMenuPriority = 10;
         }
 
-        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
-
+        // TODO delete when finish top level menu reorder
         /// <summary>Edit Menu priority 1</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
         public const int gameObjectMenuPriority = 10;
+        // END TODO delete when finish top level menu reorder
 
         static Cubemap m_BlackCubeTexture;
         /// <summary>
@@ -236,7 +226,7 @@ namespace UnityEngine.Rendering
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
-                cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
+                cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
         }
 
         // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
@@ -627,7 +617,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -642,26 +632,9 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
 
-        /// <summary>
-        /// Generate a name based on render texture parameters.
-        /// </summary>
-        /// <param name="width">With of the texture.</param>
-        /// <param name="height">Height of the texture.</param>
-        /// <param name="depth">Depth of the texture.</param>
-        /// <param name="format">Graphics format of the render texture.</param>
-        /// <param name="dim">Dimension of the texture.</param>
-        /// <param name="name">Base name of the texture.</param>
-        /// <param name="mips">True if the texture has mip maps.</param>
-        /// <param name="enableMSAA">True if the texture is multisampled.</param>
-        /// <param name="msaaSamples">Number of MSAA samples.</param>
-        /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
-        /// <returns>Generated names bassed on the provided parameters.</returns>
-        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
-
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -673,14 +646,8 @@ namespace UnityEngine.Rendering
 
             result = string.Format("{0}_{1}", result, format);
 
-            if (dim != TextureDimension.None)
-                result = string.Format("{0}_{1}", result, dim);
-
             if (enableMSAA)
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
-
-            if (dynamicRes)
-                result = string.Format("{0}_{1}", result, "dynamic");
 
             return result;
         }
@@ -1267,22 +1234,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Returns true if any Scene view is using the Scene filtering.
-        /// </summary>
-        /// <returns>True if any Scene view is using the Scene filtering.</returns>
-        public static bool IsSceneFilteringEnabled()
-        {
-#if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
-            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
-            {
-                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                if (sv.isUsingSceneFiltering) return true;
-            }
-#endif
-            return false;
-        }
-
-        /// <summary>
         /// Draw a renderer list.
         /// </summary>
         /// <param name="renderContext">Current Scriptable Render Context.</param>
@@ -1304,48 +1255,6 @@ namespace UnityEngine.Rendering
                 var renderStateBlock = rendererList.stateBlock.Value;
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
-        }
-
-        /// <summary>
-        /// Compute a hash of texture properties.
-        /// </summary>
-        public static int GetTextureHash(Texture texture)
-        {
-            int hash = texture.GetHashCode();
-
-            unchecked
-            {
-#if UNITY_EDITOR
-                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
-#endif
-                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
-                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
-                hash = 23 * hash + texture.wrapMode.GetHashCode();
-                hash = 23 * hash + texture.width.GetHashCode();
-                hash = 23 * hash + texture.height.GetHashCode();
-                hash = 23 * hash + texture.filterMode.GetHashCode();
-                hash = 23 * hash + texture.anisoLevel.GetHashCode();
-                hash = 23 * hash + texture.mipmapCount.GetHashCode();
-            }
-
-            return hash;
-        }
-
-        // Hacker’s Delight, Second Edition page 66
-        /// <summary>
-        /// Branchless prvious power of two.
-        /// </summary>
-        public static int PreviousPowerOfTwo(int size)
-        {
-            if (size <= 0)
-                return 0;
-
-            size |= (size >> 1);
-            size |= (size >> 2);
-            size |= (size >> 4);
-            size |= (size >> 8);
-            size |= (size >> 16);
-            return size - (size >> 1);
         }
     }
 }

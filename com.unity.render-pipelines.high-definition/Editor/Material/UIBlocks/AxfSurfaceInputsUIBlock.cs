@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
 
 // Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     // We don't reuse the other surface option ui block, AxF is too different
@@ -10,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Surface Inputs");
+            public const string header = "Advanced Surface Inputs";
 
             public static GUIContent    mapsTilingOffsetText = new GUIContent("Tiling and Offset for Map", "XY scales, ZW offsets");
             /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,9 +196,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
         MaterialProperty  m_ClearcoatIORMap = null;
 
+        ExpandableBit  m_ExpandableBit;
+
         public AxfSurfaceInputsUIBlock(ExpandableBit expandableBit)
-            : base(expandableBit, Styles.header)
         {
+            m_ExpandableBit = expandableBit;
         }
 
         public override void LoadMaterialProperties()
@@ -270,6 +276,17 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClearcoatIORMap = FindProperty(m_ClearcoatIORMapText);
         }
 
+        public override void OnGUI()
+        {
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
+            {
+                if (header.expanded)
+                {
+                    DrawAxfSurfaceOptionsGUI();
+                }
+            }
+        }
+
         public static uint GenFlags(bool anisotropy = false, bool clearcoat = false, bool clearcoatRefraction = false, bool useHeightMap = false, bool brdfColorDiagonalClamp = false,
             bool honorMinRoughness = false)
         {
@@ -304,10 +321,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.EndHorizontal();
         }
 
-        /// <summary>
-        /// Renders the properties in the block.
-        /// </summary>
-        protected override void OnGUIOpen()
+        void DrawAxfSurfaceOptionsGUI()
         {
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);

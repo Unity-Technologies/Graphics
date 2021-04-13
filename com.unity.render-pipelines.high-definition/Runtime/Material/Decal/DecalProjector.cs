@@ -4,20 +4,10 @@ using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>The scaling mode to apply to decals that use the Decal Projector.</summary>
-    public enum DecalScaleMode
-    {
-        /// <summary>Ignores the transformation hierarchy and uses the scale values in the Decal Projector component directly.</summary>
-        ScaleInvariant,
-        /// <summary>Multiplies the lossy scale of the Transform with the Decal Projector's own scale then applies this to the decal.</summary>
-        [InspectorName("Inherit from Hierarchy")]
-        InheritFromHierarchy,
-    }
-
     /// <summary>
     /// Decal Projector component.
     /// </summary>
-    [HDRPHelpURLAttribute("Decal-Projector")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
@@ -26,7 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
-        static readonly Quaternion k_YtoZRotation = Quaternion.Euler(90, 0, 0);
 
         [SerializeField]
         private Material m_Material = null;
@@ -191,22 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private DecalScaleMode m_ScaleMode = DecalScaleMode.ScaleInvariant;
-        /// <summary>
-        /// The scaling mode to apply to decals that use this Decal Projector.
-        /// </summary>
-        public DecalScaleMode scaleMode
-        {
-            get => m_ScaleMode;
-            set
-            {
-                m_ScaleMode = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
-        internal Vector3 m_Offset = new Vector3(0, 0, 0);
+        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
         /// <summary>
         /// Change the pivot position.
         /// It is an offset between the center of the projection and the transform position.
@@ -225,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        internal Vector3 m_Size = new Vector3(1, 1, 1);
+        Vector3 m_Size = new Vector3(1, 1, 1);
         /// <summary>
         /// The size of the projection volume.
         /// See also <seealso cref="ResizeAroundPivot"/> to rescale relatively to the pivot position.
@@ -274,65 +248,17 @@ namespace UnityEngine.Rendering.HighDefinition
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
 
-        /// <summary>A scale that should be used for rendering and handles.</summary>
-        internal Vector3 effectiveScale => m_ScaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
-
-        /// <summary>current position in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 position => transform.position;
-        /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
-        internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
         /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
-        internal Quaternion rotation
-        {
-            get
-            {
-                // If Z-scale is negative we rotate decal differently to have correct forward direction for Angle Fade.
-                return transform.rotation * (effectiveScale.z >= 0f ? k_MinusYtoZRotation : k_YtoZRotation);
-            }
-        }
-
+        internal Quaternion rotation => transform.rotation * k_MinusYtoZRotation;
+        /// <summary>current position in a way the DecalSystem will be able to use it</summary>
+        internal Vector3 position => transform.position;
         /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalSize
-        {
-            get
-            {
-                Vector3 scale = effectiveScale;
-
-                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
-                // so we need to flip the scale of the affected axes back.
-                // The final sign of Z will depend on the other two axes, so we actually need to fix only Y here.
-                if (scale.z < 0f)
-                    scale.y *= -1f;
-
-                // Flipped projector (with 1 or 3 negative components of scale) would be invisible.
-                // In this case we additionally flip Z.
-                bool flipped = scale.x < 0f ^ scale.y < 0f ^ scale.z < 0f;
-                if (flipped)
-                    scale.z *= -1f;
-
-                return new Vector3(m_Size.x * scale.x, m_Size.z * scale.z, m_Size.y * scale.y);
-            }
-        }
-
-        /// <summary>current offset in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalOffset
-        {
-            get
-            {
-                Vector3 scale = effectiveScale;
-
-                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
-                // so we need to flip the scale of the affected axes back.
-                if (scale.z < 0f)
-                {
-                    scale.y *= -1f;
-                    scale.z *= -1f;
-                }
-
-                return new Vector3(m_Offset.x * scale.x, -m_Offset.z * scale.z, m_Offset.y * scale.y);
-            }
-        }
+        internal Vector3 decalSize => new Vector3(m_Size.x, m_Size.z, m_Size.y);
+        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
+        internal Vector3 decalOffset => new Vector3(m_Offset.x, -m_Offset.z, m_Offset.y);
+        /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
+        internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
         internal DecalSystem.DecalHandle Handle
         {
@@ -390,7 +316,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                m_Material = HDRenderPipelineGlobalSettings.instance != null ? HDRenderPipelineGlobalSettings.instance.GetDefaultDecalMaterial() : null;
+                var hdrp = HDRenderPipeline.defaultAsset;
+                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif
@@ -532,7 +459,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            if (!HDRenderPipeline.isReady || m_Material == HDRenderPipeline.currentAsset.GetDefaultDecalMaterial())
+            var hdrp = HDRenderPipeline.defaultAsset;
+            if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
                 return false;
 #endif
 

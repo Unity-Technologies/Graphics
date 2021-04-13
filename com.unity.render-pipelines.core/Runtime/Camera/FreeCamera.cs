@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Utility Free Camera component.
     /// </summary>
-    [CoreRPHelpURLAttribute("Free-Camera")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Free-Camera" + Documentation.endURL)]
     public class FreeCamera : MonoBehaviour
     {
         /// <summary>

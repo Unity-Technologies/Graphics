@@ -324,13 +324,11 @@ namespace UnityEngine.Rendering
                     rt.width,
                     rt.height,
                     rt.volumeDepth,
-                    rt.graphicsFormat,
-                    rt.dimension,
+                    rt.format,
                     rth.m_Name,
                     mips: rt.useMipMap,
                     enableMSAA: rth.m_EnableMSAA,
-                    msaaSamples: m_ScaledRTCurrentMSAASamples,
-                    dynamicRes: rt.useDynamicScale
+                    msaaSamples: m_ScaledRTCurrentMSAASamples
                 );
 
                 // Create the new texture
@@ -418,7 +416,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Regenerate the name
-                renderTexture.name = CoreUtils.GetRenderTargetAutoName(renderTexture.width, renderTexture.height, renderTexture.volumeDepth, renderTexture.graphicsFormat, renderTexture.dimension, rth.m_Name, mips: renderTexture.useMipMap, enableMSAA: rth.m_EnableMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: renderTexture.useDynamicScale);
+                renderTexture.name = CoreUtils.GetRenderTargetAutoName(renderTexture.width, renderTexture.height, renderTexture.volumeDepth, renderTexture.format, rth.m_Name, mips: renderTexture.useMipMap, enableMSAA: rth.m_EnableMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
 
                 // Create the render texture
                 renderTexture.Create();
@@ -519,7 +517,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
                 };
             }
 
@@ -775,7 +773,7 @@ namespace UnityEngine.Rendering
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
                     stencilFormat = stencilFormat,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: useDynamicScale)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
                 };
             }
             else
@@ -796,7 +794,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: useDynamicScale)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
                 };
             }
 
