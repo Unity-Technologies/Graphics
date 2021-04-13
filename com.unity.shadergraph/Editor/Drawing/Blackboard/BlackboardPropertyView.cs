@@ -168,93 +168,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (shaderInput is ColorShaderProperty colorProp)
             {
-                if (!colorProp.isMainColor)
-                {
-                    evt.menu.AppendAction(
-                        "Set as Main Color",
-                        e =>
-                        {
-                            foreach (var input in controller.graphData.properties)
-                            {
-                                if (input is ColorShaderProperty col && col != colorProp)
-                                {
-                                    if (col.isMainColor)
-                                    {
-                                        if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
-                                        {
-                                            controller.graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
-                                            col.isMainColor = false;
-                                            colorProp.isMainColor = true;
-                                            m_InspectorUpdateDelegate();
-                                        }
-                                        return;
-                                    }
-                                }
-                            }
-
-                            controller.graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
-                            colorProp.isMainColor = true;
-                            m_InspectorUpdateDelegate();
-                           
-                        });
-                }
-                else
-                {
-                    evt.menu.AppendAction(
-                        "Clear Main Color",
-                        e =>
-                        {
-                            controller.graphData.owner.RegisterCompleteObjectUndo("Clear Main Color");
-                            colorProp.isMainColor = false;
-                            m_InspectorUpdateDelegate();
-                        });
-                }
+                PropertyNodeView.AddMainColorMenuOptions(evt, colorProp, controller.graphData, m_InspectorUpdateDelegate);
             }
 
 
             if (shaderInput is Texture2DShaderProperty texProp)
             {
-                if (!texProp.isMainTexture)
-                {
-                    evt.menu.AppendAction(
-                        "Set as Main Texture",
-                        e =>
-                        {
-                            foreach (var input in controller.graphData.properties)
-                            {
-                                if (input is Texture2DShaderProperty tex && tex != texProp)
-                                {
-                                    if (tex.isMainTexture)
-                                    {
-                                        if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
-                                        {
-                                            controller.graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
-                                            tex.isMainTexture = false;
-                                            texProp.isMainTexture = true;
-                                            m_InspectorUpdateDelegate();
-                                        }
-                                        return;
-                                    }
-                                }
-                            }
-
-                            controller.graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
-                            texProp.isMainTexture = true;
-                            m_InspectorUpdateDelegate();
-
-                        });
-                }
-                else
-                {
-                    evt.menu.AppendAction(
-                        "Clear Main Texture",
-                        e =>
-                        {
-                            controller.graphData.owner.RegisterCompleteObjectUndo("Clear Main Texture");
-                            texProp.isMainTexture = false;
-                            m_InspectorUpdateDelegate();
-                        });
-                }
+                PropertyNodeView.AddMainTextureMenuOptions(evt, texProp, controller.graphData, m_InspectorUpdateDelegate);
             }
 
 
