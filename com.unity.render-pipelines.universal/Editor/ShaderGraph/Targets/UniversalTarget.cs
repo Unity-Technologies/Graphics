@@ -503,9 +503,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (this.sgVersion == 0)
                 {
-                    // deserialize old value:   TODO: use legacy and remove two sided
+                    // deserialize the old settings to upgrade
                     var oldSettings = JsonUtility.FromJson<UniversalTargetLegacySerialization>(json);
-
                     this.m_RenderFace = oldSettings.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                 }
                 ChangeVersion(latestVersion);

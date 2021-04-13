@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
             {
-                context.AddCustomEditorForRenderPipeline("UnityEditor.URPUnlitGUI", universalRPType);
+                context.AddCustomEditorForRenderPipeline(typeof(URPUnlitGUI).FullName, universalRPType);
             }
 
             // Process SubShaders

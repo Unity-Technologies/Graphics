@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
             {
-                context.AddCustomEditorForRenderPipeline("UnityEditor.URPLitGUI", universalRPType);
+                context.AddCustomEditorForRenderPipeline(typeof(URPLitGUI).FullName, universalRPType);
             }
 
             // Process SubShaders
