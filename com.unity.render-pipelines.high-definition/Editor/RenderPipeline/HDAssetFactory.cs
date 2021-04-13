@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var newAsset = CreateInstance<HDRenderPipelineAsset>();
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
-                newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
+                newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRuntimeResources>(s_RenderPipelineResourcesPath);
                 HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
 
                 //as we must init the editor resources with lazy init, it is not required here
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var newAsset = CreateInstance<RenderPipelineResources>();
+                var newAsset = CreateInstance<HDRenderPipelineRuntimeResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
                 // to prevent cases when the asset existed prior but then when upgrading the package, there is null field inside the resource asset

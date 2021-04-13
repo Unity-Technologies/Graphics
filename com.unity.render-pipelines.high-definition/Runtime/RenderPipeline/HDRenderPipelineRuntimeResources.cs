@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HDRPHelpURLAttribute("HDRP-Asset")]
-    partial class RenderPipelineResources : ScriptableObject
+    [HDRPHelpURL("HDRP-Asset")]
+    partial class HDRenderPipelineRuntimeResources : HDRenderPipelineResources
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -452,25 +452,4 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShaderGraphResources shaderGraphs;
         public AssetResources assets;
     }
-
-#if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(RenderPipelineResources))]
-    class RenderPipelineResourcesEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
-                && GUILayout.Button("Reload All"))
-            {
-                foreach (var field in typeof(RenderPipelineResources).GetFields())
-                    field.SetValue(target, null);
-
-                ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
-            }
-        }
-    }
-#endif
 }

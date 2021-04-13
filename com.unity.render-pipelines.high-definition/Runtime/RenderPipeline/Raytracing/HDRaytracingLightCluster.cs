@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRaytracingLightCluster
     {
         // External data
-        RenderPipelineResources m_RenderPipelineResources = null;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources = null;
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
         HDRenderPipeline m_RenderPipeline = null;
 

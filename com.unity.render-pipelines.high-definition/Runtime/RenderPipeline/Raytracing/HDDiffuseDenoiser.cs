@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
 
-        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpRTResources.diffuseDenoiserCS;
