@@ -23,12 +23,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: See https://jira.unity3d.com/browse/URP-723
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 9949ad9004662574ca9d59c2e372bdef, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: See https://fogbugz.unity3d.com/f/cases/edit/1273379/ (instable)
