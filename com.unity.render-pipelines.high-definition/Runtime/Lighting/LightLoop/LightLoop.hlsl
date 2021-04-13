@@ -450,7 +450,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #else
                 uint s_envLightIdx = v_envLightIdx;
 #endif
-                if (s_envLightIdx == -1)
+                if (s_envLightIdx == -1) 
                     break;
 
                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
@@ -463,17 +463,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     v_envLightListOffset++;
                     if (reflectionHierarchyWeight < 1.0)
                     {
-                        if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers))
+                        if (IsMatchingLightLayer(s_envLightData.lightLayers, builtinData.renderingLayers))
                         {
-                            IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
-
+                            IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, s_envLightData, bsdfData, s_envLightData.influenceShapeType, GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION, reflectionHierarchyWeight);
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+
                             if (s_envLightData.normalizeWithAPV > 0 && all(lightInReflDir >= 0))
                             {
                                 float factor = GetReflectionProbeNormalizationFactor(lightInReflDir, bsdfData.normalWS, s_envLightData.L0L1, s_envLightData.L2_1, s_envLightData.L2_2);
                                 lighting.specularReflected *= factor;
                             }
 #endif
+
                             AccumulateIndirectLighting(lighting, aggregateLighting);
                         }
                     }

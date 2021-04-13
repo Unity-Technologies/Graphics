@@ -1910,8 +1910,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             envLightData.envIndex = envIndex;
 
-            envLightData.normalizeWithAPV = probe.settings.normalizeWithProbeVolume ? 1 : 0;
-            if (probe.settings.normalizeWithProbeVolume)
+            envLightData.normalizeWithAPV = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
+            if (envLightData.normalizeWithAPV > 0)
             {
                 if (!probe.GetSHForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
                 {

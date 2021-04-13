@@ -5,6 +5,9 @@ using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
 using Unity.Collections;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -67,23 +70,28 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name ="requestID"> The request ID that has been given by the manager through a previous EnqueueRequest.</param>
         /// <param name ="newPositionnewPosition"> The position at which a probe is baked.</param>
-        public void UpdatePositionForRequest(int requestID, Vector3 newPosition)
+        public int UpdatePositionForRequest(int requestID, Vector3 newPosition)
         {
             if (requestID < m_RequestPositions.Count)
             {
                 m_RequestPositions[requestID] = newPosition;
+                return requestID;
+            }
+            else
+            {
+                return EnqueueRequest(newPosition);
             }
         }
 
         internal void AddRequestsToLightmapper()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositions.ToArray());
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
         }
 
         private static void OnAdditionalProbesBakeCompleted()
         {
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
 
             var sh = new NativeArray<SphericalHarmonicsL2>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -92,6 +100,15 @@ namespace UnityEngine.Rendering
             UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth);
 
             m_SHCoefficients.AddRange(sh.ToArray());
+        }
+
+        /// <summary>
+        /// Clear all requests.
+        /// </summary>
+        public void Clear()
+        {
+            m_SHCoefficients.Clear();
+            m_RequestPositions.Clear();
         }
     }
 #endif

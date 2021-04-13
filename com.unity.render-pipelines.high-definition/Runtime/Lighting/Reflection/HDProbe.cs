@@ -127,6 +127,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SHRequestID = -1;
         [SerializeField]
         SphericalHarmonicsL2 m_SHForNormalization;
+        [SerializeField]
+        bool m_HasValidSHForNormalization;
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
@@ -534,11 +536,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Return luma of coefficients
         internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
         {
-            bool hasValidSHData = settings.normalizeWithProbeVolume;
+            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+
+            bool hasValidSHData = hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 #if UNITY_EDITOR
-            // We get stuff from the baked info
-            hasValidSHData = hasValidSHData && (m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization));
+            if (!m_HasValidSHForNormalization)
+            {
+                m_HasValidSHForNormalization = m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization);
+            }
 #endif
+            hasValidSHData = hasValidSHData && m_HasValidSHForNormalization;
+
             var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
             var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 1);
             var L1_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 2);
@@ -571,6 +579,18 @@ namespace UnityEngine.Rendering.HighDefinition
             wasRenderedAfterOnEnable = false;
         }
 
+        private void QueueSHBaking()
+        {
+            if (m_SHRequestID < 0)
+            {
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
+            }
+            else
+            {
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
+            }
+        }
+
         void UpdateProbeName()
         {
             if (settings.type == ProbeSettings.ProbeType.ReflectionProbe)
@@ -594,15 +614,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
-
-            if (m_SHRequestID < 0 && settings.normalizeWithProbeVolume)
-            {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
-            }
-            else if (settings.normalizeWithProbeVolume)
-            {
-                AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
-            }
+            UnityEditor.Lightmapping.lightingDataCleared += QueueSHBaking;
+            QueueSHBaking();
 #endif
         }
 
@@ -624,14 +637,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDProbeSystem.RegisterProbe(this);
 
 #if UNITY_EDITOR
-                if (m_SHRequestID < 0 && settings.normalizeWithProbeVolume)
-                {
-                    m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
-                }
-                else if (settings.normalizeWithProbeVolume)
-                {
-                    AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
-                }
+                UnityEditor.Lightmapping.lightingDataCleared -= QueueSHBaking;
+                QueueSHBaking();
 #endif
             }
         }

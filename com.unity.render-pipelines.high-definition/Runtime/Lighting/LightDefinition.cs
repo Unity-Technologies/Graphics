@@ -245,13 +245,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Sampling properties
         public int envIndex;
 
-        // Whether the probe is normalized by probe volume content.
-        public int normalizeWithAPV;
         // The luma SH for irradiance at probe location.
         public Vector4 L0L1;
         public Vector4 L2_1; // First 4 coeffs of L2 {-2, -1, 0, 1}
         public float L2_2;   // Last L2 coeff {2}
-        public Vector3 padding;
+        // Whether the probe is normalized by probe volume content.
+        public int normalizeWithAPV;
+        public Vector2 padding;
     };
 
     [GenerateHLSL]
