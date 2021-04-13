@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            string upgradeLog = ""; // "UniversalRP Material log:";
+            string upgradeLog = "";
             var upgradeCount = 0;
 
             foreach (var asset in importedAssets)
