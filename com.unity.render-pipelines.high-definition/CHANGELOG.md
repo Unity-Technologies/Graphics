@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of interpolators for SV_POSITION in shader graph.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
+- Added support for multi volumetric cloud shadows.
+- Added a Scale Mode setting for Decals.
+- Added LTC Fitting tools for all BRDFs that HDRP supports.
+- Added Area Light support for Hair and Fabric master nodes.
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added support for Fabric material in Path Tracing.
+- Added help URL for volumetric clouds override.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -95,7 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed Missing lighting quality settings for SSGI (case 1312067).
 - Fixed HDRP material being constantly dirty.
-- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed wizard checking FrameSettings not in HDRP Global Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 - Fixed gizmo rendering when wireframe mode is selected.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
@@ -109,7 +116,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- The default LookDev volume profile is now copied and referenced in the Asset folder instead of the package folder.
 - Fixed SSS on console platforms.
 - Assets going through the migration system are now dirtied.
 - Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
@@ -120,6 +127,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in wizard when resource folder don't exist
 - Fixed issue with Decal projector edge on Metal (case 1286074)
 - Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed missing Update in Wizard's DXR Documentation
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -177,6 +195,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
+- Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
+- Improved lighting models for AxF shader area lights.
+- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
+- Added Global settings check in Wizard
+- Added localization on Wizard window
+- UI for Frame Settings has been updated: default values in the HDRP Settings and Custom Frame Settings are always editable
+- Updated Light's shadow layer name in Editor.
 
 ## [11.0.0] - 2020-10-21
 
@@ -2210,6 +2235,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
 - Re-enable SRP batcher for metal
+- Updated Frame Settings UX in the HDRP Settings and Camera
 
 ## [5.2.0-preview] - 2018-11-27
 
