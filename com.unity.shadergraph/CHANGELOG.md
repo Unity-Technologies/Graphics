@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
+  - Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
+  - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
 
 ### Changed
 - Updated/corrected View Direction doc
