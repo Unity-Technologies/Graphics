@@ -206,7 +206,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -238,7 +238,7 @@ HDRP_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on OSX_Metal_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -270,7 +270,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on OSX_Metal_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -302,7 +302,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -334,7 +334,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on OSX_Metal_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -366,4 +366,4 @@ HDRP_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

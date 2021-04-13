@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -75,6 +76,15 @@ namespace UnityEditor.ShaderGraph
         public bool movedContexts => m_MovedContexts;
 
         public string assetGuid { get; set; }
+
+        #endregion
+
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 
@@ -303,7 +313,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // when in "Graph switchable" mode, we choose Half as the default concrete precision
                 // so you can visualize the worst-case
-                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+                return graphDefaultPrecision.ToConcrete(ConcretePrecision.Half);
             }
         }
 
@@ -1274,6 +1284,8 @@ namespace UnityEditor.ShaderGraph
                         m_Keywords.Add(keyword);
                     else
                         m_Keywords.Insert(index, keyword);
+
+                    OnKeywordChangedNoValidate();
 
                     break;
                 case ShaderDropdown dropdown:

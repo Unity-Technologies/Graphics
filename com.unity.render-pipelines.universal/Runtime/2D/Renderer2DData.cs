@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
@@ -10,14 +8,14 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
-        public enum Renderer2DDefaultMaterialType
+        internal enum Renderer2DDefaultMaterialType
         {
             Lit,
             Unlit,
@@ -91,8 +89,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
+        /// <summary>
+        /// HDR Emulation Scale allows platforms to use HDR lighting by compressing the number of expressible colors in exchange for extra intensity range.
+        /// Scale describes this extra intensity range. Increasing this value too high may cause undesirable banding to occur.
+        /// </summary>
         public float hdrEmulationScale => m_HDREmulationScale;
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
+        /// <summary>
+        /// Returns a list Light2DBlendStyle
+        /// </summary>
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
         internal Texture2D fallOffLookup => m_FallOffLookup;

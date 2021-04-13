@@ -25,8 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeSubsurfaceScatteringRT()
         {
-            ComputeShader rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
-            ComputeShader deferredRayTracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+            ComputeShader rayTracingSubSurfaceCS = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+            ComputeShader deferredRayTracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
 
             m_SSSClearTextureKernel = rayTracingSubSurfaceCS.FindKernel("ClearTexture");
             m_RaytracingDiffuseDeferredKernel = deferredRayTracingCS.FindKernel("RaytracingDiffuseDeferred");
@@ -99,9 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rtDeferredLightingKernel = m_RaytracingDiffuseDeferredKernel;
 
                 // other required parameters
-                passData.rayTracingSubSurfaceRT = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingRT;
-                passData.rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
-                passData.deferredRayTracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+                passData.rayTracingSubSurfaceRT = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingRT;
+                passData.rayTracingSubSurfaceCS = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+                passData.deferredRayTracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
                 passData.accelerationStructure = RequestAccelerationStructure();
                 passData.lightCluster = RequestLightCluster();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.combineSSSKernel = passData.validSSGI ? m_CombineSubSurfaceWithGIKernel : m_CombineSubSurfaceKernel;
 
                 // Other parameters
-                passData.rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+                passData.rayTracingSubSurfaceCS = m_GlobalSettings.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
                 passData.combineLightingMat = m_CombineLightingPass;
 
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
