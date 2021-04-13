@@ -20,6 +20,9 @@ HLSLPROGRAM
 // Pragmas
 $splice(PassPragmas)
 
+//TODOPAUL : Remove this
+#pragma enable_d3d11_debug_symbols
+
 $splice(DotsInstancingOptions)
 $splice(HybridV1InjectedBuiltinProperties)
 
