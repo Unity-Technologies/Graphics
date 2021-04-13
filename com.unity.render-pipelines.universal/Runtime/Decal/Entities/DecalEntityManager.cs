@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
 
             DecalCachedChunk cachedChunk = cachedChunks[chunkIndex];
 
-            cachedChunk.sizeOffsets[arrayIndex] = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
+            cachedChunk.sizeOffsets[arrayIndex] = Matrix4x4.Translate(decalProjector.pivot) * Matrix4x4.Scale(decalProjector.size);
 
             float drawDistance = decalProjector.drawDistance;
             float fadeScale = decalProjector.fadeScale;
@@ -324,6 +324,7 @@ namespace UnityEngine.Rendering.Universal
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
             cachedChunk.decalLayerMasks[arrayIndex] = decalLayerMask;
+            cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
             cachedChunk.dirty[arrayIndex] = true;
         }
 

@@ -57,10 +57,6 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="props">The list of properties the material has.</param>
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
             m_MaterialEditor = materialEditor;
             FindProperties(props);
 

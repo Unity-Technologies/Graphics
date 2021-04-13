@@ -31,8 +31,10 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<float> fadeFactors;
         public NativeArray<DecalLayerEnum> decalLayerMasks;
         public NativeArray<BoundingSphere> boundingSpheres2;
+        public NativeArray<DecalScaleMode> scaleModes;
         public NativeArray<float3> positions;
         public NativeArray<quaternion> rotation;
+        public NativeArray<float3> scales;
         public NativeArray<bool> dirty;
 
         public BoundingSphere[] boundingSpheres;
@@ -57,8 +59,10 @@ namespace UnityEngine.Rendering.Universal
             RemoveAtSwapBack(ref decalLayerMasks, entityIndex, count);
             RemoveAtSwapBack(ref boundingSpheres, entityIndex, count);
             RemoveAtSwapBack(ref boundingSpheres2, entityIndex, count);
+            RemoveAtSwapBack(ref scaleModes, entityIndex, count);
             RemoveAtSwapBack(ref positions, entityIndex, count);
             RemoveAtSwapBack(ref rotation, entityIndex, count);
+            RemoveAtSwapBack(ref scales, entityIndex, count);
             RemoveAtSwapBack(ref dirty, entityIndex, count);
             count--;
         }
@@ -77,8 +81,10 @@ namespace UnityEngine.Rendering.Universal
             ResizeNativeArray(ref fadeFactors, newCapacity);
             ResizeNativeArray(ref decalLayerMasks, newCapacity);
             ResizeNativeArray(ref boundingSpheres2, newCapacity);
+            ResizeNativeArray(ref scaleModes, newCapacity);
             ResizeNativeArray(ref positions, newCapacity);
             ResizeNativeArray(ref rotation, newCapacity);
+            ResizeNativeArray(ref scales, newCapacity);
             ResizeNativeArray(ref dirty, newCapacity);
 
             ResizeArray(ref boundingSpheres, newCapacity);
@@ -102,8 +108,10 @@ namespace UnityEngine.Rendering.Universal
             fadeFactors.Dispose();
             decalLayerMasks.Dispose();
             boundingSpheres2.Dispose();
+            scaleModes.Dispose();
             positions.Dispose();
             rotation.Dispose();
+            scales.Dispose();
             dirty.Dispose();
             count = 0;
             capacity = 0;
@@ -114,17 +122,13 @@ namespace UnityEngine.Rendering.Universal
     {
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
-        private ProfilingSampler m_SamplerSizeOffset;
         private ProfilingSampler m_SamplerJob;
-        private ProfilingSampler m_SamplerProperties;
 
         public DecalUpdateCachedSystem(DecalEntityManager entityManager)
         {
             m_EntityManager = entityManager;
             m_Sampler = new ProfilingSampler("DecalUpdateCachedSystem.Execute");
-            m_SamplerSizeOffset = new ProfilingSampler("DecalUpdateCachedSystem.ExecuteSizeOffset");
             m_SamplerJob = new ProfilingSampler("DecalUpdateCachedSystem.ExecuteJob");
-            m_SamplerProperties = new ProfilingSampler("DecalUpdateCachedSystem.ExecuteProperties");
         }
 
         public void Execute()
@@ -176,7 +180,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     positions = cachedChunk.positions,
                     rotations = cachedChunk.rotation,
+                    scales = cachedChunk.scales,
                     dirty = cachedChunk.dirty,
+                    scaleModes = cachedChunk.scaleModes,
                     sizeOffsets = cachedChunk.sizeOffsets,
                     decalToWorlds = cachedChunk.decalToWorlds,
                     normalToWorlds = cachedChunk.normalToWorlds,
@@ -198,8 +204,10 @@ namespace UnityEngine.Rendering.Universal
 
             public NativeArray<float3> positions;
             public NativeArray<quaternion> rotations;
+            public NativeArray<float3> scales;
             public NativeArray<bool> dirty;
 
+            [ReadOnly] public NativeArray<DecalScaleMode> scaleModes;
             [ReadOnly] public NativeArray<float4x4> sizeOffsets;
             [WriteOnly] public NativeArray<float4x4> decalToWorlds;
             [WriteOnly] public NativeArray<float4x4> normalToWorlds;
@@ -207,55 +215,53 @@ namespace UnityEngine.Rendering.Universal
 
             public float minDistance;
 
+            private float DistanceBetweenQuaternions(quaternion a, quaternion b)
+            {
+                return math.distance(a.value, b.value);
+            }
+
             public void Execute(int index, TransformAccess transform)
             {
-                quaternion rotation = math.mul(transform.rotation, k_MinusYtoZRotation);
+                // Check if transform changed
                 bool positionChanged = math.distance(transform.position, positions[index]) > minDistance;
-                bool rotationChanged = math.distance(rotation.value, rotations[index].value) > minDistance;
                 if (positionChanged)
                     positions[index] = transform.position;
+                bool rotationChanged = DistanceBetweenQuaternions(transform.rotation, rotations[index]) > minDistance;
                 if (rotationChanged)
-                    rotations[index] = rotation;
+                    rotations[index] = transform.rotation;
+                bool scaleChanged = math.distance(transform.localScale, scales[index]) > minDistance;
+                if (scaleChanged)
+                    scales[index] = transform.localScale;
 
-                // Early out if position did not changed
-                if (!positionChanged && !rotationChanged && !dirty[index])
+                // Early out if transform did not changed
+                if (!positionChanged && !rotationChanged && !scaleChanged && !dirty[index])
                     return;
 
+                float4x4 localToWorld;
+                if (scaleModes[index] == DecalScaleMode.InheritFromHierarchy)
+                {
+                    localToWorld = transform.localToWorldMatrix;
+                    localToWorld = math.mul(localToWorld, new float4x4(k_MinusYtoZRotation, float3.zero));
+                }
+                else
+                {
+                    quaternion rotation = math.mul(transform.rotation, k_MinusYtoZRotation);
+                    localToWorld = float4x4.TRS(positions[index], rotation, new float3(1, 1, 1));
+                }
+
+                float4x4 decalRotation = localToWorld;
+                // z/y axis swap for normal to decal space, Unity is column major
+                float4 temp = decalRotation.c1;
+                decalRotation.c1 = decalRotation.c2;
+                decalRotation.c2 = temp;
+                normalToWorlds[index] = decalRotation;
+
                 float4x4 sizeOffset = sizeOffsets[index];
-                float4x4 localToWorld = float4x4.TRS(positions[index], rotations[index], new float3(1, 1, 1));
                 float4x4 decalToWorld = math.mul(localToWorld, sizeOffset);
                 decalToWorlds[index] = decalToWorld;
                 boundingSpheres[index] = GetDecalProjectBoundingSphere(decalToWorld);
 
-                /*Matrix4x4 decalRotation = Matrix4x4.Rotate(rotations[index]);
-                // z/y axis swap for normal to decal space, Unity is column major
-                float y0 = decalRotation.m01;
-                float y1 = decalRotation.m11;
-                float y2 = decalRotation.m21;
-                decalRotation.m01 = decalRotation.m02;
-                decalRotation.m11 = decalRotation.m12;
-                decalRotation.m21 = decalRotation.m22;
-                decalRotation.m02 = y0;
-                decalRotation.m12 = y1;
-                decalRotation.m22 = y2;*/
-
-                float4x4 decalRotation = new float4x4(rotations[index], new float3(0, 0, 0));
-                // z/y axis swap for normal to decal space, Unity is column major
-                /*float y0 = decalRotation.m01;
-                float y1 = decalRotation.m11;
-                float y2 = decalRotation.m21;
-                decalRotation.m01 = decalRotation.m02;
-                decalRotation.m11 = decalRotation.m12;
-                decalRotation.m21 = decalRotation.m22;
-                decalRotation.m02 = y0;
-                decalRotation.m12 = y1;
-                decalRotation.m22 = y2;*/
-
-                float4 temp = decalRotation.c1;
-                decalRotation.c1 = decalRotation.c2;
-                decalRotation.c2 = temp;
-
-                normalToWorlds[index] = decalRotation;
+                dirty[index] = false;
             }
 
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
