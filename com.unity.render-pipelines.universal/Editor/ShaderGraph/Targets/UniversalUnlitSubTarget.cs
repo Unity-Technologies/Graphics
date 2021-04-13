@@ -148,6 +148,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     unlit.pragmas = CorePragmas.DOTSForward;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    depthNormalOnly.pragmas = CorePragmas.DOTSInstanced;
 
                     return new SubShaderDescriptor()
                     {
