@@ -336,18 +336,6 @@ pr:
       test_platforms:
         - performance_playmode_runtime
         - performance_build_editmode
-    - platform: XRQuest
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-    - platform: XRQuest
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
     - platform: iPhone
       api: Metal
       build_config: il2cpp
@@ -365,5 +353,17 @@ pr:
         - performance_build_editmode
 nightly:
   dependencies:
+    - platform: XRQuest
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+    - platform: XRQuest
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
     - project: URP_Performance_BoatAttack
       pr: true

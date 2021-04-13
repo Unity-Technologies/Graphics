@@ -33,11 +33,7 @@ PR_URP_Performance_BoatAttack_trunk:
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
@@ -56,6 +52,10 @@ PR_URP_Performance_BoatAttack_trunk:
 Nightly_URP_Performance_BoatAttack_trunk:
     name: Nightly URP_Performance_BoatAttack - trunk
     dependencies:
+      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
          rerun: on_new_revision
     variables:
@@ -89,11 +89,7 @@ PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
@@ -113,6 +109,10 @@ PR_URP_Performance_BoatAttack_CUSTOM-REVISION:
 Nightly_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: Nightly URP_Performance_BoatAttack - CUSTOM-REVISION
     dependencies:
+      -  path: .yamato/urp_performance_boatattack-xrquest-opengles3.yml#URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
