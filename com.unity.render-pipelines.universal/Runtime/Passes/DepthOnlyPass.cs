@@ -36,15 +36,37 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle depthAttachment)
+        public void Setup(ScriptableRenderContext context, RenderTextureDescriptor baseDescriptor, ref RTHandle depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
-
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
             descriptor = baseDescriptor;
+
+            if (depthAttachment == null || depthAttachment.rt.depth != descriptor.depthBufferBits)
+            {
+                depthAttachment?.Release();
+                depthAttachment = RTHandles.Alloc(Vector2.one,
+                    depthBufferBits: (DepthBits)descriptor.depthBufferBits,
+                    dimension: descriptor.dimension,
+                    enableRandomWrite: descriptor.enableRandomWrite,
+                    msaaSamples: (MSAASamples)descriptor.msaaSamples,
+                    autoGenerateMips: descriptor.autoGenerateMips,
+                    bindTextureMS: descriptor.bindMS,
+                    memoryless: descriptor.memoryless,
+                    colorFormat: GraphicsFormat.DepthAuto,
+                    filterMode: FilterMode.Point,
+                    wrapMode: TextureWrapMode.Clamp,
+                    name: "_CameraDepthTexture");
+
+                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd.SetGlobalTexture(depthAttachment.name, depthAttachment);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
             this.shaderTagId = k_ShaderTagId;
         }
 

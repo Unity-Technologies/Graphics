@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(ScriptableRenderContext context, RenderTextureDescriptor baseDescriptor, RTHandle depth, ref RTHandle normal)
+        public void Setup(ScriptableRenderContext context, RenderTextureDescriptor baseDescriptor, ref RTHandle depth, ref RTHandle normal)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -50,24 +50,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
             depthDescriptor = baseDescriptor;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.SetGlobalTexture(depth.name, depth);
-
             this.normal = normal;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+
+            if (depth == null || depth.rt.depth != depthDescriptor.depthBufferBits)
+            {
+                depth?.Release();
+                depth = RTHandles.Alloc(Vector2.one,
+                    depthBufferBits: (DepthBits)depthDescriptor.depthBufferBits,
+                    dimension: depthDescriptor.dimension,
+                    enableRandomWrite: depthDescriptor.enableRandomWrite,
+                    msaaSamples: (MSAASamples)depthDescriptor.msaaSamples,
+                    autoGenerateMips: depthDescriptor.autoGenerateMips,
+                    bindTextureMS: depthDescriptor.bindMS,
+                    memoryless: depthDescriptor.memoryless,
+                    colorFormat: GraphicsFormat.DepthAuto,
+                    filterMode: FilterMode.Point,
+                    wrapMode: TextureWrapMode.Clamp,
+                    name: "_CameraDepthTexture");
+                cmd.SetGlobalTexture(depth.name, depth);
+            }
+
             if (normal == null || normal.rt.graphicsFormat != normalsFormat)
             {
+                normal?.Release();
                 normal = RTHandles.Alloc(Vector2.one,
                     colorFormat: normalDescriptor.graphicsFormat,
                     dimension: normalDescriptor.dimension,
                     enableRandomWrite: normalDescriptor.enableRandomWrite,
                     useMipMap: normalDescriptor.mipCount > 0,
                     autoGenerateMips: normalDescriptor.autoGenerateMips,
-                    enableMSAA: normalDescriptor.msaaSamples > 1,
+                    msaaSamples: (MSAASamples)normalDescriptor.msaaSamples,
                     bindTextureMS: normalDescriptor.bindMS,
                     memoryless: normalDescriptor.memoryless,
                     filterMode: FilterMode.Point,
