@@ -12,6 +12,8 @@ PR_URP_Terrain_trunk:
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_trunk
@@ -61,6 +63,8 @@ PR_URP_Terrain_CUSTOM-REVISION:
     name: URP_Terrain PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
