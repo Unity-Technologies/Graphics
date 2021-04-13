@@ -250,25 +250,6 @@ namespace UnityEngine.Rendering.Universal
                     colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.ShadowMask),
                     name: "_GBuffer4");
             }
-            m_OpaqueColor = RTHandles.Alloc(size =>
-                {
-                    var scaleFactor = Vector2.one;
-                    if (UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._2xBilinear)
-                        scaleFactor /= 2;
-                    else if (UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._4xBox ||
-                             UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._4xBilinear)
-                        scaleFactor /= 4;
-                    return new Vector2Int(Mathf.Max(Mathf.RoundToInt(scaleFactor.x * RTHandles.maxWidth), 1),
-                                          Mathf.Max(Mathf.RoundToInt(scaleFactor.y * RTHandles.maxHeight), 1));
-                },
-                depthBufferBits: DepthBits.None,
-                colorFormat: GraphicsFormat.B8G8R8A8_SRGB,
-                filterMode: UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear,
-                dimension: TextureDimension.Tex2D,
-                useMipMap: false,
-                autoGenerateMips: true,
-                wrapMode: TextureWrapMode.Clamp,
-                name: "_CameraOpaqueTexture");
             m_DepthInfoTexture = RTHandles.Alloc(Shader.PropertyToID("_DepthInfoTexture"), "_DepthInfoTexture");
             m_TileDepthInfoTexture = RTHandles.Alloc(Shader.PropertyToID("_TileDepthInfoTexture"), "_TileDepthInfoTexture");
 
@@ -312,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_CameraAttachments.color.Release();
             m_CameraAttachments.depth.Release();
-            m_OpaqueColor.Release();
+            m_OpaqueColor?.Release();
             m_DepthTexture?.Release();
             m_NormalsTexture?.Release();
             if (m_GBufferHandles != null)
@@ -578,10 +559,11 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-                if (m_OpaqueColor.rt?.graphicsFormat != renderingData.cameraData.cameraTargetDescriptor.graphicsFormat ||
+                if (m_OpaqueColor == null ||
+                    m_OpaqueColor.rt?.graphicsFormat != renderingData.cameraData.cameraTargetDescriptor.graphicsFormat ||
                     downsamplingMethod != m_CopyColorPass.m_DownsamplingMethod)
                 {
-                    m_OpaqueColor.Release();
+                    m_OpaqueColor?.Release();
                     m_OpaqueColor = RTHandles.Alloc(size =>
                         {
                             var scaleFactor = Vector2.one;
@@ -600,7 +582,7 @@ namespace UnityEngine.Rendering.Universal
                         useMipMap: renderingData.cameraData.cameraTargetDescriptor.useMipMap,
                         autoGenerateMips: renderingData.cameraData.cameraTargetDescriptor.autoGenerateMips,
                         wrapMode: TextureWrapMode.Clamp,
-                        name: m_OpaqueColor.name);
+                        name: "_CameraOpaqueTexture");
                 }
                 m_CopyColorPass.Setup(m_ActiveCameraAttachments.color, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
