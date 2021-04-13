@@ -361,9 +361,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_ReflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
                 EditorGUILayout.PropertyField(m_ReflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
-                EditorGUI.indentLevel++;
-
-                EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
 
                 EditorGUILayout.Space();
