@@ -221,6 +221,8 @@ namespace UnityEditor.ShaderGraph.Internal
         // this controls whether the UI allows the user to rename the display and reference names
         internal abstract bool isRenamable { get; }
 
+        internal virtual bool isCustomSlotAllowed => true;
+
         [SerializeField]
         bool m_UseCustomSlotLabel = false;
 

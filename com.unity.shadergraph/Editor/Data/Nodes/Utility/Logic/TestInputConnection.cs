@@ -6,13 +6,15 @@ using UnityEditor.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    [Title("Utility", "Logic", "TestInputConnection")]
+    [Title("Utility", "Logic", "Test Input Connection")]
     class TestInputConnectionNode : CodeFunctionNode
     {
         public TestInputConnectionNode()
         {
             name = "Test Input Connection";
         }
+
+        public override bool allowedInMainGraph { get => false; }
 
         protected override MethodInfo GetFunctionToConvert()
         {
