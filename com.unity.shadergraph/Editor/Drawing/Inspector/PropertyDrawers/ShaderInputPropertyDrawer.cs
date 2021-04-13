@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildCustomBindingField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
-            if (isSubGraph)
+            if (isSubGraph && property.isCustomSlotAllowed)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
