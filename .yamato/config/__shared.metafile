@@ -414,7 +414,6 @@ platforms:
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest
                     set jenkinsNodeLabel=Quest
-                    set runTests=True
                     set cmd=<UTR_FLAGS>
                     python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
         unity_downloader_cli:
