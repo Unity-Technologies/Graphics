@@ -457,8 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
             }
 
-            // HERE
-            float precision = 6f;
+            const float precision = 6f;
             cb._SsrPBRSpeedRejection = Mathf.Pow(settings.speedRejectionParam.value, precision);
             cb._SsrPBRBias = settings.biasFactor.value;
         }
