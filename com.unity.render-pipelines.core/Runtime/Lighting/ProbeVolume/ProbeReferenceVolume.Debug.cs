@@ -158,6 +158,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+        void ClearDebugData()
+        {
+            m_CellDebugData.Clear();
+        }
+
         void CreateInstancedProbes()
         {
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)

@@ -482,6 +482,8 @@ namespace UnityEngine.Rendering
                 m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
                 // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor
                 normalBiasFromProfile = m_NormalBias;
+
+                ClearDebugData();
             }
             m_NeedLoadAsset = true;
         }
@@ -838,6 +840,7 @@ namespace UnityEngine.Rendering
             }
 
             m_ProbeReferenceVolumeInit = false;
+            ClearDebugData();
         }
     }
 }
