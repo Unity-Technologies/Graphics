@@ -56,14 +56,6 @@ namespace UnityEditor.Rendering.BuiltIn
 
     internal static class Keyword
     {
-        // for internal definitions that legacy built-in may rely on
-        public static readonly string HW_ReceiveShadowsOff = "_RECEIVE_SHADOWS_OFF";
-        public static readonly string HW_Emission = "_EMISSION";
-        public static readonly string HW_AlphaTestOn = "_ALPHATEST_ON";
-        public static readonly string HW_SurfaceTypeTransparent = "_SURFACE_TYPE_TRANSPARENT";
-        public static readonly string HW_AlphaPremultiplyOn = "_ALPHAPREMULTIPLY_ON";
-        public static readonly string HW_AlphaModulateOn = "_ALPHAMODULATE_ON";
-
         // for ShaderGraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP and user keywords).
         // These should be used to control the above (currently in the template)
         public static readonly string SG_ReceiveShadowsOff = "_BUILTIN_RECEIVE_SHADOWS_OFF";
