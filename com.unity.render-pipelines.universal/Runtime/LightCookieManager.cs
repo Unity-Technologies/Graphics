@@ -131,12 +131,10 @@ namespace UnityEngine.Rendering.Universal
                     m_AtlasUVRectBuffer  = new ComputeBuffer(size, Marshal.SizeOf<Vector4>());
                     m_LightTypeBuffer    = new ComputeBuffer(size, Marshal.SizeOf<float>());
                 }
-                else
-                {
-                    m_WorldToLightCpuData = new Matrix4x4[size];
-                    m_AtlasUVRectCpuData  = new Vector4[size];
-                    m_LightTypeCpuData    = new float[size];
-                }
+
+                m_WorldToLightCpuData = new Matrix4x4[size];
+                m_AtlasUVRectCpuData  = new Vector4[size];
+                m_LightTypeCpuData    = new float[size];
 
                 m_Size = size;
             }
@@ -147,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_WorldToLightBuffer.SetData(m_WorldToLightCpuData);
                     m_AtlasUVRectBuffer.SetData(m_AtlasUVRectCpuData);
+                    m_LightTypeBuffer.SetData(m_LightTypeCpuData);
 
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsWorldToLightBuffer, m_WorldToLightBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieAtlasUVRectBuffer, m_AtlasUVRectBuffer);
@@ -241,15 +240,20 @@ namespace UnityEngine.Rendering.Universal
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
                 {
-                    cookieUVScale  = additionalLightData.lightCookieSize;
+                    cookieUVScale  = Vector2.one / additionalLightData.lightCookieSize;
                     cookieUVOffset = additionalLightData.lightCookieOffset;
+
+                    if (Mathf.Abs(cookieUVScale.x) < half.MinValue)
+                        cookieUVScale.x = Mathf.Sign(cookieUVScale.x) * half.MinValue;
+                    if (Mathf.Abs(cookieUVScale.y) < half.MinValue)
+                        cookieUVScale.y = Mathf.Sign(cookieUVScale.y) * half.MinValue;
                 }
 
                 cmd.SetGlobalTexture(ShaderProperty._MainLightTexture,       cookieTexture);
-                cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,  cookieMatrix);
-                cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale, cookieUVScale);
+                cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,   cookieMatrix);
+                cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale,  cookieUVScale);
                 cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVOffset, cookieUVOffset);
-                cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,  cookieFormat);
+                cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,    cookieFormat);
 
                 //DrawDebugFrustum(visibleMainLight.localToWorldMatrix);
             }

@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
 
         [Tooltip("Controls the size of the cookie mask currently assigned to the light.")]
         [SerializeField] Vector2 m_LightCookieSize = Vector2.one;
-        public Vector2 lightCookieSize    // It's really a scale / multiplier, but called Size here for UI consistency
+        public Vector2 lightCookieSize
         {
             get => m_LightCookieSize;
             set => m_LightCookieSize = value;
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.Universal
 
         [Tooltip("Controls the offset of the cookie mask currently assigned to the light.")]
         [SerializeField] Vector2 m_LightCookieOffset = Vector2.zero;
-        public Vector2 lightCookieOffset    // It's really a scale / multiplier, but called Size here for UI consistency
+        public Vector2 lightCookieOffset
         {
             get => m_LightCookieOffset;
             set => m_LightCookieOffset = value;
