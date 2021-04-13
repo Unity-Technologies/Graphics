@@ -274,6 +274,9 @@ namespace UnityEditor.Rendering.Universal
             if (component != null)
             {
                 Undo.DestroyObjectImmediate(component);
+
+                ScriptableRendererFeature feature = component as ScriptableRendererFeature;
+                feature?.Dispose();
             }
 
             // Force save / refresh

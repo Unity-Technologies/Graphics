@@ -106,7 +106,6 @@ namespace UnityEngine.Rendering.Universal
             m_DecalEntityManager = null;
             m_ReferenceCounter = 0;
 
-
             DecalProjector.onDecalAdd -= OnDecalAdd;
             DecalProjector.onDecalRemove -= OnDecalRemove;
             DecalProjector.onDecalPropertyChange -= OnDecalPropertyChange;
