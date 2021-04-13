@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -128,6 +126,23 @@ namespace UnityEngine.Rendering.HighDefinition
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
 
+        //This probe object is dumb, its the caller / pipelines responsability
+        //to calculate its exposure values, since this requires frame data.
+        float m_ProbeExposureValue = 1.0f;
+
+        //Set and used by the pipeline, depending on the resolved configuration of a probe.
+        public bool ExposureControlEnabled { set; get; }
+
+        internal void SetProbeExposureValue(float exposure)
+        {
+            m_ProbeExposureValue = exposure;
+        }
+
+        internal float ProbeExposureValue()
+        {
+            return m_ProbeExposureValue;
+        }
+
         internal bool requiresRealtimeUpdate
         {
             get
@@ -146,40 +161,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
                 }
             }
-        }
-
-        // This member and function allow us to fetch the exposure value that was used to render the realtime HDProbe
-        // without forcing a sync between the c# and the GPU code. For the moment it shall only be used for planar reflections.
-        private Queue<AsyncGPUReadbackRequest> probeExposureAsyncRequest = new Queue<AsyncGPUReadbackRequest>();
-        internal void RequestProbeExposureValue(RTHandle exposureTexture)
-        {
-            AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(exposureTexture.rt, 0, 0, 1, 0, 1, 0, 1);
-            probeExposureAsyncRequest.Enqueue(singleReadBack);
-        }
-
-        // This float allows us to keep the previous exposure value in case all the finished requests were already dequeued.
-        private float previousExposure = 1.0f;
-
-        // This function processes the asynchronous read-back requests for the exposure and updates the last known exposure value.
-        internal float ProbeExposureValue()
-        {
-            while (probeExposureAsyncRequest.Count != 0)
-            {
-                AsyncGPUReadbackRequest request = probeExposureAsyncRequest.Peek();
-                if (!request.done && !probeExposureAsyncRequest.Peek().hasError)
-                    break;
-
-                // If this has an error, just skip it
-                if (!request.hasError)
-                {
-                    // Grab the native array from this readback
-                    NativeArray<float> exposureValue = probeExposureAsyncRequest.Peek().GetData<float>();
-                    previousExposure = exposureValue[0];
-                }
-                probeExposureAsyncRequest.Dequeue();
-            }
-
-            return previousExposure;
         }
 
         internal bool HasValidRenderedData()
@@ -534,11 +515,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public virtual void PrepareCulling() {}
 
         /// <summary>
-        /// Request to render this probe next update.
-        ///
-        /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
-        /// be rendered the next time it will influence a camera rendering.
+        /// Requests that Unity renders this Reflection Probe during the next update.
         /// </summary>
+        /// <remarks>
+        /// If the Reflection Probe uses <see cref="ProbeSettings.RealtimeMode.OnDemand"/> mode, Unity renders the probe the next time the probe influences a Camera rendering.
+        ///
+        /// If the Reflection Probe doesn't have an attached <see cref="HDAdditionalReflectionData"/> component, calling this function has no effect.
+        ///
+        /// Note: If any part of a Camera's frustum intersects a Reflection Probe's influence volume, the Reflection Probe influences the Camera.
+        /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
         // Forces the re-rendering for both OnDemand and OnEnable

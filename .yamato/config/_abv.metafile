@@ -11,7 +11,7 @@ abv:
     - project: VFX_URP
       pr: true
   expression_trigger:
-    expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 weekly:
   dependencies:
     []
@@ -32,6 +32,10 @@ nightly:
     - project: URP_Performance_LostCrypt
       pr: true
     - project: HDRP_PerformanceTests
+      pr: true
+    - project: VikingVillage_BuiltIn
+      pr: true
+    - project: VikingVillage_URP
       pr: true
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
