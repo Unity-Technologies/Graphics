@@ -1,6 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Universal.Tests
@@ -139,6 +139,17 @@ namespace UnityEngine.Rendering.Universal.Tests
             // Check if Cached Data and the actual data are no longer the same. (We don't save cache on Runtime)
             Assert.AreNotEqual(vertexCount, light.lightMesh.triangles.Length);
             Assert.AreNotEqual(triangleCount, light.lightMesh.vertices.Length);
+        }
+
+        [Test]
+        public void EnsureShapeMeshGenerationDoesNotOverflowAllocation()
+        {
+            var shapePath = new Vector3[4] { new Vector3(-76.04548f, 7.522535f, 0f), new Vector3(-66.52518f, 18.88778f, 0f), new Vector3(-66.35441f, 24.34475f, 0), new Vector3(-75.15407f, 33.0358f, 0) };
+            var light = m_TestObjectCached.AddComponent<Light2D>();
+            light.lightType = Light2D.LightType.Freeform;
+            LightUtility.GenerateShapeMesh(light, shapePath, 180.0f);
+
+            Assert.AreEqual(true, light.hasCachedMesh);
         }
     }
 }
