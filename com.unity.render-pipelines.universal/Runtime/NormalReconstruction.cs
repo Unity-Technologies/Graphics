@@ -33,7 +33,6 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 cviewProjInv = cviewProj.inverse;
 
                 s_NormalReconstructionMatrix[eyeIndex] = cviewProjInv;
-                cmd.SetGlobalMatrix(s_NormalReconstructionMatrixID, cviewProjInv);
             }
 
             cmd.SetGlobalMatrixArray(s_NormalReconstructionMatrixID, s_NormalReconstructionMatrix);
