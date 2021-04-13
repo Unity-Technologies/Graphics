@@ -12,11 +12,19 @@ namespace UnityEditor
     {
         public MaterialProperty workflowMode;
 
+        MaterialProperty[] properties;
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
-            var material = materialEditor.target as Material;
-            bool isShaderGraph = material?.IsShaderGraph() ?? false;
+            // save off the list of all properties for shadergraph
+            this.properties = properties;
+
+            var material = materialEditor?.target as Material;
+            if (material == null)
+                return;
+
+            bool isShaderGraph = material.IsShaderGraph();
 
             base.FindProperties(properties);
             workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode(isShaderGraph), properties, false);
@@ -61,7 +69,7 @@ namespace UnityEditor
         // material main surface inputs
         public override void DrawSurfaceInputs(Material material)
         {
-            DrawShaderGraphProperties(material);
+            DrawShaderGraphProperties(material, properties);
             if ((emissionMapProp != null) && (emissionColorProp != null))
                 DrawEmissionProperties(material, true);
         }

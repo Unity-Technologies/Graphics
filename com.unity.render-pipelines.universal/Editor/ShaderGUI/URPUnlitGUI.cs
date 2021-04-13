@@ -7,6 +7,17 @@ namespace UnityEditor
     // Used for ShaderGraph Unlit shaders
     class URPUnlitGUI : BaseShaderGUI
     {
+        MaterialProperty[] properties;
+
+        // collect properties from the material properties
+        public override void FindProperties(MaterialProperty[] properties)
+        {
+            // save off the list of all properties for shadergraph
+            this.properties = properties;
+
+            base.FindProperties(properties);
+        }
+
         public static void UpdateMaterial(Material material)
         {
             BaseShaderGUI.SetMaterialKeywords(material);
@@ -23,7 +34,7 @@ namespace UnityEditor
         // material main surface inputs
         public override void DrawSurfaceInputs(Material material)
         {
-            DrawShaderGraphProperties(material);
+            DrawShaderGraphProperties(material, properties);
         }
     }
 } // namespace UnityEditor

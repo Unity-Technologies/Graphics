@@ -168,8 +168,11 @@ namespace UnityEditor
 
         public virtual void FindProperties(MaterialProperty[] properties)
         {
-            var material = materialEditor.target as Material;
-            bool isShaderGraph = material?.IsShaderGraph() ?? false;
+            var material = materialEditor?.target as Material;
+            if (material == null)
+                return;
+
+            bool isShaderGraph = material.IsShaderGraph();
             surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties);
             blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties);
             cullingProp = FindProperty(Property.Cull(isShaderGraph), properties);
@@ -192,14 +195,10 @@ namespace UnityEditor
             queueOffsetProp = FindProperty(Property.QueueOffset(isShaderGraph), properties, false);
         }
 
-        protected MaterialProperty[] properties;
-
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
         {
             if (materialEditorIn == null)
                 throw new ArgumentNullException("materialEditorIn");
-
-            this.properties = properties;
 
             materialEditor = materialEditorIn;
             Material material = materialEditor.target as Material;
@@ -252,20 +251,20 @@ namespace UnityEditor
         ////////////////////////////////////
         #region DrawingFunctions
 
-        public void DrawShaderGraphProperties(Material material)
+        public void DrawShaderGraphProperties(Material material, IEnumerable<MaterialProperty> properties)
         {
             if (properties == null)
                 return;
 
-            for (var i = 0; i < properties.Length; i++)
+            foreach (var prop in properties)
             {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
 
-                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
+                float h = materialEditor.GetPropertyHeight(prop, prop.displayName);
                 Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
 
-                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
+                materialEditor.ShaderProperty(r, prop, prop.displayName);
             }
         }
 
@@ -285,25 +284,20 @@ namespace UnityEditor
         public virtual void DrawSurfaceOptions(Material material)
         {
             DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
-            if ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent)
+            if ((surfaceTypeProp != null) && ((SurfaceType)surfaceTypeProp.floatValue == SurfaceType.Transparent))
                 DoPopup(Styles.blendingMode, blendModeProp, Styles.blendModeNames);
 
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
             DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
             DoPopup(Styles.ztestText, ztestProp, Styles.ztestNames);
 
-            // materialEditor.ShaderProperty(alphaClipProp, Styles.alphaClipText);      // this fails for ShaderGraphs, that can't tag it as [ToggleUI]
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
-            if ((alphaClipProp.floatValue == 1) && (alphaCutoffProp != null))
+
+            if ((alphaClipProp != null) && (alphaCutoffProp != null) && (alphaClipProp.floatValue == 1))
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
-            if (castShadowsProp != null)
-                // materialEditor.ShaderProperty(castShadowsProp, Styles.castShadowText);
-                DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
-
-            if (receiveShadowsProp != null)
-                // materialEditor.ShaderProperty(receiveShadowsProp, Styles.receiveShadowText);
-                DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
+            DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
+            DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
         }
 
         public virtual void DrawSurfaceInputs(Material material)
@@ -336,12 +330,12 @@ namespace UnityEditor
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
             var emissive = true;
-            var hadEmissionTexture = emissionMapProp.textureValue != null;
+            var hadEmissionTexture = emissionMapProp?.textureValue != null;
 
             if (!keyword)
             {
-                materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
-                    false);
+                if ((emissionMapProp != null) && (emissionColorProp != null))
+                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
             }
             else
             {
@@ -351,17 +345,20 @@ namespace UnityEditor
                 EditorGUI.BeginDisabledGroup(!emissive);
                 {
                     // Texture and HDR color controls
-                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp,
-                        emissionColorProp,
-                        false);
+                    if ((emissionMapProp != null) && (emissionColorProp != null))
+                        materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
                 }
                 EditorGUI.EndDisabledGroup();
             }
 
             // If texture was assigned and color was black set color to white
-            var brightness = emissionColorProp.colorValue.maxColorComponent;
-            if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
-                emissionColorProp.colorValue = Color.white;
+            float brightness = 1.0f;
+            if ((emissionMapProp != null) && (emissionColorProp != null))
+            {
+                brightness = emissionColorProp.colorValue.maxColorComponent;
+                if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
+                    emissionColorProp.colorValue = Color.white;
+            }
 
             // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
@@ -397,7 +394,8 @@ namespace UnityEditor
 
         protected static void DrawTileOffset(MaterialEditor materialEditor, MaterialProperty textureProp)
         {
-            materialEditor.TextureScaleOffsetProperty(textureProp);
+            if (textureProp != null)
+                materialEditor.TextureScaleOffsetProperty(textureProp);
         }
 
         #endregion
