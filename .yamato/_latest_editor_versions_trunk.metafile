@@ -25,7 +25,7 @@ editor_versions:
       updated_at: '2021-04-09 23:47:46.937857'
       version: ''
     XRQuest:
-      revision: 7a5ff5ef6845c9788af4ede00cde1808fc22ab41
+      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
       updated_at: '2021-02-20 23:56:31.100339'
       version: ''
   trunk_latest_public:
@@ -75,6 +75,6 @@ editor_versions:
       updated_at: '2021-04-09 23:47:46.937857'
       version: ''
     XRQuest:
-      revision: 7a5ff5ef6845c9788af4ede00cde1808fc22ab41
+      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
       updated_at: '2021-02-20 23:56:31.100339'
       version: ''
