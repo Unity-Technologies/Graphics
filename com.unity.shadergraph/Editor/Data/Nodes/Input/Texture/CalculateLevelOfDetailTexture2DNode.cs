@@ -85,10 +85,11 @@ namespace UnityEditor.ShaderGraph
                 var delta_max_sqr = string.Format("max(dot({0}, {0}), dot({1}, {1}))", dUVdx, dUVdy);
                 sb.AppendLine(string.Format("$precision {0};", GetVariableNameForSlot(OutputSlotLODId)));
                 sb.AppendLine(string.Format("{0} = 0.5f*log2({1});", GetVariableNameForSlot(OutputSlotLODId), delta_max_sqr));
+                sb.AppendLine(string.Format("{0} = max({0}, 0);", GetVariableNameForSlot(OutputSlotLODId)));
                 if (m_Clamp)
                 {
                     sb.AppendLine("#if defined(MIP_COUNT_SUPPORTED)");
-                    sb.AppendLine(string.Format("{0} = clamp({0}, 0, GetMipCount({1}.tex)-1);", GetVariableNameForSlot(OutputSlotLODId), id));
+                    sb.AppendLine(string.Format("{0} = min({0}, GetMipCount({1}.tex)-1);", GetVariableNameForSlot(OutputSlotLODId), id));
                     sb.AppendLine("#endif");
                 }
             }
