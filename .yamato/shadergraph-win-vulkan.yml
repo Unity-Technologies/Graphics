@@ -21,6 +21,7 @@ ShaderGraph_Win_Vulkan_Standalone_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  python wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -216,6 +217,7 @@ ShaderGraph_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  python wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
