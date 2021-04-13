@@ -666,6 +666,20 @@ namespace UnityEditor.VFX
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }
 
+        static public VFXExpression GetOrthographicMatrix(VFXExpression orthoSize, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
+        {
+            var deltaZ = zNear - zFar;
+            var oneOverSize = OneExpression[VFXValueType.Float] / orthoSize;
+
+            var zero = ZeroExpression[VFXValueType.Float];
+            var m0 = new VFXExpressionCombine(oneOverSize / aspect, zero, zero, zero);
+            var m1 = new VFXExpressionCombine(zero, oneOverSize, zero, zero);
+            var m2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float] / deltaZ, zero);
+            var m3 = new VFXExpressionCombine(zero, zero,  (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+
+            return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+        }
+
         static public VFXExpression Atan2(VFXExpression coord)
         {
             var components = ExtractComponents(coord).ToArray();

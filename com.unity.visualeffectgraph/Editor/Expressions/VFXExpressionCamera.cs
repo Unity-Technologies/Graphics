@@ -178,16 +178,39 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.IsCameraOrthographic;
+                return VFXExpressionOperation.GetCameraOrthographic;
             }
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             if (Camera.main != null)
-                return VFXValue.Constant(Camera.main.cameraToWorldMatrix);
+                return VFXValue.Constant(Camera.main.orthographic);
             else
-                return VFXValue.Constant(CameraType.defaultValue.transform);
+                return VFXValue.Constant(false);
+        }
+    }
+
+    class VFXExpressionGetCameraOrthographicSize : VFXExpression
+    {
+        public VFXExpressionGetCameraOrthographicSize() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.GetCameraOrthographicSize;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.orthographicSize);
+            else
+                return VFXValue.Constant(CameraType.defaultValue.orthographicSize);
         }
     }
 

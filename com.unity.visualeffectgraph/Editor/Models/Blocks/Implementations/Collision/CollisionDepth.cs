@@ -73,7 +73,9 @@ namespace UnityEditor.VFX.Block
                     t.name != "Camera_fieldOfView" &&
                     t.name != "Camera_aspectRatio" &&
                     t.name != "Camera_transform" &&
-                    t.name != "Camera_colorBuffer");
+                    t.name != "Camera_colorBuffer" &&
+                    t.name != "Camera_isOrthographic" &&
+                    t.name != "Camera_orthographicSize");
 
                 foreach (var e in expressions)
                     yield return e;
@@ -110,11 +112,11 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
     float linearEyeDepth;
     if (IsPerspectiveProjection())
     {
-        linearEyeDepth = n + depth * (f-n);
+        linearEyeDepth = n * f / (depth * (n - f) + f);
     }
     else
     {
-        linearEyeDepth = n * f / (depth * (n - f) + f);
+        linearEyeDepth = n + depth * (f-n);
     }";
 
                 if (surfaceThickness == SurfaceThickness.Infinite)
@@ -153,7 +155,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
         float3 n = normalize(cross(vPos01.xyz - viewPos,vPos10.xyz - viewPos));
         n = normalize(mul((float3x3)ViewToVFX,n));
 
-        viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
+        viewPos *= 1.0f - (radius + VFX_EPSILON) / linearEyeDepth; // Push based on radius
         position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;";
 
                 Source += collisionResponseSource;
