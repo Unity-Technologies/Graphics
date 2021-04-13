@@ -27,6 +27,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<JsonRef<ShaderInput>> m_Inputs = new List<JsonRef<ShaderInput>>();
 
+        [SerializeField]
+        List<JsonRef<CategoryData>> m_Categories = new List<JsonRef<CategoryData>>();
+
         // The meta properties are properties that are not copied into the target graph
         // but sent along to allow property nodes to still hvae the data from the original
         // property present.
@@ -46,9 +49,16 @@ namespace UnityEditor.ShaderGraph
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
-                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,
-                              bool keepOutputEdges = false, bool removeOrphanEdges = true)
+        public CopyPasteGraph(IEnumerable<GroupData> groups,
+                                IEnumerable<AbstractMaterialNode> nodes,
+                                IEnumerable<Edge> edges,
+                                IEnumerable<ShaderInput> inputs,
+                                IEnumerable<CategoryData> categories,
+                                IEnumerable<AbstractShaderProperty> metaProperties,
+                                IEnumerable<ShaderKeyword> metaKeywords,
+                                IEnumerable<StickyNoteData> notes,
+                                bool keepOutputEdges = false,
+                                bool removeOrphanEdges = true)
         {
             if (groups != null)
             {
@@ -90,6 +100,12 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var input in inputs)
                     AddInput(input);
+            }
+
+            if (categories != null)
+            {
+                foreach (var category in categories)
+                    AddCategory(category);
             }
 
             if (metaProperties != null)
@@ -137,6 +153,11 @@ namespace UnityEditor.ShaderGraph
             m_Inputs.Add(input);
         }
 
+        void AddCategory(CategoryData category)
+        {
+            m_Categories.Add(category);
+        }
+
         void AddMetaProperty(AbstractShaderProperty metaProperty)
         {
             m_MetaProperties.Add(metaProperty);
@@ -166,6 +187,11 @@ namespace UnityEditor.ShaderGraph
         public RefValueEnumerable<ShaderInput> inputs
         {
             get { return m_Inputs.SelectValue(); }
+        }
+
+        public RefValueEnumerable<CategoryData> categories
+        {
+            get { return m_Categories.SelectValue(); }
         }
 
         public DataValueEnumerable<AbstractShaderProperty> metaProperties

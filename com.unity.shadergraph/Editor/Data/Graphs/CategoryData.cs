@@ -115,6 +115,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public CategoryData(CategoryData categoryToCopy)
+        {
+            this.name = categoryToCopy.name;
+        }
+
         public static CategoryData DefaultCategory(List<ShaderInput> categoryChildren = null)
         {
             return new CategoryData(String.Empty, categoryChildren);

@@ -112,9 +112,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
+        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel, BlackboardCategoryController inController)
         {
             m_ViewModel = categoryViewModel;
+            controller = inController;
+            userData = controller.Model;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load(k_UxmlPath) as VisualTreeAsset;

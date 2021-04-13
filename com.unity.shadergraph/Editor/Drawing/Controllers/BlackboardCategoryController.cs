@@ -63,6 +63,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HashSet<string> categoriesToRemoveGuids { get; set; } = new HashSet<string>();
     }
 
+    class CopyCategoryAction : IGraphDataAction
+    {
+        void CopyCategory(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyCategoryAction");
+
+            // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
+            //graphData.owner.RegisterCompleteObjectUndo("Copy Category");
+            graphData.CopyCategory(categoryToCopyGuid);
+        }
+
+        public string categoryToCopyGuid { get; set; }
+
+        public Action<GraphData> modifyGraphDataAction => CopyCategory;
+    }
+
     class ChangeCategoryIsExpandedAction : IGraphDataAction
     {
         internal const string kEditorPrefKey = ".isCategoryExpanded";
@@ -118,8 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal BlackboardCategoryController(CategoryData categoryData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
             : base(categoryData, categoryViewModel, dataStore)
         {
-            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
-            m_BlackboardCategoryView.controller = this;
+            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel, this);
             blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
                 return;

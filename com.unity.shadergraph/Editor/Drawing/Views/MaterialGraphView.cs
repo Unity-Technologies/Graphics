@@ -833,22 +833,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
 
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
+            List<CategoryData> selectedCategories = new List<CategoryData>();
+
             foreach (var selectable in selection)
             {
-                ShaderInput shaderProp = (ShaderInput)((SGBlackboardField)selectable).userData;
-                if (shaderProp != null)
+                if (selectable is SGBlackboardCategory blackboardCategory)
                 {
-                    selectedProperties.Add(shaderProp);
+                    selectedCategories.Add(blackboardCategory.controller.Model);
                 }
+                else if (selectable is SGBlackboardField blackboardField)
+                {
+                    selectedProperties.Add(blackboardField.controller.Model);
+                }
+            }
+
+            foreach (var shaderInput in selectedProperties)
+            {
+                
             }
 
             // Sort so that the ShaderInputs are in the correct order
             selectedProperties.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            CopyPasteGraph copiedProperties = new CopyPasteGraph(null, null, null, selectedProperties,
-                null, null, null);
+            CopyPasteGraph copiedItems = new CopyPasteGraph(null, null, null, selectedProperties, selectedCategories, null, null, null);
 
-            GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
+            GraphViewExtensions.InsertCopyPasteGraph(this, copiedItems);
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -869,6 +878,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => (Graphing.Edge)x.userData);
             var inputs = selection.OfType<SGBlackboardField>().Select(x => x.userData as ShaderInput).ToList();
+            var categories = elements.OfType<SGBlackboardCategory>().Select(x => x.userData as CategoryData).ToList();
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
@@ -880,7 +890,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Sort so that the ShaderInputs are in the correct order
             inputs.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            var copyPasteGraph = new CopyPasteGraph(groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
+            var copyPasteGraph = new CopyPasteGraph(groups, nodes, edges, inputs, categories, metaProperties, metaKeywords, notes);
             return MultiJson.Serialize(copyPasteGraph);
         }
 
@@ -1265,6 +1275,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 graphView.graph.owner.graphDataStore.Dispatch(copyShaderInputAction);
             }
+
+            // Make new categories from the copied graph
+            foreach (var category in copyGraph.categories)
+            {
+                var copyCategoryAction = new CopyCategoryAction() { categoryToCopyGuid = category.categoryGuid };
+                graphView.graph.owner.graphDataStore.Dispatch(copyCategoryAction);
+            }
+
 
             // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
             foreach (SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())

@@ -1644,6 +1644,7 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == categoryGUID)
                 {
                     categoryData.name = newName;
+                    return;
                 }
             }
         }
@@ -1671,6 +1672,7 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == categoryGUID)
                 {
                     categoryData.RemoveItemFromCategory(itemToRemove);
+                    return;
                 }
             }
         }
@@ -1687,6 +1689,29 @@ namespace UnityEditor.ShaderGraph
                     // Whenever a category is removed, also remove any inputs within that category
                     foreach (var shaderInput in categoryData.Children)
                         RemoveGraphInput(shaderInput);
+
+                    return;
+                }
+            }
+        }
+
+        public void CopyCategory(string categoryGUID)
+        {
+            foreach (var categoryData in categories.ToList())
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    var copiedCategory = new CategoryData(categoryData);
+                    AddCategory(copiedCategory);
+                    int insertIndex = 0;
+                    // Whenever a category is copied, also copy over all the inputs within that category
+                    foreach (var childInputToCopy in copiedCategory.Children)
+                    {
+                        var newShaderInput = AddCopyOfShaderInput(childInputToCopy, insertIndex);
+                        copiedCategory.InsertItemIntoCategory(newShaderInput);
+                        insertIndex++;
+                    }
+                    return;
                 }
             }
         }
