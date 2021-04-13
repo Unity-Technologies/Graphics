@@ -8,14 +8,14 @@ TEXTURE2D (_BlitTexture);
 TEXTURE2D (_InputDepthTexture);
 SamplerState sampler_PointClamp;
 SamplerState sampler_LinearClamp;
-uniform real4 _BlitScaleBias;
-uniform real _BlitMipLevel;
+uniform float4 _BlitScaleBias;
+uniform float _BlitMipLevel;
 
 #if SHADER_API_GLES
 struct Attributes
 {
-    real4 positionCS       : POSITION;
-    real2 uv               : TEXCOORD0;
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 #else
@@ -28,8 +28,8 @@ struct Attributes
 
 struct Varyings
 {
-    real4 positionCS : SV_POSITION;
-    real2 texcoord   : TEXCOORD0;
+    float4 positionCS : SV_POSITION;
+    float2 texcoord   : TEXCOORD0;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -40,11 +40,11 @@ Varyings Vert(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if SHADER_API_GLES
-    real4 pos = input.positionCS;
-    real2 uv  = input.uv;
+    float4 pos = input.positionCS;
+    float2 uv  = input.uv;
 #else
-    real4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
-    real2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 #endif
 
     output.positionCS = pos;
@@ -52,7 +52,7 @@ Varyings Vert(Attributes input)
     return output;
 }
 
-real4 FragColorOnly(Varyings input) : SV_Target
+float4 FragColorOnly(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -61,8 +61,8 @@ real4 FragColorOnly(Varyings input) : SV_Target
 
 struct PixelData
 {
-    real4 color : SV_Target;
-    real  depth : SV_Depth;
+    float4 color : SV_Target;
+    float  depth : SV_Depth;
 };
 
 PixelData FragColorAndDepth(Varyings input)

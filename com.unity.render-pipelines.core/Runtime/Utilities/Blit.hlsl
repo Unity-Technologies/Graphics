@@ -11,18 +11,18 @@ SamplerState sampler_PointClamp;
 SamplerState sampler_LinearClamp;
 SamplerState sampler_PointRepeat;
 SamplerState sampler_LinearRepeat;
-uniform real4 _BlitScaleBias;
-uniform real4 _BlitScaleBiasRt;
-uniform real _BlitMipLevel;
-uniform real2 _BlitTextureSize;
+uniform float4 _BlitScaleBias;
+uniform float4 _BlitScaleBiasRt;
+uniform float _BlitMipLevel;
+uniform float2 _BlitTextureSize;
 uniform uint _BlitPaddingSize;
 uniform int _BlitTexArraySlice;
 
 #if SHADER_API_GLES
 struct Attributes
 {
-    real4 positionCS       : POSITION;
-    real2 uv               : TEXCOORD0;
+    float4 positionCS       : POSITION;
+    float2 uv               : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 #else
@@ -35,8 +35,8 @@ struct Attributes
 
 struct Varyings
 {
-    real4 positionCS : SV_POSITION;
-    real2 texcoord   : TEXCOORD0;
+    float4 positionCS : SV_POSITION;
+    float2 texcoord   : TEXCOORD0;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -47,11 +47,11 @@ Varyings Vert(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if SHADER_API_GLES
-    real4 pos = input.positionCS;
-    real2 uv  = input.uv;
+    float4 pos = input.positionCS;
+    float2 uv  = input.uv;
 #else
-    real4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
-    real2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
+    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
 #endif
 
     output.positionCS = pos;
@@ -66,15 +66,15 @@ Varyings VertQuad(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if SHADER_API_GLES
-    real4 pos = input.positionCS;
-    real2 uv  = input.uv;
+    float4 pos = input.positionCS;
+    float2 uv  = input.uv;
 #else
-    real4 pos = GetQuadVertexPosition(input.vertexID);
-    real2 uv  = GetQuadTexCoord(input.vertexID);
+    float4 pos = GetQuadVertexPosition(input.vertexID);
+    float2 uv  = GetQuadTexCoord(input.vertexID);
 #endif
 
-    output.positionCS    = pos * real4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + real4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
-    output.positionCS.xy = output.positionCS.xy * real2(2.0f, -2.0f) + real2(-1.0f, 1.0f); //convert to -1..1
+    output.positionCS    = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.texcoord      = uv * _BlitScaleBias.xy + _BlitScaleBias.zw;
     return output;
 }
@@ -85,26 +85,26 @@ Varyings VertQuadPadding(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    real2 scalePadding = ((_BlitTextureSize + real(_BlitPaddingSize)) / _BlitTextureSize);
-    real2 offsetPaddding = (real(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
+    float2 scalePadding = ((_BlitTextureSize + float(_BlitPaddingSize)) / _BlitTextureSize);
+    float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
 
 #if SHADER_API_GLES
-    real4 pos = input.positionCS;
-    real2 uv  = input.uv;
+    float4 pos = input.positionCS;
+    float2 uv  = input.uv;
 #else
-    real4 pos = GetQuadVertexPosition(input.vertexID);
-    real2 uv  = GetQuadTexCoord(input.vertexID);
+    float4 pos = GetQuadVertexPosition(input.vertexID);
+    float2 uv  = GetQuadTexCoord(input.vertexID);
 #endif
 
-    output.positionCS = pos * real4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + real4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
-    output.positionCS.xy = output.positionCS.xy * real2(2.0f, -2.0f) + real2(-1.0f, 1.0f); //convert to -1..1
+    output.positionCS = pos * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.texcoord = uv;
     output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
     output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
     return output;
 }
 
-real4 Frag(Varyings input, SamplerState s)
+float4 Frag(Varyings input, SamplerState s)
 {
 #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_BlitTexture, s, input.texcoord.xy, _BlitTexArraySlice, _BlitMipLevel);
@@ -114,95 +114,95 @@ real4 Frag(Varyings input, SamplerState s)
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, s, input.texcoord.xy, _BlitMipLevel);
 }
 
-real4 FragNearest(Varyings input) : SV_Target
+float4 FragNearest(Varyings input) : SV_Target
 {
     return Frag(input, sampler_PointClamp);
 }
 
-real4 FragBilinear(Varyings input) : SV_Target
+float4 FragBilinear(Varyings input) : SV_Target
 {
     return Frag(input, sampler_LinearClamp);
 }
 
-real4 FragBilinearRepeat(Varyings input) : SV_Target
+float4 FragBilinearRepeat(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
 }
 
-real4 FragNearestRepeat(Varyings input) : SV_Target
+float4 FragNearestRepeat(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_PointRepeat, uv, _BlitMipLevel);
 }
 
-real4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
+float4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real u = input.texcoord.x;
-    real v = input.texcoord.y;
+    float u = input.texcoord.x;
+    float v = input.texcoord.y;
 
-    real2 uv;
+    float2 uv;
     if (u < 0.0f)
     {
         if (v < 0.0f)
-            uv = real2(1.0f + u, 1.0f + v);
+            uv = float2(1.0f + u, 1.0f + v);
         else if (v < 1.0f)
-            uv = real2(-u, 1.0f - v);
+            uv = float2(-u, 1.0f - v);
         else
-            uv = real2(1.0f + u, v - 1.0f);
+            uv = float2(1.0f + u, v - 1.0f);
     }
     else if (u < 1.0f)
     {
         if (v < 0.0f)
-            uv = real2(1.0f - u, -v);
+            uv = float2(1.0f - u, -v);
         else if (v < 1.0f)
-            uv = real2(u, v);
+            uv = float2(u, v);
         else
-            uv = real2(1.0f - u, 2.0f - v);
+            uv = float2(1.0f - u, 2.0f - v);
     }
     else
     {
         if (v < 0.0f)
-            uv = real2(u - 1.0f, 1.0f + v);
+            uv = float2(u - 1.0f, 1.0f + v);
         else if (v < 1.0f)
-            uv = real2(2.0f - u, 1.0f - v);
+            uv = float2(2.0f - u, 1.0f - v);
         else
-            uv = real2(u - 1.0f, v - 1.0f);
+            uv = float2(u - 1.0f, v - 1.0f);
     }
 
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
 }
 
-real4 FragOctahedralProject(Varyings input) : SV_Target
+float4 FragOctahedralProject(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 UV = saturate(input.texcoord);
-    real3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
-    return real4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+    float2 UV = saturate(input.texcoord);
+    float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+    return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
 }
 
-real4 FragBilinearLuminance(Varyings input) : SV_Target
+float4 FragBilinearLuminance(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
     // sRGB/Rec.709
     return Luminance(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel)).xxxx;
 }
 
-real4 FragBilinearRedToRGBA(Varyings input) : SV_Target
+float4 FragBilinearRedToRGBA(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
     return Luminance(SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel)).rrrr;
 }
 
-real4 FragBilinearAlphaToRGBA(Varyings input) : SV_Target
+float4 FragBilinearAlphaToRGBA(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    real2 uv = input.texcoord.xy;
+    float2 uv = input.texcoord.xy;
     return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel).aaaa;
 }
 
