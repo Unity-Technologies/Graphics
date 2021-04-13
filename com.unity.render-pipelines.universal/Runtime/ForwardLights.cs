@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
 
-            var tilingLevels = 4;
+            var tilingLevels = 3;
             var tile0Width = 16;
             var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
 
@@ -168,28 +168,35 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var tileResolution = groupResolution * FineTilingJob.groupWidth;
                 var tileCount = tileResolution.x * tileResolution.y;
                 var groupCount = groupResolution.x * groupResolution.y;
+                int groupWordCount = groupCount * lightsPerTile / 32;
 
-                NativeArray<uint> groupTiles;
+                var groupTilesActive = new NativeArray<uint>(groupWordCount, Allocator.TempJob);
+                NativeArray<uint> groupTilesHit;
                 if (i == 0)
                 {
-                    // TODO: Screen rect initialization?
-                    int groupWordCount = groupCount * lightsPerTile / 32;
-                    groupTiles = new NativeArray<uint>(groupWordCount, Allocator.TempJob);
-                    for (var groupIndex = 0; groupIndex < groupCount; groupIndex++)
+                    groupTilesHit = new NativeArray<uint>(groupWordCount, Allocator.TempJob);
+                    var initTilesJob = new InitTilesJob
                     {
-                        for (var lightIndex = 0; lightIndex < reorderedLights.Length; lightIndex++)
-                        {
-                            var lightOffset = lightIndex / 32;
-                            var lightMask = 1u << (lightIndex % 32);
-                            int groupOffset = groupIndex * (lightsPerTile / 32);
-                            groupTiles[groupOffset + lightOffset] = groupTiles[groupOffset + lightOffset] | lightMask;
-                        }
-                    }
+                        tilesHit = groupTilesHit,
+                        tilesActive = groupTilesActive,
+                        tileResolution = groupResolution,
+                        lightCount = lightCount,
+                        lightsPerTile = lightsPerTile
+                    };
+                    tilingHandle = initTilesJob.ScheduleParallel(groupCount, 16, tilingHandle);
                 }
                 else
                 {
-                    groupTiles = tiles;
-                    Assert.AreEqual(groupCount * lightsPerTile / 32, groupTiles.Length);
+                    groupTilesHit = tiles;
+                    var activeTilesJob = new ActiveTilesJob
+                    {
+                        tilesHit = groupTilesHit,
+                        tilesActive = groupTilesActive,
+                        tileResolution = groupResolution,
+                        lightCount = lightCount,
+                        lightsPerTile = lightsPerTile
+                    };
+                    tilingHandle = activeTilesJob.ScheduleParallel(groupCount, 16, tilingHandle);
                 }
 
                 tiles = new NativeArray<uint>(tileCount * lightsPerTile / 32, Allocator.TempJob);
@@ -199,17 +206,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tilingJob.lights = lightExtractionJob.tilingLights;
                 tilingJob.lightsPerTile = lightsPerTile;
                 tilingJob.tiles = tiles;
-                tilingJob.groupTiles = groupTiles;
+                tilingJob.groupTilesHit = groupTilesHit;
+                tilingJob.groupTilesActive = groupTilesActive;
                 tilingJob.screenResolution = screenResolution;
                 tilingJob.groupResolution = groupResolution;
                 tilingJob.tileResolution = tileResolution;
                 tilingJob.tileWidth = tileWidth;
-                tilingJob.viewForward = camera.transform.forward;
+                tilingJob.viewForward = camera.transform.forward.normalized;
                 tilingJob.viewRight = camera.transform.right * fovHalfWidth;
                 tilingJob.viewUp = camera.transform.up * fovHalfHeight;
-                tilingJob.tileAperture = math.SQRT2 * fovHalfHeight / (((float)screenResolution.y / (float)tileWidth));
+                tilingJob.tileAperture = 2f * math.SQRT2 * fovHalfHeight / (((float)screenResolution.y / (float)tileWidth));
                 tilingHandle = tilingJob.ScheduleParallel(groupCount, 1, tilingHandle);
-                groupTiles.Dispose(tilingHandle);
+                groupTilesHit.Dispose(tilingHandle);
+                groupTilesActive.Dispose(tilingHandle);
 
                 groupResolution = tileResolution;
                 groupWidth = tileWidth;

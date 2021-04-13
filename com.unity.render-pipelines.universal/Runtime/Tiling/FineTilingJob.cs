@@ -1,6 +1,5 @@
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -21,7 +20,10 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<uint> tiles;
 
         [ReadOnly]
-        public NativeArray<uint> groupTiles;
+        public NativeArray<uint> groupTilesHit;
+
+        [ReadOnly]
+        public NativeArray<uint> groupTilesActive;
 
         public int2 screenResolution;
 
@@ -51,10 +53,15 @@ namespace UnityEngine.Rendering.Universal
             // - P screen space pixels
             // - T tile
             // - W world
-            var groupWidthP = groupWidth * tileWidth;
             var groupIdG = math.int2(groupIndex % groupResolution.x, groupIndex / groupResolution.x);
             var groupIdT = groupIdG * groupWidth;
             var groupOffset = groupIndex * (lightsPerTile / 32);
+
+            var groupWidthP = tileWidth * groupWidth;
+            var groupIdP = groupIdG * groupWidthP;
+            var groupRectS = new Rect((float2)groupIdP / screenResolution, math.float2(groupWidthP, groupWidthP) / screenResolution);
+
+            if (math.any(groupIdP >= screenResolution)) return;
 
             var directionWs = stackalloc float3[groupLength];
             var apertures = stackalloc float[groupLength];
@@ -65,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var coneIdG = math.int2(coneIndexG % groupWidth, coneIndexG / groupWidth);
                 var coneIdT = groupIdT + coneIdG;
-                var coneCenterNDC = ((float)tileWidth * ((float2)coneIdT + 0.5f) / (float2)screenResolution) * 2.0f - 1.0f;
+                var coneCenterNDC = (((float)tileWidth * ((float2)coneIdT + 0.5f)) / (float2)screenResolution) * 2.0f - 1.0f;
                 var nearPlanePosition = viewForward + viewRight * coneCenterNDC.x + viewUp * coneCenterNDC.y;
                 directionWs[coneIndexG] = nearPlanePosition / math.length(nearPlanePosition);
                 apertures[coneIndexG] = tileAperture / math.length(nearPlanePosition);
@@ -78,16 +85,28 @@ namespace UnityEngine.Rendering.Universal
             for (var wordIndex = 0; wordIndex < wordCount; wordIndex++)
             {
                 var groupTilesIndex = groupOffset + wordIndex;
-                var active = groupTiles[groupTilesIndex];
+                var hit = groupTilesHit[groupTilesIndex];
+                var active = groupTilesActive[groupTilesIndex];
+                var remaining = active;
 
-                while (active != 0)
+                var lightsInWord = wordIndex == wordCount - 1 ? lightCount % 32 : 32;
+                var lightRangeMask = 0xFFFFFFFFu >> -lightsInWord;
+
+                while (remaining != 0)
                 {
-                    var bitIndex = math.tzcnt(active);
-                    active &= ~(1u << bitIndex);
+                    var bitIndex = math.tzcnt(remaining);
+                    var lightMask = 1u << bitIndex;
+                    remaining ^= lightMask;
 
                     var lightIndex = wordIndex * 32 + bitIndex;
                     var light = lights[lightIndex];
-                    var lightMask = 1u << bitIndex;
+
+                    if (!light.screenRect.Overlaps(groupRectS))
+                    {
+                        hit &= ~lightMask;
+                        active ^= lightMask;
+                        continue;
+                    }
 
                     if (light.lightType == LightType.Point)
                     {
@@ -102,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
                 {
                     var tilesIndex = tilesOffsets[coneIndexG] + wordIndex;
-                    tiles[tilesIndex] = tiles[tilesIndex] | currentLights[coneIndexG];
+                    tiles[tilesIndex] = tiles[tilesIndex] | currentLights[coneIndexG] | (~active & hit & lightRangeMask);
                     currentLights[coneIndexG] = 0;
                 }
             }
