@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added _SURFACE_TYPE_TRANSPARENT keyword to URP shaders.
 - Added Depth and DepthNormals passes to particles shaders.
 - Added support for SSAO in Particle and Unlit shaders.
+- Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.
 
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
