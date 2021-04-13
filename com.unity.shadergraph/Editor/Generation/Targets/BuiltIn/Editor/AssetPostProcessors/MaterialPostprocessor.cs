@@ -21,6 +21,10 @@ namespace UnityEditor.Rendering.BuiltIn
 
     class MaterialReimporter : Editor
     {
+        // Currently this is never called because there's no way for built-in target shader graph
+        // materials to track when they need to be upgraded at a global level. To do this currently
+        // we'd have to iterate over all materials to see if they need upgrading. We may want to add a
+        // global settings object like UniversalProjectSettings but for built-in to track this.
         static void ReimportAllMaterials()
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
