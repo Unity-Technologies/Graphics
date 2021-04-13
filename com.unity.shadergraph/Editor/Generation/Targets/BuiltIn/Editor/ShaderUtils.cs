@@ -11,14 +11,18 @@ namespace Unity.Rendering.BuiltIn
             Unknown = -1,
 
             // ShaderGraph IDs start at 1000, correspond to subtargets
-            SG_Unlit = 1000,        // BuiltInUnlitSubTarget
+            SG_Start = 1000,
+            SG_Unlit = SG_Start,        // BuiltInUnlitSubTarget
             SG_Lit,                 // BuiltInLitSubTarget
+        }
+
+        internal static bool IsShaderGraph(this ShaderID id)
+        {
+            return (id >= ShaderID.SG_Start);
         }
 
         internal static ShaderID GetShaderID(Shader shader)
         {
-            // TODO:
-            // this won't work for non-Asset shaders...  luckily I think that's the only kind we care about versioning properly..
             if (shader.IsShaderGraph())
             {
                 BuiltInMetadata meta;
@@ -32,32 +36,22 @@ namespace Unity.Rendering.BuiltIn
             }
         }
 
-        public static void ResetMaterialKeywords(Material material)
+        internal static void ResetMaterialKeywords(Material material, ShaderID shaderID = ShaderID.Unknown)
         {
-            var sgTargetId = material.GetTag("ShaderGraphTargetId", false, null);
-            if (sgTargetId == "BuiltInLitSubTarget")
+            // if unknown, look it up from the material's shader
+            // NOTE: this will only work for asset-based shaders..
+            if (shaderID == ShaderID.Unknown)
+                shaderID = GetShaderID(material.shader);
+
+            switch (shaderID)
             {
-                BuiltInLitGUI.UpdateMaterial(material);
-            }
-            else if (sgTargetId == "BuiltInUnlitSubTarget")
-            {
-                BuiltInUnlitGUI.UpdateMaterial(material);
-            }
-            else
-            {
-                ShaderID shaderID = GetShaderID(material.shader);
-                switch (shaderID)
-                {
-                    case ShaderID.SG_Lit:
-                        BuiltInLitGUI.UpdateMaterial(material);
-                        break;
-                    case ShaderID.SG_Unlit:
-                        BuiltInUnlitGUI.UpdateMaterial(material);
-                        break;
-                    // TODO: handle other shaders that need keyword resets here
-                    default:
-                        break;
-                }
+                case ShaderID.SG_Lit:
+                    BuiltInLitGUI.UpdateMaterial(material);
+                    break;
+                case ShaderID.SG_Unlit:
+                    BuiltInUnlitGUI.UpdateMaterial(material);
+                    break;
+                // We don't need to handle any other shaders from built-in (no special shaders)
             }
         }
     }

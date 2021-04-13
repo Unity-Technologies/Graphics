@@ -21,8 +21,6 @@ namespace UnityEditor.Rendering.BuiltIn
 
     class MaterialReimporter : Editor
     {
-        static bool s_NeedToCheckProjSettingExistence = true;
-
         static void ReimportAllMaterials()
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
@@ -59,21 +57,26 @@ namespace UnityEditor.Rendering.BuiltIn
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            var upgradeLog = "BuiltInRP Material log:";
             var upgradeCount = 0;
 
             foreach (var asset in importedAssets)
             {
+                // We only care about materials
                 if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
+                // Load the material and look for it's BuiltIn ShaderID.
+                // We only care about versioning materials using a known BuiltIn ShaderID.
+                // This skips any materials that only target other render pipelines, are user shaders,
+                // or are shaders we don't care to version
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                var shaderID = GetShaderID(material.shader);
+                if (shaderID == ShaderID.Unknown)
+                    continue;
 
-                ShaderID id = ShaderUtils.GetShaderID(material.shader);
                 var wasUpgraded = false;
 
-                var debug = "\n" + material.name;
-
+                // Look for the BuiltIn AssetVersion
                 AssetVersion assetVersion = null;
                 var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
                 foreach (var subAsset in allAssets)
@@ -88,17 +91,17 @@ namespace UnityEditor.Rendering.BuiltIn
                 {
                     wasUpgraded = true;
                     assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                    // The asset was newly created, force initialize them
                     if (s_CreatedAssets.Contains(asset))
                     {
                         assetVersion.version = k_Upgraders.Length;
                         s_CreatedAssets.Remove(asset);
-                        InitializeLatest(material, id);
-                        debug += " initialized.";
+                        InitializeLatest(material, shaderID);
                     }
-                    else
+                    else if (shaderID.IsShaderGraph())
                     {
-                        //assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
-                        //debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
+                        // Assumed to be version 0 since to asset version was found
+                        assetVersion.version = 0;
                     }
 
                     assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
@@ -107,15 +110,13 @@ namespace UnityEditor.Rendering.BuiltIn
 
                 while (assetVersion.version < k_Upgraders.Length)
                 {
-                    k_Upgraders[assetVersion.version](material, id);
-                    debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
+                    k_Upgraders[assetVersion.version](material, shaderID);
                     assetVersion.version++;
                     wasUpgraded = true;
                 }
 
                 if (wasUpgraded)
                 {
-                    upgradeLog += debug;
                     upgradeCount++;
                     EditorUtility.SetDirty(assetVersion);
                     s_ImportedAssetThatNeedSaving.Add(asset);
@@ -124,22 +125,10 @@ namespace UnityEditor.Rendering.BuiltIn
             }
         }
 
-        static void InitializeLatest(Material material, ShaderID id)
+        static void InitializeLatest(Material material, ShaderID shaderID)
         {
             // newly created shadergraph materials should reset their keywords immediately (in case inspector doesn't get invoked)
-            if (IsShaderGraph(material))
-            {
-                // Debug.Log("Resetting new material: " + material.name);
-                Unity.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
-            }
-            // TODO: should probably call reset material keywords for all materials, not just shadergraph
-        }
-
-        // Copied from another PR. This will eventually be in GraphUtils.cs
-        public static bool IsShaderGraph(Material material)
-        {
-            var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
-            return (shaderGraphTag != null);
+            Unity.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
         }
     }
 }
