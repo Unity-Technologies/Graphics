@@ -51,7 +51,6 @@ namespace Unity.Rendering.BuiltIn
                 case ShaderID.SG_Unlit:
                     BuiltInUnlitGUI.UpdateMaterial(material);
                     break;
-                // We don't need to handle any other shaders from built-in (no special shaders)
             }
         }
     }
