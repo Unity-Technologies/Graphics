@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/ProbeVolumeGizmo"
+Shader "Hidden/HDRP/ProbeVolumeDebug"
 {
     Properties
     {
@@ -18,7 +18,6 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
@@ -43,9 +42,6 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         };
 
         UNITY_INSTANCING_BUFFER_START(Props)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _R)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _G)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _B)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Position)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
@@ -63,36 +59,12 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
             return o;
         }
 
-        float3 evalSH(float3 normal, float4 SHAr, float4 SHAg, float4 SHAb)
-        {
-            float4 normalPadded = float4(normal, 1);
-
-            float3 x;
-
-            SHAr.xyz = DecodeSH(SHAr.w, SHAr.xyz);
-            SHAg.xyz = DecodeSH(SHAg.w, SHAg.xyz);
-            SHAb.xyz = DecodeSH(SHAb.w, SHAb.xyz);
-
-            // Linear (L1) + constant (L0) polynomial terms
-            x.r = dot(SHAr, normalPadded);
-            x.g = dot(SHAg, normalPadded);
-            x.b = dot(SHAb, normalPadded);
-
-            return x;
-        }
-
         float4 frag(v2f i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 
             if (_ShadingMode == 1)
             {
-#if 0
-                float4 r = UNITY_ACCESS_INSTANCED_PROP(Props, _R);
-                float4 g = UNITY_ACCESS_INSTANCED_PROP(Props, _G);
-                float4 b = UNITY_ACCESS_INSTANCED_PROP(Props, _B);
-                return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
-#else
                 float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
                 float3 normal = normalize(i.normal);
                 float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -119,7 +91,6 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
                 }
 
                 return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
-#endif
             }
             else if (_ShadingMode == 2)
             {
