@@ -569,7 +569,7 @@ namespace UnityEditor.VFX.UI
                     m_mainWindow.Focus();
                 }
             }
-            else if (!hasSearch)//TODO RF || e is NewElement)
+            else if (!hasSearch && e != null)//TODO RF || e is NewElement)
             {
                 m_LastTime = System.DateTime.Now.Ticks;
                 if (m_AnimTarget == 0)
