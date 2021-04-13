@@ -709,27 +709,27 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if !UNITY_EDITOR
             // This flag is used to strip mixed lighting shader variants when a player is built.
             // All shader variants are available in the editor.
-            if (!renderingData.lightData.supportsMixedLighting)
-                return;
+            if (renderingData.lightData.supportsMixedLighting)
 #endif
-
-            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-            for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
             {
-                Light light = visibleLights[lightIndex].light;
-
-                if (light != null
-                    && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-                    && light.shadows != LightShadows.None)
+                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+                for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
                 {
-                    switch (light.bakingOutput.mixedLightingMode)
+                    Light light = visibleLights[lightIndex].light;
+
+                    if (light != null
+                        && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+                        && light.shadows != LightShadows.None)
                     {
-                        case MixedLightingMode.Subtractive:
-                            this.MixedLightingSetup = MixedLightingSetup.Subtractive;
-                            break;
-                        case MixedLightingMode.Shadowmask:
-                            this.MixedLightingSetup = MixedLightingSetup.ShadowMask;
-                            break;
+                        switch (light.bakingOutput.mixedLightingMode)
+                        {
+                            case MixedLightingMode.Subtractive:
+                                this.MixedLightingSetup = MixedLightingSetup.Subtractive;
+                                break;
+                            case MixedLightingMode.Shadowmask:
+                                this.MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                                break;
+                        }
                     }
                 }
             }
