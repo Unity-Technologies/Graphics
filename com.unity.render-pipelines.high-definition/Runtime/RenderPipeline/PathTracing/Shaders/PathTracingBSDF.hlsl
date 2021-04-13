@@ -332,7 +332,7 @@ void EvaluateSheen(MaterialData mtlData,
                out float pdf)
 {
     // We use cosine-weighted sampling for this lobe
-    float NdotL = dot(GetSpecularNormal(mtlData), outgoingDir);
+    float NdotL = saturate(dot(GetSpecularNormal(mtlData), outgoingDir));
     pdf = NdotL * INV_PI;
 
     float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
