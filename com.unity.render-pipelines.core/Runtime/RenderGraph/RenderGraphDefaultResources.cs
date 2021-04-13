@@ -13,6 +13,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RTHandle m_BlackTexture2D;
         RTHandle m_WhiteTexture2D;
 
+        public RTHandle emptyReadWriteXRRTH { get; private set; }
+
         /// <summary>Default black 2D texture.</summary>
         public TextureHandle blackTexture { get; private set; }
         /// <summary>Default white 2D texture.</summary>
@@ -36,12 +38,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_BlackTexture2D = RTHandles.Alloc(Texture2D.blackTexture);
             m_WhiteTexture2D = RTHandles.Alloc(Texture2D.whiteTexture);
+            emptyReadWriteXRRTH = RTHandles.Alloc(Vector2.zero, TextureXR.slices, colorFormat: GraphicsFormat.R8_UNorm, dimension: TextureXR.dimension,
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, name: "DefaultResource_Dummy_ReadWrite");
         }
 
         internal void Cleanup()
         {
             m_BlackTexture2D.Release();
             m_WhiteTexture2D.Release();
+            emptyReadWriteXRRTH.Release();
         }
 
         internal void InitializeForRendering(RenderGraph renderGraph)

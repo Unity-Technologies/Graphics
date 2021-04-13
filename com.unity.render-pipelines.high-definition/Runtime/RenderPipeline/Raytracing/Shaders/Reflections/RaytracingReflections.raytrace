@@ -58,7 +58,7 @@ void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload
     if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingFallbackHierarchy)
         rayIntersection.color = RayTraceReflectionProbes(rayOrigin, rayDirection, weight);
 
-    if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight < 1.0)
+    if ((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight < 1.0)
     {
         rayIntersection.color += SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz * (1.0 - weight);
         weight = 1.0f;
@@ -145,6 +145,8 @@ void RayGenIntegration()
     float3 defaultSampleDir = reflect(-viewWS, normalData.normalWS);
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+    // Accumulates 1 each time we reach the miss program:
+    float finalRayHitSky = 0.0;
 
     // Loop through the samples and add their contribution
     for (int sampleIndex = 0; sampleIndex < realSampleCount; ++sampleIndex)
@@ -221,15 +223,23 @@ void RayGenIntegration()
 
         // Contribute to the pixel
         finalColor += sampleColor;
+        // Track number of ray misses
+        if (_RayTracingFallbackHierarchy == RAYTRACINGFALLBACKHIERACHY_NON_RAYTRACED_REFLECTION_PROBES_AND_SKY)
+            finalRayHitSky += step(_RaytracingRayMaxLength, rayIntersection.t);
     }
 
    	// Normalize the value
     finalColor *= 1.0 / realSampleCount;
+    finalRayHitSky *= 1.0 / realSampleCount;
 
     // We also need to compute the fade factor for this sample
     float weightValue = _RaytracingReflectionSmoothnessFadeStart == _RaytracingReflectionMinSmoothness ? 1.0 : saturate((perceptualSmoothness - _RaytracingReflectionMinSmoothness) / (_RaytracingReflectionSmoothnessFadeStart -_RaytracingReflectionMinSmoothness));
+    if (_RayTracingFallbackHierarchy == RAYTRACINGFALLBACKHIERACHY_NON_RAYTRACED_REFLECTION_PROBES_AND_SKY)
+    {
+        weightValue = weightValue * saturate(1.0-finalRayHitSky);
+    }
 
-    // We store the sampled color and the weight that shall be used for it (1.0)
+    // We store the sampled color and the weight that shall be used for it
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, weightValue);
 }
 
@@ -340,6 +350,6 @@ void RayGenIntegrationTransparent()
 [shader("closesthit")]
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
-	rayIntersection.color = float3(1.0, 0.0, 0.5);
+    // When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
+    rayIntersection.color = float3(1.0, 0.0, 0.5);
 }

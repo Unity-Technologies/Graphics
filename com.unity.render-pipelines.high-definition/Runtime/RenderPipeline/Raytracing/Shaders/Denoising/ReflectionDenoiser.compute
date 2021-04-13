@@ -1,12 +1,21 @@
 #pragma only_renderers d3d11
 
-#pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
-#pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION
-#pragma kernel CopyHistory
-#pragma kernel BilateralFilterH_FR      BILATERAL_FILTER=BilateralFilterH_FR
-#pragma kernel BilateralFilterV_FR      BILATERAL_FILTER=BilateralFilterV_FR    FINAL_PASS
-#pragma kernel BilateralFilterH_HR      BILATERAL_FILTER=BilateralFilterH_HR    HALF_RESOLUTION
-#pragma kernel BilateralFilterV_HR      BILATERAL_FILTER=BilateralFilterV_HR    FINAL_PASS  HALF_RESOLUTION
+#pragma kernel TemporalAccumulationFullRes               TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes               MISS_RATIO_IN_WEIGHT=false
+#pragma kernel TemporalAccumulationHalfRes               TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes               MISS_RATIO_IN_WEIGHT=false   HALF_RESOLUTION
+#pragma kernel TemporalAccumulationFullResMissWeighted   TEMPORAL_ACCUMULATION=TemporalAccumulationFullResMissWeighted   MISS_RATIO_IN_WEIGHT=true
+#pragma kernel TemporalAccumulationHalfResMissWeighted   TEMPORAL_ACCUMULATION=TemporalAccumulationHalfResMissWeighted   MISS_RATIO_IN_WEIGHT=true    HALF_RESOLUTION
+
+#pragma kernel CopyHistory                               COPY_HISTORY=CopyHistory                                        MISS_RATIO_IN_WEIGHT=false
+#pragma kernel CopyHistoryMissWeighted                   COPY_HISTORY=CopyHistoryMissWeighted                            MISS_RATIO_IN_WEIGHT=true
+
+#pragma kernel BilateralFilterH_FR                       BILATERAL_FILTER=BilateralFilterH_FR                            MISS_RATIO_IN_WEIGHT=false
+#pragma kernel BilateralFilterH_HR                       BILATERAL_FILTER=BilateralFilterH_HR                            MISS_RATIO_IN_WEIGHT=false   HALF_RESOLUTION
+#pragma kernel BilateralFilterHMissWeighted_FR           BILATERAL_FILTER=BilateralFilterHMissWeighted_FR                MISS_RATIO_IN_WEIGHT=true
+#pragma kernel BilateralFilterHMissWeighted_HR           BILATERAL_FILTER=BilateralFilterHMissWeighted_HR                MISS_RATIO_IN_WEIGHT=true    HALF_RESOLUTION
+#pragma kernel BilateralFilterV_FR                       BILATERAL_FILTER=BilateralFilterV_FR                            MISS_RATIO_IN_WEIGHT=false   FINAL_PASS
+#pragma kernel BilateralFilterV_HR                       BILATERAL_FILTER=BilateralFilterV_HR                            MISS_RATIO_IN_WEIGHT=false   FINAL_PASS       HALF_RESOLUTION
+#pragma kernel BilateralFilterVMissWeighted_FR           BILATERAL_FILTER=BilateralFilterVMissWeighted_FR                MISS_RATIO_IN_WEIGHT=true    FINAL_PASS
+#pragma kernel BilateralFilterVMissWeighted_HR           BILATERAL_FILTER=BilateralFilterVMissWeighted_HR                MISS_RATIO_IN_WEIGHT=true    FINAL_PASS       HALF_RESOLUTION
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -27,6 +36,7 @@ TEXTURE2D_X(_SsrClearCoatMaskTexture);
 // Tile size of this compute
 #define REFLECTION_FILTER_TILE_SIZE 8
 
+#define DEBUG_SHOW_WEIGHTS_ONLY false
 // #pragma enable_d3d11_debug_symbols
 
 // Threshold at which we decide to reject the reflection history
@@ -37,6 +47,9 @@ TEXTURE2D_X(_SsrClearCoatMaskTexture);
 // Input textures
 TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_HistoryBuffer);
+//#if MISS_RATIO_IN_WEIGHT == true
+TEXTURE2D_X(_HistorySampleCountTexture); // TODO!
+//#endif
 TEXTURE2D_X(_HistoryDepthTexture);
 // Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
@@ -50,7 +63,11 @@ int _SingleReflectionBounce;
 
 // Output texture
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
-RW_TEXTURE2D_X(float, _SampleCountTextureRW);
+RW_TEXTURE2D_X(float, _SampleCountTextureRW); // also input in CopyHistory
+#if MISS_RATIO_IN_WEIGHT == true
+// TODO! these guards dont seem to work.
+RW_TEXTURE2D_X(float, _HistorySampleCountTextureRW);
+#endif
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -93,23 +110,38 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float2 historyCoordinate = ((float2)(mainCoord + 0.5f) - velocity * _CurrentEffectResolution.xy);
     float2 historyUV = clamp(historyCoordinate, 0.0f, _CurrentEffectResolution.xy - 1.0f) * _HistoryBufferSize.xy;
 
-    // Fetch the current and history values and apply the exposition to it.
-    float3 color = Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+    // Fetch the current and history values and apply exposure to color components.
+    float4 colorRaw = MISS_RATIO_IN_WEIGHT ? Fetch4(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) : float4(Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy), 0);
     float4 historyRaw = Fetch4(_HistoryBuffer, historyUV, 0.0, 1.0);
-    float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
+
+    float colorW = MISS_RATIO_IN_WEIGHT ? colorRaw.w : 0;
+    float4 color = float4(colorRaw.xyz * GetCurrentExposureMultiplier(), colorW);
+
+    float historyW = MISS_RATIO_IN_WEIGHT ? historyRaw.w : 0;
+    float4 history = float4(historyRaw.xyz * GetCurrentExposureMultiplier(), historyW);
 
     // If this is close to a perfectly smooth surface, we may not want to use the history (depending on _AffectSmoothSurfaces)
     // In thise case, see RaytracingReflections.raytrace: make sure we don't sample otherwise we could have noisy artifacts.
     // Keep in sync with the sampling in the raygen program in RaytracingReflections.raytrace (along with _SingleReflectionBounce here vs _RaytracingMaxRecursion in the former)
     if (SkipReflectionDenoiserHistoryAccumulation((_AffectSmoothSurfaces == 1), (_SingleReflectionBounce == 1), normalData.perceptualRoughness))
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
+        colorRaw.w = MISS_RATIO_IN_WEIGHT ? colorRaw.w : LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w;
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(color.xyz * GetInverseCurrentExposureMultiplier(), colorRaw.w);
         _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = 1;
+        if (DEBUG_SHOW_WEIGHTS_ONLY)
+            _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4((float3)(colorRaw.w * GetInverseCurrentExposureMultiplier()), colorRaw.w);
         return;
     }
 
+    //TODO float sampleCount = historyRaw.w;
+    // When the raytracing shader outputs a ray miss ratio in the w channel, we need to also preserve its history, so the
+    // sampleCount has its own texture. Otherwise, the history buffer uses the w channel for history sampleCount.
     float sampleCount = historyRaw.w;
-    float3 result;
+    //#if MISS_RATIO_IN_WEIGHT == true
+    sampleCount = MISS_RATIO_IN_WEIGHT ? Fetch(_HistorySampleCountTexture, historyUV, 0.0, 1.0).x : sampleCount;
+    //#endif
+    float4 result;
+
     if (normalData.perceptualRoughness > ROUGHNESS_ACCUMULATION_THRESHOLD)
     {
         bool canBeReprojected = true;
@@ -157,60 +189,110 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     }
     else
     {
-        float3 topLeft = Fetch(_DenoiseInputTexture, currentUV, -RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
-        float3 bottomRight = Fetch(_DenoiseInputTexture, currentUV, RADIUS, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
+        float4 topLeftRaw = MISS_RATIO_IN_WEIGHT ? Fetch4(_DenoiseInputTexture, currentUV, -RADIUS, _RTHandleScale.xy)
+                                                   : float4(Fetch(_DenoiseInputTexture, currentUV, -RADIUS, _RTHandleScale.xy),0);
+        float4 bottomRightRaw = MISS_RATIO_IN_WEIGHT ? Fetch4(_DenoiseInputTexture, currentUV, RADIUS, _RTHandleScale.xy)
+                                                       : float4(Fetch(_DenoiseInputTexture, currentUV, RADIUS, _RTHandleScale.xy),0);
 
-        float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+        float topLeftW = MISS_RATIO_IN_WEIGHT ? topLeftRaw.w : 0;
+        float bottomRightW = MISS_RATIO_IN_WEIGHT ? bottomRightRaw.w : 0;
+        float4 topLeft = float4(topLeftRaw.xyz * GetCurrentExposureMultiplier(), topLeftW);
+        float4 bottomRight = float4(bottomRightRaw.xyz * GetCurrentExposureMultiplier(), bottomRightW);
 
-        color = clamp(color, 0.0, CLAMP_MAX);
+        // We split up the weight accumulations
+        // (feedback for weights will be different than for the color)
+        // We only use the final result if needed (based on MISS_RATIO_IN_WEIGHT)
+        // so the compiler will prune out the weight accumulation path.
 
-        float3 average = FastTonemap((corners + color) / 7.0);
+        float4 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
-        topLeft = FastTonemap(topLeft);
-        bottomRight = FastTonemap(bottomRight);
-        color = FastTonemap(color);
+        color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
 
-        float colorLuma = Luminance(color);
-        float averageLuma = Luminance(average);
+        #if 1
+        // TODO: Cleanup, remove usage of FastTonemapPerChannel, obviously weights dont
+        // have the dynamic range of radiance, but this was a test to see if the nonlinear function
+        // helped or made worse the transition from pre-integrated fallback to raytraced.
+        #undef FastTonemapPerChannel
+        #undef FastTonemapPerChannelInvert
+        #define FastTonemapPerChannel(a) (a)
+        #define FastTonemapPerChannelInvert(a) (a)
+        #endif
+
+        float4 average;
+        average.xyz = FastTonemap((corners.xyz + color.xyz) / 7.0);
+        average.w = FastTonemapPerChannel((corners.w + color.w) / 7.0);
+
+        topLeft.xyz = FastTonemap(topLeft.xyz);
+        topLeft.w = FastTonemapPerChannel(topLeft.w);
+
+        bottomRight.xyz = FastTonemap(bottomRight.xyz);
+        bottomRight.w = FastTonemapPerChannel(bottomRight.w);
+
+        color.xyz = FastTonemap(color.xyz);
+        color.w = FastTonemapPerChannel(color.w);
+
+        float2 colorLuma = float2(Luminance(color), color.w);
+        float2 averageLuma = float2(Luminance(average), average.w);
         float velocityLength = length(velocity);
-        float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+        float2 nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
 
-        float3 minimum = min(bottomRight, topLeft) - nudge;
-        float3 maximum = max(topLeft, bottomRight) + nudge;
+        float4 minimum = min(bottomRight, topLeft) - nudge.xxxy;
+        float4 maximum = max(topLeft, bottomRight) + nudge.xxxy;
 
-        history = FastTonemap(history);
+        history.xyz = FastTonemap(history.xyz);
+        history.w = FastTonemapPerChannel(history.w);
 
-        // Clip history samples
-        history = DirectClipToAABB(history, minimum, maximum);
+        // Clip history samples (compiler will optimize the 2nd)
+        history.xyz = DirectClipToAABB(history.xyz, minimum.xyz, maximum.xyz);
+        if (MISS_RATIO_IN_WEIGHT)
+            history.w = DirectClipToAABB((float3)history.w, (float3)minimum.w, (float3)maximum.w).x;
 
         // Blend color & history
         // Feedback weight from unbiased luminance diff (Timothy Lottes)
-        float historyLuma = Luminance(history);
-        float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
-        float weight = 1.0 - diff;
-        const float feedbackMin = 0.96;
-        const float feedbackMax = 0.91;
-        float feedback = lerp(feedbackMin, feedbackMax, weight * weight);
+        float2 historyLuma = float2(Luminance(history.xyz), history.w);
+        float2 diff = abs(colorLuma - historyLuma) / float2(Max3(colorLuma.x, historyLuma.x, 0.2), Max3(colorLuma.y, historyLuma.y, 0.2));
+        float2 weight = 1.0 - diff;
+        const float feedbackMax = 0.96;
+        const float feedbackMin = 0.91;
+        float2 feedback = lerp(feedbackMax.xx, feedbackMin.xx, weight * weight);
 
-        color = FastTonemapInvert(lerp(color, history, feedback));
-        result = clamp(color, 0.0, CLAMP_MAX);
+        color.xyz = lerp(color.xyz, history.xyz, feedback.xxx);
+        color.w = lerp(color.w, history.w, feedback.y);
+
+        color.xyz = FastTonemapInvert(color.xyz);
+        color.xyz = clamp(color.xyz, 0.0, CLAMP_MAX);
+        color.w = FastTonemapPerChannelInvert(color.w);
+
+        result = color;
     }
 
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w);
+    float finalColorW = MISS_RATIO_IN_WEIGHT ? result.w : LOAD_TEXTURE2D_X(_DenoiseInputTexture, mainCoord).w;
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4(result.xyz * GetInverseCurrentExposureMultiplier(), finalColorW);
+    if (DEBUG_SHOW_WEIGHTS_ONLY)
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(mainCoord)] = float4((float3)(result.w)*GetInverseCurrentExposureMultiplier(), result.w);
     _SampleCountTextureRW[COORD_TEXTURE2D_X(mainCoord)] = sampleCount;
 }
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
-void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
+    // Note in this kernel _DenoiseOutputTextureRW has the history buffer binded
     float4 currentColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
-    // We need to apply a step function on the blend factor to evaluate the validity of the history (if it is stricly higher than 0.0 then its valid)
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(currentColor.xyz, _SampleCountTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x);
+    float sampleCount = _SampleCountTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+
+    float4 historyOutput = MISS_RATIO_IN_WEIGHT ? currentColor : float4(currentColor.xyz, sampleCount);
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = historyOutput;
+    #if MISS_RATIO_IN_WEIGHT == true
+    // In that case, we need a separate texture tracking sampleCount
+    _HistorySampleCountTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = sampleCount;
+    #endif
 }
 
 int _DenoiserFilterRadius;
@@ -255,13 +337,14 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const int effectiveRadius = min(sigma * 2.0, radius);
 
     // Store the intermediate result
-    float3 finalColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+    float4 finalColor = MISS_RATIO_IN_WEIGHT ? LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyzw
+                                               : float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz, 0);
 
     // If this pixels does not have ray traced reflections anyway, just skip it.
     if (_RaytracingReflectionMinSmoothness <= PerceptualRoughnessToPerceptualSmoothness(center.roughness))
     {
         // Initialize variables for accumulation
-        float3 colorSum = float3(0.0, 0.0, 0.0);
+        float4 colorSum = float4(0.0, 0.0, 0.0, 0.0);
         float wSum = 0.0;
 
         int2 tapCoord = centerCoord - effectiveRadius * passIncr;
@@ -280,12 +363,14 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
             const BilateralData tapData = TapBilateralData(tapGeometryCoords);
             float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
             w = _RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(tapData.roughness) ? 0.0 : w;
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyzw * w;
             wSum += w;
         }
         // Normalize the result
-        finalColor = colorSum / wSum;
+        finalColor.xyz = colorSum.xyz / wSum;
+        finalColor.w = MISS_RATIO_IN_WEIGHT ? (colorSum.w / wSum) : finalColor.w;
     }
 
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+    finalColor = MISS_RATIO_IN_WEIGHT ? finalColor : float4(finalColor.xyz, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = finalColor;
 }

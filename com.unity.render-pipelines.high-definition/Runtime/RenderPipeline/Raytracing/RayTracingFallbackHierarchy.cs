@@ -9,6 +9,12 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum RayTracingFallbackHierachy
     {
         /// <summary>
+        /// When selected, ray tracing will let the material fall back on the same (pre-integrated probes)
+        /// reflection hierarchy it uses as with rasterization by setting hierarchy weights to zero on miss.
+        /// </summary>
+        [InspectorName("Non Raytraced Reflection Probes and Sky")]
+        NonRaytracedReflectionProbesAndSky = 0x07, // note: we include ReflectionProbesAndSky bits for a better blend (cf vs eg 4)
+        /// <summary>
         /// When selected, ray tracing will fall back on reflection probes (if any) then on the sky.
         /// </summary>
         [InspectorName("Reflection Probes and Sky")]

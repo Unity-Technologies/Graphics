@@ -49,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricClouds1,
         /// <summary>Screen Space Reflection Accumulation.</summary>
         ScreenSpaceReflectionAccumulation,
+        /// <summary>Ray traced reflections sample count buffer (if needed when using ray miss ratio in .w channel of SSR-RTR buffer).</summary>
+        RaytracedReflectionSampleCount,
         /// <summary>Number of history buffers.</summary>
         Count // TODO: Obsolete
     }

@@ -78,17 +78,20 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Fetch the direction of the ray
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
 
-    float3 finalColor = 0.0f;
+    float3 finalColor = 0.0;
+    float finalWeight = 1.0;
     // if the distance is exactly zero, this means we are facing an environement ray that we need to evaluate
     if (RayDistanceIndicatesHitSky(rayDistance))
     {
         // Weight value used to do the blending
         float weight = 0.0;
+        if (RAYTRACINGFALLBACKHIERACHY_NON_RAYTRACED_REFLECTION_PROBES_AND_SKY == _RayTracingFallbackHierarchy)
+            finalWeight = 0.0;
 
         if (RAYTRACINGFALLBACKHIERACHY_REFLECTION_PROBES & _RayTracingFallbackHierarchy)
             finalColor = RayTraceReflectionProbes(sourcePosInput.positionWS, rayDirection, weight);
 
-        if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight == 0.0f)
+        if ((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingFallbackHierarchy) && weight == 0.0f)
         {
             finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz;
             weight = 1.0;
@@ -113,7 +116,8 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
 
         // Convert back to HSV space
-        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(HsvToRgb(finalColor) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
+        finalColor = HsvToRgb(finalColor) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, finalWeight);
         return;
     }
 
