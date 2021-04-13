@@ -4,7 +4,6 @@ Shader "Hidden/Universal/CoreBlitColorAndDepth"
 
         #pragma target 2.0
         #pragma editor_sync_compilation
-        //#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/BlitColorAndDepth.hlsl"
@@ -12,7 +11,7 @@ Shader "Hidden/Universal/CoreBlitColorAndDepth"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+        Tags{ "RenderPipeline" = "UniversalPipeline" }
 
         // 0: Color Only
         Pass
