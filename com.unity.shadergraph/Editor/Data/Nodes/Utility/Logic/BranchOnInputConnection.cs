@@ -6,22 +6,22 @@ using UnityEditor.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    [Title("Utility", "Logic", "Test Input Connection")]
-    class TestInputConnectionNode : CodeFunctionNode
+    [Title("Utility", "Logic", "Branch On Input Connection")]
+    class BranchOnInputConnectionNode : CodeFunctionNode
     {
-        public TestInputConnectionNode()
+        public BranchOnInputConnectionNode()
         {
-            name = "Test Input Connection";
+            name = "Branch On Input Connection";
         }
 
         public override bool allowedInMainGraph { get => false; }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("Unity_InputConnectionBranch", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("Unity_BranchOnInputConnection", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string Unity_InputConnectionBranch(
+        static string Unity_BranchOnInputConnection(
             [Slot(0, Binding.None)] PropertyConnectionState Input,
             [Slot(1, Binding.None, 1, 1, 1, 1)] DynamicDimensionVector Connected,
             [Slot(2, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector NotConnected,
