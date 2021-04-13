@@ -48,9 +48,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void RenderDebug(Camera camera)
         {
-            if (debugDisplay.drawProbes)
+            if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                DrawProbeDebug(camera);
+                if (debugDisplay.drawProbes)
+                {
+                    DrawProbeDebug(camera);
+                }
             }
         }
 
