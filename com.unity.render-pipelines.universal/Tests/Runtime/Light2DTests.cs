@@ -1,6 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.Rendering.Universal.Tests
