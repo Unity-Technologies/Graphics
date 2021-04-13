@@ -75,7 +75,6 @@ namespace UnityEditor.ShaderGraph
                 {
                     { Pragma.Vertex("vert") },
                     { Pragma.Fragment("frag") },
-                    { Pragma.Target(ShaderModel.Target45) },
                 },
                 defines = new DefineCollection
                 {
