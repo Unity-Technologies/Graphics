@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    [GenerateHLSL]
     public enum DebugProbeShadingMode
     {
-        Size,
         SH,
-        Validity
+        Validity,
+        Size
     }
 
     class ProbeVolumeDebug
