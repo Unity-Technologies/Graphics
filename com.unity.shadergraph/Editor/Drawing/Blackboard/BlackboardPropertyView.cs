@@ -176,8 +176,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 PropertyNodeView.AddMainTextureMenuOptions(evt, texProp, controller.graphData, m_InspectorUpdateDelegate);
             }
-
-
         }
 
         internal void UpdateFromViewModel()

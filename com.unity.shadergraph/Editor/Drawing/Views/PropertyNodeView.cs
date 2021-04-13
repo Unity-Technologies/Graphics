@@ -142,7 +142,6 @@ namespace UnityEditor.ShaderGraph
                         });
                 }
             }
-
         }
 
         internal static void AddMainTextureMenuOptions(ContextualMenuPopulateEvent evt, Texture2DShaderProperty texProp, GraphData graphData, Action inspectorUpdateAction)
@@ -176,7 +175,6 @@ namespace UnityEditor.ShaderGraph
                             graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
                             texProp.isMainTexture = true;
                             inspectorUpdateAction();
-
                         });
                 }
                 else
@@ -191,7 +189,6 @@ namespace UnityEditor.ShaderGraph
                         });
                 }
             }
-
         }
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
@@ -219,9 +216,6 @@ namespace UnityEditor.ShaderGraph
             {
                 AddMainTextureMenuOptions(evt, texProp, node.owner, m_propertyViewUpdateTrigger);
             }
-
-
-
         }
 
         void RegisterPropertyChangeUndo(string actionName)
