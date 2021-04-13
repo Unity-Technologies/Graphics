@@ -22,7 +22,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -169,7 +169,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -220,7 +220,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_XR_cache_mono_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -272,7 +272,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -442,7 +442,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVIS
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -500,7 +500,7 @@ URP_Foundation_OSX_Apple_Silicon_Metal_Standalone_XR_cache_mono_Linear_CUSTOM-RE
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
