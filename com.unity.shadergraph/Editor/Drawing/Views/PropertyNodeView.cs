@@ -99,91 +99,97 @@ namespace UnityEditor.ShaderGraph
 
         internal static void AddMainColorMenuOptions(ContextualMenuPopulateEvent evt, ColorShaderProperty colorProp, GraphData graphData, Action inspectorUpdateAction)
         {
-            if (!colorProp.isMainColor)
+            if (!graphData.isSubGraph)
             {
-                evt.menu.AppendAction(
-                    "Set as Main Color",
-                    e =>
-                    {
-                        foreach (var input in graphData.properties)
+                if (!colorProp.isMainColor)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Color",
+                        e =>
                         {
-                            if (input is ColorShaderProperty col && col != colorProp)
+                            foreach (var input in graphData.properties)
                             {
-                                if (col.isMainColor)
+                                if (input is ColorShaderProperty col && col != colorProp)
                                 {
-                                    if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                    if (col.isMainColor)
                                     {
-                                        graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
-                                        col.isMainColor = false;
-                                        colorProp.isMainColor = true;
-                                        inspectorUpdateAction();
+                                        if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                        {
+                                            graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                            col.isMainColor = false;
+                                            colorProp.isMainColor = true;
+                                            inspectorUpdateAction();
+                                        }
+                                        return;
                                     }
-                                    return;
                                 }
                             }
-                        }
 
-                        graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
-                        colorProp.isMainColor = true;
-                        inspectorUpdateAction();
-                    });
-            }
-            else
-            {
-                evt.menu.AppendAction(
-                    "Clear Main Color",
-                    e =>
-                    {
-                        graphData.owner.RegisterCompleteObjectUndo("Clear Main Color");
-                        colorProp.isMainColor = false;
-                        inspectorUpdateAction();
-                    });
+                            graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
+                            colorProp.isMainColor = true;
+                            inspectorUpdateAction();
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Color",
+                        e =>
+                        {
+                            graphData.owner.RegisterCompleteObjectUndo("Clear Main Color");
+                            colorProp.isMainColor = false;
+                            inspectorUpdateAction();
+                        });
+                }
             }
 
         }
 
         internal static void AddMainTextureMenuOptions(ContextualMenuPopulateEvent evt, Texture2DShaderProperty texProp, GraphData graphData, Action inspectorUpdateAction)
         {
-            if (!texProp.isMainTexture)
+            if (!graphData.isSubGraph)
             {
-                evt.menu.AppendAction(
-                    "Set as Main Texture",
-                    e =>
-                    {
-                        foreach (var input in graphData.properties)
+                if (!texProp.isMainTexture)
+                {
+                    evt.menu.AppendAction(
+                        "Set as Main Texture",
+                        e =>
                         {
-                            if (input is Texture2DShaderProperty tex && tex != texProp)
+                            foreach (var input in graphData.properties)
                             {
-                                if (tex.isMainTexture)
+                                if (input is Texture2DShaderProperty tex && tex != texProp)
                                 {
-                                    if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
+                                    if (tex.isMainTexture)
                                     {
-                                        graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
-                                        tex.isMainTexture = false;
-                                        texProp.isMainTexture = true;
-                                        inspectorUpdateAction();
+                                        if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
+                                        {
+                                            graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
+                                            tex.isMainTexture = false;
+                                            texProp.isMainTexture = true;
+                                            inspectorUpdateAction();
+                                        }
+                                        return;
                                     }
-                                    return;
                                 }
                             }
-                        }
 
-                        graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
-                        texProp.isMainTexture = true;
-                        inspectorUpdateAction();
+                            graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
+                            texProp.isMainTexture = true;
+                            inspectorUpdateAction();
 
-                    });
-            }
-            else
-            {
-                evt.menu.AppendAction(
-                    "Clear Main Texture",
-                    e =>
-                    {
-                        graphData.owner.RegisterCompleteObjectUndo("Clear Main Texture");
-                        texProp.isMainTexture = false;
-                        inspectorUpdateAction();
-                    });
+                        });
+                }
+                else
+                {
+                    evt.menu.AppendAction(
+                        "Clear Main Texture",
+                        e =>
+                        {
+                            graphData.owner.RegisterCompleteObjectUndo("Clear Main Texture");
+                            texProp.isMainTexture = false;
+                            inspectorUpdateAction();
+                        });
+                }
             }
 
         }
