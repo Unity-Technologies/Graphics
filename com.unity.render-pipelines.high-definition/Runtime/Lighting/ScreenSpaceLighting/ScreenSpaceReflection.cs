@@ -116,17 +116,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// For PBR: Controls the bias of accumulation (0 no bias, 1 bias ssr)
         /// </summary>
+        [AdditionalProperty]
         public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
         /// For PBR: the internal speed rejection parameter
         /// </summary>
+        [AdditionalProperty]
         public FloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-
-        /// <summary>
-        /// For PBR: Motion vector threshold parameter
-        /// </summary>
-        public FloatParameter motionVectorThreshold = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.

@@ -426,7 +426,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float frameIndex;
             public float roughnessBiasFactor;
             public float speedRejectionFactor;
-            public float motionVectorThreshold;
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
