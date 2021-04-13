@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
                 filterMode: FilterMode.Point,
                 dimension: TextureDimension.Tex2D,
                 name: "_CameraDepthTexture");
-            m_NormalsTexture = RTHandles.Alloc(Shader.PropertyToID("_CameraNormalsTexture"), "_CameraNormalsTexture");
+
             if (renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferHandles = new RTHandle[(int)DeferredLights.GBufferHandles.Count];
@@ -322,6 +322,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraAttachments.depth.Release();
             m_OpaqueColor.Release();
             m_DepthTexture.Release();
+            m_NormalsTexture?.Release();
             if (m_GBufferHandles != null)
             {
                 m_GBufferHandles[(int) DeferredLights.GBufferHandles.DepthAsColor]?.Release();
@@ -514,7 +515,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraAttachments.depth, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
+                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, m_ActiveCameraAttachments.depth, ref m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -525,7 +526,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture);
+                        m_DepthNormalPrepass.Setup(context, cameraTargetDescriptor, m_DepthTexture, ref m_NormalsTexture);
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);
