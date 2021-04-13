@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
 
-                PreRenderVolumetricClouds(renderGraph, hdCamera, GetDepthBufferMipChainInfo());
+                PreRenderVolumetricClouds(renderGraph, hdCamera);
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
@@ -625,6 +625,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
+        }
+
+        static GBufferOutput ReadGBuffer(GBufferOutput gBufferOutput, RenderGraphBuilder builder)
+        {
+            // We do the reads "in place" because we don't want to allocate a struct with dynamic arrays each time we do that and we want to keep loops for code sanity.
+            for (int i = 0; i < gBufferOutput.gBufferCount; ++i)
+                gBufferOutput.mrt[i] = builder.ReadTexture(gBufferOutput.mrt[i]);
+
+            return gBufferOutput;
         }
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore

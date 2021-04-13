@@ -76,7 +76,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -125,7 +125,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -180,7 +180,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -208,7 +208,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -231,9 +231,9 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -264,7 +264,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -287,9 +287,9 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -320,4 +320,4 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision

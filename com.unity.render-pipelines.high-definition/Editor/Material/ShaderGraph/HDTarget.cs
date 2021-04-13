@@ -610,7 +610,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
@@ -925,6 +924,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kFabricPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricPathTracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";

@@ -159,7 +159,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void Setup(ref TargetSetupContext context)
@@ -682,6 +686,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
         };
+
+        public static readonly DefineCollection UseFragmentFog = new DefineCollection()
+        {
+            {CoreKeywordDescriptors.UseFragmentFog, 1},
+        };
     }
     #endregion
 
@@ -851,6 +860,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "UseLegacySpriteBlocks",
             referenceName = "USELEGACYSPRITEBLOCKS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
+        {
+            displayName = "UseFragmentFog",
+            referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
         };
     }
