@@ -128,7 +128,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
-            // ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public string renderType
@@ -142,7 +141,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        // TODO what is this used for?  It's using a default value (alphaClip) that may not always apply...
+        // this sets up the default renderQueue -- but it can be overridden by ResetMaterialKeywords()
         public string renderQueue
         {
             get

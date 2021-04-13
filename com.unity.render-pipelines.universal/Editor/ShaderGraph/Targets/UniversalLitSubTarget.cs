@@ -73,9 +73,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             base.Setup(ref context);
 
-            if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
+            var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
+            if (!context.HasCustomEditorForRenderPipeline(universalRPType))
             {
-                context.AddCustomEditorForRenderPipeline("UnityEditor.URPLitGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset));
+                context.AddCustomEditorForRenderPipeline("UnityEditor.URPLitGUI", universalRPType);
             }
 
             // Process SubShaders
@@ -96,6 +97,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
             material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
             material.SetFloat(Property.SG_Cull, (int)target.renderFace);
+            material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
+            material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
 
             // call the full unlit material setup function
             URPLitGUI.UpdateMaterial(material);
