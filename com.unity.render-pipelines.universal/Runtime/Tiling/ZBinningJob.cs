@@ -26,9 +26,9 @@ namespace UnityEngine.Rendering.Universal
         [ReadOnly]
         public NativeArray<LightMinMaxZ> minMaxZs;
 
-        public float nearPlane;
+        public int binOffset;
 
-        public float invBinSize;
+        public float zFactor;
 
         public void Execute(int index)
         {
@@ -44,8 +44,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 var ushortLightIndex = (ushort)lightIndex;
                 var minMax = minMaxZs[lightIndex];
-                var minBin = math.max((int)((minMax.minZ - nearPlane) * invBinSize), binsStart);
-                var maxBin = math.min((int)((minMax.maxZ - nearPlane) * invBinSize), binsEnd);
+                var minBin = math.max((int)(math.sqrt(minMax.minZ) * zFactor) - binOffset, binsStart);
+                var maxBin = math.min((int)(math.sqrt(minMax.maxZ) * zFactor) - binOffset, binsEnd);
 
                 for (var binIndex = minBin; binIndex <= maxBin; binIndex++)
                 {

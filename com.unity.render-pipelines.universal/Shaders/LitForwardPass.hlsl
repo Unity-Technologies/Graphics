@@ -159,8 +159,8 @@ Varyings LitPassVertex(Attributes input)
 
 ByteAddressBuffer _ZBinBuffer;
 ByteAddressBuffer _TileBuffer;
-float _NearPlane;
-float _InvZBinSize;
+int _ZBinOffset;
+float _ZBinFactor;
 int _ZBinLightCount;
 float2 _InvNormalizedTileSize;
 float _TileXCount;
@@ -192,7 +192,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
     float z = dot(GetViewForwardDir(), input.positionWS - GetCameraPositionWS());
-    int zBin = (int)((z - _NearPlane) * _InvZBinSize);
+    int zBin = (int)(sqrt(z) * _ZBinFactor) - _ZBinOffset;
     uint data = _ZBinBuffer.Load(zBin * 4);
     uint maxIndex = ((data >> 16) & 0xFFFF);
     uint minIndex = (data & 0xFFFF);

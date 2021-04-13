@@ -81,8 +81,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             mainThreadMarker.Begin();
 
             var camera = renderingData.cameraData.camera;
+
+            var tilingLevels = 3;
+            var tile0Width = 16;
+            var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
+
             var lightCount = renderingData.lightData.visibleLights.Length;
             var lightsPerTile = lightCount + (32 - (lightCount % 33));
+
+            var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
+            var fovHalfWidth = fovHalfHeight * camera.pixelWidth / camera.pixelHeight;
+
+            var zFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
+            var binOffset = (int)(math.sqrt(camera.nearClipPlane) * zFactor);
+            var binCount = (int)(math.sqrt(camera.farClipPlane) * zFactor) - binOffset;
+            var zBins = new NativeArray<ZBin>(binCount, Allocator.TempJob);
 
             var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
             var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
@@ -128,30 +141,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             lightExtractionJob.tilingLights = new NativeArray<TilingLightData>(lightCount, Allocator.TempJob);
             var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
 
-            var binSize = 1.0f;
-            var nearPlane = camera.nearClipPlane;
-            var farPlane = camera.farClipPlane;
-            var binCount = (int)math.ceil((farPlane - nearPlane) / binSize);
-            var zBins = new NativeArray<ZBin>(binCount, Allocator.TempJob);
-
             var zBinningJob = new ZBinningJob
             {
                 bins = zBins,
                 minMaxZs = minMaxZs,
-                nearPlane = nearPlane,
-                invBinSize = 1.0f / binSize
+                binOffset = binOffset,
+                zFactor = zFactor
             };
-
             var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
 
-            var tilingLevels = 3;
-            var tile0Width = 16;
-            var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-
             NativeArray<uint> tiles = default;
-
-            var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
-            var fovHalfWidth = fovHalfHeight * camera.pixelWidth / camera.pixelHeight;
 
             var tilingHandle = lightExtractionHandle;
 
@@ -260,8 +259,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var tileCount = tileResolution.x * tileResolution.y;
                 m_ZBinBuffer.SetData(zBins, 0, 0, zBins.Length);
                 m_TileBuffer.SetData(tiles, 0, 0, tiles.Length);
-                Shader.SetGlobalFloat("_NearPlane", nearPlane);
-                Shader.SetGlobalFloat("_InvZBinSize", 1.0f / binSize);
+                Shader.SetGlobalInteger("_ZBinOffset", binOffset);
+                Shader.SetGlobalFloat("_ZBinFactor", zFactor);
                 Shader.SetGlobalInteger("_ZBinLightCount", lightCount);
                 Shader.SetGlobalMatrix("_FPWorldToViewMatrix", minMaxZJob.worldToViewMatrix);
                 Shader.SetGlobalVector("_InvNormalizedTileSize", (Vector2)((float2)(screenResolution / tile0Width)));
