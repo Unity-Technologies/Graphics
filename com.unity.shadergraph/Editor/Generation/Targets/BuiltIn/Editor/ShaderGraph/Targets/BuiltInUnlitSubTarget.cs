@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 context.AddSubShader(subShaders[i]);
             }
         }
+
         public override void ProcessPreviewMaterial(Material material)
         {
             // copy our target's default settings into the material

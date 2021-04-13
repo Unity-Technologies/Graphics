@@ -304,14 +304,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
-               {
-                   if (Equals(surfaceType, evt.newValue))
-                       return;
+            {
+                if (Equals(surfaceType, evt.newValue))
+                    return;
 
-                   registerUndo("Change Surface");
-                   surfaceType = (SurfaceType)evt.newValue;
-                   onChange();
-               });
+                registerUndo("Change Surface");
+                surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
 
             context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
             {
