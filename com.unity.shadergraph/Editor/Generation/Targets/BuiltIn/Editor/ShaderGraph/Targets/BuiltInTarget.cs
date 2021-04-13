@@ -301,6 +301,69 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
+        public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+               {
+                   if (Equals(surfaceType, evt.newValue))
+                       return;
+
+                   registerUndo("Change Surface");
+                   surfaceType = (SurfaceType)evt.newValue;
+                   onChange();
+               });
+
+            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = zWriteControl }, (evt) =>
+            {
+                if (Equals(zWriteControl, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write Control");
+                zWriteControl = (ZWriteControl)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = zTestMode }, (evt) =>
+            {
+                if (Equals(zTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                zTestMode = (ZTestMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clipping", new Toggle() { value = alphaClip }, (evt) =>
+            {
+                if (Equals(alphaClip, evt.newValue))
+                    return;
+
+                registerUndo("Change Alpha Clip");
+                alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            {
+                if (Equals(renderFace, evt.newValue))
+                    return;
+
+                registerUndo("Change Render Face");
+                renderFace = (RenderFace)evt.newValue;
+                onChange();
+            });
+        }
+
         public bool TrySetActiveSubTarget(Type subTargetType)
         {
             if (!subTargetType.IsSubclassOf(typeof(SubTarget)))

@@ -77,65 +77,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
-            {
-                if (Equals(target.surfaceType, evt.newValue))
-                    return;
-
-                registerUndo("Change Surface");
-                target.surfaceType = (SurfaceType)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend");
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = target.zWriteControl }, (evt) =>
-            {
-                if (Equals(target.zWriteControl, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Write Control");
-                target.zWriteControl = (ZWriteControl)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = target.zTestMode }, (evt) =>
-            {
-                if (Equals(target.zTestMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Test");
-                target.zTestMode = (ZTestMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
-            {
-                if (Equals(target.alphaClip, evt.newValue))
-                    return;
-
-                registerUndo("Change Alpha Clip");
-                target.alphaClip = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = target.renderFace }, (evt) =>
-            {
-                if (Equals(target.renderFace, evt.newValue))
-                    return;
-
-                registerUndo("Change Render Face");
-                target.renderFace = (RenderFace)evt.newValue;
-                onChange();
-            });
+            // show the target default surface properties
+            var builtInTarget = (target as BuiltInTarget);
+            builtInTarget?.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo);
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
