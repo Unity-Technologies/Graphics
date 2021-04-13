@@ -450,7 +450,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #else
                 uint s_envLightIdx = v_envLightIdx;
 #endif
-                if (s_envLightIdx == -1) 
+                if (s_envLightIdx == -1)
                     break;
 
                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
