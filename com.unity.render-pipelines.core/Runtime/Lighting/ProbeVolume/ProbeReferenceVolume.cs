@@ -208,6 +208,7 @@ namespace UnityEngine.Rendering
         int                             m_ID = 0;
         RefVolTransform                 m_Transform;
         float                           m_NormalBias;
+        float                           m_ProfileCellSize;
         int                             m_MaxSubdivision;
         ProbeBrickPool                  m_Pool;
         ProbeBrickIndex                 m_Index;
@@ -520,6 +521,9 @@ namespace UnityEngine.Rendering
 
         internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
         internal void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
+
+        // TEMP: REMOVE after merge of Antoine's PR that fixes cell size.
+        internal void SetProfileCellSize(float cellSize) { m_ProfileCellSize = cellSize; }
 
         internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }

@@ -119,13 +119,12 @@ namespace UnityEngine.Rendering
         bool ShouldCull(Vector3 cellPosition, Vector3 cameraPosition, Plane[] frustumPlanes)
         {
             var originWS = GetTransform().posWS;
-            var cellSize = CellSize(m_MaxSubdivision);
-            Vector3 cellCenterWS = cellPosition * cellSize + originWS + Vector3.one * (cellSize / 2.0f);
+            Vector3 cellCenterWS = cellPosition * m_ProfileCellSize + originWS + Vector3.one * (m_ProfileCellSize / 2.0f);
 
             if (Vector3.Distance(cameraPosition, cellCenterWS) > debugDisplay.cullingDistance)
                 return true;
 
-            var volumeAABB = new Bounds(cellCenterWS, cellSize * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, m_ProfileCellSize * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }

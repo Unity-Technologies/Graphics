@@ -21,6 +21,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeReferenceVolume.Debug.cs.hlsl"
 
         uniform int _ShadingMode;
         uniform float _ExposureCompensation;
@@ -63,7 +64,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         {
             UNITY_SETUP_INSTANCE_ID(i);
 
-            if (_ShadingMode == 1)
+            if (_ShadingMode == DEBUGPROBESHADINGMODE_SH)
             {
                 float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
                 float3 normal = normalize(i.normal);
@@ -92,7 +93,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
                 return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
-            else if (_ShadingMode == 2)
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
             {
                 return UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
             }
