@@ -1,16 +1,15 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// The Pixel Perfect Camera component ensures your pixel art remains crisp and clear at different resolutions, and stable in motion.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
+    [AddComponentMenu("Rendering/2D/Pixel Perfect Camera")]
     [RequireComponent(typeof(Camera))]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    [MovedFrom("UnityEngine.Experimental.Rendering")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {

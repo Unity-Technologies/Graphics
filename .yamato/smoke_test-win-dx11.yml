@@ -85,7 +85,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -106,7 +106,8 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
+              utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200 & exit 0
+      -  utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
     artifacts:
         logs:
             paths:
@@ -144,7 +145,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -174,7 +175,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -202,9 +203,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -226,7 +227,8 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
+              utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200 & exit 0
+      -  utr --artifacts_path=TestProjects/SRP_SmokeTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/SRP_SmokeTest --timeout=1200
     artifacts:
         logs:
             paths:
@@ -237,4 +239,4 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

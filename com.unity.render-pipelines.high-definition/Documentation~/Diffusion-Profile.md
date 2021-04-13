@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) stores most [subsurface scattering](S
 
 To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP Diffusion Profile__.
 
-* To use it by default, open your HDRP Asset and, in the **Material** section, add it to the __Diffusion Profile List__.
+* To use it by default, open your Project Settings and, in the **Graphics > HDRP Settings** section, add it to the __Diffusion Profile List__.
 * To use it in a particular [Volume](Volumes.md), select a Volume with a [Diffusion Profile Override](Override-Diffusion-Profile.md) and add it to the **Diffusion Profile List** .
 
 ## Properties
