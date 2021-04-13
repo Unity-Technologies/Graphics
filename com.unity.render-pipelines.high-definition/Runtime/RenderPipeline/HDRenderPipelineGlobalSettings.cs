@@ -474,12 +474,56 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region Resource Common
+        void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, System.Func<bool> checker)
+            where T : HDRenderPipelineResources
+        {
+            T resourceChecked = null;
+
+            if (checker())
+            {
+                if (!EditorUtility.IsPersistent(resources)) // if not loaded from the Asset database
+                {
+                    // try to load from AssetDatabase if it is ready
+                    resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+                    if (resourceChecked && !resourceChecked.Equals(null))
+                        resources = resourceChecked;
+                }
+                ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+                return;
+            }
+
+            resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+            if (resourceChecked != null && !resourceChecked.Equals(null))
+            {
+                resources = resourceChecked;
+                ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+            }
+            else // Asset database may not be ready
+            {
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
+                resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
+                if (forceReload)
+                {
+                    if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
+                    {
+                        InternalEditorUtility.SaveToSerializedFileAndForget(
+                            new Object[] { resources },
+                            resourcePath,
+                            true);
+                    }
+                }
+            }
+            Debug.Assert(checker(), $"Could not load {typeof(T).Name}.");
+        }
+
+        #endregion //Resource Common
+
         #region Runtime Resources
-
         [SerializeField]
-        RenderPipelineResources m_RenderPipelineResources;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get
             {
@@ -495,43 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string runtimeResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
 
         internal void EnsureRuntimeResources(bool forceReload)
-        {
-            RenderPipelineResources resources = null;
-            if (AreResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineResources))
-                {
-                    resources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
-                    if (resources && !resources.Equals(null))
-                        m_RenderPipelineResources = resources;
-                }
-                return;
-            }
-
-            resources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineResources = resources;
-            }
-            else
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
-                m_RenderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
-
-                if (forceReload)
-                {
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new UnityEngine.Object[] { m_RenderPipelineResources },
-                            runtimeResourcesPath,
-                            true);
-                    }
-                }
-            }
-            Debug.Assert(AreResourcesCreated(), "Could not load Runtime Resources for HDRP.");
-        }
-
+            => EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreResourcesCreated);
 #endif
 
         internal bool AreResourcesCreated()
@@ -585,44 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string editorResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
 
         internal void EnsureEditorResources(bool forceReload)
-        {
-            HDRenderPipelineEditorResources resources = null;
-
-            if (AreEditorResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineEditorResources)) // if not loaded from the Asset database
-                {
-                    // try to load from AssetDatabase if it is ready
-                    resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
-                    if (resources && !resources.Equals(null))
-                    {
-                        m_RenderPipelineEditorResources = resources;
-                    }
-                }
-                return;
-            }
-            resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineEditorResources = resources;
-            }
-            else // Asset database may not be ready
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
-                m_RenderPipelineEditorResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineEditorResources : null;
-                if (forceReload)
-                {
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new Object[] { m_RenderPipelineEditorResources },
-                            editorResourcesPath,
-                            true);
-                    }
-                }
-            }
-            Debug.Assert(AreEditorResourcesCreated(), "Could not load Editor Resources.");
-        }
+            => EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated);
 
         internal bool AreEditorResourcesCreated()
         {
@@ -655,47 +626,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string raytracingResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
 
         internal void EnsureRayTracingResources(bool forceReload)
-        {
-            HDRenderPipelineRayTracingResources resources = null;
-
-            if (AreRayTracingResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineRayTracingResources))
-                {
-                    resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(raytracingResourcesPath);
-                    if (resources && !resources.Equals(null))
-                    {
-                        m_RenderPipelineRayTracingResources = resources;
-                    }
-                }
-                return;
-            }
-            resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(raytracingResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineRayTracingResources = resources;
-            }
-            else
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(raytracingResourcesPath);
-                m_RenderPipelineRayTracingResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineRayTracingResources : null;
-                if (forceReload)
-                {
-#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
-                    ResourceReloader.TryReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
-#else
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new Object[] { m_RenderPipelineRayTracingResources },
-                            raytracingResourcesPath,
-                            true);
-                    }
-#endif
-                    Debug.Assert(AreRayTracingResourcesCreated(), $"Could not load Ray Tracing Resources from {raytracingResourcesPath}.");
-                }
-            }
-        }
+            => EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated);
 
         internal void ClearRayTracingResources()
         {
