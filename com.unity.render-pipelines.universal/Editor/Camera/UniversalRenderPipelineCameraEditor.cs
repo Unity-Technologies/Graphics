@@ -514,8 +514,8 @@ namespace UnityEditor.Rendering.Universal
             m_CommonCameraSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_CommonCameraSettingsFoldout.value, Styles.projectionSettingsText);
             if (m_CommonCameraSettingsFoldout.value)
             {
-                UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera pixelPerfectCamera;
-                camera.TryGetComponent<UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
+                UnityEngine.Rendering.Universal.PixelPerfectCamera pixelPerfectCamera;
+                camera.TryGetComponent<UnityEngine.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
                 bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
 
                 if (pixelPerfectEnabled)
