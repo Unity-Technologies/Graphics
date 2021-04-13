@@ -92,11 +92,13 @@ float3 GetSpecularNormal(MaterialData mtlData)
 
 float3 GetLightNormal(MaterialData mtlData)
 {
-    return GetDiffuseNormal(mtlData) == GetSpecularNormal(mtlData) ? GetDiffuseNormal(mtlData) : float3(0.0, 0.0, 0.0);
+    // If both diffuse and specular normals are quasi-indentical, return one of them, otherwise return a null vector
+    return dot(GetDiffuseNormal(mtlData), GetSpecularNormal(mtlData)) > 0.99 ? GetDiffuseNormal(mtlData) : float3(0.0, 0.0, 0.0);
 }
 
 float3x3 GetSpecularTangentFrame(MaterialData mtlData)
 {
+    // If we have anisotropy, we want our local frame to follow tangential directions, otherwise any orientation will do
     return mtlData.bsdfData.anisotropy != 0.0 ?
         float3x3(mtlData.bsdfData.tangentWS, mtlData.bsdfData.bitangentWS, GetSpecularNormal(mtlData)) :
         GetLocalFrame(GetSpecularNormal(mtlData));
