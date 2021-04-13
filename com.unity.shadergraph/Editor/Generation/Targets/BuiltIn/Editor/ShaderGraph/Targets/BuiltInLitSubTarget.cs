@@ -11,7 +11,7 @@ using static Unity.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    sealed class BuiltInLitSubTarget : BuiltInSubTarget, ILegacyTarget
+    sealed class BuiltInLitSubTarget : BuiltInSubTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("8c2d5b55aa47443878a55a05f4294270"); // BuiltInLitSubTarget.cs
 
@@ -161,63 +161,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
                 onChange();
             });
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            if (!(masterNode is PBRMasterNode1 pbrMasterNode))
-                return false;
-
-            m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
-            m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
-
-            // Handle mapping of Normal block specifically
-            BlockFieldDescriptor normalBlock;
-            switch (m_NormalDropOffSpace)
-            {
-                case NormalDropOffSpace.Object:
-                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    break;
-                case NormalDropOffSpace.World:
-                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    break;
-                default:
-                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    break;
-            }
-
-            // PBRMasterNode adds/removes Metallic/Specular based on settings
-            BlockFieldDescriptor specularMetallicBlock;
-            int specularMetallicId;
-            if (m_WorkflowMode == WorkflowMode.Specular)
-            {
-                specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
-                specularMetallicId = 3;
-            }
-            else
-            {
-                specularMetallicBlock = BlockFields.SurfaceDescription.Metallic;
-                specularMetallicId = 2;
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 10 },
-                { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { normalBlock, 1 },
-                { specularMetallicBlock, specularMetallicId },
-                { BlockFields.SurfaceDescription.Emission, 4 },
-                { BlockFields.SurfaceDescription.Smoothness, 5 },
-                { BlockFields.SurfaceDescription.Occlusion, 6 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-            };
-
-            return true;
         }
 
         #region SubShader

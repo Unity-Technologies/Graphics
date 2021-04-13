@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         Both = 0        // = CullMode.Off -- render both faces
     }
 
-    sealed class BuiltInTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class BuiltInTarget : Target, IHasMetadata
     {
         public override int latestVersion => 1;
 
@@ -378,65 +378,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 }
             }
 
-            return false;
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            void UpgradeAlphaClip()
-            {
-                var clipThresholdId = 8;
-                var node = masterNode as AbstractMaterialNode;
-                var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
-                if (clipThresholdSlot == null)
-                    return;
-
-                clipThresholdSlot.owner = node;
-                if (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
-                {
-                    m_AlphaClip = true;
-                }
-            }
-
-            // Upgrade Target
-            switch (masterNode)
-            {
-                case PBRMasterNode1 pbrMasterNode:
-                    m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
-                    m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
-                    m_RenderFace = pbrMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
-                    UpgradeAlphaClip();
-                    m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case UnlitMasterNode1 unlitMasterNode:
-                    m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
-                    m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
-                    m_RenderFace = unlitMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
-                    UpgradeAlphaClip();
-                    m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case SpriteLitMasterNode1 spriteLitMasterNode:
-                    m_CustomEditorGUI = spriteLitMasterNode.m_OverrideEnabled ? spriteLitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case SpriteUnlitMasterNode1 spriteUnlitMasterNode:
-                    m_CustomEditorGUI = spriteUnlitMasterNode.m_OverrideEnabled ? spriteUnlitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-            }
-
-            // Upgrade SubTarget
-            foreach (var subTarget in m_SubTargets)
-            {
-                if (!(subTarget is ILegacyTarget legacySubTarget))
-                    continue;
-
-                if (legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
-                {
-                    m_ActiveSubTarget = subTarget;
-                    return true;
-                }
-            }
-
-            blockMap = null;
             return false;
         }
 

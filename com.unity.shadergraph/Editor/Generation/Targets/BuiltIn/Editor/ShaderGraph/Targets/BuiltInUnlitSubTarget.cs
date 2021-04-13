@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    sealed class BuiltInUnlitSubTarget : SubTarget<BuiltInTarget>, ILegacyTarget
+    sealed class BuiltInUnlitSubTarget : SubTarget<BuiltInTarget>
     {
         static readonly GUID kSourceCodeGuid = new GUID("3af09b75886c549dbad6eaaaaf342387"); // BuiltInUnlitSubTarget.cs
 
@@ -97,26 +97,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // show the target default surface properties
             var builtInTarget = (target as BuiltInTarget);
             builtInTarget?.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo);
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            if (!(masterNode is UnlitMasterNode1 unlitMasterNode))
-                return false;
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 10 },
-                { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-            };
-
-            return true;
         }
 
         #region SubShader
