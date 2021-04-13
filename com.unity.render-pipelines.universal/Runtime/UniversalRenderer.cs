@@ -485,12 +485,15 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
             {
-                RenderBufferStoreAction opaquePassStoreAction = RenderBufferStoreAction.Store;
+                RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
+                RenderBufferStoreAction opaquePassDepthStoreAction = opaquePassColorStoreAction;
                 if (cameraTargetDescriptor.msaaSamples > 1)
-                    opaquePassStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
+                    opaquePassColorStoreAction = opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
+                else
+                    opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
 
-                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassStoreAction);
-                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassColorStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
             }
