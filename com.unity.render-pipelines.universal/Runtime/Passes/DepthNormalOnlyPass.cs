@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal RenderTextureDescriptor normalDescriptor { get; set; }
         internal RenderTextureDescriptor depthDescriptor { get; set; }
-        internal bool allocateNormal { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         private RTHandle depth { get; set; }
@@ -32,7 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle depth, RTHandle normal)
+        public void Setup(ScriptableRenderContext context, RenderTextureDescriptor baseDescriptor, RTHandle depth, ref RTHandle normal)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -51,21 +50,41 @@ namespace UnityEngine.Rendering.Universal.Internal
             baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
             depthDescriptor = baseDescriptor;
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.SetGlobalTexture(depth.name, depth);
+
             this.normal = normal;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
-            this.allocateNormal = true;
+            if (normal == null || normal.rt.graphicsFormat != normalsFormat)
+            {
+                normal = RTHandles.Alloc(Vector2.one,
+                    colorFormat: normalDescriptor.graphicsFormat,
+                    dimension: normalDescriptor.dimension,
+                    enableRandomWrite: normalDescriptor.enableRandomWrite,
+                    useMipMap: normalDescriptor.mipCount > 0,
+                    autoGenerateMips: normalDescriptor.autoGenerateMips,
+                    enableMSAA: normalDescriptor.msaaSamples > 1,
+                    bindTextureMS: normalDescriptor.bindMS,
+                    memoryless: normalDescriptor.memoryless,
+                    filterMode: FilterMode.Point,
+                    wrapMode: TextureWrapMode.Clamp,
+                    name: "_CameraNormalsTexture");
+                cmd.SetGlobalTexture(normal.name, normal);
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
             this.shaderTagId = k_ShaderTagId;
         }
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (this.allocateNormal)
-                cmd.GetTemporaryRT(Shader.PropertyToID(normal.name), normalDescriptor, FilterMode.Point);
             ConfigureTarget(normal, depth);
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -104,8 +123,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (depth != null)
             {
-                if (this.allocateNormal)
-                    cmd.ReleaseTemporaryRT(Shader.PropertyToID(normal.name));
                 normal = null;
                 depth = null;
             }
