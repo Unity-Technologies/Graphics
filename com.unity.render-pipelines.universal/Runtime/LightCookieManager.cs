@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -36,8 +34,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 public Vector2Int resolution;
                 public GraphicsFormat format;
+                //public bool useMips;
 
-                public bool isPow2 => Mathf.IsPowerOfTwo(resolution.x) && Mathf.IsPowerOfTwo(resolution.x);
+                public bool isPow2 => Mathf.IsPowerOfTwo(resolution.x) && Mathf.IsPowerOfTwo(resolution.y);
             }
 
             public AtlasSettings atlas;
@@ -178,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
                     1,    // TODO: what's the correct value here, how many mips before bleed?
                     m_Settings.atlas.format,
                     FilterMode.Bilinear,    // TODO: option?
-                    "Universal Light Cookie Atlas",
+                    "Universal Light Cookie Pow2 Atlas",
                     true);
             }
             else
@@ -536,7 +535,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ShaderProperty._AdditionalLightsCookieAtlasTexture, m_AdditionalLightsCookieAtlas.AtlasTexture);
             cmd.SetGlobalFloat(ShaderProperty._AdditionalLightsCookieAtlasFormat, cookieAtlasFormat);
 
-            // TODO: resize for uniform buffer
             m_AdditionalLightsCookieShaderData.Resize(m_Settings.maxAdditionalLights);
 
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
