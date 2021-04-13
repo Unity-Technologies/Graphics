@@ -665,7 +665,7 @@ namespace UnityEditor.Rendering.Universal
             if (fowardRendererData != null && fowardRendererData.postProcessData == null)
                 return true;
 
-            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+            var fenderer2DData = rendererData as Renderer2DData;
             if (fenderer2DData != null && fenderer2DData.postProcessData == null)
                 return true;
 
