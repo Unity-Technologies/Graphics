@@ -112,8 +112,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(targetObject);
                 }
-
-                UnityEditor.EditorUtility.SetDirty(targetObject);
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    if (targetObject != null && !targetObject.Equals(null))
+                        UnityEditor.EditorUtility.SetDirty(targetObject);
+                };
             }
 #endif
             return true;

@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
         {
-            if (materialProfile != null && !HDRenderPipeline.defaultAsset.diffusionProfileSettingsList.Any(d => d == materialProfile))
+            if (materialProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == materialProfile))
             {
                 using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
                 {
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.LabelField(diffusionProfileNotInHDRPAsset, wordWrap);
                     if (GUILayout.Button("Fix", GUILayout.ExpandHeight(true)))
                     {
-                        HDRenderPipeline.defaultAsset.AddDiffusionProfile(materialProfile);
+                        HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(materialProfile);
                     }
                 }
             }

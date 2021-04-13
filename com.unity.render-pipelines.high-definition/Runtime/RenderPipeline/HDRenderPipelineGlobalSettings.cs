@@ -1,6 +1,7 @@
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
 using System.Linq;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -53,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
-        static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
+        static internal HDRenderPipelineGlobalSettings Ensure(string folderPath = "HDRPDefaultResources", bool canCreateNewAsset = true)
         {
             bool needsMigration = (assetToBeMigrated != null && !assetToBeMigrated.Equals(null));
 
@@ -61,11 +62,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return HDRenderPipelineGlobalSettings.instance;
 
             HDRenderPipelineGlobalSettings assetCreated = null;
-            string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
+            string path = "Assets/" + folderPath + "/HDRenderPipelineGlobalSettings.asset";
             if (needsMigration)
             {
                 if (HDRenderPipelineGlobalSettings.instance)
                     path = AssetDatabase.GetAssetPath(HDRenderPipelineGlobalSettings.instance);
+                else if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
+                    AssetDatabase.CreateFolder("Assets", folderPath);
 
                 assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false, canCreateNewAsset: canCreateNewAsset);
                 if (assetCreated != null && !assetCreated.Equals(null))
@@ -86,9 +89,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else if (canCreateNewAsset)// or create one altogether
                     {
-                        if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
-                            AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
+                        if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
+                            AssetDatabase.CreateFolder("Assets", folderPath);
                         assetCreated = Create(path);
+
+                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                     }
                     else
                     {
@@ -158,8 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Cannot migrate HDRP Asset to a new HDRP Global Settings asset. If you are building a Player, make sure to save an HDRP Global Settings asset by opening the project in the Editor.");
                     return null;
                 }
-                if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
-                    AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
                 assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
@@ -168,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
             //2. Migrate obsolete assets (version DefaultSettingsAsAnAsset)
             assetCreated.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
-            assetCreated.volumeProfileLookDev = oldAsset.m_ObsoleteDefaultLookDevProfile;
+            assetCreated.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
 
             assetCreated.m_RenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
             assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
@@ -213,8 +216,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
             }
 
-            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length);
-            for (int i = 0; i < oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length; ++i)
+            int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
+            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldSize);
+            for (int i = 0; i < oldSize; ++i)
                 assetCreated.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 
             //3. Clear obsolete fields
@@ -268,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     assetCreated.renderPipelineRayTracingResources = src.renderPipelineRayTracingResources;
 
                     assetCreated.volumeProfile = src.volumeProfile;
-                    assetCreated.volumeProfileLookDev = src.volumeProfileLookDev;
+                    assetCreated.lookDevVolumeProfile = src.lookDevVolumeProfile;
 
                     assetCreated.m_RenderingPathDefaultCameraFrameSettings = src.m_RenderingPathDefaultCameraFrameSettings;
                     assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = src.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
@@ -381,12 +385,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region VolumeProfile
 
-        [SerializeField] private VolumeProfile m_VolumeProfileDefault;
+        [SerializeField, FormerlySerializedAs("m_VolumeProfileDefault")]
+        private VolumeProfile m_DefaultVolumeProfile;
 
         internal VolumeProfile volumeProfile
         {
-            get => m_VolumeProfileDefault;
-            set => m_VolumeProfileDefault = value;
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
         }
 
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
@@ -414,26 +419,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Look Dev Profile
 #if UNITY_EDITOR
-        [SerializeField] private VolumeProfile m_VolumeProfileLookDev;
+        [SerializeField, FormerlySerializedAs("VolumeProfileLookDev")]
+        private VolumeProfile m_LookDevVolumeProfile;
 
-        internal VolumeProfile volumeProfileLookDev
+        internal VolumeProfile lookDevVolumeProfile
         {
-            get => m_VolumeProfileLookDev;
-            set => m_VolumeProfileLookDev = value;
+            get => m_LookDevVolumeProfile;
+            set => m_LookDevVolumeProfile = value;
         }
 
         internal VolumeProfile GetOrAssignLookDevVolumeProfile()
         {
-            if (volumeProfileLookDev == null || volumeProfileLookDev.Equals(null))
+            if (lookDevVolumeProfile == null || lookDevVolumeProfile.Equals(null))
             {
-                volumeProfileLookDev = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                lookDevVolumeProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
             }
-            return volumeProfileLookDev;
+            return lookDevVolumeProfile;
         }
 
         internal bool IsVolumeProfileLookDevFromResources()
         {
-            return volumeProfileLookDev != null && !volumeProfileLookDev.Equals(null) && renderPipelineEditorResources != null && volumeProfileLookDev.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
+            return lookDevVolumeProfile != null && !lookDevVolumeProfile.Equals(null) && renderPipelineEditorResources != null && lookDevVolumeProfile.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
         }
 
 #endif

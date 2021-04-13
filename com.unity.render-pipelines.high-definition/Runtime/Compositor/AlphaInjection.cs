@@ -24,9 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public override void Setup()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset != null)
-                m_Material = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.alphaInjectionPS);
+            if (!HDRenderPipeline.isReady)
+                return;
+
+            m_Material = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.alphaInjectionPS);
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
