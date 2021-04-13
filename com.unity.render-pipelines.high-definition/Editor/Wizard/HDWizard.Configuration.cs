@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.instance != null;
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
-            => HDRenderPipelineGlobalSettings.Ensure();
+            => HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
 
         bool IsRuntimeResourcesCorrect()
             => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreResourcesCreated();
@@ -530,7 +530,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixEditorResources(fromAsyncUnused: false);
 
             var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
-            hdrpSettings.volumeProfileLookDev = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
+            hdrpSettings.lookDevVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpSettings);
         }

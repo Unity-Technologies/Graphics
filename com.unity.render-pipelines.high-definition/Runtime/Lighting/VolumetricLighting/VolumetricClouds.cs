@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
     [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
     public sealed class VolumetricClouds : VolumeComponent
     {
         /// <summary>
