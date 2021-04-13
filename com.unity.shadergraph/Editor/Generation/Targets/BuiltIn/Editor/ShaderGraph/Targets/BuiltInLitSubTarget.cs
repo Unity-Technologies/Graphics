@@ -69,12 +69,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // which will pull over the defaults from the shader definition)
             // but if that ever changes, this will ensure the defaults are set
             material.SetFloat(Property.SpecularWorkflowMode(), (float)workflowMode);
-            //material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-            //material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
             material.SetFloat(Property.Surface(), (float)target.surfaceType);
             material.SetFloat(Property.Blend(), (float)target.alphaMode);
             material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
             material.SetFloat(Property.Cull(), (int)target.renderFace);
+            material.SetFloat(Property.ZWriteControl(), (float)target.zWriteControl);
+            material.SetFloat(Property.ZTest(), (float)target.zTestMode);
 
             // call the full unlit material setup function
             BuiltInLitGUI.UpdateMaterial(material);

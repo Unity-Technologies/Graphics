@@ -39,6 +39,22 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 context.AddSubShader(subShaders[i]);
             }
         }
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // copy our target's default settings into the material
+            // (technically not necessary since we are always recreating the material from the shader each time,
+            // which will pull over the defaults from the shader definition)
+            // but if that ever changes, this will ensure the defaults are set
+            material.SetFloat(Property.Surface(), (float)target.surfaceType);
+            material.SetFloat(Property.Blend(), (float)target.alphaMode);
+            material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            material.SetFloat(Property.Cull(), (int)target.renderFace);
+            material.SetFloat(Property.ZWriteControl(), (float)target.zWriteControl);
+            material.SetFloat(Property.ZTest(), (float)target.zTestMode);
+
+            // call the full unlit material setup function
+            BuiltInUnlitGUI.UpdateMaterial(material);
+        }
 
         public override void GetFields(ref TargetFieldContext context)
         {
