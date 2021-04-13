@@ -291,14 +291,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal RTHandle sampleableDepthTarget
-        {
-            get
-            {
-                return m_SampleableDepthTexture;
-            }
-        }
-
         /// <summary>
         /// Returns a list of renderer features added to this renderer.
         /// <seealso cref="ScriptableRendererFeature"/>
@@ -353,7 +345,6 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_ColorFrontBuffer;
         RTHandle m_CameraDepthTarget;
         RTHandle m_CameraResolveTarget;
-        RTHandle m_SampleableDepthTexture;
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
@@ -471,11 +462,6 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
             m_CameraColorTarget = colorTarget;
-        }
-
-        internal void SetSampleableDepthTexture(RTHandle depthTexture)
-        {
-            m_SampleableDepthTexture = depthTexture;
         }
 
         /// <summary>
@@ -879,9 +865,6 @@ namespace UnityEngine.Rendering.Universal
             uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
             if (validColorBuffersCount == 0)
                 return;
-
-            ////Set correct depth RT for shaders that sample depth
-            cmd.SetGlobalTexture("_CameraDepthTexture", cameraData.renderer.sampleableDepthTarget);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if (RenderingUtils.IsMRT(renderPass.colorAttachments))

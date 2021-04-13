@@ -494,8 +494,6 @@ namespace UnityEngine.Rendering.Universal
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
-            SetSampleableDepthTexture(m_DepthTexture);
-
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
@@ -571,6 +569,10 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(Shader.PropertyToID(m_DepthTexture.name), SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
+            }
+            else
+            {
+                Shader.SetGlobalTexture(Shader.PropertyToID(m_DepthTexture.name), m_DepthTexture);
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
