@@ -140,7 +140,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
         //m_ConversionsDropdownField.choices = conversionsChoices;
 
         // This is temp now to get the information filled in
-        RenderPipelineConversion conversion = (RenderPipelineConversion) Activator.CreateInstance(m_Conversions[0]);
+        RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(m_Conversions[0]);
         rootVisualElement.Q<Label>("conversionName").text = conversion.name;
         rootVisualElement.Q<TextElement>("conversionInfo").text = conversion.info;
 
@@ -256,7 +256,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             listView.ClearSelection();
 
             var state = m_ConverterStates[i];
-            if(state.isInitialized || !state.isEnabled || !state.isActive)
+            if (state.isInitialized || !state.isEnabled || !state.isActive)
                 continue;
 
             GetAndSetData(i);
@@ -343,8 +343,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
     void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex)
     {
-
-        var ve = (VisualElement) evt.target;
+        var ve = (VisualElement)evt.target;
         // Checking if this context menu should be enabled or not
         var isActive = m_ConverterStates[coreConverterIndex].items[(int)ve.userData].isActive;
 
@@ -356,37 +355,113 @@ public class RenderPipelineConvertersEditor : EditorWindow
             isActive ? DropdownMenuAction.AlwaysEnabled : DropdownMenuAction.AlwaysDisabled);
     }
 
-    void UpdateInfo(int stateIndex, RunConverterContext ctx)
+    void UpdateInfo(int stateIndex, RunItemContext ctx)
     {
-        var failedCount = ctx.failedCount;
-        var successCount = ctx.successfulCount;
-
-        // Get the pending amount
-        m_ConverterStates[stateIndex].pending =  m_ConverterStates[stateIndex].items.Count;
-
-        for (int i = 0; i < failedCount; i++)
+        if (ctx.didFail)
         {
-            var failedItem = ctx.GetFailedItemAtIndex(i);
-            // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
-            m_ConverterStates[stateIndex].items[failedItem.index].message = failedItem.message;
-            m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
+            m_ConverterStates[stateIndex].items[ctx.item.index].message = ctx.info;
+            m_ConverterStates[stateIndex].items[ctx.item.index].status = Status.Error;
+            m_ConverterStates[stateIndex].errors++;
         }
-
-        for (int i = 0; i < successCount; i++)
+        else
         {
-            var successfulItem = ctx.GetSuccessfulItemAtIndex(i);
-            m_ConverterStates[stateIndex].items[successfulItem.index].status = Status.Success;
+            m_ConverterStates[stateIndex].items[ctx.item.index].status = Status.Success;
+            m_ConverterStates[stateIndex].success++;
         }
-
-        m_ConverterStates[stateIndex].success = successCount;
-        m_ConverterStates[stateIndex].pending -= failedCount;
-        m_ConverterStates[stateIndex].pending -= successCount;
-        m_ConverterStates[stateIndex].errors = failedCount;
-
         VisualElement child = m_ScrollView[stateIndex];
-        // Update the UI with the new values
         child.Q<ListView>("converterItems").Refresh();
+        // var failedCount = ctx.failedCount;
+        // var successCount = ctx.successfulCount;
+        //
+        // // Get the pending amount
+        // m_ConverterStates[stateIndex].pending =  m_ConverterStates[stateIndex].items.Count;
+        //
+        // for (int i = 0; i < failedCount; i++)
+        // {
+        //     var failedItem = ctx.GetFailedItemAtIndex(i);
+        //     // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
+        //     m_ConverterStates[stateIndex].items[failedItem.index].message = failedItem.message;
+        //     m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
+        // }
+        //
+        // for (int i = 0; i < successCount; i++)
+        // {
+        //     var successfulItem = ctx.GetSuccessfulItemAtIndex(i);
+        //     m_ConverterStates[stateIndex].items[successfulItem.index].status = Status.Success;
+        // }
+        //
+        // m_ConverterStates[stateIndex].success = successCount;
+        // m_ConverterStates[stateIndex].pending -= failedCount;
+        // m_ConverterStates[stateIndex].pending -= successCount;
+        // m_ConverterStates[stateIndex].errors = failedCount;
+        //
+        // VisualElement child = m_ScrollView[stateIndex];
+        // // Update the UI with the new values
+        // child.Q<ListView>("converterItems").Refresh();
     }
+
+    // void UpdateInfo(int stateIndex, RunConverterContext ctx)
+    // {
+    //     var failedCount = ctx.failedCount;
+    //     var successCount = ctx.successfulCount;
+    //
+    //     // Get the pending amount
+    //     m_ConverterStates[stateIndex].pending =  m_ConverterStates[stateIndex].items.Count;
+    //
+    //     for (int i = 0; i < failedCount; i++)
+    //     {
+    //         var failedItem = ctx.GetFailedItemAtIndex(i);
+    //         // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
+    //         m_ConverterStates[stateIndex].items[failedItem.index].message = failedItem.message;
+    //         m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
+    //     }
+    //
+    //     for (int i = 0; i < successCount; i++)
+    //     {
+    //         var successfulItem = ctx.GetSuccessfulItemAtIndex(i);
+    //         m_ConverterStates[stateIndex].items[successfulItem.index].status = Status.Success;
+    //     }
+    //
+    //     m_ConverterStates[stateIndex].success = successCount;
+    //     m_ConverterStates[stateIndex].pending -= failedCount;
+    //     m_ConverterStates[stateIndex].pending -= successCount;
+    //     m_ConverterStates[stateIndex].errors = failedCount;
+    //
+    //     VisualElement child = m_ScrollView[stateIndex];
+    //     // Update the UI with the new values
+    //     child.Q<ListView>("converterItems").Refresh();
+    // }
+
+    // void Convert(ClickEvent evt)
+    // {
+    //     for (int i = 0; i < m_ConverterStates.Count; ++i)
+    //     {
+    //         var state = m_ConverterStates[i];
+    //         if (state.isActive && state.isInitialized)
+    //         {
+    //             var itemCount = m_ItemsToConvert[i].Count;
+    //             var items = new List<ConverterItemInfo>(itemCount);
+    //             for (var j = 0; j < itemCount; j++)
+    //             {
+    //                 if (state.items[j].isActive)
+    //                 {
+    //                     items.Add(new ConverterItemInfo
+    //                     {
+    //                         index = j,
+    //                         descriptor = m_ItemsToConvert[i][j]
+    //                     });
+    //                 }
+    //             }
+    //
+    //             // Running the converter with the context
+    //             // in the converter step the converter adds if it failed to convert
+    //             var ctx = new RunConverterContext(items);
+    //             m_CoreConvertersList[i].OnRun(ctx);
+    //
+    //             UpdateInfo(i, ctx);
+    //         }
+    //     }
+    // }
 
     void Convert(ClickEvent evt)
     {
@@ -396,25 +471,32 @@ public class RenderPipelineConvertersEditor : EditorWindow
             if (state.isActive && state.isInitialized)
             {
                 var itemCount = m_ItemsToConvert[i].Count;
-                var items = new List<ConverterItemInfo>(itemCount);
+                //var items = new List<ConverterItemInfo>(itemCount);
+
                 for (var j = 0; j < itemCount; j++)
                 {
                     if (state.items[j].isActive)
                     {
-                        items.Add(new ConverterItemInfo
-                        {
-                            index = j,
-                            descriptor = m_ItemsToConvert[i][j]
-                        });
+                        ConvertIndex(i, j);
+                        // item.index = j;
+                        // item.descriptor = m_ItemsToConvert[i][j];
+                        // // items.Add(new ConverterItemInfo
+                        // // {
+                        // //     index = j,
+                        // //     descriptor = m_ItemsToConvert[i][j]
+                        // // });
+                        // var ctx = new RunItemContext(item);
+                        // m_CoreConvertersList[i].OnRun(ctx);
+                        // UpdateInfo(i, ctx);
                     }
                 }
 
                 // Running the converter with the context
                 // in the converter step the converter adds if it failed to convert
-                var ctx = new RunConverterContext(items);
-                m_CoreConvertersList[i].OnRun(ctx);
+                //var ctx = new RunItemContext(items);
+                //m_CoreConvertersList[i].OnRun(ctx);
 
-                UpdateInfo(i, ctx);
+                //UpdateInfo(i, ctx);
             }
         }
     }
@@ -422,17 +504,34 @@ public class RenderPipelineConvertersEditor : EditorWindow
     void ConvertIndex(int coreConverterIndex, int index)
     {
         // Need to check if this index is active or not.
-        if (m_ConverterStates[coreConverterIndex].items[index].isActive)
+        //if (m_ConverterStates[coreConverterIndex].items[index].isActive)
+        //{
+        //var item = new List<ConverterItemInfo>(1);
+        var item = new ConverterItemInfo()
         {
-            var item = new List<ConverterItemInfo>(1);
-            item.Add(new ConverterItemInfo
-            {
-                index = index,
-                descriptor = m_ItemsToConvert[coreConverterIndex][index],
-            });
-            var ctx = new RunConverterContext(item);
-            m_CoreConvertersList[coreConverterIndex].OnRun(ctx);
-            UpdateInfo(coreConverterIndex, ctx);
-        }
+            index = index,
+            descriptor = m_ItemsToConvert[coreConverterIndex][index],
+        };
+        var ctx = new RunItemContext(item);
+        m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);
+        UpdateInfo(coreConverterIndex, ctx);
+        //}
     }
+
+    // void ConvertIndex(int coreConverterIndex, int index)
+    // {
+    //     // Need to check if this index is active or not.
+    //     if (m_ConverterStates[coreConverterIndex].items[index].isActive)
+    //     {
+    //         var item = new List<ConverterItemInfo>(1);
+    //         item.Add(new ConverterItemInfo
+    //         {
+    //             index = index,
+    //             descriptor = m_ItemsToConvert[coreConverterIndex][index],
+    //         });
+    //         var ctx = new RunConverterContext(item);
+    //         m_CoreConvertersList[coreConverterIndex].OnRun(ctx);
+    //         UpdateInfo(coreConverterIndex, ctx);
+    //     }
+    // }
 }
