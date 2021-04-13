@@ -801,10 +801,6 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
-
-                // if any render feature is added, the "automatic" store optimization policy will disable the optimized load actions
-                if (m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                    m_UseOptimizedStoreActions = false;
             }
 
             // Remove any null render pass that might have been added by user by mistake
@@ -814,6 +810,10 @@ namespace UnityEngine.Rendering.Universal
                 if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
+
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
         }
 
         void ClearRenderingState(CommandBuffer cmd)
