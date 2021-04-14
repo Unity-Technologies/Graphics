@@ -267,10 +267,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d379696584c944d8a57c98209538a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveWithMouse: 0
-  mouseSensitivity: 1
-  buttonSensitivity: 1
-  walkSpeed: 4
+  m_MoveWithMouse: 1
+  m_MouseSensitivity: 2
+  m_ButtonSensitivity: 1
+  m_WalkSpeed: 2
 --- !u!54 &122368106
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1038,7 +1038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188382879499221432, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 187.00002
+      value: 239.00002
       objectReference: {fileID: 0}
     - target: {fileID: 3188382879499221433, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_IsActive
@@ -1094,7 +1094,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880073302294, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 186.99998
+      value: 238.99998
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880073302295, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_IsActive

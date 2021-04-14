@@ -2108,10 +2108,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d379696584c944d8a57c98209538a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveWithMouse: 0
-  mouseSensitivity: 1
-  buttonSensitivity: 1
-  walkSpeed: 3
+  m_MoveWithMouse: 1
+  m_MouseSensitivity: 2
+  m_ButtonSensitivity: 1
+  m_WalkSpeed: 2
 --- !u!136 &1664841556
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2377,7 +2377,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -3136,7 +3136,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880907372043, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880907372043, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_AnchorMax.x
@@ -3245,7 +3245,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_AnchorMax.x

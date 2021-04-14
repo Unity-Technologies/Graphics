@@ -1,64 +1,63 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class FPSController : MonoBehaviour
 {
-    public bool moveWithMouse = true;
-    public float mouseSensitivity = 1;
-    public float buttonSensitivity = 1;
-    public float walkSpeed = 1;
+    [SerializeField]
+    private bool m_MoveWithMouse = true;
+    [SerializeField]
+    private float m_MouseSensitivity = 1f;
+    [SerializeField]
+    private float m_ButtonSensitivity = 1f;
+    [SerializeField]
+    private float m_WalkSpeed = 1f;
 
-    private Rigidbody rb;
-    private byte movementFlags;
+    private Rigidbody m_RigidBody;
+    private byte m_MovementFlags;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (moveWithMouse)
+        if (SystemInfo.deviceType == DeviceType.Handheld)
+        {
+            m_MoveWithMouse = false;
+        } 
+        
+        if (m_MoveWithMouse)
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
         
-        rb = GetComponent<Rigidbody>();
+        m_RigidBody = GetComponent<Rigidbody>();
 
-        movementFlags = 0;
+        m_MovementFlags = 0;
     }
 
     private void Update()
     {
-        if (moveWithMouse)
+        if (m_MoveWithMouse)
         {
             //Rotate based on mouse input
-            float vert = Input.GetAxis("Mouse X") * Time.deltaTime * mouseSensitivity * 100;
-            float hori = Input.GetAxis("Mouse Y") * Time.deltaTime * mouseSensitivity * 100;
+            float vert = Input.GetAxis("Mouse X") * Time.deltaTime * m_MouseSensitivity * 100f;
+            float hori = Input.GetAxis("Mouse Y") * Time.deltaTime * m_MouseSensitivity * 100f;
             transform.Rotate(Vector3.up * vert, Space.World);
             transform.Rotate(-Vector3.right * hori, Space.Self);
         }
 
-        Vector3 rotation = MovementMaskToRotation() * (Time.deltaTime * buttonSensitivity * 100);
-        transform.Rotate(0, rotation.y, 0, Space.World);
-        transform.Rotate(rotation.x, 0, 0, Space.Self);
-
+        Vector3 rotation = MovementMaskToRotation() * (Time.deltaTime * m_ButtonSensitivity * 100f);
+        transform.Rotate(0f, rotation.y, 0f, Space.World);
+        transform.Rotate(rotation.x, 0f, 0f, Space.Self);
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         //Move based on wasd input
         Vector3 forward = transform.forward;
-        forward.y = 0;
+        forward.y = 0f;
         forward = forward.normalized;
 
-        Vector3 direction = Vector3.zero;
-
-
-
-        direction = MovementMaskToWalkDirection();
-        
+        Vector3 direction = MovementMaskToWalkDirection();
 
         if (Input.GetKey(KeyCode.W))
         {
@@ -78,20 +77,20 @@ public class FPSController : MonoBehaviour
         }
         direction = direction.normalized;
 
-        rb.AddForce((direction * walkSpeed) - rb.velocity, ForceMode.VelocityChange);
+        m_RigidBody.AddForce((direction * m_WalkSpeed) - m_RigidBody.velocity, ForceMode.VelocityChange);
     }
 
     private Vector3 MovementMaskToWalkDirection()
     {
         Vector3 forward = transform.forward;
-        forward.y = 0;
+        forward.y = 0f;
         forward = forward.normalized;
         Vector3 direction = Vector3.zero;
 
-        direction += (movementFlags & 1) * forward; //forward
-        direction += ((movementFlags & 2) >> 1) * -forward; //backwards
-        direction += ((movementFlags & 4) >> 2) * -transform.right; //left
-        direction += ((movementFlags & 8) >> 3) * transform.right; //right
+        direction += (m_MovementFlags & 1) * forward; //forward
+        direction += ((m_MovementFlags & 2) >> 1) * -forward; //backwards
+        direction += ((m_MovementFlags & 4) >> 2) * -transform.right; //left
+        direction += ((m_MovementFlags & 8) >> 3) * transform.right; //right
 
         return direction;
     }
@@ -100,51 +99,51 @@ public class FPSController : MonoBehaviour
     {
         Vector3 direction = Vector3.zero;
 
-        direction += ((movementFlags & 16) >> 4) * -Vector3.right; //up
-        direction += ((movementFlags & 32) >> 5) * Vector3.right; //down
-        direction += ((movementFlags & 64) >> 6) * -Vector3.up; //left
-        direction += ((movementFlags & 128) >> 7) * Vector3.up; //right
+        direction += ((m_MovementFlags & 16) >> 4) * -Vector3.right; //up
+        direction += ((m_MovementFlags & 32) >> 5) * Vector3.right; //down
+        direction += ((m_MovementFlags & 64) >> 6) * -Vector3.up; //left
+        direction += ((m_MovementFlags & 128) >> 7) * Vector3.up; //right
         
         return direction;
     }
 
     public void ToggleWalkForward()
     {
-        movementFlags ^= 1;
+        m_MovementFlags ^= 1;
     }
 
     public void ToggleWalkBackwards()
     {
-        movementFlags ^= 2;
+        m_MovementFlags ^= 2;
     }
 
     public void ToggleWalkLeft()
     {
-        movementFlags ^= 4;
+        m_MovementFlags ^= 4;
     }
 
     public void ToggleWalkRight()
     {
-        movementFlags ^= 8;
+        m_MovementFlags ^= 8;
     }
 
     public void ToggleAimUp()
     {
-        movementFlags ^= 16;
+        m_MovementFlags ^= 16;
     }
 
     public void ToggleAimDown()
     {
-        movementFlags ^= 32;
+        m_MovementFlags ^= 32;
     }
 
     public void ToggleAimLeft()
     {
-        movementFlags ^= 64;
+        m_MovementFlags ^= 64;
     }
 
     public void ToggleAimRight()
     {
-        movementFlags ^= 128;
+        m_MovementFlags ^= 128;
     }
 }
