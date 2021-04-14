@@ -475,6 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Resource Common
+#if UNITY_EDITOR
         void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, System.Func<bool> checker)
             where T : HDRenderPipelineResources
         {
@@ -489,7 +490,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (resourceChecked && !resourceChecked.Equals(null))
                         resources = resourceChecked;
                 }
-                ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
                 return;
             }
 
@@ -497,7 +499,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (resourceChecked != null && !resourceChecked.Equals(null))
             {
                 resources = resourceChecked;
-                ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
             }
             else // Asset database may not be ready
             {
@@ -517,6 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(checker(), $"Could not load {typeof(T).Name}.");
         }
 
+#endif
         #endregion //Resource Common
 
         #region Runtime Resources
