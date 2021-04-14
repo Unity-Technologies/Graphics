@@ -126,7 +126,7 @@ AppendStructuredBuffer<float3> _Bricks;
 [numthreads(8, 8, 1)]
 void Subdivide(uint3 id : SV_DispatchThreadID)
 {
-    if (any(id > uint3(_MaxBrickSize)))
+    if (any(id >= uint3(_MaxBrickSize)))
         return;
 
     float3 position01 = float3(id) / _MaxBrickSize;
@@ -134,7 +134,12 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
 
     float dist = _Input[sdfId].r;
 
-    if (abs(dist) < 0.0001)
+    float voxelDetectionDistance = 0.5 / _MaxBrickSize;
+    voxelDetectionDistance *= voxelDetectionDistance;
+    voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance);
+
+    // TODO: expose this distance as a parameter
+    if (abs(dist) < voxelDetectionDistance)
     {
         // transform id to world position
         float3 worldPos = _VolumeWorldOffset + position01 * _VolumeSize;

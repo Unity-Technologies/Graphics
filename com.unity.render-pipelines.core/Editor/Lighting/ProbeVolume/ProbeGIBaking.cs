@@ -576,7 +576,19 @@ namespace UnityEngine.Rendering
 
         // TODO: remove me (probably by merging Julien's work)
         static MeshGizmo gizmo = new MeshGizmo(3000);
-        public static void DrawBakingCellsGizmo()
+        static Color[] colors = new Color[]
+        {
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
+        };
+        public static void DrawBakingCellsGizmo(float cellSize)
         {
             gizmo.Clear();
 
@@ -590,14 +602,18 @@ namespace UnityEngine.Rendering
                     Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one)
                 ))
                 {
-                    float cellSize = ProbeReferenceVolume.CellSize(3);
+                    // float cellSize = ProbeReferenceVolume.instance.MaxBrickSize();
                     var positionF = new Vector3(cell.cell.position.x, cell.cell.position.y, cell.cell.position.z);
                     var center = positionF * cellSize + cellSize * 0.5f * Vector3.one;
                     Handles.DrawWireCube(center, Vector3.one * cellSize);
                 }
 
                 foreach (var brick in cell.cell.bricks)
-                    gizmo.AddWireCube(brick.position, Vector3.one * ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel), Color.yellow);
+                {
+                    Vector3 scaledSize = Vector3.one * ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
+                    Vector3 scaledPos = brick.position + scaledSize / 2;
+                    gizmo.AddWireCube(scaledPos, scaledSize, colors[brick.subdivisionLevel]);
+                }
             }
 
             gizmo.RenderWireframe(Matrix4x4.identity);

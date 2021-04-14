@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering
             else if (Event.current.type == EventType.Repaint)
             {
                 if (actualTarget.realtimeSubdivision)
-                    ProbeGIBaking.DrawBakingCellsGizmo();
+                    ProbeGIBaking.DrawBakingCellsGizmo(actualTarget.cellSize);
             }
         }
 

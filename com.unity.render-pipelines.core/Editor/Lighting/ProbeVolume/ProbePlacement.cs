@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering
             refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, influencerVolumes, subdivDel, bricks, out numProbes);
 
             positions = new Vector3[numProbes];
-            refVol.ConvertBricks(bricks, positions);
+            refVol.ConvertBricksToPositions(bricks, positions);
         }
 
         public static void SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes,
@@ -262,24 +262,29 @@ namespace UnityEngine.Rendering
             {
                 // bakingCameraGO = new GameObject("Baking Camera") { /*hideFlags = HideFlags.HideAndDontSave*/ }; // TODO: hide
                 // bakingCamera = bakingCameraGO.AddComponent<Camera>();
+                cellVolume.CalculateCenterAndSize(out var center, out var size);
 
-                sceneSDF = new RenderTexture(64, 64, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
+                // We assume that all the cells are cubes
+                int maxBrickCount = (int)Mathf.Pow(3, refVol.GetMaxSubdivision());
+                int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCount);
+
+                sceneSDF = new RenderTexture(sceneSDFSize, sceneSDFSize, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
                 {
                     name = "Scene SDF",
                     dimension = TextureDimension.Tex3D,
-                    volumeDepth = 64,
+                    volumeDepth = sceneSDFSize,
                     enableRandomWrite = true,
                 };
                 sceneSDF.Create();
-                sceneSDF2 = new RenderTexture(64, 64, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
+                sceneSDF2 = new RenderTexture(sceneSDFSize, sceneSDFSize, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
                 {
                     name = "Scene SDF Double Buffer",
                     dimension = TextureDimension.Tex3D,
-                    volumeDepth = 64,
+                    volumeDepth = sceneSDFSize,
                     enableRandomWrite = true,
                 };
                 sceneSDF2.Create();
-                dummyRenderTarget = RenderTexture.GetTemporary(128, 128, 0, GraphicsFormat.R8_SNorm);
+                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize * 2, sceneSDFSize * 2, 0, GraphicsFormat.R8_SNorm);
 
                 var cmd = CommandBufferPool.Get("SDF Gen");
 
@@ -287,21 +292,64 @@ namespace UnityEngine.Rendering
 
                 GenerateDistanceField(cmd, sceneSDF, sceneSDF2);
 
-                int maxBricks = 64;
-                var bricksBuffer = new ComputeBuffer(maxBricks * maxBricks * maxBricks, sizeof(float) * 3, ComputeBufferType.Append);
-                bricksBuffer.SetData(new Vector3[maxBricks * maxBricks * maxBricks]); // initialize the buffer to 0
-                bricksBuffer.SetCounterValue(0);
-                SubdivideFromDistanceField(cmd, cellVolume.CalculateAABB(), sceneSDF, bricksBuffer, maxBricks);
+                var bricksBuffer = new ComputeBuffer(maxBrickCount * maxBrickCount * maxBrickCount, sizeof(float) * 3, ComputeBufferType.Append);
+                var readbackCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Default);
+
+                List<Brick> bricksList = new List<Brick>();
 
                 Graphics.ExecuteCommandBuffer(cmd);
 
-                var bricksArray = new Vector3[maxBricks * maxBricks * maxBricks];
-                bricksBuffer.GetData(bricksArray);
-                bricksBuffer.Release();
+                for (int subdivisionLevel = 0; subdivisionLevel <= refVol.GetMaxSubdivision(); subdivisionLevel++)
+                {
+                    int brickCount = (int)Mathf.Pow(3, refVol.GetMaxSubdivision() - subdivisionLevel);
 
-                // TODO: convert the position into brick position (int index in the cell, starting at 0 at a corner)
-                bricks = bricksArray.Where(b => b.magnitude > 0).Select(p => new Brick(new Vector3Int((int)p.x, (int)p.y, (int)p.z), refVol.GetMaxSubdivision())).ToList();
-                positions = bricksArray.Where(b => b.magnitude > 0).ToArray();
+                    cmd.Clear();
+                    cmd.SetBufferData(bricksBuffer, new Vector3[maxBrickCount * maxBrickCount * maxBrickCount]);
+                    bricksBuffer.SetCounterValue(0);
+                    SubdivideFromDistanceField(cmd, cellVolume.CalculateAABB(), sceneSDF, bricksBuffer, brickCount);
+                    // TODO: get the number of bricks back from GPU using the counter of the append buffer and don't clear
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    Vector3[] brickPositions = new Vector3[brickCount * brickCount * brickCount];
+                    bricksBuffer.GetData(brickPositions, 0, 0, brickCount * brickCount * brickCount);
+
+                    foreach (var pos in brickPositions)
+                    {
+                        if (pos.sqrMagnitude > 0)
+                            // TODO: position is wrong ? subdivision level not correct?
+                            bricksList.Add(new Brick(new Vector3Int((int)pos.x, (int)pos.y, (int)pos.z), refVol.GetMaxSubdivision() - subdivisionLevel - 1));
+                    }
+                }
+
+
+                // var bricksArray = new Vector3[maxBrickCount * maxBrickCount * maxBrickCount];
+                // bricksBuffer.GetData(bricksArray);
+                bricksBuffer.Release();
+                readbackCountBuffer.Release();
+
+                UnityEngine.Profiling.Profiler.BeginSample("sort");
+                // sort from larger to smaller bricks
+                bricksList.Sort((Brick lhs, Brick rhs) =>
+                {
+                    if (lhs.subdivisionLevel != rhs.subdivisionLevel)
+                        return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
+                    if (lhs.position.z != rhs.position.z)
+                        return lhs.position.z < rhs.position.z ? -1 : 1;
+                    if (lhs.position.y != rhs.position.y)
+                        return lhs.position.y < rhs.position.y ? -1 : 1;
+                    if (lhs.position.x != rhs.position.x)
+                        return lhs.position.x < rhs.position.x ? -1 : 1;
+
+                    return 0;
+                });
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                bricks = bricksList.ToList();
+
+                Debug.Log(bricks.Count + " | " + bricks[0].subdivisionLevel);
+
+                // Convert bricks to positions
+                positions = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                refVol.ConvertBricksToPositions(bricks, positions);
             }
             finally // Release resources in case a fatal error occurs
             {
@@ -334,7 +382,6 @@ namespace UnityEngine.Rendering
             // refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, influencerVolumes, subdivDel, bricks, out numProbes);
 
             // positions = new Vector3[numProbes];
-            // refVol.ConvertBricks(bricks, positions);
         }
 
         static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget)
@@ -355,7 +402,7 @@ namespace UnityEngine.Rendering
             // cmd.ClearRandomWriteTargets();
 
             var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
-            mat.SetVector("_OutputSize", new Vector3(64, 64, 64));
+            mat.SetVector("_OutputSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
             mat.SetVector("_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
             mat.SetVector("_VolumeSize", cellAABB.extents * 2);
 
@@ -365,7 +412,7 @@ namespace UnityEngine.Rendering
 
             Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
             {
-                var worldToCamera = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
+                var worldToCamera = Matrix4x4.Rotate(rotation);
                 // var projection = Matrix4x4.Ortho(-cellAABB.extents.x, cellAABB.extents.x, -cellAABB.extents.y, cellAABB.extents.y, -cellAABB.extents.z, cellAABB.extents.z);
                 var projection = Matrix4x4.Ortho(-1, 1, -1, 1, -1, 1);
                 return projection * worldToCamera;
@@ -375,7 +422,7 @@ namespace UnityEngine.Rendering
 
             // We need to bind at least something for rendering
             cmd.SetRenderTarget(dummyRenderTarget);
-            cmd.SetViewport(new Rect(0, 0, 128, 128));
+            cmd.SetViewport(new Rect(0, 0, dummyRenderTarget.width, dummyRenderTarget.height));
             var props = new MaterialPropertyBlock();
             foreach (MeshRenderer renderer in renderers)
             {
@@ -399,7 +446,12 @@ namespace UnityEngine.Rendering
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)
         {
             subdivideSceneCS.GetKernelThreadGroupSizes(kernel, out uint x, out uint y, out uint z);
-            cmd.DispatchCompute(subdivideSceneCS, kernel, (int)Mathf.Max(1, width / x), (int)Mathf.Max(1, height / y), (int)Mathf.Max(1, depth / z));
+            cmd.DispatchCompute(
+                subdivideSceneCS,
+                kernel,
+                Mathf.Max(1, Mathf.CeilToInt(width / (float)x)),
+                Mathf.Max(1, Mathf.CeilToInt(height / (float)y)),
+                Mathf.Max(1, Mathf.CeilToInt(depth / (float)z)));
         }
 
         static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF, RenderTexture tmp)
