@@ -118,12 +118,12 @@ namespace UnityEngine.Rendering
                     if (mismatchedProfile)
                     {
                         EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
-                                                + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                            + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
                     }
                     if (mismatchedTransform)
                     {
                         EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
-                                                + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
+                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 
