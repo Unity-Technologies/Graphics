@@ -114,20 +114,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseDenoiser.Release();
         }
 
-        static bool IsValidRayTracedMaterial(Material currentMaterial)
+        static bool IsValidRayTracedMaterial(Material currentMaterial, ref Dictionary<int, bool> materialValidityCache)
         {
             if (currentMaterial == null || currentMaterial.shader == null)
                 return false;
 
+            bool isValid;
+
+            int matId = currentMaterial.GetInstanceID();
+
+            if (materialValidityCache.TryGetValue(matId, out isValid))
+                return isValid;
+
             // For the time being, we only consider non-decal HDRP materials as valid
             // (testing the shader name is faster, but won't work on shader graph materials)
-            bool isValid;
             if (currentMaterial.shader.name.Substring(0, 5) == "HDRP/")
                 isValid = currentMaterial.shader.name.Substring(5) != "Decal";
             else if (currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline")
                 isValid = !DecalSystem.IsDecalMaterial(currentMaterial);
             else
                 isValid = false;
+
+            materialValidityCache.Add(matId, isValid);
 
             return isValid;
         }
@@ -193,6 +201,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
             pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
 
+            // We use a local cache, to speed up the case where materials are reused many times
+            Dictionary<int, bool> materialValidityCache = new Dictionary<int, bool>();
+
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
                 // Initially we consider the potential mesh as invalid
@@ -203,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Material currentMaterial = materialArray[meshIdx];
 
                     // Make sure that the material is HDRP's and non-decal
-                    if (IsValidRayTracedMaterial(currentMaterial))
+                    if (IsValidRayTracedMaterial(currentMaterial, ref materialValidityCache))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
