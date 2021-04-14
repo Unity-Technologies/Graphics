@@ -1,21 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(RectTransform)), ExecuteInEditMode]
 public class PreserveRectTransformAspectRatio : MonoBehaviour
 {
-    private RectTransform rect;
-    // Start is called before the first frame update
+    private RectTransform m_RectTransform;
+    
     void Start()
     {
-        rect = GetComponent<RectTransform>();
+        m_RectTransform = GetComponent<RectTransform>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        float width = (rect.anchorMax.x - rect.anchorMin.x) * Screen.width;
-        rect.sizeDelta = new Vector2(0, width);
+        float width = (m_RectTransform.anchorMax.x - m_RectTransform.anchorMin.x) * Screen.width;
+        m_RectTransform.sizeDelta = new Vector2(0, width);
     }
 }
