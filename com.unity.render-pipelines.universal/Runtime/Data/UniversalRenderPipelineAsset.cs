@@ -730,6 +730,9 @@ namespace UnityEngine.Rendering.Universal
             get { return m_MixedLightingSupported; }
         }
 
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
+        /// </summary>
         public bool supportsLightLayers
         {
             get { return m_SupportsLightLayers; }
