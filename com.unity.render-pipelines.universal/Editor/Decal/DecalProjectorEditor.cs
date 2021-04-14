@@ -109,11 +109,8 @@ namespace UnityEditor.Rendering.Universal
         static readonly SceneViewEditMode[] k_EditVolumeModes = new SceneViewEditMode[]
         {
             k_EditShapeWithoutPreservingUV,
-            k_EditShapePreservingUV
-        };
-        static readonly SceneViewEditMode[] k_EditUVAndPivotModes = new SceneViewEditMode[]
-        {
-            k_EditUVAndPivot
+            k_EditShapePreservingUV,
+            k_EditUVAndPivot,
         };
 
         static Func<Vector3, Quaternion, Vector3> s_DrawPivotHandle;
@@ -122,12 +119,8 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent[] editVolumeLabels => k_EditVolumeLabels ?? (k_EditVolumeLabels = new GUIContent[]
         {
             EditorGUIUtility.TrIconContent("d_ScaleTool", k_EditShapeWithoutPreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_RectTool", k_EditShapePreservingUVTooltip)
-        });
-        static GUIContent[] k_EditPivotLabels = null;
-        static GUIContent[] editPivotLabels => k_EditPivotLabels ?? (k_EditPivotLabels = new GUIContent[]
-        {
-            EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip)
+            EditorGUIUtility.TrIconContent("d_RectTool", k_EditShapePreservingUVTooltip),
+            EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip),
         });
 
         static List<DecalProjectorEditor> s_Instances = new List<DecalProjectorEditor>();
@@ -536,7 +529,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
                 DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter(target as DecalProjector), this);
-                DoInspectorToolbar(k_EditUVAndPivotModes, editPivotLabels, GetBoundsGetter(target as DecalProjector), this);
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();
 
@@ -572,34 +564,36 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox("Does not support negative combined scale (scale.x * scale.y * scale.z must be greater or equal to zero).", MessageType.Warning);
                 }
 
-                Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
-                EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
-                EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
-                bool savedHasMultipleDifferentValue = EditorGUI.showMixedValue;
-                EditorGUI.showMixedValue = m_SizeValues[0].hasMultipleDifferentValues || m_SizeValues[1].hasMultipleDifferentValues;
-                float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
+                var widthRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(widthRect, k_WidthContent, m_SizeValues[0]);
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
+                float newSizeX = EditorGUI.FloatField(widthRect, k_WidthContent, m_SizeValues[0].floatValue);
                 if (EditorGUI.EndChangeCheck())
-                {
-                    for (int i = 0; i < 2; ++i)
-                        UpdateSize(i, Mathf.Max(0, size[i]));
-                }
-                EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
-                EditorGUI.EndProperty();
+                    UpdateSize(0, Mathf.Max(0, newSizeX));
                 EditorGUI.EndProperty();
 
-                EditorGUI.BeginProperty(rect, k_ProjectionDepthContent, m_SizeValues[2]);
+                var heightRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(heightRect, k_HeightContent, m_SizeValues[1]);
                 EditorGUI.BeginChangeCheck();
-                float newSizeZ = EditorGUILayout.FloatField(k_ProjectionDepthContent, m_SizeValues[2].floatValue);
+                float newSizeY = EditorGUI.FloatField(heightRect, k_HeightContent, m_SizeValues[1].floatValue);
+                if (EditorGUI.EndChangeCheck())
+                    UpdateSize(1, Mathf.Max(0, newSizeY));
+                EditorGUI.EndProperty();
+
+                var projectionRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(projectionRect, k_ProjectionDepthContent, m_SizeValues[2]);
+                EditorGUI.BeginChangeCheck();
+                float newSizeZ = EditorGUI.FloatField(projectionRect, k_ProjectionDepthContent, m_SizeValues[2].floatValue);
                 if (EditorGUI.EndChangeCheck())
                     UpdateSize(2, Mathf.Max(0, newSizeZ));
+                EditorGUI.EndProperty();
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
                 if (EditorGUI.EndChangeCheck())
                     ReinitSavedRatioSizePivotPosition();
-                EditorGUI.EndProperty();
+
+                EditorGUILayout.Space();
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
@@ -623,6 +617,12 @@ namespace UnityEditor.Rendering.Universal
                     });
                 }
 
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
+                EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
+                EditorGUILayout.PropertyField(m_FadeFactor, k_OpacityContent);
+                EditorGUI.indentLevel--;
+
                 bool angleFadeSupport = false;
                 foreach (var decalProjector in targets)
                 {
@@ -637,7 +637,10 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
                     m_DrawDistanceProperty.floatValue = 0f;
 
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
+                EditorGUI.indentLevel--;
+
                 using (new EditorGUI.DisabledScope(!angleFadeSupport))
                 {
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
@@ -656,9 +659,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox($"Decal Angle Fade is not enabled in Shader. In ShaderGraph enable Angle Fade option.", MessageType.Info);
                 }
 
-                EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
-                EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
-                EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
+                EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
