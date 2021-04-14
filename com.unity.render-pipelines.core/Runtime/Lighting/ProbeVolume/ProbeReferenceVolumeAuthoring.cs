@@ -116,6 +116,8 @@ namespace UnityEngine.Rendering
         [SerializeField]
         private bool m_RealtimeSubdivision;
 
+        public bool GPUSubdivision = false;
+
         Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
         MeshGizmo cellGizmo;
 

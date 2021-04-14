@@ -547,8 +547,10 @@ namespace UnityEngine.Rendering
                 List<Brick> bricks = null;
 
 
-                // ProbePlacement.Subdivide(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
-                ProbePlacement.SubdivideWithSDF(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
+                if (refVolume.GPUSubdivision)
+                    ProbePlacement.SubdivideWithSDF(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
+                else
+                    ProbePlacement.Subdivide(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
 
                 if (probePositionsArr.Length > 0 && bricks.Count > 0)
                 {
@@ -582,8 +584,17 @@ namespace UnityEngine.Rendering
             Handles.zTest = CompareFunction.LessEqual;
             foreach (var cell in bakingCells)
             {
-                // Debug.Log(cell.cell.position + " | " + ProbeReferenceVolume.instance.MaxBrickSize());
-                Handles.DrawWireCube(cell.cell.position, Vector3.one * ProbeReferenceVolume.CellSize(4));
+                // Debug.Log(cell.cell.position + " | " + ProbeReferenceVolume.CellSize(3));
+                using (new Handles.DrawingScope(
+                    Color.red,
+                    Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one)
+                ))
+                {
+                    float cellSize = ProbeReferenceVolume.CellSize(3);
+                    var positionF = new Vector3(cell.cell.position.x, cell.cell.position.y, cell.cell.position.z);
+                    var center = positionF * cellSize + cellSize * 0.5f * Vector3.one;
+                    Handles.DrawWireCube(center, Vector3.one * cellSize);
+                }
 
                 foreach (var brick in cell.cell.bricks)
                     gizmo.AddWireCube(brick.position, Vector3.one * ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel), Color.yellow);

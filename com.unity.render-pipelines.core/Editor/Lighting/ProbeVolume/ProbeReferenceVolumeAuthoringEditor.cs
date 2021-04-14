@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
         private SerializedProperty m_GreedyDilation;
         private SerializedProperty m_VolumeAsset;
         private SerializedProperty m_RealtimeSubdivision;
+        private SerializedProperty m_GPUSubdivision;
 
         private SerializedProperty m_Profile;
 
@@ -77,6 +78,7 @@ namespace UnityEngine.Rendering
             m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
             m_RealtimeSubdivision = serializedObject.FindProperty("m_RealtimeSubdivision");
+            m_GPUSubdivision = serializedObject.FindProperty("GPUSubdivision");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
 
@@ -181,6 +183,7 @@ namespace UnityEngine.Rendering
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
                 EditorGUILayout.PropertyField(m_RealtimeSubdivision, new GUIContent("Realtime Subdivision"));
+                EditorGUILayout.PropertyField(m_GPUSubdivision, new GUIContent("GPU subdiv"));
 
                 if (EditorGUI.EndChangeCheck())
                 {
