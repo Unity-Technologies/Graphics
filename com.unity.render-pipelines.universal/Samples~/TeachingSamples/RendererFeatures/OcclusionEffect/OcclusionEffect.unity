@@ -245,7 +245,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_AnchorMax.x
@@ -355,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -809,8 +809,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82cb6f9db52a84a1d889793764803890, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  amount: {x: -5, y: 0, z: 0}
-  speed: 0.5
+  m_Amplitude: {x: 5, y: 0, z: 0}
+  m_Period: 7
 --- !u!114 &1243279517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -823,9 +823,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8725944bdac9042b9b1442ba38a31070, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  space: 0
-  axis: {x: 0, y: 1, z: 0}
-  speed: 30
+  m_Space: 0
+  m_Axis: {x: 0, y: 0, z: 0}
+  m_AngularVelocity: 0
 --- !u!1 &1574701474
 GameObject:
   m_ObjectHideFlags: 0

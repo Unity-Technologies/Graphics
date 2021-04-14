@@ -1,22 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Rotator : MonoBehaviour
 {
-    public Space space;
+    [SerializeField]
+    private Space m_Space;
 
-    public Vector3 axis;
+    [SerializeField]
+    private Vector3 m_Axis;
 
-    public float speed;
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
+    [SerializeField]
+    private float m_AngularVelocity;
 
-    // Update is called once per frame
     void Update()
     {
-        transform.Rotate(axis, speed * Time.deltaTime, space);
+        transform.Rotate(m_Axis, m_AngularVelocity * Time.deltaTime, m_Space);
     }
 }

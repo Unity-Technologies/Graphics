@@ -1,22 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SineMover : MonoBehaviour
 {
-    public Vector3 amount;
-    public float speed;
+    [SerializeField]
+    private Vector3 m_Amplitude;
+    [SerializeField]
+    private float m_Period;
 
-    private Vector3 startPos;
-    // Start is called before the first frame update
+    private Vector3 m_StartPosition;
+    
     void Start()
     {
-        startPos = transform.position;
+        m_StartPosition = transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        transform.position = startPos + amount * Mathf.Sin(Time.time * speed);
+        transform.position = m_StartPosition + m_Amplitude * Mathf.Sin(Time.time * Mathf.PI * (2/m_Period));
     }
 }
