@@ -180,7 +180,7 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
     half metallic = 0;
     ApplyDecal(positionCS,
         surfaceData.albedo,
-        surfaceData.specularColor,
+        surfaceData.specular,
         inputData.normalWS,
         metallic,
         surfaceData.occlusion,
