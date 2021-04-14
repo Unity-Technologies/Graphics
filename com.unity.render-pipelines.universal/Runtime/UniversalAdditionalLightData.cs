@@ -67,17 +67,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // The layer(s) this light belongs too.
-        [SerializeField] LightLayerEnum m_LightLayersMask = LightLayerEnum.LightLayerDefault;
+        [SerializeField] LightLayerEnum m_LightLayerMask = LightLayerEnum.LightLayerDefault;
 
-        public LightLayerEnum lightLayersMask
+        public LightLayerEnum lightLayerMask
         {
-            get { return m_LightLayersMask; }
-            set { m_LightLayersMask = value; }
+            get { return m_LightLayerMask; }
+            set { m_LightLayerMask = value; }
         }
 
         [SerializeField] bool m_CustomShadowLayers = false;
 
-        // if enabled, shadowLayersMask use the same settings as lightLayersMask.
+        // if enabled, shadowLayerMask use the same settings as lightLayerMask.
         public bool customShadowLayers
         {
             get { return m_CustomShadowLayers; }
@@ -85,12 +85,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // The layer(s) used for shadow casting.
-        [SerializeField] LightLayerEnum m_ShadowLayersMask = LightLayerEnum.LightLayerDefault;
+        [SerializeField] LightLayerEnum m_ShadowLayerMask = LightLayerEnum.LightLayerDefault;
 
-        public LightLayerEnum shadowLayersMask
+        public LightLayerEnum shadowLayerMask
         {
-            get { return m_ShadowLayersMask; }
-            set { m_ShadowLayersMask = value; }
+            get { return m_ShadowLayerMask; }
+            set { m_ShadowLayerMask = value; }
         }
     }
 }

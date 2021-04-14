@@ -96,9 +96,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseAdditionalDataProp;                     // Does light use shadow bias settings defined in UniversalRP asset file?
         SerializedProperty m_AdditionalLightsShadowResolutionTierProp;  // Index of the AdditionalLights ShadowResolution Tier
 
-        SerializedProperty m_LightLayersMask;
+        SerializedProperty m_LightLayerMask;
         SerializedProperty m_CustomShadowLayers;
-        SerializedProperty m_ShadowLayersMask;
+        SerializedProperty m_ShadowLayerMask;
 
         protected override void OnEnable()
         {
@@ -115,9 +115,9 @@ namespace UnityEditor.Rendering.Universal
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
-            m_LightLayersMask = m_AdditionalLightDataSO.FindProperty("m_LightLayersMask");
+            m_LightLayerMask = m_AdditionalLightDataSO.FindProperty("m_LightLayerMask");
             m_CustomShadowLayers = m_AdditionalLightDataSO.FindProperty("m_CustomShadowLayers");
-            m_ShadowLayersMask = m_AdditionalLightDataSO.FindProperty("m_ShadowLayersMask");
+            m_ShadowLayerMask = m_AdditionalLightDataSO.FindProperty("m_ShadowLayerMask");
 
             settings.ApplyModifiedProperties();
         }
@@ -185,11 +185,11 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipeline.asset.supportsLightLayers)
             {
                 EditorGUI.BeginChangeCheck();
-                DrawLightLayerMask(m_LightLayersMask, s_Styles.LightLayer);
+                DrawLightLayerMask(m_LightLayerMask, s_Styles.LightLayer);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (!m_CustomShadowLayers.boolValue)
-                        SyncLightAndShadowLayers(m_LightLayersMask);
+                        SyncLightAndShadowLayers(m_LightLayerMask);
 
                     m_AdditionalLightDataSO.ApplyModifiedProperties();
                 }
@@ -499,13 +499,13 @@ namespace UnityEditor.Rendering.Universal
                 {
                     if (m_CustomShadowLayers.boolValue)
                     {
-                        lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                        lightProperty.renderingLayerMask = m_ShadowLayerMask.intValue;
                         m_AdditionalLightDataSO.ApplyModifiedProperties();
                     }
                     else
                     {
                         m_AdditionalLightDataSO.ApplyModifiedProperties(); //we need to push above modification the modification on object as it is used to sync
-                        SyncLightAndShadowLayers(m_LightLayersMask);
+                        SyncLightAndShadowLayers(m_LightLayerMask);
                     }
                 }
 
@@ -514,10 +514,10 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.indentLevel += 1;
 
                     EditorGUI.BeginChangeCheck();
-                    DrawLightLayerMask(m_ShadowLayersMask, s_Styles.ShadowLayer);
+                    DrawLightLayerMask(m_ShadowLayerMask, s_Styles.ShadowLayer);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                        lightProperty.renderingLayerMask = m_ShadowLayerMask.intValue;
                         m_AdditionalLightDataSO.ApplyModifiedProperties();
                     }
 

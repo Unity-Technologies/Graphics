@@ -251,8 +251,9 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 color;
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
-        public int lightIndex;
+        public int flags;
         public Vector4 occlusionProbeInfo;
+        public uint layerMask;
     }
 
     internal static class ShaderPropertyId

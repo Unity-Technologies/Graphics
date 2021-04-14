@@ -45,7 +45,7 @@ struct PunctualLightData
     float3 spotDirection;       // spotLights support
     int flags;                  // Light flags (enum kLightFlags and LightFlag in C# code)
     float4 occlusionProbeInfo;
-    uint lightLayers;           // Optional light layer mask
+    uint layerMask;             // Optional light layer mask
 };
 
 Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff)
@@ -75,7 +75,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
         light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo);
     }
 
-    light.lightLayers = punctualLightData.lightLayers;
+    light.layerMask = punctualLightData.layerMask;
 
     return light;
 }

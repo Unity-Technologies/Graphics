@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _MainLightLightLayers = Shader.PropertyToID("_MainLightLightLayers"); // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightLayerMask = Shader.PropertyToID("_MainLightLayerMask"); // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _SpotLightScale = Shader.PropertyToID("_SpotLightScale");
             public static int _SpotLightBias = Shader.PropertyToID("_SpotLightBias");
             public static int _SpotLightGuard = Shader.PropertyToID("_SpotLightGuard");
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightDirection = Shader.PropertyToID("_LightDirection");
             public static int _LightFlags = Shader.PropertyToID("_LightFlags");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
-            public static int _LightLayers = Shader.PropertyToID("_LightLayers");
+            public static int _LightLayerMask = Shader.PropertyToID("_LightLayerMask");
         }
 
         // Disable Burst for now since there are issues on macos builds.
@@ -1131,11 +1131,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
             UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(lightData.visibleLights[lightData.mainLightIndex].light);
-            uint lightLayers = (uint)additionalLightData.lightLayersMask;
+            uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
 
             cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
-            cmd.SetGlobalInt(ShaderConstants._MainLightLightLayers, (int)lightLayers);
+            cmd.SetGlobalInt(ShaderConstants._MainLightLayerMask, (int)lightLayerMask);
         }
 
         void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
@@ -1582,7 +1582,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
                 UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
-                uint lightLayers = (uint)additionalLightData.lightLayersMask;
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
 
                 // Setup shadow paramters:
                 // - for the main light, they have already been setup globally, so nothing to do.
@@ -1610,7 +1610,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
-                cmd.SetGlobalInt(ShaderConstants._LightLayers, (int)lightLayers);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
@@ -1651,7 +1651,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
                 UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
-                uint lightLayers = (uint)additionalLightData.lightLayersMask;
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
 
                 int lightFlags = 0;
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
@@ -1670,7 +1670,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-                cmd.SetGlobalInt(ShaderConstants._LightLayers, (int)lightLayers);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1710,7 +1710,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
                 UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
-                uint lightLayers = (uint)additionalLightData.lightLayersMask;
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
 
                 int lightFlags = 0;
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
@@ -1733,7 +1733,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-                cmd.SetGlobalInt(ShaderConstants._LightLayers, (int)lightLayers);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1798,14 +1798,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, index, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
             UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(visibleLights[index].light);
-            uint lightLayers = (uint)additionalLightData.lightLayersMask;
+            uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
 
             punctualLightBuffer[storeIndex * 6 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
             punctualLightBuffer[storeIndex * 6 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
             punctualLightBuffer[storeIndex * 6 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
             punctualLightBuffer[storeIndex * 6 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
             punctualLightBuffer[storeIndex * 6 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
-            punctualLightBuffer[storeIndex * 6 + 5] = new uint4(lightLayers, 0, 0, 0);
+            punctualLightBuffer[storeIndex * 6 + 5] = new uint4(lightLayerMask, 0, 0, 0);
         }
 
         void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)

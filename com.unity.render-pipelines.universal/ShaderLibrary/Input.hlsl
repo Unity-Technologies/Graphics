@@ -48,7 +48,7 @@ float4 _ScaledScreenParams;
 float4 _MainLightPosition;
 half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
-uint _MainLightLightLayers;
+uint _MainLightLayerMask;
 
 // xyz are currently unused
 // w: directLightStrength
@@ -69,7 +69,7 @@ half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-float _AdditionalLightsLightLayers[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
+float _AdditionalLightsLayerMasks[MAX_VISIBLE_LIGHTS]; // we want uint[] but Unity api does not support it.
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif

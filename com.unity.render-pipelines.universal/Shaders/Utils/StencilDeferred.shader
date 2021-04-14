@@ -133,7 +133,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     half4 _LightOcclusionProbInfo;
     int _LightFlags;
     int _ShadowLightIndex;
-    uint _LightLayers;
+    uint _LightLayerMask;
 
     half4 FragWhite(Varyings input) : SV_Target
     {
@@ -147,9 +147,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
 
         #ifdef _LIGHT_LAYERS
-        uint lightLayers =_LightLayers;
+        uint lightLayerMask =_LightLayerMask;
         #else
-        uint lightLayers = DEFAULT_LIGHT_LAYERS;
+        uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
         #endif
 
         #if defined(_DIRECTIONAL)
@@ -174,7 +174,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 unityLight.distanceAttenuation = 1.0;
                 unityLight.shadowAttenuation = 1.0;
                 unityLight.color = _LightColor.rgb;
-                unityLight.lightLayers = lightLayers;
+                unityLight.layerMask = lightLayerMask;
 
                 if (!materialReceiveShadowsOff)
                 {
@@ -192,7 +192,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.spotDirection = _LightDirection;
             light.occlusionProbeInfo = _LightOcclusionProbInfo;
             light.flags = _LightFlags;
-            light.lightLayers = lightLayers;
+            light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
         #endif
 
@@ -247,7 +247,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
 
-        [branch] if (!IsMatchingLightLayer(unityLight.lightLayers, meshRenderingLayers))
+        [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
             return half4(color, alpha); // Cannot discard because stencil must be updated.
 
         #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
