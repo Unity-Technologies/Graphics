@@ -114,6 +114,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     copiedShaderInput = copiedKeyword;
                     break;
 
+                case ShaderDropdown shaderDropdown:
+                    var copiedDropdown = (ShaderDropdown)graphData.AddCopyOfShaderInput(shaderDropdown, insertIndex);
+
+                    // Update the dropdown nodes that depends on the copied node
+                    foreach (var node in dependentNodeList)
+                    {
+                        if (node is DropdownNode propertyNode)
+                        {
+                            propertyNode.owner = graphData;
+                            propertyNode.dropdown = copiedDropdown;
+                        }
+                    }
+
+                    copiedShaderInput = copiedDropdown;
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -154,9 +170,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal int propertySectionIndex = 0;
         internal int keywordSectionIndex = 1;
+        internal int dropdownSectionIndex = 2;
 
         BlackboardSectionController m_PropertySectionController;
         BlackboardSectionController m_KeywordSectionController;
+        BlackboardSectionController m_DropdownSectionController;
         IList<BlackboardSectionController> m_BlackboardSectionControllers = new List<BlackboardSectionController>();
 
         SGBlackboard m_Blackboard;
@@ -167,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             private set => m_Blackboard = value;
         }
 
-        void InitializeViewModel()
+        void InitializeViewModel(bool useDropdowns)
         {
             // Clear the view model
             ViewModel.ResetViewModelData();
@@ -212,6 +230,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            if (useDropdowns)
+                ViewModel.defaultDropdownNameToAddActionMap.Add("Dropdown", new AddShaderInputAction() { shaderInputReference = new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+
             ViewModel.requestModelChangeAction = this.RequestModelChange;
 
             ViewModel.categoryInfoList = DataStore.State.categories.ToList();
@@ -230,13 +251,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                     keywordGUIDs.Add(keyword.guid);
                 var defaultKeywordCategory = new CategoryData("Keywords", keywordGUIDs);
                 ViewModel.categoryInfoList.Add(defaultKeywordCategory);
+
+                if (useDropdowns)
+                {
+                    var dropdownGUIDs = new List<Guid>();
+                    foreach (var dropdown in DataStore.State.dropdowns)
+                        dropdownGUIDs.Add(dropdown.guid);
+                    var defaultDropdownCategory = new CategoryData("Dropdowns", dropdownGUIDs);
+                    ViewModel.categoryInfoList.Add(defaultDropdownCategory);
+                }
             }
         }
 
         internal BlackboardController(GraphData model, BlackboardViewModel inViewModel, GraphDataStore graphDataStore)
             : base(model, inViewModel, graphDataStore)
         {
-            InitializeViewModel();
+            // TODO: hide this more generically for category types.
+            bool useDropdowns = model.isSubGraph;
+            InitializeViewModel(useDropdowns);
 
             blackboard = new SGBlackboard(ViewModel);
             blackboard.controller = this;
@@ -254,6 +286,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PropertySectionController = m_BlackboardSectionControllers[0];
             m_KeywordSectionController = m_BlackboardSectionControllers[1];
+            
 
             // The Blackboard Controller is responsible for handling the default categories/sections
             foreach (var shaderProperty in DataStore.State.properties)
@@ -266,6 +299,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             blackboard.contentContainer.Add(m_PropertySectionController.BlackboardSectionView);
             blackboard.contentContainer.Add(m_KeywordSectionController.BlackboardSectionView);
+
+            if (useDropdowns)
+            {
+                m_DropdownSectionController = m_BlackboardSectionControllers[2];
+                foreach (var shaderDropdown in DataStore.State.dropdowns)
+                    if (IsInputInDefaultCategory(shaderDropdown))
+                        AddInputToDefaultSection(shaderDropdown);
+                blackboard.contentContainer.Add(m_DropdownSectionController.BlackboardSectionView);
+            }
         }
 
         public void UpdateBlackboardTitle(string newTitle)
@@ -283,7 +325,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
             // Reconstruct view-model first
-            InitializeViewModel();
+            // TODO: hide this more generically for category types.
+            bool useDropdowns = graphData.isSubGraph;
+            InitializeViewModel(useDropdowns);
 
             switch (changeAction)
             {
@@ -351,6 +395,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return m_PropertySectionController.InsertBlackboardRow(property);
                 case ShaderKeyword keyword:
                     return m_KeywordSectionController.InsertBlackboardRow(keyword);
+                case ShaderDropdown dropdown:
+                    return m_DropdownSectionController.InsertBlackboardRow(dropdown);
             }
 
             return null;
@@ -364,6 +410,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return m_PropertySectionController.InsertBlackboardRow(property, insertionIndex);
                 case ShaderKeyword keyword:
                     return m_KeywordSectionController.InsertBlackboardRow(keyword, insertionIndex);
+                case ShaderDropdown dropdown:
+                    return m_DropdownSectionController.InsertBlackboardRow(dropdown, insertionIndex);
             }
 
             return null;
@@ -378,6 +426,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 case ShaderKeyword keyword:
                     m_KeywordSectionController.RemoveBlackboardRow(keyword);
+                    break;
+                case ShaderDropdown dropdown:
+                    m_DropdownSectionController.RemoveBlackboardRow(dropdown);
                     break;
             }
         }

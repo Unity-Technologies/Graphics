@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
+  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
+  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
 
 ### Changed
 - Updated/corrected View Direction doc
@@ -78,6 +80,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed the default dimension (1) for vector material slots so that it is consistent with other nodes. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328756/)
+- Fixed reordering then renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
 
 ## [10.3.0] - 2020-11-03
 

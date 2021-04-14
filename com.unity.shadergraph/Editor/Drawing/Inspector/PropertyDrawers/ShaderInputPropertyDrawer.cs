@@ -75,6 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
         Action _dropdownChangedCallback;
+		Action<string> _displayNameChangedCallback;
         Action<string> _referenceNameChangedCallback;
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
@@ -107,6 +108,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.isSubGraph = m_ViewModel.isSubGraph;
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._dropdownChangedCallback = () => graphData.OnDropdownChanged();
+			this._precisionChangedCallback = () =>  graphData.ValidateGraph();
 
             this._exposedFieldChangedCallback = newValue =>
             {

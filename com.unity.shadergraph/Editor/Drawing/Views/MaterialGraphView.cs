@@ -1250,44 +1250,48 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var copyShaderInputAction = new CopyShaderInputAction { shaderInputToCopy = input };
 
-                switch (input)
+                if (graphView.graph.IsInputAllowedInGraph(input))
                 {
-                    case AbstractShaderProperty property:
-                        copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.propertySectionIndex];
+                    switch (input)
+                    {
+                        case AbstractShaderProperty property:
+                            copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
+                            copyShaderInputAction.insertIndex = insertionIndices[blackboardController.propertySectionIndex];
 
-                        // Increment for next within the same section
-                        if (insertionIndices[blackboardController.propertySectionIndex] >= 0)
-                            insertionIndices[blackboardController.propertySectionIndex]++;
-                        break;
+                            // Increment for next within the same section
+                            if (insertionIndices[blackboardController.propertySectionIndex] >= 0)
+                                insertionIndices[blackboardController.propertySectionIndex]++;
+                            break;
 
-                    case ShaderKeyword shaderKeyword:
-                        copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.keywordSectionIndex];
+                        case ShaderKeyword shaderKeyword:
+                            copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
+                            copyShaderInputAction.insertIndex = insertionIndices[blackboardController.keywordSectionIndex];
 
-                        // Increment for next within the same section
-                        if (insertionIndices[blackboardController.keywordSectionIndex] >= 0)
-                            insertionIndices[blackboardController.keywordSectionIndex]++;
+                            // Increment for next within the same section
+                            if (insertionIndices[blackboardController.keywordSectionIndex] >= 0)
+                                insertionIndices[blackboardController.keywordSectionIndex]++;
 
-                        // Pasting a new Keyword so need to test against variant limit
-                        keywordsDirty = true;
-                        break;
+                            // Pasting a new Keyword so need to test against variant limit
+                            keywordsDirty = true;
+                            break;
 
-                    case ShaderDropdown shaderDropdown:
-                        var copiedDropdown = (ShaderDropdown)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_DropdownSectionIndex]);
+                        case ShaderDropdown shaderDropdown:
+                            copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<DropdownNode>().Where(x => x.dropdown == input);
+                            copyShaderInputAction.insertIndex = insertionIndices[blackboardController.dropdownSectionIndex];
 
-                        // Increment for next within the same section
-                        if (indicies[BlackboardProvider.k_DropdownSectionIndex] >= 0)
-                            indicies[BlackboardProvider.k_DropdownSectionIndex]++;
+                            // Increment for next within the same section
+                            if (insertionIndices[blackboardController.dropdownSectionIndex] >= 0)
+                                insertionIndices[blackboardController.dropdownSectionIndex]++;
 
-                        dropdownsDirty = true;
-                        break;
+                            dropdownsDirty = true;
+                            break;
 
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    graphView.graph.owner.graphDataStore.Dispatch(copyShaderInputAction);
                 }
-
-                graphView.graph.owner.graphDataStore.Dispatch(copyShaderInputAction);
             }
 
             // Pasting a Sub Graph node that contains Keywords so need to test against variant limit

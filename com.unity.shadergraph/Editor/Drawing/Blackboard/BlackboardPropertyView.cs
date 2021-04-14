@@ -299,6 +299,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                             }
                         }
                     }
+                    else if (input is ShaderDropdown dropdown)
+                    {
+                        if (node.userData is DropdownNode dropdownNode)
+                        {
+                            if (dropdownNode.dropdown == input)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
+                        }
+                    }
                 }
             }
             else if (evt.eventTypeId == MouseLeaveEvent.TypeId() && m_SelectedNodes.Any())

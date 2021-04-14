@@ -1243,6 +1243,11 @@ namespace UnityEditor.ShaderGraph
             collector.CalculateKeywordPermutations();
         }
 
+        public bool IsInputAllowedInGraph(ShaderInput input)
+        {
+            return (isSubGraph && input.allowedInSubGraph) || (!isSubGraph && input.allowedInMainGraph);
+        }
+
         // adds the input to the graph, and sanitizes the names appropriately
         public void AddGraphInput(ShaderInput input, int index = -1)
         {
@@ -1296,6 +1301,8 @@ namespace UnityEditor.ShaderGraph
                         m_Dropdowns.Add(dropdown);
                     else
                         m_Dropdowns.Insert(index, dropdown);
+
+                    OnDropdownChangedNoValidate();
 
                     break;
                 default:

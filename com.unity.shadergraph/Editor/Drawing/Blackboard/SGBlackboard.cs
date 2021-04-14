@@ -260,6 +260,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
             }
+
+            // Just one of these will exist, so not using the separator.
+            foreach (var nameToAddActionTuple in ViewModel.defaultDropdownNameToAddActionMap)
+            {
+                string defaultDropdownName = nameToAddActionTuple.Key;
+                IGraphDataAction addAction = nameToAddActionTuple.Value;
+                m_AddBlackboardItemMenu.AddItem(new GUIContent($"{defaultDropdownName}"), false, () => ViewModel.requestModelChangeAction(addAction));
+            }
+
+            foreach (string disabledDropdownName in ViewModel.disabledDropdownNameList)
+            {
+                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledDropdownName));
+            }
         }
 
         void ShowAddPropertyMenu()

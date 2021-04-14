@@ -747,16 +747,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (node is DropdownNode dropdownNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(dropdownNode.dropdown);
-                if (keywordRow != null)
+                var dropdownRow = blackboardController.GetBlackboardRow(dropdownNode.dropdown);
+                if (dropdownRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())
                     {
-                        keywordRow.AddToClassList("hovered");
+                        dropdownRow.AddToClassList("hovered");
                     }
                     else
                     {
-                        keywordRow.RemoveFromClassList("hovered");
+                        dropdownRow.RemoveFromClassList("hovered");
                     }
                 }
             }
