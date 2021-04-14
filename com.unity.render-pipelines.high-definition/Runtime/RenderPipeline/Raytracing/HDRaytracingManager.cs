@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
+        Dictionary<int, bool> m_MaterialValidityCache = new Dictionary<int, bool>();
 
         // Used to detect material and transform changes for Path Tracing
         Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
@@ -114,16 +115,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseDenoiser.Release();
         }
 
-        static bool IsValidRayTracedMaterial(Material currentMaterial, ref Dictionary<int, bool> materialValidityCache)
+        bool IsValidRayTracedMaterial(Material currentMaterial)
         {
             if (currentMaterial == null || currentMaterial.shader == null)
                 return false;
 
             bool isValid;
 
+            // We use a cache, to speed up the case where materials are reused many times
             int matId = currentMaterial.GetInstanceID();
-
-            if (materialValidityCache.TryGetValue(matId, out isValid))
+            if (m_MaterialValidityCache.TryGetValue(matId, out isValid))
                 return isValid;
 
             // For the time being, we only consider non-decal HDRP materials as valid
@@ -135,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 isValid = false;
 
-            materialValidityCache.Add(matId, isValid);
+            m_MaterialValidityCache.Add(matId, isValid);
 
             return isValid;
         }
@@ -201,9 +202,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
             pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
 
-            // We use a local cache, to speed up the case where materials are reused many times
-            Dictionary<int, bool> materialValidityCache = new Dictionary<int, bool>();
-
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
                 // Initially we consider the potential mesh as invalid
@@ -214,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Material currentMaterial = materialArray[meshIdx];
 
                     // Make sure that the material is HDRP's and non-decal
-                    if (IsValidRayTracedMaterial(currentMaterial, ref materialValidityCache))
+                    if (IsValidRayTracedMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
@@ -350,6 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdRectLightArray.Clear();
             m_RayTracingLights.hdLightArray.Clear();
             m_RayTracingLights.reflectionProbeArray.Clear();
+            m_MaterialValidityCache.Clear();
             m_RayTracingLights.lightCount = 0;
             m_CurrentRAS.Dispose();
             m_CurrentRAS = new RayTracingAccelerationStructure();
