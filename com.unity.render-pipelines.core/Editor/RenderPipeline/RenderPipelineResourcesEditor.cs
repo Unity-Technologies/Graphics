@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
                 {
                     if (string.IsNullOrEmpty(t.packagePath_Internal))
                     {
-                        Debug.LogError("packagePath is not set in this Resource. We will not be able to reload it. Skiping.");
+                        Debug.LogError($"packagePath is not set in {t.GetType().Name}. We will not be able to reload it. Skipping.");
                         continue;
                     }
 
