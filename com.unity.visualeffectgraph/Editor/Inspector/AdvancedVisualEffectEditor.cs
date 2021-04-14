@@ -244,7 +244,7 @@ namespace UnityEditor.VFX
 
             VFXParameter parameter = GetParameter(name, resource);
 
-            if (!VFXGizmoUtility.HasGizmo(parameter.type))
+            if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
                 base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
