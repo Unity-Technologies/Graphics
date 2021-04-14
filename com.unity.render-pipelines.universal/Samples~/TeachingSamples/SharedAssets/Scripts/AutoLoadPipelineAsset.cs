@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-
 [ExecuteAlways]
 public class AutoLoadPipelineAsset : MonoBehaviour
 {
