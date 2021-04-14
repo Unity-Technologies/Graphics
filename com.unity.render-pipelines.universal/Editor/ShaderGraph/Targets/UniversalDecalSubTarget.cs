@@ -823,7 +823,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                { Pragma.EnableD3D11DebugSymbols },
+                //{ Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };

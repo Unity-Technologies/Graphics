@@ -235,7 +235,7 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_SCREEN_SPACE)
 
     // Blend normal with background
-#if defined(_DECAL_NORMAL_BLEND_LOW) ||defined(_DECAL_NORMAL_BLEND_MEDIUM) ||defined(_DECAL_NORMAL_BLEND_HIGH)
+#if defined(_DECAL_NORMAL_BLEND_LOW) || defined(_DECAL_NORMAL_BLEND_MEDIUM) || defined(_DECAL_NORMAL_BLEND_HIGH)
     surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
 #endif
 
@@ -265,14 +265,16 @@ void Frag(PackedVaryings packedInput,
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
+    // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
     half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
     fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
     fragmentOutput.GBuffer3 = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
 #if OUTPUT_SHADOWMASK
-    fragmentOutput.GBuffer4 = 0; // TODO: Does shader and pipeline target count must match?
+    fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
+
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive;// *GetCurrentExposureMultiplier();
