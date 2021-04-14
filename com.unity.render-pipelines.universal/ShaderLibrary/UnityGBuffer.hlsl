@@ -153,7 +153,7 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     #ifdef _LIGHT_LAYERS
     uint renderingLayers = GetMeshRenderingLightLayer();
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    output.GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (renderingLayers & 0x000000FF) / 255.0);
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -225,7 +225,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     #ifdef _LIGHT_LAYERS
     uint renderingLayers = GetMeshRenderingLightLayer();
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    output.GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (renderingLayers & 0x000000FF) / 255.0);
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;

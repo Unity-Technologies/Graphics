@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Universal Render Pipeline/StencilDeferred"
+Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
     Properties {
         _StencilRef ("StencilRef", Int) = 0
@@ -220,7 +220,7 @@
 
         #ifdef _LIGHT_LAYERS
         float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        uint meshRenderingLayers = uint(renderingLayers.w * 255.5);
+        uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
         #else
         uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
         #endif
