@@ -720,6 +720,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     out var textureModeField));
 
                 textureModeField.SetEnabled(texture2DProperty.generatePropertyBlock);
+
+                var togglePropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Use Tilling and Offset");
+                        if (texture2DProperty.useTilingAndOffset == newValue.isOn)
+                            return;
+                        texture2DProperty.useTilingAndOffset = newValue.isOn;
+                        this._postChangeValueCallback();
+                    },
+                    new ToggleData(texture2DProperty.useTilingAndOffset, true),
+                    "Use Tiling and Offset",
+                    out var tilingAndOffsetToggle));
             }
         }
 

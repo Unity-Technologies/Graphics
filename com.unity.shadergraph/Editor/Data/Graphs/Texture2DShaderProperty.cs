@@ -25,9 +25,14 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
+        [SerializeField]
+        internal bool useTilingAndOffset = false;
+
+        internal string useSTString => useTilingAndOffset ? "" : "[NoScaleOffset]";
+
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{useSTString}{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
@@ -40,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
-            // action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl)); // TODO: allow users to make use of the ST values
+            action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl)); 
         }
 
         internal override string GetPropertyAsArgumentString(string precisionString)
@@ -58,7 +63,16 @@ namespace UnityEditor.ShaderGraph.Internal
             if (isSubgraphProperty)
                 return referenceName;
             else
-                return $"UnityBuildTexture2DStructNoScale({referenceName})";
+            {
+                if (useTilingAndOffset)
+                {
+                    return $"UnityBuildTexture2DStruct({referenceName})";
+                }
+                else
+                {
+                    return $"UnityBuildTexture2DStructNoScale({referenceName})";
+                }
+            }
         }
 
         [SerializeField]

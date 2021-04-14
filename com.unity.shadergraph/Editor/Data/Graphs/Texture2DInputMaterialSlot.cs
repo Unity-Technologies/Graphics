@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
             if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return $"UnityBuildTexture2DStructNoScale({nodeOwner.GetVariableNameForSlot(id)})";
+            return $"UnityBuildTexture2DStruct({nodeOwner.GetVariableNameForSlot(id)})";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
