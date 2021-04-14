@@ -284,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
 
             DecalCachedChunk cachedChunk = cachedChunks[chunkIndex];
 
-            cachedChunk.sizeOffsets[arrayIndex] = Matrix4x4.Translate(decalProjector.pivot) * Matrix4x4.Scale(decalProjector.size);
+            cachedChunk.sizeOffsets[arrayIndex] = Matrix4x4.Translate(decalProjector.decalOffset) * Matrix4x4.Scale(decalProjector.decalSize);
 
             float drawDistance = decalProjector.drawDistance;
             float fadeScale = decalProjector.fadeScale;
@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
             DecalLayerEnum decalLayerMask = decalProjector.decalLayerMask;
 
             // draw distance can't be more than global draw distance
-            cachedChunk.drawDistances[arrayIndex] = new Vector2(cachedChunk.drawDistance < drawDistance
+            cachedChunk.drawDistances[arrayIndex] = new Vector2(cachedChunk.drawDistance > drawDistance
                 ? drawDistance
                 : cachedChunk.drawDistance, fadeScale);
             // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)

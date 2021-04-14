@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.ShortcutManagement;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using static UnityEditorInternal.EditMode;
@@ -27,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
         static Color s_LastColor;
         static void UpdateColorsInHandlesIfRequired()
         {
-            Color c = Color.white;
+            Color c = new Color(1, 1, 1, 0.2f);
             if (c != s_LastColor)
             {
                 if (s_BoxHandle != null && !s_BoxHandle.Equals(null))
@@ -549,6 +550,21 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUILayout.Space();
 
+                // Info box for tools
+                GUIStyle style = new GUIStyle(EditorStyles.miniLabel);
+                style.richText = true;
+                GUILayout.BeginVertical(EditorStyles.helpBox);
+                string helpText = baseSceneEditingToolText;
+                if (EditMode.editMode == k_EditShapeWithoutPreservingUV && EditMode.IsOwner(this))
+                    helpText = toolNames[0].text;
+                if (EditMode.editMode == k_EditShapePreservingUV && EditMode.IsOwner(this))
+                    helpText = toolNames[1].text;
+                if (EditMode.editMode == k_EditUVAndPivot && EditMode.IsOwner(this))
+                    helpText = toolNames[2].text;
+                GUILayout.Label(helpText, style);
+                GUILayout.EndVertical();
+                EditorGUILayout.Space();
+
                 EditorGUILayout.PropertyField(m_ScaleMode, k_ScaleMode);
 
                 bool negativeScale = false;
@@ -561,7 +577,7 @@ namespace UnityEditor.Rendering.Universal
                 }
                 if (negativeScale)
                 {
-                    EditorGUILayout.HelpBox("Does not support negative odd scale.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Does not support negative combined scale (scale.x * scale.y * scale.z must be greater or equal to zero).", MessageType.Warning);
                 }
 
                 Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
@@ -666,7 +682,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            bool isDecalSupported = DecalProjector.isAnySystemUsing;
+            bool isDecalSupported = DecalProjector.isSupported;
             if (!isDecalSupported)
             {
                 EditorGUILayout.HelpBox("No system is currently using this decal. Make sure that current render pipeline has decal enabled.", MessageType.Info);
@@ -691,7 +707,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
+        [Shortcut("URP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
         static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
@@ -702,7 +718,7 @@ namespace UnityEditor.Rendering.Universal
             ChangeEditMode(k_EditShapeWithoutPreservingUV, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
+        [Shortcut("URP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
         static void EnterEditModePreservingUV(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
@@ -713,7 +729,7 @@ namespace UnityEditor.Rendering.Universal
             ChangeEditMode(k_EditShapePreservingUV, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Handle changing pivot position and UVs", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
+        [Shortcut("URP/Decal: Handle changing pivot position and UVs", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
         static void EnterEditModePivotPreservingUV(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
@@ -724,7 +740,7 @@ namespace UnityEditor.Rendering.Universal
             ChangeEditMode(k_EditUVAndPivot, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.W, ShortcutModifiers.Action)]
+        [Shortcut("URP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.W, ShortcutModifiers.Action)]
         static void SwappingEditUVMode(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
@@ -747,7 +763,7 @@ namespace UnityEditor.Rendering.Universal
                 ChangeEditMode(targetMode, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
         }
 
-        [Shortcut("HDRP/Decal: Stop Editing", typeof(SceneView), KeyCode.Keypad0, ShortcutModifiers.Action)]
+        [Shortcut("URP/Decal: Stop Editing", typeof(SceneView), KeyCode.Keypad0, ShortcutModifiers.Action)]
         static void ExitEditMode(ShortcutArguments args)
         {
             //If editor is not there, then the selected GameObject does not contains a DecalProjector
