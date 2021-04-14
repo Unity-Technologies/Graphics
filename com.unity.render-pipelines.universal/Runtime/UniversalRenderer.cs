@@ -101,6 +101,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
+            // TODO: should merge shaders with HDRP into core, XR dependency for now.
+            // TODO: replace/merge URP blit into core blitter.
+            Blitter.Initialize(data.shaders.coreBlitPS, data.shaders.coreBlitColorAndDepthPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -244,6 +247,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
+
+            Blitter.Cleanup();
         }
 
         /// <inheritdoc />
@@ -603,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera && isGizmosEnabled)
+            if (isSceneViewCamera || isGizmosEnabled)
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");

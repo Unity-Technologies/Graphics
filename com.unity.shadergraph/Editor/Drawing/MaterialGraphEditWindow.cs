@@ -269,8 +269,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     messageManager.ClearAll();
                     materialGraph.messageManager = messageManager;
-                    var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
+                    string assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                    string graphName = Path.GetFileNameWithoutExtension(assetPath);
+
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName)
                     {
                         viewDataKey = selectedGuid,
                     };
@@ -332,6 +334,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     updateTitle = true;
                     graphObject.isDirty = false;
+                    hasUnsavedChanges = false;
                 }
 
                 // Called again to handle changes from deserialization in case an undo/redo was performed
@@ -376,18 +379,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnEnable()
         {
             this.SetAntiAliasing(4);
-
-            // subscribe this event so it is registered on assembly reloads (we don't run Initialize on assembly reload)
-            // doing remove before add ensures we never subscribe twice
-            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
-            EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
         }
 
         void OnDisable()
         {
             graphEditorView = null;
             messageManager.ClearAll();
-            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
         }
 
         // returns true only when the file on disk doesn't match the graph we last loaded or saved to disk (i.e. someone else changed it)
@@ -447,7 +444,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 if (GraphHasChangedSinceLastSerialization())
-                    title = title + "*";
+                {
+                    hasUnsavedChanges = true;
+                    // This is the message EditorWindow will show when prompting to close while dirty
+                    saveChangesMessage = GetSaveChangesMessage();
+                }
+                else
+                {
+                    hasUnsavedChanges = false;
+                    saveChangesMessage = "";
+                }
                 if (!AssetFileExists())
                     title = title + " (deleted)";
             }
@@ -468,6 +474,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
+            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasSavedChanges).
+            // There's unfortunately a code path (Reload Window) that doesn't go through this path. The old logic is left
+            // here as a fallback to catch this. This does unfortunately produce a double prompt right now on "Discard" though.
+
             // we are closing the shadergraph window
             MaterialGraphEditWindow newWindow = null;
             if (!PromptSaveIfDirtyOnQuit())
@@ -561,6 +571,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 OnSaveGraph(path);
+                hasUnsavedChanges = false;
             }
 
             UpdateTitle();
@@ -699,7 +710,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             bounds.center = Vector2.zero;
 
             // Collect graph inputs
-            var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+            var graphInputs = graphView.selection.OfType<BlackboardPropertyView>().Select(x => x.userData as ShaderInput);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
@@ -1101,8 +1112,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // for example, if the graph of a closing window was dirty, but could not be saved
             try
             {
-                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
-
                 selectedGuid = other.selectedGuid;
 
                 graphObject = CreateInstance<GraphObject>();
@@ -1114,7 +1123,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateTitle();
 
                 Repaint();
-                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception e)
             {
@@ -1132,7 +1140,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             try
             {
-                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
                 m_ColorSpace = PlayerSettings.colorSpace;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
@@ -1145,6 +1152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (selectedGuid == assetGuid)
                     return;
+
 
                 var path = AssetDatabase.GetAssetPath(asset);
                 var extension = Path.GetExtension(path);
@@ -1167,6 +1175,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 selectedGuid = assetGuid;
+                string graphName = Path.GetFileNameWithoutExtension(path);
 
                 using (GraphLoadMarker.Auto())
                 {
@@ -1184,7 +1193,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (CreateGraphEditorViewMarker.Auto())
                 {
-                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName)
                     {
                         viewDataKey = selectedGuid,
                     };
@@ -1193,7 +1202,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateTitle();
 
                 Repaint();
-                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception)
             {
@@ -1227,9 +1235,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",
-                        "Do you want to save the changes you made in the Shader Graph?\n\n" +
-                        AssetDatabase.GUIDToAssetPath(selectedGuid) +
-                        "\n\nYour changes will be lost if you don't save them.",
+                        GetSaveChangesMessage(),
                         "Save", "Cancel", "Discard Changes");
 
                     if (option == 0) // save
@@ -1247,6 +1253,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
             return true;
+        }
+
+        private string GetSaveChangesMessage()
+        {
+            return "Do you want to save the changes you made in the Shader Graph?\n\n" +
+                AssetDatabase.GUIDToAssetPath(selectedGuid) +
+                "\n\nYour changes will be lost if you don't save them.";
+        }
+
+        public override void SaveChanges()
+        {
+            base.SaveChanges();
+            SaveAsset();
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)

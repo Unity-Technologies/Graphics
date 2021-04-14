@@ -121,12 +121,6 @@ namespace UnityEditor.Graphing
                 var valueInPermutation = keywordPermutation.Where(x => x.Key == keywordNode.keyword).FirstOrDefault();
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
-            // This only works if we are actually pruning all the non active branches, which would mean actually splicing the active branch from GenerateNodeCode inside DropdownNode,
-            // when building the graph, not the subgraph node. Impractical? Output shader will be the same after compilation, regardless, but it will be more code sent to the compiler.
-            //else if (node is DropdownNode dropdownNode)
-            //{
-            //    ids = new int[] { dropdownNode.GetSlotIdForActiveSelection() };
-            //}
             else
             {
                 ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);

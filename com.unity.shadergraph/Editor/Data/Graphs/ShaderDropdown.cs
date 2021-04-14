@@ -27,6 +27,8 @@ namespace UnityEditor.ShaderGraph
             set => m_Entries = value;
         }
 
+        public override bool allowedInMainGraph { get => false; }
+
         [SerializeField]
         private int m_Value;
 

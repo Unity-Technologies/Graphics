@@ -28,7 +28,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -125,7 +125,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -175,9 +175,9 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -208,7 +208,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -236,7 +236,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -264,7 +264,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -287,9 +287,9 @@ Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -320,4 +320,4 @@ Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision

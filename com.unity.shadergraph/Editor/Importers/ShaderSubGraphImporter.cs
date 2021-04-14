@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(24, Extension, -905)]
+    [ScriptedImporter(26, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -268,15 +268,6 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 {
-                    // The commented out code will only add dropdowns to the function that are used by a node.
-                    // In order for this to work, the SubGraph node must also know which dropdowns are used, so it can
-                    // selectively pass the argument. This requires passing a bit more context to the subgraph node,
-                    // so for now, just always pass the argument, the final shader will be the same anyway. 
-
-                    //foreach (var node in nodes)
-                    //    if (node is DropdownNode dropdownNode)
-                    //        arguments.Add($"int {dropdownNode.dropdown.referenceName}");
-
                     var dropdowns = graph.dropdowns;
                     foreach (var dropdown in dropdowns)
                         arguments.Add($"int {dropdown.referenceName}");
