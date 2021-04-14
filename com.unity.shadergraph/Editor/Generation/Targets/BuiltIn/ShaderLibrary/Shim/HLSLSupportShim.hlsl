@@ -3,6 +3,14 @@
 
 #define HLSL_SUPPORT_INCLUDED
 
+// Disable warnings we aren't interested in
+#if defined(UNITY_COMPILER_HLSL)
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#pragma warning (disable : 3568) // unknown pragma ignored
+#pragma warning (disable : 3571) // "pow(f,e) will not work for negative f"; however in majority of our calls to pow we know f is not negative
+#pragma warning (disable : 3206) // implicit truncation of vector type
+#endif
+
 #if !defined(SHADER_API_GLES)
     // all platforms except GLES2.0 have built-in shadow comparison samplers
     #define SHADOWS_NATIVE

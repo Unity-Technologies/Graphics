@@ -72,9 +72,9 @@ struct v2f_surf {
   UNITY_SHADOW_COORDS(5)//unityShadowCoord4 _ShadowCoord;
 
   //#ifdef DIRLIGHTMAP_COMBINED
-  float3 tSpace0 : TEXCOORD6;
-  float3 tSpace1 : TEXCOORD7;
-  float3 tSpace2 : TEXCOORD8;
+  float4 tSpace0 : TEXCOORD6;
+  float4 tSpace1 : TEXCOORD7;
+  float4 tSpace2 : TEXCOORD8;
   //#endif
   UNITY_VERTEX_INPUT_INSTANCE_ID
   UNITY_VERTEX_OUTPUT_STEREO
