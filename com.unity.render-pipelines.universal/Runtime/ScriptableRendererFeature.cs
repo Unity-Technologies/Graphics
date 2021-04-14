@@ -17,17 +17,22 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool isActive => m_Active;
 
-        internal virtual void OnCull(ScriptableRenderer renderer, in CameraData cameraData) {}
-
         /// <summary>
         /// Initializes this feature's resources. This is called every time serialization happens.
         /// </summary>
         public abstract void Create();
 
         /// <summary>
+        /// Callback before cull happens in renderer.
+        /// </summary>
+        /// <param name="renderer">Renderer of callback.</param>
+        /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
+        public virtual void OnCull(ScriptableRenderer renderer, in CameraData cameraData) {}
+
+        /// <summary>
         /// Injects one or multiple <c>ScriptableRenderPass</c> in the renderer.
         /// </summary>
-        /// <param name="renderPasses">List of render passes to add to.</param>
+        /// <param name="renderer">Renderer used for adding render passes.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
 

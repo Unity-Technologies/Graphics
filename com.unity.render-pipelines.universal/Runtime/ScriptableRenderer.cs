@@ -777,7 +777,11 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
-        // TODO
+        /// <summary>
+        /// Calls <c>OnCull</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.OnCull(ScriptableRenderer, in CameraData)"/>
+        /// </summary>
+        /// <param name="cameraData">Current render state information.</param>
         internal void OnCullRenderPasses(in CameraData cameraData)
         {
             // Add render passes from custom renderer features
