@@ -284,7 +284,7 @@ RectTransform:
   m_AnchorMin: {x: 0.1, y: 0.5}
   m_AnchorMax: {x: 0.3, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -60}
-  m_SizeDelta: {x: 0, y: 187.00002}
+  m_SizeDelta: {x: 0, y: 245.80002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3188382879499221435
 MonoBehaviour:
@@ -995,7 +995,7 @@ RectTransform:
   m_AnchorMin: {x: 0.7, y: 0.5}
   m_AnchorMax: {x: 0.9, y: 0.5}
   m_AnchoredPosition: {x: -0.0017700195, y: -60}
-  m_SizeDelta: {x: 0, y: 186.99998}
+  m_SizeDelta: {x: 0, y: 245.79999}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3188382880073302281
 MonoBehaviour:
@@ -1709,8 +1709,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e1f80e41dc79406ea9195dbf8be1587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementControls: {fileID: 3188382879499221433}
-  aimControls: {fileID: 3188382880073302295}
+  m_MovementControls: {fileID: 3188382879499221433}
+  m_AimControls: {fileID: 3188382880073302295}
 --- !u!1 &3188382881184533705
 GameObject:
   m_ObjectHideFlags: 0
