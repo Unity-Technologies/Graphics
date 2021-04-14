@@ -247,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         {
                             if (evt.newValue != shaderInput.customSlotLabel)
                             {
-                                this._preChangeValueCallback("Change Custom Slot Label");
+                                this._preChangeValueCallback("Change Custom Binding Label");
                                 shaderInput.customSlotLabel = evt.newValue;
                                 m_CustomSlotLabelField.AddToClassList("modified");
                                 this._postChangeValueCallback(true, ModificationScope.Topological);
