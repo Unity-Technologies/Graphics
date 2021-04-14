@@ -11,10 +11,9 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering
 {
-
 #if UNITY_EDITOR
     /// <summary>
-    /// A manager to enqueue extra probe rendering outside of probe volumes. 
+    /// A manager to enqueue extra probe rendering outside of probe volumes.
     /// </summary>
     public class AdditionalGIBakeRequestsManager
     {
@@ -28,7 +27,7 @@ namespace UnityEngine.Rendering
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
         private AdditionalGIBakeRequestsManager()
-        { }
+        {}
 
         private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
         private static List<Vector3> m_RequestPositions = new List<Vector3>();
