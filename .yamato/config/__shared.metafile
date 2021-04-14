@@ -91,6 +91,7 @@ test_platforms:
       - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
