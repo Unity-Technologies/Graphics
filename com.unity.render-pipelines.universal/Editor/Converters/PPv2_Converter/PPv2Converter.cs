@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Build.Content;
 using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
+using BIRPRendering = UnityEngine.Rendering.PostProcessing;
+using URPRendering = UnityEditor.Rendering.Universal;
 using UnityEditor.SceneManagement;
 using UnityEditor.Search;
 using UnityEditor.Search.Providers;
@@ -16,58 +19,57 @@ namespace Editor.Converters
 {
     public class PPv2Converter : RenderPipelineConverter
     {
-        public override string name => "Post-Processing Stack v2 Converter";
-        public override string info => "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras.";
-        public override Type conversion => typeof(BuiltInToURPConversion);
-
-        private bool _startingSceneIsClosed;
-
-        // TODO List:
-        // - Find all PPv2 Volumes, Profiles, and Layers in Assets and Scenes
-        // - Iterate through them, performing the appropriate conversion operations based on PPv2 Type
-        //     - Only update scene instances if they are not prefab based, or if they override the prefab somehow
-        //       (in which case, a new override should be used).
-        //     - Remove Volumes and Layers as you go
-        // - Delete PPv2 Profiles (assets) all at once as a final step, since the references will have been updated in scenes/prefabs
-
-        // TODO Questions:
-        // - Do Prefabs need to be explicitly searched and updated first, followed by a scene search for lingering items?
-        //      - If so, should this also be the case with the Built-In material conversion work?
-
-        public override void OnInitialize(InitializeConverterContext ctx)
+        private struct ExposedObjectIdentifier
         {
-            // TODO: Why "using", what is "asset", what is "urp:convert"?
-            using var searchContext = SearchService.CreateContext("asset", "urp:convert");
-            using var searchItems = SearchService.Request(searchContext);
+            public GUID m_GUID;
+            public long m_LocalIdentifierInFile;
+            public FileType m_FileType;
+            public string m_FilePath;
+
+            public ExposedObjectIdentifier(
+                GUID guid,
+                long localId,
+                FileType fileType,
+                string filePath)
             {
-                // we're going to do this step twice in order to get them ordered, but it should be fast
-                var orderedSearchItems = searchItems.OrderBy(req =>
-                    {
-                        GlobalObjectId.TryParse(req.id, out var gid);
-                        return gid.assetGUID;
-                    })
-                    .ToList();
+                m_GUID = guid;
+                m_LocalIdentifierInFile = localId;
+                m_FileType = fileType;
+                m_FilePath = filePath;
+            }
+        }
 
-                foreach (var searchItem in orderedSearchItems)
-                {
-                    if (searchItem == null || !GlobalObjectId.TryParse(searchItem.id, out var globalId))
-                    {
-                        continue;
-                    }
+        public override string name => "Post-Processing Stack v2 Converter";
 
-                    var label = searchItem.provider.fetchLabel(searchItem, searchItem.context);
-                    var description = searchItem.provider.fetchDescription(searchItem, searchItem.context);
+        public override string info =>
+            "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras.";
 
-                    var item = new ConverterItemDescriptor()
-                    {
-                        name = $"{label} : {description}",
-                        info = globalId.ToString(),
-                        warningMessage = string.Empty,
-                        helpLink = "// TODO",
-                    };
+        public override Type conversion => typeof(URPRendering.BuiltInToURPConversion);
 
-                    ctx.AddAssetToConvert(item);
-                }
+        private bool _startingSceneHasBeenClosed;
+
+        public override void OnInitialize(InitializeConverterContext context)
+        {
+            // We are using separate searchContexts here and Adding them in this order:
+            //      - Components from Prefabs & Scenes (Volumes & Layers)
+            //      - ScriptableObjects (Profiles)
+            //
+            // This allows the old objects to be both re-referenced and deleted safely as they are converted in OnRun.
+            // The process of converting Volumes will convert Profiles as-needed, and then the explicit followup Profile
+            // conversion step will convert any non-referenced assets and delete all old Profiles.
+
+            using var componentContext =
+                SearchService.CreateContext("asset", "urp:convert-ppv2component");
+            using var componentItems = SearchService.Request(componentContext);
+            {
+                AddSearchItemsAsConverterAssetEntries(componentItems, context);
+            }
+
+            using var scriptableObjectContext =
+                SearchService.CreateContext("asset", "urp:convert-ppv2scriptableobject");
+            using var scriptableObjectItems = SearchService.Request(scriptableObjectContext);
+            {
+                AddSearchItemsAsConverterAssetEntries(scriptableObjectItems, context);
             }
         }
 
@@ -75,104 +77,259 @@ namespace Editor.Converters
         {
             var items = ctx.items.ToList();
 
-            // TODO NEXT!!!: Modify EnumerateObjects to return
             foreach (var (index, obj) in EnumerateObjects(items, ctx).Where(item => item != null))
             {
-                // TODO: Parse obj into PPv2 Types here (Volumes, Profiles, Layers)
-                var materials = MaterialReferenceBuilder.GetMaterialsFromObject(obj);
-
-                var result = true;
-                var errorString = new StringBuilder();
-                foreach (var material in materials)
+                if (!obj)
                 {
-                    // TODO: Logic goes in here? (one for each type)
+                    ctx.MarkFailed(index, "Could not be converted because the target object was lost.");
+                    continue;
+                }
 
-                    // TODO: Handle Failure State
-                    if (false)
+                BIRPRendering.PostProcessVolume[] oldVolumes = null;
+                BIRPRendering.PostProcessLayer[] oldLayers = null;
+
+                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow this to be inverted, and the else to be deleted.
+#if false
+                if (obj is GameObject go)
+                {
+                    oldVolumes = go.GetComponents<BIRPRendering.PostProcessVolume>();
+                    oldLayers = go.GetComponents<BIRPRendering.PostProcessLayer>();
+                }
+                else if (obj is MonoBehaviour mb)
+                {
+                    oldVolumes = mb.GetComponents<BIRPRendering.PostProcessVolume>();
+                    oldLayers = mb.GetComponents<BIRPRendering.PostProcessLayer>();
+                }
+#else
+                if (obj is GameObject go)
+                {
+                    oldVolumes = go.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                    oldLayers = go.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+                }
+                else if (obj is MonoBehaviour mb)
+                {
+                    oldVolumes = mb.GetComponentsInChildren<BIRPRendering.PostProcessVolume>();
+                    oldLayers = mb.GetComponentsInChildren<BIRPRendering.PostProcessLayer>();
+                }
+#endif
+
+                // Note: even if nothing needs to be converted, that should still count as success,
+                //       though it shouldn't ever actually occur.
+                var succeeded = true;
+                var errorString = new StringBuilder();
+
+                if (oldVolumes != null)
+                {
+                    foreach (var oldVolume in oldVolumes)
                     {
-                        result = false;
-                        errorString.AppendLine($"Material {material.name} failed to be reassigned");
+                        ConvertVolume(oldVolume, ref succeeded, errorString);
                     }
                 }
 
-                if (result)
+                if (oldLayers != null)
                 {
+                    foreach (var oldLayer in oldLayers)
+                    {
+                        ConvertLayer(oldLayer, ref succeeded, errorString);
+                    }
+                }
+
+                if (obj is BIRPRendering.PostProcessProfile oldProfile)
+                {
+                    ConvertProfile(oldProfile, ref succeeded, errorString);
+                }
+
+                if (succeeded)
                     ctx.MarkSuccessful(index);
-                    // TODO: Save assets
-                }
                 else
-                {
                     ctx.MarkFailed(index, errorString.ToString());
-                }
             }
         }
 
-        private IEnumerable<Tuple<int,Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunConverterContext ctx)
+        private void AddSearchItemsAsConverterAssetEntries(ISearchList searchItems, InitializeConverterContext context)
+        {
+            foreach (var searchItem in searchItems)
+            {
+                if (searchItem == null || !GlobalObjectId.TryParse(searchItem.id, out var globalId))
+                {
+                    continue;
+                }
+
+                var label = searchItem.provider.fetchLabel(searchItem, searchItem.context);
+                var description = searchItem.provider.fetchDescription(searchItem, searchItem.context);
+
+                var item = new ConverterItemDescriptor()
+                {
+                    name = $"{label} : {description}",
+                    info = globalId.ToString(),
+                    warningMessage = string.Empty,
+                    helpLink = "// TODO",
+                };
+
+                context.AddAssetToConvert(item);
+            }
+        }
+
+        private IEnumerable<Tuple<int, Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items,
+            RunConverterContext ctx)
         {
             for (var i = 0; i < items.Count; i++)
             {
                 var item = items[i];
 
-                if (GlobalObjectId.TryParse(item.descriptor.info, out var gid))
+                if (GlobalObjectId.TryParse(item.descriptor.info, out var globalId))
                 {
-                    var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                    if (!obj)
+                    // Try loading the object
+                    // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow it
+                    //       to return direct references to prefabs and their children.
+                    //       Once that change happens there are several items which should be adjusted,
+                    //       and are commented with "// TODO: (prefab reference fix)"
+                    var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
+
+                    // If the object was not loaded, it is probably part of an unopened scene;
+                    // if so, then the solution is to first load the scene here.
+                    var objIsInSceneOrPrefab = globalId.identifierType == (int) IdentifierType.kSceneObject;
+                    if (!obj &&
+                        objIsInSceneOrPrefab)
                     {
-                        // Open container scene
-                        if (gid.identifierType == (int)IdentifierType.kSceneObject)
+                        // Before we open a new scene, we need to save our changes;
+                        // however, we should discard any existing changes to the
+                        // scene that was open when conversion began.
+                        if (_startingSceneHasBeenClosed)
                         {
-                            // Before we open a new scene, we need to save.
-                            // However, we shouldn't save the first scene.
-                            // Todo: This should probably be expanded to the context of all converters. This is an example for now.
-                            if (_startingSceneIsClosed)
-                            {
-                                var currentScene = SceneManager.GetActiveScene();
-                                EditorSceneManager.SaveScene(currentScene);
-                            }
-
-                            _startingSceneIsClosed = true;
-
-                            var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-
-                            var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
-                            AssetDatabase.OpenAsset(mainInstanceID);
-                            yield return null;
-
-                            // if we have a prefab open, then we already have the object we need to update
-                            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-                            if (prefabStage != null)
-                            {
-                                obj = mainInstanceID;
-                            }
-                            else
-                            {
-                                var scene = SceneManager.GetActiveScene();
-                                while (!scene.isLoaded)
-                                {
-                                    yield return null;
-                                }
-                            }
+                            var currentScene = SceneManager.GetActiveScene();
+                            EditorSceneManager.SaveScene(currentScene);
                         }
 
-                        // Reload object if it is still null
-                        if (obj == null)
+                        _startingSceneHasBeenClosed = true;
+
+                        // Open the Containing Scene Asset in the Hierarchy so the Object can be manipulated
+                        var mainAssetPath = AssetDatabase.GUIDToAssetPath(globalId.assetGUID);
+                        if (mainAssetPath.EndsWith(".unity", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                            if (!obj)
+                            var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
+                            AssetDatabase.OpenAsset(mainAsset);
+
+                            yield return null;
+
+                            // Load the scene, as it cannot be operated on while closed
+                            var scene = SceneManager.GetActiveScene();
+                            while (!scene.isLoaded)
                             {
-                                ctx.MarkFailed(i, $"Object {gid.assetGUID} failed to load...");
-                                continue;
+                                yield return null;
+                            }
+
+                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
+                        }
+                        // TODO: (prefab reference fix) This block should be removed once GlobalObjectIdentifierToObjectSlow
+                        //       is updated to get proper direct references to prefabs and their child assets.
+                        else
+                        {
+                            var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
+                            AssetDatabase.OpenAsset(mainAsset);
+
+                            yield return null;
+
+                            // If a prefab stage was opened, then mainAsset is the root of the
+                            // prefab that contains the target object, so reference that for now,
+                            // until GlobalObjectIdentifierToObjectSlow is updated
+                            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                            {
+                                obj = mainAsset;
                             }
                         }
                     }
 
-                    yield return new Tuple<int, Object>(i, obj);
+                    if (obj)
+                        yield return new Tuple<int, Object>(i, obj);
+                    else
+                        ctx.MarkFailed(i, $"Object {globalId.assetGUID} failed to load...");
                 }
                 else
                 {
                     ctx.MarkFailed(i, $"Failed to parse Global ID {item.descriptor.info}...");
                 }
             }
+        }
+
+        // TODO: are there actually any failure states to catch here?
+        //       It's a constructive process, so I think the most likely failure would be
+        //       with permissions when saving the new Profile assets or prefab/scene changes.
+
+        private void ConvertVolume(BIRPRendering.PostProcessVolume oldVolume, ref bool succeeded,
+            StringBuilder errorString)
+        {
+            if (!succeeded || !oldVolume) return;
+
+            // TODO: (keep this comment, but remove this todo)
+            // Convert the components when:
+            //  - They're overrides
+            //  - They're NOT part of instances, as that would be non-variant prefab roots, and scene-only stuff
+            // Convert Profile references on components when:
+            //  - The component has been converted
+            //  - The original reference was an override
+            if (PrefabUtility.IsPartOfPrefabInstance(oldVolume))
+            {
+                // TODO: Convert component only if it's an override
+                // TODO: Set reference only if the original component -or- reference was an override
+                // TODO: Overriddes (components and references) should be set as such on the new instance as well.
+            }
+            else
+            {
+                // TODO: convert with wreckless abandon
+            }
+
+            // TODO: Volume Conversion Logic
+            // TODO: Delete old component after conversion
+
+            // TODO: Use this for error string:
+            errorString.AppendLine("PPv2 PostProcessVolume failed to be converted with error:\n{error}");
+        }
+
+        private void ConvertLayer(BIRPRendering.PostProcessLayer oldLayer, ref bool succeeded,
+            StringBuilder errorString)
+        {
+            if (!succeeded || !oldLayer) return;
+
+            // TODO: (keep this comment, but remove this todo)
+            // Convert the components when:
+            //  - They're overrides
+            //  - They're NOT part of instances, as that would be non-variant prefab roots, and scene-only stuff
+            if (PrefabUtility.IsPartOfPrefabInstance(oldLayer))
+            {
+                // TODO: Convert component only if it's an override
+                // TODO: Overriddes (components) should be set as such on the new instance as well.
+            }
+            else
+            {
+                // TODO: convert with wreckless abandon
+            }
+
+            // TODO: Layer Conversion Logic
+            // TODO: Delete old component after conversion
+
+            // TODO: Use this for error string:
+            errorString.AppendLine("PPv2 PostProcessLayer failed to be converted with error:\n{error}");
+        }
+
+        private void ConvertProfile(BIRPRendering.PostProcessProfile oldProfile, ref bool succeeded,
+            StringBuilder errorString)
+        {
+            if (!succeeded || !oldProfile) return;
+
+            // TODO: Profile Conversion Logic
+
+            // TODO:
+            // - Profile assets (ScriptableObjects) should always be converted when encountered,
+            //   including immediately when updating "sharedProfile" references.
+
+            // TODO:
+            // - Perhaps old Profiles should only be deleted if they actually no longer have references,
+            // just in case some some Volume conversions are skipped and still need references for future conversion.
+            // - Alternatively, leave deletion of Profiles entirely to the user. (prefer this?)
+
+            // TODO: Use this for error string:
+            errorString.AppendLine("PPv2 PostProcessProfile failed to be converted with error:\n{error}");
         }
     }
 }
