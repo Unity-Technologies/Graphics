@@ -93,7 +93,6 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
-#pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords
@@ -194,7 +193,6 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
-            #pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords

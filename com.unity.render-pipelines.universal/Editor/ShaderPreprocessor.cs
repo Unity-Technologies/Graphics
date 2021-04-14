@@ -76,7 +76,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
         ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
 
-
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
         ShaderKeyword m_LocalClearCoat;
