@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
 
                         // TODO: We're working on irradiance instead of radiance coefficients
                         //       Add safety margin 2 to avoid out-of-bounds values
-                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing. 
+                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
                         float l2scale = 3.5777088f; // 4/sqrt(5) * 2
 
                         // L_1^m
