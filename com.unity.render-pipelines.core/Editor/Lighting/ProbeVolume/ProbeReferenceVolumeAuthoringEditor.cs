@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering
         private SerializedProperty m_DilationValidityThreshold;
         private SerializedProperty m_GreedyDilation;
         private SerializedProperty m_VolumeAsset;
+        private SerializedProperty m_RealtimeSubdivision;
 
         private SerializedProperty m_Profile;
 
@@ -75,6 +76,7 @@ namespace UnityEngine.Rendering
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
+            m_RealtimeSubdivision = serializedObject.FindProperty("m_RealtimeSubdivision");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
 
@@ -178,6 +180,8 @@ namespace UnityEngine.Rendering
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
+                EditorGUILayout.PropertyField(m_RealtimeSubdivision, new GUIContent("Realtime Subdivision"));
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     Constrain();
@@ -221,7 +225,25 @@ namespace UnityEngine.Rendering
         public void OnSceneGUI()
         {
             if (Event.current.type == EventType.Layout)
+            {
                 DrawProbeGizmos();
+                if (actualTarget.realtimeSubdivision)
+                {
+                    // TODO: cache this
+                    var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+                    if (refVolAuthList.Length == 0)
+                        return;
+
+                    var bakingReferenceVolumeAuthoring = ProbeGIBaking.GetCardinalAuthoringComponent(refVolAuthList);
+
+                    ProbeGIBaking.BakeCells(bakingReferenceVolumeAuthoring);
+                }
+            }
+            else if (Event.current.type == EventType.Repaint)
+            {
+                if (actualTarget.realtimeSubdivision)
+                    ProbeGIBaking.DrawBakingCellsGizmo();
+            }
         }
 
         void DrawProbeGizmos()

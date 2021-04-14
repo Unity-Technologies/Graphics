@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
+        internal bool realtimeSubdivision => m_RealtimeSubdivision;
 
 #if UNITY_EDITOR
         [SerializeField]
@@ -112,6 +113,8 @@ namespace UnityEngine.Rendering
         private float m_DilationValidityThreshold = 0.25f;
         [SerializeField]
         private bool m_GreedyDilation = false;
+        [SerializeField]
+        private bool m_RealtimeSubdivision;
 
         Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
         MeshGizmo cellGizmo;

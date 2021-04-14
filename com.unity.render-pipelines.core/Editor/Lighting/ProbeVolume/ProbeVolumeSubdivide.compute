@@ -1,0 +1,145 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Clear
+#pragma kernel FillUVMap
+#pragma kernel JumpFlooding
+#pragma kernel FinalPass
+#pragma kernel Subdivide
+
+#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+Texture3D _Input;
+RWTexture3D<float4> _Output;
+RWTexture3D<float4> _FinalOutput;
+
+float3 _Size;
+float _Offset;
+
+[numthreads(8,8,1)]
+void Clear (uint3 id : SV_DispatchThreadID)
+{
+    _Output[id] = 0;
+}
+
+[numthreads(8,8,1)]
+void FillUVMap(uint3 id : SV_DispatchThreadID)
+{
+    float4 input = _Input[id];
+
+    if (input.a > 0.5)
+    {
+        _Output[id] = float4(id / _Size.x, 1);
+    }
+    else
+    {
+        _Output[id] = 0; // mark UV as invalid with w = 0
+    }
+}
+
+static float3 offset3D[27] =
+{
+    float3(-1, -1, -1),
+    float3(-1,  0, -1),
+    float3(-1,  1, -1),
+    float3( 0, -1, -1),
+    float3( 0,  0, -1),
+    float3( 0,  1, -1),
+    float3( 1, -1, -1),
+    float3( 1,  0, -1),
+    float3( 1,  1, -1),
+
+    float3(-1, -1,  0),
+    float3(-1,  0,  0),
+    float3(-1,  1,  0),
+    float3( 0, -1,  0),
+    float3( 0,  0,  0),
+    float3( 0,  1,  0),
+    float3( 1, -1,  0),
+    float3( 1,  0,  0),
+    float3( 1,  1,  0),
+
+    float3(-1, -1,  1),
+    float3(-1,  0,  1),
+    float3(-1,  1,  1),
+    float3( 0, -1,  1),
+    float3( 0,  0,  1),
+    float3( 0,  1,  1),
+    float3( 1, -1,  1),
+    float3( 1,  0,  1),
+    float3( 1,  1,  1),
+};
+
+float Distance(float3 pos)
+{
+    return length(pos);
+}
+
+[numthreads(8,8,1)]
+void JumpFlooding(uint3 id : SV_DispatchThreadID)
+{
+    float4 nearest = _Input[id];
+
+    if (nearest.w < 0.5)
+        nearest = float4(-10, -10, -10, 0);
+
+    int j = 0;
+    for (int i = 0; i < 27; i++)
+    {
+        float3 o = id + offset3D[i] * _Offset;
+
+        o %= _Size.x;
+        o.x += (o.x < 0) ? _Size.x : 0;
+        o.y += (o.y < 0) ? _Size.x : 0;
+        o.z += (o.z < 0) ? _Size.x : 0;
+        float4 n1 = _Output[o];
+
+        // Discard invalid samples
+        if (n1.w < 0.5)
+            continue;
+
+        float3 uv = id / _Size.x;
+        if (Distance(uv - n1.xyz) < Distance(uv - nearest.xyz))
+            nearest = n1;
+    }
+
+    _Output[id] = nearest;
+}
+
+[numthreads(8, 8, 1)]
+void FinalPass(uint3 id : SV_DispatchThreadID)
+{
+    float3 defaultUV = id / _Size.x;
+    float3 nearestUV = _Input[id].xyz;
+
+    float dist = Distance(nearestUV - defaultUV);
+
+    _Output[id] = float4(dist.xxx, 1);
+}
+
+float3 _MaxBrickSize;
+float3 _VolumeSize;
+float3 _VolumeWorldOffset;
+float3 _SDFSize;
+AppendStructuredBuffer<float3> _Bricks;
+
+[numthreads(8, 8, 1)]
+void Subdivide(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id > uint3(_MaxBrickSize)))
+        return;
+
+    float3 position01 = float3(id) / _MaxBrickSize;
+    uint3 sdfId = round(position01 * _SDFSize);
+
+    float dist = _Input[sdfId].r;
+
+    if (abs(dist) < 0.0001)
+    {
+        // transform id to world position
+        float3 worldPos = _VolumeWorldOffset + position01 * _VolumeSize;
+        // Add half voxel size to center the position
+        worldPos += 0.5 / _VolumeSize;
+        _Bricks.Append(worldPos);
+    }
+}
