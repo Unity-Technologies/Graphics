@@ -151,7 +151,7 @@ void ApplyDecal(float4 positionCS,
 
 #if defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
     // Always test the normal as we can have decompression artifact
-    if (decalSurfaceData.normalWS.w < 1.0) // TODO
+    if (decalSurfaceData.normalWS.w < 1.0)
     {
         normalWS.xyz = normalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }

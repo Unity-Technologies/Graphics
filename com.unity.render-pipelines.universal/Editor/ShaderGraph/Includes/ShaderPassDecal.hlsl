@@ -30,7 +30,7 @@
 #define DECAL_FORWARD_EMISSIVE
 #endif
 
-#if defined(_DECAL_NORMAL_BLEND_LOW) ||defined(_DECAL_NORMAL_BLEND_MEDIUM) ||defined(_DECAL_NORMAL_BLEND_HIGH)
+#if defined(_DECAL_NORMAL_BLEND_LOW) || defined(_DECAL_NORMAL_BLEND_MEDIUM) || defined(_DECAL_NORMAL_BLEND_HIGH)
 #define DECAL_RECONSTRUCT_NORMAL
 #elif defined(DECAL_ANGLE_FADE)
 #define DECAL_LOAD_NORMAL
@@ -209,7 +209,7 @@ void Frag(PackedVaryings packedInput,
     {
         half3 decalNormal = half3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
         half dotAngle = dot(normalWS, decalNormal);
-        // See equation in DecalSystem.cs - simplified to a madd mul add here
+        // See equation in DecalCreateDrawCallSystem.cs - simplified to a madd mul add here
         angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
     }
 #endif

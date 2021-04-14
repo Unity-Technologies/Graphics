@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
             culledChunk.currentJobHandle.Complete();
 
             for (int i = 0; i < count; ++i)
-                culledChunk.visibleDecalIndices2[i] = i;
+                culledChunk.visibleDecalIndices[i] = i;
             culledChunk.visibleDecalCount = count;
             culledChunk.cameraPosition = m_Camera.transform.position;
             culledChunk.cullingMask = m_Camera.cullingMask;
@@ -51,7 +51,6 @@ namespace UnityEngine.Rendering.Universal
             if (camera.scene.IsValid())
                 return UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(camera.scene);
 
-#if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -59,9 +58,6 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     return UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects;
             }
-#else
-            return 0;
-#endif
 #else
             return 0;
 #endif

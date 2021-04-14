@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
+    // Copy of UnityEditor.Rendering.HighDefinition.DisplacableRectHandles
     class DisplacableRectHandles
     {
         const float k_HandleSizeCoef = 0.05f;

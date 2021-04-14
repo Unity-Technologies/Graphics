@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomPropertyDrawer(typeof(DecalSettings), true)]
     internal class DecalRendererFeatureEditor : PropertyDrawer
     {
-        private readonly static float defaultLineSpace = EditorGUIUtility.singleLineHeight;
+        private readonly static float s_DefaultLineSpace = EditorGUIUtility.singleLineHeight;
         private SerializedProperty m_Technique;
         private SerializedProperty m_MaxDrawDistance;
         private SerializedProperty m_DBufferSettings;
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.PropertyField(rect, m_Technique);
-            rect.y += defaultLineSpace;
+            rect.y += s_DefaultLineSpace;
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.Universal
                 foreach (SerializedProperty prop in m_DBufferSettings)
                 {
                     EditorGUI.PropertyField(rect, prop);
-                    rect.y += defaultLineSpace;
+                    rect.y += s_DefaultLineSpace;
                 }
                 EditorGUI.indentLevel--;
             }
@@ -50,13 +50,13 @@ namespace UnityEditor.Rendering.Universal
                 foreach (SerializedProperty prop in m_ScreenSpaceSettings)
                 {
                     EditorGUI.PropertyField(rect, prop);
-                    rect.y += defaultLineSpace;
+                    rect.y += s_DefaultLineSpace;
                 }
                 EditorGUI.indentLevel--;
             }
 
             EditorGUI.PropertyField(rect, m_MaxDrawDistance);
-            rect.y += defaultLineSpace;
+            rect.y += s_DefaultLineSpace;
 
             EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck())
@@ -68,21 +68,25 @@ namespace UnityEditor.Rendering.Universal
             Init(property);
 
             float height = 0;
-            height += defaultLineSpace;
-            height += defaultLineSpace;
+            height += s_DefaultLineSpace;
+            height += s_DefaultLineSpace;
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
             if (technique == DecalTechniqueOption.DBuffer)
+            {
                 foreach (SerializedProperty prop in m_DBufferSettings)
                 {
-                    height += defaultLineSpace;
+                    height += s_DefaultLineSpace;
                 }
+            }
             if (technique == DecalTechniqueOption.ScreenSpace)
+            {
                 foreach (SerializedProperty prop in m_ScreenSpaceSettings)
                 {
-                    height += defaultLineSpace;
+                    height += s_DefaultLineSpace;
                 }
+            }
 
             return height;
         }

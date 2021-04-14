@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexScreenSpace;
     }
 
-    internal class ScreenSpaceDecalRenderPass : ScriptableRenderPass
+    internal class DecalScreenSpaceRenderPass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;
@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawScreenSpaceSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
 
-        public ScreenSpaceDecalRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem)
+        public DecalScreenSpaceRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques + 1;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth

@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent meshDecalBiasType = new GUIContent("Mesh Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
             public static GUIContent meshDecalDepthBiasText = new GUIContent("Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
             public static GUIContent meshDecalViewBiasText = new GUIContent("View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");
-            public static GUIContent drawOrderText = new GUIContent("Priority", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
+            public static GUIContent drawOrderText = new GUIContent("Priority", "Controls the draw order of Decal Projectors. URP draws decals with lower values first.");
         }
 
         protected enum Expandable

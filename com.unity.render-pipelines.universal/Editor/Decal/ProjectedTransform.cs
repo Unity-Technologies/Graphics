@@ -5,6 +5,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
+    // Copy of UnityEditor.Rendering.HighDefinition.DisplacableRectHandles
     class ProjectedTransform
     {
         struct PositionHandleIds

@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawFowardEmissiveSystem m_DecalDrawForwardEmissiveSystem;
 
         // Screen Space
-        private ScreenSpaceDecalRenderPass m_ScreenSpaceDecalRenderPass;
+        private DecalScreenSpaceRenderPass m_ScreenSpaceDecalRenderPass;
         private DecalDrawScreenSpaceSystem m_DecalDrawScreenSpaceSystem;
         private DecalSkipCulledSystem m_DecalSkipCulledSystem;
 
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.ScreenSpace:
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
-                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass(m_ScreenSpaceSettings, intermmediateRendering ? m_DecalDrawScreenSpaceSystem : null);
+                    m_ScreenSpaceDecalRenderPass = new DecalScreenSpaceRenderPass(m_ScreenSpaceSettings, intermmediateRendering ? m_DecalDrawScreenSpaceSystem : null);
                     break;
 
                 case DecalTechnique.GBuffer:

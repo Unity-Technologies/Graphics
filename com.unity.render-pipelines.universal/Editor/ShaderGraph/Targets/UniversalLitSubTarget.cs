@@ -667,15 +667,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Keywords
         static class LitKeywords
         {
-            public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
-            {
-                displayName = "GBuffer normal octaedron encoding",
-                referenceName = "_GBUFFER_NORMALS_OCT",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-
             public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
@@ -708,7 +699,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.DBuffer },
-                { GBufferNormalsOct },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection Meta = new KeywordCollection

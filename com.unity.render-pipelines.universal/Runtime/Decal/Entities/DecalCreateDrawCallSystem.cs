@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraPosition = culledChunk.cameraPosition,
                 sceneCullingMask = culledChunk.sceneCullingMask,
                 cullingMask = culledChunk.cullingMask,
-                visibleDecalIndices = culledChunk.visibleDecalIndices2,
+                visibleDecalIndices = culledChunk.visibleDecalIndices,
                 visibleDecalCount = culledChunk.visibleDecalCount,
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
             [ReadOnly] public NativeArray<float> fadeFactors;
             [ReadOnly] public NativeArray<BoundingSphere> boundingSpheres;
 
-            public Vector3 cameraPosition; // TODO
+            public Vector3 cameraPosition;
             public ulong sceneCullingMask;
             public int cullingMask;
             [ReadOnly] public NativeArray<int> visibleDecalIndices;

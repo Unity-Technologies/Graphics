@@ -36,9 +36,6 @@ namespace UnityEngine.Rendering.Universal
             if (array.IsCreated)
             {
                 NativeArray<T>.Copy(array, newArray, array.Length);
-                //newArray.CopyFrom(array);
-
-
                 array.Dispose();
             }
             array = newArray;

@@ -28,8 +28,8 @@ namespace UnityEngine.Rendering.Universal
             culledChunk.currentJobHandle.Complete();
 
             CullingGroup cullingGroup = culledChunk.cullingGroups;
-            culledChunk.visibleDecalCount = cullingGroup.QueryIndices(true, culledChunk.visibleDecalIndices, 0);
-            culledChunk.visibleDecalIndices2.CopyFrom(culledChunk.visibleDecalIndices);
+            culledChunk.visibleDecalCount = cullingGroup.QueryIndices(true, culledChunk.visibleDecalIndexArray, 0);
+            culledChunk.visibleDecalIndices.CopyFrom(culledChunk.visibleDecalIndexArray);
         }
     }
 }

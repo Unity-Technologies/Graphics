@@ -16,26 +16,26 @@ namespace UnityEngine.Rendering.Universal
             public int version;
         }
 
-        private List<DecalEntityItem> entities = new List<DecalEntityItem>();
-        private Queue<int> unused = new Queue<int>();
+        private List<DecalEntityItem> m_Entities = new List<DecalEntityItem>();
+        private Queue<int> m_FreeIndices = new Queue<int>();
 
         public bool IsValid(DecalEntity decalEntity)
         {
-            if (entities.Count <= decalEntity.index)
+            if (m_Entities.Count <= decalEntity.index)
                 return false;
 
-            return entities[decalEntity.index].version == decalEntity.version;
+            return m_Entities[decalEntity.index].version == decalEntity.version;
         }
 
         public DecalEntity CreateDecalEntity(int arrayIndex, int chunkIndex)
         {
             // Reuse
-            if (unused.Count != 0)
+            if (m_FreeIndices.Count != 0)
             {
-                int entityIndex = unused.Dequeue();
-                int newVersion = entities[entityIndex].version + 1;
+                int entityIndex = m_FreeIndices.Dequeue();
+                int newVersion = m_Entities[entityIndex].version + 1;
 
-                entities[entityIndex] = new DecalEntityItem()
+                m_Entities[entityIndex] = new DecalEntityItem()
                 {
                     arrayIndex = arrayIndex,
                     chunkIndex = chunkIndex,
@@ -51,10 +51,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Create new one
             {
-                int entityIndex = entities.Count;
+                int entityIndex = m_Entities.Count;
                 int version = 1;
 
-                entities.Add(new DecalEntityItem()
+                m_Entities.Add(new DecalEntityItem()
                 {
                     arrayIndex = arrayIndex,
                     chunkIndex = chunkIndex,
@@ -73,44 +73,44 @@ namespace UnityEngine.Rendering.Universal
         public void DestroyDecalEntity(DecalEntity decalEntity)
         {
             Assert.IsTrue(IsValid(decalEntity));
-            unused.Enqueue(decalEntity.index);
+            m_FreeIndices.Enqueue(decalEntity.index);
 
-            // Update version that everything that points to it will have oudated version
-            var item = entities[decalEntity.index];
+            // Update version that everything that points to it will have outdated version
+            var item = m_Entities[decalEntity.index];
             item.version++;
-            entities[decalEntity.index] = item;
+            m_Entities[decalEntity.index] = item;
         }
 
         public DecalEntityItem GetItem(DecalEntity decalEntity)
         {
             Assert.IsTrue(IsValid(decalEntity));
-            return entities[decalEntity.index];
+            return m_Entities[decalEntity.index];
         }
 
         public void UpdateIndex(DecalEntity decalEntity, int newArrayIndex)
         {
             Assert.IsTrue(IsValid(decalEntity));
-            var item = entities[decalEntity.index];
+            var item = m_Entities[decalEntity.index];
             item.arrayIndex = newArrayIndex;
             item.version = decalEntity.version;
-            entities[decalEntity.index] = item;
+            m_Entities[decalEntity.index] = item;
         }
 
         public void RemapChunkIndices(List<int> remaper)
         {
-            for (int i = 0; i < entities.Count; ++i)
+            for (int i = 0; i < m_Entities.Count; ++i)
             {
-                int newChunkIndex = remaper[entities[i].chunkIndex];
-                var item = entities[i];
+                int newChunkIndex = remaper[m_Entities[i].chunkIndex];
+                var item = m_Entities[i];
                 item.chunkIndex = newChunkIndex;
-                entities[i] = item;
+                m_Entities[i] = item;
             }
         }
 
         public void Clear()
         {
-            entities.Clear();
-            unused.Clear();
+            m_Entities.Clear();
+            m_FreeIndices.Clear();
         }
     }
 

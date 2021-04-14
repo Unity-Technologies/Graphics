@@ -16,12 +16,11 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Decal Projector component.
     /// </summary>
-    //[HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    [AddComponentMenu("Rendering/URP/Decal Projector")]
+    [AddComponentMenu("Rendering/Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
@@ -38,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         private Material m_Material = null;
         /// <summary>
-        /// The material used by the decal. It should be of type HDRP/Decal if you want to have transparency.
+        /// The material used by the decal.
         /// </summary>
         public Material material
         {

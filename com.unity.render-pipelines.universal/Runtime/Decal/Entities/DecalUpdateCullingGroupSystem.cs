@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.Universal
         public int cullingMask;
 
         public CullingGroup cullingGroups;
-        public int[] visibleDecalIndices;
-        public NativeArray<int> visibleDecalIndices2;
+        public int[] visibleDecalIndexArray;
+        public NativeArray<int> visibleDecalIndices;
         public int visibleDecalCount;
 
         public override void Push()
@@ -21,15 +21,15 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RemoveAtSwapBack(int entityIndex)
         {
+            RemoveAtSwapBack(ref visibleDecalIndexArray, entityIndex, count);
             RemoveAtSwapBack(ref visibleDecalIndices, entityIndex, count);
-            RemoveAtSwapBack(ref visibleDecalIndices2, entityIndex, count);
             count--;
         }
 
         public override void SetCapacity(int newCapacity)
         {
-            ResizeArray(ref visibleDecalIndices, newCapacity);
-            ResizeNativeArray(ref visibleDecalIndices2, newCapacity);
+            ResizeArray(ref visibleDecalIndexArray, newCapacity);
+            ResizeNativeArray(ref visibleDecalIndices, newCapacity);
             if (cullingGroups == null)
                 cullingGroups = new CullingGroup();
             capacity = newCapacity;
@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.Universal
             if (capacity == 0)
                 return;
 
-            visibleDecalIndices2.Dispose();
-            visibleDecalIndices = null;
+            visibleDecalIndices.Dispose();
+            visibleDecalIndexArray = null;
             count = 0;
             capacity = 0;
             cullingGroups.Dispose();
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal
             cullingGroup.targetCamera = m_Camera;
             cullingGroup.SetDistanceReferencePoint(m_Camera.transform.position);
             cullingGroup.SetBoundingDistances(m_BoundingDistance);
-            cachedChunk.boundingSpheres.CopyTo(cachedChunk.boundingSphereArray); // TODO
+            cachedChunk.boundingSpheres.CopyTo(cachedChunk.boundingSphereArray);
             cullingGroup.SetBoundingSpheres(cachedChunk.boundingSphereArray);
             cullingGroup.SetBoundingSphereCount(count);
 
@@ -101,7 +101,6 @@ namespace UnityEngine.Rendering.Universal
             if (camera.scene.IsValid())
                 return UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(camera.scene);
 
-#if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -109,9 +108,6 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     return UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects;
             }
-#else
-            return 0;
-#endif
 #else
             return 0;
 #endif

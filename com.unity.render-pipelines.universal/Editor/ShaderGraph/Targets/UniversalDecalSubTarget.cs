@@ -731,11 +731,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region RenderStates
         static class DecalRenderStates
         {
-            private readonly static string[] s_DecalBlends = new string[]
+            private readonly static string[] s_DBufferBlends = new string[]
             {
                 "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
                 "Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
                 "Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+            };
+            private readonly static string[] s_GBufferBlends = new string[]
+            {
+                "Blend 0 SrcAlpha OneMinusSrcAlpha",
+                "Blend 1 SrcAlpha OneMinusSrcAlpha",
+                "Blend 2 SrcAlpha OneMinusSrcAlpha",
+                "Blend 3 SrcAlpha OneMinusSrcAlpha",
             };
 
             public static RenderStateCollection ScenePicking = new RenderStateCollection
@@ -745,9 +752,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection DBufferProjector = new RenderStateCollection
             {
-                { RenderState.Blend(s_DecalBlends[0]) },
-                { RenderState.Blend(s_DecalBlends[1]) },
-                { RenderState.Blend(s_DecalBlends[2]) },
+                { RenderState.Blend(s_DBufferBlends[0]) },
+                { RenderState.Blend(s_DBufferBlends[1]) },
+                { RenderState.Blend(s_DBufferBlends[2]) },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
@@ -771,10 +778,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection GBufferProjector = new RenderStateCollection
             {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend(s_GBufferBlends[0]) },
+                { RenderState.Blend(s_GBufferBlends[1]) },
+                { RenderState.Blend(s_GBufferBlends[2]) },
+                { RenderState.Blend(s_GBufferBlends[3]) },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
@@ -782,9 +789,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection DBufferMesh = new RenderStateCollection
             {
-                { RenderState.Blend(s_DecalBlends[0]) },
-                { RenderState.Blend(s_DecalBlends[1]) },
-                { RenderState.Blend(s_DecalBlends[2]) },
+                { RenderState.Blend(s_DBufferBlends[0]) },
+                { RenderState.Blend(s_DBufferBlends[1]) },
+                { RenderState.Blend(s_DBufferBlends[2]) },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
@@ -805,11 +812,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection GBufferMesh = new RenderStateCollection
             {
-                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.Blend(s_GBufferBlends[0]) },
+                { RenderState.Blend(s_GBufferBlends[1]) },
+                { RenderState.Blend(s_GBufferBlends[2]) },
+                { RenderState.Blend(s_GBufferBlends[3]) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
         }
@@ -964,16 +970,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     }
                 };
 
-                // TODO: Move this to urp core
-                public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
-                {
-                    displayName = "GBuffer normal octahedron encoding",
-                    referenceName = "_GBUFFER_NORMALS_OCT",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.MultiCompile,
-                    scope = KeywordScope.Global,
-                };
-
                 public static readonly KeywordDescriptor LodCrossFade = new KeywordDescriptor()
                 {
                     displayName = "LOD Cross Fade",
@@ -1022,7 +1018,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
-                { Descriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
@@ -1034,7 +1030,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
-                { Descriptors.GBufferNormalsOct },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
             };
         }
         #endregion
