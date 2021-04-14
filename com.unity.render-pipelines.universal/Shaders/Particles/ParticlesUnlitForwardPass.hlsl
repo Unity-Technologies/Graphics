@@ -111,7 +111,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 
     half3 result = albedo.rgb + emission;
 
-    #if defined(_SCREEN_SPACE_OCCLUSION)
+    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
         result *= aoFactor.directAmbientOcclusion;
