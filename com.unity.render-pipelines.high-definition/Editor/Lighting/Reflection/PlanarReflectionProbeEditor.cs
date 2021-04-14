@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
         public static Material GUITextureBlit2SRGBMaterial
-            => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+            => HDRenderPipelineGlobalSettings.instance?.renderPipelineEditorResources?.materials.GUITextureBlit2SRGB;
 
         const float k_PreviewHeight = 128;
 
@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if (_previewMaterial == null)
-                    _previewMaterial = new Material(HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB);
+                if (_previewMaterial == null && HDRenderPipeline.isReady)
+                    _previewMaterial = new Material(GUITextureBlit2SRGBMaterial);
                 return _previewMaterial;
             }
         }
@@ -193,6 +193,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Setup the material to draw the quad with the exposure texture
                 var material = GUITextureBlit2SRGBMaterial;
                 material.SetTexture("_Exposure", exposureTex);
+                //this fixes the UI so it doesn't blow up when the probe is pre-exposed
+                material.SetFloat("_ExposureBias", (float)Math.Log(1.0f / p.ProbeExposureValue(), 2.0));
                 Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, material, -1);
 
                 // We now display the FoV and aspect used during the capture of the planar reflection
@@ -260,7 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (k_QuadMesh == null)
                 k_QuadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
             if (k_PreviewMaterial == null)
-                k_PreviewMaterial = new Material(Shader.Find("Debug/PlanarReflectionProbePreview"));
+                k_PreviewMaterial = new Material(Shader.Find("Hidden/Debug/PlanarReflectionProbePreview"));
             if (k_PreviewOutlineMaterial == null)
                 k_PreviewOutlineMaterial = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
 
@@ -299,7 +301,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             k_PreviewMaterial.SetTexture("_MainTex", probe.texture);
             k_PreviewMaterial.SetMatrix("_CaptureVPMatrix", vp);
-            k_PreviewMaterial.SetFloat("_Exposure", 1.0f);
+            //this fixes the UI so it doesn't blow up when the probe is pre-exposed
+            k_PreviewMaterial.SetFloat("_Exposure", (float)Math.Log(1.0 / probe.ProbeExposureValue(), 2.0));
             k_PreviewMaterial.SetVector("_CameraPositionWS", new Vector4(cameraPositionWS.x, cameraPositionWS.y, -cameraPositionWS.z, 0));
             k_PreviewMaterial.SetVector("_CapturePositionWS", new Vector4(capturePositionWS.x, capturePositionWS.y, -capturePositionWS.z, 0));
             k_PreviewMaterial.SetPass(0);

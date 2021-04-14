@@ -34,7 +34,7 @@
 using System;
 using System.Diagnostics;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     namespace LibTessDotNet
     {
