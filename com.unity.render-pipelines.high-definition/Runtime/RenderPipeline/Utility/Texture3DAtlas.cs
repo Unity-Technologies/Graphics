@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Elements.Add(elem);
             }
 
-            m_Texture3DAtlasCompute = HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.texture3DAtlasCS;
+            m_Texture3DAtlasCompute = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.texture3DAtlasCS;
             m_CopyKernel = m_Texture3DAtlasCompute.FindKernel("Copy");
             m_GenerateMipKernel = m_Texture3DAtlasCompute.FindKernel("GenerateMipMap");
             m_Texture3DAtlasCompute.GetKernelThreadGroupSizes(m_CopyKernel, out var groupThreadX, out var groupThreadY, out var groupThreadZ);

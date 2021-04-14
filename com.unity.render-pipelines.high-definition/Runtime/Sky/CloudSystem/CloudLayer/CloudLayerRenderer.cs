@@ -29,13 +29,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
-            m_CloudLayerMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cloudLayerPS);
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            m_CloudLayerMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.cloudLayerPS);
 
-            s_BakeCloudTextureCS = hdrp.renderPipelineResources.shaders.bakeCloudTextureCS;
+            s_BakeCloudTextureCS = globalSettings.renderPipelineResources.shaders.bakeCloudTextureCS;
             s_BakeCloudTextureKernel = s_BakeCloudTextureCS.FindKernel("BakeCloudTexture");
 
-            s_BakeCloudShadowsCS = hdrp.renderPipelineResources.shaders.bakeCloudShadowsCS;
+            s_BakeCloudShadowsCS = globalSettings.renderPipelineResources.shaders.bakeCloudShadowsCS;
             s_BakeCloudShadowsKernel = s_BakeCloudShadowsCS.FindKernel("BakeCloudShadows");
         }
 
@@ -84,18 +84,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
+            var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
             if (cloudLayer.opacity.value == 0.0f)
                 return;
 
-#if UNITY_EDITOR
-            float time = (float)EditorApplication.timeSinceStartup;
-#else
-            float time = Time.time;
-#endif
-            float dt = time - lastTime;
-            lastTime = time;
+            float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
+            lastTime = hdCamera.time;
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 

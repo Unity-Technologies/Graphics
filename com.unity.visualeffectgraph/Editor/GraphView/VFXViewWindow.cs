@@ -235,7 +235,13 @@ namespace  UnityEditor.VFX.UI
                 graphView.OnFocus();
         }
 
-        public bool autoCompile {get; set; }
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)
+        {
+            if (graphView != null)
+                graphView.OnVisualEffectComponentChanged(componentChanged);
+        }
+
+        public bool autoCompile { get; set; }
 
         void Update()
         {
@@ -278,7 +284,16 @@ namespace  UnityEditor.VFX.UI
                         else
                             graph.RecompileIfNeeded(true, true);
 
+                        bool wasDirty = graph.IsExpressionGraphDirty();
+
                         controller.RecompileExpressionGraphIfNeeded();
+
+                        // Hack to avoid infinite recompilation due to UI triggering a recompile TODO: Fix problematic cases that trigger that error
+                        if (!wasDirty && graph.IsExpressionGraphDirty())
+                        {
+                            Debug.LogError("Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop.");
+                            graph.SetExpressionGraphDirty(false);
+                        }
                     }
                 }
             }
@@ -293,8 +308,7 @@ namespace  UnityEditor.VFX.UI
             if (graphView?.controller?.model?.visualEffectObject != null)
             {
                 graphView.checkoutButton.visible = true;
-                if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
-                    StatusQueryOptions.UseCachedIfPossible) && Provider.isActive && Provider.enabled)
+                if (!graphView.IsAssetEditable() && Provider.isActive && Provider.enabled)
                 {
                     graphView.checkoutButton.SetEnabled(true);
                 }

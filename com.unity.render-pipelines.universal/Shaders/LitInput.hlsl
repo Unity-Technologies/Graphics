@@ -87,7 +87,7 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
-    specGloss = SAMPLE_METALLICSPECULAR(uv);
+    specGloss = half4(SAMPLE_METALLICSPECULAR(uv));
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
         specGloss.a = albedoAlpha * _Smoothness;
     #else
@@ -112,17 +112,17 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 
 half SampleOcclusion(float2 uv)
 {
-#ifdef _OCCLUSIONMAP
-// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-#if defined(SHADER_API_GLES)
-    return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-#else
-    half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-    return LerpWhiteTo(occ, _OcclusionStrength);
-#endif
-#else
-    return 1.0;
-#endif
+    #ifdef _OCCLUSIONMAP
+        // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
+        #if defined(SHADER_API_GLES)
+            return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+        #else
+            half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+            return LerpWhiteTo(occ, _OcclusionStrength);
+        #endif
+    #else
+        return half(1.0);
+    #endif
 }
 
 
@@ -162,7 +162,7 @@ half3 ScaleDetailAlbedo(half3 detailAlbedo, half scale)
     // return detailAlbedo * 2.0f;
 
     // A bit more optimized
-    return 2.0h * detailAlbedo * scale - scale + 1.0h;
+    return half(2.0) * detailAlbedo * scale - scale + half(1.0);
 }
 
 half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
@@ -174,10 +174,12 @@ half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
 #if defined(_DETAIL_SCALED)
     detailAlbedo = ScaleDetailAlbedo(detailAlbedo, _DetailAlbedoMapScale);
 #else
-    detailAlbedo = 2.0h * detailAlbedo;
+    detailAlbedo = half(2.0) * detailAlbedo;
 #endif
 
     return albedo * LerpWhiteTo(detailAlbedo, detailMask);
+#else
+    return albedo;
 #endif
 }
 
@@ -195,6 +197,8 @@ half3 ApplyDetailNormal(float2 detailUv, half3 normalTS, half detailMask)
     detailNormalTS = normalize(detailNormalTS);
 
     return lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
+#else
+    return normalTS;
 #endif
 }
 
@@ -207,11 +211,11 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
 
 #if _SPECULAR_SETUP
-    outSurfaceData.metallic = 1.0h;
+    outSurfaceData.metallic = half(1.0);
     outSurfaceData.specular = specGloss.rgb;
 #else
     outSurfaceData.metallic = specGloss.r;
-    outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+    outSurfaceData.specular = half3(0.0, 0.0, 0.0);
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
@@ -224,8 +228,8 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.clearCoatMask       = clearCoat.r;
     outSurfaceData.clearCoatSmoothness = clearCoat.g;
 #else
-    outSurfaceData.clearCoatMask       = 0.0h;
-    outSurfaceData.clearCoatSmoothness = 0.0h;
+    outSurfaceData.clearCoatMask       = half(0.0);
+    outSurfaceData.clearCoatSmoothness = half(0.0);
 #endif
 
 #if defined(_DETAIL)
@@ -233,7 +237,6 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     float2 detailUv = uv * _DetailAlbedoMap_ST.xy + _DetailAlbedoMap_ST.zw;
     outSurfaceData.albedo = ApplyDetailAlbedo(detailUv, outSurfaceData.albedo, detailMask);
     outSurfaceData.normalTS = ApplyDetailNormal(detailUv, outSurfaceData.normalTS, detailMask);
-
 #endif
 }
 

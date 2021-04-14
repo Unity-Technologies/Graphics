@@ -51,8 +51,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        enum SourceFileStatus
+        {
+            Empty,        // No File specified
+            DoesNotExist, // Either file doesn't exist (empty name) or guid points to a non-existant file
+            Invalid,      // File exists but isn't of a valid type (such as wrong extension)
+            Valid
+        };
         public static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
         const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
+        const string k_MissingFile = "Source file does not exist. A valid .hlsl or .cginc file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
@@ -93,6 +101,12 @@ namespace UnityEditor.ShaderGraph
                 UpdateNodeName();
             }
         }
+
+        public string hlslFunctionName
+        {
+            get => m_FunctionName + "_$precision";
+        }
+
 
         public static string defaultFunctionName => k_DefaultFunctionName;
 
@@ -155,8 +169,8 @@ namespace UnityEditor.ShaderGraph
 
                 // call function
                 sb.AppendIndentation();
-                sb.Append(functionName);
-                sb.Append("_$precision(");
+                sb.Append(hlslFunctionName);
+                sb.Append("(");
                 bool first = true;
 
                 foreach (var input in inputSlots)
@@ -241,30 +255,16 @@ namespace UnityEditor.ShaderGraph
             switch (sourceType)
             {
                 case HlslSourceType.File:
-                    registry.ProvideFunction(functionSource, builder =>
-                    {
-                        string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                    string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
-                        // This is required for upgrading without console errors
-                        if (string.IsNullOrEmpty(path))
-                            path = functionSource;
+                    // This is required for upgrading without console errors
+                    if (string.IsNullOrEmpty(path))
+                        path = functionSource;
 
-                        string hash;
-                        try
-                        {
-                            hash = AssetDatabase.GetAssetDependencyHash(path).ToString();
-                        }
-                        catch
-                        {
-                            hash = "Failed to compute hash for include";
-                        }
-
-                        builder.AppendLine($"// {hash}");
-                        builder.AppendLine($"#include \"{path}\"");
-                    });
+                    registry.RequiresIncludePath(path);
                     break;
                 case HlslSourceType.String:
-                    registry.ProvideFunction(functionName, builder =>
+                    registry.ProvideFunction(hlslFunctionName, builder =>
                     {
                         GetFunctionHeader(builder);
                         using (builder.BlockScope())
@@ -287,8 +287,8 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
 
                 sb.Append("void ");
-                sb.Append(functionName);
-                sb.Append("_$precision(");
+                sb.Append(hlslFunctionName);
+                sb.Append("(");
 
                 var first = true;
 
@@ -393,26 +393,37 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
+            bool hasAnyOutputs = this.GetOutputSlots<MaterialSlot>().Any();
             if (sourceType == HlslSourceType.File)
             {
+                SourceFileStatus fileStatus = SourceFileStatus.Empty;
                 if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                    if (!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path) && AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) != null)
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if (!s_ValidExtensions.Contains(extension))
                         {
-                            owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                            fileStatus = SourceFileStatus.Invalid;
                         }
                         else
                         {
-                            owner.ClearErrorsForNode(this);
+                            fileStatus = SourceFileStatus.Valid;
                         }
                     }
+                    else
+                        fileStatus = SourceFileStatus.DoesNotExist;
                 }
+
+                if (fileStatus == SourceFileStatus.DoesNotExist || (fileStatus == SourceFileStatus.Empty && hasAnyOutputs))
+                    owner.AddValidationError(objectId, k_MissingFile, ShaderCompilerMessageSeverity.Error);
+                else if (fileStatus == SourceFileStatus.Invalid)
+                    owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                else if (fileStatus == SourceFileStatus.Valid)
+                    owner.ClearErrorsForNode(this);
             }
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            if (!hasAnyOutputs)
             {
                 owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
@@ -422,9 +433,9 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
         }
 
-        public bool Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencyGUIDs)
         {
-            if (changedFileDependencies.Contains(m_FunctionSource))
+            if (changedFileDependencyGUIDs.Contains(m_FunctionSource))
             {
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
@@ -443,6 +454,8 @@ namespace UnityEditor.ShaderGraph
             Guid guid;
             if (!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
             {
+                // not sure why we don't use AssetDatabase.AssetPathToGUID...
+                // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
                 TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
                 if (textAsset != null)

@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.Universal
 
     public enum SmoothnessSource
     {
+        SpecularAlpha,
         BaseAlpha,
-        SpecularAlpha
     }
 
     public enum ReflectionSource

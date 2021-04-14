@@ -107,7 +107,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 GUILayout.Label("Cascade splits");
-                ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, HDRenderPipeline.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
+
+                DrawShadowCascades(cascadeCount, unit == Unit.Metric, m_MaxShadowDistance.value.floatValue);
             }
 
             HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -123,6 +124,51 @@ namespace UnityEditor.Rendering.HighDefinition
             bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Show Cascades"), EditorStyles.miniButton);
             if (currentCascadeValue ^ newCascadeValue)
                 hdrp.showCascade = newCascadeValue;
+        }
+
+        private void DrawShadowCascades(int cascadeCount, bool useMetric, float baseMetric)
+        {
+            var cascades = new ShadowCascadeGUI.Cascade[cascadeCount];
+
+            float lastCascadePartitionSplit = 0;
+            for (int i = 0; i < cascadeCount - 1; ++i)
+            {
+                cascades[i] = new ShadowCascadeGUI.Cascade()
+                {
+                    size = i == 0 ? m_CascadeShadowSplits[i].value.floatValue : m_CascadeShadowSplits[i].value.floatValue - lastCascadePartitionSplit, // Calculate the size of cascade
+                    borderSize = m_CascadeShadowBorders[i].value.floatValue,
+                    cascadeHandleState = m_CascadeShadowSplits[i].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+                    borderHandleState = m_CascadeShadowBorders[i].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+                };
+                lastCascadePartitionSplit = m_CascadeShadowSplits[i].value.floatValue;
+            }
+
+            // Last cascade is special
+            var lastCascade = cascadeCount - 1;
+            cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
+            {
+                size = lastCascade == 0 ? 1.0f : 1 - m_CascadeShadowSplits[lastCascade - 1].value.floatValue, // Calculate the size of cascade
+                borderSize = m_CascadeShadowBorders[lastCascade].value.floatValue,
+                cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
+                borderHandleState = m_CascadeShadowBorders[lastCascade].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+            };
+
+            EditorGUI.BeginChangeCheck();
+            ShadowCascadeGUI.DrawCascades(ref cascades, useMetric, baseMetric);
+            if (EditorGUI.EndChangeCheck())
+            {
+                float lastCascadeSize = 0;
+                for (int i = 0; i < cascadeCount - 1; ++i)
+                {
+                    m_CascadeShadowSplits[i].value.floatValue = lastCascadeSize + cascades[i].size;
+                    lastCascadeSize = m_CascadeShadowSplits[i].value.floatValue;
+                }
+
+                for (int i = 0; i < cascadeCount; ++i)
+                {
+                    m_CascadeShadowBorders[i].value.floatValue = cascades[i].borderSize;
+                }
+            }
         }
     }
 

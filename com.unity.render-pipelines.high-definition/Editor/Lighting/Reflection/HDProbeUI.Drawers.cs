@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedCaptureSettings);
             }
 
-            public static void DrawAdvancedCaptureSettings(SerializedHDProbe serialized, Editor owner)
+            public static void DrawCaptureSettingsAdditionalProperties(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
                 ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedAdvancedCaptureSettings);

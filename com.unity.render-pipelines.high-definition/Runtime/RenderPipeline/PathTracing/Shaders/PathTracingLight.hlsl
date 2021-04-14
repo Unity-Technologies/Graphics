@@ -169,14 +169,14 @@ if (withLocal)
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-if (withDistant)
-{
-    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    if (withDistant)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
-            list.distantIndex[list.distantCount++] = i;
+        for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+        {
+            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
+                list.distantIndex[list.distantCount++] = i;
+        }
     }
-}
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
     list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
@@ -224,23 +224,23 @@ float GetDistantLightWeight(LightList list)
     return list.distantWeight / list.distantCount;
 }
 
-bool PickLocalLights(LightList list, inout float sample)
+bool PickLocalLights(LightList list, inout float theSample)
 {
-    if (sample < list.localWeight)
+    if (theSample < list.localWeight)
     {
         // We pick local lighting
-        sample /= list.localWeight;
+        theSample /= list.localWeight;
         return true;
     }
 
     // Otherwise, distant lighting
-    sample = (sample - list.localWeight) / list.distantWeight;
+    theSample = (theSample - list.localWeight) / list.distantWeight;
     return false;
  }
 
-bool PickDistantLights(LightList list, inout float sample)
+bool PickDistantLights(LightList list, inout float theSample)
 {
-    return !PickLocalLights(list, sample);
+    return !PickLocalLights(list, theSample);
 }
 
 float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)

@@ -51,22 +51,21 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum CloudShadowsResolution
     {
-        /// <summary>Size 32</summary>
-        CloudShadowsResolution32 = 32,
         /// <summary>Size 64</summary>
-        CloudShadowsResolution64 = 64,
+        VeryLow = 64,
         /// <summary>Size 128</summary>
-        CloudShadowsResolution128 = 128,
+        Low = 128,
         /// <summary>Size 256</summary>
-        CloudShadowsResolution256 = 256,
+        Medium = 256,
         /// <summary>Size 512</summary>
-        CloudShadowsResolution512 = 512,
+        High = 512,
     }
 
 
     /// <summary>
     /// Enum volume parameter.
     /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
     {
@@ -85,31 +84,35 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
         [Tooltip("Controls the global opacity of the cloud layer.")]
         public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
+        [AdditionalProperty]
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter upperHemisphereOnly = new BoolParameter(true);
         /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode> layers = new VolumeParameter<CloudMapMode>();
         /// <summary>Choose the resolution of the baked cloud texture.</summary>
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the clouds.")]
         public CloudLayerEnumParameter<CloudResolution> resolution = new CloudLayerEnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Controls the tint of the cloud shadows.</summary>
         [Tooltip("Controls the tint of the cloud shadows.")]
         public ColorParameter shadowTint = new ColorParameter(Color.black, false, false, true);
         /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
 
 
         /// <summary>
@@ -151,7 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Distortion mode used to simulate cloud movement.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
             /// <summary>Direction of the distortion.</summary>
-            [Tooltip("Sets the rotation of the distortion (in degrees).")]
             public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Speed of the distortion.</summary>
             [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
@@ -331,9 +333,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
-            if (asset != null)
-                CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
+                CloudMap.s_DefaultTexture = globalSettings.renderPipelineResources?.textures.defaultCloudMap;
         }
     }
 }

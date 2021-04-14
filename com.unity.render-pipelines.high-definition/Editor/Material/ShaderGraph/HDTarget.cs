@@ -29,6 +29,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         MirroredNormals,
     }
 
+    enum DoubleSidedGIMode
+    {
+        MatchMaterial,
+        ForceOn,
+        ForceOff,
+    }
+
     enum SpecularOcclusionMode
     {
         Off,
@@ -59,6 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 8;
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
@@ -102,16 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
+            // Override EditorGUI (replaces the HDRP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
+
             // Setup the active SubTarget
             ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -602,7 +610,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
@@ -679,6 +686,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 Comp = "Always",
                 Pass = "Replace",
             }) },
+        };
+
+        public static RenderStateCollection ForwardEmissiveForDeferred = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.One) },
+            { RenderState.Cull(Uniforms.cullModeForward) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
         };
     }
     #endregion
@@ -855,6 +870,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
+        public static DefineCollection ForwardEmissiveForDeferred = new DefineCollection
+        {
+            { CoreKeywordDescriptors.HasLightloop, 0 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+        };
+
+        public static DefineCollection ForwardLit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { CoreKeywordDescriptors.ShaderLit, 1 },
+        };
+
         public static DefineCollection ForwardUnlit = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -895,6 +924,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kFabricPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricPathTracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
@@ -942,6 +972,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassMotionVectors = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl";
         public const string kDisortionVectors = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl";
         public const string kPassForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl";
+        public const string kPassForwardEmissiveForDeferred = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl";
         public const string kStandardLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl";
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
@@ -963,8 +994,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Pregraph includes
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
         };
 
@@ -1023,6 +1054,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.FragmentAndRaytracing
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
@@ -1032,6 +1064,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.FragmentAndRaytracing
         };
 
         public static KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
@@ -1050,7 +1083,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
+            stages = KeywordShaderStage.FragmentAndRaytracing
         };
 
         public static KeywordDescriptor ScreenSpaceShadow = new KeywordDescriptor()
@@ -1163,6 +1196,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Surface Type Transparent",
             referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ShaderLit = new KeywordDescriptor()
+        {
+            displayName = "Lit shader",
+            referenceName = "SHADER_LIT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
@@ -1341,7 +1383,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Fragment
+        };
+
+        public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
+        {
+            displayName = "Force Forward Emissive",
+            referenceName = "_FORCE_FORWARD_EMISSIVE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global, // not local as it is use in shader stripper to discard the pass if not needed
+            // stages = KeywordShaderStage.Fragment, // not _fragment as it prevent the stripper to work
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
@@ -1363,6 +1414,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment
         };
 
+        public static KeywordDescriptor ConservativeDepthOffset = new KeywordDescriptor
+        {
+            displayName = "Conservative Depth Offset",
+            referenceName = "_CONSERVATIVE_DEPTH_OFFSET",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
+        };
+
         public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
         {
             displayName = "Multi Bounce Indirect",
@@ -1372,5 +1433,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
     }
+    #endregion
+
+    #region CustomInterpolators
+    static class CoreCustomInterpolators
+    {
+        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        {
+            CustomInterpSubGen.Descriptor.MakeDefine(CustomInterpSubGen.Splice.k_splicePreVertex, "USE_CUSTOMINTERP_APPLYMESHMOD"),
+            CustomInterpSubGen.Descriptor.MakeStruct(CustomInterpSubGen.Splice.k_splicePreInclude, "CustomInterpolators", "USE_CUSTOMINTERP_SUBSTRUCT"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertexDefinitionToVaryings", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVaryingsToFragInputs", "output.customInterpolators", "input"),
+            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input.customInterpolators")
+        };
+    }
+
     #endregion
 }

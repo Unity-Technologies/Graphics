@@ -1,12 +1,10 @@
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
-    internal class Renderer2DDataEditor : Editor
+    internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
         class Styles
         {
@@ -151,6 +149,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space();
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()
@@ -263,10 +264,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
             }
-            if (postProcessIncluded)
-            {
-                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-            }
+
+            // this field is no longer hidden by the checkbox. It is bad UX to begin with
+            // also, if the field is hidden, the user could still use Asset Selector to set the value, but it won't stick
+            // making it look like a bug(1307128)
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+
             EditorGUILayout.Space();
         }
     }

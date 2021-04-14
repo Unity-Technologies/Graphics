@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(20, Extension, -905)]
+    [ScriptedImporter(25, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -153,8 +153,9 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
-            registry.names.Clear();
+            var graphIncludes = new IncludeCollection();
+            var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
+
             asset.functions.Clear();
             asset.isValid = true;
 
@@ -164,8 +165,8 @@ namespace UnityEditor.ShaderGraph
 
             var assetPath = AssetDatabase.GUIDToAssetPath(asset.assetGuid);
             asset.hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));
-            asset.inputStructName = $"Bindings_{asset.hlslName}_{asset.assetGuid}";
-            asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}";
+            asset.inputStructName = $"Bindings_{asset.hlslName}_{asset.assetGuid}_$precision";
+            asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.path = graph.path;
 
             var outputNode = graph.outputNode;
@@ -189,9 +190,16 @@ namespace UnityEditor.ShaderGraph
 
             asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
-            asset.graphPrecision = graph.concretePrecision;
-            asset.outputPrecision = outputNode.concretePrecision;
+
+            // output precision is whatever the output node has as a graph precision, falling back to the graph default
+            asset.outputGraphPrecision = outputNode.graphPrecision.GraphFallback(graph.graphDefaultPrecision);
+
+            // this saves the graph precision, which indicates whether this subgraph is switchable or not
+            asset.subGraphGraphPrecision = graph.graphDefaultPrecision;
+
             asset.previewMode = graph.previewMode;
+
+            asset.includes = graphIncludes;
 
             GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents.Select(g => g.ToString()));
@@ -234,32 +242,35 @@ namespace UnityEditor.ShaderGraph
                 {
                     registry.builder.currentNode = node;
                     generatesFunction.GenerateNodeFunction(registry, GenerationMode.ForReals);
-                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                 }
             }
 
             // provide top level subgraph function
-            registry.ProvideFunction(asset.functionName, sb =>
+            // NOTE: actual concrete precision here shouldn't matter, it's irrelevant when building the subgraph asset
+            registry.ProvideFunction(asset.functionName, asset.subGraphGraphPrecision, ConcretePrecision.Single, sb =>
             {
                 GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
-                // Generate arguments... first INPUTS
+                // Generate the arguments... first INPUTS
                 var arguments = new List<string>();
                 foreach (var prop in graph.properties)
                 {
-                    prop.ValidateConcretePrecision(asset.graphPrecision);
-                    arguments.Add(prop.GetPropertyAsArgumentString());
+                    // apply fallback to the graph default precision (but don't convert to concrete)
+                    // this means "graph switchable" properties will use the precision token
+                    GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
+                    string precisionString = propGraphPrecision.ToGenericString();
+                    arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                 }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
-                // Now generate outputs
+                // Now generate output arguments
                 foreach (MaterialSlot output in outputSlots)
-                    arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
+                    arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputGraphPrecision.ToGenericString())} {output.shaderOutputName}_{output.id}");
 
-                // Vt Feedback arguments
+                // Vt Feedback output arguments (always full float4)
                 foreach (var output in asset.vtFeedbackVariables)
                     arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single)} {output}_out");
 
@@ -278,13 +289,22 @@ namespace UnityEditor.ShaderGraph
                         {
                             sb.currentNode = node;
                             generatesBodyCode.GenerateNodeCode(sb, GenerationMode.ForReals);
-                            sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+
+                            if (node.graphPrecision == GraphPrecision.Graph)
+                            {
+                                // code generated by nodes that use graph precision stays in generic form with embedded tokens
+                                // those tokens are replaced when this subgraph function is pulled into a graph that defines the precision
+                            }
+                            else
+                            {
+                                sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                            }
                         }
                     }
 
                     foreach (var slot in outputSlots)
                     {
-                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
+                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
                     }
 
                     foreach (var slot in asset.vtFeedbackVariables)
@@ -294,21 +314,27 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
-            asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
+            // save all of the node-declared functions to the subgraph asset
+            foreach (var name in registry.names)
+            {
+                var source = registry.sources[name];
+                var func = new FunctionPair(name, source.code, source.graphPrecisionFlags);
+                asset.functions.Add(func);
+            }
 
             var collector = new PropertyCollector();
             foreach (var node in nodes)
             {
-                int previousPropertyCount = Math.Max(0, collector.properties.Count - 1);
+                int previousPropertyCount = Math.Max(0, collector.propertyCount - 1);
 
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
 
                 // This is a stop-gap to prevent the autogenerated values from JsonObject and ShaderInput from
                 // resulting in non-deterministic import data. While we should move to local ids in the future,
                 // this will prevent cascading shader recompilations.
-                for (int i = previousPropertyCount; i < collector.properties.Count; ++i)
+                for (int i = previousPropertyCount; i < collector.propertyCount; ++i)
                 {
-                    var prop = collector.properties[i];
+                    var prop = collector.GetProperty(i);
                     var namespaceId = node.objectId;
                     var nameId = prop.referenceName;
 

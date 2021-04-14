@@ -1,16 +1,15 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public class ShadowCaster2D : ShadowCasterGroup2D
     {
         [SerializeField] bool m_HasRenderer = false;
@@ -140,8 +139,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public void Update()
         {
-            Renderer renderer = GetComponent<Renderer>();
-            m_HasRenderer = renderer != null;
+            Renderer renderer;
+            m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)

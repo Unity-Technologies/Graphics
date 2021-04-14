@@ -27,7 +27,7 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
             HLSLPROGRAM
             #pragma target 4.5
             #pragma editor_sync_compilation
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #pragma fragment Frag
             #pragma vertex Vert
             //#pragma enable_d3d11_debug_symbols
@@ -59,11 +59,12 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy;
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
                 if (_FlipY)
                 {
                     output.texcoord.y = 1.0 - output.texcoord.y;
                 }
+                output.texcoord *= _BlitScaleBias.xy;
                 return output;
             }
 
