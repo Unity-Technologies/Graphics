@@ -28,7 +28,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // If type property is valid, create instance of that type
             if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
+            {
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+            }
+            else if (shaderInputReferenceGetter != null)
+            {
+                shaderInputReference = shaderInputReferenceGetter();
+            }
             // If type is null a direct override object must have been provided or else we are in an error-state
             else if (shaderInputReference == null)
             {
@@ -41,6 +47,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
             graphData.AddGraphInput(shaderInputReference);
         }
+
+        public Func<BlackboardItem> shaderInputReferenceGetter = null;
 
         public Action<GraphData> modifyGraphDataAction => AddShaderInput;
 
@@ -186,7 +194,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu});
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu});
                     ViewModel.propertyNameToAddActionMap.Add(name, new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
                 }
                 else
@@ -194,9 +202,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Default Keywords next
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
-
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
             // Built-In Keywords last
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
