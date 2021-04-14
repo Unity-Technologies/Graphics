@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         [SerializeField]
         bool m_Clamp = true;
+
         [ToggleControl]
         public ToggleData clamp
         {
