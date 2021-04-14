@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (transparentsNeedSettingsPass)
                 {
-                    //EnqueuePass(m_TransparentSettingsPass);
+                    EnqueuePass(m_TransparentSettingsPass);
                 }
 
                 EnqueuePass(m_RenderTransparentForwardPass);
@@ -655,35 +655,6 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
-        }
-
-        /// <inheritdoc />
-        public override void BeforeTransparent(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-            if (m_ShadowTransparentReceive == false && needTransparencyPass)
-#else
-            if (m_ShadowTransparentReceive == false)
-#endif
-            {
-                // transparent objects don't receive any shadows
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, false);
-            }
-            else
-            {
-                ShadowData shadowData = renderingData.shadowData;
-                int cascadesCount = shadowData.mainLightShadowCascadesCount;
-
-                bool mainLightShadows = renderingData.shadowData.supportsMainLightShadows;
-                bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
-                bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
-
-                // enable main light shadows with or without cascades
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, receiveShadowsCascades);
-            }
         }
 
         /// <inheritdoc />

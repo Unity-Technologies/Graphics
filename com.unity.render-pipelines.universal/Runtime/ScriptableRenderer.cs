@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler addRenderPasses             = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
             public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
             public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
-            public static readonly ProfilingSampler internalBeforeTransparent   = new ProfilingSampler($"{k_Name}.{nameof(InternalBeforeTransparent)}");
             public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
             public static readonly ProfilingSampler drawGizmos                  = new ProfilingSampler($"{nameof(DrawGizmos)}");
 
@@ -557,14 +556,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Override this method to change the render state or prepare for transparent objects when transparent passes were enqueued.
-        /// </summary>
-        /// <param name="cmd"></param>
-        public virtual void BeforeTransparent(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-        }
-
-        /// <summary>
         /// Called upon finishing rendering the camera stack. You can release any resources created by the renderer here.
         /// </summary>
         /// <param name="cmd"></param>
@@ -702,9 +693,6 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, in renderBlocks, context, ref renderingData);
                 }
 
-                // Before transparent blocks...
-                InternalBeforeTransparent(context, ref renderingData);
-
                 // Transparent blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingTransparent) > 0)
                 {
@@ -822,6 +810,7 @@ namespace UnityEngine.Rendering.Universal
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
@@ -1335,21 +1324,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_ActiveRenderPassQueue[i].OnCameraSetup(cmd, ref renderingData);
                 }
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
-        void InternalBeforeTransparent(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(null, Profiling.internalBeforeTransparent))
-            {
-                // Before transparent object pass, force to disable screen space shadow for main light
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
-
-                BeforeTransparent(cmd, ref renderingData);
             }
 
             context.ExecuteCommandBuffer(cmd);
