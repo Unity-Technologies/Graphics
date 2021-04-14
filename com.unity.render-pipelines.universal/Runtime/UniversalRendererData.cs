@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] private DepthPrepassMode m_DepthPrepassMode = DepthPrepassMode.Auto;
-        [SerializeField] private DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Auto;
+        [SerializeField] private DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
 
