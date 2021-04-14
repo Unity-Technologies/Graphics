@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 - Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
 - Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed ResourceReloader that was not call anymore at pipeline construction
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
