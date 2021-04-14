@@ -85,7 +85,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6372940999085919642}
-  - component: {fileID: 6372940999085919641}
+  - component: {fileID: 6012438937355892540}
   m_Layer: 5
   m_Name: PortraitWarning
   m_TagString: Untagged
@@ -113,7 +113,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6372940999085919641
+--- !u!114 &6012438937355892540
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 647605861f9a84ddb8b335996aa8e57b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WarningPanel: {fileID: 6372940998200450911}
+  m_WarningPanel: {fileID: 6372940998200450911}
 --- !u!1 &6372940999431961439
 GameObject:
   m_ObjectHideFlags: 0
