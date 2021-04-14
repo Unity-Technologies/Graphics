@@ -1,9 +1,6 @@
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.Jobs;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -25,19 +22,17 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<float2> drawDistances;
         public NativeArray<float2> angleFades;
         public NativeArray<float4> uvScaleBias;
-        public NativeArray<bool> affectsTransparencies;
         public NativeArray<int> layerMasks;
         public NativeArray<ulong> sceneLayerMasks;
         public NativeArray<float> fadeFactors;
-        public NativeArray<DecalLayerEnum> decalLayerMasks;
-        public NativeArray<BoundingSphere> boundingSpheres2;
+        public NativeArray<BoundingSphere> boundingSpheres;
         public NativeArray<DecalScaleMode> scaleModes;
         public NativeArray<float3> positions;
         public NativeArray<quaternion> rotation;
         public NativeArray<float3> scales;
         public NativeArray<bool> dirty;
 
-        public BoundingSphere[] boundingSpheres;
+        public BoundingSphere[] boundingSphereArray;
 
         public override void Push()
         {
@@ -52,13 +47,11 @@ namespace UnityEngine.Rendering.Universal
             RemoveAtSwapBack(ref drawDistances, entityIndex, count);
             RemoveAtSwapBack(ref angleFades, entityIndex, count);
             RemoveAtSwapBack(ref uvScaleBias, entityIndex, count);
-            RemoveAtSwapBack(ref affectsTransparencies, entityIndex, count);
             RemoveAtSwapBack(ref layerMasks, entityIndex, count);
             RemoveAtSwapBack(ref sceneLayerMasks, entityIndex, count);
             RemoveAtSwapBack(ref fadeFactors, entityIndex, count);
-            RemoveAtSwapBack(ref decalLayerMasks, entityIndex, count);
+            RemoveAtSwapBack(ref boundingSphereArray, entityIndex, count);
             RemoveAtSwapBack(ref boundingSpheres, entityIndex, count);
-            RemoveAtSwapBack(ref boundingSpheres2, entityIndex, count);
             RemoveAtSwapBack(ref scaleModes, entityIndex, count);
             RemoveAtSwapBack(ref positions, entityIndex, count);
             RemoveAtSwapBack(ref rotation, entityIndex, count);
@@ -75,19 +68,17 @@ namespace UnityEngine.Rendering.Universal
             ResizeNativeArray(ref drawDistances, newCapacity);
             ResizeNativeArray(ref angleFades, newCapacity);
             ResizeNativeArray(ref uvScaleBias, newCapacity);
-            ResizeNativeArray(ref affectsTransparencies, newCapacity);
             ResizeNativeArray(ref layerMasks, newCapacity);
             ResizeNativeArray(ref sceneLayerMasks, newCapacity);
             ResizeNativeArray(ref fadeFactors, newCapacity);
-            ResizeNativeArray(ref decalLayerMasks, newCapacity);
-            ResizeNativeArray(ref boundingSpheres2, newCapacity);
+            ResizeNativeArray(ref boundingSpheres, newCapacity);
             ResizeNativeArray(ref scaleModes, newCapacity);
             ResizeNativeArray(ref positions, newCapacity);
             ResizeNativeArray(ref rotation, newCapacity);
             ResizeNativeArray(ref scales, newCapacity);
             ResizeNativeArray(ref dirty, newCapacity);
 
-            ResizeArray(ref boundingSpheres, newCapacity);
+            ResizeArray(ref boundingSphereArray, newCapacity);
             capacity = newCapacity;
         }
 
@@ -102,12 +93,10 @@ namespace UnityEngine.Rendering.Universal
             drawDistances.Dispose();
             angleFades.Dispose();
             uvScaleBias.Dispose();
-            affectsTransparencies.Dispose();
             layerMasks.Dispose();
             sceneLayerMasks.Dispose();
             fadeFactors.Dispose();
-            decalLayerMasks.Dispose();
-            boundingSpheres2.Dispose();
+            boundingSpheres.Dispose();
             scaleModes.Dispose();
             positions.Dispose();
             rotation.Dispose();
@@ -186,7 +175,7 @@ namespace UnityEngine.Rendering.Universal
                     sizeOffsets = cachedChunk.sizeOffsets,
                     decalToWorlds = cachedChunk.decalToWorlds,
                     normalToWorlds = cachedChunk.normalToWorlds,
-                    boundingSpheres = cachedChunk.boundingSpheres2,
+                    boundingSpheres = cachedChunk.boundingSpheres,
                     minDistance = 0.01f,
                 };
 

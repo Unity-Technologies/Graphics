@@ -291,11 +291,9 @@ namespace UnityEngine.Rendering.Universal
             float startAngleFade = decalProjector.startAngleFade;
             float endAngleFade = decalProjector.endAngleFade;
             Vector4 uvScaleBias = decalProjector.uvScaleBias;
-            bool affectsTransparency = decalProjector.affectsTransparency;
             int layerMask = decalProjector.gameObject.layer;
             ulong sceneLayerMask = decalProjector.gameObject.sceneCullingMask;
             float fadeFactor = decalProjector.fadeFactor;
-            DecalLayerEnum decalLayerMask = decalProjector.decalLayerMask;
 
             // draw distance can't be more than global draw distance
             cachedChunk.drawDistances[arrayIndex] = new Vector2(cachedChunk.drawDistance > drawDistance
@@ -319,11 +317,9 @@ namespace UnityEngine.Rendering.Universal
                 cachedChunk.angleFades[arrayIndex] = new Vector2(1.0f - (0.25f - angleStart) / range, -0.25f / range);
             }
             cachedChunk.uvScaleBias[arrayIndex] = uvScaleBias;
-            cachedChunk.affectsTransparencies[arrayIndex] = affectsTransparency;
             cachedChunk.layerMasks[arrayIndex] = layerMask;
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
-            cachedChunk.decalLayerMasks[arrayIndex] = decalLayerMask;
             cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
             cachedChunk.dirty[arrayIndex] = true;
         }

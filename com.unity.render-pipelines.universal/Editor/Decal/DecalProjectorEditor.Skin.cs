@@ -17,22 +17,17 @@ namespace UnityEditor.Rendering.Universal
         };
         static readonly GUIContent k_ProjectionDepthContent = EditorGUIUtility.TrTextContent("Projection Depth", "Sets the projection depth of the projector.");
         static readonly GUIContent k_MaterialContent = EditorGUIUtility.TrTextContent("Material", "Specifies the Material this component projects as a decal.");
-        static readonly GUIContent k_DecalLayerMaskContent = EditorGUIUtility.TrTextContent("Decal Layer", "Specify the decal layer mask to use for this projector. RenderingLayerMask of Mesh matching this value will receive the decal. Enable Layers in Decal section of URP settings to access it.");
         static readonly GUIContent k_DistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the distance from the Camera at which URP stop rendering the decal.");
         static readonly GUIContent k_FadeScaleContent = EditorGUIUtility.TrTextContent("Start Fade", "Controls the distance from the Camera at which this component begins to fade the decal out.");
         static readonly GUIContent k_AngleFadeContent = EditorGUIUtility.TrTextContent("Angle Fade", "Controls the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface. Requires 'Decal Layers' to be enabled in the URP Asset and Frame Settings.");
         static readonly GUIContent k_UVScaleContent = EditorGUIUtility.TrTextContent("Tilling", "Sets the scale for the decal Material. Scales the decal along its UV axes.");
         static readonly GUIContent k_UVBiasContent = EditorGUIUtility.TrTextContent("Offset", "Sets the offset for the decal Material. Moves the decal along its UV axes.");
         static readonly GUIContent k_FadeFactorContent = EditorGUIUtility.TrTextContent("Fade Factor", "Controls the transparency of the decal.");
-        static readonly GUIContent k_AffectTransparentContent = EditorGUIUtility.TrTextContent("Affects Transparent", "When enabled, URP draws this projector's decal on top of transparent surfaces.");
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
 
-        static readonly string baseSceneEditingToolText = "<color=grey>Decal Scene Editing Mode:</color> ";
-        static readonly GUIContent[] toolNames =
-        {
-            new GUIContent(baseSceneEditingToolText + "Edit Shape", ""),
-            new GUIContent(baseSceneEditingToolText + "Edit Shape Preserve UV", ""),
-            new GUIContent(baseSceneEditingToolText + "Edit Pivot and UV", "")
-        };
+        static readonly string k_BaseSceneEditingToolText = "<color=grey>Decal Scene Editing Mode:</color> ";
+        static readonly string k_EditShapeWithoutPreservingUVName = k_BaseSceneEditingToolText + "Edit Shape";
+        static readonly string k_EditShapePreservingUVName = k_BaseSceneEditingToolText + "Edit Shape Preserve UV";
+        static readonly string k_EditUVAndPivotName = k_BaseSceneEditingToolText + "Edit Pivot and UV";
     }
 }

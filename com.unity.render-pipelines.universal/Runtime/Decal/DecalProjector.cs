@@ -3,31 +3,6 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
-    /// <summary>Decal Layers.</summary>
-    public enum DecalLayerEnum
-    {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Decal Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
-        /// <summary>Decal Layer 1.</summary>
-        DecalLayer1 = 1 << 1,
-        /// <summary>Decal Layer 2.</summary>
-        DecalLayer2 = 1 << 2,
-        /// <summary>Decal Layer 3.</summary>
-        DecalLayer3 = 1 << 3,
-        /// <summary>Decal Layer 4.</summary>
-        DecalLayer4 = 1 << 4,
-        /// <summary>Decal Layer 5.</summary>
-        DecalLayer5 = 1 << 5,
-        /// <summary>Decal Layer 6.</summary>
-        DecalLayer6 = 1 << 6,
-        /// <summary>Decal Layer 7.</summary>
-        DecalLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
     /// <summary>The scaling mode to apply to decals that use the Decal Projector.</summary>
     public enum DecalScaleMode
     {
@@ -49,9 +24,6 @@ namespace UnityEngine.Rendering.Universal
     [AddComponentMenu("Rendering/URP/Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
-        internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
-        internal static readonly Quaternion k_YtoZRotation = Quaternion.Euler(90, 0, 0);
-
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
         internal static event DecalProjectorAction onDecalAdd;
         internal static event DecalProjectorAction onDecalRemove;
@@ -197,35 +169,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
-        private bool m_AffectsTransparency = false;
-        /// <summary>
-        /// Change the transparency. It is only compatible when using HDRP/Decal shader.
-        /// </summary>
-        public bool affectsTransparency
-        {
-            get
-            {
-                return m_AffectsTransparency;
-            }
-            set
-            {
-                m_AffectsTransparency = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.LightLayerDefault;
-        /// <summary>
-        /// The layer of the decal.
-        /// </summary>
-        public DecalLayerEnum decalLayerMask
-        {
-            get => m_DecalLayerMask;
-            set => m_DecalLayerMask = value;
-        }
-
-        [SerializeField]
         private DecalScaleMode m_ScaleMode = DecalScaleMode.ScaleInvariant;
         /// <summary>
         /// The scaling mode to apply to decals that use this Decal Projector.
@@ -246,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
         /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
         /// </summary>
-        internal Vector3 pivot
+        public Vector3 pivot
         {
             get
             {

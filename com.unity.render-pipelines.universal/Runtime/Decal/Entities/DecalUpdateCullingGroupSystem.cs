@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.Universal
             cullingGroup.targetCamera = m_Camera;
             cullingGroup.SetDistanceReferencePoint(m_Camera.transform.position);
             cullingGroup.SetBoundingDistances(m_BoundingDistance);
-            cachedChunk.boundingSpheres2.CopyTo(cachedChunk.boundingSpheres); // TODO
-            cullingGroup.SetBoundingSpheres(cachedChunk.boundingSpheres);
+            cachedChunk.boundingSpheres.CopyTo(cachedChunk.boundingSphereArray); // TODO
+            cullingGroup.SetBoundingSpheres(cachedChunk.boundingSphereArray);
             cullingGroup.SetBoundingSphereCount(count);
 
             culledChunk.cameraPosition = m_Camera.transform.position;

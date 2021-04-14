@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal
     {
         public NativeArray<float4x4> decalToWorlds;
         public NativeArray<float4x4> normalToDecals;
-        public NativeArray<int> decalLayerMasks;
         public NativeArray<DecalSubDrawCall> subCalls;
         public NativeArray<int> subCallCounts;
 
@@ -30,7 +29,6 @@ namespace UnityEngine.Rendering.Universal
         {
             RemoveAtSwapBack(ref decalToWorlds, entityIndex, count);
             RemoveAtSwapBack(ref normalToDecals, entityIndex, count);
-            RemoveAtSwapBack(ref decalLayerMasks, entityIndex, count);
             RemoveAtSwapBack(ref subCalls, entityIndex, count);
             count--;
         }
@@ -39,7 +37,6 @@ namespace UnityEngine.Rendering.Universal
         {
             ResizeNativeArray(ref decalToWorlds, newCapacity);
             ResizeNativeArray(ref normalToDecals, newCapacity);
-            ResizeNativeArray(ref decalLayerMasks, newCapacity);
             ResizeNativeArray(ref subCalls, newCapacity);
             capacity = newCapacity;
         }
@@ -53,7 +50,6 @@ namespace UnityEngine.Rendering.Universal
 
             decalToWorlds.Dispose();
             normalToDecals.Dispose();
-            decalLayerMasks.Dispose();
             subCalls.Dispose();
             count = 0;
             capacity = 0;
@@ -93,12 +89,10 @@ namespace UnityEngine.Rendering.Universal
                 drawDistances = cachedChunk.drawDistances,
                 angleFades = cachedChunk.angleFades,
                 uvScaleBiases = cachedChunk.uvScaleBias,
-                affectsTransparencies = cachedChunk.affectsTransparencies,
                 layerMasks = cachedChunk.layerMasks,
                 sceneLayerMasks = cachedChunk.sceneLayerMasks,
                 fadeFactors = cachedChunk.fadeFactors,
-                decalLayerMasks = cachedChunk.decalLayerMasks,
-                boundingSpheres = cachedChunk.boundingSpheres2,
+                boundingSpheres = cachedChunk.boundingSpheres,
 
                 cameraPosition = culledChunk.cameraPosition,
                 sceneCullingMask = culledChunk.sceneCullingMask,
@@ -108,7 +102,6 @@ namespace UnityEngine.Rendering.Universal
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
                 normalToDecalsDraw = drawCallChunk.normalToDecals,
-                decalLayerMasksDraw = drawCallChunk.decalLayerMasks,
                 subCalls = drawCallChunk.subCalls,
                 subCallCount = drawCallChunk.subCallCounts,
             };
@@ -129,11 +122,9 @@ namespace UnityEngine.Rendering.Universal
             [ReadOnly] public NativeArray<float2> drawDistances;
             [ReadOnly] public NativeArray<float2> angleFades;
             [ReadOnly] public NativeArray<float4> uvScaleBiases;
-            [ReadOnly] public NativeArray<bool> affectsTransparencies;
             [ReadOnly] public NativeArray<int> layerMasks;
             [ReadOnly] public NativeArray<ulong> sceneLayerMasks;
             [ReadOnly] public NativeArray<float> fadeFactors;
-            [ReadOnly] public NativeArray<DecalLayerEnum> decalLayerMasks;
             [ReadOnly] public NativeArray<BoundingSphere> boundingSpheres;
 
             public Vector3 cameraPosition; // TODO
@@ -144,7 +135,6 @@ namespace UnityEngine.Rendering.Universal
 
             [WriteOnly] public NativeArray<float4x4> decalToWorldsDraw;
             [WriteOnly] public NativeArray<float4x4> normalToDecalsDraw;
-            [WriteOnly] public NativeArray<int> decalLayerMasksDraw;
             [WriteOnly] public NativeArray<DecalSubDrawCall> subCalls;
             [WriteOnly] public NativeArray<int> subCallCount;
 
@@ -183,14 +173,12 @@ namespace UnityEngine.Rendering.Universal
 
                     float4x4 normalToDecals = normalToWorlds[decalIndex];
                     // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
-                    float fadeFactor = fadeFactorScaler * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - drawDistance.y)), 0.0f, 1.0f);
-                    normalToDecals.c0.w = uvScaleBias.x;// fadeFactor * 1.0f;
-                    normalToDecals.c1.w = uvScaleBias.y;// angleFade.x;
-                    normalToDecals.c2.w = uvScaleBias.z;// angleFade.y;
+                    float fadeFactor = fadeFactorScaler * math.clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - drawDistance.y)), 0.0f, 1.0f);
+                    normalToDecals.c0.w = uvScaleBias.x;
+                    normalToDecals.c1.w = uvScaleBias.y;
+                    normalToDecals.c2.w = uvScaleBias.z;
                     normalToDecals.c3 = new float4(fadeFactor * 1.0f, angleFade.x, angleFade.y, uvScaleBias.w);
                     normalToDecalsDraw[instanceIndex] = normalToDecals;
-
-                    decalLayerMasksDraw[instanceIndex] = (int)decalLayerMasks[decalIndex];
 
                     instanceIndex++;
 

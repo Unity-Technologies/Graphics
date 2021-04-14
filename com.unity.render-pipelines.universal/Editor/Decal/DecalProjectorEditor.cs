@@ -49,17 +49,15 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_EndAngleFadeProperty;
         SerializedProperty m_UVScaleProperty;
         SerializedProperty m_UVBiasProperty;
-        SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_ScaleMode;
         SerializedProperty m_Size;
         SerializedProperty[] m_SizeValues;
         SerializedProperty m_Offset;
         SerializedProperty[] m_OffsetValues;
         SerializedProperty m_FadeFactor;
-        SerializedProperty m_DecalLayerMask;
 
         int layerMask => (target as Component).gameObject.layer;
-        bool layerMaskHasMultipleValue
+        bool layerMaskHasMultipleValues
         {
             get
             {
@@ -74,10 +72,6 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             }
         }
-
-        bool showAffectTransparency => false;
-
-        bool showAffectTransparencyHaveMultipleDifferentValue => false;
 
         static HierarchicalBox s_BoxHandle;
         static HierarchicalBox boxHandle
@@ -176,7 +170,6 @@ namespace UnityEditor.Rendering.Universal
             m_EndAngleFadeProperty = serializedObject.FindProperty("m_EndAngleFade");
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
-            m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_ScaleMode = serializedObject.FindProperty("m_ScaleMode");
             m_Size = serializedObject.FindProperty("m_Size");
             m_SizeValues = new[]
@@ -193,7 +186,6 @@ namespace UnityEditor.Rendering.Universal
                 m_Offset.FindPropertyRelative("z"),
             };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
-            m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
 
             ReinitSavedRatioSizePivotPosition();
         }
@@ -554,13 +546,13 @@ namespace UnityEditor.Rendering.Universal
                 GUIStyle style = new GUIStyle(EditorStyles.miniLabel);
                 style.richText = true;
                 GUILayout.BeginVertical(EditorStyles.helpBox);
-                string helpText = baseSceneEditingToolText;
+                string helpText = k_BaseSceneEditingToolText;
                 if (EditMode.editMode == k_EditShapeWithoutPreservingUV && EditMode.IsOwner(this))
-                    helpText = toolNames[0].text;
+                    helpText = k_EditShapeWithoutPreservingUVName;
                 if (EditMode.editMode == k_EditShapePreservingUV && EditMode.IsOwner(this))
-                    helpText = toolNames[1].text;
+                    helpText = k_EditShapePreservingUVName;
                 if (EditMode.editMode == k_EditUVAndPivot && EditMode.IsOwner(this))
-                    helpText = toolNames[2].text;
+                    helpText = k_EditUVAndPivotName;
                 GUILayout.Label(helpText, style);
                 GUILayout.EndVertical();
                 EditorGUILayout.Space();
@@ -631,13 +623,13 @@ namespace UnityEditor.Rendering.Universal
                     });
                 }
 
-                bool decalLayerEnabled = false;
+                bool angleFadeSupport = false;
                 foreach (var decalProjector in targets)
                 {
                     var mat = (decalProjector as DecalProjector).material;
                     if (mat == null)
                         continue;
-                    decalLayerEnabled = mat.HasProperty("_DecalAngleFadeSupported");
+                    angleFadeSupport = mat.HasProperty("_DecalAngleFadeSupported");
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -646,7 +638,7 @@ namespace UnityEditor.Rendering.Universal
                     m_DrawDistanceProperty.floatValue = 0f;
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
-                using (new EditorGUI.DisabledScope(!decalLayerEnabled))
+                using (new EditorGUI.DisabledScope(!angleFadeSupport))
                 {
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
                     float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
@@ -659,9 +651,9 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                if (!decalLayerEnabled && isValidDecalMaterial)
+                if (!angleFadeSupport && isValidDecalMaterial)
                 {
-                    EditorGUILayout.HelpBox($"Decal layer is not enabled in Shader. In ShaderGraph enable Angle Fade option.", MessageType.Info);
+                    EditorGUILayout.HelpBox($"Decal Angle Fade is not enabled in Shader. In ShaderGraph enable Angle Fade option.", MessageType.Info);
                 }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
@@ -674,7 +666,7 @@ namespace UnityEditor.Rendering.Universal
             if (materialChanged)
                 UpdateMaterialEditor();
 
-            if (layerMaskHasMultipleValue || layerMask != (target as Component).gameObject.layer)
+            if (layerMaskHasMultipleValues || layerMask != (target as Component).gameObject.layer)
             {
                 foreach (var decalProjector in targets)
                 {
@@ -685,7 +677,7 @@ namespace UnityEditor.Rendering.Universal
             bool isDecalSupported = DecalProjector.isSupported;
             if (!isDecalSupported)
             {
-                EditorGUILayout.HelpBox("No system is currently using this decal. Make sure that current render pipeline has decal enabled.", MessageType.Info);
+                EditorGUILayout.HelpBox("No Renderer has Decal Renderer Feature added.", MessageType.Info);
             }
 
             if (m_MaterialEditor != null)
