@@ -6,4 +6,4 @@ if __name__ == "__main__":
     parser.add_argument("--args")
 
     args = parser.parse_args()
-    subprocess.run(["utr"] + args.args.split())
+    subprocess.call(["utr"] + args.args.split())
