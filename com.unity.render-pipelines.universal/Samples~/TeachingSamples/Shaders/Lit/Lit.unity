@@ -270,7 +270,7 @@ MonoBehaviour:
   m_MoveWithMouse: 1
   m_MouseSensitivity: 2
   m_ButtonSensitivity: 1
-  m_WalkSpeed: 2
+  m_WalkSpeed: 3
 --- !u!54 &122368106
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1042,7 +1042,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188382879499221433, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -1098,7 +1098,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880073302295, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -1135,6 +1135,10 @@ PrefabInstance:
     - target: {fileID: 3188382880907372040, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Name
       value: MobileControls
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880907372040, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880907372043, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Pivot.x
