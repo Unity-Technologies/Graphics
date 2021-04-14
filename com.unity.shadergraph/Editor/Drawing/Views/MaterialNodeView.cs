@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         VisualElement m_PreviewContainer;
         VisualElement m_PreviewFiller;
-        VisualElement m_ControlItems;        
+        VisualElement m_ControlItems;
         VisualElement m_ControlsDivider;
         VisualElement m_DropdownItems;
         VisualElement m_DropdownsDivider;
@@ -268,7 +268,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             name = dropdown.entryName;
                             subGraphNode.SetDropdownEntryName(dropdown.referenceName, name);
-                        }                            
+                        }
 
                         var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), name);
                         field.RegisterValueChangedCallback(evt =>
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         });
                     }
                 }
-            }                
+            }
         }
 
         public VisualElement colorElement

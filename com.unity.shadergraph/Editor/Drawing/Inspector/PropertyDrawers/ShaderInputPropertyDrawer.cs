@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
         Action _dropdownChangedCallback;
-		Action<string> _displayNameChangedCallback;
+        Action<string> _displayNameChangedCallback;
         Action<string> _referenceNameChangedCallback;
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
             this._dropdownChangedCallback = () => graphData.OnDropdownChanged();
-			this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
 
             this._exposedFieldChangedCallback = newValue =>
             {
@@ -189,7 +189,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 prefix = "Dropdown";
             else
                 prefix = "Property";
-				
+
             propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"{prefix}: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
@@ -1647,7 +1647,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 ids.Add(dropdownEntry.id);
             }
 
-            for (int x = 1; ; x++)
+            for (int x = 1;; x++)
             {
                 if (!ids.Contains(x))
                     return x;
