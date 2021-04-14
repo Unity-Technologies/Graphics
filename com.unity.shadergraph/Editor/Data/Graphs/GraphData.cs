@@ -1618,7 +1618,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-		public void OnDropdownChanged()
+        public void OnDropdownChanged()
         {
             OnDropdownChangedNoValidate();
             ValidateGraph();
@@ -1633,7 +1633,7 @@ namespace UnityEditor.ShaderGraph
                 node.ValidateNode();
             }
         }
-		
+
         public void CleanupGraph()
         {
             //First validate edges, remove any
