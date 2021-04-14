@@ -1,20 +1,19 @@
-Shader "Hidden/HDRP/BlitColorAndDepth"
+Shader "Hidden/Universal/CoreBlitColorAndDepth"
 {
     HLSLINCLUDE
 
-        #pragma target 4.5
+        #pragma target 2.0
         #pragma editor_sync_compilation
-        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        // Core.hlsl for XR dependencies
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/BlitColorAndDepth.hlsl"
     ENDHLSL
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+        Tags{ "RenderPipeline" = "UniversalPipeline" }
 
         // 0: Color Only
         Pass
