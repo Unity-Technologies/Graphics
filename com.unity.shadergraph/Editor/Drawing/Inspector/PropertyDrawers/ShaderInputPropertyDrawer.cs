@@ -1348,7 +1348,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     displayName = GetSanitizedDisplayName(displayName);
                     referenceName = GetSanitizedReferenceName(displayName.ToUpper());
-                    var duplicateIndex = FindDuplicateReferenceNameIndex(entry.id, referenceName);
+                    var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
                     if (duplicateIndex != -1)
                     {
                         var duplicateEntry = ((KeywordEntry)m_KeywordReorderableList.list[duplicateIndex]);
@@ -1469,13 +1469,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._postChangeValueCallback(true);
         }
 
-        public string GetDuplicateSafeDisplayName(int id, string name)
-        {
-            name = name.Trim();
-            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, m_DisplayNameDisallowedPattern);
-        }
-
         public string GetDuplicateSafeEnumDisplayName(int id, string name)
         {
             name = name.Trim();
@@ -1519,7 +1512,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return Regex.Replace(name, m_ReferenceNameDisallowedPattern, "_");
         }
 
-        int FindDuplicateReferenceNameIndex(int id, string referenceName)
+        int FindDuplicateKeywordReferenceNameIndex(int id, string referenceName)
         {
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return entryList.FindIndex(entry => entry.id != id && entry.referenceName == referenceName);
@@ -1594,7 +1587,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 if (EditorGUI.EndChangeCheck())
                 {
                     displayName = GetSanitizedDisplayName(displayName);
-                    if (string.IsNullOrWhiteSpace(displayName))
+                    var duplicateIndex = FindDuplicateDropdownDisplayNameIndex(entry.id, displayName);
+                    if (duplicateIndex != -1)
+                    {
+                        var duplicateEntry = ((DropdownEntry)m_DropdownReorderableList.list[duplicateIndex]);
+                        Debug.LogWarning($"Display name '{displayName}' will create the same display name as entry {duplicateIndex + 1}.");
+                    }
+                    else if (string.IsNullOrWhiteSpace(displayName))
                         Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
@@ -1663,7 +1662,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             int index = GetFirstUnusedDropdownID();
 
-            var displayName = GetSafeDropdownDisplayName(index, "New");
+            var displayName = GetDuplicateSafeDropdownDisplayName(index, "New");
 
             // Add new entry
             dropdown.entries.Add(new DropdownEntry(index, displayName));
@@ -1700,11 +1699,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._postChangeValueCallback(true);
         }
 
-        public string GetSafeDropdownDisplayName(int id, string name)
+        public string GetDuplicateSafeDropdownDisplayName(int id, string name)
         {
-            name = name.Trim();
             var entryList = m_DropdownReorderableList.list as List<DropdownEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} {1}", name, m_DisplayNameDisallowedPattern);
+        }
+
+        int FindDuplicateDropdownDisplayNameIndex(int id, string displayName)
+        {
+            var entryList = m_DropdownReorderableList.list as List<DropdownEntry>;
+            return entryList.FindIndex(entry => entry.id != id && entry.displayName == displayName);
         }
     }
 }
