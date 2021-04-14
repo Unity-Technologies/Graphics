@@ -1695,25 +1695,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void CopyCategory(string categoryGUID)
+        // This differs from the rest of the category handling functions due to how categories can be copied between graphs
+        // Since we have no guarantee of us owning the categories, we need a direct reference to the category to copy
+        public CategoryData CopyCategory(CategoryData categoryToCopy)
         {
-            foreach (var categoryData in categories.ToList())
+            var copiedCategory = new CategoryData(categoryToCopy);
+            AddCategory(copiedCategory);
+            int insertIndex = 0;
+            // Whenever a category is copied, also copy over all the inputs within that category
+            foreach (var childInputToCopy in categoryToCopy.Children)
             {
-                if (categoryData.categoryGuid == categoryGUID)
-                {
-                    var copiedCategory = new CategoryData(categoryData);
-                    AddCategory(copiedCategory);
-                    int insertIndex = 0;
-                    // Whenever a category is copied, also copy over all the inputs within that category
-                    foreach (var childInputToCopy in copiedCategory.Children)
-                    {
-                        var newShaderInput = AddCopyOfShaderInput(childInputToCopy, insertIndex);
-                        copiedCategory.InsertItemIntoCategory(newShaderInput);
-                        insertIndex++;
-                    }
-                    return;
-                }
+                var newShaderInput = AddCopyOfShaderInput(childInputToCopy, insertIndex);
+                copiedCategory.InsertItemIntoCategory(newShaderInput);
+                insertIndex++;
             }
+
+            return copiedCategory;
         }
 
         public void OnKeywordChanged()

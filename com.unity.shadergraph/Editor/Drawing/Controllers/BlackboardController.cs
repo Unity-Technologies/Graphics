@@ -188,7 +188,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddCategoryAction");
             graphData.owner.RegisterCompleteObjectUndo("Add Category");
             // If categoryDataReference is not null, directly add it to graphData
-            graphData.AddCategory(categoryDataReference ?? new CategoryData(categoryName, childObjects));
+            if (categoryDataReference == null)
+                categoryDataReference = new CategoryData(categoryName, childObjects);
+            graphData.AddCategory(categoryDataReference);
         }
 
         public Action<GraphData> modifyGraphDataAction => AddCategory;
@@ -241,20 +243,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         public int indexToAddItemAt { get; set; } = -1;
     }
 
-    class RemoveItemsFromCategoryAction : IGraphDataAction
+    class CopyCategoryAction : IGraphDataAction
     {
-        void RemoveItemsFromCategory(GraphData graphData)
+        void CopyCategory(GraphData graphData)
         {
-            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out RemoveItemsFromCategoryAction");
-            graphData.owner.RegisterCompleteObjectUndo("Remove Item from Category");
-            graphData.RemoveItemFromCategory(categoryGuid, itemToRemove);
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyCategoryAction");
+            AssertHelpers.IsNotNull(categoryToCopyReference, "CategoryToCopyReference is null while carrying out CopyCategoryAction");
+
+            // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
+            //graphData.owner.RegisterCompleteObjectUndo("Copy Category");
+
+            newCategoryDataReference = graphData.CopyCategory(categoryToCopyReference);
         }
 
-        public Action<GraphData> modifyGraphDataAction => RemoveItemsFromCategory;
+        // Reference to the new category created as a copy
+        public CategoryData newCategoryDataReference { get; set; }
 
-        public string categoryGuid { get; set; }
+        // After category has been copied, store reference to it
+        public CategoryData categoryToCopyReference { get; set; }
 
-        public ShaderInput itemToRemove { get; set; }
+        public Action<GraphData> modifyGraphDataAction => CopyCategory;
     }
 
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
@@ -419,13 +427,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.parentView = blackboard;
             blackboardCategoryViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
             blackboardCategoryViewModel.name = categoryInfo.name;
-            blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
+            blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.categoryGuid;
             blackboardCategoryViewModel.isExpanded = EditorPrefs.GetBool($"{editorPrefsBaseKey}.{categoryInfo.categoryGuid}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}", true);
 
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
+            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.categoryGuid) == false)
             {
-                m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
+                m_BlackboardCategoryControllers.Add(categoryInfo.categoryGuid, blackboardCategoryController);
             }
             else
             {
@@ -539,6 +547,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ClearBlackboardCategories();
                     foreach (var categoryData in ViewModel.categoryInfoList)
                         AddBlackboardCategory(graphData.owner.graphDataStore, categoryData);
+                    break;
+
+                case CopyCategoryAction copyCategoryAction:
+                    AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
                     break;
             }
 

@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Serializable]
     class CategoryData : JsonObject
     {
         [SerializeField]
