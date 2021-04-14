@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return GraphicsFormat.R32_SFloat;
             else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.R8G8B8A8_UNorm;
-            else if (index == GBufferRenderingLayers) // Optional: rendering layers sis outputed when light layers are enabled (subset of rendering layers)
+            else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputed when light layers are enabled (subset of rendering layers)
                 return GraphicsFormat.R8G8B8A8_UNorm;
             else
                 return GraphicsFormat.None;
