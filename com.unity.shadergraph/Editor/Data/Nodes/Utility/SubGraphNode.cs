@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
 
                 if (prop.isConnectionTestable)
-                    arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");                
+                    arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
             }
 
             var dropdowns = asset.dropdowns;

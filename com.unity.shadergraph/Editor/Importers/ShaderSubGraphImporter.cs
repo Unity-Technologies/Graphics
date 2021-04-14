@@ -260,11 +260,11 @@ namespace UnityEditor.ShaderGraph
                     // this means "graph switchable" properties will use the precision token
                     GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
                     string precisionString = propGraphPrecision.ToGenericString();
-					arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
+                    arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                     if (prop.isConnectionTestable)
                     {
                         arguments.Add($"bool {prop.GetConnectionStateHLSLVariableName()}");
-                    }                    
+                    }
                 }
 
                 {

@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateControl()
         {
-            m_Control = (!slot.isConnected && slot.IsConnectionTestable()) ? slot.InstantiateCustomControl() : slot.InstantiateControl();            
+            m_Control = (!slot.isConnected && slot.IsConnectionTestable()) ? slot.InstantiateCustomControl() : slot.InstantiateControl();
             if (m_Control != null)
             {
                 m_Container.Insert(0, m_Control);
