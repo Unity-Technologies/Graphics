@@ -3,14 +3,14 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum DecalSurfaceData
+    internal enum DecalSurfaceData
     {
         Albedo,
         AlbedoNormal,
         AlbedoNormalMask,
     }
 
-    public enum DecalTechnique
+    internal enum DecalTechnique
     {
         Invalid,
         DBuffer,
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         GBuffer,
     }
 
-    public enum DecalTechniqueOption
+    internal enum DecalTechniqueOption
     {
         Automatic,
         DBuffer,
@@ -26,12 +26,12 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [System.Serializable]
-    public class DBufferSettings
+    internal class DBufferSettings
     {
         public DecalSurfaceData surfaceData = DecalSurfaceData.AlbedoNormalMask;
     }
 
-    public enum DecalNormalBlend
+    internal enum DecalNormalBlend
     {
         Off,
         Low,
@@ -40,14 +40,14 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [System.Serializable]
-    public class DecalScreenSpaceSettings
+    internal class DecalScreenSpaceSettings
     {
         public DecalNormalBlend normalBlend = DecalNormalBlend.Low;
         public bool useGBuffer = true;
     }
 
     [System.Serializable]
-    public class DecalSettings
+    internal class DecalSettings
     {
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000;
@@ -142,17 +142,14 @@ namespace UnityEngine.Rendering.Universal
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
 
-        [UnityEngine.Serialization.FormerlySerializedAs("settings")]
         [SerializeField]
         private DecalSettings m_Settings = new DecalSettings();
 
-        [UnityEngine.Serialization.FormerlySerializedAs("copyDepthPS")]
         [SerializeField]
         [HideInInspector]
         [Reload("Shaders/Utils/CopyDepth.shader")]
         private Shader m_CopyDepthPS;
 
-        [UnityEngine.Serialization.FormerlySerializedAs("dBufferClear")]
         [SerializeField]
         [HideInInspector]
         [Reload("Runtime/Decal/DBuffer/DBufferClear.shader")]
