@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HDRPHelpURL("HDRP-Asset")]
+    [HDRPHelpURL("Default-Settings-Window")]
     partial class HDRenderPipelineRayTracingResources : HDRenderPipelineResources
     {
         // Reflection

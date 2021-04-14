@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HDRPHelpURL("HDRP-Asset")]
+    [HDRPHelpURL("Default-Settings-Window")]
     partial class HDRenderPipelineRuntimeResources : HDRenderPipelineResources
     {
         [Serializable, ReloadGroup]
