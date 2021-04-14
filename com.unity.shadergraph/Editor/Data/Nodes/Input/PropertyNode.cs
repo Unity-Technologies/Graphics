@@ -229,7 +229,7 @@ namespace UnityEditor.ShaderGraph
             if (property.isConnectionTestable)
             {
                 sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (generationMode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
-            }            
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)

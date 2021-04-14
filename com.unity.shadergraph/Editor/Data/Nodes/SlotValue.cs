@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         Boolean,
         VirtualTexture,
         PropertyConnectionState,
-   }
+    }
 
     enum ConcreteSlotValueType
     {

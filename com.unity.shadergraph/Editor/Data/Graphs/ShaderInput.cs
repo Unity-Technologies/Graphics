@@ -234,7 +234,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_UseCustomSlotLabel;
             set => m_UseCustomSlotLabel = value;
         }
-		
+
         internal string customSlotLabel
         {
             get => m_CustomSlotLabel;

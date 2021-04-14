@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None, 0, 0, 0, 0)] DynamicDimensionVector NotConnected,
             [Slot(3, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
-
             return
 @"
 {
@@ -46,7 +45,7 @@ namespace UnityEditor.ShaderGraph
                 if (!property.isConnectionTestable)
                 {
                     var edges = owner.GetEdges(GetSlotReference(0));
-                    owner.RemoveElements(new AbstractMaterialNode[] { }, edges.ToArray(), new GroupData[] { }, new StickyNoteData[] { });
+                    owner.RemoveElements(new AbstractMaterialNode[] {}, edges.ToArray(), new GroupData[] {}, new StickyNoteData[] {});
                     owner.AddValidationError(objectId, String.Format("Connected property {0} is not connection testable and was disconnected from the Input port", property.displayName), ShaderCompilerMessageSeverity.Warning);
                 }
             }

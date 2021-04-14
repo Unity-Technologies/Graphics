@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         {
             return new PropertyConnectionStateSlotControlView(this);
         }
-		
+
         protected override string ConcreteSlotValueAsVariable()
         {
             // This is a funky slot, that doesn't directly hold a value.
