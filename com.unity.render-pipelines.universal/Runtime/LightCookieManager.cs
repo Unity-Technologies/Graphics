@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
                 //public bool useMips;
 
                 public bool isPow2 => Mathf.IsPowerOfTwo(resolution.x) && Mathf.IsPowerOfTwo(resolution.y);
+                public bool isSquare => resolution.x == resolution.y;
             }
 
             public AtlasSettings atlas;

@@ -79,8 +79,8 @@ CBUFFER_END
 
 // Function defines
 // TODO: prefer functions and types
-#define SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv)        SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv)
-#define SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv)   SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv)
+#define SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv)         SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv)
+#define SAMPLE_ADDITIONAL_LIGHT_COOKIE_TEXTURE(uv)   SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv)
 
 // Constants
 //static const float kConst = 1.0;
@@ -251,7 +251,7 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
 
     float3 sampleDirLS = normalize(positionLS.xyz / positionLS.w);
 
-    // Project direction to Octahderal quad UV.
+    // Project direction to Octahederal quad UV.
     float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
 
     // Remap to atlas texture
@@ -310,7 +310,7 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
     else
         uv = LightCookie_ComputeUVPoint(worldToLight, samplePositionWS, uvRect);
 
-    return ADDITIONAL_LIGHTS_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv).rgb;
+    return ADDITIONAL_LIGHTS_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_ADDITIONAL_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_ADDITIONAL_LIGHT_COOKIE_TEXTURE(uv).rgb;
 }
 
 #endif //UNIVERSAL_LIGHT_COOKIE_INCLUDED
