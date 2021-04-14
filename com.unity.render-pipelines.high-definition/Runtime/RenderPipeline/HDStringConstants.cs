@@ -1024,7 +1024,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
         /// <summary>Enable Depth Offset.</summary>
         public const string kDepthOffsetEnable = "_DepthOffsetEnable";
-
+        /// <summary>Enable Depth Offset.</summary>
+        public const string kConservativeDepthOffsetEnable = "_ConservativeDepthOffsetEnable";
         /// <summary>Enable affect Albedo (decal only).</summary>
         public const string kAffectAlbedo   = "_AffectAlbedo";
         /// <summary>Enable affect Normal (decal only.</summary>

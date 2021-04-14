@@ -32,7 +32,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
@@ -216,9 +216,9 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
@@ -277,7 +277,7 @@ Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -332,7 +332,7 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -387,4 +387,4 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_C
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision

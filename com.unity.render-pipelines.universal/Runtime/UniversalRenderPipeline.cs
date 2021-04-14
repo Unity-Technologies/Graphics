@@ -348,8 +348,13 @@ namespace UnityEngine.Rendering.Universal
             // Resulting in following pattern:
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
+            // Until then, we can't use nested profiling scopes with XR multipass
+            CommandBuffer cmdScope = cameraData.xr.enabled ? null : cmd;
+
             ProfilingSampler sampler = Profiling.TryGetOrAddCameraSampler(camera);
-            using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
+            using (new ProfilingScope(cmdScope, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
 
@@ -452,7 +457,7 @@ namespace UnityEngine.Rendering.Universal
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
                         {
-                            var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
+                            var renderer2DType = typeof(Renderer2D);
                             if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
                             {
                                 Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
@@ -856,6 +861,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
+
+            cameraData.worldSpaceCameraPos = camera.transform.position;
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,

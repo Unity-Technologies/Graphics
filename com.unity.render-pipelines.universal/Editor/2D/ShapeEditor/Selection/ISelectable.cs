@@ -1,4 +1,4 @@
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal interface ISelectable<T>
     {
