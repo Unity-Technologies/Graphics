@@ -339,6 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
+#if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
@@ -351,6 +352,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         yield return computeShader;
                 }
             }
+
+#endif
         }
 
         [Serializable, ReloadGroup]
