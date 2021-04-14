@@ -92,6 +92,8 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
     return result;
 }
 
+float2 GetTransformedUV(UnityTexture2D tex, float2 uv)      { return uv * tex.scaleTranslate.xy + tex.scaleTranslate.zw; }
+
 struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);

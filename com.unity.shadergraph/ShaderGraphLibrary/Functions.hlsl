@@ -107,7 +107,4 @@ void shadergraph_Fog(float3 position, out float4 color, out float density)
     density = 0;
 }
 
-
-#define SHADERGRAPH_TRANSFORM_TEX(uv, texStruct) uv * texStruct.scaleTranslate.xy + texStruct.scaleTranslate.zw
-
 #endif // UNITY_GRAPHFUNCTIONS_INCLUDED

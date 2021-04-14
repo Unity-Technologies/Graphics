@@ -164,7 +164,7 @@ $precision {tmpMaxHeight} = {amplitude} * 0.01; // cm in the interface so we mul
 $precision3 {tmpViewDirUV}    = normalize($precision3({tmpViewDir}.xy * {tmpMaxHeight}, {tmpViewDir}.z)); // TODO: skip normalize
 
 PerPixelHeightDisplacementParam {tmpPOMParam};
-{tmpPOMParam}.uv = SHADERGRAPH_TRANSFORM_TEX({uvs}, {heightmap});");
+{tmpPOMParam}.uv = GetTransformedUV({heightmap}, {uvs});");
 
             sb.AppendLines($@"
 $precision {tmpOutHeight};
