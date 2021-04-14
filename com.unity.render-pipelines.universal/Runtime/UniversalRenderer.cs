@@ -486,11 +486,10 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
-                RenderBufferStoreAction opaquePassDepthStoreAction = opaquePassColorStoreAction;
                 if (cameraTargetDescriptor.msaaSamples > 1)
-                    opaquePassColorStoreAction = opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
-                else
-                    opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+                    opaquePassColorStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
+
+                RenderBufferStoreAction opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
 
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
