@@ -59,8 +59,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Use Pipeline Settings")
             };
 
-            public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
-            public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
+            public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Size", "Controls the size of the cookie mask currently assigned to the light.");
+            public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Offset", "Controls the offset of the cookie mask currently assigned to the light.");
         }
 
         static Styles s_Styles;
@@ -454,6 +454,7 @@ namespace UnityEditor.Rendering.Universal
                     }
 
                     bool isChanged = false;
+                    EditorGUI.indentLevel++;
                     EditorGUI.BeginChangeCheck();
                     {
                         EditorGUILayout.PropertyField(m_LightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
@@ -465,6 +466,7 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.PropertyField(m_LightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
                     }
                     isChanged |= EditorGUI.EndChangeCheck();
+                    EditorGUI.indentLevel--;
                     if (isChanged)
                     {
                         m_AdditionalLightDataSO.ApplyModifiedProperties();
