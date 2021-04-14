@@ -5,8 +5,6 @@ namespace UnityEngine.Rendering.Universal
 {
     class DebugRenderSetup : IDisposable
     {
-        private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
-
         private readonly DebugHandler m_DebugHandler;
         private readonly ScriptableRenderContext m_Context;
         private readonly CommandBuffer m_CommandBuffer;
@@ -16,44 +14,6 @@ namespace UnityEngine.Rendering.Universal
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
         private DebugDisplaySettingsValidation ValidationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
-
-        private bool IsDebugMaterialPassNeeded()
-        {
-            if ((MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None) ||
-                (RenderingSettings.debugMipInfoMode != DebugMipInfoMode.None) ||
-                (LightingSettings.DebugLightingMode != DebugLightingMode.None) ||
-                (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None))
-            {
-                return true;
-            }
-
-            switch (ValidationSettings.validationMode)
-            {
-                case DebugValidationMode.ValidateAlbedo:
-                case DebugValidationMode.ValidateMetallic:
-                case DebugValidationMode.ValidateMipmaps:
-                {
-                    return true;
-                }
-            }
-
-            switch (RenderingSettings.debugSceneOverrideMode)
-            {
-                case DebugSceneOverrideMode.Overdraw:
-                case DebugSceneOverrideMode.Wireframe:
-                case DebugSceneOverrideMode.SolidWireframe:
-                {
-                    return true;
-                }
-
-                case DebugSceneOverrideMode.ShadedWireframe:
-                {
-                    return (m_Index == 1);
-                }
-            } // End of switch.
-
-            return false;
-        }
 
         private void Begin()
         {
@@ -127,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        internal DrawingSettings CreateDrawingSettings(ScriptableRenderPass pass, ref RenderingData renderingData, DrawingSettings drawingSettings)
+        internal DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
@@ -140,18 +100,9 @@ namespace UnityEngine.Rendering.Universal
                 modifiedDrawingSettings.overrideMaterialPassIndex = 0;
                 return modifiedDrawingSettings;
             }
-            else
-            {
-                if (IsDebugMaterialPassNeeded())
-                {
-                    return pass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
-                }
-                else
-                {
-                    // Nothing special - simply return a copy of the original drawing settings...
-                    return drawingSettings;
-                }
-            }
+
+            // No overrides, return original
+            return drawingSettings;
         }
 
         internal bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)

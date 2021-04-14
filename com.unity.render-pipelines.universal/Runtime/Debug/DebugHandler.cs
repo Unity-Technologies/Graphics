@@ -143,9 +143,14 @@ namespace UnityEngine.Rendering.Universal
 
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if (passIndex == 1)
+                    if (passIndex == 0)
+                    {
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                    }
+                    else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
                     }
                     break;
                 }

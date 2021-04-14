@@ -130,6 +130,8 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
     switch(_DebugValidationMode)
     {
         case DEBUGVALIDATIONMODE_NONE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
             return false;
 
         case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
