@@ -32,7 +32,7 @@ URP_2D_Linux_Vulkan_Standalone_mono_Linear_trunk:
 Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
@@ -107,7 +107,7 @@ URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
 URP_2D_Linux_Vulkan_editmode_mono_Linear_trunk:
     name: URP_2D on Linux_Vulkan_editmode_mono_Linear on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
@@ -153,7 +153,7 @@ URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
 Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
@@ -205,7 +205,7 @@ URP_2D_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
 Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
@@ -292,7 +292,7 @@ URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
 URP_2D_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
@@ -345,7 +345,7 @@ URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
 Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
