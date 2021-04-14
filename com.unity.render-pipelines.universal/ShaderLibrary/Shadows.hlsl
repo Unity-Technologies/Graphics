@@ -11,7 +11,7 @@
     #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
         #define MAIN_LIGHT_CALCULATE_SHADOWS
 
-        #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
+        #if defined(_MAIN_LIGHT_SHADOWS) || (defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT))
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
         #endif
     #endif
@@ -299,7 +299,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     return half(1.0);
-#elif defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+#elif defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
     return SampleScreenSpaceShadowmap(shadowCoord);
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
@@ -422,7 +422,7 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
-#if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
     return ComputeScreenPos(vertexInput.positionCS);
 #else
     return TransformWorldToShadowCoord(vertexInput.positionWS);

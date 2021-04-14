@@ -194,7 +194,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 if (!materialReceiveShadowsOff)
                 {
                     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
                             float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
                         #else
                             float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
