@@ -99,17 +99,24 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
     half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
-#if defined (_DISTORTION_ON)
-    albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
-#endif
+    #if defined (_DISTORTION_ON)
+        albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
+    #endif
 
-#if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-#else
-    half3 emission = half3(0, 0, 0);
-#endif
+    #if defined(_EMISSION)
+        half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
+    #else
+        half3 emission = half3(0, 0, 0);
+    #endif
 
     half3 result = albedo.rgb + emission;
+
+    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+        result *= aoFactor.directAmbientOcclusion;
+    #endif
+
     half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);

@@ -453,6 +453,9 @@ namespace UnityEditor.VFX
         {
             get
             {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
                 if (!supportsUV)
                     yield return "uvMode";
 

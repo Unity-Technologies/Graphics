@@ -147,7 +147,9 @@ namespace UnityEngine.Rendering
             brickGizmos.Clear();
             cellGizmo?.Dispose();
 
+#if UNITY_EDITOR
             m_PrevAsset = null;
+#endif
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
