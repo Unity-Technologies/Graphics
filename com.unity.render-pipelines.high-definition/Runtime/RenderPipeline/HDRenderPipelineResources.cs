@@ -3,6 +3,6 @@ namespace UnityEngine.Rendering.HighDefinition
     abstract class HDRenderPipelineResources : RenderPipelineResources
     {
         const string m_packagePath = "Packages/com.unity.render-pipelines.high-definition/";
-        public override string packagePath => m_packagePath;
+        protected override string packagePath => m_packagePath;
     }
 }

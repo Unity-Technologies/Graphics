@@ -2,6 +2,7 @@ namespace UnityEngine.Rendering
 {
     public abstract class RenderPipelineResources : ScriptableObject
     {
-        public abstract string packagePath { get; }
+        protected abstract string packagePath { get; }
+        internal string packagePath_Internal => packagePath;
     }
 }

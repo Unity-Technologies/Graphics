@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
                     foreach (var field in t.GetType().GetFields())
                         field.SetValue(t, null);
 
-                    ResourceReloader.ReloadAllNullIn(target, t.packagePath);
+                    ResourceReloader.ReloadAllNullIn(target, t.packagePath_Internal);
                 }
             }
         }
