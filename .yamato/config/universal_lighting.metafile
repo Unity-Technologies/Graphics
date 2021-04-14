@@ -17,7 +17,7 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
     - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 
