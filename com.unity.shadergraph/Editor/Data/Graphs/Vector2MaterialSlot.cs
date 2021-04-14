@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 return new MultiFloatSlotControlView(owner, labels, () => value, (newValue) => value = newValue);
-            }            
+            }
         }
 
         protected override string ConcreteSlotValueAsVariable()
