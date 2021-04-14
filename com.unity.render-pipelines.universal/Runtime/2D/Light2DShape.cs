@@ -1,3 +1,6 @@
+using Unity.Mathematics;
+using UnityEngine.Splines;
+
 namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class Light2D
@@ -36,18 +39,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
 
-        /// <summary>
-        /// Returns the path that represents the shape light. Values are in object space.
-        /// </summary>
-        public Vector3[] shapePath
-        {
-            get { return m_ShapePath; }
-            internal set { m_ShapePath = value; }
-        }
-
         internal void SetShapePath(Vector3[] path)
         {
-            m_ShapePath = path;
+            m_Spline.Spline.EditType = SplineType.Linear;
+            m_Spline.Spline.Resize(path.Length);
+            for (int i = 0; i < path.Length; ++i)
+            {
+                var bk = new BezierKnot();
+                bk.Position = path[i];
+                bk.TangentIn = float3.zero;
+                bk.TangentOut = float3.zero;
+                m_Spline.Spline[i] = bk;
+            }
         }
     }
 }

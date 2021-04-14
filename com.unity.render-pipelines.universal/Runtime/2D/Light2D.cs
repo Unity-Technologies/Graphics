@@ -1,4 +1,6 @@
 using System;
+using Unity.Mathematics;
+using UnityEngine.Splines;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
@@ -14,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
     [ExecuteAlways, DisallowMultipleComponent]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [AddComponentMenu("Rendering/2D/Light 2D")]
+    [RequireComponent(typeof(SplineContainer))]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour, ISerializationCallbackReceiver
     {
@@ -180,6 +183,19 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
+        [SerializeField]
+        SplineContainer m_Spline;
+
+        public Spline spline
+        {
+            get
+            {
+                if (m_Spline == null)
+                    m_Spline = GetComponent<SplineContainer>();
+                return m_Spline.Spline;
+            }
+        }
+
         /// <summary>
         /// The light's current type
         /// </summary>
@@ -301,8 +317,16 @@ namespace UnityEngine.Rendering.Universal
             return largestIndex;
         }
 
+        public Vector3[] GetPath()
+        {
+            Vector3[] shapePath = new Vector3[spline.KnotCount];
+            for (int i = 0; i < spline.KnotCount; ++i)
+                shapePath[i] = new Vector3(spline[i].Position.x, spline[i].Position.y, 0);
+            return shapePath;
+        }
         internal void UpdateMesh(bool forceUpdate)
         {
+            var shapePath = GetPath();
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
             var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
@@ -319,7 +343,7 @@ namespace UnityEngine.Rendering.Universal
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, m_ShapePath, m_ShapeLightFalloffSize);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, shapePath, m_ShapeLightFalloffSize);
                         break;
                     case LightType.Parametric:
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
@@ -381,6 +405,20 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PreviousLightCookieSprite = lightCookieSpriteInstanceID;
             Light2DManager.RegisterLight(this);
+            spline.Closed = true;
+            spline.EditType = SplineType.Linear;
+            if (m_ShapePath != null && m_ShapePath.Length != spline.KnotCount && m_ShapePath.Length != 0)
+            {
+                spline.Resize(m_ShapePath.Length);
+                for (int i = 0; i < m_ShapePath.Length; ++i)
+                {
+                    var bk = new BezierKnot();
+                    bk.Position = m_ShapePath[i];
+                    bk.TangentIn = float3.zero;
+                    bk.TangentOut = float3.zero;
+                    spline[i] = bk;
+                }
+            }
         }
 
         private void OnDisable()

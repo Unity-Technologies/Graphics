@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.EditorTools;
 using UnityEditor.Rendering.Universal.Path2D;
+using UnityEditor.Splines;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -10,43 +12,49 @@ namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    internal class Light2DEditor : PathComponentEditor<ScriptablePath>
+    internal class Light2DEditor : Editor
     {
-        [EditorTool("Edit Freeform Shape", typeof(Light2D))]
-        class FreeformShapeTool : PathEditorTool<ScriptablePath>
+        List<Light2D> m_Lights;
+
+        static List<T> GetFiltered<T>(IEnumerable collection)
         {
-            const string k_ShapePath = "m_ShapePath";
+            List<T> filtered = new List<T>();
+            foreach (var obj in collection)
+                if (obj is T cast)
+                    filtered.Add(cast);
+            return filtered;
+        }
 
-            public override bool IsAvailable()
+        void OnEnableSplineEditor()
+        {
+            m_Lights = GetFiltered<Light2D>(targets);
+
+            foreach(var light in m_Lights)
             {
-                var light = target as Light2D;
-
-                if (light == null)
-                    return false;
-                else
-                    return base.IsAvailable() && light.lightType == Light2D.LightType.Freeform;
+                if (light == null || light.spline == null)
+                    continue;
             }
 
-            protected override IShape GetShape(Object target)
+            EditorSplineUtility.afterSplineWasModified += OnAfterSplineWasModified;
+        }
+
+        void OnDisable()
+        {
+            foreach(var light in m_Lights)
             {
-                return (target as Light2D).shapePath.ToPolygon(false);
+                if (light == null || light.spline == null)
+                    continue;
             }
 
-            protected override void SetShape(ScriptablePath shapeEditor, SerializedObject serializedObject)
-            {
-                serializedObject.Update();
+            EditorSplineUtility.afterSplineWasModified -= OnAfterSplineWasModified;
+        }
 
-                var pointsProperty = serializedObject.FindProperty(k_ShapePath);
-                pointsProperty.arraySize = shapeEditor.pointCount;
+        void OnAfterSplineWasModified(UnityEngine.Splines.Spline spline)
+        {
+            var light = m_Lights.Find((light) => light.spline == spline);
 
-                for (var i = 0; i < shapeEditor.pointCount; ++i)
-                    pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
-
-                ((Light2D)(serializedObject.targetObject)).UpdateMesh(true);
-
-                // This is untracked right now...
-                serializedObject.ApplyModifiedProperties();
-            }
+            if (light != null && light.lightType == Light2D.LightType.Freeform)
+                light.UpdateMesh(true);
         }
 
         private static class Styles
@@ -261,6 +269,7 @@ namespace UnityEditor.Rendering.Universal
 
 
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
+            OnEnableSplineEditor();
         }
 
         internal void SendModifiedAnalytics(Analytics.Renderer2DAnalytics analytics, Light2D light)
@@ -552,9 +561,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
             {
-                DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
-                DoPathInspector<FreeformShapeTool>();
-                DoSnappingInspector<FreeformShapeTool>();
+                // DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
+                // DoPathInspector<FreeformShapeTool>();
+                // DoSnappingInspector<FreeformShapeTool>();
             }
 
             DrawFoldouts();
@@ -748,15 +757,18 @@ namespace UnityEditor.Rendering.Universal
                         Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    if (falloffShape.Count > 1)
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    var path = light.GetPath();
 
-                    for (int i = 0; i < light.shapePath.Length - 1; ++i)
+                    for (int i = 0; i <path.Length - 1; ++i)
                     {
-                        Handles.DrawLine(t.TransformPoint(light.shapePath[i]),
-                            t.TransformPoint(light.shapePath[i + 1]));
+                        Handles.DrawLine(t.TransformPoint(path[i]),
+                            t.TransformPoint(path[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
+                    if (path.Length > 1)
+                        Handles.DrawLine(t.TransformPoint(path[path.Length - 1]), t.TransformPoint(path[0]));
                 }
                 break;
             }

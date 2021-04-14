@@ -8,7 +8,8 @@
   "dependencies": {
     "com.unity.mathematics": "1.1.0",
     "com.unity.render-pipelines.core": "12.0.0",
-    "com.unity.shadergraph": "12.0.0"
+    "com.unity.shadergraph": "12.0.0",
+    "com.unity.splines": "0.1.0-preview"
   },
   "keywords": [
     "graphics",

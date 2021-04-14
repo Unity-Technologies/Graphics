@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
                     shapePath[i] = endPoint;
                 }
 
-                light.shapePath = shapePath;
+                light.SetShapePath(shapePath);
                 light.UpdateMesh(true);
             }
         }

@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal
             light2D.lightType = type;
 
             if (shapePath != null && shapePath.Length > 0)
-                light2D.shapePath = shapePath;
+                light2D.SetShapePath(shapePath);
 
             var parent = menuCommand.context as GameObject;
             Place(go, parent);

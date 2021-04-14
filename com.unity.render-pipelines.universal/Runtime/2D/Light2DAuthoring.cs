@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
+using UnityEngine.Splines;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -23,12 +25,25 @@ namespace UnityEngine.Rendering.Universal
 
         void Reset()
         {
-            m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
+            spline.Closed = true;
+            spline.EditType = SplineType.Linear;
+            spline.Resize(4);
+            var bk = new BezierKnot();
+            bk.Position = new Vector3(-0.5f, -0.5f);
+            bk.TangentIn = float3.zero;
+            bk.TangentOut = float3.zero;
+            spline[0] = bk;
+            bk.Position = new Vector3(0.5f, -0.5f);
+            spline[1] = bk;
+            bk.Position = new Vector3(0.5f, 0.5f);
+            spline[2] = bk;
+            bk.Position = new Vector3(-0.5f, 0.5f);
+            spline[3] = bk;
         }
 
         internal List<Vector2> GetFalloffShape()
         {
-            return LightUtility.GetOutlinePath(m_ShapePath, m_ShapeLightFalloffSize);
+            return LightUtility.GetOutlinePath(GetPath(), m_ShapeLightFalloffSize);
         }
 
 #endif
