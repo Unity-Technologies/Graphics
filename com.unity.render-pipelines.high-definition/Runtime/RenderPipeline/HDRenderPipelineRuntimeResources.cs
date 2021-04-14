@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Volumetric Clouds
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
             public ComputeShader volumetricCloudsCS;
-            [Reload("Editor/Lighting/VolumetricLighting/CloudMapGenerator.compute")]
+            [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
 
             // Material
