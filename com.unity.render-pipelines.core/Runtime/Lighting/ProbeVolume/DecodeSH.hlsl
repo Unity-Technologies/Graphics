@@ -12,9 +12,6 @@ float3 DecodeSH(float l0, float3 l1)
 
 void DecodeSH_L2(float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float4 l2_C)
 {
-    // TODO: Currently we are going around compression given that we have problems with compression that needs investigating.
-    return;
-
     // TODO: We're working on irradiance instead of radiance coefficients
     //       Add safety margin 2 to avoid out-of-bounds values
     const float l2scale = 3.5777088f; // 4/sqrt(5) * 2
