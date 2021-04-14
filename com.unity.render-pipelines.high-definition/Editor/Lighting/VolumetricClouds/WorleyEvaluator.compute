@@ -49,7 +49,7 @@ void WorleyNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
     float3 position = float3(((float2)dispatchThreadID.xy + 0.5) / _NumLayers, ((float)_Layer + 0.5) / _NumLayers);
 
     // Generate all the worley noises that are required
-    const float baseFrequence = 4.0;
+    const float baseFrequence = 8.0;
     const float3 positionFrequence = position * baseFrequence;
     float worley2 = 1.0 - WorleyNoise(positionFrequence * 2.0f, baseFrequence * 2.0f);
     float worley4 = 1.0 - WorleyNoise(positionFrequence * 4.0f, baseFrequence * 4.0f);

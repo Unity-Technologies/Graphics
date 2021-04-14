@@ -87,7 +87,7 @@ float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
 float3 TransformDirectionVFXToWorld(float3 dir) { return mul(VFXGetObjectToWorldMatrix(), float4(dir, 0.0f)).xyz; }
 float3 TransformPositionVFXToWorld(float3 pos) { return mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz; }
-float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)GetWorldToObjectMatrix()); }
+float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)VFXGetWorldToObjectMatrix()); }
 float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
@@ -558,6 +558,13 @@ float3 VFXSafeNormalize(float3 v)
 {
     float sqrLength = max(VFX_FLT_MIN, dot(v, v));
     return v * rsqrt(sqrLength);
+}
+
+float3 VFXSafeNormalizedCross(float3 v1, float3 v2, float3 fallback)
+{
+    float3 outVec = cross(v1, v2);
+    outVec = dot(outVec, outVec) < VFX_EPSILON ? fallback : normalize(outVec);
+    return outVec;
 }
 
 /////////////////////
