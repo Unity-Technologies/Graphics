@@ -45,7 +45,10 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
-            action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl)); 
+            if (useTilingAndOffset)
+            {
+                action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
+            }
         }
 
         internal override string GetPropertyAsArgumentString(string precisionString)
