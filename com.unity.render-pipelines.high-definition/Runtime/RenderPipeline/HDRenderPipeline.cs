@@ -1907,11 +1907,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
 
+                            // Save the camera history before rendering the AOVs
+                            var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
+
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
+                                    // Before rendering the AOV, bind the correct history buffers
+                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
@@ -1920,6 +1926,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.Submit();
                                 cmd.Clear();
                             }
+
+                            // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
+                            renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
@@ -2087,7 +2096,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Resize(hdCamera);
                 m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
-                ApplyDebugDisplaySettings(hdCamera, cmd);
+                ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
                 if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR
@@ -3342,7 +3351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
+        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
         {
             // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
             // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
@@ -3425,6 +3434,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._MouseClickPixelCoord = HDUtils.GetMouseClickCoordinates(hdCamera);
 
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
+
+                cb._DebugAOVOutput = aovOutput ? 1 : 0;
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 

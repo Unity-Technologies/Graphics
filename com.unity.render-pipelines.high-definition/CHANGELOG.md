@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added an info box for micro shadow editor (case 1322830).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -155,6 +156,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 - Fixed issue with an assert getting triggered with OnDemand shadows.
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -191,6 +196,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Increased path tracing max samples from 4K to 16K (case 1327729).
 
 ## [10.3.0] - 2020-12-01
 
