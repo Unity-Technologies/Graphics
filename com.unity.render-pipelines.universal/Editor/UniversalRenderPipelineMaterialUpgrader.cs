@@ -141,9 +141,6 @@ namespace UnityEditor.Rendering.Universal
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit", SupportedUpgradeParams.specularOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit (Only Directional Lights)", SupportedUpgradeParams.specularOpaque));
             upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Particles/VertexLit Blended", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new AdditiveUpgrader("Mobile/Particles/Additive"));
-            upgraders.Add(new AlphaBlendUpgrader("Mobile/Particles/Alpha Blended"));
-            upgraders.Add(new MultiplyUpgrader("Mobile/Particles/Multiply"));
 
             ////////////////////////////////////
             // Terrain Upgraders              //
@@ -164,24 +161,6 @@ namespace UnityEditor.Rendering.Universal
             // Autodesk Interactive           //
             ////////////////////////////////////
             upgraders.Add(new AutodeskInteractiveUpgrader("Autodesk Interactive"));
-
-            ////////////////////////////////////
-            // Unlit Upgraders                //
-            ////////////////////////////////////
-            upgraders.Add(new UnlitUpgrader("Unlit/Color"));
-            upgraders.Add(new UnlitUpgrader("Unlit/Texture"));
-            upgraders.Add(new UnlitUpgrader("Unlit/Transparent"));
-            upgraders.Add(new UnlitUpgrader("Unlit/Transparent Cutout"));
-
-            ////////////////////////////////////
-            // Additive Upgraders             //
-            ////////////////////////////////////
-            upgraders.Add(new AdditiveUpgrader("FX/Flare"));
-
-            ////////////////////////////////////
-            // Skybox Upgraders               //
-            ////////////////////////////////////
-            upgraders.Add(new SkyboxUpgrader("Skybox/Cubemap"));
         }
     }
 
@@ -274,15 +253,6 @@ namespace UnityEditor.Rendering.Universal
             blendMode = UpgradeBlendMode.Alpha,
             alphaClip = false,
             specularSource = SpecularSource.SpecularTextureAndColor,
-            smoothnessSource = SmoothnessSource.BaseAlpha,
-        };
-
-        static public UpgradeParams additive = new UpgradeParams()
-        {
-            surfaceType = UpgradeSurfaceType.Transparent,
-            blendMode = UpgradeBlendMode.Additive,
-            alphaClip = false,
-            specularSource = SpecularSource.NoSpecular,
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
     }
@@ -562,106 +532,6 @@ namespace UnityEditor.Rendering.Universal
             dstMaterial.SetFloat("_UseAoMap", srcMaterial.GetTexture("_OcclusionMap") ? 1.0f : .0f);
             dstMaterial.SetVector("_UvOffset", srcMaterial.GetTextureOffset("_MainTex"));
             dstMaterial.SetVector("_UvTiling", srcMaterial.GetTextureScale("_MainTex"));
-        }
-    }
-
-    public class UnlitUpgrader : MaterialUpgrader
-    {
-        public UnlitUpgrader(string oldShaderName)
-        {
-            if (oldShaderName.Equals("Unlit/Color", StringComparison.OrdinalIgnoreCase))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/UnlitColor");
-            }
-            else if (oldShaderName.Equals("Unlit/Texture", StringComparison.OrdinalIgnoreCase))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/UnlitTexture");
-            }
-            else if (oldShaderName.Equals("Unlit/Transparent", StringComparison.OrdinalIgnoreCase))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/UnlitTransparent");
-            }
-            else if (oldShaderName.Equals("Unlit/Transparent Cutout", StringComparison.OrdinalIgnoreCase))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/UnlitTransparentCutout");
-            }
-        }
-
-        public override void Convert(Material srcMaterial, Material dstMaterial)
-        {
-            base.Convert(srcMaterial, dstMaterial);
-            dstMaterial.SetVector("_UvTiling", srcMaterial.mainTextureScale);
-            dstMaterial.SetVector("_UvOffset", srcMaterial.mainTextureOffset);
-            dstMaterial.SetFloat("_AlphaClipThreshold", srcMaterial.GetFloat("_Cutoff"));
-        }
-    }
-
-    public class AdditiveUpgrader : MaterialUpgrader
-    {
-        public AdditiveUpgrader(string oldShaderName)
-        {
-            if (oldShaderName.Equals("FX/Flare", StringComparison.OrdinalIgnoreCase))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/Additive");
-            }
-            else if (oldShaderName.Equals("Mobile/Particles/Additive"))
-            {
-                RenameShader(oldShaderName, "Shader Graphs/AdditivePremultiply");
-            }
-        }
-
-        public override void Convert(Material srcMaterial, Material dstMaterial)
-        {
-            base.Convert(srcMaterial, dstMaterial);
-            dstMaterial.SetVector("_UvTiling", srcMaterial.mainTextureScale);
-            dstMaterial.SetVector("_UvOffset", srcMaterial.mainTextureOffset);
-        }
-    }
-
-    public class MultiplyUpgrader : MaterialUpgrader
-    {
-        public MultiplyUpgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, "Shader Graphs/Multiply");
-        }
-
-        public override void Convert(Material srcMaterial, Material dstMaterial)
-        {
-            base.Convert(srcMaterial, dstMaterial);
-            dstMaterial.SetVector("_UvTiling", srcMaterial.mainTextureScale);
-            dstMaterial.SetVector("_UvOffset", srcMaterial.mainTextureOffset);
-        }
-    }
-
-    public class AlphaBlendUpgrader : MaterialUpgrader
-    {
-        public AlphaBlendUpgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, "Shader Graphs/AlphaBlended");
-        }
-
-        public override void Convert(Material srcMaterial, Material dstMaterial)
-        {
-            base.Convert(srcMaterial, dstMaterial);
-            dstMaterial.SetVector("_UvTiling", srcMaterial.mainTextureScale);
-            dstMaterial.SetVector("_UvOffset", srcMaterial.mainTextureOffset);
-        }
-    }
-
-    public class SkyboxUpgrader : MaterialUpgrader
-    {
-        public SkyboxUpgrader(string oldShaderName)
-        {
-            RenameShader(oldShaderName, "Shader Graphs/Skybox Cubemap");
-        }
-
-        public override void Convert(Material srcMaterial, Material dstMaterial)
-        {
-            base.Convert(srcMaterial, dstMaterial);
-            dstMaterial.SetTexture("_Cubemap", srcMaterial.GetTexture("_Tex"));
-            dstMaterial.SetFloat("_Exposure", srcMaterial.GetFloat("_Exposure"));
-            dstMaterial.SetFloat("_Rotation", srcMaterial.GetFloat("_Rotation"));
-            dstMaterial.SetColor("_Tint", srcMaterial.GetColor("_Tint"));
         }
     }
 }

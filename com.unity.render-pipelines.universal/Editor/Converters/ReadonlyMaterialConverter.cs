@@ -29,6 +29,8 @@ namespace Editor.Converters
             {"Default-Terrain-Standard", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/TerrainLit.mat"},
             {"Sprites-Default", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
             {"Sprites-Mask", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat"},
+
+            // These are custom URP shaders right now, but the old BiRP ones do render in Unity. Do we need to convert?
             {"SpatialMappingOcclusion", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingOcclusion.mat"},
             {"SpatialMappingWireframe", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/SpatialMappingWireframe.mat"},
 
@@ -154,20 +156,47 @@ namespace Editor.Converters
 
             foreach (var property in materialProperties)
             {
-                var material = property.GetGetMethod().Invoke(obj, null) as Material;
-                if (material != null && material.name.Equals(oldMaterialName, StringComparison.OrdinalIgnoreCase))
+                var materialValue = property.GetGetMethod().GetMaterialFromMethod(obj, (methodName, objectName) =>
+                    $"The method {methodName} was not found on {objectName}. Ignoring this property.");
+
+                if (materialValue is Material material)
                 {
-                    var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(newMaterialPath);
-
-                    if (newMaterial != null)
+                    if (material.name.Equals(oldMaterialName, StringComparison.OrdinalIgnoreCase))
                     {
-                        var setMethod = property.GetSetMethod();
+                        var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(newMaterialPath);
 
-                        if (setMethod != null)
+                        if (newMaterial != null)
                         {
-                            setMethod.Invoke(obj, new object[] { newMaterial });
-                            result = true;
+                            var setMethod = property.GetSetMethod();
+                            if (setMethod != null)
+                            {
+                                setMethod.Invoke(obj, new object[] { newMaterial });
+                                result = true;
+                            }
                         }
+                    }
+                }
+                else if (materialValue is Material[] materialList)
+                {
+                    for (int i = 0; i < materialList.Length; i++)
+                    {
+                        var mat = materialList[i];
+                        if (mat.name.Equals(oldMaterialName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var newMaterial = AssetDatabase.LoadAssetAtPath<Material>(newMaterialPath);
+
+                            if (newMaterial != null)
+                            {
+                                materialList[i] = newMaterial;
+                            }
+                        }
+                    }
+
+                    var setMethod = property.GetSetMethod();
+                    if (setMethod != null)
+                    {
+                        setMethod.Invoke(obj, new object[] { materialList });
+                        result = true;
                     }
                 }
             }

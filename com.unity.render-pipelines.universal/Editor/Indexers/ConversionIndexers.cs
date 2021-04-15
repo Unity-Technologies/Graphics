@@ -1,5 +1,10 @@
-﻿using UnityEditor.Search;
+﻿using System;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 static class ConversionIndexers
 {
@@ -15,7 +20,8 @@ static class ConversionIndexers
 			{
 				if (method == null) continue;
 
-				var result = method.Invoke(context.target, null);
+				var result = method.GetMaterialFromMethod(context.target, (methodName, objectName) =>
+					$"The method {methodName} was not found on {objectName}. This property will not be indexed.");
 
 				if (result is Material materialResult)
 				{
