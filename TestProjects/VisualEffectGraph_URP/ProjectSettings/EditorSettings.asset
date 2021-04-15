@@ -6,11 +6,12 @@ EditorSettings:
   serializedVersion: 11
   m_SerializationMode: 2
   m_LineEndingsForNewScripts: 1
-  m_DefaultBehaviorMode: 0
+  m_DefaultBehaviorMode: 1
   m_PrefabRegularEnvironment: {fileID: 0}
   m_PrefabUIEnvironment: {fileID: 0}
   m_SpritePackerMode: 0
   m_SpritePackerPaddingPower: 1
+  m_Bc7TextureCompressor: 0
   m_EtcTextureCompressorBehavior: 0
   m_EtcTextureFastCompressor: 2
   m_EtcTextureNormalCompressor: 2
