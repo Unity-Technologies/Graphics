@@ -18,6 +18,10 @@ public class FPSController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+#if ENABLE_INPUT_SYSTEM
+        Debug.Log("The FPSController uses the legacy input system. Please set it in Project Settings");
+        m_MoveWithMouse = false;
+#endif
         if (SystemInfo.deviceType == DeviceType.Handheld)
         {
             m_MoveWithMouse = false;
@@ -36,6 +40,7 @@ public class FPSController : MonoBehaviour
 
     private void Update()
     {
+#if ENABLE_LEGACY_INPUT_MANAGER
         if (m_MoveWithMouse)
         {
             //Rotate based on mouse input
@@ -44,7 +49,7 @@ public class FPSController : MonoBehaviour
             transform.Rotate(Vector3.up * vert, Space.World);
             transform.Rotate(-Vector3.right * hori, Space.Self);
         }
-
+#endif
         Vector3 rotation = MovementMaskToRotation() * (Time.deltaTime * m_ButtonSensitivity * 100f);
         transform.Rotate(0f, rotation.y, 0f, Space.World);
         transform.Rotate(rotation.x, 0f, 0f, Space.Self);
@@ -56,9 +61,10 @@ public class FPSController : MonoBehaviour
         Vector3 forward = transform.forward;
         forward.y = 0f;
         forward = forward.normalized;
-
+        
         Vector3 direction = MovementMaskToWalkDirection();
-
+        
+#if ENABLE_LEGACY_INPUT_MANAGER
         if (Input.GetKey(KeyCode.W))
         {
             direction += forward;
@@ -75,6 +81,7 @@ public class FPSController : MonoBehaviour
         {
             direction += transform.right;
         }
+#endif
         direction = direction.normalized;
 
         m_RigidBody.AddForce((direction * m_WalkSpeed) - m_RigidBody.velocity, ForceMode.VelocityChange);
