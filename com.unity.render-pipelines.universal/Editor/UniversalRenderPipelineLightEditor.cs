@@ -51,9 +51,9 @@ namespace UnityEditor.Rendering.Universal
             };
         }
 
-        public bool typeIsSame { get { return !settings.lightType.hasMultipleDifferentValues; } }
-        public bool shadowTypeIsSame { get { return !settings.shadowsType.hasMultipleDifferentValues; } }
-        public bool lightmappingTypeIsSame { get { return !settings.lightmapping.hasMultipleDifferentValues; } }
+        public bool typeIsSame { get { return !serializedLight.settings.lightType.hasMultipleDifferentValues; } }
+        public bool shadowTypeIsSame { get { return !serializedLight.settings.shadowsType.hasMultipleDifferentValues; } }
+        public bool lightmappingTypeIsSame { get { return !serializedLight.settings.lightmapping.hasMultipleDifferentValues; } }
         public Light lightProperty { get { return target as Light; } }
 
         public bool spotOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Spot; } }
@@ -63,16 +63,16 @@ namespace UnityEditor.Rendering.Universal
         public bool shadowResolutionOptionsValue  { get { return spotOptionsValue || pointOptionsValue; } } // Currently only additional punctual lights can specify per-light shadow resolution
 
         //  Area light shadows not supported
-        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && !settings.isCompletelyBaked); } }
-        public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
-        public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
+        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked); } }
+        public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && serializedLight.settings.isBakedOrMixed; } }
+        public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && serializedLight.settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
 #pragma warning disable 618
-        public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && settings.isBakedOrMixed; } }
+        public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && serializedLight.settings.isBakedOrMixed; } }
 #pragma warning restore 618
         public bool showLightBounceIntensity { get { return true; } }
 
-        public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
+        public bool isShadowEnabled { get { return serializedLight.settings.shadowsType.intValue != 0; } }
 
         UniversalRenderPipelineSerializedLight serializedLight { get; set; }
 
@@ -151,9 +151,9 @@ namespace UnityEditor.Rendering.Universal
         void CheckLightmappingConsistency()
         {
             //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
-            if (settings.isAreaLightType && settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
+            if (serializedLight.settings.isAreaLightType && serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
             {
-                settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
+                serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
                 serializedObject.ApplyModifiedProperties();
             }
         }
@@ -205,8 +205,8 @@ namespace UnityEditor.Rendering.Universal
                     {
                         using (var checkScope = new EditorGUI.ChangeCheckScope())
                         {
-                            EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, Styles.ShadowDepthBias);
-                            EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                            EditorGUILayout.Slider(serializedLight.settings.shadowsBias, 0f, 10f, Styles.ShadowDepthBias);
+                            EditorGUILayout.Slider(serializedLight.settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
                             if (checkScope.changed)
                                 serializedLight.Apply();
                         }
@@ -230,8 +230,8 @@ namespace UnityEditor.Rendering.Universal
                     if (shadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom)
                     {
                         // show the custom value field GUI.
-                        var newResolution = EditorGUILayout.IntField(settings.shadowsResolution.intValue, GUILayout.ExpandWidth(false));
-                        settings.shadowsResolution.intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(newResolution));
+                        var newResolution = EditorGUILayout.IntField(serializedLight.settings.shadowsResolution.intValue, GUILayout.ExpandWidth(false));
+                        serializedLight.settings.shadowsResolution.intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(newResolution));
                     }
                     else
                     {
@@ -249,7 +249,7 @@ namespace UnityEditor.Rendering.Universal
 
         void ShadowsGUI()
         {
-            settings.DrawShadowsType();
+            serializedLight.settings.DrawShadowsType();
 
             if (!shadowOptionsValue)
                 return;
@@ -258,10 +258,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 // Baked Shadow radius
                 if (bakedShadowRadius)
-                    settings.DrawBakedShadowRadius();
+                    serializedLight.settings.DrawBakedShadowRadius();
 
                 if (bakedShadowAngle)
-                    settings.DrawBakedShadowAngle();
+                    serializedLight.settings.DrawBakedShadowAngle();
 
                 if (runtimeOptionsValue)
                 {
@@ -272,14 +272,14 @@ namespace UnityEditor.Rendering.Universal
                         if (shadowResolutionOptionsValue)
                             DrawShadowsResolutionGUI();
 
-                        EditorGUILayout.Slider(settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
+                        EditorGUILayout.Slider(serializedLight.settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
 
                         // Bias
                         DrawAdditionalShadowData();
 
                         // this min bound should match the calculation in SharedLightData::GetNearPlaneMinBound()
-                        float nearPlaneMinBound = Mathf.Min(0.01f * settings.range.floatValue, 0.1f);
-                        EditorGUILayout.Slider(settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
+                        float nearPlaneMinBound = Mathf.Min(0.01f * serializedLight.settings.range.floatValue, 0.1f);
+                        EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
                     }
                 }
             }
