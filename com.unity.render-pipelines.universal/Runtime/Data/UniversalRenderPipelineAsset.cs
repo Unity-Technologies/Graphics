@@ -8,6 +8,8 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+// TODO: do not use .Experimental. Required for GraphicsFormat.
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.LWRP
 {
