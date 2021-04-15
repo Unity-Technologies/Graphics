@@ -4,14 +4,15 @@
 
 TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
+float4 _RTHandleScale;
 
 float SampleSceneDepth(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uv)).r;
+    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uv) * _RTHandleScale.xy).r;
 }
 
 float LoadSceneDepth(uint2 uv)
 {
-    return LOAD_TEXTURE2D_X(_CameraDepthTexture, uv).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, uv * _RTHandleScale.xy).r;
 }
 #endif
