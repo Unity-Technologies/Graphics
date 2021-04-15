@@ -82,7 +82,6 @@ namespace UnityEngine.Rendering.Universal
         DeferredLights m_DeferredLights;
         RenderingMode m_RenderingMode;
         StencilState m_DefaultStencilState;
-        bool m_ShadowTransparentReceive;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -177,7 +176,6 @@ namespace UnityEngine.Rendering.Universal
             if (needTransparencyPass)
 #endif
             {
-                m_ShadowTransparentReceive = data.shadowTransparentReceive;
                 m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
