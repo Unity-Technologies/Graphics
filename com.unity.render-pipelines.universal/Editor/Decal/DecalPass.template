@@ -133,7 +133,13 @@ Pass
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
         surfaceData.occlusion = half(1.0);
-        surfaceData.smoothness = half(0.5);
+        surfaceData.smoothness = half(0);
+
+        #ifdef _MATERIAL_AFFECTS_NORMAL
+            surfaceData.normalWS.w = half(1.0);
+        #else
+            surfaceData.normalWS.w = half(0.0);
+        #endif
 
         $SurfaceDescription.Emission:       surfaceData.emissive.rgb = half3(surfaceDescription.Emission.rgb * fadeFactor);
 
@@ -141,32 +147,32 @@ Pass
         $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = half3(surfaceDescription.BaseColor);
         $SurfaceDescription.Alpha:          surfaceData.baseColor.w = half(surfaceDescription.Alpha * fadeFactor);
 
-        #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(_DBUFFER_MRT1)
-            #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+            #if defined(_MATERIAL_AFFECTS_NORMAL)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz);
-            #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
+            #else
+                surfaceData.normalWS.xyz = normalToWorld[2].xyz;
+            #endif
+        #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
+            #if defined(_MATERIAL_AFFECTS_NORMAL)
                 float sgn = input.tangentWS.w;      // should be either +1 or -1
                 float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
                 half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
+            #else
+                surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
             #endif
-
-            $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
-        #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR)
-            surfaceData.normalWS.xyz = normalToWorld[2].xyz;
-        #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH)
-            surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
         #endif
 
-            // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
-        #if !defined(_DBUFFER_MRT1) && !defined(_DBUFFER_MRT2)
-            $SurfaceDescription.Metallic:       surfaceData.metallic = half(surfaceDescription.Metallic);
-            $SurfaceDescription.Occlusion:      surfaceData.occlusion = half(surfaceDescription.Occlusion);
-            $SurfaceDescription.Smoothness:     surfaceData.smoothness = half(surfaceDescription.Smoothness);
-            $SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
-        #endif
+        $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+
+        // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
+        $SurfaceDescription.Metallic:       surfaceData.metallic = half(surfaceDescription.Metallic);
+        $SurfaceDescription.Occlusion:      surfaceData.occlusion = half(surfaceDescription.Occlusion);
+        $SurfaceDescription.Smoothness:     surfaceData.smoothness = half(surfaceDescription.Smoothness);
+        $SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
     }
 
     // --------------------------------------------------

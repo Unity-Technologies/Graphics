@@ -319,10 +319,19 @@ namespace UnityEngine.Rendering.Universal
             if (material == null)
                 return false;
 
-            if (material.FindPass(DecalShaderPassNames.DBufferProjector) == -1)
-                return false;
+            if (material.FindPass(DecalShaderPassNames.DBufferProjector) != -1)
+                return true;
 
-            return true;
+            if (material.FindPass(DecalShaderPassNames.DecalProjectorForwardEmissive) != -1)
+                return true;
+
+            if (material.FindPass(DecalShaderPassNames.DecalScreenSpaceProjector) != -1)
+                return true;
+
+            if (material.FindPass(DecalShaderPassNames.DecalGBufferProjector) != -1)
+                return true;
+
+            return false;
         }
     }
 }

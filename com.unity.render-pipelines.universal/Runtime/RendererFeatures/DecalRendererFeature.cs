@@ -33,7 +33,6 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum DecalNormalBlend
     {
-        Off,
         Low,
         Medium,
         High,

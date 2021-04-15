@@ -56,6 +56,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags { "LightMode" = "UniversalForward" }
             HLSLPROGRAM
             #pragma target 3.0
+#pragma enable_d3d11_debug_symbols
 
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
@@ -72,6 +73,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -130,6 +132,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma target 3.0
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
+#pragma enable_d3d11_debug_symbols
 
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
@@ -141,6 +144,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords

@@ -30,7 +30,7 @@
 #define DECAL_FORWARD_EMISSIVE
 #endif
 
-#if defined(_DECAL_NORMAL_BLEND_LOW) || defined(_DECAL_NORMAL_BLEND_MEDIUM) || defined(_DECAL_NORMAL_BLEND_HIGH)
+#if ((!defined(_MATERIAL_AFFECTS_NORMAL) && defined(_MATERIAL_AFFECTS_ALBEDO)) || (defined(_MATERIAL_AFFECTS_NORMAL) && defined(_MATERIAL_AFFECTS_NORMAL_BLEND))) && (defined(DECAL_SCREEN_SPACE) || defined(DECAL_GBUFFER))
 #define DECAL_RECONSTRUCT_NORMAL
 #elif defined(DECAL_ANGLE_FADE)
 #define DECAL_LOAD_NORMAL
@@ -235,7 +235,7 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_SCREEN_SPACE)
 
     // Blend normal with background
-#if defined(_DECAL_NORMAL_BLEND_LOW) || defined(_DECAL_NORMAL_BLEND_MEDIUM) || defined(_DECAL_NORMAL_BLEND_HIGH)
+#ifdef DECAL_RECONSTRUCT_NORMAL
     surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
 #endif
 
@@ -261,9 +261,20 @@ void Frag(PackedVaryings packedInput,
     BRDFData brdfData;
     InitializeBRDFData(surface.albedo, surface.metallic, 0, surface.smoothness, surface.alpha, brdfData);
 
+    // Skip GI if there is no abledo
+#ifdef _MATERIAL_AFFECTS_ALBEDO
+
+    // GI needs blended normal
+#ifdef DECAL_RECONSTRUCT_NORMAL
+    half3 normalGI = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
+#endif
+
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    MixRealtimeAndBakedGI(mainLight, normalGI, inputData.bakedGI, inputData.shadowMask);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, normalGI, inputData.viewDirectionWS);
+#else
+    half3 color = 0;
+#endif
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
     half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
@@ -278,7 +289,7 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive;// *GetCurrentExposureMultiplier();
-    outEmissive.a = 1.0;
+    outEmissive.a = surfaceData.baseColor.a;
 #else
 #endif
 #endif

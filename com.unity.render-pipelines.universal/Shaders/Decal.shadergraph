@@ -1171,6 +1171,7 @@
     "m_ObjectId": "dc3a9723186f49ad9e0ac555df05955b",
     "m_DecalData": {
         "affectsAlbedo": true,
+        "affectsNormalBlend": true,
         "affectsNormal": true,
         "affectsMetal": false,
         "affectsAO": false,

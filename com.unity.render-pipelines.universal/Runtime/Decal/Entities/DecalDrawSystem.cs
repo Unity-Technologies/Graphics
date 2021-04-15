@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var subCall = decalDrawCallChunk.subCalls[i];
 
-                for (int j = subCall.start; j < subCall.end + 1; ++j)
+                for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
                     cmd.DrawMesh(m_DecalMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var subCall = decalDrawCallChunk.subCalls[i];
 
-                for (int j = subCall.start; j < subCall.end + 1; ++j)
+                for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
                     Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);

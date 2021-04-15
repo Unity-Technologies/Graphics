@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static GUIContent affectAlbedoText = new GUIContent("Affect BaseColor", "When enabled, this decal uses its base color. When disabled, the decal has no base color effect.");
             public static GUIContent affectNormalText = new GUIContent("Affect Normal", "When enabled, this decal uses its normal. When disabled, the decal has no normal effect.");
+            public static GUIContent affectNormalBlendText = new GUIContent("Affect Normal Blend", "When enabled, this decal uses its normal blending. When disabled, the decal has no normal blending effect.");
             public static GUIContent affectMetalText = new GUIContent("Affect Metal", "When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.");
             public static GUIContent affectAmbientOcclusionText = new GUIContent("Affect Ambient Occlusion", "When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.");
             public static GUIContent affectSmoothnessText = new GUIContent("Affect Smoothness", "When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.");
@@ -32,10 +33,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         private const string kMaterial = "Material";
         private static FieldDescriptor AffectsAlbedo = new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
         private static FieldDescriptor AffectsNormal = new FieldDescriptor(kMaterial, "AffectsNormal", "");
+        private static FieldDescriptor AffectsNormalBlend = new FieldDescriptor(kMaterial, "AffectsNormalBlend", "");
         private static FieldDescriptor AffectsMetal = new FieldDescriptor(kMaterial, "AffectsMetal", "");
         private static FieldDescriptor AffectsAO = new FieldDescriptor(kMaterial, "AffectsAO", "");
         private static FieldDescriptor AffectsSmoothness = new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
         private static FieldDescriptor AffectsEmission = new FieldDescriptor(kMaterial, "AffectsEmission", "");
+        private static FieldDescriptor AffectsDBuffer = new FieldDescriptor(kMaterial, "AffectsDBuffer", "");
         private static FieldDescriptor DecalDefault = new FieldDescriptor(kMaterial, "DecalDefault", "");
         private static FieldDescriptor AngleFade = new FieldDescriptor(kMaterial, "AngleFade", "");
 
@@ -43,6 +46,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         class DecalData
         {
             public bool affectsAlbedo = true;
+            public bool affectsNormalBlend = true;
             public bool affectsNormal = true;
             public bool affectsMetal;
             public bool affectsAO;
@@ -120,6 +124,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pass.defines.Add(DecalDefines.AffectsAlbedo);
                 if (decalData.affectsNormal)
                     pass.defines.Add(DecalDefines.AffectsNormal);
+                if (decalData.affectsNormalBlend)
+                    pass.defines.Add(DecalDefines.AffectsNormalBlend);
                 if (decalData.affectsMetal)
                     pass.defines.Add(DecalDefines.AffectsMetal);
                 if (decalData.affectsAO)
@@ -250,12 +256,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Decal properties
             context.AddField(AffectsAlbedo, decalData.affectsAlbedo);
             context.AddField(AffectsNormal, decalData.affectsNormal);
+            context.AddField(AffectsNormalBlend, decalData.affectsNormalBlend);
             context.AddField(AffectsMetal, decalData.affectsMetal);
             context.AddField(AffectsAO, decalData.affectsAO);
             context.AddField(AffectsSmoothness, decalData.affectsSmoothness);
             context.AddField(AffectsEmission, decalData.affectsEmission);
-            context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
+            context.AddField(AffectsDBuffer, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                 decalData.affectsAO || decalData.affectsSmoothness);
+            context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
+                decalData.affectsAO || decalData.affectsSmoothness || decalData.affectsEmission);
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
             context.AddField(AngleFade, decalData.angleFade);
         }
@@ -269,9 +278,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Decal
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor, decalData.affectsAlbedo);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha, decalData.affectsAlbedo);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha, decalData.affectsAlbedo || decalData.affectsEmission);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS, decalData.affectsNormal);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.NormalAlpha, decalData.affectsNormal);
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.NormalAlpha, decalData.affectsNormal && decalData.affectsNormalBlend);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic, decalData.affectsMetal);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion, decalData.affectsAO);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness, decalData.affectsSmoothness);
@@ -298,6 +307,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Affects Normal");
                 decalData.affectsNormal = (bool)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Affect Normal Blend", new Toggle() { value = decalData.affectsNormalBlend }, (evt) =>
+            {
+                if (Equals(decalData.affectsNormalBlend, evt.newValue))
+                    return;
+
+                registerUndo("Change Affects Normal Blend");
+                decalData.affectsNormalBlend = (bool)evt.newValue;
                 onChange();
             });
 
@@ -373,11 +392,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.DBufferProjector, new FieldCondition(AffectsDBuffer, true) },
                     { DecalPasses.ForwardEmissiveProjector, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.ScreenSpaceProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.GBufferProjector, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.DBufferMesh, new FieldCondition(AffectsDBuffer, true) },
                     { DecalPasses.ForwardEmissiveMesh, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.ScreenSpaceMesh, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.GBufferMesh, new FieldCondition(DecalDefault, true) },
@@ -644,6 +663,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static BlockFieldDescriptor[] ForwardOnlyEmissive = new BlockFieldDescriptor[]
             {
+                BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.Emission,
             };
 
@@ -829,7 +849,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                //{ Pragma.EnableD3D11DebugSymbols },
+                { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -839,7 +859,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                //{ Pragma.EnableD3D11DebugSymbols },
+                { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -849,7 +869,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                //{ Pragma.EnableD3D11DebugSymbols },
+                { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
             };
         }
@@ -865,8 +885,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "Affects Albedo",
                     referenceName = "_MATERIAL_AFFECTS_ALBEDO",
                     type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Global,
                 };
 
                 public static KeywordDescriptor AffectsNormal = new KeywordDescriptor()
@@ -874,8 +892,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     displayName = "Affects Normal",
                     referenceName = "_MATERIAL_AFFECTS_NORMAL",
                     type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Global,
+                };
+
+                public static KeywordDescriptor AffectsNormalBlend = new KeywordDescriptor()
+                {
+                    displayName = "Affects Normal Blend",
+                    referenceName = "_MATERIAL_AFFECTS_NORMAL_BLEND",
+                    type = KeywordType.Boolean,
                 };
 
                 public static KeywordDescriptor AffectsMetal = new KeywordDescriptor()
@@ -941,6 +964,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static DefineCollection AffectsAlbedo = new DefineCollection { { Descriptors.AffectsAlbedo, 1 }, };
             public static DefineCollection AffectsNormal = new DefineCollection { { Descriptors.AffectsNormal, 1 }, };
+            public static DefineCollection AffectsNormalBlend = new DefineCollection { { Descriptors.AffectsNormalBlend, 1 }, };
             public static DefineCollection AffectsMetal = new DefineCollection { { Descriptors.AffectsMetal, 1 }, };
             public static DefineCollection AffectsAO = new DefineCollection { { Descriptors.AffectsAO, 1 }, };
             public static DefineCollection AffectsSmoothness = new DefineCollection { { Descriptors.AffectsSmoothness, 1 }, };
@@ -963,7 +987,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     scope = KeywordScope.Global,
                     entries = new KeywordEntry[]
                     {
-                        new KeywordEntry() { displayName = "OFF", referenceName = "OFF" },
                         new KeywordEntry() { displayName = "LOW", referenceName = "LOW" },
                         new KeywordEntry() { displayName = "MEDIUM", referenceName = "MEDIUM" },
                         new KeywordEntry() { displayName = "HIGH", referenceName = "HIGH" },
