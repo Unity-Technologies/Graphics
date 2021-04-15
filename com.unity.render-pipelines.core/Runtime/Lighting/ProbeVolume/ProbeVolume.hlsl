@@ -140,14 +140,12 @@ void EvaluateAPVL1Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, fl
 #ifdef PROBE_VOLUMES_L2
 void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
 {
-    float4 l2_R, l2_G, l2_B, l2_C;
-
     EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
 
-    l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
-    l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
-    l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
 
     DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
@@ -157,14 +155,12 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float
 
 void EvaluateAPVL1L2Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
 {
-    float4 l2_R, l2_G, l2_B, l2_C;
-
     EvaluateAPVL1Point(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
 
-    l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
-    l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
-    l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
-    l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
 
     DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
