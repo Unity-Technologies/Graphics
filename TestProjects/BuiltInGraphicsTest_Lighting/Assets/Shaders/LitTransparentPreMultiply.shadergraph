@@ -2146,8 +2146,10 @@
         "m_Id": "bd33894092ba43b184ac3e1bcb77e220"
     },
     "m_SurfaceType": 1,
+    "m_ZWriteControl": 0,
+    "m_ZTestMode": 4,
     "m_AlphaMode": 1,
-    "m_TwoSided": false,
+    "m_RenderFace": 2,
     "m_AlphaClip": false,
     "m_CustomEditorGUI": ""
 }

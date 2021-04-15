@@ -30,6 +30,26 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         Transparent,
     }
 
+    enum ZWriteControl
+    {
+        Auto = 0,
+        ForceEnabled = 1,
+        ForceDisabled = 2
+    }
+
+    enum ZTestMode  // the values here match UnityEngine.Rendering.CompareFunction
+    {
+        Disabled = 0,
+        Never = 1,
+        Less = 2,
+        Equal = 3,
+        LEqual = 4,     // default for most rendering
+        Greater = 5,
+        NotEqual = 6,
+        GEqual = 7,
+        Always = 8,
+    }
+
     enum AlphaMode
     {
         Alpha,
@@ -37,9 +57,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         Additive,
         Multiply,
     }
-
-    sealed class BuiltInTarget : Target, ILegacyTarget
+    public enum RenderFace
     {
+        Front = 2,      // = CullMode.Back -- render front face only
+        Back = 1,       // = CullMode.Front -- render back face only
+        Both = 0        // = CullMode.Off -- render both faces
+    }
+
+    sealed class BuiltInTarget : Target, IHasMetadata
+    {
+        public override int latestVersion => 1;
+
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("d0f59811de3924b6ab62802eb365ef6b"); // BuiltInTarget.cs
         public const string kPipelineTag = "BuiltInPipeline";
@@ -64,10 +92,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
 
         [SerializeField]
+        ZWriteControl m_ZWriteControl = ZWriteControl.Auto;
+
+        [SerializeField]
+        ZTestMode m_ZTestMode = ZTestMode.LEqual;
+
+        [SerializeField]
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
 
         [SerializeField]
-        bool m_TwoSided = false;
+        RenderFace m_RenderFace = RenderFace.Front;
 
         [SerializeField]
         bool m_AlphaClip = false;
@@ -112,7 +146,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public SubTarget activeSubTarget
         {
-            get => m_ActiveSubTarget;
+            get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;
         }
 
@@ -122,16 +156,28 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             set => m_SurfaceType = value;
         }
 
+        public ZWriteControl zWriteControl
+        {
+            get => m_ZWriteControl;
+            set => m_ZWriteControl = value;
+        }
+
+        public ZTestMode zTestMode
+        {
+            get => m_ZTestMode;
+            set => m_ZTestMode = value;
+        }
+
         public AlphaMode alphaMode
         {
             get => m_AlphaMode;
             set => m_AlphaMode = value;
         }
 
-        public bool twoSided
+        public RenderFace renderFace
         {
-            get => m_TwoSided;
-            set => m_TwoSided = value;
+            get => m_RenderFace;
+            set => m_RenderFace = value;
         }
 
         public bool alphaClip
@@ -148,9 +194,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override bool IsActive()
         {
-            if (m_ActiveSubTarget.value == null)
-                return false;
-            return activeSubTarget.IsActive();
+            bool isBuiltInRenderPipeline = GraphicsSettings.currentRenderPipeline == null;
+            return isBuiltInRenderPipeline && activeSubTarget.IsActive();
         }
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
@@ -190,8 +235,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Always force vertex as the shim between built-in cginc files and hlsl files requires this
             context.AddField(Fields.GraphVertex);
             context.AddField(Fields.GraphPixel);
-            context.AddField(Fields.AlphaClip, alphaClip);
-            context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -212,10 +255,15 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
-
+            activeSubTarget.CollectShaderProperties(collector, generationMode);
             // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             // collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             // collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -253,6 +301,69 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
+        public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+            {
+                if (Equals(surfaceType, evt.newValue))
+                    return;
+
+                registerUndo("Change Surface");
+                surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = zWriteControl }, (evt) =>
+            {
+                if (Equals(zWriteControl, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write Control");
+                zWriteControl = (ZWriteControl)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = zTestMode }, (evt) =>
+            {
+                if (Equals(zTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                zTestMode = (ZTestMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clipping", new Toggle() { value = alphaClip }, (evt) =>
+            {
+                if (Equals(alphaClip, evt.newValue))
+                    return;
+
+                registerUndo("Change Alpha Clip");
+                alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            {
+                if (Equals(renderFace, evt.newValue))
+                    return;
+
+                registerUndo("Change Render Face");
+                renderFace = (RenderFace)evt.newValue;
+                onChange();
+            });
+        }
+
         public bool TrySetActiveSubTarget(Type subTargetType)
         {
             if (!subTargetType.IsSubclassOf(typeof(SubTarget)))
@@ -270,69 +381,32 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             return false;
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            void UpgradeAlphaClip()
-            {
-                var clipThresholdId = 8;
-                var node = masterNode as AbstractMaterialNode;
-                var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
-                if (clipThresholdSlot == null)
-                    return;
-
-                clipThresholdSlot.owner = node;
-                if (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
-                {
-                    m_AlphaClip = true;
-                }
-            }
-
-            // Upgrade Target
-            switch (masterNode)
-            {
-                case PBRMasterNode1 pbrMasterNode:
-                    m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
-                    m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
-                    m_TwoSided = pbrMasterNode.m_TwoSided;
-                    UpgradeAlphaClip();
-                    m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case UnlitMasterNode1 unlitMasterNode:
-                    m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
-                    m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
-                    m_TwoSided = unlitMasterNode.m_TwoSided;
-                    UpgradeAlphaClip();
-                    m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case SpriteLitMasterNode1 spriteLitMasterNode:
-                    m_CustomEditorGUI = spriteLitMasterNode.m_OverrideEnabled ? spriteLitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-                case SpriteUnlitMasterNode1 spriteUnlitMasterNode:
-                    m_CustomEditorGUI = spriteUnlitMasterNode.m_OverrideEnabled ? spriteUnlitMasterNode.m_ShaderGUIOverride : "";
-                    break;
-            }
-
-            // Upgrade SubTarget
-            foreach (var subTarget in m_SubTargets)
-            {
-                if (!(subTarget is ILegacyTarget legacySubTarget))
-                    continue;
-
-                if (legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
-                {
-                    m_ActiveSubTarget = subTarget;
-                    return true;
-                }
-            }
-
-            blockMap = null;
-            return false;
-        }
-
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
-            return false;
+            return scriptableRenderPipeline == null;
         }
+
+        #region Metadata
+        string IHasMetadata.identifier
+        {
+            get
+            {
+                // defer to subtarget
+                if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+                return null;
+            }
+        }
+
+        ScriptableObject IHasMetadata.GetMetadataObject()
+        {
+            // defer to subtarget
+            if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+            return null;
+        }
+
+        #endregion
     }
 
     // XXXjesseb - Fix this!  Universal references.
@@ -465,33 +539,31 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     #region RenderStates
     static class CoreRenderStates
     {
+        public static class Uniforms
+        {
+            public static readonly string srcBlend = "[" + Property.SG_SrcBlend + "]";
+            public static readonly string dstBlend = "[" + Property.SG_DstBlend + "]";
+            public static readonly string cullMode = "[" + Property.SG_Cull + "]";
+            public static readonly string zWrite = "[" + Property.SG_ZWrite + "]";
+            public static readonly string zTest = "[" + Property.SG_ZTest + "]";
+        }
+
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(BuiltInFields.SurfaceTransparent, true) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
+            { RenderState.ZTest(Uniforms.zTest) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
+            { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
         };
 
         public static readonly RenderStateCollection Forward = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(BuiltInFields.SurfaceTransparent, true) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.ZTest(Uniforms.zTest) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
             { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
         public static readonly RenderStateCollection ForwardAdd = new RenderStateCollection
@@ -516,41 +588,26 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
             { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
         public static readonly RenderStateCollection DepthOnly = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
             { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
         public static readonly RenderStateCollection DepthNormalsOnly = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
         };
     }
     #endregion
@@ -744,6 +801,46 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
+        {
+            displayName = Keyword.SG_AlphaTestOn,
+            referenceName = Keyword.SG_AlphaTestOn,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor AlphaClip = new KeywordDescriptor()
+        {
+            displayName = "Alpha Clipping",
+            referenceName = Keyword.SG_AlphaClip,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
+        {
+            displayName = Keyword.SG_SurfaceTypeTransparent,
+            referenceName = Keyword.SG_SurfaceTypeTransparent,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
+        {
+            displayName = Keyword.SG_AlphaPremultiplyOn,
+            referenceName = Keyword.SG_AlphaPremultiplyOn,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
@@ -896,6 +993,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
+            CoreKeywordDescriptors.AlphaClip,
+            CoreKeywordDescriptors.AlphaTestOn,
+            CoreKeywordDescriptors.SurfaceTypeTransparent,
         };
     }
     #endregion

@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
-    sealed class BuiltInUnlitSubTarget : SubTarget<BuiltInTarget>, ILegacyTarget
+    sealed class BuiltInUnlitSubTarget : SubTarget<BuiltInTarget>
     {
         static readonly GUID kSourceCodeGuid = new GUID("3af09b75886c549dbad6eaaaaf342387"); // BuiltInUnlitSubTarget.cs
 
@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            if (!context.HasCustomEditorForRenderPipeline(null))
+                context.customEditorForRenderPipelines.Add((typeof(BuiltInUnlitGUI).FullName, ""));
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit };
@@ -36,6 +38,23 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Add
                 context.AddSubShader(subShaders[i]);
             }
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // copy our target's default settings into the material
+            // (technically not necessary since we are always recreating the material from the shader each time,
+            // which will pull over the defaults from the shader definition)
+            // but if that ever changes, this will ensure the defaults are set
+            material.SetFloat(Property.Surface(), (float)target.surfaceType);
+            material.SetFloat(Property.Blend(), (float)target.alphaMode);
+            material.SetFloat(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            material.SetFloat(Property.Cull(), (int)target.renderFace);
+            material.SetFloat(Property.ZWriteControl(), (float)target.zWriteControl);
+            material.SetFloat(Property.ZTest(), (float)target.zTestMode);
+
+            // call the full unlit material setup function
+            BuiltInUnlitGUI.UpdateMaterial(material);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -56,67 +75,28 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
-            {
-                if (Equals(target.surfaceType, evt.newValue))
-                    return;
+            base.CollectShaderProperties(collector, generationMode);
 
-                registerUndo("Change Surface");
-                target.surfaceType = (SurfaceType)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
-            {
-                if (Equals(target.alphaMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Blend");
-                target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
-            {
-                if (Equals(target.alphaClip, evt.newValue))
-                    return;
-
-                registerUndo("Change Alpha Clip");
-                target.alphaClip = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
-            {
-                if (Equals(target.twoSided, evt.newValue))
-                    return;
-
-                registerUndo("Change Two Sided");
-                target.twoSided = evt.newValue;
-                onChange();
-            });
+            // setup properties using the defaults
+            collector.AddFloatProperty(Property.Surface(), (float)target.surfaceType);
+            collector.AddFloatProperty(Property.Blend(), (float)target.alphaMode);
+            collector.AddFloatProperty(Property.AlphaClip(), target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend(), 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlend(), 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWrite(), (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.ZWriteControl(), (float)target.zWriteControl);
+            collector.AddFloatProperty(Property.ZTest(), (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+            collector.AddFloatProperty(Property.Cull(), (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            collector.AddFloatProperty(Property.QueueOffset(), 0.0f);
         }
 
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            blockMap = null;
-            if (!(masterNode is UnlitMasterNode1 unlitMasterNode))
-                return false;
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 10 },
-                { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-            };
-
-            return true;
+            // show the target default surface properties
+            var builtInTarget = (target as BuiltInTarget);
+            builtInTarget?.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo);
         }
 
         #region SubShader
@@ -208,6 +188,10 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
+                CoreKeywordDescriptors.AlphaClip,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
         }
         #endregion
