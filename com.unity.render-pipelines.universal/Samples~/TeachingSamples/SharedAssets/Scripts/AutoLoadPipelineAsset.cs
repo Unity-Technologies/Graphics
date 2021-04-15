@@ -7,7 +7,7 @@ public class AutoLoadPipelineAsset : MonoBehaviour
 {
     public UniversalRenderPipelineAsset pipelineAsset;
 
-    private void OnEnable()
+    void OnEnable()
     {
         UpdatePipeline();
     }

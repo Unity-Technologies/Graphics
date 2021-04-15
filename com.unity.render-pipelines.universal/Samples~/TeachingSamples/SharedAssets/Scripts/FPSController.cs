@@ -38,7 +38,7 @@ public class FPSController : MonoBehaviour
         m_MovementFlags = 0;
     }
 
-    private void Update()
+    void Update()
     {
 #if ENABLE_LEGACY_INPUT_MANAGER
         if (m_MoveWithMouse)
@@ -87,7 +87,7 @@ public class FPSController : MonoBehaviour
         m_RigidBody.AddForce((direction * m_WalkSpeed) - m_RigidBody.velocity, ForceMode.VelocityChange);
     }
 
-    private Vector3 MovementMaskToWalkDirection()
+    Vector3 MovementMaskToWalkDirection()
     {
         Vector3 forward = transform.forward;
         forward.y = 0f;
@@ -102,7 +102,7 @@ public class FPSController : MonoBehaviour
         return direction;
     }
 
-    private Vector3 MovementMaskToRotation()
+    Vector3 MovementMaskToRotation()
     {
         Vector3 direction = Vector3.zero;
 
