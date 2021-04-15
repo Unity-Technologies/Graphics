@@ -308,7 +308,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // when in "Graph switchable" mode, we choose Half as the default concrete precision
                 // so you can visualize the worst-case
-                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+                return graphDefaultPrecision.ToConcrete(ConcretePrecision.Half);
             }
         }
 
@@ -1361,7 +1361,7 @@ namespace UnityEditor.ShaderGraph
 
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
 
             switch (input)
             {

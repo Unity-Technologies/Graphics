@@ -137,12 +137,27 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class Texture2DAtlas
     {
+        /// <summary>
+        /// The texture for the atlas.
+        /// </summary>
         protected RTHandle m_AtlasTexture = null;
-        internal bool m_IsAtlasTextureOwner = false;
+        /// <summary>
+        /// Width of the atlas.
+        /// </summary>
         protected int m_Width;
+        /// <summary>
+        /// Height of the atlas.
+        /// </summary>
         protected int m_Height;
-        protected bool m_UseMipMaps;
+        /// <summary>
+        /// Format of the atlas.
+        /// </summary>
         protected GraphicsFormat m_Format;
+        /// <summary>
+        /// Atlas uses mip maps.
+        /// </summary>
+        protected bool m_UseMipMaps;
+        internal bool m_IsAtlasTextureOwner = false;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, (Vector4 scaleOffset, Vector2Int size)> m_AllocationCache = new Dictionary<int, (Vector4, Vector2Int)>();
         private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
@@ -172,6 +187,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Creates a new empty texture atlas.
         /// </summary>
+        /// <param name="width">Width of the atlas in pixels.</param>
+        /// <param name="height">Height of atlas in pixels.</param>
+        /// <param name="format">GraphicsFormat of the atlas.</param>
+        /// <param name="filterMode">Filtering mode of the atlas.</param>
+        /// <param name="powerOfTwoPadding">Power of two padding.</param>
+        /// <param name="name">Name of the atlas</param>
+        /// <param name="useMipMap">Use mip maps</param>
         public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true)
         {
             m_Width = width;
@@ -223,6 +245,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Clear atlas texture.
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
         /// </summary>
         public void ClearTarget(CommandBuffer cmd)
         {
@@ -238,6 +261,12 @@ namespace UnityEngine.Rendering
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
         }
 
+        /// <summary>
+        /// Return texture mip map count based on the width and height.
+        /// </summary>
+        /// <param name="width">The texture width in pixels.</param>
+        /// <param name="height">The texture height in pixels.</param>
+        /// <returns>The number of mip maps.</returns>
         protected int GetTextureMipmapCount(int width, int height)
         {
             if (!m_UseMipMaps)
@@ -248,6 +277,11 @@ namespace UnityEngine.Rendering
             return Mathf.FloorToInt(Mathf.Log(maxSize, 2)) + 1;
         }
 
+        /// <summary>
+        /// Test if a texture is a 2D texture.
+        /// </summary>
+        /// <param name="texture">Source texture.</param>
+        /// <returns>True if texture is 2D, false otherwise.</returns>
         protected bool Is2D(Texture texture)
         {
             RenderTexture rt = texture as RenderTexture;
@@ -255,6 +289,14 @@ namespace UnityEngine.Rendering
             return (texture is Texture2D || rt?.dimension == TextureDimension.Tex2D);
         }
 
+        /// <summary>
+        /// Blit 2D texture into the atlas.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
         protected void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
@@ -269,16 +311,52 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Blit and project Cube texture into an octahedral 2D texture in the atlas.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        protected void BlitCubeTexture2DOctahedral(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+
+            if (!blitMips)
+                mipCount = 1;
+
+            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            {
+                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel);
+            }
+        }
+
+        /// <summary>
+        /// Mark texture valid on the GPU.
+        /// </summary>
+        /// <param name="instanceId">Texture instance ID.</param>
+        /// <param name="mipAreValid">Texture has valid mip maps.</param>
         protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
         {
             m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2 : 1;
         }
 
+        /// <summary>
+        /// Mark texture invalid on the GPU.
+        /// </summary>
+        /// <param name="instanceId">Texture instance ID.</param>
         protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
 
         /// <summary>
-        /// Copy a texture into atlas.
+        /// Blit 2D texture into the atlas.
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
         public virtual void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // This atlas only support 2D texture so we only blit 2D textures
@@ -287,8 +365,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Copy a texture into atlas with Octahedral projection.
+        /// Blit octahedral texture into the atlas with padding.
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
         public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // This atlas only support 2D texture so we only blit 2D textures
@@ -297,15 +381,43 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Blit and project Cube texture into an octahedral 2D texture in the atlas.
+        /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        public virtual void BlitCubeTexture2D(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            Debug.Assert(texture.dimension == TextureDimension.Cube);
+
+            // This atlas only support 2D texture so we map Cube into set of 2D textures
+            if (texture.dimension == TextureDimension.Cube)
+                BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // by default to single octahedral 2D texture quad
+        }
+
+        /// <summary>
         /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="texture">Source Texture</param>
+        /// <param name="width">Request width in pixels.</param>
+        /// <param name="height">Request height in pixels.</param>
+        /// <param name="overrideInstanceID">Override texture instance ID.</param>
+        /// <returns></returns>
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
 
             if (allocated)
             {
-                BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
+                if (Is2D(texture))
+                    BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
+                else
+                    BlitCubeTexture2D(cmd, scaleOffset, texture, true);
+
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
             }
 
@@ -315,12 +427,22 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Allocate space from the atlas for a texture.
         /// </summary>
+        /// <param name="texture">Source texture.</param>
+        /// <param name="width">Request width in pixels.</param>
+        /// <param name="height">Request height in pixels.</param>
+        /// <param name="scaleOffset">Allocated scale (.xy) and offset (.zw).</param>
+        /// <returns>True on success, false otherwise.</returns>
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
             => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
 
         /// <summary>
         /// Allocate space from the atlas for a texture.
         /// </summary>
+        /// <param name="instanceId">Source texture instance ID.</param>
+        /// <param name="width">Request width in pixels.</param>
+        /// <param name="height">Request height in pixels.</param>
+        /// <param name="scaleOffset">Allocated scale (.xy) and offset (.zw).</param>
+        /// <returns>True on success, false otherwise.</returns>
         public virtual bool AllocateTextureWithoutBlit(int instanceId, int width, int height, ref Vector4 scaleOffset)
         {
             scaleOffset = Vector4.zero;
@@ -339,6 +461,12 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Compute hash from texture properties.
+        /// </summary>
+        /// <param name="textureA">Source texture A.</param>
+        /// <param name="textureB">Source texture B.</param>
+        /// <returns>Hash of texture porperties.</returns>
         protected int GetTextureHash(Texture textureA, Texture textureB)
         {
             int hash = CoreUtils.GetTextureHash(textureA) + 23 * CoreUtils.GetTextureHash(textureB);
@@ -348,6 +476,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get sub-texture ID for the atlas.
         /// </summary>
+        /// <param name="texture">Source texture.</param>
+        /// <returns>Texture instance ID.</returns>
         public int GetTextureID(Texture texture)
         {
             return texture.GetInstanceID();
@@ -356,6 +486,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get sub-texture ID for the atlas.
         /// </summary>
+        /// <param name="textureA">Source texture A.</param>
+        /// <param name="textureB">Source texture B.</param>
+        /// <returns>Combined texture instance ID.</returns>
         public int GetTextureID(Texture textureA, Texture textureB)
         {
             return GetTextureID(textureA) + 23 * GetTextureID(textureB);
@@ -364,18 +497,28 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Check if the atlas contains the textures.
         /// </summary>
+        /// <param name="scaleOffset">Texture scale (.xy) and offset (.zw).</param>
+        /// <param name="textureA">Source texture A.</param>
+        /// <param name="textureB">Source texture B.</param>
+        /// <returns>True if the texture is in the atlas, false otherwise.</returns>
         public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
             => IsCached(out scaleOffset, GetTextureID(textureA, textureB));
 
         /// <summary>
-        /// Check if the atlas contains the texture.
+        /// Check if the atlas contains the textures.
         /// </summary>
+        /// <param name="scaleOffset">Texture scale (.xy) and offset (.zw).</param>
+        /// <param name="textureA">Source texture</param>
+        /// <returns>True if the texture is in the atlas, false otherwise.</returns>
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
             => IsCached(out scaleOffset, GetTextureID(texture));
 
         /// <summary>
         /// Check if the atlas contains the texture.
         /// </summary>
+        /// <param name="scaleOffset">Texture scale (.xy) and offset (.zw).</param>
+        /// <param name="id">Source texture instance ID.</param>
+        /// <returns></returns>
         public bool IsCached(out Vector4 scaleOffset, int id)
         {
             bool cached = m_AllocationCache.TryGetValue(id, out var value);
@@ -383,6 +526,11 @@ namespace UnityEngine.Rendering
             return cached;
         }
 
+        /// <summary>
+        /// Get cached texture size.
+        /// </summary>
+        /// <param name="id">Source texture instance ID.</param>
+        /// <returns>Texture size.</returns>
         public Vector2Int GetCachedTextureSize(int id)
         {
             m_AllocationCache.TryGetValue(id, out var value);
@@ -392,6 +540,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Check if contents of a texture needs to be updated in the atlas.
         /// </summary>
+        /// <param name="texture">Source texture.</param>
+        /// <param name="needMips">Texture uses mips.</param>
+        /// <returns>True if texture needs update, false otherwise.</returns>
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
@@ -431,8 +582,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Check if contents of textures needs to be updated in the atlas.
+        /// Check if contents of a texture needs to be updated in the atlas.
         /// </summary>
+        /// <param name="textureA">Source texture A.</param>
+        /// <param name="textureB">Source texture B.</param>
+        /// <param name="needMips">Texture uses mips.</param>
+        /// <returns>True if texture needs update, false otherwise.</returns>
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
             RenderTexture rtA = textureA as RenderTexture;
@@ -494,16 +649,20 @@ namespace UnityEngine.Rendering
             if (IsCached(out scaleOffset, texture))
                 return true;
 
-            // We only support 2D texture in this class, support for other textures are provided by child classes (ex: PowerOfTwoTextureAtlas)
-            if (!Is2D(texture))
-                return false;
-
             return AllocateTexture(cmd, ref scaleOffset, texture, texture.width, texture.height);
         }
 
         /// <summary>
         /// Update a texture in the atlas.
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="oldTexture">Texture in atlas.</param>
+        /// <param name="newTexture">Replacement source texture.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
+        /// <param name="updateIfNeeded">Enable texture blit.</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <returns>True on success, false otherwise.</returns>
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture oldTexture, Texture newTexture, ref Vector4 scaleOffset, Vector4 sourceScaleOffset, bool updateIfNeeded = true, bool blitMips = true)
         {
             // In case the old texture is here, we Blit the new one at the scale offset of the old one
@@ -511,7 +670,10 @@ namespace UnityEngine.Rendering
             {
                 if (updateIfNeeded && NeedsUpdate(newTexture))
                 {
-                    BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
+                    if (Is2D(newTexture))
+                        BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
+                    else
+                        BlitCubeTexture2D(cmd, scaleOffset, newTexture, blitMips);
                     MarkGPUTextureValid(GetTextureID(newTexture), blitMips); // texture is up to date
                 }
                 return true;
@@ -525,6 +687,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update a texture in the atlas.
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
+        /// <param name="texture">Texture in atlas.</param>
+        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
+        /// <param name="updateIfNeeded">Enable texture blit.</param>
+        /// <param name="blitMips">Blit mip maps.</param>
+        /// <returns>True on success, false otherwise.</returns>
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset, bool updateIfNeeded = true, bool blitMips = true)
             => UpdateTexture(cmd, texture, texture, ref scaleOffset, fullScaleOffset, updateIfNeeded, blitMips);
 

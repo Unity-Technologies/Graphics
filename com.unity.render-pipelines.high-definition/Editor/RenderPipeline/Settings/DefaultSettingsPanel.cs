@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Default Volume Profile Asset");
             internal static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile Asset");
 
-            internal static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings");
+            internal static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings (Default Values)");
             internal static readonly GUIContent frameSettingsLabel_Camera = EditorGUIUtility.TrTextContent("Camera");
             internal static readonly GUIContent frameSettingsLabel_RTProbe = EditorGUIUtility.TrTextContent("Realtime Reflection");
             internal static readonly GUIContent frameSettingsLabel_BakedProbe = EditorGUIUtility.TrTextContent("Baked or Custom Reflection");
@@ -84,6 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
 
             internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
+            internal static readonly string warningHdrpNotActive = "No HD Render Pipeline currently active. Verify your Graphics Settings and active Quality Level.";
+            internal static readonly string warningGlobalSettingsMissing = "No active settings for HDRP. Rendering may be broken until a new one is assigned.";
+            internal static readonly string infoGlobalSettingsMissing = "No active Global Settings for HDRP. You may assign one below.";
         }
 
         public static readonly CED.IDrawer Inspector;
@@ -111,30 +114,35 @@ namespace UnityEditor.Rendering.HighDefinition
         HDRenderPipelineGlobalSettings settingsSerialized;
         public void DoGUI(string searchContext)
         {
-            if (HDRenderPipeline.currentPipeline == null)
+            // When the asset being serialized has been deleted before its reconstruction
+            if (serializedSettings != null && serializedSettings.serializedObject.targetObject == null)
             {
-                EditorGUILayout.HelpBox("No HDRP pipeline currently active (see Quality Settings active level).", MessageType.Warning);
+                serializedSettings = null;
+                settingsSerialized = null;
             }
 
-            if ((serializedSettings == null) || (settingsSerialized != HDRenderPipelineGlobalSettings.instance))
+            if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
             {
-                settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
-                var serializedObject = new SerializedObject(settingsSerialized);
-                serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+                if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
+                {
+                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
+                    var serializedObject = new SerializedObject(settingsSerialized);
+                    serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+                }
             }
-            else
+            else if (settingsSerialized != null && serializedSettings != null)
             {
                 serializedSettings.serializedObject.Update();
             }
-            Draw_AssetSelection(ref serializedSettings, null);
 
+            DrawWarnings(ref serializedSettings, null);
+            DrawAssetSelection(ref serializedSettings, null);
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
+                serializedSettings.serializedObject?.ApplyModifiedProperties();
             }
-
-            serializedSettings.serializedObject.ApplyModifiedProperties();
         }
 
         /// <summary>
@@ -146,16 +154,29 @@ namespace UnityEditor.Rendering.HighDefinition
         {
         }
 
+        void DrawWarnings(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            bool isHDRPinUse = HDRenderPipeline.currentAsset != null;
+            if (isHDRPinUse && serialized != null)
+                return;
+
+            if (isHDRPinUse)
+            {
+                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(Styles.warningHdrpNotActive, MessageType.Warning);
+                if (serialized == null)
+                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+            }
+        }
+
         #region Global HDRenderPipelineGlobalSettings asset selection
-        void Draw_AssetSelection(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        void DrawAssetSelection(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            if (settingsSerialized == null)
-            {
-                EditorGUILayout.HelpBox("No active settings for HDRP. Rendering may be broken until a new one is assigned.", MessageType.Warning);
-            }
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
@@ -163,13 +184,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
-                    EditorUtility.SetDirty(settingsSerialized);
+                    if (settingsSerialized != null && !settingsSerialized.Equals(null))
+                        EditorUtility.SetDirty(settingsSerialized);
                 }
 
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
                 }
+
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
@@ -189,10 +212,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer ResourcesSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.resourceLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_ResourcesSection),
+            CED.Group(DrawResourcesSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
-        static void Drawer_ResourcesSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawResourcesSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             using (new EditorGUI.IndentLevelScope())
             {
@@ -221,11 +244,11 @@ namespace UnityEditor.Rendering.HighDefinition
         #region Frame Settings
 
         static readonly CED.IDrawer FrameSettingsSection = CED.Group(
-            CED.Group(Drawer_FrameSettings),
+            CED.Group(DrawFrameSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
-        static void Drawer_FrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawFrameSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             EditorGUILayout.LabelField(Styles.frameSettingsLabel, Styles.sectionHeaderStyle);
             EditorGUILayout.Space();
@@ -233,15 +256,15 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, Styles.subSectionHeaderStyle);
-                Drawer_FrameSettings_Custom(0, serialized.defaultFrameSettings, owner);
+                DrawFrameSettingsSubsection(0, serialized.defaultCameraFrameSettings, owner);
                 EditorGUILayout.Space();
 
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, Styles.subSectionHeaderStyle);
-                Drawer_FrameSettings_Custom(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
+                DrawFrameSettingsSubsection(1, serialized.defaultRealtimeReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
 
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_BakedProbe, Styles.subSectionHeaderStyle);
-                Drawer_FrameSettings_Custom(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
+                DrawFrameSettingsSubsection(2, serialized.defaultBakedOrCustomReflectionFrameSettings, owner);
                 EditorGUILayout.Space();
             }
         }
@@ -251,7 +274,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static private bool[] m_ShowFrameSettings_AsyncCompute   = { false, false, false };
         static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
 
-        static void Drawer_FrameSettings_Custom(int index, SerializedFrameSettings serialized, Editor owner)
+        static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
@@ -306,9 +329,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer CustomPostProcessesSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.customPostProcessOrderLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_CustomPostProcess)
+            CED.Group(DrawCustomPostProcess)
         );
-        static void Drawer_CustomPostProcess(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawCustomPostProcess(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -342,9 +365,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer DiffusionProfileSettingsSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.diffusionProfileSettingsLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_DiffusionProfileSettings)
+            CED.Group(DrawDiffusionProfileSettings)
         );
-        static void Drawer_DiffusionProfileSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawDiffusionProfileSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -363,11 +386,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer VolumeSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.volumeComponentsLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_VolumeSection),
+            CED.Group(DrawVolumeSection),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
-        static void Drawer_VolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             using (new EditorGUI.IndentLevelScope())
             {
@@ -378,13 +401,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumeProfile asset = null;
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    var oldAssetValue = serialized.volumeProfileDefault.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.volumeProfileDefault, Styles.defaultVolumeProfileLabel);
-                    asset = serialized.volumeProfileDefault.objectReferenceValue as VolumeProfile;
+                    var oldAssetValue = serialized.defaultVolumeProfile.objectReferenceValue;
+                    EditorGUILayout.PropertyField(serialized.defaultVolumeProfile, Styles.defaultVolumeProfileLabel);
+                    asset = serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
                     if (asset == null && oldAssetValue != null)
                     {
                         Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        serialized.volumeProfileDefault.objectReferenceValue = oldAssetValue;
+                        serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
                     }
 
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
@@ -413,13 +436,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumeProfile lookDevAsset = null;
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    var oldAssetValue = serialized.volumeProfileLookDev.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.volumeProfileLookDev, Styles.lookDevVolumeProfileLabel);
-                    lookDevAsset = serialized.volumeProfileLookDev.objectReferenceValue as VolumeProfile;
+                    var oldAssetValue = serialized.lookDevVolumeProfile.objectReferenceValue;
+                    EditorGUILayout.PropertyField(serialized.lookDevVolumeProfile, Styles.lookDevVolumeProfileLabel);
+                    lookDevAsset = serialized.lookDevVolumeProfile.objectReferenceValue as VolumeProfile;
                     if (lookDevAsset == null && oldAssetValue != null)
                     {
                         Debug.Log("LookDev Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        serialized.volumeProfileLookDev.objectReferenceValue = oldAssetValue;
+                        serialized.lookDevVolumeProfile.objectReferenceValue = oldAssetValue;
                     }
 
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
@@ -451,10 +474,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer MiscSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.generalSettingsLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_MiscSettings),
+            CED.Group(DrawMiscSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
-        static void Drawer_MiscSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawMiscSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
@@ -474,20 +497,20 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer LayerNamesSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.layerNamesLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(Drawer_LayerNamesSettings),
+            CED.Group(DrawLayerNamesSettings),
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
-        static void Drawer_LayerNamesSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawLayerNamesSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
 
             using (new EditorGUI.IndentLevelScope())
             {
-                Drawer_LightLayerNames(serialized, owner);
+                DrawLightLayerNames(serialized, owner);
                 EditorGUILayout.Space();
-                Drawer_DecalLayerNames(serialized, owner);
+                DrawDecalLayerNames(serialized, owner);
                 EditorGUILayout.Space();
             }
             EditorGUIUtility.labelWidth = oldWidth;
@@ -495,7 +518,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static private bool m_ShowLightLayerNames = false;
         static private bool m_ShowDecalLayerNames = false;
-        static void Drawer_LightLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawLightLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayersLabel, true);
             if (m_ShowLightLayerNames)
@@ -521,7 +544,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_DecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        static void DrawDecalLayerNames(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             m_ShowDecalLayerNames = EditorGUILayout.Foldout(m_ShowDecalLayerNames, Styles.decalLayersLabel, true);
             if (m_ShowDecalLayerNames)
