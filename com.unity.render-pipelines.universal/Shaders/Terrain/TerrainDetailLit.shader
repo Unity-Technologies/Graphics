@@ -171,7 +171,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 float4  PositionOS  : POSITION;
                 float2  UV0         : TEXCOORD0;
                 float2  UV1         : TEXCOORD1;
-                float3  NormalOS    : NORMAL;
+                half3   NormalOS    : NORMAL;
                 half4   Color       : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -183,6 +183,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half4   Color           : TEXCOORD2; // Vertex Color
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
+                half3   NormalWS        : TEXCOORD5; // World Space Normal
                 float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -208,17 +209,18 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 output.ShadowCoords = GetShadowCoord(vertexInput);
 
                 // Vertex Lighting
-                half3 NormalWS = input.NormalOS;
+                output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
+
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-                half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
+                half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, output.NormalWS);
             #ifdef _ADDITIONAL_LIGHTS
                 int pixelLightCount = GetAdditionalLightsCount();
                 for (int i = 0; i < pixelLightCount; ++i)
                 {
                     Light light = GetAdditionalLight(i, vertexInput.positionWS);
                     half3 attenuatedLightColor = light.color * light.distanceAttenuation;
-                    diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
+                    diffuseColor += LightingLambert(attenuatedLightColor, light.direction, output.NormalWS);
                 }
             #endif
                 output.LightingFog.xyz = diffuseColor;
@@ -247,7 +249,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 surfaceData.occlusion = 1.0;
 
                 InputData inputData = (InputData)0;
-                inputData.normalWS = half3(0, 1, 0); // need some default to avoid division by 0.
+                inputData.normalWS = input.NormalWS;
 
                 return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingInvalid);
             }
@@ -294,7 +296,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitDepthNormalsPass.hlsl"
             ENDHLSL
         }
 

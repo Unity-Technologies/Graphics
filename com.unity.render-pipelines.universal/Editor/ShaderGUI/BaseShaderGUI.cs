@@ -408,6 +408,7 @@ namespace UnityEditor
                     material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
                     material.SetFloat("_ZWrite", 1.0f);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else
@@ -443,6 +444,7 @@ namespace UnityEditor
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetFloat("_ZWrite", 0.0f);
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
