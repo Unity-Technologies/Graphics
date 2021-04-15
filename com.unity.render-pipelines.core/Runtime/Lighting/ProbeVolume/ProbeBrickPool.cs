@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {

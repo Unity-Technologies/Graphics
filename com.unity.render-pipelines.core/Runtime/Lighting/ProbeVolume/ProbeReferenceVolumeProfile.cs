@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Probe Reference Volume"/>.

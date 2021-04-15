@@ -4,7 +4,7 @@ using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
     internal struct ProbeVolumeArtistParameters

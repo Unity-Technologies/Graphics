@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     static partial class ProbeVolumeUI
     {
