@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
 - Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
 - Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
+- Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
 
 ## [11.0.0] - 2020-10-21
 
