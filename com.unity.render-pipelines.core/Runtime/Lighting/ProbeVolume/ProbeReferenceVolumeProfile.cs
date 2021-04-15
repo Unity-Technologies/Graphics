@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering
             CellSize243 = 243,
         }
 
+        // This field will be replaced by something else (probably a distance based setting in meter) when the artists decide
+        // what they want. So, we shouldn't rely on this information too much.
         /// <summary>
         /// The size of a Cell.
         /// </summary>
