@@ -671,13 +671,13 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
     half probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
     half probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
-    int volumeSign = sign(probe0Volume - probe1Volume);
+    half volumeDiff = probe0Volume - probe1Volume;
     float importanceSign = unity_SpecCube1_BoxMin.w;
 
     // A probe is dominant if its importance is higher
     // Or have equal importance but smaller volume
-    bool probe0Dominant = importanceSign > 0.0f || (importanceSign == 0.0f && volumeSign < 0);
-    bool probe1Dominant = importanceSign < 0.0f || (importanceSign == 0.0f && volumeSign > 0);
+    bool probe0Dominant = importanceSign > 0.0f || (importanceSign == 0.0f && volumeDiff < -0.01h);
+    bool probe1Dominant = importanceSign < 0.0f || (importanceSign == 0.0f && volumeDiff > 0.01h);
 
     float desiredWeightProbe0 = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
     float desiredWeightProbe1 = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
