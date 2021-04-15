@@ -1,55 +1,42 @@
-﻿using System;
+﻿#if PPV2_EXISTS
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Build.Content;
 using UnityEditor.Rendering;
-using BIRPRendering = UnityEngine.Rendering.PostProcessing;
-using URPRendering = UnityEditor.Rendering.Universal;
 using UnityEditor.SceneManagement;
 using UnityEditor.Search;
-using UnityEditor.Search.Providers;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
+using URPRenderingEditor = UnityEditor.Rendering.Universal;
+using URPRendering = UnityEngine.Rendering.Universal;
 
 namespace Editor.Converters
 {
     public class PPv2Converter : RenderPipelineConverter
     {
-        private struct ExposedObjectIdentifier
-        {
-            public GUID m_GUID;
-            public long m_LocalIdentifierInFile;
-            public FileType m_FileType;
-            public string m_FilePath;
-
-            public ExposedObjectIdentifier(
-                GUID guid,
-                long localId,
-                FileType fileType,
-                string filePath)
-            {
-                m_GUID = guid;
-                m_LocalIdentifierInFile = localId;
-                m_FileType = fileType;
-                m_FilePath = filePath;
-            }
-        }
-
         public override string name => "Post-Processing Stack v2 Converter";
 
         public override string info =>
             "Converts PPv2 Volumes, Profiles, and Layers to URP Volumes, Profiles, and Cameras.";
 
-        public override Type conversion => typeof(URPRendering.BuiltInToURPConversion);
+        public override Type conversion => typeof(URPRenderingEditor.BuiltInToURPConversion);
 
         private bool _startingSceneHasBeenClosed;
+        private IEnumerable<PostProcessEffectSettingsConverter> effectConverters = null;
 
         public override void OnInitialize(InitializeConverterContext context)
         {
+            // Converters should already be set to null on domain reload,
+            // but we're doing it here just in case anything somehow lingers.
+            effectConverters = null;
+
             // We are using separate searchContexts here and Adding them in this order:
             //      - Components from Prefabs & Scenes (Volumes & Layers)
             //      - ScriptableObjects (Profiles)
@@ -58,6 +45,7 @@ namespace Editor.Converters
             // The process of converting Volumes will convert Profiles as-needed, and then the explicit followup Profile
             // conversion step will convert any non-referenced assets and delete all old Profiles.
 
+            // Components First
             using var componentContext =
                 SearchService.CreateContext("asset", "urp:convert-ppv2component");
             using var componentItems = SearchService.Request(componentContext);
@@ -65,6 +53,7 @@ namespace Editor.Converters
                 AddSearchItemsAsConverterAssetEntries(componentItems, context);
             }
 
+            // Then ScriptableObjects
             using var scriptableObjectContext =
                 SearchService.CreateContext("asset", "urp:convert-ppv2scriptableobject");
             using var scriptableObjectItems = SearchService.Request(scriptableObjectContext);
@@ -117,6 +106,13 @@ namespace Editor.Converters
                 //       though it shouldn't ever actually occur.
                 var succeeded = true;
                 var errorString = new StringBuilder();
+
+                if (effectConverters == null ||
+                    effectConverters.Count() == 0 ||
+                    effectConverters.Any(converter => converter == null))
+                {
+                    effectConverters = GetAllBIRPConverters();
+                }
 
                 if (oldVolumes != null)
                 {
@@ -188,7 +184,7 @@ namespace Editor.Converters
 
                     // If the object was not loaded, it is probably part of an unopened scene;
                     // if so, then the solution is to first load the scene here.
-                    var objIsInSceneOrPrefab = globalId.identifierType == (int) IdentifierType.kSceneObject;
+                    var objIsInSceneOrPrefab = globalId.identifierType == 2; // 2 is IdentifierType.kSceneObject
                     if (!obj &&
                         objIsInSceneOrPrefab)
                     {
@@ -252,84 +248,310 @@ namespace Editor.Converters
             }
         }
 
+#region Conversion_Entry_Points
         // TODO: are there actually any failure states to catch here?
         //       It's a constructive process, so I think the most likely failure would be
         //       with permissions when saving the new Profile assets or prefab/scene changes.
 
+        // TODO: Use this for error string:
+        //errorString.AppendLine("PPv2 PostProcessLayer failed to be converted with error:\n{error}");
+
         private void ConvertVolume(BIRPRendering.PostProcessVolume oldVolume, ref bool succeeded,
             StringBuilder errorString)
         {
-            if (!succeeded || !oldVolume) return;
-
-            // TODO: (keep this comment, but remove this todo)
-            // Convert the components when:
-            //  - They're overrides
-            //  - They're NOT part of instances, as that would be non-variant prefab roots, and scene-only stuff
-            // Convert Profile references on components when:
-            //  - The component has been converted
-            //  - The original reference was an override
-            if (PrefabUtility.IsPartOfPrefabInstance(oldVolume))
+            if (!succeeded)
             {
-                // TODO: Convert component only if it's an override
-                // TODO: Set reference only if the original component -or- reference was an override
-                // TODO: Overriddes (components and references) should be set as such on the new instance as well.
+                return;
+            }
+
+            if (!oldVolume)
+            {
+                // TODO: unless there's good way to tell the if the object is just missing because it was already
+                //       converted as part of an earlier conversion object, then these two lines should be commented
+                //       out or removed.  It should still return though.
+                // succeeded = false;
+                // errorString.AppendLine("PPv2 PostProcessVolume failed to be converted because the original asset reference was lost during conversion.");
+                return;
+            }
+
+            if (PrefabUtility.IsPartOfPrefabInstance(oldVolume) &&
+                !PrefabUtility.IsAddedComponentOverride(oldVolume))
+            {
+                // This is a property override on an instance of the component,
+                // so override the component instance with the modifications.
+                ConvertVolumeInstance(oldVolume, errorString);
             }
             else
             {
-                // TODO: convert with wreckless abandon
+                // The entire component is unique, so just convert it
+                ConvertVolumeComponent(oldVolume);
             }
-
-            // TODO: Volume Conversion Logic
-            // TODO: Delete old component after conversion
-
-            // TODO: Use this for error string:
-            errorString.AppendLine("PPv2 PostProcessVolume failed to be converted with error:\n{error}");
         }
 
         private void ConvertLayer(BIRPRendering.PostProcessLayer oldLayer, ref bool succeeded,
             StringBuilder errorString)
         {
-            if (!succeeded || !oldLayer) return;
-
-            // TODO: (keep this comment, but remove this todo)
-            // Convert the components when:
-            //  - They're overrides
-            //  - They're NOT part of instances, as that would be non-variant prefab roots, and scene-only stuff
-            if (PrefabUtility.IsPartOfPrefabInstance(oldLayer))
+            if (!succeeded)
             {
-                // TODO: Convert component only if it's an override
-                // TODO: Overriddes (components) should be set as such on the new instance as well.
+                return;
+            }
+
+            if (!oldLayer)
+            {
+                // TODO: unless there's good way to tell the if the object is just missing because it was already
+                //       converted as part of an earlier conversion object, then these two lines should be commented
+                //       out or removed.  It should still return though.
+                // succeeded = false;
+                // errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the original asset reference was lost during conversion.");
+                return;
+            }
+
+            if (PrefabUtility.IsPartOfPrefabInstance(oldLayer) &&
+                !PrefabUtility.IsAddedComponentOverride(oldLayer))
+            {
+                // This is a property override on an instance of the component,
+                // so override the component instance with the modifications.
+                ConvertLayerInstance(oldLayer, errorString);
             }
             else
             {
-                // TODO: convert with wreckless abandon
+                // The entire component is unique, so just convert it
+                ConvertLayerComponent(oldLayer, errorString);
             }
-
-            // TODO: Layer Conversion Logic
-            // TODO: Delete old component after conversion
-
-            // TODO: Use this for error string:
-            errorString.AppendLine("PPv2 PostProcessLayer failed to be converted with error:\n{error}");
         }
 
         private void ConvertProfile(BIRPRendering.PostProcessProfile oldProfile, ref bool succeeded,
             StringBuilder errorString)
         {
-            if (!succeeded || !oldProfile) return;
+            if (!succeeded)
+            {
+                return;
+            }
 
-            // TODO: Profile Conversion Logic
+            if (!oldProfile)
+            {
+                errorString.AppendLine("PPv2 PostProcessProfile failed to be converted because the original asset reference was lost during conversion.");
+                return;
+            }
 
-            // TODO:
-            // - Profile assets (ScriptableObjects) should always be converted when encountered,
-            //   including immediately when updating "sharedProfile" references.
+            ConvertVolumeProfileAsset(oldProfile);
 
             // TODO:
             // - Perhaps old Profiles should only be deleted if they actually no longer have references,
             // just in case some some Volume conversions are skipped and still need references for future conversion.
             // - Alternatively, leave deletion of Profiles entirely to the user. (prefer this?)
+        }
+#endregion Conversion_Entry_Points
 
-            // TODO: Use this for error string:
-            errorString.AppendLine("PPv2 PostProcessProfile failed to be converted with error:\n{error}");
+        private void ConvertVolumeComponent(BIRPRendering.PostProcessVolume oldVolume)
+        {
+            // Don't convert if it appears to already have been converted.
+            if (oldVolume.GetComponent<Volume>()) return;
+
+            var gameObject = oldVolume.gameObject;
+            var newVolume = gameObject.AddComponent<Volume>();
+
+            newVolume.priority = oldVolume.priority;
+            newVolume.weight = oldVolume.weight;
+            newVolume.blendDistance = oldVolume.blendDistance;
+            newVolume.isGlobal = oldVolume.isGlobal;
+            newVolume.enabled = oldVolume.enabled;
+
+            newVolume.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile);
+
+            // TODO:
+            // Object.DestroyImmediate(oldVolume, allowDestroyingAssets: true);
+            EditorUtility.SetDirty(gameObject);
+        }
+
+        private void ConvertVolumeInstance(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
+        {
+            // First get a reference to the local instance of the converted component
+            // which may require immediately converting it at its origin location first.
+            var newVolumeInstance = oldVolume.GetComponent<Volume>();
+            if (!newVolumeInstance)
+            {
+                var oldVolumeOrigin = PrefabUtility.GetCorrespondingObjectFromSource(oldVolume);
+
+                ConvertVolumeComponent(oldVolumeOrigin);
+                // TODO: do we need to save this change immediately (and refresh the database?) to get access to the instance?
+                newVolumeInstance = oldVolume.GetComponent<Volume>();
+
+                if (!newVolumeInstance)
+                {
+                    errorString.AppendLine("PPv2 PostProcessVolume failed to be converted because the instance object did not inherit the converted Prefab source.");
+                    return;
+                }
+            }
+
+            var oldModifications = PrefabUtility.GetPropertyModifications(oldVolume);
+            foreach (var oldModification in oldModifications)
+            {
+                if (oldModification.target is BIRPRendering.PostProcessVolume)
+                {
+                    // TODO: Remove this
+                    Debug.Log("--- Object Modification:" +
+                              $"\n{oldModification.target}" +
+                              $"\n{oldModification.value}" +
+                              $"\n{oldModification.objectReference}" +
+                              $"\n{oldModification.propertyPath}");
+
+                    if (oldModification.propertyPath.EndsWith("priority", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.priority = oldVolume.priority;
+                    else if (oldModification.propertyPath.EndsWith("weight", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.weight = oldVolume.weight;
+                    else if (oldModification.propertyPath.EndsWith("blendDistance", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.blendDistance = oldVolume.blendDistance;
+                    else if (oldModification.propertyPath.EndsWith("isGlobal", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.isGlobal = oldVolume.isGlobal;
+                    else if (oldModification.propertyPath.EndsWith("enabled", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.enabled = oldVolume.enabled;
+                    else if (oldModification.propertyPath.EndsWith("sharedProfile", StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile);
+
+                    EditorUtility.SetDirty(newVolumeInstance);
+                }
+            }
+        }
+
+        private void ConvertLayerComponent(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
+        {
+            var siblingCamera = oldLayer.GetComponent<URPRendering.UniversalAdditionalCameraData>();
+
+            // PostProcessLayer requires a sibling Camera component, but
+            // we check it here just in case something weird went happened.
+            if (!siblingCamera) return;
+
+            // The presence of a PostProcessLayer implies the Camera should render post-processes
+            siblingCamera.renderPostProcessing = true;
+
+            siblingCamera.volumeLayerMask = oldLayer.volumeLayer;
+            siblingCamera.volumeTrigger = oldLayer.volumeTrigger;
+            siblingCamera.stopNaN = oldLayer.stopNaNPropagation;
+
+            siblingCamera.antialiasingQuality = (URPRendering.AntialiasingQuality)oldLayer.subpixelMorphologicalAntialiasing.quality;
+
+            switch (oldLayer.antialiasingMode)
+            {
+                case BIRPRendering.PostProcessLayer.Antialiasing.None:
+                    siblingCamera.antialiasing = URPRendering.AntialiasingMode.None;
+                    break;
+                case BIRPRendering.PostProcessLayer.Antialiasing.FastApproximateAntialiasing:
+                    siblingCamera.antialiasing = URPRendering.AntialiasingMode.FastApproximateAntialiasing;
+                    break;
+                case BIRPRendering.PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing:
+                    siblingCamera.antialiasing = URPRendering.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                    break;
+                default:
+                    // Default to the the most performant mode, since "None" is an explicit option.
+                    siblingCamera.antialiasing = URPRendering.AntialiasingMode.FastApproximateAntialiasing;
+                    break;
+            }
+
+            // TODO:
+            // Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
+            EditorUtility.SetDirty(siblingCamera.gameObject);
+        }
+
+        private void ConvertLayerInstance(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
+        {
+            // First get a reference to the local instance of the camera (which is required by PostProcessingLayer)
+            var siblingCamera = oldLayer.GetComponent<URPRendering.UniversalAdditionalCameraData>();
+            if (!siblingCamera)
+            {
+                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required Camera component.");
+                return;
+            }
+
+            var oldModifications = PrefabUtility.GetPropertyModifications(oldLayer);
+            foreach (var oldModification in oldModifications)
+            {
+                if (oldModification.target is BIRPRendering.PostProcessLayer)
+                {
+                    // TODO: Remove this
+                    Debug.Log("--- PostProcessLayer Modification:" +
+                              $"\n{oldModification.target}" +
+                              $"\n{oldModification.value}" +
+                              $"\n{oldModification.objectReference}" +
+                              $"\n{oldModification.propertyPath}");
+
+                    if (oldModification.propertyPath.EndsWith("volumeLayer", StringComparison.InvariantCultureIgnoreCase))
+                        siblingCamera.volumeLayerMask = oldLayer.volumeLayer;
+                    else if (oldModification.propertyPath.EndsWith("volumeTrigger", StringComparison.InvariantCultureIgnoreCase))
+                        siblingCamera.volumeTrigger = oldLayer.volumeTrigger;
+                    else if (oldModification.propertyPath.EndsWith("stopNaNPropagation", StringComparison.InvariantCultureIgnoreCase))
+                        siblingCamera.stopNaN = oldLayer.stopNaNPropagation;
+                    else if (oldModification.propertyPath.EndsWith("subpixelMorphologicalAntialiasing.quality", StringComparison.InvariantCultureIgnoreCase))
+                        siblingCamera.antialiasingQuality = (URPRendering.AntialiasingQuality)oldLayer.subpixelMorphologicalAntialiasing.quality;
+                    else if (oldModification.propertyPath.EndsWith("oldLayer.antialiasingMode", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        switch (oldLayer.antialiasingMode)
+                        {
+                            case BIRPRendering.PostProcessLayer.Antialiasing.None:
+                                siblingCamera.antialiasing = URPRendering.AntialiasingMode.None;
+                                break;
+                            case BIRPRendering.PostProcessLayer.Antialiasing.FastApproximateAntialiasing:
+                                siblingCamera.antialiasing = URPRendering.AntialiasingMode.FastApproximateAntialiasing;
+                                break;
+                            case BIRPRendering.PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing:
+                                siblingCamera.antialiasing = URPRendering.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                                break;
+                            default:
+                                // Default to the the most performant mode, since "None" is an explicit option.
+                                siblingCamera.antialiasing = URPRendering.AntialiasingMode.FastApproximateAntialiasing;
+                                break;
+                        }
+                    }
+
+                    EditorUtility.SetDirty(siblingCamera);
+                }
+            }
+        }
+
+        private VolumeProfile ConvertVolumeProfileAsset(BIRPRendering.PostProcessProfile oldProfile)
+        {
+            // Don't convert if it appears to already have been converted.
+            if (!oldProfile) return null;
+
+            var oldPath = AssetDatabase.GetAssetPath(oldProfile);
+            var oldDirectory = Path.GetDirectoryName(oldPath);
+            var oldName = Path.GetFileNameWithoutExtension(oldPath);
+            var newPath = Path.Combine(oldDirectory, $"{oldName}(URP).asset");
+            if (File.Exists(newPath))
+            {
+                return AssetDatabase.LoadAssetAtPath<VolumeProfile>(newPath);
+            }
+
+            var newProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(newProfile, newPath);
+
+            foreach (var oldSettings in oldProfile.settings)
+            {
+                foreach (var effectConverter in effectConverters)
+                {
+                    effectConverter.AddConvertedProfileSettingsToProfile(oldSettings, newProfile);
+                }
+            }
+
+            EditorUtility.SetDirty(newProfile);
+
+            return newProfile;
+        }
+
+        public IEnumerable<PostProcessEffectSettingsConverter> GetAllBIRPConverters()
+        {
+            var baseType = typeof(PostProcessEffectSettingsConverter);
+
+            var assembly = Assembly.GetAssembly(baseType);
+            var derivedTypes = assembly
+                .GetTypes()
+                .Where(t =>
+                    t.BaseType != null &&
+                    t.BaseType == baseType)
+                .Select(t => ScriptableObject.CreateInstance(t) as PostProcessEffectSettingsConverter);
+
+            return derivedTypes;
         }
     }
 }
+#endif
