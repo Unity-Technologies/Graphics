@@ -36,8 +36,11 @@ namespace UnityEngine.Rendering.Universal
             Version_1 = 1
         }
 
+
+#if UNITY_EDITOR
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+#endif
 
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
         public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
