@@ -236,18 +236,9 @@ namespace UnityEngine.Rendering.Universal
                 Vector2 cookieUVOffset = Vector2.zero;
                 float cookieFormat     = ((cookieTexture as Texture2D)?.format == TextureFormat.Alpha8) ? 1.0f : 0.0f;
 
-                // TODO: verify against HDRP if scale should actually be invScale
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
-                {
-                    cookieUVScale  = Vector2.one / additionalLightData.lightCookieSize;
-                    cookieUVOffset = additionalLightData.lightCookieOffset;
-
-                    if (Mathf.Abs(cookieUVScale.x) < half.MinValue)
-                        cookieUVScale.x = Mathf.Sign(cookieUVScale.x) * half.MinValue;
-                    if (Mathf.Abs(cookieUVScale.y) < half.MinValue)
-                        cookieUVScale.y = Mathf.Sign(cookieUVScale.y) * half.MinValue;
-                }
+                    GetLightUVScaleOffset(additionalLightData, ref cookieUVScale, ref cookieUVOffset);
 
                 cmd.SetGlobalTexture(ShaderProperty._MainLightTexture,       cookieTexture);
                 cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,   cookieMatrix);
@@ -259,6 +250,17 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return isMainLightCookieEnabled;
+        }
+
+        void GetLightUVScaleOffset(in UniversalAdditionalLightData additionalLightData, ref Vector2 uvScale, ref Vector2 uvOffset)
+        {
+            uvScale  = Vector2.one / additionalLightData.lightCookieSize;
+            uvOffset = additionalLightData.lightCookieOffset;
+
+            if (Mathf.Abs(uvScale.x) < half.MinValue)
+                uvScale.x = Mathf.Sign(uvScale.x) * half.MinValue;
+            if (Mathf.Abs(uvScale.y) < half.MinValue)
+                uvScale.y = Mathf.Sign(uvScale.y) * half.MinValue;
         }
 
         bool SetupAdditionalLights(CommandBuffer cmd, in LightData lightData)
@@ -275,6 +277,7 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             }
 
+            // TODO: does this even make sense??? Lights are globally sorted by intensity. Kind of the same thing, as our sort is not strict cookie priority.
             // Sort by priority
             unsafe
             {
