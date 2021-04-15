@@ -844,6 +844,16 @@ namespace UnityEditor.Graphing
             "while"
         };
 
+        static HashSet<string> m_ShaderGraphKeywords = new HashSet<string>()
+        {
+            "Gradient",
+            "UnitySamplerState",
+            "UnityTexture2D",
+            "UnityTexture2DArray",
+            "UnityTexture3D",
+            "UnityTextureCube"
+        };
+
         static bool m_HLSLKeywordDictionaryBuilt = false;
 
         public static bool IsHLSLKeyword(string id)
@@ -866,6 +876,12 @@ namespace UnityEditor.Graphing
         {
             bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
             return isShaderLabKeyword;
+        }
+
+        public static bool IsShaderGraphKeyWord(string id)
+        {
+            bool isShaderGraphKeyword = m_ShaderGraphKeywords.Contains(id);
+            return isShaderGraphKeyword;
         }
 
         public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)
