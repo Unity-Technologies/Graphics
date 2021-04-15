@@ -69,6 +69,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _DebugSingleShadowIndex;
     int _DebugProbeVolumeMode;
     float3 _DebugDisplayPad0;
+    int _DebugAOVOutput;
 CBUFFER_END
 
 

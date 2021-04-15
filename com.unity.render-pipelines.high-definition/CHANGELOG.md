@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.5.0] - 2020-03-15
 
 ### Added
-Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
- 
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added an info box for micro shadow editor (case 1322830).
+
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -29,6 +30,10 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 - Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
@@ -37,6 +42,7 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
+- Increased path tracing max samples from 4K to 16K (case 1327729).
 
 ## [10.4.0] - 2020-01-26
 
