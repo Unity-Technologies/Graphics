@@ -262,6 +262,7 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp.textureValue != null;
 
+            EditorGUI.indentLevel -= 1;
             if (!keyword)
             {
                 materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
@@ -281,23 +282,17 @@ namespace UnityEditor
                 }
                 EditorGUI.EndDisabledGroup();
             }
+            EditorGUI.indentLevel += 1;
 
             // If texture was assigned and color was black set color to white
             var brightness = emissionColorProp.colorValue.maxColorComponent;
             if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                 emissionColorProp.colorValue = Color.white;
 
-            // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
-                var oldFlags = material.globalIlluminationFlags;
-                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-
-                if (brightness <= 0f)
-                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                if (newFlags != oldFlags)
-                    material.globalIlluminationFlags = newFlags;
+                // Change the GI emission flag and fix it up with emissive as black if necessary.
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
             }
         }
 

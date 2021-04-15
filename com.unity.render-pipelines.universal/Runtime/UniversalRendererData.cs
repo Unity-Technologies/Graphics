@@ -55,6 +55,13 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
+
+            // Core blitter shaders, adapted from HDRP
+            // TODO: move to core and share with HDRP
+            [Reload("Shaders/Utils/CoreBlit.shader")]
+            public Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
+            public Shader coreBlitColorAndDepthPS;
         }
 
         public PostProcessData postProcessData = null;
