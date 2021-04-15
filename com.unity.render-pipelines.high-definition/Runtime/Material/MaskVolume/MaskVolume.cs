@@ -90,9 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return 9 * 3 - GetDataSHL0Stride();
         } */
 
-        public static bool IsNull(ref MaskVolumePayload payload)
+        public static bool IsEmpty(ref MaskVolumePayload payload)
         {
-            return payload.dataSHL0 == null;
+            return payload.dataSHL0 == null || payload.dataSHL0.Length == 0;
         }
 
         public static int GetLength(ref MaskVolumePayload payload)
@@ -766,6 +766,8 @@ namespace UnityEngine.Rendering.HighDefinition
             int numMasks = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             MaskVolumePayload.Allocate(ref maskVolumeAsset.payload, numMasks);
 
+            UnityEditor.EditorUtility.SetDirty(maskVolumeAsset);
+
             dataUpdated = true;
         }
 
@@ -779,36 +781,40 @@ namespace UnityEngine.Rendering.HighDefinition
             int numMasks = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             MaskVolumePayload newPayload = default;
             MaskVolumePayload.Allocate(ref newPayload, numMasks);
-            
-            for (int z = 0; z < parameters.resolutionZ; z++)
+
+            if (oldResolutionX > 0 && oldResolutionY > 0 && oldResolutionZ > 0 && !MaskVolumePayload.IsEmpty(ref oldPayload))
             {
-                CalculateResamplingWeights(oldResolutionZ, parameters.resolutionZ, z, out int oldZLow, out int oldZHigh, out float oldZLowWeight, out float oldZHighWeight);
-                
-                for (int y = 0; y < parameters.resolutionY; y++)
+                for (int z = 0; z < parameters.resolutionZ; z++)
                 {
-                    CalculateResamplingWeights(oldResolutionY, parameters.resolutionY, y, out int oldYLow, out int oldYHigh, out float oldYLowWeight, out float oldYHighWeight);
-                    
-                    for (int x = 0; x < parameters.resolutionX; x++)
+                    CalculateResamplingWeights(oldResolutionZ, parameters.resolutionZ, z, out int oldZLow, out int oldZHigh, out float oldZLowWeight, out float oldZHighWeight);
+
+                    for (int y = 0; y < parameters.resolutionY; y++)
                     {
-                        CalculateResamplingWeights(oldResolutionX, parameters.resolutionX, x, out int oldXLow, out int oldXHigh, out float oldXLowWeight, out float oldXHighWeight);
-                        
-                        MaskVolumePayload.Resample(ref oldPayload,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZLow), oldXLowWeight * oldYLowWeight * oldZLowWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZLow), oldXHighWeight * oldYLowWeight * oldZLowWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZLow), oldXLowWeight * oldYHighWeight * oldZLowWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZLow), oldXHighWeight * oldYHighWeight * oldZLowWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZHigh), oldXLowWeight * oldYLowWeight * oldZHighWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZHigh), oldXHighWeight * oldYLowWeight * oldZHighWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZHigh), oldXLowWeight * oldYHighWeight * oldZHighWeight,
-                            PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZHigh), oldXHighWeight * oldYHighWeight * oldZHighWeight,
-                            ref newPayload,
-                            PayloadIndex(parameters.resolutionX, parameters.resolutionY, x, y, z));
+                        CalculateResamplingWeights(oldResolutionY, parameters.resolutionY, y, out int oldYLow, out int oldYHigh, out float oldYLowWeight, out float oldYHighWeight);
+
+                        for (int x = 0; x < parameters.resolutionX; x++)
+                        {
+                            CalculateResamplingWeights(oldResolutionX, parameters.resolutionX, x, out int oldXLow, out int oldXHigh, out float oldXLowWeight, out float oldXHighWeight);
+
+                            MaskVolumePayload.Resample(ref oldPayload,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZLow), oldXLowWeight * oldYLowWeight * oldZLowWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZLow), oldXHighWeight * oldYLowWeight * oldZLowWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZLow), oldXLowWeight * oldYHighWeight * oldZLowWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZLow), oldXHighWeight * oldYHighWeight * oldZLowWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYLow, oldZHigh), oldXLowWeight * oldYLowWeight * oldZHighWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYLow, oldZHigh), oldXHighWeight * oldYLowWeight * oldZHighWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXLow, oldYHigh, oldZHigh), oldXLowWeight * oldYHighWeight * oldZHighWeight,
+                                PayloadIndex(oldResolutionX, oldResolutionY, oldXHigh, oldYHigh, oldZHigh), oldXHighWeight * oldYHighWeight * oldZHighWeight,
+                                ref newPayload,
+                                PayloadIndex(parameters.resolutionX, parameters.resolutionY, x, y, z));
+                        }
                     }
                 }
-            }
-             
-            ReleaseFromAtlas(this);
 
+                ReleaseFromAtlas(this);
+            }
+
+            maskVolumeAsset.instanceID = GetID();
             maskVolumeAsset.resolutionX = parameters.resolutionX;
             maskVolumeAsset.resolutionY = parameters.resolutionY;
             maskVolumeAsset.resolutionZ = parameters.resolutionZ;

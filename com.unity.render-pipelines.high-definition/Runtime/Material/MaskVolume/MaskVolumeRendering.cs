@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     MaskVolumePayload payload = volume.GetPayload();
 
-                    if (MaskVolumePayload.IsNull(ref payload))
+                    if (MaskVolumePayload.IsEmpty(ref payload))
                     {
                         ReleaseMaskVolumeFromAtlas(volume);
                         return false;

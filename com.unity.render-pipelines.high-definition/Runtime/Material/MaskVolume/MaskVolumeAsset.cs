@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDataAssigned()
         {
-            return !MaskVolumePayload.IsNull(ref payload);
+            return !MaskVolumePayload.IsEmpty(ref payload);
         }
 
 #if UNITY_EDITOR
@@ -76,12 +76,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static MaskVolumeAsset CreateAsset(int id = -1)
         {
-            MaskVolumeAsset asset = ScriptableObject.CreateInstance<MaskVolumeAsset>();
+            MaskVolumeAsset asset = CreateInstance<MaskVolumeAsset>();
             string assetFileName = GetFileName(id);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
 
             return asset;
         }
