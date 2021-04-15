@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.pathTracingShader = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.pathTracing;
+                passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            RayTracingShader pathTracingShader = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.pathTracing;
+            RayTracingShader pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation

@@ -70,7 +70,7 @@
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
-  * [Default Settings](Default-Settings-Window.md)
+  * [HDRP Global Settings](Default-Settings-Window.md)
   * [HDRP Config Package](HDRP-Config-Package.md)
   * [Scalability](Scalability-Manual.md)
 * Materials
