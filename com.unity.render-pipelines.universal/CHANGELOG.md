@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
 - Added screen space shadow as renderer feature
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added support for Enlighten precomputed realtime Global Illumination.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
