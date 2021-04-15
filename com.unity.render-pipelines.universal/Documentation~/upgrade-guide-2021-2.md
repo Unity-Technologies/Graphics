@@ -1,10 +1,10 @@
-# Upgrading to version 2021.2 of the Universal Render Pipeline
+# Upgrading to version 12 of the Universal Render Pipeline
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 12.0.x.
 
 ## Upgrading from URP 11.x.x
 
-1. No upgrade steps are required to upgrade from 11.x.x to URP 2021.2.
+* URP 12.0.x does not have breaking changes compared with URP 11.x.x. To upgrade URP to version 12.0.x, install the new version of the package, no upgrade steps are required.
 
 ## Upgrading from URP 10.0.x–10.2.x
 
@@ -71,4 +71,4 @@ As a result, to match exactly shadow outlines from earlier revisions, the parame
 
 ## Upgrading from LWRP to 12.x.x
 
-1. You can't upgrade from LWRP to 2021.2 version of URP. You must first upgrade LWRP to URP 11.x.x, and then upgrade from 11.x.x to 2021.2.
+* There is no direct upgrade path from LWRP to URP 12.x.x. Follow the steps to upgrade LWRP to URP 11.x.x first, and then upgrade from URP 11.x.x to URP 12.x.x.
