@@ -61,6 +61,10 @@ public class FPSController : MonoBehaviour
         Vector3 forward = transform.forward;
         forward.y = 0f;
         forward = forward.normalized;
+
+        Vector3 right = transform.right;
+        right.y = 0;
+        right = right.normalized;
         
         Vector3 direction = MovementMaskToWalkDirection();
         
@@ -75,11 +79,11 @@ public class FPSController : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.A))
         {
-            direction -= transform.right;
+            direction -= right;
         }
         if (Input.GetKey(KeyCode.D))
         {
-            direction += transform.right;
+            direction += right;
         }
 #endif
         direction = direction.normalized;
@@ -92,12 +96,15 @@ public class FPSController : MonoBehaviour
         Vector3 forward = transform.forward;
         forward.y = 0f;
         forward = forward.normalized;
+        Vector3 right = transform.right;
+        right.y = 0;
+        right = right.normalized;
         Vector3 direction = Vector3.zero;
 
         direction += (m_MovementFlags & 1) * forward; //forward
         direction += ((m_MovementFlags & 2) >> 1) * -forward; //backwards
-        direction += ((m_MovementFlags & 4) >> 2) * -transform.right; //left
-        direction += ((m_MovementFlags & 8) >> 3) * transform.right; //right
+        direction += ((m_MovementFlags & 4) >> 2) * -right; //left
+        direction += ((m_MovementFlags & 8) >> 3) * right; //right
 
         return direction;
     }
