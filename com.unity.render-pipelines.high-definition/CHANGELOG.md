@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a NaN generating in Area light code.
 - Fix potential NaN on apply distortion pass.
 - Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
