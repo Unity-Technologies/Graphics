@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.Rendering;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using UID = UnityEditor.Rendering.UpgradeUtility.UID;
@@ -18,7 +19,10 @@ namespace UnityEditor.Rendering
     /// Animation clips store bindings for material properties by path name, but don't know whether those properties exist on their dependents.
     /// Because property names did not change uniformly in the material/shader upgrade process, it is not possible to patch path names indiscriminately.
     /// This class provides utilities for discovering how clips are used, so users can make decisions about whether or not to then update them.
-    /// It has the limitation that it only knows about clips that are directly referenced by an <see cref="Animation"/> component or <see cref="AnimatorController"/> used by an <see cref="Animator"/>.
+    /// It has the limitation that it only knows about:
+    /// - Clips that are directly referenced by an <see cref="Animation"/> component
+    /// - Clips referenced by an <see cref="AnimatorController"/> used by an <see cref="Animator"/> component
+    /// - Clips that are sub-assets of a <see cref="PlayableAsset"/> used by a <see cref="PlayableDirector"/> component with a single <see cref="Animator"/> binding
     /// It does not know about clips that might be referenced in other ways for run-time reassignment.
     /// Recommended usage is to call <see cref="DoUpgradeAllClipsMenuItem"/> from a menu item callback.
     /// The utility can also provide faster, more reliable results if it knows what <see cref="MaterialUpgrader"/> was used to upgrade specific materials.
@@ -143,6 +147,7 @@ namespace UnityEditor.Rendering
         // reusable buffers
         static readonly List<Animation> s_AnimationBuffer = new List<Animation>(8);
         static readonly List<Animator> s_AnimatorBuffer = new List<Animator>(8);
+        static readonly List<PlayableDirector> s_PlayableDirectorBuffer = new List<PlayableDirector>(8);
 
         /// <summary>
         /// Get information about a clip's usage among its dependent scenes to determine whether or not it should be upgraded.
@@ -301,12 +306,47 @@ namespace UnityEditor.Rendering
                 );
             }
 
-            // TODO. Missing support for custom animation sources other than Animation and Animator.
-            // e.g. Timeline, Custom PlayableGraph.
+            // next check clip usage among GameObjects with PlayableDirector
+            go.GetComponentsInChildren(true, s_PlayableDirectorBuffer);
+            foreach (var playableDirector in s_PlayableDirectorBuffer)
+            {
+                var playableAsset = playableDirector.playableAsset;
+                if (playableAsset == null)
+                    continue;
+
+                // get all clip sub-assets
+                var clips = new HashSet<IAnimationClip>(
+                    AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(playableAsset))
+                        .Where(asset => asset is AnimationClip)
+                        .Select(asset => (IAnimationClip)(AnimationClipProxy)(asset as AnimationClip))
+                );
+
+                // check if the value of a binding is an animator, and examines clip usage relative to it
+                // this is imprecise, but is suitable to catch the majority of cases (i.e., a single animator binding)
+                using (var so = new SerializedObject(playableDirector))
+                {
+                    var clipsProp = so.FindProperty("m_SceneBindings");
+                    for (int i = 0, count =clipsProp.arraySize; i < count; ++i)
+                    {
+                        var elementProp = clipsProp.GetArrayElementAtIndex(i);
+                        var value = elementProp.FindPropertyRelative("value");
+                        if (value.objectReferenceValue is Animator animator)
+                        {
+                            GatherClipsUsageForAnimatedHierarchy(
+                                animator.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
+                            );
+                        }
+                    }
+                }
+            }
+
+            // TODO. Missing support for custom animation sources other than Animation, Animator, and Timeline.
+            // e.g., Custom PlayableGraph.
 
             // release UnityObject references
             s_AnimationBuffer.Clear();
             s_AnimatorBuffer.Clear();
+            s_PlayableDirectorBuffer.Clear();
         }
 
         // reusable buffers
