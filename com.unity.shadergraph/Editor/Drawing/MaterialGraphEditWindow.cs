@@ -769,7 +769,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var copiedInput = (ShaderDropdown)subGraph.AddCopyOfShaderInput(dropdown);
 
-                // Update the keyword nodes that depends on the copied keyword
+                // Update the dropdown nodes that depends on the copied dropdown
                 var dependentDropdownNodes = deserialized.GetNodes<DropdownNode>().Where(x => x.dropdown == dropdown);
                 foreach (var node in dependentDropdownNodes)
                 {

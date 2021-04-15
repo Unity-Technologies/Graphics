@@ -287,7 +287,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PropertySectionController = m_BlackboardSectionControllers[0];
             m_KeywordSectionController = m_BlackboardSectionControllers[1];
 
-
             // The Blackboard Controller is responsible for handling the default categories/sections
             foreach (var shaderProperty in DataStore.State.properties)
                 if (IsInputInDefaultCategory(shaderProperty))
