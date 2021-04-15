@@ -68,7 +68,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             {
                 int width = hdCamera.actualWidth;
                 int height = hdCamera.actualHeight;
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                bool msaa = hdCamera.msaaEnabled;
                 GetResolveDimensions(ref width, ref height);
 
                 if (msaa)
@@ -105,7 +105,7 @@ namespace  UnityEngine.Rendering.HighDefinition
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
 
-                    bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                    bool msaa = hdCamera.msaaEnabled;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.lowresWidth = passData.width;
