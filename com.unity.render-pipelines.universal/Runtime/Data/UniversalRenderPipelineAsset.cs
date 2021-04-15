@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.Universal
 {
-     public enum ShadowQuality
+    public enum ShadowQuality
     {
         Disabled,
         HardShadows,
