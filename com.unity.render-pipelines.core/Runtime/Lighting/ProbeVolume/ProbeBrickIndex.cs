@@ -309,8 +309,9 @@ namespace UnityEngine.Rendering
                     if (hr.min == -1)
                         continue;
 
+                    int indexTrans = TranslateIndex(mx, 0, mz);
 
-                    GetIndexData(ref m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                    GetIndexData(ref m_TmpUpdater, 0, base_offset + indexTrans, hr.cnt);
                     int start = volMin.y - hr.min;
                     int end = Mathf.Min(start + volCellSize, m_IndexDim.y);
                     start = Mathf.Max(start, 0);
@@ -331,14 +332,14 @@ namespace UnityEngine.Rendering
                     {
                         hr.min = -1;
                         hr.cnt = 0;
-                        UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y);
+                        UpdateIndexData(m_TmpUpdater, 0, base_offset + indexTrans, m_IndexDim.y);
                     }
                     else
                     {
                         hr.min += hmin;
                         hr.cnt  = hmax - hmin;
-                        UpdateIndexData(m_TmpUpdater, hmin, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y - hmin);
-                        UpdateIndexData(m_TmpUpdater,    0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hmin);
+                        UpdateIndexData(m_TmpUpdater, hmin, base_offset + indexTrans, m_IndexDim.y - hmin);
+                        UpdateIndexData(m_TmpUpdater,    0, base_offset + indexTrans, hmin);
                     }
 
                     // update the column offset
@@ -397,7 +398,7 @@ namespace UnityEngine.Rendering
                         {
                             hr.min = brick_min.y;
                             hr.cnt = Mathf.Min(brick_cell_size, m_IndexDim.y);
-                            UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                            UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, 0, mz), hr.cnt);
                         }
                         else
                         {
@@ -410,16 +411,17 @@ namespace UnityEngine.Rendering
                             if (shift_cnt == 0)
                             {
                                 hr.cnt = Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min);
-                                UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, brick_min.y - hr.min, mz)), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
+                                UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, brick_min.y - hr.min, mz), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
                             }
                             else
                             {
-                                GetIndexData(ref m_TmpUpdater, shift_cnt, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                                int indexTrans = TranslateIndex(mx, 0, mz);
+                                GetIndexData(ref m_TmpUpdater, shift_cnt, base_offset + indexTrans, hr.cnt);
 
                                 hr.min = lowest_limit;
                                 hr.cnt += shift_cnt;
 
-                                UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                                UpdateIndexData(m_TmpUpdater, 0, base_offset + indexTrans, hr.cnt);
 
                                 // restore pool idx array
                                 for (int cidx = shift_cnt; cidx < brick_cell_size; cidx++)
@@ -457,9 +459,9 @@ namespace UnityEngine.Rendering
             outMaxpos = new Vector3Int(maxpos_x, maxpos_y, maxpos_z);
         }
 
-        private int TranslateIndex(Vector3Int pos)
+        private int TranslateIndex(int posX, int posY, int posZ)
         {
-            return pos.z * (m_IndexDim.x * m_IndexDim.y) + pos.x * m_IndexDim.y + pos.y;
+            return posZ * (m_IndexDim.x * m_IndexDim.y) + posX * m_IndexDim.y + posY;
         }
 
         private int MergeIndex(int index, int size)
