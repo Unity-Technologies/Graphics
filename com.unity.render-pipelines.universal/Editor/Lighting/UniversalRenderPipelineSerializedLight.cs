@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal
     {
         /// <summary>The base settings of the light</summary>
         public LightEditor.Settings settings { get; }
-        /// <summary>The camera serialized</summary>
+        /// <summary>The light serialized</summary>
         public SerializedObject serializedObject { get; }
         /// <summary>The additional light data serialized</summary>
         public SerializedObject serializedAdditionalDataObject { get; private set; }
@@ -37,14 +37,6 @@ namespace UnityEditor.Rendering.Universal
             settings.ApplyModifiedProperties();
         }
 
-        /// <summary>Method that refreshes the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>
-        public void Refresh()
-        {
-            lightsAdditionalData = CoreEditorUtils
-                .GetAdditionalData<UniversalAdditionalLightData>(serializedObject.targetObjects);
-            serializedAdditionalDataObject = new SerializedObject(lightsAdditionalData);
-        }
-
         /// <summary>Constructor</summary>
         /// <param name="serializedObject"><see cref="SerializedObject"/> with the light</param>
         /// <param name="settings"><see cref="LightEditor.Settings"/>with the settings</param>
@@ -55,7 +47,9 @@ namespace UnityEditor.Rendering.Universal
 
             this.serializedObject = serializedObject;
 
-            Refresh();
+            lightsAdditionalData = CoreEditorUtils
+                .GetAdditionalData<UniversalAdditionalLightData>(serializedObject.targetObjects);
+            serializedAdditionalDataObject = new SerializedObject(lightsAdditionalData);
 
             intensity = serializedObject.FindProperty("m_Intensity");
 

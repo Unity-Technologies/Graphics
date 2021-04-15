@@ -500,10 +500,5 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public void Apply() => ApplyInternal(withDeportedEmissiveMeshData: true);
-
-        public void Refresh()
-        {
-            RefreshEmissiveMeshReference();
-        }
     }
 }

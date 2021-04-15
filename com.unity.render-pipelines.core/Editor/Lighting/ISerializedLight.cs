@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
     {
         /// <summary>The base settings of the light</summary>
         LightEditor.Settings settings { get; }
-        /// <summary>The camera serialized</summary>
+        /// <summary>The light serialized</summary>
         SerializedObject serializedObject { get; }
         /// <summary>The additinal light data serialized</summary>
         SerializedObject serializedAdditionalDataObject { get; }
@@ -20,8 +20,5 @@ namespace UnityEditor.Rendering
 
         /// <summary>Method that applies the modified properties the <see cref="SerializedObject"/> of the Light and the Light Camera Data</summary>
         void Apply();
-
-        /// <summary>Method that refreshes the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>
-        void Refresh();
     }
 }
