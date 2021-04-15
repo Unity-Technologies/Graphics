@@ -60,7 +60,7 @@ The component's Inspector window
 |__Asset Pixels Per Unit__|This is the amount of pixels that make up one unit of the Scene. Match this value to the __Pixels Per Unit__ values of all Sprites in the Scene.|
 |__Reference Resolution__|This is the original resolution your Assets are designed for.|
 |__Crop Frame__| Describes what to do when there is a difference in aspect ratio.
-|__Grid Snapping__| Describes how to handle snapping. 
+|__Grid Snapping__| Describes how to handle snapping.
 |__Current Pixel Ratio__|Shows the size ratio of the rendered Sprites compared to their original size.|
 
 ## Additional Property Details
@@ -94,4 +94,3 @@ Crops the viewport based on the option selected, adding black bars to match the 
 | ![Uncropped cat](Images/2D/2D_Pix_image_8.png) | ![Cropped cat](Images/2D/2D_Pix_image_9.png) |
 | :--------------------------------------------: | :------------------------------------------: |
 |                   Uncropped                    |                   Cropped                    |
-
