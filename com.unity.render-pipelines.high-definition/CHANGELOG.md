@@ -148,6 +148,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera preview with multi selection (case 1324126).
 - Fixed a NaN generating in Area light code.
 - Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
