@@ -252,7 +252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21aa50131bc134f04a14efdbeb7686be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pipelineAsset: {fileID: 11400000, guid: 9b9c0b62deeea4218843a7ad59325649, type: 2}
+  m_PipelineAsset: {fileID: 11400000, guid: 9b9c0b62deeea4218843a7ad59325649, type: 2}
 --- !u!1 &135007738
 GameObject:
   m_ObjectHideFlags: 0
@@ -792,7 +792,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6372940999085919642, guid: 3c702088745584709bb36fb762733f6b, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1320,7 +1320,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x

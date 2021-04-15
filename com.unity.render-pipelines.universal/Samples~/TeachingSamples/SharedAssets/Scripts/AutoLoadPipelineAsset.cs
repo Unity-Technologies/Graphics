@@ -5,18 +5,24 @@ using UnityEngine.Rendering.Universal;
 [ExecuteAlways]
 public class AutoLoadPipelineAsset : MonoBehaviour
 {
-    public UniversalRenderPipelineAsset pipelineAsset;
+    [SerializeField]
+    private UniversalRenderPipelineAsset m_PipelineAsset;
+    private RenderPipelineAsset m_PreviousPipelineAsset;
 
     void OnEnable()
     {
-        UpdatePipeline();
+        if (m_PipelineAsset && GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
+        {
+            m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+        }
     }
 
-    void UpdatePipeline()
+    void OnDisable()
     {
-        if (pipelineAsset)
+        if (m_PreviousPipelineAsset)
         {
-            GraphicsSettings.renderPipelineAsset = pipelineAsset;
+            GraphicsSettings.renderPipelineAsset = m_PreviousPipelineAsset;
         }
     }
 }
