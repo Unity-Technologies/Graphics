@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering
     /// This class provides utilities for discovering how clips are used, so users can make decisions about whether or not to then update them.
     /// It has the limitation that it only knows about clips that are directly referenced by an <see cref="Animation"/> component or <see cref="AnimatorController"/> used by an <see cref="Animator"/>.
     /// It does not know about clips that might be referenced in other ways for run-time reassignment.
-    /// Recommended usage is to call <see cref="DoUpgradeAllClipsMenuItem"/> or <see cref="DoUpgradeSelectedClipsMenuItem"/> and their associated validation functions from menu item functions.
+    /// Recommended usage is to call <see cref="DoUpgradeAllClipsMenuItem"/> from a menu item callback.
     /// The utility can also provide faster, more reliable results if it knows what <see cref="MaterialUpgrader"/> was used to upgrade specific materials.
     /// </remarks>
     static partial class AnimationClipUpgrader
@@ -512,49 +512,6 @@ namespace UnityEditor.Rendering
             DoUpgradeClipsMenuItem(clipPaths, allUpgraders, knownUpgradePaths, filterFlags);
         }
 
-        /// <summary>
-        /// Validation function for <see cref="DoUpgradeAllClipsMenuItem"/> to specify whether it is grayed out.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c> if the project contains at least one <see cref="AnimationClip"/>; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool ValidateUpgradeAllClipsMenuItem() =>
-            AssetDatabase.FindAssets("t:AnimationClip").Length > 0;
-
-        /// <summary>
-        /// A function to call from a menu item callback, which will upgrade all currently selected <see cref="AnimationClip"/>.
-        /// </summary>
-        /// <param name="allUpgraders">All <see cref="MaterialUpgrader"/> for the current render pipeline.</param>
-        /// <param name="knownUpgradePaths">
-        /// Optional mapping of materials to upgraders they are known to have used.
-        /// Without this mapping, the method makes inferences about how a material might have been upgraded.
-        /// Making these inferences is slower and possibly not sensitive to ambiguous upgrade paths.
-        /// </param>
-        /// <param name="filterFlags">
-        /// Optional flags to filter out clips that are used in ways that are not safe for upgrading.
-        /// </param>
-        public static void DoUpgradeSelectedClipsMenuItem(
-            IEnumerable<MaterialUpgrader> allUpgraders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> knownUpgradePaths = default,
-            SerializedShaderPropertyUsage filterFlags = ~SerializedShaderPropertyUsage.UsedByUpgraded
-        )
-        {
-            var clipPaths = Selection.objects
-                .OfType<AnimationClip>()
-                .Select(c => (ClipPath)c)
-                .ToArray();
-            DoUpgradeClipsMenuItem(clipPaths, allUpgraders, knownUpgradePaths, filterFlags);
-        }
-
-        /// <summary>
-        /// Validation function for <see cref="DoUpgradeSelectedClipsMenuItem"/> to specify whether it is grayed out.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c> if the selection contains at least one <see cref="AnimationClip"/>; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool ValidateUpgradeSelectedClipsMenuItem() =>
-            Selection.objects.Any(obj => obj is AnimationClip);
-
         static void DoUpgradeClipsMenuItem(
             ClipPath[] clipPaths,
             IEnumerable<MaterialUpgrader> allUpgraders,
@@ -562,6 +519,10 @@ namespace UnityEditor.Rendering
             SerializedShaderPropertyUsage filterFlags
         )
         {
+            // exit early if no clips
+            if (clipPaths?.Length == 0)
+                return;
+
             // display dialog box
             var dialogMessage = L10n.Tr(
                 "Upgrading Material curves in AnimationClips assumes you have already upgraded Materials and shaders as needed. " +
@@ -574,7 +535,7 @@ namespace UnityEditor.Rendering
                 L10n.Tr("Upgrade AnimationClips"),
                 dialogMessage,
                 L10n.Tr("Prefabs and Scenes"),
-                L10n.Tr("Cancel"),
+                L10n.Tr("Do Not Upgrade AnimationClips"),
                 L10n.Tr("Prefabs Only")
             );
 

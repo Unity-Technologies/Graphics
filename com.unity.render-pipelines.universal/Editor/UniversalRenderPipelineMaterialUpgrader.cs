@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -23,6 +24,8 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeProjectFolder(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            // TODO: return upgrade paths and pass to AnimationClipUpgrader
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders);
         }
 
         [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
@@ -35,6 +38,8 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            // TODO: return upgrade paths and pass to AnimationClipUpgrader
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders);
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
@@ -54,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Sprites/Default");
         }
 
-        internal static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
+        private static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
         {
             /////////////////////////////////////
             //     Unity Standard Upgraders    //
