@@ -540,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        string runtimeResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+        string runtimeResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRuntimeResources.asset";
 
         internal void EnsureRuntimeResources(bool forceReload)
             => EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreResourcesCreated);
