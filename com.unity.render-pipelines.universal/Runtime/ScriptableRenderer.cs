@@ -1301,8 +1301,10 @@ namespace UnityEngine.Rendering.Universal
             // if we shouldn't use optimized store actions then fall back to the conservative safe (un-optimal!) route and just store everything
             if (!m_UseOptimizedStoreActions)
             {
-                colorStoreAction = RenderBufferStoreAction.Store;
-                depthStoreAction = RenderBufferStoreAction.Store;
+                if (colorStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    colorStoreAction = RenderBufferStoreAction.Store;
+                if (depthStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    depthStoreAction = RenderBufferStoreAction.Store;
             }
 
 
