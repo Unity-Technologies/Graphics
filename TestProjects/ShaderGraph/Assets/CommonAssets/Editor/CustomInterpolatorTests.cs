@@ -1,44 +1,48 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderGraph.UnitTests.Controllers;
-using UnityEngine.TestTools;
-using UnityEngine.UIElements;
+
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
     [TestFixture]
     internal class CustomInterpolatorTests
     {
-        static string kGraphName = "Assets/CommonAssets/Graphs/CustomInterpolatorThreshold.shadergraph";
-
-
-        public void LoadGraph()
+        [Test]
+        public void SimpleThresholdTest()
         {
-            GraphData m_Graph;
+            const string kGraphName = "Assets/CommonAssets/Graphs/CustomInterpolatorThreshold.shadergraph";
+            const int kExpectedPadding = 4;
+
+            GraphData graph;
             List<PropertyCollector.TextureInfo> lti;
             var assetCollection = new AssetCollection();
-            ShaderGraphImporter.GetShaderText(kGraphName, out lti, assetCollection, out m_Graph);
-            Assert.NotNull(m_Graph, $"Invalid graph data found for {kGraphName}");
+            ShaderGraphImporter.GetShaderText(kGraphName, out lti, assetCollection, out graph);
+            Assert.NotNull(graph, $"Invalid graph data found for {kGraphName}");
 
-            m_Graph.ValidateGraph();
+            graph.ValidateGraph();
 
-            var m_Collector = new PropertyCollector();
-            m_Graph.CollectShaderProperties(m_Collector, GenerationMode.ForReals);
+            // setup the thresholds expected by this graph. We will add some buffer against the test target's padding in case the target for the test changes.
+            int padding = kExpectedPadding - graph.activeTargets.First().padCustomInterpolatorLimit;
+            int initialErrorThreshold = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
+            int initialwarningThreshold = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
+            ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold   = 13 - padding;
+            ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold = 12 - padding;
 
-            // Open up the window
-            if (!ShaderGraphImporterEditor.ShowGraphEditWindow(kGraphName))
-            {
-                Assert.Fail("ShaderGraphImporterEditor.ShowGraphEditWindow could not open " + kGraphName);
-            }
+            graph.ValidateCustomBlockLimit();
+            var msgs = graph.messageManager.GetNodeMessages();
 
-            var m_Window = EditorWindow.GetWindow<MaterialGraphEditWindow>();
+            // this is not a granular test- but the expected error/warning messages for this graph given the thresholds and padding should be 1 of each.
+            int nWarnings = msgs.Count(nodeKey => nodeKey.Value.Any(item => item.severity == Rendering.ShaderCompilerMessageSeverity.Warning));
+            int nErrors = msgs.Count(nodeKey => nodeKey.Value.Any(item => item.severity == Rendering.ShaderCompilerMessageSeverity.Error));
+
+            // reset the thresholds.
+            ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold = initialErrorThreshold;
+            ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold = initialwarningThreshold;
+
+            // actual tests.
+            Assert.IsTrue(nErrors == 1);
+            Assert.IsTrue(nWarnings == 1);
         }
-
     }
 }
