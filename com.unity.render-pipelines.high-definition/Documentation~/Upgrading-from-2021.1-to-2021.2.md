@@ -22,4 +22,4 @@ From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as 
 
 ### Transparent Surface Type
 
-If you had materials with **Transparent Surface Type**, with a sorting priority that is excceding the new range of -50/50, you will need to remap them to the new range values. This will not affect you until you edit the sorting priority property on the material inspector.
+From 2021.2, the range for **Sorting Priority** values has decreased from between -100 and 100 to between -50 and 50. If you used transparent materials (**Surface Type** set to **Transparent**) with a sorting priority lower than -50 or greater than 50, you must remap them to within the new range. HDRP does not clamp the Sorting Priority to the new range until you edit the Sorting Priority property.
