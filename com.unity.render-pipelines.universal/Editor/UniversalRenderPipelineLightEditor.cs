@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.Universal
                 if (group.visible)
                     settings.DrawBounceIntensity();
 
-            if (UniversalRenderPipeline.asset.supportsLightLayers)
+            if (UniversalRenderPipeline.asset.supportsLightLayers && !settings.isCompletelyBaked)
             {
                 EditorGUI.BeginChangeCheck();
                 DrawLightLayerMask(m_LightLayerMask, s_Styles.LightLayer);
@@ -490,7 +490,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            if (UniversalRenderPipeline.asset.supportsLightLayers)
+            if (UniversalRenderPipeline.asset.supportsLightLayers && !settings.isCompletelyBaked)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_CustomShadowLayers, s_Styles.customShadowLayers);
