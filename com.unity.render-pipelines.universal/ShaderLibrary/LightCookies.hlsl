@@ -200,7 +200,7 @@ LightCookie LightCookie_Create(int lightIndex)
 
 // Building blocks layer: projection from world to uv
 
-half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float2 uvScale, float2 uvOffset, float2 uvWrap, half4 atlasUVRect)
+float2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, float2 uvScale, float2 uvOffset, float2 uvWrap)
 {
     // Translate and rotate 'positionWS' into the light space.
     float3 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xyz;
@@ -222,13 +222,13 @@ half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePosit
     positionUV.y = (uvWrap.y == LIGHT_COOKIE_WRAP_MODE_CLAMP)  ? saturate(positionUV.y) : positionUV.y;
 
     // Remap to atlas texture
-    half2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
-half2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, half4 atlasUVRect)
+float2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, float4 atlasUVRect)
 {
     // Translate, rotate and project 'positionWS' into the light clip space.
     float4 positionCS   = mul(worldToLightPerspective, float4(samplePositionWS, 1));
@@ -238,13 +238,13 @@ half2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sampleP
     float2 positionUV = saturate(positionNDC * 0.5 + 0.5);
 
     // Remap into rect in the atlas texture
-    half2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
-half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, half4 atlasUVRect)
+float2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, half4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
     float4 positionLS  = mul(worldToLight, float4(samplePositionWS, 1));
@@ -255,7 +255,7 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
     float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
 
     // Remap to atlas texture
-    half2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
@@ -265,7 +265,7 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
 
 half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
-    half2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE, half4(0, 0, 1, 1));
+    float2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, half4(0, 0, 1, 1), _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE);
     return MAIN_LIGHT_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).rgb;
 }
 
