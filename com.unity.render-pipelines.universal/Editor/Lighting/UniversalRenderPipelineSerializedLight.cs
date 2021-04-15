@@ -45,6 +45,9 @@ namespace UnityEditor.Rendering.Universal
             serializedAdditionalDataObject = new SerializedObject(lightsAdditionalData);
         }
 
+        /// <summary>Constructor</summary>
+        /// <param name="serializedObject"><see cref="SerializedObject"/> with the light</param>
+        /// <param name="settings"><see cref="LightEditor.Settings"/>with the settings</param>
         public UniversalRenderPipelineSerializedLight(SerializedObject serializedObject, LightEditor.Settings settings)
         {
             this.settings = settings;

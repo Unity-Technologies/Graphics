@@ -503,7 +503,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void Refresh()
         {
-            throw new System.NotImplementedException();
+            RefreshEmissiveMeshReference();
         }
     }
 }
