@@ -89,11 +89,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
-                bool hasReflectionProbes = renderingData.cullResults.visibleReflectionProbes.Length > 0;
-                // Disable reflection probe blending and box projection if we do not have any visible reflection probes
-                // In this case the only possible probe is the skybox which does not need blendning and cannot be box projected
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, hasReflectionProbes && renderingData.lightData.reflectionProbeBlending);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, hasReflectionProbes && renderingData.lightData.reflectionProbeBoxProjection);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBlending, renderingData.lightData.reflectionProbeBlending);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ReflectionProbeBoxProjection, renderingData.lightData.reflectionProbeBoxProjection);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
