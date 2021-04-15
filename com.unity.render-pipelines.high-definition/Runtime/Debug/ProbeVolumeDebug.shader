@@ -76,12 +76,12 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, uvw))
                 {
                     float L1Rx;
-                    float3 L0 = EvaluateAPVL0(apvRes, uvw, L1Rx, true);
+                    float3 L0 = EvaluateAPVL0Point(apvRes, uvw, L1Rx);
 
 #ifdef PROBE_VOLUMES_L1
-                    EvaluateAPVL1(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting, true);
+                    EvaluateAPVL1Point(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
 #elif PROBE_VOLUMES_L2
-                    EvaluateAPVL1L2(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting, true);
+                    EvaluateAPVL1Point(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 
                     bakeDiffuseLighting += L0;
