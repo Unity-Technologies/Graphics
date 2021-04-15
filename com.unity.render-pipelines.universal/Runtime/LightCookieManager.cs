@@ -20,13 +20,19 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _AdditionalLightsCookieAtlasTexture      = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
             public static readonly int _AdditionalLightsCookieAtlasFormat       = Shader.PropertyToID("_AdditionalLightsCookieAtlasFormat");
 
-            public static readonly int _AdditionalLightsWorldToLightBuffer      = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");    // TODO: really a light property
-            public static readonly int _AdditionalLightsCookieAtlasUVRectBuffer = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
-            public static readonly int _AdditionalLightsLightTypeBuffer         = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");        // TODO: really a light property
 
-            public static readonly int _AdditionalLightsWorldToLights           = Shader.PropertyToID("_AdditionalLightsWorldToLights");
+            public static readonly int _AdditionalLightsCookieAtlasUVRectBuffer = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
+            public static readonly int _AdditionalLightsWorldToLightBuffer      = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");    // TODO: really a light property
+            public static readonly int _AdditionalLightsLightTypeBuffer         = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");        // TODO: really a light property
+            public static readonly int _AdditionalLightsCookieUVScaleOffsetBuffer = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsetBuffer"); // TODO: only for directional light
+            public static readonly int _AdditionalLightsCookieUVWrapModeBuffer    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModeBuffer"); // TODO: only for directional light
+
+
             public static readonly int _AdditionalLightsCookieAtlasUVRects      = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
-            public static readonly int _AdditionalLightsLightTypes              = Shader.PropertyToID("_AdditionalLightsLightTypes");
+            public static readonly int _AdditionalLightsWorldToLights           = Shader.PropertyToID("_AdditionalLightsWorldToLights"); // TODO: really a light property
+            public static readonly int _AdditionalLightsLightTypes              = Shader.PropertyToID("_AdditionalLightsLightTypes");    // TODO: really a light property
+            public static readonly int _AdditionalLightsCookieUVScaleOffsets = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsets"); // TODO: only for directional light
+            public static readonly int _AdditionalLightsCookieUVWrapModes    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModes"); // TODO: only for directional light
         }
         public struct Settings
         {
@@ -91,15 +97,20 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4[] m_WorldToLightCpuData;
             Vector4[]   m_AtlasUVRectCpuData;
             float[]     m_LightTypeCpuData;
+            Vector4[]   m_UVScaleOffsetCpuData;
+            float[]     m_UVWrapModeCpuData;
 
-            // TODO: WorldToLight matrices should be general property of lights!!
-            ComputeBuffer  m_WorldToLightBuffer;
+            ComputeBuffer  m_WorldToLightBuffer;    // TODO: WorldToLight matrices should be general property of lights!!
             ComputeBuffer  m_AtlasUVRectBuffer;
             ComputeBuffer  m_LightTypeBuffer;
+            ComputeBuffer  m_UVScaleOffsetBuffer;
+            ComputeBuffer  m_UVWrapModeBuffer;
 
             public Matrix4x4[] worldToLights => m_WorldToLightCpuData;
             public Vector4[]   atlasUVRects  => m_AtlasUVRectCpuData;
             public float[]     lightTypes => m_LightTypeCpuData;
+            public Vector4[]   uvScaleOffsets  => m_UVScaleOffsetCpuData;
+            public float[]     uvWrapModes  => m_UVWrapModeCpuData;
 
             public LightCookieShaderData(int size, bool useStructuredBuffer)
             {
@@ -114,6 +125,8 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer?.Dispose();
                     m_AtlasUVRectBuffer?.Dispose();
                     m_LightTypeBuffer?.Dispose();
+                    m_UVScaleOffsetBuffer?.Dispose();
+                    m_UVWrapModeBuffer?.Dispose();
                 }
             }
 
@@ -130,11 +143,15 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer = new ComputeBuffer(size, Marshal.SizeOf<Matrix4x4>());
                     m_AtlasUVRectBuffer  = new ComputeBuffer(size, Marshal.SizeOf<Vector4>());
                     m_LightTypeBuffer    = new ComputeBuffer(size, Marshal.SizeOf<float>());
+                    m_UVScaleOffsetBuffer = new ComputeBuffer(size, Marshal.SizeOf<float4>());
+                    m_UVWrapModeBuffer   = new ComputeBuffer(size, Marshal.SizeOf<float>());
                 }
 
-                m_WorldToLightCpuData = new Matrix4x4[size];
-                m_AtlasUVRectCpuData  = new Vector4[size];
-                m_LightTypeCpuData    = new float[size];
+                m_WorldToLightCpuData  = new Matrix4x4[size];
+                m_AtlasUVRectCpuData   = new Vector4[size];
+                m_LightTypeCpuData     = new float[size];
+                m_UVScaleOffsetCpuData = new Vector4[size];
+                m_UVWrapModeCpuData    = new float[size];
 
                 m_Size = size;
             }
@@ -146,16 +163,22 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer.SetData(m_WorldToLightCpuData);
                     m_AtlasUVRectBuffer.SetData(m_AtlasUVRectCpuData);
                     m_LightTypeBuffer.SetData(m_LightTypeCpuData);
+                    m_UVScaleOffsetBuffer.SetData(m_UVScaleOffsetCpuData);
+                    m_UVWrapModeBuffer.SetData(m_UVWrapModeCpuData);
 
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsWorldToLightBuffer, m_WorldToLightBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieAtlasUVRectBuffer, m_AtlasUVRectBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsLightTypeBuffer, m_LightTypeBuffer);
+                    cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieUVScaleOffsetBuffer, m_UVScaleOffsetBuffer);
+                    cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieUVWrapModeBuffer, m_UVWrapModeBuffer);
                 }
                 else
                 {
                     cmd.SetGlobalMatrixArray(ShaderProperty._AdditionalLightsWorldToLights, m_WorldToLightCpuData);
                     cmd.SetGlobalVectorArray(ShaderProperty._AdditionalLightsCookieAtlasUVRects, m_AtlasUVRectCpuData);
                     cmd.SetGlobalFloatArray(ShaderProperty._AdditionalLightsLightTypes, m_LightTypeCpuData);
+                    cmd.SetGlobalVectorArray(ShaderProperty._AdditionalLightsCookieUVScaleOffsets, m_UVScaleOffsetCpuData);
+                    cmd.SetGlobalFloatArray(ShaderProperty._AdditionalLightsCookieUVWrapModes, m_UVWrapModeCpuData);
                 }
             }
         }
@@ -171,11 +194,11 @@ namespace UnityEngine.Rendering.Universal
 
         void InitAdditionalLights(int size)
         {
-            if (m_Settings.atlas.isPow2)
+            if (/*m_Settings.atlas.useMips &&*/ m_Settings.atlas.isPow2)
             {
                 m_AdditionalLightsCookieAtlas = new PowerOfTwoTextureAtlas(
                     m_Settings.atlas.resolution.x,
-                    1,    // TODO: what's the correct value here, how many mips before bleed?
+                    0,    // TODO: what's the correct value here, how many mips before bleed? // Mip border appear to grow inwards.
                     m_Settings.atlas.format,
                     FilterMode.Bilinear,    // TODO: option?
                     "Universal Light Cookie Pow2 Atlas",
@@ -396,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    Debug.Assert(light.type == LightType.Spot);
+                    Debug.Assert(light.type == LightType.Spot || light.type == LightType.Directional, "Light type needs 2D texture!");
                     uvScaleOffset = Fetch2D(cmd, cookie);
                 }
 
@@ -544,6 +567,8 @@ namespace UnityEngine.Rendering.Universal
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
+            var uvScaleOffsets = m_AdditionalLightsCookieShaderData.uvScaleOffsets;
+            var uvWrapModes = m_AdditionalLightsCookieShaderData.uvWrapModes;
 
             // TODO: clear enable bits instead
             // Set all rects to Invalid (Vector4.zero).
@@ -573,6 +598,21 @@ namespace UnityEngine.Rendering.Universal
 
                     // world -> light local -> light perspective
                     worldToLights[bufIndex] = perp * worldToLights[bufIndex];
+                }
+
+                if (lightData.visibleLights[visIndex].lightType == LightType.Directional)
+                {
+                    Vector2 uvScale = Vector2.one;
+                    Vector2 uvOffset = Vector2.zero;
+
+                    // TODO: should get this data somewhere higher up
+                    var light = lightData.visibleLights[visIndex].light;
+                    var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
+                    if (additionalLightData != null)
+                        GetLightUVScaleOffset(additionalLightData, ref uvScale, ref uvOffset);
+
+                    uvScaleOffsets[bufIndex] = new Vector4(uvScale.x, uvScale.y, uvOffset.x, uvOffset.y);
+                    uvWrapModes[bufIndex] = (float)light?.cookie.wrapMode;
                 }
             }
 

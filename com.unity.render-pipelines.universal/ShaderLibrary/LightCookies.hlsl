@@ -40,14 +40,18 @@ CBUFFER_END
 // TODO: pack data
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light! Move to Input.hlsl
-    StructuredBuffer<half4>    _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
+    StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
+    StructuredBuffer<float4>   _AdditionalLightsCookieUVScaleOffsetBuffer; // UV scale and offset for repeated textures (xy: uv offset, zw: uv size)
+    StructuredBuffer<float>    _AdditionalLightsCookieUVWrapModeBuffer; // UV wrap mode for repeated textures (xy: uv offset, zw: uv size)
     StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light! Move to Input.hlsl
 #else
     #ifndef SHADER_API_GLES3
         CBUFFER_START(AdditionalLightsCookies)
     #endif
             float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS_UBO];  // TODO: Should really be a property of the light !!!
-            half4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS_UBO]; // (xy: uv offset, zw: uv size)
+            float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS_UBO]; // (xy: uv offset, zw: uv size)
+            float4 _AdditionalLightsCookieUVScaleOffsets[MAX_VISIBLE_LIGHTS_UBO]; // UV scale and offset for repeated textures (xy: uv offset, zw: uv size) // !!! TODO !!!: waste for non-directional
+            float _AdditionalLightsCookieUVWrapModes[MAX_VISIBLE_LIGHTS_UBO]; // !!! TODO !!!: waste for non-directional
             float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS_UBO]; // TODO: Should really be a property of the light !!!
             float _AdditionalLightsCookieAtlasFormat;
     #ifndef SHADER_API_GLES3
@@ -302,11 +306,18 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
         float4x4 worldToLight = _AdditionalLightsWorldToLights[perObjectLightIndex];
     #endif
 
-    int isSpot = lightType == LIGHT_COOKIE_LIGHT_TYPE_SPOT;
+    int isSpot        = lightType == LIGHT_COOKIE_LIGHT_TYPE_SPOT;
+    int isDirectional = lightType == LIGHT_COOKIE_LIGHT_TYPE_DIRECTIONAL;
 
-    half2 uv;
+    float2 uv;
     if(isSpot)
         uv = LightCookie_ComputeUVSpot(worldToLight, samplePositionWS, uvRect);
+    else if(isDirectional)
+    {
+        float4 dirUVScaleOffset = _AdditionalLightsCookieUVScaleOffsets[perObjectLightIndex];
+        float dirUvWrapMode = _AdditionalLightsCookieUVWrapModes[perObjectLightIndex];
+        uv = LightCookie_ComputeUVDirectional(worldToLight, samplePositionWS, uvRect,dirUVScaleOffset.xy, dirUVScaleOffset.zw, dirUvWrapMode);
+    }
     else
         uv = LightCookie_ComputeUVPoint(worldToLight, samplePositionWS, uvRect);
 
