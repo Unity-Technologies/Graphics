@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
+- Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -46,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
 - Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
 - Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
+- Fixed an issue where generated property reference names could conflict with Shader Graph reserved keywords [1328762] (https://issuetracker.unity3d.com/product/unity/issues/guid/1328762/)
 
 ## [11.0.0] - 2020-10-21
 
