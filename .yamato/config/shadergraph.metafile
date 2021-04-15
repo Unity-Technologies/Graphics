@@ -11,11 +11,11 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: python .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
-      - [all]: pip install GitPython
-      - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-      - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-      - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [all]: C:/Python3/python.exe .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
+      - [all]: pip3 install GitPython
+      - [Win_DX11, Win_DX12, Win_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [OSX_Metal]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+      - [Android_OpenGLES3, Android_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       - [all]: <shared.platform.commands.call_utr>
 
   - type: playmode
@@ -32,22 +32,22 @@ test_platforms:
     - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
-    - [all]: python .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
-    - [all]: pip install GitPython
-    - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [all]: C:/Python3/python.exe .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
+    - [all]: pip3 install GitPython
+    - [Win_DX11, Win_DX12, Win_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [OSX_Metal]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [Android_OpenGLES3, Android_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [all]: <shared.platform.commands.call_utr>
   - type: editmode
     commands:
     - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
-    - [all]: python .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
-    - [all]: pip install GitPython
-    - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [all]: C:/Python3/python.exe .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
+    - [all]: pip3 install GitPython
+    - [Win_DX11, Win_DX12, Win_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [OSX_Metal]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [Android_OpenGLES3, Android_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [all]: <shared.platform.commands.call_utr>
   - type: Standalone
     name: Standalone_cache
@@ -64,11 +64,11 @@ test_platforms:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
     - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-    - [all]: python .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
-    - [all]: pip install GitPython
-    - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [all]: C:/Python3/python.exe .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
+    - [all]: pip3 install GitPython
+    - [Win_DX11, Win_DX12, Win_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [OSX_Metal]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
+    - [Android_OpenGLES3, Android_Vulkan]: C:/Python3/python.exe .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [all]: <shared.platform.commands.call_utr>
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
