@@ -77,7 +77,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Apple_Silicon_Metal]: --player-connection-ip=auto
-      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal
+      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal --extra-editor-arg="-force-metal"
 
     utr_flags_build:
       - [all]: --testfilter=%TEST_FILTER%
@@ -91,7 +91,7 @@ test_platforms:
       - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
-      - [OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
+      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal --extra-editor-arg="-force-metal"
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
