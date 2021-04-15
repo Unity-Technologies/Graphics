@@ -1248,6 +1248,11 @@ namespace UnityEditor.ShaderGraph
             return (isSubGraph && input.allowedInSubGraph) || (!isSubGraph && input.allowedInMainGraph);
         }
 
+        public bool IsInputAllowedInGraph(AbstractMaterialNode node)
+        {
+            return (isSubGraph && node.allowedInSubGraph) || (!isSubGraph && node.allowedInMainGraph);
+        }
+
         // adds the input to the graph, and sanitizes the names appropriately
         public void AddGraphInput(ShaderInput input, int index = -1)
         {
@@ -1529,7 +1534,7 @@ namespace UnityEditor.ShaderGraph
             m_Dropdowns.RemoveAt(currentIndex);
             if (newIndex > currentIndex)
                 newIndex--;
-            var isLast = newIndex == m_Keywords.Count;
+            var isLast = newIndex == m_Dropdowns.Count;
             if (isLast)
                 m_Dropdowns.Add(dropdown);
             else
@@ -1894,7 +1899,7 @@ namespace UnityEditor.ShaderGraph
                 if ((node is BlockNode) || (node is MultiJsonInternal.UnknownNodeType))
                     continue;
 
-                if ((isSubGraph && !node.allowedInSubGraph) || (!isSubGraph && !node.allowedInMainGraph))
+                if (!IsInputAllowedInGraph(node))
                     continue;
 
                 AbstractMaterialNode pastedNode = node;
