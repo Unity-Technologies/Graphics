@@ -4,6 +4,7 @@ using Moq;
 using NUnit.Framework;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using RenameType = UnityEditor.Rendering.MaterialUpgrader.RenameType;
+using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 using static UnityEditor.Rendering.Tests.UpgraderTestUtility;
 
 namespace UnityEditor.Rendering.Tests
@@ -211,9 +212,9 @@ namespace UnityEditor.Rendering.Tests
             var material = new Mock<IMaterial>();
             material.SetupGet(m => m.ShaderName).Returns(materialShaderName);
             var allUpgradePathsToNewShaders = CreateUpgradePathsToNewShaders(materialUpgraders);
-            var upgradePathsUsedByMaterials = new Dictionary<IMaterial, MaterialUpgrader>
+            var upgradePathsUsedByMaterials = new Dictionary<UID, MaterialUpgrader>
             {
-                [material.Object] = CreateMaterialUpgraders(materialUpgraders)[0]
+                [material.Object.ID] = CreateMaterialUpgraders(materialUpgraders)[0]
             };
 
             var actualUsage = UpgradeUtility.GetNewPropertyName(

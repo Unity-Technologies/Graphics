@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
+using UID = UnityEditor.Rendering.UpgradeUtility.UID;
 
 namespace UnityEditor.Rendering
 {
@@ -173,7 +174,7 @@ namespace UnityEditor.Rendering
                 (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials = default
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
         )
         {
             // check all dependents for usage
@@ -221,7 +222,7 @@ namespace UnityEditor.Rendering
                 PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials = default
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
         )
         {
             // check all dependents for usage
@@ -255,7 +256,7 @@ namespace UnityEditor.Rendering
                 (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials = default
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
         )
         {
             // first check clip usage among GameObjects with legacy Animation
@@ -334,11 +335,10 @@ namespace UnityEditor.Rendering
             IEnumerable<IAnimationClip> clips,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string>
-                PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials
         )
         {
             // TODO: report paths of specific assets that contribute to problematic results?
@@ -398,7 +398,7 @@ namespace UnityEditor.Rendering
             > clipData,
             IReadOnlyDictionary<string, (IRenderer Renderer, List<IMaterial> Materials)> renderersByPath,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials
         )
         {
             // exit if clip is unknown; it may have been filtered at an earlier stage
@@ -502,7 +502,7 @@ namespace UnityEditor.Rendering
         /// </param>
         public static void DoUpgradeAllClipsMenuItem(
             IEnumerable<MaterialUpgrader> allUpgraders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> knownUpgradePaths = default,
+            IReadOnlyDictionary<UID, MaterialUpgrader> knownUpgradePaths = default,
             SerializedShaderPropertyUsage filterFlags = ~SerializedShaderPropertyUsage.UsedByUpgraded
         )
         {
@@ -515,7 +515,7 @@ namespace UnityEditor.Rendering
         static void DoUpgradeClipsMenuItem(
             ClipPath[] clipPaths,
             IEnumerable<MaterialUpgrader> allUpgraders,
-            IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials,
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials,
             SerializedShaderPropertyUsage filterFlags
         )
         {
