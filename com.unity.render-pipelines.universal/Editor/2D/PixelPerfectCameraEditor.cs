@@ -1,9 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(PixelPerfectCamera))]
     class PixelPerfectCameraEditor : Editor

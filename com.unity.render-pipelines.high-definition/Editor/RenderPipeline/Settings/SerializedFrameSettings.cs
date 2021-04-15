@@ -46,9 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
             => m_BitDatas.HasBitMultipleDifferentValue((uint)field);
 
         public bool GetOverrides(FrameSettingsField field)
-            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrp global settings
         public void SetOverrides(FrameSettingsField field, bool value)
-            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrp global settings
         public bool HaveMultipleOverride(FrameSettingsField field)
             => m_BitOverrides?.HasBitMultipleDifferentValue((uint)field) ?? false;
 
