@@ -27,7 +27,7 @@ PR_PostProcessing_trunk:
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.postprocessing/**/*",  "TestProjects/PostProcessing_Tests/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.postprocessing/**/*",  "TestProjects/PostProcessing_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*

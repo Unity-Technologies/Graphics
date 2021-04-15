@@ -42,7 +42,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1323744]
 - Fixed a regression where custom function node file-included functions could not access shadergraph properties [1322467]
-
+- Fixed default shadergraph precision so it matches what is displayed in the graph settings UI (single) [1325934]
+- Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
+- Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
 
 ## [11.0.0] - 2020-10-21
 

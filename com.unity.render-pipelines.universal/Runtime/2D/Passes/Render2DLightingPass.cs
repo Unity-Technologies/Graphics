@@ -283,6 +283,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 for (var i = 0; i < batchCount; i += batchesDrawn)
                     batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
+                this.DisableAllKeywords(cmd);
                 this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -308,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
+                this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 

@@ -51,8 +51,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        enum SourceFileStatus
+        {
+            Empty,        // No File specified
+            DoesNotExist, // Either file doesn't exist (empty name) or guid points to a non-existant file
+            Invalid,      // File exists but isn't of a valid type (such as wrong extension)
+            Valid
+        };
         public static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
         const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
+        const string k_MissingFile = "Source file does not exist. A valid .hlsl or .cginc file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
@@ -385,26 +393,37 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
+            bool hasAnyOutputs = this.GetOutputSlots<MaterialSlot>().Any();
             if (sourceType == HlslSourceType.File)
             {
+                SourceFileStatus fileStatus = SourceFileStatus.Empty;
                 if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                    if (!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path) && AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path) != null)
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
                         if (!s_ValidExtensions.Contains(extension))
                         {
-                            owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                            fileStatus = SourceFileStatus.Invalid;
                         }
                         else
                         {
-                            owner.ClearErrorsForNode(this);
+                            fileStatus = SourceFileStatus.Valid;
                         }
                     }
+                    else
+                        fileStatus = SourceFileStatus.DoesNotExist;
                 }
+
+                if (fileStatus == SourceFileStatus.DoesNotExist || (fileStatus == SourceFileStatus.Empty && hasAnyOutputs))
+                    owner.AddValidationError(objectId, k_MissingFile, ShaderCompilerMessageSeverity.Error);
+                else if (fileStatus == SourceFileStatus.Invalid)
+                    owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                else if (fileStatus == SourceFileStatus.Valid)
+                    owner.ClearErrorsForNode(this);
             }
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            if (!hasAnyOutputs)
             {
                 owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }

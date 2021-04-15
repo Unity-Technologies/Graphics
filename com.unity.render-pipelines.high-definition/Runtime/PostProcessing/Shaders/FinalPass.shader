@@ -93,7 +93,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(CONTRASTADAPTIVESHARPEN)
-            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, round(input.texcoord * _ViewPortSize.xy)).CTYPE_SWIZZLE;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy).CTYPE_SWIZZLE;
             #else
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif

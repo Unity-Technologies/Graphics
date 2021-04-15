@@ -308,7 +308,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // when in "Graph switchable" mode, we choose Half as the default concrete precision
                 // so you can visualize the worst-case
-                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+                return graphDefaultPrecision.ToConcrete(ConcretePrecision.Half);
             }
         }
 
