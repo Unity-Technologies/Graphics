@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -69,9 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lightCluster = RequestLightCluster();
 
             // Shaders
-            deferredParameters.gBufferRaytracingRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
+            deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
+            deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
 
             // XRTODO: add ray binning support for single-pass
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.fullResolution = settings.fullResolution;
 
                 // Grab the right kernel
-                passData.directionGenCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.dirGenKernel = settings.fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
                 // Grab the additional parameters
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.upscaleRadius = settings.upscaleRadius;
 
                 // Grab the right kernel
-                passData.upscaleCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.upscaleKernel = settings.fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
                 // Grab the additional parameters
@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 // Grab the right kernel
-                passData.adjustWeightCS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.adjustWeightCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
                 passData.adjustWeightKernel = m_AdjustIndirectDiffuseWeightKernel;
 
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lodBias = settings.textureLodBias.value;
 
                 // Grab the additional parameters
-                passData.indirectDiffuseRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
+                passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
                 passData.accelerationStructure = RequestAccelerationStructure();
                 passData.lightCluster = RequestLightCluster();
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
