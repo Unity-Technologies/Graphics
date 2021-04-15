@@ -5,10 +5,6 @@
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
-#pragma warning (disable : 3205) // conversion of larger type to smaller
-#endif
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"

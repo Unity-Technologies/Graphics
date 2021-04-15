@@ -114,33 +114,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { CorePasses.DepthOnly },
                 },
             };
-
-            public static SubShaderDescriptor UnlitDOTS
-            {
-                get
-                {
-                    var unlit = UnlitPasses.Unlit;
-                    var shadowCaster = CorePasses.ShadowCaster;
-                    var depthOnly = CorePasses.DepthOnly;
-
-                    unlit.pragmas = CorePragmas.Forward;
-                    shadowCaster.pragmas = CorePragmas.Instanced;
-                    depthOnly.pragmas = CorePragmas.Instanced;
-
-                    return new SubShaderDescriptor()
-                    {
-                        //pipelineTag = BuiltInTarget.kPipelineTag,
-                        customTags = BuiltInTarget.kUnlitMaterialTypeTag,
-                        generatesPreview = true,
-                        passes = new PassCollection
-                        {
-                            { unlit },
-                            { shadowCaster },
-                            { depthOnly },
-                        },
-                    };
-                }
-            }
         }
         #endregion
 

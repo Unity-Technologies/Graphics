@@ -9,7 +9,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 
-// XXXjesseb - Add BuiltIn{Unlit,Lit,etc.}SubTarget.cs parallel to the Universal ones
+
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
     public enum MaterialType
@@ -409,7 +409,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #endregion
     }
 
-    // XXXjesseb - Fix this!  Universal references.
     #region Passes
     static class CorePasses
     {
@@ -573,10 +572,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.One) },
 
             { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendMultiply, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
         };
 
         public static readonly RenderStateCollection Meta = new RenderStateCollection
@@ -613,9 +609,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     #endregion
 
     #region Pragmas
-    // TODO: should these be renamed and moved to BuiltInStuff/BuiltInPragmas.cs ?
-    // TODO: these aren't "core" as HDRP doesn't use them
-    // TODO: and the same for the rest "Core" things
+
     static class CorePragmas
     {
         public static readonly PragmaCollection Default = new PragmaCollection
@@ -695,9 +689,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         const string kDepthOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kDepthNormalsOnlyPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
-        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
 
         const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
+        const string kLegacySurfaceVertex = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LegacySurfaceVertex.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -706,7 +700,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { kCore, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
-            //{ kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
+            { kLegacySurfaceVertex, IncludeLocation.Pregraph },
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
@@ -770,8 +764,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     #endregion
 
     #region KeywordDescriptors
-    // TODO: should these be renamed and moved to BuiltInStuff/BuiltInKeywords.cs ?
-    // TODO: these aren't "core" as they aren't used by HDRP
+
     static class CoreKeywordDescriptors
     {
         public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()

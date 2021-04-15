@@ -5,23 +5,23 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 
     $splice(CustomInterpolatorCopyToSDI)
 
-    $SurfaceDescriptionInputs.WorldSpaceNormal: // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
-    $SurfaceDescriptionInputs.WorldSpaceNormal: float3 unnormalizedNormalWS = input.normalWS;
-    $SurfaceDescriptionInputs.WorldSpaceNormal: const float renormFactor = 1.0 / length(unnormalizedNormalWS);
+    $SurfaceDescriptionInputs.WorldSpaceNormal:          // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
+    $SurfaceDescriptionInputs.WorldSpaceNormal:          float3 unnormalizedNormalWS = input.normalWS;
+    $SurfaceDescriptionInputs.WorldSpaceNormal:          const float renormFactor = 1.0 / length(unnormalizedNormalWS);
 
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent: // use bitangent on the fly like in hdrp
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent: // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent: float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0)* GetOddNegativeScale();
-    $SurfaceDescriptionInputs.WorldSpaceBiTangent: float3 bitang = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:       // use bitangent on the fly like in hdrp
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:       // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:       float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0)* GetOddNegativeScale();
+    $SurfaceDescriptionInputs.WorldSpaceBiTangent:       float3 bitang = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
 
     $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal = renormFactor * input.normalWS.xyz;      // we want a unit length Normal Vector node in shader graph
     $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal = normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
     $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal = mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
     $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal = float3(0.0f, 0.0f, 1.0f);
 
-    $SurfaceDescriptionInputs.WorldSpaceTangent: // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
-    $SurfaceDescriptionInputs.WorldSpaceTangent: // This is explained in section 2.2 in "surface gradient based bump mapping framework"
-    $SurfaceDescriptionInputs.WorldSpaceTangent: output.WorldSpaceTangent = renormFactor * input.tangentWS.xyz;
+    $SurfaceDescriptionInputs.WorldSpaceTangent:         // to preserve mikktspace compliance we use same scale renormFactor as was used on the normal.
+    $SurfaceDescriptionInputs.WorldSpaceTangent:         // This is explained in section 2.2 in "surface gradient based bump mapping framework"
+    $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent = renormFactor * input.tangentWS.xyz;
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent = renormFactor * bitang;
 
     $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent = TransformWorldToObjectDir(output.WorldSpaceTangent);
@@ -58,41 +58,19 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
         return output;
 }
 
-struct v2f_surf {
-  float4 pos;//UNITY_POSITION(pos);
-  float3 worldNormal;// : TEXCOORD1;
-  float3 worldPos;// : TEXCOORD2;
-  float3 viewDir;
-  float4 lmap;// : TEXCOORD3;
-  #if UNITY_SHOULD_SAMPLE_SH
-  half3 sh;// : TEXCOORD3; // SH
-  #endif
-  float1 fogCoord; //UNITY_FOG_COORDS(4)
-  DECLARE_LIGHT_COORDS(4)//unityShadowCoord4 _LightCoord;
-  UNITY_SHADOW_COORDS(5)//unityShadowCoord4 _ShadowCoord;
-
-  //#ifdef DIRLIGHTMAP_COMBINED
-  float4 tSpace0 : TEXCOORD6;
-  float4 tSpace1 : TEXCOORD7;
-  float4 tSpace2 : TEXCOORD8;
-  //#endif
-  UNITY_VERTEX_INPUT_INSTANCE_ID
-  UNITY_VERTEX_OUTPUT_STEREO
-};
-
 void BuildAppDataFull(Attributes attributes, VertexDescription vertexDescription, inout appdata_full result)
 {
-    $Attributes.positionOS:      result.vertex    = float4(attributes.positionOS, 1);
-    $Attributes.tangentOS:       result.tangent   = attributes.tangentOS;
-    $Attributes.normalOS:        result.normal    = attributes.normalOS;
-    $Attributes.uv0:             result.texcoord  = attributes.uv0;
-    $Attributes.uv1:             result.texcoord1 = attributes.uv1;
-    $Attributes.uv2:             result.texcoord2 = attributes.uv2;
-    $Attributes.uv3:             result.texcoord3 = attributes.uv3;
-    $Attributes.color:           result.color     = attributes.color;
-    $VertexDescription.Position: result.vertex    = float4(vertexDescription.Position, 1);
-    $VertexDescription.Normal:   result.normal    = vertexDescription.Normal;
-    $VertexDescription.Tangent:  result.tangent   = float4(vertexDescription.Tangent, 0);
+    $Attributes.positionOS:      result.vertex     = float4(attributes.positionOS, 1);
+    $Attributes.tangentOS:       result.tangent    = attributes.tangentOS;
+    $Attributes.normalOS:        result.normal     = attributes.normalOS;
+    $Attributes.uv0:             result.texcoord   = attributes.uv0;
+    $Attributes.uv1:             result.texcoord1  = attributes.uv1;
+    $Attributes.uv2:             result.texcoord2  = attributes.uv2;
+    $Attributes.uv3:             result.texcoord3  = attributes.uv3;
+    $Attributes.color:           result.color      = attributes.color;
+    $VertexDescription.Position: result.vertex     = float4(vertexDescription.Position, 1);
+    $VertexDescription.Normal:   result.normal     = vertexDescription.Normal;
+    $VertexDescription.Tangent:  result.tangent    = float4(vertexDescription.Tangent, 0);
     #if UNITY_ANY_INSTANCING_ENABLED
     $Attributes.instanceID:      result.instanceID = attributes.instanceID;
     #endif
