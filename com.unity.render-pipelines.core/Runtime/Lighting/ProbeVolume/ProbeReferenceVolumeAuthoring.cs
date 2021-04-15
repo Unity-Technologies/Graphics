@@ -142,12 +142,12 @@ namespace UnityEngine.Rendering
             if (volumeAsset == null)
                 return;
 
+#if UNITY_EDITOR
             foreach (var meshGizmo in brickGizmos.Values)
                 meshGizmo.Dispose();
             brickGizmos.Clear();
             cellGizmo?.Dispose();
 
-#if UNITY_EDITOR
             m_PrevAsset = null;
 #endif
 
