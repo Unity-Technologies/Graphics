@@ -54,8 +54,8 @@ namespace UnityEngine.Rendering
 
         private ComputeBuffer m_IndexBuffer;
         private Vector3Int    m_IndexDim;
-        private Vector3Int    m_CenterRS;   // the anchor in ref space, around which the index is defined
-        private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
+        private Vector3Int    m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
+        private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to [IMPORTANT NOTE! For now we always have it at indexDimensions / 2, so is not passed to the shader, but is kept here until development is active in case we find it useful]
         private HeightRange[] m_HeightRanges;
 #if !USE_NATIVE_ARRAY
         private int[]         m_TmpUpdater = new int[Mathf.Max(kAPVConstantsSize, ProbeReferenceVolume.CellSize(15) + 1)];
@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering
         private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
         private int                                     m_VoxelSubdivLevel = 3;
+
+        internal Vector3Int GetIndexDimension() { return m_IndexDim; }
 
         internal ProbeBrickIndex(Vector3Int indexDimensions)
         {

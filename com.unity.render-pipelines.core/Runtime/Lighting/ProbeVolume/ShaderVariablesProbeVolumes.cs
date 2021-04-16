@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// TODO
@@ -11,7 +11,14 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)APVConstantBufferRegister.GlobalRegister)]
-    public unsafe struct ShaderVariablesProbeVolumes
+    internal unsafe struct ShaderVariablesProbeVolumes
     {
+        public Matrix4x4 _WStoRS;
+
+        public Vector3 _IndexDim;
+        public float _NormalBias;
+
+        public Vector3 _PoolDim;
+        public float pad0;
     }
 }

@@ -231,6 +231,8 @@ namespace UnityEngine.Rendering
 
         internal float normalBiasFromProfile;
 
+        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
         /// <summary>
@@ -794,6 +796,23 @@ namespace UnityEngine.Rendering
                 }
             }
             Profiler.EndSample();
+        }
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <param name="normalBias"></param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
+        {
+            ShaderVariablesProbeVolumes shaderVars;
+            shaderVars._WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
+            shaderVars._IndexDim = m_Index.GetIndexDimension();
+            shaderVars._NormalBias = normalBias;
+            shaderVars._PoolDim = m_Pool.GetPoolDimensions();
+            shaderVars.pad0 = 0;
+
+            ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
 
         /// <summary>

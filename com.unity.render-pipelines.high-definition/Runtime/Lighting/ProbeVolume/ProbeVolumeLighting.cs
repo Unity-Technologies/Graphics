@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
@@ -61,10 +63,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
         {
             bool loadedData = ProbeReferenceVolume.instance.DataHasBeenLoaded();
             cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData) ? 1u : 0u;
+
+            var probeVolumeOptions = hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>();
+            var normalBias = probeVolumeOptions.normalBias.value;
+
+            ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, normalBias);
         }
     }
 }

@@ -15,6 +15,6 @@ namespace UnityEngine.Experimental.Rendering
         /// The overridden normal bias to be applied to the world position when sampling the Probe Volumes data structure. Units is meters.
         /// </summary>
         [Tooltip("The overridden normal bias to be applied to the world position when sampling the Probe Volumes data structure. Units is meters.")]
-        public ClampedFloatParameter normalBiasOverride = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
+        public ClampedFloatParameter normalBias = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
     }
 }
