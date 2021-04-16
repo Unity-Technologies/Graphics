@@ -7,7 +7,7 @@ using UnityEditor;
 
 public class Editmode_ParametricReflectionProbeTests
 {
-	private readonly string sceneOutputPath = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking";
+	private readonly string sceneOutputPath = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake";
 	private readonly string sceneFileName = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake.unity";
 	private readonly string[] foldersToLookIn = { "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/settings" };
     
@@ -59,15 +59,15 @@ public class Editmode_ParametricReflectionProbeTests
         "nonAuto-nonProgressive",
 	};
 
-	[OneTimeTearDown]
-	public void Cleanup()
-	{
-		// Remove all lightmaps.
-		System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(sceneOutputPath);
-		foreach (System.IO.FileInfo file in di.GetFiles())
-			file.Delete();
-		foreach (System.IO.DirectoryInfo dir in di.GetDirectories())
-			dir.Delete(true);
-		System.IO.Directory.Delete(sceneOutputPath);
-	}
+    [OneTimeTearDown]
+    public void Cleanup()
+    {
+        // Remove all lightmaps.
+        System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(sceneOutputPath);
+        foreach (System.IO.FileInfo file in di.GetFiles())
+            file.Delete();
+        foreach (System.IO.DirectoryInfo dir in di.GetDirectories())
+            dir.Delete(true);
+        System.IO.Directory.Delete(sceneOutputPath);
+    }
 }
