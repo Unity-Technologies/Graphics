@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Global settings check in Wizard
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
+- Added missing camera tooltips (Occlusion Culling and Culling Mask)
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
