@@ -126,7 +126,6 @@ namespace UnityEngine.Rendering
             refVol.Clear();
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
-            refVol.SetNormalBias(m_Profile.normalBias);
 
             refVol.AddPendingAssetLoading(volumeAsset);
         }

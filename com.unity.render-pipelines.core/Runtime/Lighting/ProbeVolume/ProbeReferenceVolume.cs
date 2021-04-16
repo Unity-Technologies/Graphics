@@ -199,7 +199,6 @@ namespace UnityEngine.Rendering
 
         private int m_ID = 0;
         private RefVolTransform m_Transform;
-        private float m_NormalBias;
         private int m_MaxSubdivision;
         private ProbeBrickPool m_Pool;
         private ProbeBrickIndex m_Index;
@@ -228,8 +227,6 @@ namespace UnityEngine.Rendering
         // a pending request for re-init (and what it implies) is added from the editor.
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
-
-        internal float normalBiasFromProfile;
 
         private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
@@ -335,16 +332,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void PerformPendingNormalBiasChange()
-        {
-            if (m_NormalBias != normalBiasFromProfile)
-            {
-                m_NormalBias = normalBiasFromProfile;
-                if (m_Index != null)
-                    m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-            }
-        }
-
         private void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
@@ -419,7 +406,6 @@ namespace UnityEngine.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
-            PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
         }
@@ -451,11 +437,6 @@ namespace UnityEngine.Rendering
                 Profiler.EndSample();
 
                 m_ProbeReferenceVolumeInit = true;
-
-                // Write constants on init to start with right data.
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-                // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor
-                normalBiasFromProfile = m_NormalBias;
             }
             m_NeedLoadAsset = true;
         }
@@ -466,8 +447,6 @@ namespace UnityEngine.Rendering
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
-
-            m_NormalBias = 0f;
         }
 
         /// <summary>
@@ -494,8 +473,6 @@ namespace UnityEngine.Rendering
         }
 
         internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
-        internal void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
-
         internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
         internal float MinBrickSize() { return m_Transform.scale; }
@@ -726,7 +703,6 @@ namespace UnityEngine.Rendering
 
             // update the index
             m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
 
             Profiler.EndSample();
 

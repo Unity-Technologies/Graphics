@@ -72,7 +72,6 @@ namespace UnityEngine.Rendering
                 refVol.Clear();
                 refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
-                refVol.SetNormalBias(refVolAuthoring.normalBias);
             }
 
             cellIndex2SceneReferences.Clear();

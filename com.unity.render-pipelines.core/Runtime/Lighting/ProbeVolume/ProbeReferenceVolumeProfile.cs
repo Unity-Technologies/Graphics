@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering
     {
         private SerializedProperty m_CellSize;
         private SerializedProperty m_MinDistanceBetweenProbes;
-        private SerializedProperty m_NormalBias;
         private SerializedProperty m_IndexDimensions;
 
         sealed class Styles
@@ -64,7 +63,6 @@ namespace UnityEngine.Rendering
             // TODO: Better tooltip are needed here.
             public readonly GUIContent cellSizeStyle = new GUIContent("Cell Size", "Determine the size of the cells.");
             public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
-            public readonly GUIContent normalBias = new GUIContent("Normal Bias", "The normal bias used when sampling the volume. It can reduce leaking.");
             public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
 
@@ -74,7 +72,6 @@ namespace UnityEngine.Rendering
         {
             m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSize));
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));
-            m_NormalBias = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.normalBias));
         }
 
         public override void OnInspectorGUI()
@@ -84,9 +81,6 @@ namespace UnityEngine.Rendering
 
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
-            EditorGUILayout.PropertyField(m_NormalBias, s_Styles.normalBias);
-
-            ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
 
             if (EditorGUI.EndChangeCheck())
             {

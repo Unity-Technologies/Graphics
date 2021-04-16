@@ -19,7 +19,6 @@ struct APVConstants
     uint3       poolDim;    // resolution of the brick pool
 };
 
-static const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
 struct APVResources
 {
@@ -127,7 +126,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 
 #ifdef APV_USE_BASE_OFFSET
     // get the y-offset
-    int  yoffset = apvRes.index[kAPVConstantsSize + index.z * (int)indexDim.x + index.x];
+    int  yoffset = apvRes.index[index.z * (int)indexDim.x + index.x];
     if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(indexDim.y))
     {
         hasValidUVW = false;
@@ -137,7 +136,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 #endif
 
     // resolve the index
-    int  base_offset = kAPVConstantsSize + indexDim.x * indexDim.z;
+    int  base_offset = indexDim.x * indexDim.z;
     int  flattened_index = index.z * (indexDim.x * indexDim.y) + index.x * indexDim.y + index.y;
     uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
 
