@@ -27,7 +27,8 @@ public class Editmode_ParametricReflectionProbeTests
 		string fileName = System.IO.Path.GetFileNameWithoutExtension(lsaPath);
 		Assert.That(fileName, Is.EqualTo(name));
 		Lightmapping.Clear();
-		Debug.Log("Baking " + fileName);
+        Lightmapping.ClearDiskCache();
+        Debug.Log("Baking " + fileName);
 		bool result = Lightmapping.Bake();
 		Assert.That(result, Is.True);
 		
@@ -53,8 +54,8 @@ public class Editmode_ParametricReflectionProbeTests
 	}
 	
 	static string[] FixtureArgs = {
-		"Auto-Progressive",
-        "Auto-nonProgressive",
+//		"Auto-Progressive",
+//        "Auto-nonProgressive",
         "nonAuto-Progressive",
         "nonAuto-nonProgressive",
 	};
