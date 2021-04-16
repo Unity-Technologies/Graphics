@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.Universal
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
                         {
-                            var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
+                            var renderer2DType = typeof(Renderer2D);
                             if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
                             {
                                 Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
@@ -479,7 +479,10 @@ namespace UnityEngine.Rendering.Universal
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
-
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
             // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -504,12 +507,15 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
                     UpdateCameraStereoMatrices(baseCameraData);
+                    
+                    // Update volume manager to use baseCamera's settings for XR multipass rendering.
+                    if (baseCameraData.xr.multipassId > 0)
+                    {
+                        UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+                    }
                 }
 #endif
-            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-            {
-                BeginCameraRendering(context, baseCamera);
-            }
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
             VFX.VFXManager.PrepareCamera(baseCamera);
@@ -645,7 +651,7 @@ namespace UnityEngine.Rendering.Universal
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
                 mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask,
-                lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
+                lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
                 motionVectors = false,

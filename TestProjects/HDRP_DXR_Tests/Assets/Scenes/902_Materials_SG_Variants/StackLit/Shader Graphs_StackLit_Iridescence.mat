@@ -29,6 +29,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: fcecce6d2c9be8d418a27f0658a2210d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_2fcf18c6a6e9088fa0935ea5de158b26_Out_0:
+        m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_35be8a3bba3745c884feae03fee237bb_Out_0:
         m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -73,6 +77,22 @@ Material:
         m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_f98673336affb183887fb8847f9bb7d9_Out_0:
+        m_Texture: {fileID: 2800000, guid: fcecce6d2c9be8d418a27f0658a2210d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0
@@ -82,11 +102,13 @@ Material:
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
+    - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
     - _DepthOffsetEnable: 0
     - _DiffusionProfileHash: 0
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
     - _EnableBlendModePreserveSpecularLighting: 1
