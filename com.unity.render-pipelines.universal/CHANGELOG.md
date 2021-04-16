@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Transparency Sort Mode value is taken from Graphics Settings instead of 2D Renderer [1310652](https://issuetracker.unity3d.com/issues/transparency-sort-mode-value-is-taken-from-graphics-settings-instead-of-2d-forward-renderer)
 - Fixed an issue where Post Processing doesn't enable when PostProcessData reassigned from the asset selector window.
 - Fixed an issue where the camera renders black screen when Post Processing is enabled in the 2D Renderer and in the Camera Component.
+- Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
 - Fixed an issue where Light2D did not upgrade Shadow Strength, Volumetric Intensity, Volumetric Shadow Strength correctly [case 1317755](https://issuetracker.unity3d.com/issues/urp-lighting-missing-orange-tint-in-scene-background)
