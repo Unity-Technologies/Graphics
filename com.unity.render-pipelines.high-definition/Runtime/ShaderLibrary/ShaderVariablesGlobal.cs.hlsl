@@ -157,7 +157,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _MaskVolumeAtlasResolutionAndSliceCountInverse;
     uint _EnableMaskVolumes;
     uint _MaskVolumeCount;
-    int _HybridDeformedVertexStreamIndex;
 CBUFFER_END
 
 
