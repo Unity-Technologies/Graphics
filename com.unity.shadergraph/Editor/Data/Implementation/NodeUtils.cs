@@ -486,15 +486,12 @@ namespace UnityEditor.Graphing
             while (s_SlotStack.Any())
             {
                 var slot = s_SlotStack.Pop();
-                ShaderStage stage;
-                if (slot.stageCapability.TryGetShaderStage(out stage))
-                {
-                    // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
-                    capabilities &= slot.stageCapability;
-                    // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
-                    if (capabilities == ShaderStageCapability.None)
-                        return capabilities;
-                }
+
+                // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
+                capabilities &= slot.stageCapability;
+                // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
+                if (capabilities == ShaderStageCapability.None)
+                    return capabilities;
 
                 if (goingBackwards && slot.isInputSlot)
                 {
