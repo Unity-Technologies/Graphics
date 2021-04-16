@@ -1361,7 +1361,7 @@ namespace UnityEditor.ShaderGraph
 
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
 
             switch (input)
             {
