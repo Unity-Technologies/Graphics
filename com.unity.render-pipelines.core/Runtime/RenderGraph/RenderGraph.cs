@@ -1142,7 +1142,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
-                if (!m_CompiledPassInfos[passIndex].culled)
+                if (!m_CompiledPassInfos[passIndex].culled && !m_CompiledPassInfos[passIndex].hasSideEffect)
                 {
                     var pass = m_CompiledPassInfos[passIndex].pass;
                     if (pass.allowRendererListCulling && pass.usedRendererListList.Count > 0)
