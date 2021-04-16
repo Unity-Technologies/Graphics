@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
-                    renderer.OnCullRenderPasses(in cameraData);
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 

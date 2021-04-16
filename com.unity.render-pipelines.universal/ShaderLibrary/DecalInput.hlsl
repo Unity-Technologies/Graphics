@@ -1,5 +1,5 @@
-#ifndef UIVERSAL_DECAL_INPUT_INDLUDED
-#define UIVERSAL_DECAL_INPUT_INDLUDED
+#ifndef UNIVERSAL_DECAL_INPUT_INCLUDED
+#define UNIVERSAL_DECAL_INPUT_INCLUDED
 
 struct DecalSurfaceData
 {
@@ -11,4 +11,4 @@ struct DecalSurfaceData
     half smoothness;
     half MAOSAlpha;
 };
-#endif
+#endif // UNIVERSAL_DECAL_INPUT_INCLUDED

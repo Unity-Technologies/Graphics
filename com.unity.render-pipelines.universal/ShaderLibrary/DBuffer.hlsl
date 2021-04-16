@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_DBUFFER_INDLUDED
-#define UNIVERSAL_DBUFFER_INDLUDED
+#ifndef UNIVERSAL_DBUFFER_INCLUDED
+#define UNIVERSAL_DBUFFER_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
@@ -22,7 +22,7 @@
     out DBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,  \
     out DBufferType2 MERGE_NAME(NAME, 2) : SV_Target2
 
-#define DECLARE_DBUFFER_TEXTURE(NAME)   \
+#define DECLARE_DBUFFER_TEXTURE(NAME)            \
     TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));       \
     TEXTURE2D_X_HALF(MERGE_NAME(NAME, 1));       \
     TEXTURE2D_X_HALF(MERGE_NAME(NAME, 2));
@@ -41,8 +41,8 @@
     out DBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,  \
     out DBufferType1 MERGE_NAME(NAME, 1) : SV_Target1
 
-#define DECLARE_DBUFFER_TEXTURE(NAME)   \
-    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));       \
+#define DECLARE_DBUFFER_TEXTURE(NAME)       \
+    TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));  \
     TEXTURE2D_X_HALF(MERGE_NAME(NAME, 1));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)                                              \
@@ -58,7 +58,7 @@
 #define OUTPUT_DBUFFER(NAME)                            \
     out DBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
 
-#define DECLARE_DBUFFER_TEXTURE(NAME)   \
+#define DECLARE_DBUFFER_TEXTURE(NAME)       \
     TEXTURE2D_X_HALF(MERGE_NAME(NAME, 0));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)                                              \
@@ -69,7 +69,6 @@
 
 #endif
 
-// Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer(DecalSurfaceData surfaceData
     , out DBufferType0 outDBuffer0
 #if defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
@@ -196,4 +195,4 @@ void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, i
         surfaceData.smoothness);
 #endif
 }
-#endif // UNIVERSAL_DBUFFER_INDLUDED
+#endif // UNIVERSAL_DBUFFER_INCLUDED
