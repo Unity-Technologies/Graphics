@@ -147,6 +147,7 @@ namespace UnityEditor.Rendering
         // reusable buffers
         static readonly List<Animation> s_AnimationBuffer = new List<Animation>(8);
         static readonly List<Animator> s_AnimatorBuffer = new List<Animator>(8);
+		static readonly List<IAnimationClipSource> s_CustomAnimationBuffer = new List<IAnimationClipSource>(8);
         static readonly List<PlayableDirector> s_PlayableDirectorBuffer = new List<PlayableDirector>(8);
 
         /// <summary>
@@ -264,45 +265,21 @@ namespace UnityEditor.Rendering
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
         )
         {
-            // first check clip usage among GameObjects with legacy Animation
             go.GetComponentsInChildren(true, s_AnimationBuffer);
-            foreach (var animation in s_AnimationBuffer)
-            {
-                // get all clips used by component
-                var clips = new HashSet<IAnimationClip>();
-                using (var so = new SerializedObject(animation))
-                {
-                    var clipsProp = so.FindProperty("m_Animations");
-                    for (int i = 0, count = animation.GetClipCount(); i < count; ++i)
-                    {
-                        var elementProp = clipsProp.GetArrayElementAtIndex(i);
-                        if (elementProp.objectReferenceValue != null)
-                            clips.Add((AnimationClipProxy)(elementProp.objectReferenceValue as AnimationClip));
-                    }
-                }
-
-                GatherClipsUsageForAnimatedHierarchy(
-                    animation.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
-                );
-            }
-
-            // next check clip usage among GameObjects with Animator
             go.GetComponentsInChildren(true, s_AnimatorBuffer);
-            foreach (var animator in s_AnimatorBuffer)
-            {
-                var controller = animator.runtimeAnimatorController as AnimatorController;
-                if (controller == null)
-                    continue;
+            go.GetComponentsInChildren(true, s_CustomAnimationBuffer);
 
-                // get all clips used by controller
-                var clips = new HashSet<IAnimationClip>(
-                    AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(controller))
-                        .Where(asset => (asset as AnimatorState)?.motion is AnimationClip)
-                        .Select(asset => (IAnimationClip)(AnimationClipProxy)((asset as AnimatorState)?.motion as AnimationClip))
-                );
+            // first check clip usage among GameObjects with legacy Animation
+            var gameObjects = new HashSet<GameObject>(s_AnimationBuffer.Select(a => a.gameObject)
+                .Union(s_AnimatorBuffer.Select(a => a.gameObject))
+                .Union(s_CustomAnimationBuffer.Where(a => a is Component).Select(a => ((Component) a).gameObject)));
+
+            foreach (var gameObject in gameObjects)
+            {
+                var clips = AnimationUtility.GetAnimationClips(gameObject).Select(clip =>  (IAnimationClip)(AnimationClipProxy)clip);
 
                 GatherClipsUsageForAnimatedHierarchy(
-                    animator.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
+                    gameObject.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
                 );
             }
 
@@ -340,12 +317,10 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            // TODO. Missing support for custom animation sources other than Animation, Animator, and Timeline.
-            // e.g., Custom PlayableGraph.
-
             // release UnityObject references
             s_AnimationBuffer.Clear();
             s_AnimatorBuffer.Clear();
+			s_CustomAnimationBuffer.Clear();
             s_PlayableDirectorBuffer.Clear();
         }
 
