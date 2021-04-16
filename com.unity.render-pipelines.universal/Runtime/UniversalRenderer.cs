@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
                 // if following passes won't use it then just resolve (the Resolve action will still store the resolved surface, but discard the MSAA'd surface, which is very expensive to store).
                 RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
                 if (cameraTargetDescriptor.msaaSamples > 1)
-                    opaquePassColorStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
+                    opaquePassColorStoreAction = requiresCopyColorPass ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
 
                 // make sure we store the depth only if following passes need it.
                 RenderBufferStoreAction opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
