@@ -24,16 +24,14 @@ namespace UnityEditor
             if (material == null)
                 return;
 
-            bool isShaderGraph = material.IsShaderGraph();
-
             base.FindProperties(properties);
-            workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode(isShaderGraph), properties, false);
+            workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode, properties, false);
         }
 
         public static void UpdateMaterial(Material material)
         {
             BaseShaderGUI.SetMaterialKeywords(material);
-            LitGUI.SetMaterialKeywordsBase(material, true, out bool isSpecularWorkflow);
+            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
         }
 
         public override void MaterialChanged(Material material)

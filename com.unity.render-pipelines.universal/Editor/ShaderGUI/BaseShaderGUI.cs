@@ -149,8 +149,6 @@ namespace UnityEditor
 
         protected MaterialProperty queueOffsetProp { get; set; }
 
-        protected bool isShaderGraph { get; set; }
-
         public bool m_FirstTimeApply = true;
 
         // By default, everything is expanded, except advanced
@@ -172,19 +170,18 @@ namespace UnityEditor
             if (material == null)
                 return;
 
-            bool isShaderGraph = material.IsShaderGraph();
-            surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties, false);
-            blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties, false);
-            cullingProp = FindProperty(Property.Cull(isShaderGraph), properties, false);
-            zwriteProp = FindProperty(Property.ZWriteControl(isShaderGraph), properties, false);
-            ztestProp = FindProperty(Property.ZTest(isShaderGraph), properties, false);
-            alphaClipProp = FindProperty(Property.AlphaClip(isShaderGraph), properties, false);
+            surfaceTypeProp = FindProperty(Property.SurfaceType, properties, false);
+            blendModeProp = FindProperty(Property.BlendMode, properties, false);
+            cullingProp = FindProperty(Property.CullMode, properties, false);
+            zwriteProp = FindProperty(Property.ZWriteControl, properties, false);
+            ztestProp = FindProperty(Property.ZTest, properties, false);
+            alphaClipProp = FindProperty(Property.AlphaClip, properties, false);
 
             // ShaderGraph Lit and Unlit Subtargets only
-            castShadowsProp = FindProperty(Property.CastShadows(isShaderGraph), properties, false);
+            castShadowsProp = FindProperty(Property.CastShadows, properties, false);
 
             // ShaderGraph Lit, and Lit.shader
-            receiveShadowsProp = FindProperty(Property.ReceiveShadows(isShaderGraph), properties, false);
+            receiveShadowsProp = FindProperty(Property.ReceiveShadows, properties, false);
 
             // The following are not mandatory for shadergraphs (it's up to the user to add them to their graph)
             alphaCutoffProp = FindProperty("_Cutoff", properties, false);
@@ -192,7 +189,7 @@ namespace UnityEditor
             baseColorProp = FindProperty("_BaseColor", properties, false);
             emissionMapProp = FindProperty(Property.EmissionMap, properties, false);
             emissionColorProp = FindProperty(Property.EmissionColor, properties, false);
-            queueOffsetProp = FindProperty(Property.QueueOffset(isShaderGraph), properties, false);
+            queueOffsetProp = FindProperty(Property.QueueOffset, properties, false);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -413,10 +410,9 @@ namespace UnityEditor
 
             // Cast Shadows
             bool castShadows = true;
-            var castShadowsProp = Property.CastShadows(isShaderGraph);
-            if (material.HasProperty(castShadowsProp))
+            if (material.HasProperty(Property.CastShadows))
             {
-                castShadows = (material.GetFloat(castShadowsProp) != 0.0f);
+                castShadows = (material.GetFloat(Property.CastShadows) != 0.0f);
             }
             else
             {
@@ -435,15 +431,13 @@ namespace UnityEditor
             material.SetShaderPassEnabled("ShadowCaster", castShadows);
 
             // Receive Shadows
-            var receiveShadowsProp = Property.ReceiveShadows(isShaderGraph);
-            if (material.HasProperty(receiveShadowsProp))
-                CoreUtils.SetKeyword(material, Keyword.HW_ReceiveShadowsOff, material.GetFloat(receiveShadowsProp) == 0.0f);
+            if (material.HasProperty(Property.ReceiveShadows))
+                CoreUtils.SetKeyword(material, Keyword.HW_ReceiveShadowsOff, material.GetFloat(Property.ReceiveShadows) == 0.0f);
 
             // Setup double sided GI based on Cull state
-            var cullProp = Property.Cull(isShaderGraph);
-            if (material.HasProperty(cullProp))
+            if (material.HasProperty(Property.CullMode))
             {
-                bool doubleSidedGI = (RenderFace)material.GetFloat(cullProp) != RenderFace.Front;
+                bool doubleSidedGI = (RenderFace)material.GetFloat(Property.CullMode) != RenderFace.Front;
                 if (doubleSidedGI != material.doubleSidedGI)
                     material.doubleSidedGI = doubleSidedGI;
             }
@@ -485,24 +479,19 @@ namespace UnityEditor
             shaderFunc?.Invoke(material);
         }
 
-        public static void SetMaterialSrcDstBlendProperties(Material material, bool isShaderGraph, UnityEngine.Rendering.BlendMode srcBlend, UnityEngine.Rendering.BlendMode dstBlend)
+        public static void SetMaterialSrcDstBlendProperties(Material material, UnityEngine.Rendering.BlendMode srcBlend, UnityEngine.Rendering.BlendMode dstBlend)
         {
-            var srcBlendProp = Property.SrcBlend(isShaderGraph);
-            if (material.HasProperty(srcBlendProp))
-                material.SetFloat(srcBlendProp, (float)srcBlend);
+            if (material.HasProperty(Property.SrcBlend))
+                material.SetFloat(Property.SrcBlend, (float)srcBlend);
 
-            var dstBlendProp = Property.DstBlend(isShaderGraph);
-            if (material.HasProperty(dstBlendProp))
-                material.SetFloat(dstBlendProp, (float)dstBlend);
+            if (material.HasProperty(Property.DstBlend))
+                material.SetFloat(Property.DstBlend, (float)dstBlend);
         }
 
         public static void SetMaterialZWriteProperty(Material material, bool zwriteEnabled)
         {
-            bool isShaderGraph = material.IsShaderGraph();
-            var zwriteProp = Property.ZWrite(isShaderGraph);
-
-            if (material.HasProperty(zwriteProp))
-                material.SetFloat(zwriteProp, zwriteEnabled ? 1.0f : 0.0f);
+            if (material.HasProperty(Property.ZWrite))
+                material.SetFloat(Property.ZWrite, zwriteEnabled ? 1.0f : 0.0f);
         }
 
         public static void SetupMaterialBlendMode(Material material)
@@ -510,22 +499,17 @@ namespace UnityEditor
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            bool isShaderGraph = material.IsShaderGraph();
-
             bool alphaClip = false;
-            var alphaClipProp = Property.AlphaClip(isShaderGraph);
-            if (material.HasProperty(alphaClipProp))
-                alphaClip = material.GetFloat(alphaClipProp) >= 0.5;
-
+            if (material.HasProperty(Property.AlphaClip))
+                alphaClip = material.GetFloat(Property.AlphaClip) >= 0.5;
             CoreUtils.SetKeyword(material, Keyword.HW_AlphaTestOn, alphaClip);
 
             // default is to use the shader render queue
             int renderQueue = material.shader.renderQueue;
-
-            var surfaceProp = Property.Surface(isShaderGraph);
-            if (material.HasProperty(surfaceProp))
+            material.SetOverrideTag("RenderType", "");      // clear override tag
+            if (material.HasProperty(Property.SurfaceType))
             {
-                SurfaceType surfaceType = (SurfaceType)material.GetFloat(surfaceProp);
+                SurfaceType surfaceType = (SurfaceType)material.GetFloat(Property.SurfaceType);
                 bool zwrite = false;
                 CoreUtils.SetKeyword(material, Keyword.HW_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
@@ -541,38 +525,37 @@ namespace UnityEditor
                         material.SetOverrideTag("RenderType", "Opaque");
                     }
 
-                    SetMaterialSrcDstBlendProperties(material, isShaderGraph, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
+                    SetMaterialSrcDstBlendProperties(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
                     zwrite = true;
                     material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                 }
                 else // SurfaceType Transparent
                 {
-                    var blendProp = Property.Blend(isShaderGraph);
-                    BlendMode blendMode = (BlendMode)material.GetFloat(blendProp);
+                    BlendMode blendMode = (BlendMode)material.GetFloat(Property.BlendMode);
 
                     // Specific Transparent Mode Settings
                     switch (blendMode)
                     {
                         case BlendMode.Alpha:
-                            SetMaterialSrcDstBlendProperties(material, isShaderGraph,
+                            SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Premultiply:
-                            SetMaterialSrcDstBlendProperties(material, isShaderGraph,
+                            SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.One,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.EnableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Additive:
-                            SetMaterialSrcDstBlendProperties(material, isShaderGraph,
+                            SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.One);
                             material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
                             break;
                         case BlendMode.Multiply:
-                            SetMaterialSrcDstBlendProperties(material, isShaderGraph,
+                            SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.DstColor,
                                 UnityEngine.Rendering.BlendMode.Zero);
                             material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
@@ -587,10 +570,9 @@ namespace UnityEditor
                 }
 
                 // check for override enum
-                var zwriteProp = Property.ZWriteControl(isShaderGraph);
-                if (material.HasProperty(zwriteProp))
+                if (material.HasProperty(Property.ZWriteControl))
                 {
-                    var zwriteControl = (UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl)material.GetFloat(zwriteProp);
+                    var zwriteControl = (UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl)material.GetFloat(Property.ZWriteControl);
                     if (zwriteControl == UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl.ForceEnabled)
                         zwrite = true;
                     else if (zwriteControl == UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl.ForceDisabled)
@@ -600,9 +582,8 @@ namespace UnityEditor
             }
 
             // must always apply queue offset, even if not set to material control
-            var queueOffsetProp = Property.QueueOffset(isShaderGraph);
-            if (material.HasProperty(queueOffsetProp))
-                renderQueue += (int)material.GetFloat(queueOffsetProp);
+            if (material.HasProperty(Property.QueueOffset))
+                renderQueue += (int)material.GetFloat(Property.QueueOffset);
 
             if (renderQueue != material.renderQueue)
                 material.renderQueue = renderQueue;

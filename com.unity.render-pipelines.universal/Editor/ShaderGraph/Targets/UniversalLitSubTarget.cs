@@ -87,15 +87,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // (technically not necessary since we are always recreating the material from the shader each time,
                 // which will pull over the defaults from the shader definition)
                 // but if that ever changes, this will ensure the defaults are set
-                material.SetFloat(Property.SG_SpecularWorkflowMode, (float)workflowMode);
-                material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-                material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-                material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
-                material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
-                material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                material.SetFloat(Property.SG_Cull, (int)target.renderFace);
-                material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
-                material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
+                material.SetFloat(Property.SpecularWorkflowMode, (float)workflowMode);
+                material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+                material.SetFloat(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+                material.SetFloat(Property.SurfaceType, (float)target.surfaceType);
+                material.SetFloat(Property.BlendMode, (float)target.alphaMode);
+                material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                material.SetFloat(Property.CullMode, (int)target.renderFace);
+                material.SetFloat(Property.ZWriteControl, (float)target.zWriteControl);
+                material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
 
             // call the full unlit material setup function
@@ -161,23 +161,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (target.allowMaterialOverride)
             {
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
-                collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
 
                 // setup properties using the defaults
-                collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
-                collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
-                collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
-                collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
-                collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.SG_ZWriteControl, (float)target.zWriteControl);
-                collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-                collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+                collector.AddFloatProperty(Property.SurfaceType, (float)target.surfaceType);
+                collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
+                collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
+                collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
 
             // properties that always exist
-            collector.AddFloatProperty(Property.SG_QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)

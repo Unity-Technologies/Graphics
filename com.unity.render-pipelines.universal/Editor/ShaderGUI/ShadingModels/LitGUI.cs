@@ -214,9 +214,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static bool IsOpaque(Material material)
         {
             bool opaque = true;
-            var surfaceProp = Property.Surface(material.IsShaderGraph());
-            if (material.HasProperty(surfaceProp))
-                opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat(surfaceProp) == BaseShaderGUI.SurfaceType.Opaque);
+            if (material.HasProperty(Property.SurfaceType))
+                opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat(Property.SurfaceType) == BaseShaderGUI.SurfaceType.Opaque);
             return opaque;
         }
 
@@ -262,21 +261,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         // setup base keywords (shared by all lit shaders, including shadergraph Lit Target and Lit.shader)
         // TODO: is this public API??  if so we've changed it :(
-        public static void SetMaterialKeywordsBase(Material material, bool isShaderGraph, out bool isSpecularWorkflow)
+        public static void SetMaterialKeywordsBase(Material material, out bool isSpecularWorkflow)
         {
             isSpecularWorkflow = false;     // default is metallic workflow
-
-            var workflowProp = Property.SpecularWorkflowMode(isShaderGraph);
-            if (material.HasProperty(workflowProp))
-                isSpecularWorkflow = ((WorkflowMode)material.GetFloat(workflowProp)) == WorkflowMode.Specular;
-
+            if (material.HasProperty(Property.SpecularWorkflowMode))
+                isSpecularWorkflow = ((WorkflowMode)material.GetFloat(Property.SpecularWorkflowMode)) == WorkflowMode.Specular;
             CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkflow);
         }
 
         // setup keywords for Lit.shader
         public static void SetMaterialKeywords(Material material)
         {
-            SetMaterialKeywordsBase(material, false, out bool isSpecularWorkFlow);
+            SetMaterialKeywordsBase(material, out bool isSpecularWorkFlow);
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)

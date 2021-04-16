@@ -735,11 +735,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         public static class Uniforms
         {
-            public static readonly string srcBlend = "[" + Property.SG_SrcBlend + "]";
-            public static readonly string dstBlend = "[" + Property.SG_DstBlend + "]";
-            public static readonly string cullMode = "[" + Property.SG_Cull + "]";
-            public static readonly string zWrite = "[" + Property.SG_ZWrite + "]";
-            public static readonly string zTest = "[" + Property.SG_ZTest + "]";
+            public static readonly string srcBlend = "[" + Property.SrcBlend + "]";
+            public static readonly string dstBlend = "[" + Property.DstBlend + "]";
+            public static readonly string cullMode = "[" + Property.CullMode + "]";
+            public static readonly string zWrite = "[" + Property.ZWrite + "]";
+            public static readonly string zTest = "[" + Property.ZTest + "]";
         }
 
         // used by sprite targets, NOT used by lit/unlit anymore
