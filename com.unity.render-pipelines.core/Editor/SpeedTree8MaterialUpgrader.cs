@@ -5,7 +5,7 @@ using System;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// Material upgrader and relevant utilities for SpeedTree8.
+    /// Material upgrader and relevant utilities for SpeedTree 8.
     /// </summary>
     public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
@@ -31,11 +31,12 @@ namespace UnityEditor.Rendering
         };
 
         /// <summary>
-        /// Creates a material upgrader with only the renames in common between HD and Universal.
+        /// Creates a material upgrader that handles the property renames that HD and Universal have in common when upgrading
+        /// from the built-in SpeedTree 8 shader.
         /// </summary>
-        /// <param name="sourceShaderName">Original ST8 shader name.</param>
-        /// <param name="destShaderName">New ST8 shader name.</param>
-        /// <param name="finalizer">A delegate that postprocesses the material as needed by the render pipeline.</param>
+        /// <param name="sourceShaderName">Original SpeedTree8 shader name.</param>
+        /// <param name="destShaderName">New SpeedTree 8 shader name.</param>
+        /// <param name="finalizer">A delegate that postprocesses the material for the render pipeline in use.</param>
         public SpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer = null)
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
@@ -57,10 +58,10 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Postprocess materials when importing a SpeedTree8 asset. Call from OnPostprocessSpeedTree in a MaterialPostprocessor.
+        /// Postprocesses materials while you are importing a SpeedTree 8 asset. Call from OnPostprocessSpeedTree in a MaterialPostprocessor.
         /// </summary>
-        /// <param name="speedtree">Game object for the SpeedTree asset being imported.</param>
-        /// <param name="stImporter">The assetimporter used to import the SpeedTree asset.</param>
+        /// <param name="speedtree">The GameObject Unity creates from this imported SpeedTree.</param>
+        /// <param name="stImporter">The asset importer used to import this SpeedTree asset.</param>
         /// <param name="finalizer">Render pipeline-specific material finalizer.</param>
         public static void PostprocessSpeedTree8Materials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
         {
@@ -73,6 +74,9 @@ namespace UnityEditor.Rendering
                 int wq = Mathf.Min(stImporter.windQualities[l], stImporter.bestWindQuality);
                 foreach (Renderer r in lod.renderers)
                 {
+                    // Override default motion vector generation mode pending
+                    // proper motion vector integration in SRPs.
+                    r.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
                     foreach (Material m in r.sharedMaterials)
                     {
                         ImportNewSpeedTree8Material(m, wq, isBillboard);
@@ -84,11 +88,12 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Preserve wind quality and billboard setting when upgrading a ST8 material from previous versions.
-        /// Wind priority order is enabled keyword > _WindQuality float value.
+        /// Preserves wind quality and billboard settings while you are upgrading a SpeedTree 8 material from previous versions of SpeedTree 8.
+        /// To determine which WindQuality to use, Unity checks the keywords first and then the _WindQuality float value.
+        /// See SpeedTree in the Unity Manual for the values associated with different WindQuality settings.
         /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
         /// </summary>
-        /// <param name="material">SpeedTree8 material to upgrade.</param>
+        /// <param name="material">SpeedTree 8 material to upgrade.</param>
         public static void SpeedTree8MaterialFinalizer(Material material)
         {
             if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))

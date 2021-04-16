@@ -4,15 +4,15 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// SpeedTree8 material upgrader for HDRP.
+    /// SpeedTree 8 material upgrader for HDRP.
     /// </summary>
     class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
     {
         /// <summary>
-        /// Creates a SpeedTree8 material upgrader for HDRP.
+        /// Creates a SpeedTree 8 material upgrader for HDRP.
         /// </summary>
         /// <param name="sourceShaderName">Original shader name.</param>
-        /// <param name="destShaderName">Upgrade shader name.</param>
+        /// <param name="destShaderName">Upgraded shader name.</param>
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
             : base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
         {
@@ -21,14 +21,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
             SetHDSpeedTree8Defaults(mat);
-            SpeedTree8MaterialFinalizer(mat);
+            SpeedTree8MaterialFinalizer(mat); // Do this once before resetting keywords so that all float properties are set up correctly
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
 
         /// <summary>
-        /// Checks if a given material is an HD SpeedTree8 material.
+        /// Determines if a given material is using the default SpeedTree 8 shader for HDRP.
         /// </summary>
-        /// <param name="mat">Material to check.</param>
+        /// <param name="mat">Material to check for an HDRP-compatible SpeedTree 8 shader.</param>
         /// <returns></returns>
         public static bool IsHDSpeedTree8Material(Material mat)
         {
@@ -36,15 +36,17 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
+        /// HDRP may reset SpeedTree-specific keywords which should not be modified. This method restores these keywords to their original state.
         /// </summary>
-        /// <param name="mat">SpeedTree8 material.</param>
+        /// <param name="mat">SpeedTree 8 material.</param>
         public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
             if (mat.name.Contains("Billboard")) // Hacky but it'll hold until newer versions of shadergraph with keyword toggle support
             {
                 mat.EnableKeyword("EFFECT_BILLBOARD");
             }
+
+            SpeedTree8MaterialFinalizer(mat); // Call again after resetting material keywords so that wind keywords get restored
         }
 
         private static void SetHDSpeedTree8Defaults(Material mat)
@@ -97,8 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (diffusionProfileHash != 0)
             {
-                mat.SetVector(HDShaderIDs._DiffusionProfileAsset, HDUtils.ConvertGUIDToVector4(guid));
-                mat.SetFloat(HDShaderIDs._DiffusionProfileHash, HDShadowUtils.Asfloat(diffusionProfileHash));
+                mat.SetVector("Diffusion_Profile_Asset", HDUtils.ConvertGUIDToVector4(guid));
+                mat.SetFloat("Diffusion_Profile", HDShadowUtils.Asfloat(diffusionProfileHash));
             }
         }
     }

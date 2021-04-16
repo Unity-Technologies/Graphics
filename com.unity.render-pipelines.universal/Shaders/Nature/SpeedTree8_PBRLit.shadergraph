@@ -300,6 +300,9 @@
         },
         {
             "m_Id": "7892dff3f685455ab95f479cc64029d2"
+        },
+        {
+            "m_Id": "bd5025ea8bd540a1a2f84373bd2a6a33"
         }
     ],
     "m_GroupDatas": [
@@ -439,9 +442,9 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "7d9f469ca6f24ee99e662abbb2a5a124"
+                    "m_Id": "bd5025ea8bd540a1a2f84373bd2a6a33"
                 },
-                "m_SlotId": 1
+                "m_SlotId": 0
             }
         },
         {
@@ -1126,6 +1129,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "46217be12243238b8e0b32466fe2bbe2"
+                },
+                "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "bd5025ea8bd540a1a2f84373bd2a6a33"
+                },
+                "m_SlotId": 1
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "7d9f469ca6f24ee99e662abbb2a5a124"
                 },
                 "m_SlotId": 1
             }
@@ -2233,6 +2250,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "13a0c6935e744577a6e58da08ceedf14",
+    "m_Id": 1,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.KeywordNode",
     "m_ObjectId": "13b51cebee244a18883adb180227ec38",
     "m_Group": {
@@ -2348,7 +2389,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": 0.25,
-    "m_FloatType": 0,
+    "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -2416,10 +2457,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1050.0,
-            "y": 1442.6666259765625,
-            "width": 206.0,
-            "height": 131.333251953125
+            "x": -1162.666748046875,
+            "y": 1431.333251953125,
+            "width": 206.0000457763672,
+            "height": 130.6666259765625
         }
     },
     "m_Slots": [
@@ -3596,7 +3637,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "CalculateGGXTerm",
     "m_FunctionSource": "",
-    "m_FunctionBody": "float a2 = Roughness * Roughness;\nfloat d = (NdotH * a2 - NdotH) * NdotH + 1.0f; \nGGXTerm = 0.31830988618f * a2 / (d * d + 1e-7f); "
+    "m_FunctionBody": "GGXTerm = D_GGX(NdotH, Roughness);"
 }
 
 {
@@ -4933,7 +4974,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": 0.5,
-    "m_FloatType": 0,
+    "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -6324,7 +6365,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": 0.0,
-    "m_FloatType": 0,
+    "m_FloatType": 1,
     "m_RangeValues": {
         "x": 0.0,
         "y": 1.0
@@ -8278,6 +8319,65 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.NormalizeNode",
+    "m_ObjectId": "bd5025ea8bd540a1a2f84373bd2a6a33",
+    "m_Group": {
+        "m_Id": "52a4ccbfb417420bb05ea53fe7b9ef75"
+    },
+    "m_Name": "Normalize",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -956.6666259765625,
+            "y": 1430.0,
+            "width": 131.99998474121095,
+            "height": 94.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "bdcf92214ce94524be899e5f7bc017aa"
+        },
+        {
+            "m_Id": "13a0c6935e744577a6e58da08ceedf14"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "bdcf92214ce94524be899e5f7bc017aa",
+    "m_Id": 0,
+    "m_DisplayName": "In",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "In",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
     "m_ObjectId": "bea770e8df459f81b4d597cd8f02042c",
     "m_Id": 0,
@@ -9894,7 +9994,7 @@
     "m_Group": {
         "m_Id": "52a4ccbfb417420bb05ea53fe7b9ef75"
     },
-    "m_Name": "GetMainLightData (Custom Function)",
+    "m_Name": "GetUniversalMainLightData (Custom Function)",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -9927,7 +10027,7 @@
         "m_SerializableColors": []
     },
     "m_SourceType": 1,
-    "m_FunctionName": "GetMainLightData",
+    "m_FunctionName": "GetUniversalMainLightData",
     "m_FunctionSource": "",
     "m_FunctionBody": "Light mainLight = GetMainLight();\nMainLightColor = mainLight.color;\nMainLightDirWS = mainLight.direction;\nfloat4 shadowCoord = TransformWorldToShadowCoord(PositionWS);\nMainLightShadow = MainLightRealtimeShadow(shadowCoord);"
 }
