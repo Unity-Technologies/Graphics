@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -365,7 +365,15 @@ namespace UnityEngine.Rendering.Universal
         private void Awake()
         {
             if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
-                m_NormalMapQuality = NormalMapQuality.Disabled;
+               m_NormalMapQuality = NormalMapQuality.Disabled;
+
+            if (m_ApplyToSortingLayers == null)
+            {
+                // Target all sorting layers
+                m_ApplyToSortingLayers = new int[SortingLayer.layers.Length];
+                for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+                    m_ApplyToSortingLayers[i] = SortingLayer.layers[i].id;
+            }
 
             bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
             UpdateMesh(updateMesh);
