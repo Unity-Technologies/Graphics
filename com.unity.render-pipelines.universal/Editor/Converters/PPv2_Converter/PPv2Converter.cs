@@ -412,9 +412,7 @@ namespace Editor.Converters
                     else if (oldModification.propertyPath.EndsWith("enabled", StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.enabled = oldVolume.enabled;
                     else if (oldModification.propertyPath.EndsWith("sharedProfile", StringComparison.InvariantCultureIgnoreCase))
-                    {
                         newVolumeInstance.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
-                    }
 
                     EditorUtility.SetDirty(newVolumeInstance);
                 }
@@ -425,16 +423,19 @@ namespace Editor.Converters
 
         private bool ConvertLayerComponent(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
         {
+            Debug.Log("--- 011 ---");
             var siblingCamera = oldLayer.GetComponent<Camera>().GetUniversalAdditionalCameraData();
 
             // PostProcessLayer requires a sibling Camera component, but
             // we check it here just in case something weird went happened.
             if (!siblingCamera)
             {
+                Debug.Log("--- 012 ---");
                 errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
                 return false;
             }
 
+            Debug.Log("--- 013 ---", siblingCamera);
             // The presence of a PostProcessLayer implies the Camera should render post-processes
             siblingCamera.renderPostProcessing = true;
 
@@ -465,6 +466,7 @@ namespace Editor.Converters
             // Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
             EditorUtility.SetDirty(siblingCamera.gameObject);
 
+            Debug.Log("--- 014 ---");
             return true;
         }
 
@@ -480,30 +482,33 @@ namespace Editor.Converters
                 return false;
             }
 
+            siblingCamera.renderPostProcessing = true;
+
             Debug.Log("--- 003 ---");
             var oldModifications = PrefabUtility.GetPropertyModifications(oldLayer);
             foreach (var oldModification in oldModifications)
             {
                 Debug.Log("--- 004 ---");
+
+                // TODO: Remove this
+                Debug.Log("--- PostProcessLayer Modification:" +
+                          $"\n{oldModification.target}" +
+                          $"\n{oldModification.value}" +
+                          $"\n{oldModification.objectReference}" +
+                          $"\n{oldModification.propertyPath}");
+
                 if (oldModification.target is BIRPRendering.PostProcessLayer)
                 {
                     Debug.Log("--- 005 ---");
-                    // TODO: Remove this
-                    Debug.Log("--- PostProcessLayer Modification:" +
-                              $"\n{oldModification.target}" +
-                              $"\n{oldModification.value}" +
-                              $"\n{oldModification.objectReference}" +
-                              $"\n{oldModification.propertyPath}");
-
                     if (oldModification.propertyPath.EndsWith("volumeLayer", StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.volumeLayerMask = oldLayer.volumeLayer;
                     else if (oldModification.propertyPath.EndsWith("volumeTrigger", StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.volumeTrigger = oldLayer.volumeTrigger;
                     else if (oldModification.propertyPath.EndsWith("stopNaNPropagation", StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.stopNaN = oldLayer.stopNaNPropagation;
-                    else if (oldModification.propertyPath.EndsWith("subpixelMorphologicalAntialiasing.quality", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("quality", StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.antialiasingQuality = (URPRendering.AntialiasingQuality)oldLayer.subpixelMorphologicalAntialiasing.quality;
-                    else if (oldModification.propertyPath.EndsWith("oldLayer.antialiasingMode", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("antialiasingMode", StringComparison.InvariantCultureIgnoreCase))
                     {
                         switch (oldLayer.antialiasingMode)
                         {
