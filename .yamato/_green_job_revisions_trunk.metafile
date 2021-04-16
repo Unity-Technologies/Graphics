@@ -45,7 +45,7 @@ shadergraph_pr_job_-_trunk:
       updated_at: '2021-04-14 23:25:07.773558'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2021-04-15 08:11:49.694708'
+  updated_at: '2021-04-16 07:30:03.079890'
   last_green_revisions:
     Android:
       revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
@@ -68,7 +68,7 @@ vfx_urp_pr_job_-_trunk:
       updated_at: '2021-04-14 23:25:07.773558'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
-  updated_at: '2021-04-15 08:11:49.694708'
+  updated_at: '2021-04-16 07:30:03.079890'
   last_green_revisions:
     Android:
       revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
@@ -114,7 +114,7 @@ nightly_vfx_urp_-_trunk:
       updated_at: '2021-04-14 23:25:07.773558'
       version: ''
 nightly_vfx_hdrp_-_trunk:
-  updated_at: '2021-04-14 07:55:19.287248'
+  updated_at: '2021-04-16 07:30:03.079890'
   last_green_revisions:
     Android:
       revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
@@ -133,8 +133,8 @@ nightly_vfx_hdrp_-_trunk:
       updated_at: '2021-04-09 23:47:46.937857'
       version: ''
     iPhone:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
+      updated_at: '2021-04-14 23:25:07.773558'
       version: ''
 nightly_urp_2d_-_trunk:
   updated_at: '2021-04-15 08:11:49.694708'
