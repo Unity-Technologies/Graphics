@@ -99,7 +99,7 @@ LightmapSettings:
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000000, guid: 11fb0b3e0d561034eb3bffac3bf09b8d,
     type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: c1a0a835c86eff740b2c8409a84e149d,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 8ea49e83785bd634e82a21f077c4b373,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -297,9 +297,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1687258581}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 05dcf8e7c92e39544b702505355a8a18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ImageComparisonSettings:
+    TargetWidth: 800
+    TargetHeight: 400
+    PerPixelCorrectnessThreshold: 0.001
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
+    AverageCorrectnessThreshold: 0.005
+    IncorrectPixelsThreshold: 0.0000038146973
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
+    ActiveImageTests: 1
+    ActivePixelTests: 7
+  WaitFrames: 0
 --- !u!20 &1687258584
 Camera:
   m_ObjectHideFlags: 0
@@ -325,7 +339,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 73
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
