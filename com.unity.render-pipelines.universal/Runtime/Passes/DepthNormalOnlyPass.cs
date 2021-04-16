@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
 
-        private bool useDepthPriming;
+        private bool m_UseDepthPriming;
 
         // Constants
         private const int k_DepthBufferBits = 32;
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, RenderTargetHandle cameraDepthHandle, bool useDepthPriming)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, RenderTargetHandle cameraDepthHandle = new RenderTargetHandle(), bool useDepthPriming = false)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.allocateDepth = true;
             this.allocateNormal = true;
             this.shaderTagId = k_ShaderTagId;
-            this.useDepthPriming = useDepthPriming;
+            this.m_UseDepthPriming = useDepthPriming;
             this.cameraDepthHandle = cameraDepthHandle;
         }
 
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
-            if (this.useDepthPriming)
+            if (this.m_UseDepthPriming)
             {
                 ConfigureTarget(
                     new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),

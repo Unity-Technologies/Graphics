@@ -1,6 +1,7 @@
 using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
+using System.Globalization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -106,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
         RenderingMode m_RenderingMode;
         DepthPrepassMode m_DepthPrepassMode;
         DepthPrimingMode m_DepthPrimingMode;
+        bool m_CanUseDepthPriming;
         StencilState m_DefaultStencilState;
 
         // Materials used in URP Scriptable Render Passes
@@ -153,6 +155,25 @@ namespace UnityEngine.Rendering.Universal
             this.m_DepthPrepassMode = data.depthPrepassMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.usesRenderPass = data.useNativeRenderPass;
+
+#if !UNITY_ANDROID && !UNITY_IOS
+            this.m_CanUseDepthPriming = true;
+
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(SystemInfo.graphicsDeviceVendor, "ARM", CompareOptions.IgnoreCase) >= 0)
+            {
+                this.m_CanUseDepthPriming = false;
+            }
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(SystemInfo.graphicsDeviceVendor, "SILICON", CompareOptions.IgnoreCase) >= 0)
+            {
+                this.m_CanUseDepthPriming = false;
+            }
+#endif
+
+#else
+            this.m_CanUseDepthPriming = false;
+#endif
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -415,11 +436,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-#if !UNITY_ANDROID && !UNITY_IOS
-            bool useDepthPriming = m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth) /*&& SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12*/;
-#else
-            bool useDepthPriming = false;
-#endif
+            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (usesRenderPass || useDepthPriming)
             {

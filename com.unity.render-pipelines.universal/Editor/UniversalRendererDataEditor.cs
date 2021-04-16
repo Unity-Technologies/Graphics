@@ -18,8 +18,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Settings related to lighting and rendering paths.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
-            public static readonly GUIContent DepthPrepassModeLabel = new GUIContent("Depth Prepass Mode", "How this renderer should decide to use a depth prepass.");
-            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "How this renderer should decide to use depth priming.");
+            public static readonly GUIContent DepthPrepassModeLabel = new GUIContent("Depth Prepass Mode", "How this renderer should decide to use a depth prepass. Auto means a depth prepass will be used if needed by a later pass. Forced will always use a depth prepass.");
+            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "How this renderer should decide to use depth priming. Auto means depth priming will be enabled if there is a depth prepass in use. Disabled will never use depth priming.");
             public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
