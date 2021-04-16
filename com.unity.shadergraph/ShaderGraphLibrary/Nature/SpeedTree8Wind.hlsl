@@ -273,7 +273,7 @@ float3 GlobalWind(float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 
 	float fAdjust = max(vPos.y - (1.0 / _ST_WindGlobal.z) * 0.25, 0.0) * _ST_WindGlobal.z;
 #endif
 	if (fAdjust != 0.0)
-		fAdjust = pow(fAdjust, _ST_WindGlobal.w);
+		fAdjust = pow(abs(fAdjust), _ST_WindGlobal.w);
 
 	// primary oscillation
 	float4 vOscillations = TrigApproximate(float4(vInstancePos.x + time, vInstancePos.y + time * 0.8, 0.0, 0.0));
@@ -799,7 +799,10 @@ float3 SpeedTreeWind(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTex
 // This version is used by ShaderGraph
 void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, out float3 outPos)
 {
-	outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
+	if (iWindQuality != ST_WIND_QUALITY_NONE)
+		outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
+	else
+		outPos = vPos;
 }
 
 #endif // SPEEDTREE_WIND_INCLUDED
