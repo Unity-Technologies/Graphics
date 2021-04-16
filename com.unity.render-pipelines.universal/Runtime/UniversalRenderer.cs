@@ -490,13 +490,17 @@ namespace UnityEngine.Rendering.Universal
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
             {
+                // Optimized store actions are very important on tile based GPUs and have a great impact on performance.
+                // if MSAA is enabled and any of the following passes need a copy of the color or depth target, make sure the MSAA'd surface is stored
+                // if following passes won't use it then just resolve (the Resolve action will still store the resolved surface, but discard the MSAA'd surface, which is very expensive to store).
                 RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
                 if (cameraTargetDescriptor.msaaSamples > 1)
                     opaquePassColorStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Resolve;
 
+                // make sure we store the depth only if following passes need it.
                 RenderBufferStoreAction opaquePassDepthStoreAction = (requiresCopyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
 
-                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(0, opaquePassColorStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -543,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
-                m_RenderTransparentForwardPass.ConfigureColorStoreAction(0, transparentPassColorStoreAction);
+                m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
                 EnqueuePass(m_RenderTransparentForwardPass);
             }

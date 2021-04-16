@@ -1212,9 +1212,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Only setup render target if current render pass attachments are different from the active ones
                     if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
-                        renderPass.colorStoreAction != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
+                        renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
-                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreAction, renderPass.depthStoreAction);
+                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)

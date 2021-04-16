@@ -150,9 +150,9 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
-        public RenderBufferStoreAction colorStoreAction
+        public RenderBufferStoreAction[] colorStoreActions
         {
-            get => m_ColorStoreActions[0];
+            get => m_ColorStoreActions;
         }
 
         public RenderBufferStoreAction depthStoreAction
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
             m_Input = passInput;
         }
 
-        public void ConfigureColorStoreAction(uint attachmentIndex, RenderBufferStoreAction storeAction)
+        public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
         }
