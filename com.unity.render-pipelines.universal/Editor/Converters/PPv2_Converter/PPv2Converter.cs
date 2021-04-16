@@ -78,7 +78,8 @@ namespace Editor.Converters
                 BIRPRendering.PostProcessVolume[] oldVolumes = null;
                 BIRPRendering.PostProcessLayer[] oldLayers = null;
 
-                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow this to be inverted, and the else to be deleted.
+                // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow
+                //       this to be inverted, and the else to be deleted.
 #if false
                 if (obj is GameObject go)
                 {
@@ -167,7 +168,8 @@ namespace Editor.Converters
             }
         }
 
-        private IEnumerable<Tuple<int, Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items,
+        private IEnumerable<Tuple<int, Object>> EnumerateObjects(
+            IReadOnlyList<ConverterItemInfo> items,
             RunConverterContext ctx)
         {
             for (var i = 0; i < items.Count; i++)
@@ -179,8 +181,7 @@ namespace Editor.Converters
                     // Try loading the object
                     // TODO: Upcoming changes to GlobalObjectIdentifierToObjectSlow will allow it
                     //       to return direct references to prefabs and their children.
-                    //       Once that change happens there are several items which should be adjusted,
-                    //       and are commented with "// TODO: (prefab reference fix)"
+                    //       Once that change happens there are several items which should be adjusted.
                     var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
 
                     // If the object was not loaded, it is probably part of an unopened scene;
@@ -204,6 +205,9 @@ namespace Editor.Converters
                         var mainAssetPath = AssetDatabase.GUIDToAssetPath(globalId.assetGUID);
                         if (mainAssetPath.EndsWith(".unity", StringComparison.InvariantCultureIgnoreCase))
                         {
+                            // TODO: There seems to be an issue where root-level Prefab-Instance
+                            //       property modifications will not be saved if they are in a scene
+                            //       that is already open when the entire conversion process is started.
                             var mainAsset = AssetDatabase.LoadAssetAtPath<Object>(mainAssetPath);
                             AssetDatabase.OpenAsset(mainAsset);
 
@@ -218,7 +222,7 @@ namespace Editor.Converters
 
                             obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalId);
                         }
-                        // TODO: (prefab reference fix) This block should be removed once GlobalObjectIdentifierToObjectSlow
+                        // TODO: This block should be removed once GlobalObjectIdentifierToObjectSlow
                         //       is updated to get proper direct references to prefabs and their child assets.
                         else
                         {
@@ -249,7 +253,8 @@ namespace Editor.Converters
             }
         }
 
-#region Conversion_Entry_Points
+        #region Conversion_Entry_Points
+
         private void ConvertVolume(BIRPRendering.PostProcessVolume oldVolume, ref bool succeeded,
             StringBuilder errorString)
         {
@@ -271,14 +276,12 @@ namespace Editor.Converters
             if (PrefabUtility.IsPartOfPrefabInstance(oldVolume) &&
                 !PrefabUtility.IsAddedComponentOverride(oldVolume))
             {
-                Debug.Log("------- CONVERT VOLUME INSTANCE -------");
                 // This is a property override on an instance of the component,
                 // so override the component instance with the modifications.
                 succeeded = ConvertVolumeInstance(oldVolume, errorString);
             }
             else
             {
-                Debug.Log("------- CONVERT VOLUME ROOT -------");
                 // The entire component is unique, so just convert it
                 succeeded = ConvertVolumeComponent(oldVolume, errorString);
             }
@@ -305,14 +308,12 @@ namespace Editor.Converters
             if (PrefabUtility.IsPartOfPrefabInstance(oldLayer) &&
                 !PrefabUtility.IsAddedComponentOverride(oldLayer))
             {
-                Debug.Log("------- CONVERT LAYER INSTANCE -------");
                 // This is a property override on an instance of the component,
                 // so override the component instance with the modifications.
                 succeeded = ConvertLayerInstance(oldLayer, errorString);
             }
             else
             {
-                Debug.Log("------- CONVERT LAYER ROOT -------");
                 // The entire component is unique, so just convert it
                 succeeded = ConvertLayerComponent(oldLayer, errorString);
             }
@@ -328,7 +329,8 @@ namespace Editor.Converters
 
             if (!oldProfile)
             {
-                errorString.AppendLine("PPv2 PostProcessProfile failed to be converted because the original asset reference was lost during conversion.");
+                errorString.AppendLine(
+                    "PPv2 PostProcessProfile failed to be converted because the original asset reference was lost during conversion.");
                 return;
             }
 
@@ -337,9 +339,10 @@ namespace Editor.Converters
             // TODO:
             // - Perhaps old Profiles should only be deleted if they actually no longer have references,
             // just in case some some Volume conversions are skipped and still need references for future conversion.
-            // - Alternatively, leave deletion of Profiles entirely to the user. (prefer this?)
+            // - Alternatively, leave deletion of Profiles entirely to the user. (I think this is preferred)
         }
-#endregion Conversion_Entry_Points
+
+        #endregion Conversion_Entry_Points
 
         private bool ConvertVolumeComponent(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
         {
@@ -378,12 +381,15 @@ namespace Editor.Converters
                 {
                     return false;
                 }
-                // TODO: do we need to save this change immediately (and refresh the database?) to get access to the instance?
+
+                PrefabUtility.SavePrefabAsset(oldVolumeOrigin.gameObject);
+
                 newVolumeInstance = oldVolume.GetComponent<Volume>();
 
                 if (!newVolumeInstance)
                 {
-                    errorString.AppendLine("PPv2 PostProcessVolume failed to be converted because the instance object did not inherit the converted Prefab source.");
+                    errorString.AppendLine(
+                        "PPv2 PostProcessVolume failed to be converted because the instance object did not inherit the converted Prefab source.");
                     return false;
                 }
             }
@@ -394,25 +400,24 @@ namespace Editor.Converters
             {
                 if (oldModification.target is BIRPRendering.PostProcessVolume)
                 {
-                    // TODO: Remove this
-                    Debug.Log("--- Object Modification:" +
-                              $"\n{oldModification.target}" +
-                              $"\n{oldModification.value}" +
-                              $"\n{oldModification.objectReference}" +
-                              $"\n{oldModification.propertyPath}");
-
                     if (oldModification.propertyPath.EndsWith("priority", StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.priority = oldVolume.priority;
-                    else if (oldModification.propertyPath.EndsWith("weight", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("weight",
+                        StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.weight = oldVolume.weight;
-                    else if (oldModification.propertyPath.EndsWith("blendDistance", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("blendDistance",
+                        StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.blendDistance = oldVolume.blendDistance;
-                    else if (oldModification.propertyPath.EndsWith("isGlobal", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("isGlobal",
+                        StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.isGlobal = oldVolume.isGlobal;
-                    else if (oldModification.propertyPath.EndsWith("enabled", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("enabled",
+                        StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.enabled = oldVolume.enabled;
-                    else if (oldModification.propertyPath.EndsWith("sharedProfile", StringComparison.InvariantCultureIgnoreCase))
-                        newVolumeInstance.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
+                    else if (oldModification.propertyPath.EndsWith("sharedProfile",
+                        StringComparison.InvariantCultureIgnoreCase))
+                        newVolumeInstance.sharedProfile =
+                            ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
 
                     EditorUtility.SetDirty(newVolumeInstance);
                 }
@@ -423,19 +428,17 @@ namespace Editor.Converters
 
         private bool ConvertLayerComponent(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
         {
-            Debug.Log("--- 011 ---");
             var siblingCamera = oldLayer.GetComponent<Camera>().GetUniversalAdditionalCameraData();
 
             // PostProcessLayer requires a sibling Camera component, but
             // we check it here just in case something weird went happened.
             if (!siblingCamera)
             {
-                Debug.Log("--- 012 ---");
-                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
+                errorString.AppendLine(
+                    "PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
                 return false;
             }
 
-            Debug.Log("--- 013 ---", siblingCamera);
             // The presence of a PostProcessLayer implies the Camera should render post-processes
             siblingCamera.renderPostProcessing = true;
 
@@ -443,7 +446,8 @@ namespace Editor.Converters
             siblingCamera.volumeTrigger = oldLayer.volumeTrigger;
             siblingCamera.stopNaN = oldLayer.stopNaNPropagation;
 
-            siblingCamera.antialiasingQuality = (URPRendering.AntialiasingQuality)oldLayer.subpixelMorphologicalAntialiasing.quality;
+            siblingCamera.antialiasingQuality =
+                (URPRendering.AntialiasingQuality) oldLayer.subpixelMorphologicalAntialiasing.quality;
 
             switch (oldLayer.antialiasingMode)
             {
@@ -466,49 +470,41 @@ namespace Editor.Converters
             // Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
             EditorUtility.SetDirty(siblingCamera.gameObject);
 
-            Debug.Log("--- 014 ---");
             return true;
         }
 
         private bool ConvertLayerInstance(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
         {
-            Debug.Log("--- 001 ---");
             // First get a reference to the local instance of the camera (which is required by PostProcessingLayer)
             var siblingCamera = oldLayer.GetComponent<Camera>().GetUniversalAdditionalCameraData();
             if (!siblingCamera)
             {
-                Debug.Log("--- 002 ---");
-                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
+                errorString.AppendLine(
+                    "PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
                 return false;
             }
 
-            siblingCamera.renderPostProcessing = true;
-
-            Debug.Log("--- 003 ---");
             var oldModifications = PrefabUtility.GetPropertyModifications(oldLayer);
             foreach (var oldModification in oldModifications)
             {
-                Debug.Log("--- 004 ---");
-
-                // TODO: Remove this
-                Debug.Log("--- PostProcessLayer Modification:" +
-                          $"\n{oldModification.target}" +
-                          $"\n{oldModification.value}" +
-                          $"\n{oldModification.objectReference}" +
-                          $"\n{oldModification.propertyPath}");
 
                 if (oldModification.target is BIRPRendering.PostProcessLayer)
                 {
-                    Debug.Log("--- 005 ---");
-                    if (oldModification.propertyPath.EndsWith("volumeLayer", StringComparison.InvariantCultureIgnoreCase))
+                    if (oldModification.propertyPath.EndsWith("volumeLayer",
+                        StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.volumeLayerMask = oldLayer.volumeLayer;
-                    else if (oldModification.propertyPath.EndsWith("volumeTrigger", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("volumeTrigger",
+                        StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.volumeTrigger = oldLayer.volumeTrigger;
-                    else if (oldModification.propertyPath.EndsWith("stopNaNPropagation", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("stopNaNPropagation",
+                        StringComparison.InvariantCultureIgnoreCase))
                         siblingCamera.stopNaN = oldLayer.stopNaNPropagation;
-                    else if (oldModification.propertyPath.EndsWith("quality", StringComparison.InvariantCultureIgnoreCase))
-                        siblingCamera.antialiasingQuality = (URPRendering.AntialiasingQuality)oldLayer.subpixelMorphologicalAntialiasing.quality;
-                    else if (oldModification.propertyPath.EndsWith("antialiasingMode", StringComparison.InvariantCultureIgnoreCase))
+                    else if (oldModification.propertyPath.EndsWith("quality",
+                        StringComparison.InvariantCultureIgnoreCase))
+                        siblingCamera.antialiasingQuality =
+                            (URPRendering.AntialiasingQuality) oldLayer.subpixelMorphologicalAntialiasing.quality;
+                    else if (oldModification.propertyPath.EndsWith("antialiasingMode",
+                        StringComparison.InvariantCultureIgnoreCase))
                     {
                         switch (oldLayer.antialiasingMode)
                         {
@@ -519,7 +515,8 @@ namespace Editor.Converters
                                 siblingCamera.antialiasing = URPRendering.AntialiasingMode.FastApproximateAntialiasing;
                                 break;
                             case BIRPRendering.PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing:
-                                siblingCamera.antialiasing = URPRendering.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                                siblingCamera.antialiasing =
+                                    URPRendering.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                                 break;
                             default:
                                 // Default to the the most performant mode, since "None" is an explicit option.
@@ -535,7 +532,8 @@ namespace Editor.Converters
             return true;
         }
 
-        private VolumeProfile ConvertVolumeProfileAsset(BIRPRendering.PostProcessProfile oldProfile, StringBuilder errorString, ref bool success)
+        private VolumeProfile ConvertVolumeProfileAsset(BIRPRendering.PostProcessProfile oldProfile,
+            StringBuilder errorString, ref bool success)
         {
             // Don't convert if it appears to already have been converted.
             if (!oldProfile) return null;

@@ -14,12 +14,11 @@ public class BloomConverter : PostProcessEffectSettingsConverter
     protected override void ConvertToTarget(BIRPRendering.PostProcessEffectSettings oldSettings, VolumeProfile targetProfile)
     {
         var oldBloom = oldSettings as BIRPRendering.Bloom;
-        
+
         var newVolumeComponent = AddVolumeComponentToAsset<URPRendering.Bloom>(targetProfile);
-        
+
         newVolumeComponent.active = oldBloom.active;
-        
-        // TODO: Verify that these are 1:1 conversions for visual parity
+
         oldBloom.clamp.Convert(newVolumeComponent.clamp);
         oldBloom.diffusion.Convert(newVolumeComponent.scatter, scale: 0.05f);
         oldBloom.intensity.Convert(newVolumeComponent.intensity, enabledState: oldBloom.enabled);
@@ -28,7 +27,7 @@ public class BloomConverter : PostProcessEffectSettingsConverter
         oldBloom.dirtIntensity.Convert(newVolumeComponent.dirtIntensity);
         oldBloom.dirtTexture.Convert(newVolumeComponent.dirtTexture);
         oldBloom.fastMode.Convert(newVolumeComponent.highQualityFiltering, invertValue: true);
-        
+
         // TODO: No clear conversions for these?
         // newVolumeComponent.skipIterations = oldBloom.???;
         // newVolumeComponent.??? = oldBloom.anamorphicRatio;

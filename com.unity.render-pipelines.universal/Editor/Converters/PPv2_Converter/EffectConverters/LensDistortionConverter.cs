@@ -14,12 +14,11 @@ public class LensDistortionConverter : PostProcessEffectSettingsConverter
     protected override void ConvertToTarget(BIRPRendering.PostProcessEffectSettings oldSettings, VolumeProfile targetProfile)
     {
         var oldLensDistortion = oldSettings as BIRPRendering.LensDistortion;
-        
+
         var newVolumeComponent = AddVolumeComponentToAsset<URPRendering.LensDistortion>(targetProfile);
-        
+
         newVolumeComponent.active = oldLensDistortion.active;
-        
-        // TODO: Verify that these are 1:1 conversions for visual parity
+
         oldLensDistortion.intensity.Convert(newVolumeComponent.intensity,
             scale: 0.01f,
             enabledState: oldLensDistortion.enabled);

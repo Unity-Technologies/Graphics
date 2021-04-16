@@ -12,12 +12,11 @@ public class VignetteConverter : PostProcessEffectSettingsConverter
     protected override void ConvertToTarget(BIRPRendering.PostProcessEffectSettings oldSettings, VolumeProfile targetProfile)
     {
         var oldVignette = oldSettings as BIRPRendering.Vignette;
-        
+
         var newVolumeComponent = AddVolumeComponentToAsset<URPRendering.Vignette>(targetProfile);
-        
+
         newVolumeComponent.active = oldVignette.active;
-        
-        // TODO: Verify that these are 1:1 conversions for visual parity
+
         oldVignette.color.Convert(newVolumeComponent.color);
 
         if (oldVignette.mode.value == BIRPRendering.VignetteMode.Masked)
@@ -30,12 +29,12 @@ public class VignetteConverter : PostProcessEffectSettingsConverter
         else
         {
             oldVignette.intensity.Convert(newVolumeComponent.intensity, enabledState: oldSettings.enabled);
-            
+
             oldVignette.center.Convert(newVolumeComponent.center);
             oldVignette.rounded.Convert(newVolumeComponent.rounded);
             oldVignette.smoothness.Convert(newVolumeComponent.smoothness);
         }
-        
+
         // TODO: No clear conversions for these?
         // oldVignette.mask
         // oldVignette.roundness

@@ -13,13 +13,11 @@ public class GrainConverter : PostProcessEffectSettingsConverter
     protected override void ConvertToTarget(BIRPRendering.PostProcessEffectSettings oldSettings, VolumeProfile targetProfile)
     {
         var oldGrain = oldSettings as BIRPRendering.Grain;
-        
+
         var newVolumeComponent = AddVolumeComponentToAsset<URPRendering.FilmGrain>(targetProfile);
-        
+
         newVolumeComponent.active = oldGrain.active;
-        
-        // TODO: Verify that these are 1:1 conversions for visual parity
-        
+
         oldGrain.intensity.Convert(newVolumeComponent.intensity, enabledState: oldGrain.enabled);
         oldGrain.lumContrib.Convert(newVolumeComponent.response);
 
@@ -32,7 +30,7 @@ public class GrainConverter : PostProcessEffectSettingsConverter
             newVolumeComponent.type.value = URPRendering.FilmGrainLookup.Thin2;
         else
             newVolumeComponent.type.value = URPRendering.FilmGrainLookup.Thin1;
-        
+
         // TODO: No clear conversions for these?
         // oldGrain.colored
     }
