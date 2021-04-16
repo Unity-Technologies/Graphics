@@ -17,41 +17,40 @@ namespace UnityEditor.Rendering.Universal
         static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~-1, "URP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
-                CED.Conditional(
-                    (_, __) =>
-                    {
-                        if (SceneView.lastActiveSceneView == null)
-                            return false;
+            CED.Conditional(
+                (_, __) =>
+                {
+                    if (SceneView.lastActiveSceneView == null)
+                        return false;
 
 #if UNITY_2019_1_OR_NEWER
-                        var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
+                    var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
 #else
-                        var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
+                    var sceneLighting = SceneView.lastActiveSceneView.m_SceneLighting;
 #endif
-                        return !sceneLighting;
-
-                    },
-                    (_, __) => EditorGUILayout.HelpBox(Styles.DisabledLightWarning.text, MessageType.Warning)),
-                CED.FoldoutGroup(Styles.generalHeader,
-                    Expandable.General,
-                    k_ExpandedState,
-                    DrawGeneralContent),
-                CED.Conditional(
-                    (serialized, editor) => false,
-                    CED.FoldoutGroup(Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent)),
-                CED.FoldoutGroup(Styles.emissionHeader,
-                    Expandable.Emission,
-                    k_ExpandedState,
-                    DrawEmissionContent),
-                CED.FoldoutGroup(Styles.renderingHeader,
-                    Expandable.Rendering,
-                    k_ExpandedState,
-                    DrawRenderingContent),
-                CED.FoldoutGroup(Styles.shadowHeader,
-                    Expandable.Shadows,
-                    k_ExpandedState,
-                    DrawShadowsContent)
-            );
+                    return !sceneLighting;
+                },
+                (_, __) => EditorGUILayout.HelpBox(Styles.DisabledLightWarning.text, MessageType.Warning)),
+            CED.FoldoutGroup(Styles.generalHeader,
+                Expandable.General,
+                k_ExpandedState,
+                DrawGeneralContent),
+            CED.Conditional(
+                (serialized, editor) => false,
+                CED.FoldoutGroup(Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent)),
+            CED.FoldoutGroup(Styles.emissionHeader,
+                Expandable.Emission,
+                k_ExpandedState,
+                DrawEmissionContent),
+            CED.FoldoutGroup(Styles.renderingHeader,
+                Expandable.Rendering,
+                k_ExpandedState,
+                DrawRenderingContent),
+            CED.FoldoutGroup(Styles.shadowHeader,
+                Expandable.Shadows,
+                k_ExpandedState,
+                DrawShadowsContent)
+        );
 
 
         static void DrawGeneralContent(object serialized, Editor owner)
