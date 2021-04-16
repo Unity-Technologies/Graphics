@@ -56,7 +56,6 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags { "LightMode" = "UniversalForward" }
             HLSLPROGRAM
             #pragma target 3.0
-#pragma enable_d3d11_debug_symbols
 
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
@@ -132,7 +131,6 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma target 3.0
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
-#pragma enable_d3d11_debug_symbols
 
             #define _METALLICSPECGLOSSMAP 1
             #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
