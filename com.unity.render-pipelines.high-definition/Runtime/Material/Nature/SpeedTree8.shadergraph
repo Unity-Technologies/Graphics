@@ -4561,7 +4561,7 @@
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "ENUM_920DDEB0",
     "m_OverrideReferenceName": "_WINDQUALITY",
-    "m_GeneratePropertyBlock": false,
+    "m_GeneratePropertyBlock": true,
     "m_KeywordType": 1,
     "m_KeywordDefinition": 0,
     "m_KeywordScope": 0,

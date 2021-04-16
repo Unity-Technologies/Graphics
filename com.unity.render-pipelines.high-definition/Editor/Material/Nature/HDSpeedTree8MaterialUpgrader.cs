@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
             SetHDSpeedTree8Defaults(mat);
-            SpeedTree8MaterialFinalizer(mat); // Do this once before resetting keywords so that all float properties are set up correctly
+            SpeedTree8MaterialFinalizer(mat);
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
 
@@ -45,8 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 mat.EnableKeyword("EFFECT_BILLBOARD");
             }
-
-            SpeedTree8MaterialFinalizer(mat); // Call again after resetting material keywords so that wind keywords get restored
         }
 
         private static void SetHDSpeedTree8Defaults(Material mat)
