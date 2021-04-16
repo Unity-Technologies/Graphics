@@ -95,9 +95,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if (hdrp != null)
-                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+            if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)
+            {
+                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
+            }
             m_ReadBackTexture = new Texture2D(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
         }
 
@@ -112,10 +113,17 @@ namespace UnityEditor.Rendering.HighDefinition
         // Compute the lux value in the upper hemisphere of the HDRI skybox
         public void GetUpperHemisphereLuxValue()
         {
-            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            // null material can happen when no HDRP asset was present at startup
+            if (m_IntegrateHDRISkyMaterial == null)
+            {
+                if (HDRenderPipeline.isReady)
+                    m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
+                else
+                    return;
+            }
 
-            // null material can happen when no HDRP asset is present.
-            if (hdri == null || m_IntegrateHDRISkyMaterial == null)
+            Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            if (hdri == null)
                 return;
 
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
