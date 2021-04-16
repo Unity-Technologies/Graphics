@@ -163,6 +163,9 @@ namespace Unity.Testing.VisualEffectGraph
 
             m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newSize, Marshal.SizeOf(typeof(CustomData)));
             m_Buffer.SetData(new CustomData[newSize]);
+
+            var vfx = GetComponent<VisualEffect>();
+            vfx.SetGraphicsBuffer(s_BufferID, m_Buffer);
         }
 
         void Start()
@@ -173,9 +176,6 @@ namespace Unity.Testing.VisualEffectGraph
                 new CustomData() { position = new Vector3(0, 0, 0), rectangle = new Rectangle() { color = new Vector3(1, 1, 1), size = new Vector2(1024, 1024) }}
             };
             m_Buffer.SetData(m_Data);
-
-            var vfx = GetComponent<VisualEffect>();
-            vfx.SetGraphicsBuffer(s_BufferID, m_Buffer);
         }
 
         void Update()
