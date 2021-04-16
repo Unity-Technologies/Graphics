@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
@@ -1126,6 +1127,14 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
+#if UNITY_EDITOR
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                {
+                    finalClearColor.a = 0;
+                    finalClearFlag &= ~ClearFlag.Depth;
+                }
+#endif
+
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
                     if (!renderPass.overrideCameraTarget)
@@ -1293,7 +1302,7 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
+            if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();

@@ -1,4 +1,4 @@
-Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
+﻿Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 {
     Properties
     {
@@ -56,12 +56,13 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             struct Varyings
             {
                 float2  UV01            : TEXCOORD0; // UV0
-                float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half4   Color           : TEXCOORD2; // Vertex Color
-                half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
+                half4   LightingFog     : TEXCOORD3; // Vertex Lighting, Fog Factor
 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
 #endif
+                half4   NormalWS        : TEXCOORD5;
                 float4  PositionCS      : SV_POSITION; // Clip Position
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -77,7 +78,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-                output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+                OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
@@ -92,6 +93,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex Lighting
                 half3 NormalWS = input.NormalOS;
+                OUTPUT_SH(NormalWS, output.vertexSH);
                 Light mainLight = GetMainLight();
                 half3 diffuseColor = 0.0;
 
@@ -119,6 +121,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 // Fog factor
                 output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
 
+                output.NormalWS.xyz = NormalWS;
+
                 return output;
             }
 
@@ -126,7 +130,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
+                half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
                 half3 lighting = bakedGI;
 
                 half realtimeShadows = 1.0;
@@ -135,7 +139,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                     Light mainLight = GetMainLight();
                     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
                     #endif
-                    realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
+                        realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
                 #endif
 
                 lighting += input.LightingFog.rgb * realtimeShadows;
@@ -197,7 +201,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             struct Varyings
             {
                 float2  UV01            : TEXCOORD0; // UV0
-                float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half4   Color           : TEXCOORD2; // Vertex Color
                 half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
                 float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
@@ -218,7 +222,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-                output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
@@ -228,6 +231,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex Lighting
                 output.NormalWS = TransformObjectToWorldNormal(input.NormalOS).xyz;
+                OUTPUT_SH(output.NormalWS, output.vertexSH);
 
                 Light mainLight = GetMainLight();
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
@@ -254,8 +258,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
-
+                half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS);
                 half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);

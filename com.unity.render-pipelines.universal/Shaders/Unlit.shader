@@ -121,7 +121,7 @@ Shader "Universal Render Pipeline/Unlit"
                 fogFactor = input.fogCoord;
             #endif
 
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
                     color *= aoFactor.directAmbientOcclusion;
@@ -327,7 +327,7 @@ Shader "Universal Render Pipeline/Unlit"
                     color *= alpha;
                 #endif
 
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
                     color *= aoFactor.directAmbientOcclusion;
