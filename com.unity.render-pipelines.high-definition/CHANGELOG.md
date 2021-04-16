@@ -213,6 +213,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - UI for Frame Settings has been updated: default values in the HDRP Settings and Custom Frame Settings are always editable
 - Updated Light's shadow layer name in Editor.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
+- Film grain does not affect the alpha channel.
 
 ## [11.0.0] - 2020-10-21
 
