@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where a requirement was placed on a fixed-function emission property [1319637]
 - Fixed default shadergraph precision so it matches what is displayed in the graph settings UI (single) [1325934]
 - Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed a bug where changing a Target setting would switch the inspector view to the Node Settings tab if any nodes were selected.
 - Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
 - Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
 - Fixed an issue where users can't create multiple Boolean or Enum keywords on the blackboard. [1329021](https://issuetracker.unity3d.com/issues/shadergraph-cant-create-multiple-boolean-or-enum-keywords)
