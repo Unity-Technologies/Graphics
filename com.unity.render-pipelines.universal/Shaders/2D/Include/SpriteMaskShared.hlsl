@@ -25,7 +25,7 @@ Varyings MaskRenderingVertex(Attributes input)
 {
     Varyings output;
 
-    output.positionCS = TransformObjectToHClip(input.positionOS);
+    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     output.uv = input.texcoord;
 
     return output;
