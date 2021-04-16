@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.Universal
         private void Awake()
         {
             if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
-               m_NormalMapQuality = NormalMapQuality.Disabled;
+                m_NormalMapQuality = NormalMapQuality.Disabled;
 
             if (m_ApplyToSortingLayers == null)
             {
