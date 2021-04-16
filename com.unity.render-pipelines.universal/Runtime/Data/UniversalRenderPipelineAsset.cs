@@ -98,10 +98,16 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    /// <summary>
+    /// Defines the policy used when setting store actions for the DrawObjects passes. It has a great impact on bandwidth on tile based GPUs.
+    /// </summary>
     public enum StoreActionsOptimization
     {
+        /// <summary> Behaves like the Discard option. If any injected passes are detected will then fall back to Store. </summary>
         Auto,
+        /// <summary> Targets of passes which are not re-used later in the frame will be discarded (optimal). </summary>
         Discard,
+        /// <summary> Store all the targets of each pass (non optimal). </summary>
         Store
     }
 
@@ -532,6 +538,10 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsTerrainHoles; }
         }
 
+        /// <summary>
+        /// Returns the active store action optimization value.
+        /// </summary>
+        /// <returns>Returns the active store action optimization value.</returns>
         public StoreActionsOptimization storeActionsOptimization
         {
             get { return m_StoreActionsOptimization; }
