@@ -30,8 +30,6 @@ PR_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_trunk
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_trunk
-         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on_new_revision
     triggers:
@@ -45,8 +43,6 @@ Nightly_HDRP_trunk:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#Nightly_HDRP_DXR_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#Nightly_HDRP_Hybrid_trunk
          rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
          rerun: on_new_revision
@@ -90,8 +86,6 @@ PR_HDRP_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
@@ -104,8 +98,6 @@ Nightly_HDRP_CUSTOM-REVISION:
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#Nightly_HDRP_DXR_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#Nightly_HDRP_Hybrid_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_CUSTOM-REVISION
          rerun: on_new_revision

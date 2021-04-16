@@ -112,7 +112,8 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
 
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    // Billboards cannot use lightmaps.
+    inputData.bakedGI = SAMPLE_GI(NOT_USED, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }
@@ -250,8 +251,20 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         clip(diffuse.a - _Cutoff);
     #endif
 
-    float3 normalWS = NormalizeNormalPerPixel(input.normalWS.xyz);
-    return half4(normalWS, 0.0);
+    #if defined(EFFECT_BUMP)
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half4 detailColor = tex2D(_DetailTex, input.detail.xy);
+            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            normalTS = lerp(normalTS, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+        #endif
+
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+    #else
+        half3 normalWS = input.normalWS.xyz;
+    #endif
+
+    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
 }
 
 #endif

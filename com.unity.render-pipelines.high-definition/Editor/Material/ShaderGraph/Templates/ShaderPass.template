@@ -104,14 +104,6 @@ Pass
     #endif
     #endif
 
-    // NOTE: disabling de exposure usage on unlit shader graphs (caused by virtual texture constant buffer binding).
-    // If we turn this on, in vulkan, virtual texture offsets are corrupted. It is likely caused by the stack
-    // textures constant buffers, which utilize arrays. Something is happening to the reflection data of vulkan which completely displaces
-    // the constant buffer. A bug is filed and is being looked at.
-    #if defined(SHADER_API_VULKAN)
-    #define DISABLE_UNLIT_DEEXPOSURE
-    #endif
-
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case

@@ -48,6 +48,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
@@ -74,7 +75,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
+                float2 staticLightmapUV : TEXCOORD1;
                 float3 normalOS         : NORMAL;
                 float4 tangentOS        : TANGENT;
 
@@ -84,7 +85,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
                 half4 tangentWS                 : TEXCOORD3;
@@ -122,7 +123,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 real sign = input.tangentOS.w * GetOddNegativeScale();
                 output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
                 OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
@@ -152,10 +153,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                color *= SAMPLE_GI(input.staticLightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
-                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
                 #endif
 
                 half fogFactor = 0.0;
@@ -227,8 +229,39 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
-            // Defines
-            #define BUMP_SCALE_NOT_SUPPORTED 1
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitDepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
+        // Same as DepthNormals pass, but used for deferred renderer and forwardOnly materials.
+        Pass
+        {
+            Name "DepthNormalsOnly"
+            Tags{"LightMode" = "DepthNormalsOnly"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
 
             //--------------------------------------
             // GPU Instancing
@@ -236,7 +269,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitDepthNormalsPass.hlsl"
             ENDHLSL
         }
 
@@ -347,6 +380,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
@@ -372,7 +406,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
-                float2 lightmapUV       : TEXCOORD1;
+                float2 staticLightmapUV       : TEXCOORD1;
                 float3 normalOS         : NORMAL;
                 float4 tangentOS        : TANGENT;
 
@@ -382,7 +416,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             struct Varyings
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
-                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
                 half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
                 half4 tangentWS                 : TEXCOORD3;
@@ -419,7 +453,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 real sign = input.tangentOS.w * GetOddNegativeScale();
                 output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
                 OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
@@ -449,10 +483,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
-                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                color *= SAMPLE_GI(input.staticLightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
-                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+                    color *= aoFactor.directAmbientOcclusion;
                 #endif
 
                 half fogFactor = 0.0;
@@ -523,15 +558,11 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
-            // Defines
-            #define BUMP_SCALE_NOT_SUPPORTED 1
-
-            //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitDepthNormalsPass.hlsl"
             ENDHLSL
         }
 
