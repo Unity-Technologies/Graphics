@@ -170,7 +170,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 layerMask = layerMask,
             };
 
-            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            var renderCtx = ctx.renderContext;
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
         }
 
         /// <summary>

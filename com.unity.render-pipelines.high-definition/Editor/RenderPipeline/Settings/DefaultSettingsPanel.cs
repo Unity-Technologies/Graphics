@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent shaderVariantLogLevelLabel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information appears in the Unity Console when the build finishes..");
 
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
+            internal static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
 
             internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
             internal static readonly string warningHdrpNotActive = "No HD Render Pipeline currently active. Verify your Graphics Settings and active Quality Level.";
@@ -486,6 +487,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevelLabel);
                 EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContentLabel);
+                EditorGUILayout.PropertyField(serialized.rendererListCulling, Styles.rendererListCulling);
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }

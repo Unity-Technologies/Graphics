@@ -27,6 +27,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int              refCount { get; protected set; }
         public bool             generateDebugData { get; protected set; }
 
+        public bool             allowRendererListCulling { get; protected set; }
+
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
@@ -98,6 +100,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
+        }
+
+        public void AllowRendererListCulling(bool value)
+        {
+            allowRendererListCulling = value;
         }
 
         public void GenerateDebugData(bool value)

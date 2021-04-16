@@ -311,6 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
 
+            var hdrpSettings = defaultSettings as HDRenderPipelineGlobalSettings;
+            if(hdrpSettings)
+                m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
+
             m_RenderGraph.Execute();
 
             if (aovRequest.isValid)
@@ -729,6 +733,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ForwardTransparentPassData>(passName, out var passData, ProfilingSampler.Get(profilingId)))
             {
                 PrepareCommonForwardPassData(renderGraph, builder, passData, false, hdCamera.frameSettings, PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefractionPass), lightLists, shadowResult);
+
+                builder.AllowRendererListCulling(true);
 
                 // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                 // decal datas count is 0 if no decals affect transparency
@@ -1336,6 +1342,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<GenerateColorPyramidData>("Color Gaussian MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.ColorPyramid)))
             {
+                builder.AllowRendererListCulling(true);
+
                 passData.colorPyramid = builder.WriteTexture(output);
                 passData.inputColor = builder.ReadTexture(inputColor);
                 passData.hdCamera = hdCamera;
@@ -1373,6 +1381,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.AccumulateDistortion)))
             {
+                builder.AllowRendererListCulling(true);
+
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
@@ -1413,6 +1423,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderDistortionPassData>("Apply Distortion", out var passData, ProfilingSampler.Get(HDProfileId.ApplyDistortion)))
             {
+                builder.AllowRendererListCulling(true);
+
                 passData.applyDistortionMaterial = m_ApplyDistortionMaterial;
                 passData.roughDistortion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
                 passData.sourceColorBuffer = passData.roughDistortion ? builder.ReadTexture(colorPyramidBuffer) : builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" });

@@ -179,6 +179,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
+        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
+        public bool rendererListCulling;
+
         internal struct CompiledResourceInfo
         {
             public List<int>    producers;
@@ -644,6 +647,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
+                    // Should be called after BeginExecute, since we need valid resource handles
+                    if (rendererListCulling)
+                        CullRendererLists();
+
                     ExecuteRenderGraph();
                 }
             }
@@ -1091,7 +1098,72 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
+        }
+
+        void CullPassAtIndex(int passIndex)
+        {
+            // TODO: we can do better than this recursive implementation
+            var pass = m_CompiledPassInfos[passIndex].pass;
+            if (!m_CompiledPassInfos[passIndex].culled && pass.allowRendererListCulling && !m_CompiledPassInfos[passIndex].hasSideEffect)
+            {
+                Debug.Log($"Culling pass <color=red> {pass.name} </color>");
+                m_CompiledPassInfos[passIndex].culled = true;
+
+                for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+                {
+                    foreach (var resourceIndex in m_CompiledPassInfos[passIndex].pass.resourceReadLists[type])
+                    {
+                        ref CompiledResourceInfo resourceInfo = ref m_CompiledResourcesInfos[type][resourceIndex];
+                        resourceInfo.refCount--;
+                        if (resourceInfo.refCount == 0)
+                        {
+                            foreach (var producer in resourceInfo.producers)
+                            {
+                                CullPassAtIndex(producer);
+                            }
+                        }
+                    }
+
+                    foreach (var resourceID in m_CompiledPassInfos[passIndex].resourceCreateList[type])
+                    {
+                        // Cull all passes that consume the output of this pass
+                        var resourcesInfo = m_CompiledResourcesInfos[type];
+                        foreach (var consumer in resourcesInfo[resourceID].consumers)
+                        {
+                            CullPassAtIndex(consumer);
+                        }
+                    }
+                }
+            }
+        }
+
+        void CullRendererLists()
+        {
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                if (!m_CompiledPassInfos[passIndex].culled)
+                {
+                    var pass = m_CompiledPassInfos[passIndex].pass;
+                    if (pass.allowRendererListCulling && pass.usedRendererListList.Count > 0)
+                    {
+                        bool shouldCull = true;
+                        foreach (var renderList in pass.usedRendererListList)
+                        {
+                            if (m_RenderGraphContext.renderContext.QueryRendererList(renderList) == RendererListResult.kRendererListPopulated)
+                            {
+                                shouldCull = false;
+                                break; // no need to check the rest
+                            }
+                        }
+
+                        if (shouldCull)
+                        {
+                            CullPassAtIndex(passIndex);
+                        }
+                    }
+                }
+            }
         }
 
         // Internal visibility for testing purpose only
@@ -1162,7 +1234,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (!m_Resources.IsRendererListCreated(rl))
                     m_RendererLists.Add(rl);
             }
-            m_Resources.CreateRendererLists(m_RendererLists);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
             m_RendererLists.Clear();
 
             return ref passInfo;
@@ -1176,7 +1248,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void ExecuteCompiledPass(ref CompiledPassInfo passInfo, int passIndex)
         {
             if (passInfo.culled)
+            {
+                // We need to release any resources that this pass was going to release
+                if (passInfo.pass.allowRendererListCulling)
+                {
+                    for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
+                    {
+                        foreach (var resource in passInfo.resourceReleaseList[type])
+                        {
+                            m_Resources.ReleasePooledResource(m_RenderGraphContext, type, resource);
+                        }
+                    }
+                }
                 return;
+            }
 
             if (!passInfo.pass.HasRenderFunc())
             {

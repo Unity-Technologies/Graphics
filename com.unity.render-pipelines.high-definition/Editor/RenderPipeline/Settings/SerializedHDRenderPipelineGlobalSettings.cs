@@ -45,6 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
 
+        public SerializedProperty rendererListCulling;
+
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
         internal ReorderableList uiBeforeTAACustomPostProcesses;
         internal ReorderableList uiBeforePostProcessCustomPostProcesses;
@@ -127,6 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 drawElement = DrawDiffusionProfileElement
             };
+            rendererListCulling = serializedObject.FindProperty("rendererListCulling");
         }
 
         void InitializeCustomPostProcessesLists()

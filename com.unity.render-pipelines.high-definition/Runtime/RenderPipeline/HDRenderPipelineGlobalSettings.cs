@@ -877,6 +877,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
+        [SerializeField]
+        internal bool rendererListCulling;
+
 #if UNITY_EDITOR
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
         {
