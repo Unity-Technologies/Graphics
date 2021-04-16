@@ -392,6 +392,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
 #pragma warning restore 618
             }
+            else if (version == ShaderGraphVersion.ExposableProperties)
+            {
+                builtinData.MigrateToExposableProperties();
+            }
         }
     }
 }

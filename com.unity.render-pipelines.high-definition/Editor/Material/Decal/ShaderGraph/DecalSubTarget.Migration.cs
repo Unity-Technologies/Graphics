@@ -68,5 +68,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return true;
         }
+
+        internal override void MigrateTo(ShaderGraphVersion version)
+        {
+            base.MigrateTo(version);
+
+            if (version == ShaderGraphVersion.ExposableProperties)
+            {
+                decalData.MigrateToExposableProperties();
+            }
+        }
     }
 }

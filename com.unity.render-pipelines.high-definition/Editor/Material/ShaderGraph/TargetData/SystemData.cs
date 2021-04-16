@@ -127,7 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         internal int inspectorFoldoutMask;
 
-        /*
         // Kept for migration
         [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
@@ -149,7 +148,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_AlphaTest;
         [SerializeField]
         DoubleSidedMode m_DoubleSidedMode;
-        */
+
+        internal void MigrateToExposableProperties()
+        {
+            // Expose everything to keep same interface
+            surfaceTypeProp.IsExposed = true;
+            renderQueueTypeProp.IsExposed = true;
+            blendModeProp.IsExposed = true;
+            zTestProp.IsExposed = true;
+            transparentZWriteProp.IsExposed = true;
+            transparentCullModeProp.IsExposed = true;
+            opaqueCullModeProp.IsExposed = true;
+            sortPriorityProp.IsExposed = true;
+            doubleSidedModeProp.IsExposed = true;
+            // some properties were implicitely unexposed, now we can make it explicit
+            alphaTestProp.IsExposed = m_AlphaTest;
+
+            // Migrate Values
+            surfaceTypeProp.value = m_SurfaceType;
+            renderQueueTypeProp.value = m_RenderingPass;
+            blendModeProp.value = m_BlendMode;
+            zTestProp.value = m_ZTest;
+            transparentZWriteProp.value = m_ZWrite;
+            transparentCullModeProp.value = m_TransparentCullMode;
+            opaqueCullModeProp.value = m_OpaqueCullMode;
+            sortPriorityProp.value = m_SortPriority;
+            alphaTestProp.value = m_AlphaTest;
+            doubleSidedModeProp.value = m_DoubleSidedMode;
+        }
     }
 
     static class HDSystemDataExtensions

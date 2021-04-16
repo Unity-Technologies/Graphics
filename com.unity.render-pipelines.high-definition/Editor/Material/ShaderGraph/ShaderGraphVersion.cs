@@ -10,5 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         Initial = 0,
         FirstTimeMigration = Initial,
+        ExposableProperties,
     }
 }

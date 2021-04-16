@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
     internal class TargetPropertyGUIContext : VisualElement
     {
         const int kIndentWidthInPixel = 15;
+        const int kExposeBoxWidthInPixel = 55;
 
         public int globalIndentLevel {get; set;} = 0;
         internal bool supportsExposableProperties = false;
@@ -49,7 +50,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Create an empty element to fill space
                     exposed = new VisualElement();
-                    exposed.style.minWidth = 55;
+                    exposed.style.minWidth = kExposeBoxWidthInPixel;
                 }
             }
             else if (exposed != null)
@@ -67,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         public void AddLabel(string label, int indentLevel)
         {
             var propertyRow = new PropertyRow(new Label(label));
-            ApplyPadding(propertyRow, indentLevel);
+            ApplyPadding(propertyRow, indentLevel, supportsExposableProperties);
             this.hierarchy.Add(propertyRow);
         }
 
@@ -78,9 +79,9 @@ namespace UnityEditor.ShaderGraph
             this.hierarchy.Add(helpBox);
         }
 
-        void ApplyPadding(PropertyRow row, int indentLevel)
+        void ApplyPadding(PropertyRow row, int indentLevel, bool exposeBoxPadding = false)
         {
-            row.Q(className: "unity-label").style.marginLeft = (globalIndentLevel + indentLevel) * kIndentWidthInPixel;
+            row.Q(className: "unity-label").style.marginLeft = (globalIndentLevel + indentLevel) * kIndentWidthInPixel + (exposeBoxPadding ? kExposeBoxWidthInPixel : 0);
         }
     }
 }

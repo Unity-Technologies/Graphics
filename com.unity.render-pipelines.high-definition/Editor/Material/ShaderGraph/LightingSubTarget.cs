@@ -182,5 +182,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kReceivesSSR, lightingData.receiveSSR ? 1 : 0);
             material.SetFloat(kReceivesSSRTransparent, lightingData.receiveSSRTransparent ? 1 : 0);
         }
+
+        internal override void MigrateTo(ShaderGraphVersion version)
+        {
+            base.MigrateTo(version);
+
+            if (version == ShaderGraphVersion.ExposableProperties)
+            {
+                builtinData.MigrateToExposableProperties();
+            }
+        }
     }
 }

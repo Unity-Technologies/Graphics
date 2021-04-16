@@ -75,5 +75,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_AffectsNormal = true;
         [SerializeField]
         bool m_AffectsEmission = false;
+
+        internal void MigrateToExposableProperties()
+        {
+            // Migrate Values
+            affectsMetalProp.value = m_AffectsMetal;
+            affectsAOProp.value = m_AffectsAO;
+            affectsSmoothnessProp.value = m_AffectsSmoothness;
+            affectsAlbedoProp.value = m_AffectsAlbedo;
+            affectsNormalProp.value = m_AffectsNormal;
+            affectsEmissionProp.value = m_AffectsEmission;
+
+            // properties were implicitely unexposed, now we can make it explicit
+            affectsMetalProp.IsExposed = m_AffectsMetal;
+            affectsAOProp.IsExposed = m_AffectsAO;
+            affectsSmoothnessProp.IsExposed = m_AffectsSmoothness;
+            affectsAlbedoProp.IsExposed = m_AffectsAlbedo;
+            affectsNormalProp.IsExposed = m_AffectsNormal;
+            affectsEmissionProp.IsExposed = m_AffectsEmission;
+        }
     }
 }

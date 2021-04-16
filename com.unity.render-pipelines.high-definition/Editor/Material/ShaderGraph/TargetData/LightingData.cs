@@ -86,7 +86,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_OverrideBakedGI = value;
         }
 
-        /*
         // Kept for migration
         [SerializeField]
         bool m_ReceiveDecals = true;
@@ -94,6 +93,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_ReceiveSSR = true;
         [SerializeField]
         bool m_ReceiveSSRTransparent = false;
-        */
+
+        internal void MigrateToExposableProperties()
+        {
+            // Expose everything to keep same interface
+            receiveDecalsProp.IsExposed = true;
+            receiveSSRProp.IsExposed = true;
+            receiveSSRTransparentProp.IsExposed = true;
+
+            // Migrate Values
+            receiveDecalsProp.value = m_ReceiveDecals;
+            receiveSSRProp.value = m_ReceiveSSR;
+            receiveSSRTransparentProp.value = m_ReceiveSSRTransparent;
+        }
     }
 }

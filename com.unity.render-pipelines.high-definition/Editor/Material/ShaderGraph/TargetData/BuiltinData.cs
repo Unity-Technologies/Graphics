@@ -105,7 +105,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SupportLodCrossFade = value;
         }
 
-        /*
         // Kept for migration
         [SerializeField]
         bool m_Distortion = false;
@@ -129,6 +128,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         bool m_TransparentDepthPrepass;
         [SerializeField]
         bool m_TransparentDepthPostpass;
-        */
+
+        internal void MigrateToExposableProperties()
+        {
+            // Expose everything to keep same interface
+            distortionProp.IsExposed = true;
+            addPrecomputedVelocityProp.IsExposed = true;
+            transparentWritesMotionVecProp.IsExposed = true;
+            alphaToMaskProp.IsExposed = true;
+            depthOffsetProp.IsExposed = true;
+            conservativeDepthOffsetProp.IsExposed = true;
+            transparencyFogProp.IsExposed = true;
+            backThenFrontRenderingProp.IsExposed = true;
+            transparentDepthPrepassProp.IsExposed = true;
+            transparentDepthPostpassProp.IsExposed = true;
+            // some properties were implicitely unexposed, now we can make it explicit
+            alphaTestShadowProp.IsExposed = m_AlphaTestShadow;
+
+            // Migrate Values
+            distortionProp.value = m_Distortion;
+            addPrecomputedVelocityProp.value = m_AddPrecomputedVelocity;
+            transparentWritesMotionVecProp.value = m_TransparentWritesMotionVec;
+            alphaToMaskProp.value = m_AlphaToMask;
+            depthOffsetProp.value = m_DepthOffset;
+            conservativeDepthOffsetProp.value = m_ConservativeDepthOffset;
+            transparencyFogProp.value = m_TransparencyFog;
+            alphaTestShadowProp.value = m_AlphaTestShadow;
+            backThenFrontRenderingProp.value = m_BackThenFrontRendering;
+            transparentDepthPrepassProp.value = m_TransparentDepthPrepass;
+            transparentDepthPostpassProp.value = m_TransparentDepthPostpass;
+        }
     }
 }
