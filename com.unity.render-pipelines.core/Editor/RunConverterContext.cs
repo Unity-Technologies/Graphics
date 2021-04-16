@@ -9,12 +9,14 @@ namespace UnityEditor.Rendering
         public ConverterItemInfo item => m_Item;
         public bool didFail { get; set; }
         public string info { get; set; }
+        internal bool hasConverted { get; set; }
 
         public RunItemContext(ConverterItemInfo item)
         {
             m_Item = item;
             didFail = false;
             info = "";
+            hasConverted = false;
         }
     }
 

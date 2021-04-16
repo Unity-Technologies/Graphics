@@ -27,6 +27,8 @@ class ConverterItemState
 
     // Status of the converted item, Pending, Warning, Error or Success
     internal Status status;
+
+    internal bool hasConverted = false;
 }
 
 // Each converter uses the active bool
@@ -45,6 +47,7 @@ class ConverterState
     public int warnings;
     public int errors;
     public int success;
+    internal int index;
 }
 
 [Serializable]
@@ -118,6 +121,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 isActive = true,
                 isInitialized = false,
                 items = null,
+                index = i,
                 //hasWarnings = false
             };
             m_ConverterStates.Add(converterState);
@@ -136,7 +140,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
         // Adding the different conversions
         // Right now the .choices attribute is internal so we can not add it. This will be public in the future.
-        m_ConversionsDropdownField = rootVisualElement.Q<DropdownField>("conversionDropDown");
+        //m_ConversionsDropdownField = rootVisualElement.Q<DropdownField>("conversionDropDown");
         //m_ConversionsDropdownField.choices = conversionsChoices;
 
         // This is temp now to get the information filled in
@@ -234,6 +238,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 isActive = active,
                 message = message,
                 status = status,
+                hasConverted = false,
             });
         }
 
@@ -345,7 +350,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
     {
         var ve = (VisualElement)evt.target;
         // Checking if this context menu should be enabled or not
-        var isActive = m_ConverterStates[coreConverterIndex].items[(int)ve.userData].isActive;
+        var isActive = m_ConverterStates[coreConverterIndex].items[(int)ve.userData].isActive && !m_ConverterStates[coreConverterIndex].items[(int)ve.userData].hasConverted;
 
         evt.menu.AppendAction("Run converter for this asset",
             e =>
@@ -368,8 +373,14 @@ public class RenderPipelineConvertersEditor : EditorWindow
             m_ConverterStates[stateIndex].items[ctx.item.index].status = Status.Success;
             m_ConverterStates[stateIndex].success++;
         }
+
+        // Making sure that this is set here so that if user is clicking Convert again
+        ctx.hasConverted = true;
+
         VisualElement child = m_ScrollView[stateIndex];
         child.Q<ListView>("converterItems").Refresh();
+
+
         // var failedCount = ctx.failedCount;
         // var successCount = ctx.successfulCount;
         //
@@ -465,40 +476,64 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
     void Convert(ClickEvent evt)
     {
-        for (int i = 0; i < m_ConverterStates.Count; ++i)
+        List<ConverterState> activeConverterStates = new List<ConverterState>();
+        // Get the names of the converters
+        // Get the amount of them
+        // Make the string "name x/y"
+
+        // Getting all the active converters to use in the cancelable progressbar
+        foreach (ConverterState state in m_ConverterStates)
         {
-            var state = m_ConverterStates[i];
             if (state.isActive && state.isInitialized)
             {
-                var itemCount = m_ItemsToConvert[i].Count;
-                //var items = new List<ConverterItemInfo>(itemCount);
-
-                for (var j = 0; j < itemCount; j++)
-                {
-                    if (state.items[j].isActive)
-                    {
-                        ConvertIndex(i, j);
-                        // item.index = j;
-                        // item.descriptor = m_ItemsToConvert[i][j];
-                        // // items.Add(new ConverterItemInfo
-                        // // {
-                        // //     index = j,
-                        // //     descriptor = m_ItemsToConvert[i][j]
-                        // // });
-                        // var ctx = new RunItemContext(item);
-                        // m_CoreConvertersList[i].OnRun(ctx);
-                        // UpdateInfo(i, ctx);
-                    }
-                }
-
-                // Running the converter with the context
-                // in the converter step the converter adds if it failed to convert
-                //var ctx = new RunItemContext(items);
-                //m_CoreConvertersList[i].OnRun(ctx);
-
-                //UpdateInfo(i, ctx);
+                activeConverterStates.Add(state);
             }
         }
+
+        int currentCount = 0;
+        int activeConvertersCount = activeConverterStates.Count;
+        foreach (ConverterState activeConverterState in activeConverterStates)
+        {
+            currentCount++;
+            var index = activeConverterState.index;
+            var converterName = m_CoreConvertersList[index].name;
+            var itemCount = m_ItemsToConvert[index].Count;
+            string title = $"{converterName} Converter : {currentCount}/{activeConvertersCount}";
+            for (var j = 0; j < itemCount; j++)
+            {
+                if (activeConverterState.items[j].isActive)
+                {
+                    if (EditorUtility.DisplayCancelableProgressBar(title, string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index][j].info), (float)j / (float)itemCount))
+                        break;
+                    ConvertIndex(index, j);
+                }
+            }
+        }
+
+        // This is the max count, but not the max active count
+        // int count = m_ConverterStates.Count;
+        //
+        // for (int i = 0; i < count; ++i)
+        // {
+        //     var state = m_ConverterStates[i];
+        //     if (state.isActive && state.isInitialized)
+        //     {
+        //         var converterName = m_CoreConvertersList[i].name;
+        //
+        //         var itemCount = m_ItemsToConvert[i].Count;
+        //         //var items = new List<ConverterItemInfo>(itemCount);
+        //         string title = $"{converterName} Converter:{}"
+        //         for (var j = 0; j < itemCount; j++)
+        //         {
+        //             if (state.items[j].isActive)
+        //             {
+        //                 if (EditorUtility.DisplayCancelableProgressBar( m_ConverterStates, string.Format("({0} of {1}) {2}", context.item.index, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))
+        //                     break;
+        //                 ConvertIndex(i, j);
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     void ConvertIndex(int coreConverterIndex, int index)
@@ -507,14 +542,22 @@ public class RenderPipelineConvertersEditor : EditorWindow
         //if (m_ConverterStates[coreConverterIndex].items[index].isActive)
         //{
         //var item = new List<ConverterItemInfo>(1);
-        var item = new ConverterItemInfo()
+
+        if (!m_ConverterStates[coreConverterIndex].items[index].hasConverted)
         {
-            index = index,
-            descriptor = m_ItemsToConvert[coreConverterIndex][index],
-        };
-        var ctx = new RunItemContext(item);
-        m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);
-        UpdateInfo(coreConverterIndex, ctx);
+            m_ConverterStates[coreConverterIndex].items[index].hasConverted = true;
+            var item = new ConverterItemInfo()
+            {
+                index = index,
+                descriptor = m_ItemsToConvert[coreConverterIndex][index],
+            };
+            var ctx = new RunItemContext(item);
+            m_CoreConvertersList[coreConverterIndex].OnRun(ref ctx);
+            UpdateInfo(coreConverterIndex, ctx);
+        }
+        // Marking the item as hasConverted
+
+
         //}
     }
 

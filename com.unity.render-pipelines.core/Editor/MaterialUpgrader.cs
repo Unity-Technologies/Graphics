@@ -37,6 +37,12 @@ namespace UnityEditor.Rendering
         string m_OldShader;
         string m_NewShader;
 
+        public string oldShader
+        {
+            get => m_OldShader;
+            set => m_OldShader = value;
+        }
+
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -270,8 +276,12 @@ namespace UnityEditor.Rendering
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
-        static bool IsMaterialPath(string path)
+        public static bool IsMaterialPath(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
             return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -299,7 +309,7 @@ namespace UnityEditor.Rendering
             AssetDatabase.Refresh();
         }
 
-        private static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
+        public static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
         {
             if (material == null)
                 return false;
@@ -392,15 +402,44 @@ namespace UnityEditor.Rendering
         /// <param name="flags">Material Upgrader flags.</param>
         public static void Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags)
         {
-            if (material == null)
+            string message = String.Empty;
+            if (Upgrade(material, upgraders, flags, ref message))
                 return;
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                Debug.Log(message);
+            }
+        }
+
+        /// <summary>
+        /// Upgrade a material.
+        /// </summary>
+        /// <param name="material">Material to upgrade.</param>
+        /// <param name="upgraders">List of Material upgraders.</param>
+        /// <param name="flags">Material Upgrader flags.</param>
+        /// <param name="message">Reference to the message if the flags <see cref="UpgradeFlags.LogMessageWhenNoUpgraderFound"/> is used.</param>
+        /// <return>Returns true if the upgrader was found for the passed in material.</return>
+        public static bool Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags, ref string message)
+        {
+            if (material == null)
+                return false;
 
             var upgrader = GetUpgrader(upgraders, material);
 
             if (upgrader != null)
+            {
                 upgrader.Upgrade(material, flags);
-            else if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
-                Debug.Log(string.Format("{0} material was not upgraded. There's no upgrader to convert {1} shader to selected pipeline", material.name, material.shader.name));
+                return true;
+            }
+            if ((flags & UpgradeFlags.LogMessageWhenNoUpgraderFound) == UpgradeFlags.LogMessageWhenNoUpgraderFound)
+            {
+                message =
+                    $"{material.name} material was not upgraded. There's no upgrader to convert {material.shader.name} shader to selected pipeline";
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

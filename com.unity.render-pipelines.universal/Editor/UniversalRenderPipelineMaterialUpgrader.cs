@@ -7,22 +7,35 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal sealed class UniversalRenderPipelineMaterialUpgrader
+    internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
     {
-        private UniversalRenderPipelineMaterialUpgrader()
+        public override string name => "Material Upgrade";
+        public override string info => "This will upgrade your materials.";
+        public override Type conversion => typeof(BuiltInToURPConversion);
+
+        private List<GUID> m_MaterialGUIDs = new();
+
+        static List<MaterialUpgrader> m_Upgraders;
+        private static HashSet<string> m_ShaderNamesToIgnore;
+        static UniversalRenderPipelineMaterialUpgrader()
         {
+            m_Upgraders = new List<MaterialUpgrader>();
+            GetUpgraders(ref m_Upgraders);
+
+            m_ShaderNamesToIgnore = new HashSet<string>();
+            GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
         }
 
         [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
-            List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
-            GetUpgraders(ref upgraders);
+            m_Upgraders = new List<MaterialUpgrader>();
+            GetUpgraders(ref m_Upgraders);
 
-            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
-            GetShaderNamesToIgnore(ref shaderNamesToIgnore);
+            m_ShaderNamesToIgnore = new HashSet<string>();
+            GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
 
-            MaterialUpgrader.UpgradeProjectFolder(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            MaterialUpgrader.UpgradeProjectFolder(m_Upgraders, m_ShaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
         [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
@@ -161,6 +174,52 @@ namespace UnityEditor.Rendering.Universal
             // Autodesk Interactive           //
             ////////////////////////////////////
             upgraders.Add(new AutodeskInteractiveUpgrader("Autodesk Interactive"));
+        }
+
+        public override void OnInitialize(InitializeConverterContext context)
+        {
+            foreach (string path in AssetDatabase.GetAllAssetPaths())
+            {
+                if (MaterialUpgrader.IsMaterialPath(path))
+                {
+                    //materialIndex++;
+                    //if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))
+                    //    break;
+
+                    Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
+
+                    if (!MaterialUpgrader.ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
+                        continue;
+
+                    GUID guid = AssetDatabase.GUIDFromAssetPath(path);
+                    m_MaterialGUIDs.Add(guid);
+
+                    ConverterItemDescriptor desc = new ConverterItemDescriptor()
+                    {
+                        name = m.name,
+                        info = path,
+                        warningMessage = String.Empty,
+                        helpLink = String.Empty,
+                    };
+                    // Each converter needs to add this info using this API.
+                    context.AddAssetToConvert(desc);
+                    //MaterialUpgrader.Upgrade(m, m_Upgraders, flags);
+
+                    //SaveAssetsAndFreeMemory();
+                }
+            }
+        }
+
+        public override void OnRun(ref RunItemContext context)
+        {
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(context.item.descriptor.info);
+            string message = String.Empty;
+
+            if (!MaterialUpgrader.Upgrade(mat, m_Upgraders, MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound, ref message))
+            {
+                context.didFail = true;
+                context.info = message;
+            }
         }
     }
 
