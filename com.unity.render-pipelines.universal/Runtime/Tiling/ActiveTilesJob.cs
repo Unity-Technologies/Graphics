@@ -32,15 +32,15 @@ namespace UnityEngine.Rendering.Universal
                 var groupTilesIndex = tileOffset + wordIndex;
                 var hit = tilesHit[groupTilesIndex];
                 var active = 0u;
-                if (math.any(tileId <= 2) || math.any(tileId >= (tileResolution - 2)))
+                if (math.any(tileId <= 1) || math.any(tileId >= (tileResolution - 1)))
                 {
                     active = hit;
                 }
                 else
                 {
-                    for (var x = tileId.x - 2; x <= tileId.x + 2; x++)
+                    for (var x = tileId.x - 1; x <= tileId.x + 1; x++)
                     {
-                        for (var y = tileId.y - 2; y <= tileId.y + 2; y++)
+                        for (var y = tileId.y - 1; y <= tileId.y + 1; y++)
                         {
                             var neighborGroupIndex = (y * tileResolution.x + x);
                             var neighborGroupOffset = neighborGroupIndex * (lightsPerTile / 32);

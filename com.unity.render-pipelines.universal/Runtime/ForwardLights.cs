@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var lightsPerTile = lightCount + (32 - (lightCount % 33));
 
             var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
-            var fovHalfWidth = fovHalfHeight * camera.pixelWidth / camera.pixelHeight;
+            var fovHalfWidth = fovHalfHeight * (float)camera.pixelWidth / (float)camera.pixelHeight;
 
             var zFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
             var binOffset = (int)(math.sqrt(camera.nearClipPlane) * zFactor);
@@ -211,10 +211,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tilingJob.groupResolution = groupResolution;
                 tilingJob.tileResolution = tileResolution;
                 tilingJob.tileWidth = tileWidth;
+                tilingJob.viewOrigin = camera.transform.position;
                 tilingJob.viewForward = camera.transform.forward.normalized;
-                tilingJob.viewRight = camera.transform.right * fovHalfWidth;
-                tilingJob.viewUp = camera.transform.up * fovHalfHeight;
-                tilingJob.tileAperture = 2f * math.SQRT2 * fovHalfHeight / (((float)screenResolution.y / (float)tileWidth));
+                tilingJob.viewRight = camera.transform.right.normalized * fovHalfWidth;
+                tilingJob.viewUp = camera.transform.up.normalized * fovHalfHeight;
+                tilingJob.fovHalf = math.float2(fovHalfWidth, fovHalfHeight);
+                tilingJob.worldToViewMatrix = camera.worldToCameraMatrix;
+                tilingJob.farPlane = camera.farClipPlane;
+                tilingJob.tileAperture = math.SQRT2 * fovHalfHeight / (((float)screenResolution.y / (float)tileWidth));
                 tilingHandle = tilingJob.ScheduleParallel(groupCount, 1, tilingHandle);
                 groupTilesHit.Dispose(tilingHandle);
                 groupTilesActive.Dispose(tilingHandle);

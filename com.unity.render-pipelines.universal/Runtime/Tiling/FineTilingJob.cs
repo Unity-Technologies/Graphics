@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [BurstCompile(FloatPrecision.Medium, FloatMode.Fast)]
+    [BurstCompile(FloatPrecision.Standard, FloatMode.Fast)]
     unsafe struct FineTilingJob : IJobFor
     {
         [ReadOnly]
@@ -33,11 +33,19 @@ namespace UnityEngine.Rendering.Universal
 
         public int tileWidth;
 
+        public float3 viewOrigin;
+
         public float3 viewForward;
 
         public float3 viewRight;
 
         public float3 viewUp;
+
+        public float4x4 worldToViewMatrix;
+
+        public float2 fovHalf;
+
+        public float farPlane;
 
         public float tileAperture;
 
@@ -63,19 +71,25 @@ namespace UnityEngine.Rendering.Universal
 
             if (math.any(groupIdP >= screenResolution)) return;
 
-            var directionWs = stackalloc float3[groupLength];
-            var apertures = stackalloc float[groupLength];
             var tilesOffsets = stackalloc int[groupLength];
             var currentLights = stackalloc uint[groupLength];
+            var cs = stackalloc float2[groupLength];
+            var worldToConeMatrices = stackalloc float4x4[groupLength];
 
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
                 var coneIdG = math.int2(coneIndexG % groupWidth, coneIndexG / groupWidth);
                 var coneIdT = groupIdT + coneIdG;
                 var coneCenterNDC = (((float)tileWidth * ((float2)coneIdT + 0.5f)) / (float2)screenResolution) * 2.0f - 1.0f;
+                var rotationAroundX = -math.atan(coneCenterNDC.y * fovHalf.y);
+                var rotationAroundY = math.atan(coneCenterNDC.x * fovHalf.x);
+                var worldToConeMatrix = math.mul(float4x4.EulerXYZ(rotationAroundX, rotationAroundY, 0), worldToViewMatrix);
+                worldToConeMatrices[coneIndexG] = worldToConeMatrix;
                 var nearPlanePosition = viewForward + viewRight * coneCenterNDC.x + viewUp * coneCenterNDC.y;
-                directionWs[coneIndexG] = nearPlanePosition / math.length(nearPlanePosition);
-                apertures[coneIndexG] = tileAperture / math.length(nearPlanePosition);
+                var aperture = tileAperture / math.length(nearPlanePosition);
+                var angle = math.atan(aperture);
+                var c = math.float2(math.sin(angle), math.cos(angle));
+                cs[coneIndexG] = c;
                 var coneIndexT = coneIdT.y * tileResolution.x + coneIdT.x;
                 tilesOffsets[coneIndexG] = coneIndexT * (lightsPerTile / 32);
             }
@@ -101,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
                     var lightIndex = wordIndex * 32 + bitIndex;
                     var light = lights[lightIndex];
 
-                    if (!light.screenRect.Overlaps(groupRectS))
+                    if (false && !light.screenRect.Overlaps(groupRectS))
                     {
                         hit &= ~lightMask;
                         active ^= lightMask;
@@ -110,11 +124,11 @@ namespace UnityEngine.Rendering.Universal
 
                     if (light.lightType == LightType.Point)
                     {
-                        ConeMarch(light.shape.sphere, ref light, lightIndex, lightMask, directionWs, apertures, currentLights);
+                        TestPointLight(ref light, lightMask, worldToConeMatrices, cs, currentLights);
                     }
                     else if (light.lightType == LightType.Spot)
                     {
-                        ConeMarch(light.shape.cone, ref light, lightIndex, lightMask, directionWs, apertures, currentLights);
+                        TestSpotLight(ref light, lightMask, worldToConeMatrices, cs, currentLights);
                     }
                 }
 
@@ -127,38 +141,90 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void ConeMarch<T>(
-            T shape,
+        void TestPointLight(
             ref TilingLightData light,
-            int lightIndex,
             uint lightMask,
-            [NoAlias] float3* directionWs,
-            [NoAlias] float* apertures,
+            [NoAlias] float4x4* worldToConeMatrices,
+            [NoAlias] float2* cs,
             [NoAlias] uint* currentLights
-        ) where T : ICullingShape
+        )
         {
-            var lightMinMax = minMaxZs[lightIndex];
-
             for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
             {
-                var directionW = directionWs[coneIndexG];
-                var t = math.dot(lightMinMax.minZ * viewForward, directionW);
-                var tMax = math.dot(lightMinMax.maxZ * viewForward, directionW);
-                var hit = false;
-                var aperture = apertures[coneIndexG];
+                var worldToConeMatrix = worldToConeMatrices[coneIndexG];
+                var c = cs[coneIndexG];
+                var originC = math.mul(worldToConeMatrix, math.float4(light.originW, 1)).xyz;
 
-                var directionL = math.mul(light.worldToLightMatrix, math.float4(directionW, 0f)).xyz;
+                var p = originC;
+                var q = math.float2(math.length(p.xy), -p.z);
+                var d = math.lengthsq(q - c * math.max(math.dot(q, c), 0f));
+                var dist = d * ((q.x * c.y - q.y * c.x < 0f ? -1f : 1f));
 
-                while (t < tMax)
+                if (dist < light.radius * light.radius)
                 {
-                    var positionL = light.viewOriginL + directionL * t;
-                    var distance = shape.SampleDistance(positionL);
-                    t += distance;
-                    if (distance < tileAperture * t)
+                    currentLights[coneIndexG] |= lightMask;
+                }
+            }
+        }
+
+        void TestSpotLight(
+            ref TilingLightData light,
+            uint lightMask,
+            [NoAlias] float4x4* worldToConeMatrices,
+            [NoAlias] float2* cs,
+            [NoAlias] uint* currentLights
+        )
+        {
+            for (var coneIndexG = 0; coneIndexG < groupLength; coneIndexG++)
+            {
+                var hit = false;
+
+                // if (false && light.lightType == LightType.Point)
+                // {
+                //     // Sphere-cone test
+                //     var a = -math.pow(aperture, 2f) + 1f;
+                //     var b = -2f * aperture * light.radius + 2f * math.dot(directionL, light.viewOriginL);
+                //     var c = math.lengthsq(light.viewOriginL) - math.pow(light.radius, 2f);
+                //     var d = math.pow(b, 2f) - 4f * a * c;
+                //     hit = d >= 0;
+                // }
+
+                var worldToConeMatrix = worldToConeMatrices[coneIndexG];
+
+                var c = cs[coneIndexG];
+                var originC = math.mul(worldToConeMatrix, math.float4(light.originW, 1)).xyz;
+                {
+                    var p = originC;
+                    var q = math.float2(math.length(p.xy), -p.z);
+                    var d = math.lengthsq(q - c * math.max(math.dot(q, c), 0f));
+                    var dist = d * ((q.x * c.y - q.y * c.x < 0f ? -1f : 1f));
+                    hit = dist < light.radius * light.radius;
+                }
+
+                if (hit)
+                {
+                    hit = false;
+                    var spotDirection = math.mul(worldToConeMatrix, math.float4(light.directionW, 0)).xyz;
+                    var tMax = light.coneHeight;
+                    var S = light.S;
+                    var C = light.C;
+                    var t = 0f;
+                    var maxIterations = 16;
+                    int i;
+                    for (i = 0; i < maxIterations && t < tMax; i++)
                     {
-                        hit = true;
-                        break;
+                        var p = originC + t * spotDirection;
+                        var q = math.float2(math.length(p.xy), -p.z);
+                        var d = math.length(q - c * math.max(math.dot(q, c), 0f));
+                        var dist = d * ((q.x * c.y - q.y * c.x < 0f ? -1f : 1f));
+                        if (dist <= t * S)
+                        {
+                            hit = true;
+                            break;
+                        }
+                        t = (t + 1e-3f + math.abs(dist)) * C;
                     }
+                    hit |= i == maxIterations;
                 }
 
                 if (hit)

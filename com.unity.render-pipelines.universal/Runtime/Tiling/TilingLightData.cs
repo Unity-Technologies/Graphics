@@ -23,6 +23,20 @@ namespace UnityEngine.Rendering.Universal
 
         public Rect screenRect;
 
-        public ShapeUnion shape;
+        public float radius;
+
+        public float coneHeight;
+
+        public float S;
+
+        public float C;
+
+        public float coneAngle;
+
+        public float3 directionW;
+
+        public float3 originW;
+
+        // public ShapeUnion shape;
     }
 }
