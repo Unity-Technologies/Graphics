@@ -11,6 +11,7 @@ using UnityEditor.SceneManagement;
 using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
@@ -249,13 +250,6 @@ namespace Editor.Converters
         }
 
 #region Conversion_Entry_Points
-        // TODO: are there actually any failure states to catch here?
-        //       It's a constructive process, so I think the most likely failure would be
-        //       with permissions when saving the new Profile assets or prefab/scene changes.
-
-        // TODO: Use this for error string:
-        //errorString.AppendLine("PPv2 PostProcessLayer failed to be converted with error:\n{error}");
-
         private void ConvertVolume(BIRPRendering.PostProcessVolume oldVolume, ref bool succeeded,
             StringBuilder errorString)
         {
@@ -277,14 +271,16 @@ namespace Editor.Converters
             if (PrefabUtility.IsPartOfPrefabInstance(oldVolume) &&
                 !PrefabUtility.IsAddedComponentOverride(oldVolume))
             {
+                Debug.Log("------- CONVERT VOLUME INSTANCE -------");
                 // This is a property override on an instance of the component,
                 // so override the component instance with the modifications.
-                ConvertVolumeInstance(oldVolume, errorString);
+                succeeded = ConvertVolumeInstance(oldVolume, errorString);
             }
             else
             {
+                Debug.Log("------- CONVERT VOLUME ROOT -------");
                 // The entire component is unique, so just convert it
-                ConvertVolumeComponent(oldVolume);
+                succeeded = ConvertVolumeComponent(oldVolume, errorString);
             }
         }
 
@@ -309,14 +305,16 @@ namespace Editor.Converters
             if (PrefabUtility.IsPartOfPrefabInstance(oldLayer) &&
                 !PrefabUtility.IsAddedComponentOverride(oldLayer))
             {
+                Debug.Log("------- CONVERT LAYER INSTANCE -------");
                 // This is a property override on an instance of the component,
                 // so override the component instance with the modifications.
-                ConvertLayerInstance(oldLayer, errorString);
+                succeeded = ConvertLayerInstance(oldLayer, errorString);
             }
             else
             {
+                Debug.Log("------- CONVERT LAYER ROOT -------");
                 // The entire component is unique, so just convert it
-                ConvertLayerComponent(oldLayer, errorString);
+                succeeded = ConvertLayerComponent(oldLayer, errorString);
             }
         }
 
@@ -334,7 +332,7 @@ namespace Editor.Converters
                 return;
             }
 
-            ConvertVolumeProfileAsset(oldProfile);
+            ConvertVolumeProfileAsset(oldProfile, errorString, ref succeeded);
 
             // TODO:
             // - Perhaps old Profiles should only be deleted if they actually no longer have references,
@@ -343,10 +341,10 @@ namespace Editor.Converters
         }
 #endregion Conversion_Entry_Points
 
-        private void ConvertVolumeComponent(BIRPRendering.PostProcessVolume oldVolume)
+        private bool ConvertVolumeComponent(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
         {
             // Don't convert if it appears to already have been converted.
-            if (oldVolume.GetComponent<Volume>()) return;
+            if (oldVolume.GetComponent<Volume>()) return true;
 
             var gameObject = oldVolume.gameObject;
             var newVolume = gameObject.AddComponent<Volume>();
@@ -357,14 +355,17 @@ namespace Editor.Converters
             newVolume.isGlobal = oldVolume.isGlobal;
             newVolume.enabled = oldVolume.enabled;
 
-            newVolume.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile);
+            var success = true;
+            newVolume.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
 
             // TODO:
             // Object.DestroyImmediate(oldVolume, allowDestroyingAssets: true);
             EditorUtility.SetDirty(gameObject);
+
+            return success;
         }
 
-        private void ConvertVolumeInstance(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
+        private bool ConvertVolumeInstance(BIRPRendering.PostProcessVolume oldVolume, StringBuilder errorString)
         {
             // First get a reference to the local instance of the converted component
             // which may require immediately converting it at its origin location first.
@@ -373,17 +374,21 @@ namespace Editor.Converters
             {
                 var oldVolumeOrigin = PrefabUtility.GetCorrespondingObjectFromSource(oldVolume);
 
-                ConvertVolumeComponent(oldVolumeOrigin);
+                if (!ConvertVolumeComponent(oldVolumeOrigin, errorString))
+                {
+                    return false;
+                }
                 // TODO: do we need to save this change immediately (and refresh the database?) to get access to the instance?
                 newVolumeInstance = oldVolume.GetComponent<Volume>();
 
                 if (!newVolumeInstance)
                 {
                     errorString.AppendLine("PPv2 PostProcessVolume failed to be converted because the instance object did not inherit the converted Prefab source.");
-                    return;
+                    return false;
                 }
             }
 
+            bool success = true;
             var oldModifications = PrefabUtility.GetPropertyModifications(oldVolume);
             foreach (var oldModification in oldModifications)
             {
@@ -407,20 +412,28 @@ namespace Editor.Converters
                     else if (oldModification.propertyPath.EndsWith("enabled", StringComparison.InvariantCultureIgnoreCase))
                         newVolumeInstance.enabled = oldVolume.enabled;
                     else if (oldModification.propertyPath.EndsWith("sharedProfile", StringComparison.InvariantCultureIgnoreCase))
-                        newVolumeInstance.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile);
+                    {
+                        newVolumeInstance.sharedProfile = ConvertVolumeProfileAsset(oldVolume.sharedProfile, errorString, ref success);
+                    }
 
                     EditorUtility.SetDirty(newVolumeInstance);
                 }
             }
+
+            return success;
         }
 
-        private void ConvertLayerComponent(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
+        private bool ConvertLayerComponent(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
         {
-            var siblingCamera = oldLayer.GetComponent<URPRendering.UniversalAdditionalCameraData>();
+            var siblingCamera = oldLayer.GetComponent<Camera>().GetUniversalAdditionalCameraData();
 
             // PostProcessLayer requires a sibling Camera component, but
             // we check it here just in case something weird went happened.
-            if (!siblingCamera) return;
+            if (!siblingCamera)
+            {
+                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
+                return false;
+            }
 
             // The presence of a PostProcessLayer implies the Camera should render post-processes
             siblingCamera.renderPostProcessing = true;
@@ -451,23 +464,30 @@ namespace Editor.Converters
             // TODO:
             // Object.DestroyImmediate(oldLayer, allowDestroyingAssets: true);
             EditorUtility.SetDirty(siblingCamera.gameObject);
+
+            return true;
         }
 
-        private void ConvertLayerInstance(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
+        private bool ConvertLayerInstance(BIRPRendering.PostProcessLayer oldLayer, StringBuilder errorString)
         {
+            Debug.Log("--- 001 ---");
             // First get a reference to the local instance of the camera (which is required by PostProcessingLayer)
-            var siblingCamera = oldLayer.GetComponent<URPRendering.UniversalAdditionalCameraData>();
+            var siblingCamera = oldLayer.GetComponent<Camera>().GetUniversalAdditionalCameraData();
             if (!siblingCamera)
             {
-                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required Camera component.");
-                return;
+                Debug.Log("--- 002 ---");
+                errorString.AppendLine("PPv2 PostProcessLayer failed to be converted because the instance object was missing a required sibling Camera component.");
+                return false;
             }
 
+            Debug.Log("--- 003 ---");
             var oldModifications = PrefabUtility.GetPropertyModifications(oldLayer);
             foreach (var oldModification in oldModifications)
             {
+                Debug.Log("--- 004 ---");
                 if (oldModification.target is BIRPRendering.PostProcessLayer)
                 {
+                    Debug.Log("--- 005 ---");
                     // TODO: Remove this
                     Debug.Log("--- PostProcessLayer Modification:" +
                               $"\n{oldModification.target}" +
@@ -506,9 +526,11 @@ namespace Editor.Converters
                     EditorUtility.SetDirty(siblingCamera);
                 }
             }
+
+            return true;
         }
 
-        private VolumeProfile ConvertVolumeProfileAsset(BIRPRendering.PostProcessProfile oldProfile)
+        private VolumeProfile ConvertVolumeProfileAsset(BIRPRendering.PostProcessProfile oldProfile, StringBuilder errorString, ref bool success)
         {
             // Don't convert if it appears to already have been converted.
             if (!oldProfile) return null;
@@ -523,7 +545,17 @@ namespace Editor.Converters
             }
 
             var newProfile = ScriptableObject.CreateInstance<VolumeProfile>();
-            AssetDatabase.CreateAsset(newProfile, newPath);
+            try
+            {
+                AssetDatabase.CreateAsset(newProfile, newPath);
+            }
+            catch (Exception e)
+            {
+                errorString.AppendLine($"PPv2 PostProcessLayer failed to be converted with exception:\n{e}");
+                success = false;
+
+                if (!newProfile) return null;
+            }
 
             foreach (var oldSettings in oldProfile.settings)
             {
