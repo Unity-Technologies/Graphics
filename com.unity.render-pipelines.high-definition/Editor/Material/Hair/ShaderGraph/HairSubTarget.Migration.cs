@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentCullMode = hairMasterNode.m_transparentCullMode;
             systemData.zTest = hairMasterNode.m_ZTest;
             systemData.dotsInstancing = hairMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = hairMasterNode.m_MaterialNeedsUpdateHash;
 
             builtinData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
             builtinData.transparentDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;

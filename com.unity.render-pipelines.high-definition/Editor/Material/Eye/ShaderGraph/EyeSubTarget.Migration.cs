@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentCullMode = eyeMasterNode.m_transparentCullMode;
             systemData.zTest = eyeMasterNode.m_ZTest;
             systemData.dotsInstancing = eyeMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = eyeMasterNode.m_MaterialNeedsUpdateHash;
 
             builtinData.transparentDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
             builtinData.transparentDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;

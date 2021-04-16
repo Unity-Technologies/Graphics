@@ -11,14 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class SystemData : HDTargetData
     {
         [SerializeField]
-        int m_MaterialNeedsUpdateHash;
-        public int materialNeedsUpdateHash
-        {
-            get => m_MaterialNeedsUpdateHash;
-            set => m_MaterialNeedsUpdateHash = value;
-        }
-
-        [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
         public SurfaceType surfaceType
         {

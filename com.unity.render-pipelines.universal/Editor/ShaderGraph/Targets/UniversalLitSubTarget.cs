@@ -197,9 +197,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
-        protected override int ComputeMaterialNeedsUpdateHash()
+        public override int GeneratedPropertiesHash()
         {
-            int hash = base.ComputeMaterialNeedsUpdateHash();
+            int hash = base.GeneratedPropertiesHash();
             hash = hash * 23 + target.allowMaterialOverride.GetHashCode();
             return hash;
         }

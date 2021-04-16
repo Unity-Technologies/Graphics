@@ -5,12 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
-using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -43,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportDistortion => false;
         protected override bool supportRaytracing => true;
 
-        protected override int ComputeMaterialNeedsUpdateHash()
+        public override int GeneratedPropertiesHash()
         {
             // Alpha test is currently the only property in buitin data to trigger the material upgrade script.
             int hash = systemData.alphaTest.GetHashCode();

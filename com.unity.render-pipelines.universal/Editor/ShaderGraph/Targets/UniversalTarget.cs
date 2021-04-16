@@ -320,6 +320,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override object saveContext => m_ActiveSubTarget.value?.saveContext;
 
+        public override int GeneratedPropertiesHash() => (int)(m_ActiveSubTarget.value?.GeneratedPropertiesHash());
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);

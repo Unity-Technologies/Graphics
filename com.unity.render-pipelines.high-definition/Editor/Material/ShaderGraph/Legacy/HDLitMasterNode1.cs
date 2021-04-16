@@ -184,7 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public bool m_SupportLodCrossFade;
         public bool m_DOTSInstancing;
         public bool m_AlphaToMask;
-        public int m_MaterialNeedsUpdateHash;
         public string m_ShaderGUIOverride;
         public bool m_OverrideEnabled;
         public bool m_DrawBeforeRefraction;

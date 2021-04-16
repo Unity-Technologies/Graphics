@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.transparentCullMode = fabricMasterNode.m_transparentCullMode;
             systemData.zTest = fabricMasterNode.m_ZTest;
             systemData.dotsInstancing = fabricMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = fabricMasterNode.m_MaterialNeedsUpdateHash;
 
             builtinData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;
             builtinData.transparencyFog = fabricMasterNode.m_TransparencyFog;
