@@ -11,11 +11,27 @@ PropertyRow DoubleField {
     -unity-text-align : middle-left;
 }
 
+PropertyRow#header Label {
+    font-size: 11px;
+    color: #808080;
+    margin-top: 4px;
+}
+PropertyRow#header > #container > #content {
+    -unity-font-style: normal;
+    margin-left: 4px;
+    color: red;
+}
+
 PropertyRow > #container{
     flex-grow: 1;
     padding-left: 8px;
     padding-right: 16px;
     flex-direction: row;
+}
+
+PropertyRow > #container > #expose {
+    margin-left: 17px;
+    margin-right: 24px+25px;
 }
 
 PropertyRow > #container > #label {

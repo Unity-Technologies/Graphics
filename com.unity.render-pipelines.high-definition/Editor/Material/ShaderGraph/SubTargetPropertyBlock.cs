@@ -35,9 +35,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Utility function to create UIElement fields:
         protected void AddProperty<Data>(string displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
-            => AddProperty<Data>(new GUIContent(displayName), getter, setter, indentLevel);
+            => AddProperty<Data>(new GUIContent(displayName), getter, setter, null, indentLevel);
 
         protected void AddProperty<Data>(GUIContent displayName, Func<Data> getter, Action<Data> setter, int indentLevel = 0)
+            => AddProperty<Data>(displayName, getter, setter, null, indentLevel);
+
+        protected void AddProperty<T>(string label, ExposableProperty<T> prop, int indentLevel = 0)
+            => prop.AddProperty(context, new GUIContent(label), onChange, registerUndo, indentLevel);
+        protected void AddProperty<T>(GUIContent label, ExposableProperty<T> prop, int indentLevel = 0)
+            => prop.AddProperty(context, label, onChange, registerUndo, indentLevel);
+        protected void AddProperty<T>(GUIContent label, ExposableProperty<T> prop, Action onChange, int indentLevel = 0)
+            => prop.AddProperty(context, label, onChange, registerUndo, indentLevel);
+
+        protected void AddProperty<Data>(GUIContent displayName, Func<Data> getter, Action<Data> setter, BaseField<bool> exposed, int indentLevel = 0)
         {
             // Create UIElement from type:
             BaseField<Data> elem = null;
@@ -61,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     registerUndo(displayName.text);
                     setter(evt.newValue);
                     onChange();
-                });
+                }, exposed);
             }
             else
             {
@@ -72,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     registerUndo(displayName.text);
                     setter((Data)(object)evt.newValue);
                     onChange();
-                });
+                }, exposed);
             }
         }
 
@@ -93,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             // Apply padding:
-            foldout.style.paddingLeft = context.globalIndentLevel * 15;
+            foldout.style.paddingLeft = 55 + context.globalIndentLevel * 15;
 
             context.Add(foldout);
         }
@@ -104,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             int indentLevel = context.globalIndentLevel;
             var imgui = new IMGUIContainer(() =>
             {
-                float indentPadding = indentLevel * 15;
+                float indentPadding = 55 + indentLevel * 15;
                 var rect = EditorGUILayout.GetControlRect(false, 42);
                 rect.x += indentPadding;
                 rect.width -= indentPadding;

@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
             }
             AddProperty(Styles.supportLodCrossFade, () => builtinData.supportLodCrossFade, (newValue) => builtinData.supportLodCrossFade = newValue);
-            AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
+            AddProperty(addPrecomputedVelocityText, builtinData.addPrecomputedVelocityProp);
         }
     }
 }

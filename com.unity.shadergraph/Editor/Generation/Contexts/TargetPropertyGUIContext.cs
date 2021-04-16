@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
-using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
@@ -13,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         const int kIndentWidthInPixel = 15;
 
         public int globalIndentLevel {get; set;} = 0;
+        internal bool supportsExposableProperties = false;
 
         public TargetPropertyGUIContext()
         {
@@ -39,14 +36,29 @@ namespace UnityEditor.ShaderGraph
             AddProperty<T>(label, 0, field, evt);
         }
 
-        public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
+        public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt, VisualElement exposed = null)
         {
             if (field is INotifyValueChanged<T> notifyValueChanged)
-            {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
+
+            if (supportsExposableProperties)
+            {
+                if (exposed != null)
+                    exposed.name = "expose";
+                else
+                {
+                    // Create an empty element to fill space
+                    exposed = new VisualElement();
+                    exposed.style.minWidth = 55;
+                }
+            }
+            else if (exposed != null)
+            {
+                exposed = null;
+                UnityEngine.Debug.LogError("This target doesn't support exposable properties. Consider setting 'supportsExposableProperties' to true.");
             }
 
-            var propertyRow = new PropertyRow(new Label(label));
+            var propertyRow = new PropertyRow(new Label(label), exposed);
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
             this.hierarchy.Add(propertyRow);

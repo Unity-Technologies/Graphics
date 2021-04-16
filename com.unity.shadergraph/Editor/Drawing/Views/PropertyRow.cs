@@ -27,13 +27,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public PropertyRow(VisualElement label = null)
+        public PropertyRow(VisualElement label = null, VisualElement checkbox = null)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
             VisualElement container = new VisualElement {name = "container"};
             m_ContentContainer = new VisualElement { name = "content"  };
             m_LabelContainer = new VisualElement {name = "label" };
             m_LabelContainer.Add(label);
+
+            if (checkbox != null)
+                container.Add(checkbox);
 
             container.Add(m_LabelContainer);
             container.Add(m_ContentContainer);

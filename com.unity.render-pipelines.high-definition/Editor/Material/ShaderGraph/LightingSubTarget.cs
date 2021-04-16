@@ -81,6 +81,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties to all Lit master nodes
             var descs = context.blocks.Select(x => x.descriptor);
 
+            context.AddField(ReceiveDecals,         !IsDisabled(lightingData.receiveDecalsProp));
+            context.AddField(ReceiveSSR,            !IsDisabled(lightingData.receiveSSRProp));
+            context.AddField(ReceiveSSRTransparent, !IsDisabled(lightingData.receiveSSRTransparentProp));
+
             // Misc
             context.AddField(LightingGI,                           descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
@@ -101,9 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
 
-            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
+            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals, new FieldCondition(ReceiveDecals, false));
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR, new FieldCondition(ReceiveSSR, false));
+            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent, new FieldCondition[] { new FieldCondition(ReceiveSSRTransparent, false), new FieldCondition(SurfaceTypeTransparent, true) });
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
             if (pass.IsDepthOrMV())

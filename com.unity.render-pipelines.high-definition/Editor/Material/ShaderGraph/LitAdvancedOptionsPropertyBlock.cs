@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CreatePropertyGUI();
 
-            AddProperty(forceForwardEmissiveText, () => litData.forceForwardEmissive, (newValue) => litData.forceForwardEmissive = newValue);
+            AddProperty(forceForwardEmissiveText, litData.forceForwardEmissiveProp);
         }
     }
 }

@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnGUIOpen();
 
-            if (forceForwardEmissive != null)
+            if (ShowProperty(forceForwardEmissive))
             {
                 if (materials[0].FindPass("ForwardEmissiveForDeferred") != -1 && ((SurfaceType)materials[0].GetFloat(kSurfaceType) != SurfaceType.Transparent))
                     materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);

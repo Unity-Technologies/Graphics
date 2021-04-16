@@ -110,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
             if ((m_Features & Features.AddPrecomputedVelocity) != 0)
             {
-                if (addPrecomputedVelocity != null)
+                if (ShowProperty(addPrecomputedVelocity))
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
             }
         }

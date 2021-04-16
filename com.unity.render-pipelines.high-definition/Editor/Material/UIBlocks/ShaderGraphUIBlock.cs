@@ -129,6 +129,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
+                if (properties[i].displayName == " ")   // workaround to hide HDRP subtarget properties
+                    continue;                           // they should be hidden properly with the upcoming categories
 
                 float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
                 Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);

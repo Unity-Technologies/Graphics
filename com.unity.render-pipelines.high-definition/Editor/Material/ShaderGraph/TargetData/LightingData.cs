@@ -23,28 +23,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_BlendPreserveSpecular = value;
         }
 
-        [SerializeField]
-        bool m_ReceiveDecals = true;
+        public ExposableProperty<bool> receiveDecalsProp = new ExposableProperty<bool>(true);
         public bool receiveDecals
         {
-            get => m_ReceiveDecals;
-            set => m_ReceiveDecals = value;
+            get => receiveDecalsProp.value;
+            set => receiveDecalsProp.value = value;
         }
 
-        [SerializeField]
-        bool m_ReceiveSSR = true;
+        public ExposableProperty<bool> receiveSSRProp = new ExposableProperty<bool>(true);
         public bool receiveSSR
         {
-            get => m_ReceiveSSR;
-            set => m_ReceiveSSR = value;
+            get => receiveSSRProp.value;
+            set => receiveSSRProp.value = value;
         }
 
-        [SerializeField]
-        bool m_ReceiveSSRTransparent = false;
+        public ExposableProperty<bool> receiveSSRTransparentProp = new ExposableProperty<bool>(false);
         public bool receiveSSRTransparent
         {
-            get => m_ReceiveSSRTransparent;
-            set => m_ReceiveSSRTransparent = value;
+            get => receiveSSRTransparentProp.value;
+            set => receiveSSRTransparentProp.value = value;
         }
 
         [SerializeField]
@@ -88,5 +85,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_OverrideBakedGI;
             set => m_OverrideBakedGI = value;
         }
+
+        /*
+        // Kept for migration
+        [SerializeField]
+        bool m_ReceiveDecals = true;
+        [SerializeField]
+        bool m_ReceiveSSR = true;
+        [SerializeField]
+        bool m_ReceiveSSRTransparent = false;
+        */
     }
 }

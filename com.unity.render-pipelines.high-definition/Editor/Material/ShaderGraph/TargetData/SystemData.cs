@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Serialization;
 
 using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.RenderQueueType;
 
@@ -18,76 +17,67 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_MaterialNeedsUpdateHash = value;
         }
 
-        [SerializeField]
-        SurfaceType m_SurfaceType = SurfaceType.Opaque;
+        public ExposableProperty<SurfaceType> surfaceTypeProp = new ExposableProperty<SurfaceType>(SurfaceType.Opaque, true);
         public SurfaceType surfaceType
         {
-            get => m_SurfaceType;
-            set => m_SurfaceType = value;
+            get => surfaceTypeProp.value;
+            set => surfaceTypeProp.value = value;
         }
 
-        [SerializeField]
-        RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
+        public ExposableProperty<RenderQueueType> renderQueueTypeProp = new ExposableProperty<RenderQueueType>(RenderQueueType.Opaque);
         public RenderQueueType renderQueueType
         {
-            get => m_RenderingPass;
-            set => m_RenderingPass = value;
+            get => renderQueueTypeProp.value;
+            set => renderQueueTypeProp.value = value;
         }
 
-        [SerializeField]
-        BlendMode m_BlendMode = BlendMode.Alpha;
+        public ExposableProperty<BlendMode> blendModeProp = new ExposableProperty<BlendMode>(BlendMode.Alpha);
         public BlendMode blendMode
         {
-            get => m_BlendMode;
-            set => m_BlendMode = value;
+            get => blendModeProp.value;
+            set => blendModeProp.value = value;
         }
 
-        [SerializeField]
-        CompareFunction m_ZTest = CompareFunction.LessEqual;
+        public ExposableProperty<CompareFunction> zTestProp = new ExposableProperty<CompareFunction>(CompareFunction.LessEqual, true);
         public CompareFunction zTest
         {
-            get => m_ZTest;
-            set => m_ZTest = value;
+            get => zTestProp.value;
+            set => zTestProp.value = value;
         }
 
-        [SerializeField]
-        bool m_ZWrite = false;
+        public ExposableProperty<bool> transparentZWriteProp = new ExposableProperty<bool>(false, true);
         public bool transparentZWrite
         {
-            get => m_ZWrite;
-            set => m_ZWrite = value;
+            get => transparentZWriteProp.value;
+            set => transparentZWriteProp.value = value;
         }
 
-        [SerializeField]
-        TransparentCullMode m_TransparentCullMode = TransparentCullMode.Back;
+        public ExposableProperty<TransparentCullMode> transparentCullModeProp = new ExposableProperty<TransparentCullMode>(TransparentCullMode.Back);
         public TransparentCullMode transparentCullMode
         {
-            get => m_TransparentCullMode;
-            set => m_TransparentCullMode = value;
+            get => transparentCullModeProp.value;
+            set => transparentCullModeProp.value = value;
         }
 
-        [SerializeField]
-        OpaqueCullMode m_OpaqueCullMode = OpaqueCullMode.Back;
+        public ExposableProperty<OpaqueCullMode> opaqueCullModeProp = new ExposableProperty<OpaqueCullMode>(OpaqueCullMode.Back);
         public OpaqueCullMode opaqueCullMode
         {
-            get => m_OpaqueCullMode;
-            set => m_OpaqueCullMode = value;
+            get => opaqueCullModeProp.value;
+            set => opaqueCullModeProp.value = value;
         }
 
-        [SerializeField]
-        int m_SortPriority;
+        public ExposableProperty<int> sortPriorityProp = new ExposableProperty<int>();
         public int sortPriority
         {
-            get => m_SortPriority;
-            set => m_SortPriority = value;
+            get => sortPriorityProp.value;
+            set => sortPriorityProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AlphaTest;
+        public ExposableProperty<bool> alphaTestProp = new ExposableProperty<bool>();
         public bool alphaTest
         {
-            get => m_AlphaTest;
-            set => m_AlphaTest = value;
+            get => alphaTestProp.value;
+            set => alphaTestProp.value = value;
         }
 
         [SerializeField, Obsolete("Keep for migration")]
@@ -99,12 +89,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField, Obsolete("Keep for migration")]
         internal bool m_SupportLodCrossFade;
 
-        [SerializeField]
-        DoubleSidedMode m_DoubleSidedMode;
+        public ExposableProperty<DoubleSidedMode> doubleSidedModeProp;
         public DoubleSidedMode doubleSidedMode
         {
-            get => m_DoubleSidedMode;
-            set => m_DoubleSidedMode = value;
+            get => doubleSidedModeProp.value;
+            set => doubleSidedModeProp.value = value;
         }
 
         // TODO: This was on HDUnlitMaster but not used anywhere
@@ -137,6 +126,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         internal int inspectorFoldoutMask;
+
+        /*
+        // Kept for migration
+        [SerializeField]
+        SurfaceType m_SurfaceType = SurfaceType.Opaque;
+        [SerializeField]
+        RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
+        [SerializeField]
+        BlendMode m_BlendMode = BlendMode.Alpha;
+        [SerializeField]
+        CompareFunction m_ZTest = CompareFunction.LessEqual;
+        [SerializeField]
+        bool m_ZWrite = false;
+        [SerializeField]
+        TransparentCullMode m_TransparentCullMode = TransparentCullMode.Back;
+        [SerializeField]
+        OpaqueCullMode m_OpaqueCullMode = OpaqueCullMode.Back;
+        [SerializeField]
+        int m_SortPriority;
+        [SerializeField]
+        bool m_AlphaTest;
+        [SerializeField]
+        DoubleSidedMode m_DoubleSidedMode;
+        */
     }
 
     static class HDSystemDataExtensions

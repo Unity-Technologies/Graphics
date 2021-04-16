@@ -32,12 +32,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_MaterialType = value;
         }
 
-        [SerializeField]
-        ScreenSpaceRefraction.RefractionModel m_RefractionModel;
+        public ExposableProperty<ScreenSpaceRefraction.RefractionModel> refractionModelProp = new ExposableProperty<ScreenSpaceRefraction.RefractionModel>(default);
         public ScreenSpaceRefraction.RefractionModel refractionModel
         {
-            get => m_RefractionModel;
-            set => m_RefractionModel = value;
+            get => refractionModelProp.value;
+            set => refractionModelProp.value = value;
         }
 
         // TODO: Can this use m_Transmission from HDLightingData?
@@ -85,12 +84,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_EmissionOverriden = value;
         }
 
-        [SerializeField]
-        bool m_ForceForwardEmissive = false;
+        public ExposableProperty<bool> forceForwardEmissiveProp = new ExposableProperty<bool>(false);
         public bool forceForwardEmissive
         {
-            get => m_ForceForwardEmissive;
-            set => m_ForceForwardEmissive = value;
+            get => forceForwardEmissiveProp.value;
+            set => forceForwardEmissiveProp.value = value;
         }
+
+        [SerializeField]
+        ScreenSpaceRefraction.RefractionModel m_RefractionModel;
+        [SerializeField]
+        bool m_ForceForwardEmissive = false;
     }
 }

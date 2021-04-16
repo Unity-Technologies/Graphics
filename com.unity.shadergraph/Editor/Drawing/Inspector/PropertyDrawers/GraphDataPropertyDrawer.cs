@@ -102,6 +102,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
+                    if (target.supportsExposableProperties)
+                    {
+                        context.supportsExposableProperties = true;
+                        var propertyRow = new PropertyRow(null, new Label("Exposed")) { name = "header" };
+                        propertyRow.Add(new Label("Default Value"));
+                        element.Add(propertyRow);
+                    }
+
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
                     element.Add(context);
                 }

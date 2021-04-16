@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
+                AddProperty(refractionModelText, litData.refractionModelProp);
                 if (litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None)
                 {
                     if (systemData.blendMode != BlendMode.Alpha)

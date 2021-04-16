@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition[] { new FieldCondition(HDFields.EmissionOverriden, true), new FieldCondition(HDFields.ForceForwardEmissive, true) });
             descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
@@ -108,7 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
 
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool isTransparent = systemData.surfaceTypeProp.IsExposed || systemData.surfaceType == SurfaceType.Transparent;
+            bool hasRefraction = isTransparent && (litData.refractionModelProp.IsExposed || litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
             // Lit specific properties
             context.AddField(DotsProperties,                       context.hasDotsProperties);
@@ -147,12 +148,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Note: both case are required to be compliant with the ShaderGraph framework
             litData.emissionOverriden = emissionEnabled;
             context.AddField(HDFields.EmissionOverriden, emissionEnabled);
+
+            context.AddField(HDFields.ForceForwardEmissive, IsEnabled(litData.forceForwardEmissiveProp));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
-            bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
             base.GetActiveBlocks(ref context);
@@ -205,30 +207,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 floatType = FloatType.Enum,
-                hidden = true,
+                hidden = !litData.refractionModelProp.IsExposed,
                 value = (int)litData.refractionModel,
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
+                displayName = " "
             });
 
             // Note: Due to the shader graph framework it is not possible to rely on litData.emissionOverriden
             // to decide to add the ForceForwardEmissive property or not. The emissionOverriden setup is done after
             // the call to AddShaderProperty
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = litData.forceForwardEmissive,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = kForceForwardEmissive,
-            });
+            collector.AddPrimitiveProperty(kForceForwardEmissive, litData.forceForwardEmissiveProp);
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
-            pass.keywords.Add(RefractionKeyword);
-            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive);
+            pass.keywords.Add(RefractionKeyword, new FieldCondition(Refraction, true));
+            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive, new FieldCondition(HDFields.ForceForwardEmissive, true));
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

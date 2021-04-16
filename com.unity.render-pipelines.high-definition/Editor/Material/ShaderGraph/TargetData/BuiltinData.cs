@@ -1,17 +1,14 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class BuiltinData : HDTargetData
     {
-        [SerializeField]
-        bool m_Distortion = false;
+        public ExposableProperty<bool> distortionProp = new ExposableProperty<bool>(false);
         public bool distortion
         {
-            get => m_Distortion;
-            set => m_Distortion = value;
+            get => distortionProp.value;
+            set => distortionProp.value = value;
         }
 
         [SerializeField]
@@ -30,84 +27,74 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DistortionDepthTest = value;
         }
 
-        [SerializeField]
-        bool m_AddPrecomputedVelocity = false;
+        public ExposableProperty<bool> addPrecomputedVelocityProp = new ExposableProperty<bool>(false);
         public bool addPrecomputedVelocity
         {
-            get => m_AddPrecomputedVelocity;
-            set => m_AddPrecomputedVelocity = value;
+            get => addPrecomputedVelocityProp.value;
+            set => addPrecomputedVelocityProp.value = value;
         }
 
-        [SerializeField]
-        bool m_TransparentWritesMotionVec;
+        public ExposableProperty<bool> transparentWritesMotionVecProp = new ExposableProperty<bool>(default, true);
         public bool transparentWritesMotionVec
         {
-            get => m_TransparentWritesMotionVec;
-            set => m_TransparentWritesMotionVec = value;
+            get => transparentWritesMotionVecProp.value;
+            set => transparentWritesMotionVecProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AlphaToMask = false;
+        public ExposableProperty<bool> alphaToMaskProp = new ExposableProperty<bool>(false);
         public bool alphaToMask
         {
-            get => m_AlphaToMask;
-            set => m_AlphaToMask = value;
+            get => alphaToMaskProp.value;
+            set => alphaToMaskProp.value = value;
         }
 
-        [SerializeField]
-        bool m_DepthOffset;
+        public ExposableProperty<bool> depthOffsetProp = new ExposableProperty<bool>(default, true);
         public bool depthOffset
         {
-            get => m_DepthOffset;
-            set => m_DepthOffset = value;
+            get => depthOffsetProp.value;
+            set => depthOffsetProp.value = value;
         }
 
-        [SerializeField]
-        bool m_ConservativeDepthOffset;
+        public ExposableProperty<bool> conservativeDepthOffsetProp = new ExposableProperty<bool>(default, true);
         public bool conservativeDepthOffset
         {
-            get => m_ConservativeDepthOffset;
-            set => m_ConservativeDepthOffset = value;
+            get => conservativeDepthOffsetProp.value;
+            set => conservativeDepthOffsetProp.value = value;
         }
 
-        [SerializeField]
-        bool m_TransparencyFog = true;
+        public ExposableProperty<bool> transparencyFogProp = new ExposableProperty<bool>(true, true);
         public bool transparencyFog
         {
-            get => m_TransparencyFog;
-            set => m_TransparencyFog = value;
+            get => transparencyFogProp.value;
+            set => transparencyFogProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AlphaTestShadow;
+        public ExposableProperty<bool> alphaTestShadowProp = new ExposableProperty<bool>();
         public bool alphaTestShadow
         {
-            get => m_AlphaTestShadow;
-            set => m_AlphaTestShadow = value;
+            get => alphaTestShadowProp.value;
+            set => alphaTestShadowProp.value = value;
         }
 
-        [SerializeField]
-        bool m_BackThenFrontRendering;
+        public ExposableProperty<bool> backThenFrontRenderingProp = new ExposableProperty<bool>(default, true);
         public bool backThenFrontRendering
         {
-            get => m_BackThenFrontRendering;
-            set => m_BackThenFrontRendering = value;
+            get => backThenFrontRenderingProp.value;
+            set => backThenFrontRenderingProp.value = value;
         }
 
-        [SerializeField]
-        bool m_TransparentDepthPrepass;
+        public ExposableProperty<bool> transparentDepthPrepassProp = new ExposableProperty<bool>(default, true);
         public bool transparentDepthPrepass
         {
-            get => m_TransparentDepthPrepass;
-            set => m_TransparentDepthPrepass = value;
+            get => transparentDepthPrepassProp.value;
+            set => transparentDepthPrepassProp.value = value;
         }
 
-        [SerializeField]
-        bool m_TransparentDepthPostpass;
+        public ExposableProperty<bool> transparentDepthPostpassProp = new ExposableProperty<bool>(default, true);
         public bool transparentDepthPostpass
         {
-            get => m_TransparentDepthPostpass;
-            set => m_TransparentDepthPostpass = value;
+            get => transparentDepthPostpassProp.value;
+            set => transparentDepthPostpassProp.value = value;
         }
 
         [SerializeField]
@@ -117,5 +104,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SupportLodCrossFade;
             set => m_SupportLodCrossFade = value;
         }
+
+        /*
+        // Kept for migration
+        [SerializeField]
+        bool m_Distortion = false;
+        [SerializeField]
+        bool m_AddPrecomputedVelocity = false;
+        [SerializeField]
+        bool m_TransparentWritesMotionVec;
+        [SerializeField]
+        bool m_AlphaToMask = false;
+        [SerializeField]
+        bool m_DepthOffset;
+        [SerializeField]
+        bool m_ConservativeDepthOffset;
+        [SerializeField]
+        bool m_TransparencyFog = true;
+        [SerializeField]
+        bool m_AlphaTestShadow;
+        [SerializeField]
+        bool m_BackThenFrontRendering;
+        [SerializeField]
+        bool m_TransparentDepthPrepass;
+        [SerializeField]
+        bool m_TransparentDepthPostpass;
+        */
     }
 }

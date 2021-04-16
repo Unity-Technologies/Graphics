@@ -47,6 +47,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor SpecularOcclusionFromAOBentNormal = new FieldDescriptor(string.Empty, "SpecularOcclusionFromAOBentNormal", "_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1");
         public static FieldDescriptor SpecularOcclusionCustom = new FieldDescriptor(string.Empty, "SpecularOcclusionCustom", "_SPECULAR_OCCLUSION_CUSTOM 1");
 
+        // Transparent
+        public static FieldDescriptor SurfaceTypeTransparent =          new FieldDescriptor(string.Empty, "SurfaceTypeTransparent", string.Empty);
+        public static FieldDescriptor FogOnTransparent =                new FieldDescriptor(string.Empty, "FogOnTransparent", string.Empty);
+        public static FieldDescriptor ReceiveSSRTransparent =           new FieldDescriptor(string.Empty, "ReceiveSSRTransparent", string.Empty);
+        public static FieldDescriptor TransparentBackFace =             new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
+        public static FieldDescriptor TransparentDepthPrePass =         new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
+        public static FieldDescriptor TransparentDepthPostPass =        new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
+        public static FieldDescriptor TransparentWritesMotionVector =   new FieldDescriptor(string.Empty, "TransparentWritesMotionVector", string.Empty);
+
         // Misc
         public static FieldDescriptor DoAlphaTestShadow =       new FieldDescriptor(string.Empty, "DoAlphaTestShadow", "_DO_ALPHA_TEST_SHADOW 1");
         public static FieldDescriptor DoAlphaTestPrepass =      new FieldDescriptor(string.Empty, "DoAlphaTestPrepass", "_DO_ALPHA_TEST_PREPASS 1");
@@ -57,12 +66,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
         public static FieldDescriptor ConservativeDepthOffset = new FieldDescriptor(string.Empty, "ConservativeDepthOffset", "_CONSERVATIVE_DEPTH_OFFSET 1");
-        public static FieldDescriptor TransparentBackFace =     new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
-        public static FieldDescriptor TransparentDepthPrePass = new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
-        public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
         public static FieldDescriptor EmissionOverriden =       new FieldDescriptor(string.Empty, "EmissionOverriden", string.Empty);
+        public static FieldDescriptor ReceiveDecals =           new FieldDescriptor(string.Empty, "ReceiveDecals", string.Empty);
+        public static FieldDescriptor ReceiveSSR =              new FieldDescriptor(string.Empty, "ReceiveSSR", string.Empty);
+        public static FieldDescriptor AddPrecomputedVelocity =  new FieldDescriptor(string.Empty, "AddPrecomputedVelocity", string.Empty);
+        public static FieldDescriptor ForceForwardEmissive =    new FieldDescriptor(string.Empty, "ForceForwardEmissive", string.Empty);
         #endregion
     }
 }

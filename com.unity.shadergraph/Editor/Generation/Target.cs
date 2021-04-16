@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph
     {
         public string displayName { get; set; }
         public bool isHidden { get; set; }
+        public bool supportsExposableProperties { get; set; }
         internal virtual bool ignoreCustomInterpolators => true;
         internal virtual int padCustomInterpolatorLimit => 4;
         public abstract bool IsActive();

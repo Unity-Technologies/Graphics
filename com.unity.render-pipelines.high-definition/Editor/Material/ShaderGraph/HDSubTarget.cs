@@ -115,6 +115,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 patchedSubShader.renderQueue = renderQueue;
                 context.AddSubShader(patchedSubShader);
             }
+
+            systemData.renderQueueTypeProp.parent = systemData.surfaceTypeProp;
+            systemData.blendModeProp.parent = systemData.surfaceTypeProp;
+            systemData.zTestProp.parent = systemData.surfaceTypeProp;
+            systemData.transparentZWriteProp.parent = systemData.surfaceTypeProp;
+            systemData.transparentCullModeProp.parent = systemData.surfaceTypeProp;
+            systemData.sortPriorityProp.parent = systemData.surfaceTypeProp;
+            systemData.opaqueCullModeProp.parent = systemData.surfaceTypeProp;
         }
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
@@ -218,6 +226,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return new HDSaveContext { updateMaterials = needsUpdate };
             }
+        }
+
+        protected bool IsEnabled(ExposableProperty<bool> prop)
+        {
+            return prop.IsExposed || prop.value;
+        }
+
+        protected bool IsDisabled(ExposableProperty<bool> prop)
+        {
+            return prop.IsExposed || !prop.value;
         }
     }
 }

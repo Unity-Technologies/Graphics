@@ -80,6 +80,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public HDTarget()
         {
             displayName = "HDRP";
+            supportsExposableProperties = true;
+
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
 
@@ -146,8 +148,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
-            context.globalIndentLevel++;
-
             // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
@@ -181,8 +181,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
-
-            context.globalIndentLevel--;
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -1217,22 +1215,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-        };
-
-        public static KeywordDescriptor BlendMode = new KeywordDescriptor()
-        {
-            displayName = "Blend Mode",
-            referenceName = "_BLENDMODE",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            entries = new KeywordEntry[]
-            {
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
-                new KeywordEntry() { displayName = "Alpha", referenceName = "ALPHA" },
-                new KeywordEntry() { displayName = "Add", referenceName = "ADD" },
-                new KeywordEntry() { displayName = "PreMultiply", referenceName = "PRE_MULTIPLY" },
-            }
         };
 
         public static KeywordDescriptor FogOnTransparent = new KeywordDescriptor()
