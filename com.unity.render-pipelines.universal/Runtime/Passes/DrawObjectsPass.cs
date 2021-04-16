@@ -20,7 +20,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsOpaque;
 
         bool m_UseDepthPriming;
-        bool m_PreviouslyUsedDepthPriming;
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -73,15 +72,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
-                m_PreviouslyUsedDepthPriming = true;
-            }
-            // If the previous execution of the pass was using depth priming, only then reset the depth state to default.
-            // Always resetting to default would break the custom state set by certain DrawObjectPass instances such as particle rendering.
-            else if (m_PreviouslyUsedDepthPriming)
-            {
-                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.LessEqual);
-                m_RenderStateBlock.mask |= RenderStateMask.Depth;
-                m_PreviouslyUsedDepthPriming = false;
             }
         }
 
