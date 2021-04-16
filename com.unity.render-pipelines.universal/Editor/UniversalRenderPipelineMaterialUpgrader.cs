@@ -182,10 +182,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (MaterialUpgrader.IsMaterialPath(path))
                 {
-                    //materialIndex++;
-                    //if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))
-                    //    break;
-
                     Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
 
                     if (!MaterialUpgrader.ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
