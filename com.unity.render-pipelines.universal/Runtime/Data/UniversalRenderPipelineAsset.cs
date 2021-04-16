@@ -545,6 +545,7 @@ namespace UnityEngine.Rendering.Universal
         public StoreActionsOptimization storeActionsOptimization
         {
             get { return m_StoreActionsOptimization; }
+            set { m_StoreActionsOptimization = value; }
         }
 
         public bool supportsHDR
