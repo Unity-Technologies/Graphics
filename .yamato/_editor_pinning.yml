@@ -18,6 +18,7 @@ editor-pinning-update:
     commands:
       -  pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  pip3 install ruamel.yaml
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
