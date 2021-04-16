@@ -488,10 +488,5 @@ namespace UnityEngine.Rendering
             m_AtlasAllocator.Release(key);
             m_AllocationCache.Remove(key);
         }
-
-        public string DebugStringFromRoot(int depthMax = -1)
-        {
-            return m_AtlasAllocator.DebugStringFromRoot(depthMax);
-        }
     }
 }
