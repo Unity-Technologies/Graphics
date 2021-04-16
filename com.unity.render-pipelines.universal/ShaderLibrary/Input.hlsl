@@ -30,7 +30,6 @@ struct InputData
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
 
-    half3   normalTS;
     #if defined(LIGHTMAP_ON)
     half2   lightmapUV;
     #else

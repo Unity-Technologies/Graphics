@@ -31,7 +31,6 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
     output.vertexLighting = 0;
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-    output.normalTS = surfaceData.normalTS;
     output.shadowMask = 1;
     output.shadowCoord = 0;
 

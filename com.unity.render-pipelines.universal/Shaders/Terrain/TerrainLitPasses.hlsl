@@ -117,7 +117,6 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 
-    input.normalTS = normalTS;
     #if defined(LIGHTMAP_ON)
     input.lightmapUV = IN.uvMainAndLM.zw;
     #else

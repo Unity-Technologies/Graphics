@@ -21,7 +21,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
 
-    inputData.normalTS = half3(0, 0, 1);
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = half2(0, 0);
     #else

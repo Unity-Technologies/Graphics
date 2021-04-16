@@ -11,7 +11,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
 
         inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-
         #if _NORMAL_DROPOFF_TS
             inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentMatrixWS);
         #elif _NORMAL_DROPOFF_OS
@@ -22,7 +21,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #else
         inputData.normalWS = input.normalWS;
     #endif
-    inputData.normalTS = surfaceDescription.NormalTS;
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
 
@@ -86,6 +84,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         float metallic = surfaceDescription.Metallic;
     #endif
 
+    half3 normalTS = half3(0, 0, 0);
+    #if defined(_NORMALMAP) && defined(_NORMAL_DROPOFF_TS)
+        normalTS = surfaceDescription.NormalTS;
+    #endif
+
     SurfaceData surface;
     surface.albedo              = surfaceDescription.BaseColor;
     surface.metallic            = saturate(metallic);
@@ -94,7 +97,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surface.occlusion           = surfaceDescription.Occlusion,
     surface.emission            = surfaceDescription.Emission,
     surface.alpha               = saturate(alpha);
-    surface.normalTS            = surfaceDescription.NormalTS;
+    surface.normalTS            = normalTS;
     surface.clearCoatMask       = 0;
     surface.clearCoatSmoothness = 1;
 

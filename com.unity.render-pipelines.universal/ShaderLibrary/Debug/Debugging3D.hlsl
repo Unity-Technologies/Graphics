@@ -98,7 +98,6 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         #else
         inputData.normalWS = inputData.normalWS;
         #endif
-        inputData.normalTS = normalTS;
         surfaceData.normalTS = normalTS;
         changed = true;
     }

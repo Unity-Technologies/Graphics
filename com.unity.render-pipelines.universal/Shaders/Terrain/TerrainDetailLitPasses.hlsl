@@ -47,7 +47,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = SampleLightmap(input.LightmapUV, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-    inputData.normalTS = half3(0, 0, 1);
 
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.LightmapUV;

@@ -6,14 +6,13 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.positionWS = input.positionWS;
 
     #ifdef _NORMALMAP
-            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+        // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+        float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+        float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
 
-    inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-
-    #if _NORMAL_DROPOFF_TS
-    inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentMatrixWS);
+        inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+        #if _NORMAL_DROPOFF_TS
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentMatrixWS);
         #elif _NORMAL_DROPOFF_OS
             inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
@@ -22,7 +21,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #else
         inputData.normalWS = input.normalWS;
     #endif
-    inputData.normalTS = surfaceDescription.NormalTS;
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
 
