@@ -1,7 +1,7 @@
 project:
   name: Universal_Split
 expression_trigger:
-  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 pr:
   dependencies:
     - project: URP_2D
@@ -15,8 +15,6 @@ pr:
     - project: URP_Terrain
       pr: true
     - project: Universal_Stereo
-      pr: true
-    - project: Universal_Hybrid
       pr: true
     - project: VFX_URP
       pr: true
@@ -37,8 +35,6 @@ nightly:
     - project: URP_Terrain
       nightly: true
     - project: Universal_Stereo
-      nightly: true
-    - project: Universal_Hybrid
       nightly: true
     - project: VFX_URP
       nightly: true
