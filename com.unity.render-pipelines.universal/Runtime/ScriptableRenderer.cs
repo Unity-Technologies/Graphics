@@ -566,8 +566,8 @@ namespace UnityEngine.Rendering.Universal
             bool firstTimeStereo = false;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-            renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;
+            renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
             SetRenderPassAttachments(cmd, renderPass, ref cameraData, ref firstTimeStereo);
 
