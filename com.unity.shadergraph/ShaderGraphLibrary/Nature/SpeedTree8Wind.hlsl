@@ -799,7 +799,7 @@ float3 SpeedTreeWind(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTex
 // This version is used by ShaderGraph
 void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, out float3 outPos)
 {
-    if (iWindQuality == ST_WIND_QUALITY_NONE)
+    if (iWindQuality != ST_WIND_QUALITY_NONE)
     {
         outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
     }

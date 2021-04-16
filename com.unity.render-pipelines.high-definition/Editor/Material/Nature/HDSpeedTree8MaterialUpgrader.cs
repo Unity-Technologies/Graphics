@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             string guid = "";
             long localID;
             uint diffusionProfileHash = 0;
-            foreach (var diffusionProfileAsset in HDRenderPipeline.defaultAsset.diffusionProfileSettingsList)
+            foreach (var diffusionProfileAsset in HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList)
             {
                 if (diffusionProfileAsset != null && diffusionProfileAsset.name.Equals(kDefaultDiffusionProfileName))
                 {
