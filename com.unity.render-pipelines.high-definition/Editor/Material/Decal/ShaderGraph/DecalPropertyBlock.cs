@@ -1,12 +1,3 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.ShaderGraph;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEngine;
-
 // We share the name of the properties in the UI to avoid duplication
 using static UnityEditor.Rendering.HighDefinition.DecalSurfaceOptionsUIBlock.Styles;
 
@@ -23,12 +14,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(affectAlbedoText, () => decalData.affectsAlbedo, (newValue) => decalData.affectsAlbedo = newValue);
-            AddProperty(affectNormalText, () => decalData.affectsNormal, (newValue) => decalData.affectsNormal = newValue);
-            AddProperty(affectMetalText, () => decalData.affectsMetal, (newValue) => decalData.affectsMetal = newValue);
-            AddProperty(affectAmbientOcclusionText, () => decalData.affectsAO, (newValue) => decalData.affectsAO = newValue);
-            AddProperty(affectSmoothnessText, () => decalData.affectsSmoothness, (newValue) => decalData.affectsSmoothness = newValue);
-            AddProperty(affectEmissionText, () => decalData.affectsEmission, (newValue) => decalData.affectsEmission = newValue);
+            AddProperty(affectAlbedoText, decalData.affectsAlbedoProp);
+            AddProperty(affectNormalText, decalData.affectsNormalProp);
+            AddProperty(affectMetalText, decalData.affectsMetalProp);
+            AddProperty(affectAmbientOcclusionText, decalData.affectsAOProp);
+            AddProperty(affectSmoothnessText, decalData.affectsSmoothnessProp);
+            AddProperty(affectEmissionText, decalData.affectsEmissionProp);
+
             AddProperty(supportLodCrossFadeText, () => decalData.supportLodCrossFade, (newValue) => decalData.supportLodCrossFade = newValue);
         }
     }

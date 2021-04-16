@@ -1,57 +1,49 @@
-using System;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class DecalData : HDTargetData
     {
-        [SerializeField]
-        bool m_AffectsMetal = true;
+        public ExposableProperty<bool> affectsMetalProp = new ExposableProperty<bool>(true);
         public bool affectsMetal
         {
-            get => m_AffectsMetal;
-            set => m_AffectsMetal = value;
+            get => affectsMetalProp.value;
+            set => affectsMetalProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AffectsAO = false;
+        public ExposableProperty<bool> affectsAOProp = new ExposableProperty<bool>(false);
         public bool affectsAO
         {
-            get => m_AffectsAO;
-            set => m_AffectsAO = value;
+            get => affectsAOProp.value;
+            set => affectsAOProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AffectsSmoothness = true;
+        public ExposableProperty<bool> affectsSmoothnessProp = new ExposableProperty<bool>(true);
         public bool affectsSmoothness
         {
-            get => m_AffectsSmoothness;
-            set => m_AffectsSmoothness = value;
+            get => affectsSmoothnessProp.value;
+            set => affectsSmoothnessProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AffectsAlbedo = true;
+        public ExposableProperty<bool> affectsAlbedoProp = new ExposableProperty<bool>(true);
         public bool affectsAlbedo
         {
-            get => m_AffectsAlbedo;
-            set => m_AffectsAlbedo = value;
+            get => affectsAlbedoProp.value;
+            set => affectsAlbedoProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AffectsNormal = true;
+        public ExposableProperty<bool> affectsNormalProp = new ExposableProperty<bool>(true);
         public bool affectsNormal
         {
-            get => m_AffectsNormal;
-            set => m_AffectsNormal = value;
+            get => affectsNormalProp.value;
+            set => affectsNormalProp.value = value;
         }
 
-        [SerializeField]
-        bool m_AffectsEmission = false;
+        public ExposableProperty<bool> affectsEmissionProp = new ExposableProperty<bool>(false);
         public bool affectsEmission
         {
-            get => m_AffectsEmission;
-            set => m_AffectsEmission = value;
+            get => affectsEmissionProp.value;
+            set => affectsEmissionProp.value = value;
         }
 
         [SerializeField]
@@ -70,6 +62,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_SupportLodCrossFade = value;
         }
 
-        public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
+        // Kept for migration
+        [SerializeField]
+        bool m_AffectsMetal = true;
+        [SerializeField]
+        bool m_AffectsAO = false;
+        [SerializeField]
+        bool m_AffectsSmoothness = true;
+        [SerializeField]
+        bool m_AffectsAlbedo = true;
+        [SerializeField]
+        bool m_AffectsNormal = true;
+        [SerializeField]
+        bool m_AffectsEmission = false;
     }
 }

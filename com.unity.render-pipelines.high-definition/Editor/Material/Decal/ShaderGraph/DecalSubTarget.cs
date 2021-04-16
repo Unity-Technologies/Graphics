@@ -55,6 +55,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             yield return PostProcessSubShader(SubShaders.Decal);
         }
 
+        bool AffectsMaskMapValue()
+            => IsEnabled(decalData.affectsSmoothnessProp) || IsEnabled(decalData.affectsMetalProp) || IsEnabled(decalData.affectsAOProp);
+        bool DecalDefaultValue()
+            => IsEnabled(decalData.affectsAlbedoProp) || IsEnabled(decalData.affectsNormalProp) || AffectsMaskMapValue();
+
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             pass.keywords.Add(CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true));
@@ -63,11 +68,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (!(pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
                   pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive]))
             {
-                if (decalData.affectsAlbedo)
+                if (IsEnabled(decalData.affectsAlbedoProp))
                     pass.keywords.Add(DecalDefines.Albedo);
-                if (decalData.affectsNormal)
+                if (IsEnabled(decalData.affectsNormalProp))
                     pass.keywords.Add(DecalDefines.Normal);
-                if (decalData.affectsMaskmap)
+                if (AffectsMaskMapValue())
                     pass.keywords.Add(DecalDefines.Maskmap);
             }
 
@@ -90,15 +95,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             // Decal properties
-            context.AddField(AffectsAlbedo,        decalData.affectsAlbedo);
-            context.AddField(AffectsNormal,        decalData.affectsNormal);
-            context.AddField(AffectsEmission,      decalData.affectsEmission);
-            context.AddField(AffectsMetal,         decalData.affectsMetal);
-            context.AddField(AffectsAO,            decalData.affectsAO);
-            context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
-            context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
-            context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
-                decalData.affectsAO || decalData.affectsSmoothness);
+            context.AddField(AffectsAlbedo,       IsEnabled(decalData.affectsAlbedoProp));
+            context.AddField(AffectsNormal,       IsEnabled(decalData.affectsNormalProp));
+            context.AddField(AffectsEmission,     IsEnabled(decalData.affectsEmissionProp));
+            context.AddField(AffectsMetal,        IsEnabled(decalData.affectsMetalProp));
+            context.AddField(AffectsAO,           IsEnabled(decalData.affectsAOProp));
+            context.AddField(AffectsSmoothness,   IsEnabled(decalData.affectsSmoothnessProp));
+            context.AddField(AffectsMaskMap,      AffectsMaskMapValue());
+            context.AddField(DecalDefault,        DecalDefaultValue());
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
         }
 
@@ -166,34 +170,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
-            if (decalData.affectsAlbedo)
-                AddAffectsProperty(HDMaterialProperties.kAffectAlbedo);
-            if (decalData.affectsNormal)
-                AddAffectsProperty(HDMaterialProperties.kAffectNormal);
-            if (decalData.affectsAO)
-                AddAffectsProperty(HDMaterialProperties.kAffectAO);
-            if (decalData.affectsMetal)
-                AddAffectsProperty(HDMaterialProperties.kAffectMetal);
-            if (decalData.affectsSmoothness)
-                AddAffectsProperty(HDMaterialProperties.kAffectSmoothness);
-            if (decalData.affectsEmission)
-                AddAffectsProperty(HDMaterialProperties.kAffectEmission);
+            // Add affects properties
+            if (decalData.affectsAlbedoProp.IsExposed || decalData.affectsAlbedo)
+                collector.AddPrimitiveProperty(kAffectAlbedo, decalData.affectsAlbedoProp);
+            if (decalData.affectsNormalProp.IsExposed || decalData.affectsNormal)
+                collector.AddPrimitiveProperty(kAffectNormal, decalData.affectsNormalProp);
+            if (decalData.affectsAOProp.IsExposed || decalData.affectsAO)
+                collector.AddPrimitiveProperty(kAffectAO, decalData.affectsAOProp);
+            if (decalData.affectsMetalProp.IsExposed || decalData.affectsMetal)
+                collector.AddPrimitiveProperty(kAffectMetal, decalData.affectsMetalProp);
+            if (decalData.affectsSmoothnessProp.IsExposed || decalData.affectsSmoothness)
+                collector.AddPrimitiveProperty(kAffectSmoothness, decalData.affectsSmoothnessProp);
+            if (decalData.affectsEmissionProp.IsExposed || decalData.affectsEmission)
+                collector.AddPrimitiveProperty(kAffectEmission, decalData.affectsEmissionProp);
 
             // Color mask configuration for writing to the mask map
             AddColorMaskProperty(kDecalColorMask0);
             AddColorMaskProperty(kDecalColorMask1);
             AddColorMaskProperty(kDecalColorMask2);
             AddColorMaskProperty(kDecalColorMask3);
-
-            void AddAffectsProperty(string referenceName)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    overrideReferenceName = referenceName,
-                    hidden = true,
-                    value = true,
-                });
-            }
 
             void AddStencilProperty(string referenceName)
             {

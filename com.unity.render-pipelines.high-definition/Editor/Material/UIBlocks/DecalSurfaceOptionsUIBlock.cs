@@ -62,23 +62,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
             }
 
-            if (affectsAlbedo != null)
+            if (ShowProperty(affectsAlbedo))
                 materialEditor.ShaderProperty(affectsAlbedo, Styles.affectAlbedoText);
-            if (affectsNormal != null)
+            if (ShowProperty(affectsNormal))
                 materialEditor.ShaderProperty(affectsNormal, Styles.affectNormalText);
 
             using (new EditorGUI.DisabledScope(!perChannelMask))
             {
-                if (affectsMetal != null)
+                if (ShowProperty(affectsMetal))
                     materialEditor.ShaderProperty(affectsMetal, Styles.affectMetalText);
-                if (affectsAO != null)
+                if (ShowProperty(affectsAO))
                     materialEditor.ShaderProperty(affectsAO, Styles.affectAmbientOcclusionText);
             }
 
-            if (affectsSmoothness != null)
+            if (ShowProperty(affectsSmoothness))
                 materialEditor.ShaderProperty(affectsSmoothness, Styles.affectSmoothnessText);
 
-            if (affectsEmission != null)
+            if (ShowProperty(affectsEmission))
                 materialEditor.ShaderProperty(affectsEmission, Styles.affectEmissionText);
 
             if (!perChannelMask && (affectsMetal != null || affectsAO != null))
