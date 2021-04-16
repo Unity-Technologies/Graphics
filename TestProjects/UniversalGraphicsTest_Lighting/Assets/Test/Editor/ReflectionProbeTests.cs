@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using NUnit.Framework;
@@ -10,14 +11,62 @@ public class Editmode_ParametricReflectionProbeTests
 	private readonly string sceneOutputPath = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake";
 	private readonly string sceneFileName = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake.unity";
 	private readonly string[] foldersToLookIn = { "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/settings" };
-    
-	[TestCaseSource("FixtureArgs")]
-	public void ReflectionProbeTest(string name)
+
+    public enum BakeAPI
+    {
+        Bake = 0,
+        BakeAllReflectionProbeSnapshots,
+        BakeReflectionProbeSnapshot
+    }
+
+    [UnityEngine.Scripting.Preserve]
+    private static object[] GetReflectionProbeTestCases()
+    {
+        object[] testCaseArray = new object[6];
+        for (int i = 0; i < testCaseArray.Length; ++i)
+        {
+            string settings = "nonAuto-Progressive";
+            BakeAPI bakeAPI = BakeAPI.Bake;
+
+            switch (i)
+            {
+                case 0:
+                    settings = "nonAuto-Progressive";
+                    bakeAPI = BakeAPI.Bake;
+                    break;
+                case 1:
+                    settings = "nonAuto-nonProgressive";
+                    bakeAPI = BakeAPI.Bake;
+                    break;
+                case 2:
+                    settings = "nonAuto-Progressive";
+                    bakeAPI = BakeAPI.BakeAllReflectionProbeSnapshots;
+                    break;
+                case 3:
+                    settings = "nonAuto-nonProgressive";
+                    bakeAPI = BakeAPI.BakeAllReflectionProbeSnapshots;
+                    break;
+                case 4:
+                    settings = "nonAuto-Progressive";
+                    bakeAPI = BakeAPI.BakeReflectionProbeSnapshot;
+                    break;
+                case 5:
+                    settings = "nonAuto-nonProgressive";
+                    bakeAPI = BakeAPI.BakeReflectionProbeSnapshot;
+                    break;
+            }
+            testCaseArray[i] = new object[] { settings, bakeAPI };
+        }
+        return testCaseArray;
+    }
+
+    [TestCaseSource("GetReflectionProbeTestCases")]
+    public void ReflectionProbeTest(string settings, BakeAPI bakeAPI)
 	{
 		EditorSceneManager.OpenScene(sceneFileName, OpenSceneMode.Single);
 
 		// Bake with a lighting settings asset.
-		string[] settingsAssets = AssetDatabase.FindAssets(name + " t:lightingsettings", foldersToLookIn);
+		string[] settingsAssets = AssetDatabase.FindAssets(settings + " t:lightingsettings", foldersToLookIn);
 		Debug.Log("Found " + settingsAssets.Length + " matching lighting settings assets in " + foldersToLookIn[0]);
 		Assert.That(settingsAssets.Length, Is.EqualTo(1));
 		string lsaPath = AssetDatabase.GUIDToAssetPath(settingsAssets[0]);
@@ -25,11 +74,43 @@ public class Editmode_ParametricReflectionProbeTests
 		LightingSettings lightingSettings = (LightingSettings)AssetDatabase.LoadAssetAtPath(lsaPath, typeof(LightingSettings));
 		Lightmapping.lightingSettings = lightingSettings;
 		string fileName = System.IO.Path.GetFileNameWithoutExtension(lsaPath);
-		Assert.That(fileName, Is.EqualTo(name));
+		Assert.That(fileName, Is.EqualTo(settings));
 		Lightmapping.Clear();
         Lightmapping.ClearDiskCache();
         Debug.Log("Baking " + fileName);
-		bool result = Lightmapping.Bake();
+        bool result = true;
+        switch (bakeAPI)
+        {
+            case BakeAPI.Bake:
+                result = Lightmapping.Bake();
+                break;
+            case BakeAPI.BakeAllReflectionProbeSnapshots:
+                {
+                    var probe = Object.FindObjectOfType<ReflectionProbe>();
+                    Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
+                    Debug.Log("Found reflection probe: " + probe.name);
+
+                    var oldEnabledValue = probe.enabled;
+                    probe.enabled = false;
+                    result = Lightmapping.Bake();
+                    probe.enabled = oldEnabledValue;
+                    result &= Lightmapping.BakeAllReflectionProbesSnapshots();
+                }
+                break;
+            case BakeAPI.BakeReflectionProbeSnapshot:
+                {
+                    var probe = Object.FindObjectOfType<ReflectionProbe>();
+                    Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
+                    Debug.Log("Found reflection probe: " + probe.name);
+
+                    var oldEnabledValue = probe.enabled;
+                    probe.enabled = false;
+                    result = Lightmapping.Bake();
+                    probe.enabled = oldEnabledValue;
+                    result &= Lightmapping.BakeReflectionProbeSnapshot(probe);
+                }
+                break;
+        }        
 		Assert.That(result, Is.True);
 		
 		// Get Test settings.
@@ -42,23 +123,16 @@ public class Editmode_ParametricReflectionProbeTests
 			UseGraphicsTestCasesAttribute.Platform,
 			UseGraphicsTestCasesAttribute.GraphicsDevice,
 			UseGraphicsTestCasesAttribute.LoadedXRDevice,
-			"ReflectionProbeTest(" + name + ").png"));
+			"ReflectionProbeTest(" + settings + "-" + bakeAPI.ToString() + ").png"));
 		Debug.Log("referenceImagePath " + referenceImagePath);
 		var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
 		
 		// Compare screenshots.
-		GraphicsTestCase testCase = new GraphicsTestCase(name, referenceImage);
+		GraphicsTestCase testCase = new GraphicsTestCase(settings, referenceImage);
 		var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
 		ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), graphicsTestSettingsCustom.ImageComparisonSettings);
 		UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
 	}
-	
-	static string[] FixtureArgs = {
-//		"Auto-Progressive",
-//        "Auto-nonProgressive",
-        "nonAuto-Progressive",
-        "nonAuto-nonProgressive",
-	};
 
     [OneTimeTearDown]
     public void Cleanup()
