@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 public Vector2Int resolution;
                 public GraphicsFormat format;
-                //public bool useMips;
+                public bool useMips;
 
                 public bool isPow2 => Mathf.IsPowerOfTwo(resolution.x) && Mathf.IsPowerOfTwo(resolution.y);
                 public bool isSquare => resolution.x == resolution.y;
@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
                 Settings s;
                 s.atlas.resolution    = new Vector2Int(1024, 1024);
                 s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
+                s.atlas.useMips       = false; // TODO: set to true, make sure they work proper first! Disable them for now...
                 s.maxAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 // (Scale * WH) / (6 * WH)
                 // 1: 1/6 = 16%, 2: 4/6 = 66%, 4: 16/6 == 266% of cube pixels
@@ -194,26 +195,30 @@ namespace UnityEngine.Rendering.Universal
 
         void InitAdditionalLights(int size)
         {
-            if (/*m_Settings.atlas.useMips &&*/ m_Settings.atlas.isPow2)
+            if (m_Settings.atlas.useMips && m_Settings.atlas.isPow2)
             {
+                // TOOD: MipMaps still have sampling artifacts. FIX fIX
+
+                // Supports mip padding for correct filtering at the edges.
                 m_AdditionalLightsCookieAtlas = new PowerOfTwoTextureAtlas(
                     m_Settings.atlas.resolution.x,
-                    0,    // TODO: what's the correct value here, how many mips before bleed? // Mip border appear to grow inwards.
+                    4,
                     m_Settings.atlas.format,
-                    FilterMode.Bilinear,    // TODO: option?
+                    FilterMode.Bilinear,
                     "Universal Light Cookie Pow2 Atlas",
                     true);
             }
             else
             {
+                // No mip padding support.
                 m_AdditionalLightsCookieAtlas = new Texture2DAtlas(
                     m_Settings.atlas.resolution.x,
                     m_Settings.atlas.resolution.y,
                     m_Settings.atlas.format,
-                    FilterMode.Bilinear,    // TODO: option?
-                    m_Settings.atlas.isPow2,
+                    FilterMode.Bilinear,
+                    false,
                     "Universal Light Cookie Atlas",
-                    false); // support mips, use Pow2Atlas
+                    false); // to support mips, use Pow2Atlas
             }
 
 
@@ -461,6 +466,9 @@ namespace UnityEngine.Rendering.Universal
             Vector4 uvScaleOffset = Vector4.zero;
             m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, cookie);
             m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset, cookie);
+            if (m_Settings.atlas.useMips)
+                uvScaleOffset = (m_AdditionalLightsCookieAtlas as PowerOfTwoTextureAtlas).GetPaddedScaleOffset(cookie, uvScaleOffset);
+
             return uvScaleOffset;
         }
 

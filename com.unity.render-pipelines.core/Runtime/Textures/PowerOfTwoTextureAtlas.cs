@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         /// Create a new texture atlas, must have power of two size.
         /// </summary>
         /// <param name="size">The size of the atlas in pixels. Must be power of two.</param>
-        /// <param name="mipPadding">Amount of mip padding.</param>
+        /// <param name="mipPadding">Amount of mip padding in power of two.</param>
         /// <param name="format">Atlas texture format</param>
         /// <param name="filterMode">Atlas texture filter mode.</param>
         /// <param name="name">Name of the atlas</param>
@@ -32,9 +32,50 @@ namespace UnityEngine.Rendering
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
         }
 
+        /// <summary>
+        /// Used mipmap padding size in power of two.
+        /// </summary>
         public int mipPadding => m_MipPadding;
 
         int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
+
+        /// <summary>
+        /// Get location of actual non-padded texture data in Atlas.
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="scaleOffset"></param>
+        /// <returns></returns>
+        public Vector4 GetPaddedScaleOffset(Texture texture, in Vector4 scaleOffset)
+        {
+            int pixelPadding = GetTexturePadding();
+            Vector2 paddingSize = Vector2.one * pixelPadding;
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            return GetPaddedScaleOffset(textureSize, paddingSize, scaleOffset);
+        }
+
+        /// <summary>
+        /// Get location of actual non-padded texture data in Atlas.
+        /// </summary>
+        /// <param name="textureSize"></param>
+        /// <param name="paddingSize"></param>
+        /// <param name="scaleOffset"></param>
+        /// <returns></returns>
+        static public Vector4 GetPaddedScaleOffset(in Vector2 textureSize, in Vector2 paddingSize, in Vector4 scaleOffset)
+        {
+            // Scale, Offset is a padded atlas sub-texture rectangle.
+            // Actual texture data (payload) is inset, i.e. padded inwards.
+            Vector2 subTexScale = new Vector2(scaleOffset.x, scaleOffset.y);
+            Vector2 subTexOffset = new Vector2(scaleOffset.z, scaleOffset.w);
+
+            // NOTE: Should match Blit() padding calculations.
+            Vector2 scalePadding = ((textureSize + paddingSize) / textureSize);            // Size of padding (sampling) rectangle relative to the payload texture.
+            Vector2 offsetPadding = (paddingSize / 2.0f) / (textureSize + paddingSize);    // Padding offset in the padding rectangle
+
+            Vector2 insetScale  = subTexScale / scalePadding;                 // Size of payload rectangle in sub-tex
+            Vector2 insetOffset = subTexOffset + subTexScale * offsetPadding; // Offset of payload rectangle in sub-tex
+
+            return new Vector4(insetScale.x, insetScale.y, insetOffset.x, insetOffset.y);
+        }
 
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {

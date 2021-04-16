@@ -103,7 +103,7 @@ float4x4 LightCookie_GetWorldToLight(int lightIndex)
     #endif
 }
 
-half4 LightCookie_GetAtlasUVRect(int lightIndex)
+float4 LightCookie_GetAtlasUVRect(int lightIndex)
 {
     #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
         return _AdditionalLightsCookieAtlasUVRectBuffer[lightIndex];
@@ -141,7 +141,7 @@ struct LightCookie
         #endif
     }
 
-    half4 AtlasUVRect()
+    float4 AtlasUVRect()
     {
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
             return _AdditionalLightsCookieAtlasUVRectBuffer[m_lightIndex];
@@ -242,13 +242,13 @@ float2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sample
     float2 positionUV = saturate(positionNDC * 0.5 + 0.5);
 
     // Remap into rect in the atlas texture
-    float2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
-float2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, half4 atlasUVRect)
+float2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
     float4 positionLS  = mul(worldToLight, float4(samplePositionWS, 1));
@@ -259,7 +259,7 @@ float2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS
     float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
 
     // Remap to atlas texture
-    float2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
@@ -267,13 +267,13 @@ float2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS
 
 // Main Layer: Cookie sampling per light
 
-half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
+real3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
-    float2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, half4(0, 0, 1, 1), _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE);
+    float2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(0, 0, 1, 1), _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE);
     return MAIN_LIGHT_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).rgb;
 }
 
-half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
+real3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
     #if 0
         #ifdef PROTO_OBJ_INTERFACE
@@ -281,7 +281,7 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
             float4 uvRect = c.AtlasUVRect();
 
             if(c.IsEnabled(uvRect))
-                return half3(1,1,1);
+                return real3(1,1,1);
 
             float    lightType    = c.LightType();
             float4x4 worldToLight = c.WorldToLight();
@@ -289,7 +289,7 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
             float4 uvRect = LightCookie_GetAtlasUVRect(perObjectLightIndex);
 
             if(LightCookie_IsEnabled(uvRect))
-                return half3(1,1,1);
+                return real3(1,1,1);
 
             float    lightType    = LightCookie_GetLightType(perObjectLightIndex);
             float4x4 worldToLight = LightCookie_GetWorldToLightMatrix(perObjectLightIndex);
@@ -300,7 +300,7 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
         // TODO: cookie enable bit, uint[8] for 256 lights
         // TODO: read less
         if(all(uvRect == 0))
-            return half3(1,1,1);
+            return real3(1,1,1);
 
         float    lightType    = _AdditionalLightsLightTypes[perObjectLightIndex];
         float4x4 worldToLight = _AdditionalLightsWorldToLights[perObjectLightIndex];

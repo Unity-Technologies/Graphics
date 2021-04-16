@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering
     /// A generic Atlas texture of 2D textures.
     /// An atlas texture is a texture collection that collects multiple sub-textures into a single big texture.
     /// Sub-texture allocation for Texture2DAtlas is static and will not change after initial allocation.
+    /// Does not add mipmap padding for sub-textures.
     /// </summary>
     public class Texture2DAtlas
     {
