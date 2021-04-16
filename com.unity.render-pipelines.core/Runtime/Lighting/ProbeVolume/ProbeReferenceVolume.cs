@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering
                     Profiler.BeginSample("Cull bricks");
                     for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
                     {
-                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref cellVolume))
+                        if (!ProbeVolumePositioning.OBBIntersect(m_Transform, m_TmpBricks[0][i], cellVolume))
                         {
                             m_TmpBricks[0].RemoveAt(i);
                         }

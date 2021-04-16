@@ -119,8 +119,9 @@ void FinalPass(uint3 id : SV_DispatchThreadID)
 
 float3 _MaxBrickSize;
 float3 _VolumeSize;
-float3 _VolumeWorldOffset;
+float3 _VolumeOffset;
 float3 _SDFSize;
+float _SubdivisionLevel;
 AppendStructuredBuffer<float3> _Bricks;
 
 [numthreads(8, 8, 1)]
@@ -129,22 +130,24 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     if (any(id >= uint3(_MaxBrickSize)))
         return;
 
-    float3 position01 = float3(id) / _MaxBrickSize;
+    // Compute the position at the center of the voxel
+    float3 position01 = (float3(id) + 0.5) / _MaxBrickSize;
+    float3 positionWorldSpace = _VolumeOffset + position01 * _VolumeSize;
+
+    // TODO: check the subdiv level of the probe volume min and max
     uint3 sdfId = round(position01 * _SDFSize);
 
     float dist = _Input[sdfId].r;
 
-    float voxelDetectionDistance = 0.5 / _MaxBrickSize;
+    float voxelDetectionDistance = 1.0 / _MaxBrickSize.x;
     voxelDetectionDistance *= voxelDetectionDistance;
-    voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance);
+    voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
     // TODO: expose this distance as a parameter
-    if (abs(dist) < voxelDetectionDistance)
+    if (dist <= voxelDetectionDistance)
     {
         // transform id to world position
-        float3 worldPos = _VolumeWorldOffset + position01 * _VolumeSize;
-        // Add half voxel size to center the position
-        worldPos += 0.5 / _VolumeSize;
-        _Bricks.Append(worldPos);
+        float3 positionInCell = _VolumeOffset + (id / _MaxBrickSize) * _VolumeSize;
+        _Bricks.Append(positionInCell);
     }
 }

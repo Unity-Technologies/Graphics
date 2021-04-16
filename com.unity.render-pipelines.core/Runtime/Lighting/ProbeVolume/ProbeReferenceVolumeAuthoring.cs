@@ -151,6 +151,7 @@ namespace UnityEngine.Rendering
                 meshGizmo.Dispose();
             brickGizmos.Clear();
             cellGizmo?.Dispose();
+            cellGizmo = null;
 
 #if UNITY_EDITOR
             m_PrevAsset = null;
