@@ -39,23 +39,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.Unlit(target.renderType, target.renderQueue));
-            context.AddSubShader(SubShaders.UnlitDOTS(target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.UnlitDOTS(target, target.renderType, target.renderQueue));
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
-            // copy our target's default settings into the material
-            // (technically not necessary since we are always recreating the material from the shader each time,
-            // which will pull over the defaults from the shader definition)
-            // but if that ever changes, this will ensure the defaults are set
-            material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
-            material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
-            material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            material.SetFloat(Property.SG_Cull, (int)target.renderFace);
-            material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-            material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
-            material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
+            if (target.allowMaterialOverride)
+            {
+                // copy our target's default settings into the material
+                // (technically not necessary since we are always recreating the material from the shader each time,
+                // which will pull over the defaults from the shader definition)
+                // but if that ever changes, this will ensure the defaults are set
+                material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
+                material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
+                material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                material.SetFloat(Property.SG_Cull, (int)target.renderFace);
+                material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+                material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
+                material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
+            }
 
             // call the full unlit material setup function
             URPUnlitGUI.UpdateMaterial(material);
@@ -67,24 +70,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // TODO: these blocks should only be disabled when "material control" is disabled / they are locked
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 //,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha, (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip || target.allowMaterialOverride);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+            if (target.allowMaterialOverride)
+            {
+                collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
 
-            collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
-            collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
-            collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-            collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector
-            collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SG_ZWriteControl, (float)target.zWriteControl);
-            collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-            collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+                collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
+                collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
+                collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+                collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector
+                collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SG_ZWriteControl, (float)target.zWriteControl);
+                collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            }
+            // properties that always exist
             collector.AddFloatProperty(Property.SG_QueueOffset, 0.0f);
         }
 
@@ -118,7 +124,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Unlit(string renderType, string renderQueue)
+            public static SubShaderDescriptor Unlit(UniversalTarget target, string renderType, string renderQueue)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -129,15 +135,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { UnlitPasses.Unlit },
-                        { CorePasses.ShadowCaster },
-                        { CorePasses.DepthOnly },
+                        { UnlitPasses.Unlit(target) },
+                        { CorePasses.DepthOnly(target) },
                     },
                 };
+
+                if (target.castShadows || target.allowMaterialOverride)
+                    result.passes.Add(CorePasses.ShadowCaster(target));
+
                 return result;
             }
 
-            public static SubShaderDescriptor UnlitDOTS(string renderType, string renderQueue)
+            public static SubShaderDescriptor UnlitDOTS(UniversalTarget target, string renderType, string renderQueue)
             {
                 var result = new SubShaderDescriptor()
                 {
@@ -148,11 +157,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { PassVariant(UnlitPasses.Unlit, CorePragmas.DOTSForward) },
-                        { PassVariant(CorePasses.ShadowCaster, CorePragmas.DOTSInstanced) },
-                        { PassVariant(CorePasses.DepthOnly, CorePragmas.DOTSInstanced) },
+                        { PassVariant(UnlitPasses.Unlit(target), CorePragmas.DOTSForward) },
+                        { PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced) },
                     },
                 };
+
+                if (target.castShadows || target.allowMaterialOverride)
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+
                 return result;
             }
         }
@@ -161,49 +173,53 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pass
         static class UnlitPasses
         {
-            public static PassDescriptor Unlit = new PassDescriptor
+            public static PassDescriptor Unlit(UniversalTarget target)
             {
-                // Definition
-                displayName = "Pass",
-                referenceName = "SHADERPASS_UNLIT",
-                useInPreview = true,
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Pass",
+                    referenceName = "SHADERPASS_UNLIT",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.UberDefault,
-                pragmas = CorePragmas.Forward,
-                defines = CoreDefines.UseFragmentFog,
-                keywords = UnlitKeywords.Unlit,
-                includes = UnlitIncludes.Unlit,
+                    // Conditional State
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
+                    pragmas = CorePragmas.Forward,
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection() { UnlitKeywords.UnlitBaseKeywords },
+                    includes = UnlitIncludes.Unlit,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+
+                return result;
+            }
         }
         #endregion
 
         #region Keywords
         static class UnlitKeywords
         {
-            public static KeywordCollection Unlit = new KeywordCollection
+            public static readonly KeywordCollection UnlitBaseKeywords = new KeywordCollection()
             {
                 CoreKeywordDescriptors.Lightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.SampleGI,
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
-                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
         }
         #endregion

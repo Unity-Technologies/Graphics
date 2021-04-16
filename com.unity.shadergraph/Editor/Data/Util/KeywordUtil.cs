@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
             switch (keyword.type)
             {
                 case KeywordType.Boolean:
-                    return value == 1 ? $"#define {keyword.referenceName}" : string.Empty;
+                    return value == 1 ? $"#define {keyword.referenceName} 1" : string.Empty;
                 case KeywordType.Enum:
                     return $"#define {keyword.referenceName}_{keyword.entries[value].referenceName}";
                 default:

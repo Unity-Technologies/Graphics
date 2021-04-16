@@ -173,12 +173,12 @@ namespace UnityEditor
                 return;
 
             bool isShaderGraph = material.IsShaderGraph();
-            surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties);
-            blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties);
-            cullingProp = FindProperty(Property.Cull(isShaderGraph), properties);
+            surfaceTypeProp = FindProperty(Property.Surface(isShaderGraph), properties, false);
+            blendModeProp = FindProperty(Property.Blend(isShaderGraph), properties, false);
+            cullingProp = FindProperty(Property.Cull(isShaderGraph), properties, false);
             zwriteProp = FindProperty(Property.ZWriteControl(isShaderGraph), properties, false);
             ztestProp = FindProperty(Property.ZTest(isShaderGraph), properties, false);
-            alphaClipProp = FindProperty(Property.AlphaClip(isShaderGraph), properties);
+            alphaClipProp = FindProperty(Property.AlphaClip(isShaderGraph), properties, false);
 
             // ShaderGraph Lit and Unlit Subtargets only
             castShadowsProp = FindProperty(Property.CastShadows(isShaderGraph), properties, false);
@@ -412,12 +412,27 @@ namespace UnityEditor
             bool isShaderGraph = material.IsShaderGraph();
 
             // Cast Shadows
+            bool castShadows = true;
             var castShadowsProp = Property.CastShadows(isShaderGraph);
             if (material.HasProperty(castShadowsProp))
             {
-                bool castShadows = (material.GetFloat(castShadowsProp) != 0.0f);
-                material.SetShaderPassEnabled("ShadowCaster", castShadows);
+                castShadows = (material.GetFloat(castShadowsProp) != 0.0f);
             }
+            else
+            {
+                if (isShaderGraph)
+                {
+                    // Lit.shadergraph or Unlit.shadergraph, but no material control defined
+                    // enable the pass in the material, so shader can decide...
+                    castShadows = true;
+                }
+                else
+                {
+                    // Lit.shader or Unlit.shader -- set based on transparency
+                    castShadows = Rendering.Universal.ShaderGUI.LitGUI.IsOpaque(material);
+                }
+            }
+            material.SetShaderPassEnabled("ShadowCaster", castShadows);
 
             // Receive Shadows
             var receiveShadowsProp = Property.ReceiveShadows(isShaderGraph);
@@ -504,7 +519,9 @@ namespace UnityEditor
 
             CoreUtils.SetKeyword(material, Keyword.HW_AlphaTestOn, alphaClip);
 
-            var queueOffsetProp = Property.QueueOffset(isShaderGraph);
+            // default is to use the shader render queue
+            int renderQueue = material.shader.renderQueue;
+
             var surfaceProp = Property.Surface(isShaderGraph);
             if (material.HasProperty(surfaceProp))
             {
@@ -513,7 +530,6 @@ namespace UnityEditor
                 CoreUtils.SetKeyword(material, Keyword.HW_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
                 {
-                    int renderQueue;
                     if (alphaClip)
                     {
                         renderQueue = (int)RenderQueue.AlphaTest;
@@ -525,15 +541,9 @@ namespace UnityEditor
                         material.SetOverrideTag("RenderType", "Opaque");
                     }
 
-                    if (material.HasProperty(queueOffsetProp))
-                        renderQueue += (int)material.GetFloat(queueOffsetProp);
-
-                    material.renderQueue = renderQueue;
                     SetMaterialSrcDstBlendProperties(material, isShaderGraph, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
-                    // SetMaterialZWriteProperty(material, true);
                     zwrite = true;
                     material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
-                    material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else // SurfaceType Transparent
                 {
@@ -572,11 +582,8 @@ namespace UnityEditor
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
-                    // SetMaterialZWriteProperty(material, false);
                     zwrite = false;
-                    material.renderQueue = (int)RenderQueue.Transparent;
-                    material.renderQueue += material.HasProperty(queueOffsetProp) ? (int)material.GetFloat(queueOffsetProp) : 0;
-                    material.SetShaderPassEnabled("ShadowCaster", false);
+                    renderQueue = (int)RenderQueue.Transparent;
                 }
 
                 // check for override enum
@@ -591,6 +598,14 @@ namespace UnityEditor
                 }
                 SetMaterialZWriteProperty(material, zwrite);
             }
+
+            // must always apply queue offset, even if not set to material control
+            var queueOffsetProp = Property.QueueOffset(isShaderGraph);
+            if (material.HasProperty(queueOffsetProp))
+                renderQueue += (int)material.GetFloat(queueOffsetProp);
+
+            if (renderQueue != material.renderQueue)
+                material.renderQueue = renderQueue;
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)

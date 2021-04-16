@@ -21,11 +21,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
 
-        // lets the Material choose the workflow (via the _SPECULAR_SETUP keyword)
-        // this should get versioned into the "lock" property mechanic with Material Variants
-        [SerializeField]
-        bool m_WorkflowMode_MaterialControl = false;
-
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
@@ -80,25 +75,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.LitComputeDotsSubShader(workflowMode, m_WorkflowMode_MaterialControl, target.renderType, target.renderQueue, complexLit));
-            context.AddSubShader(SubShaders.LitGLESSubShader(workflowMode, m_WorkflowMode_MaterialControl, target.renderType, target.renderQueue, complexLit));
+            context.AddSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
+            context.AddSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
         }
 
         public override void ProcessPreviewMaterial(Material material)
         {
-            // copy our target's default settings into the material
-            // (technically not necessary since we are always recreating the material from the shader each time,
-            // which will pull over the defaults from the shader definition)
-            // but if that ever changes, this will ensure the defaults are set
-            material.SetFloat(Property.SG_SpecularWorkflowMode, (float)workflowMode);
-            material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-            material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
-            material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
-            material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
-            material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            material.SetFloat(Property.SG_Cull, (int)target.renderFace);
-            material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
-            material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
+            if (target.allowMaterialOverride)
+            {
+                // copy our target's default settings into the material
+                // (technically not necessary since we are always recreating the material from the shader each time,
+                // which will pull over the defaults from the shader definition)
+                // but if that ever changes, this will ensure the defaults are set
+                material.SetFloat(Property.SG_SpecularWorkflowMode, (float)workflowMode);
+                material.SetFloat(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+                material.SetFloat(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+                material.SetFloat(Property.SG_Surface, (float)target.surfaceType);
+                material.SetFloat(Property.SG_Blend, (float)target.alphaMode);
+                material.SetFloat(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                material.SetFloat(Property.SG_Cull, (int)target.renderFace);
+                material.SetFloat(Property.SG_ZWriteControl, (float)target.zWriteControl);
+                material.SetFloat(Property.SG_ZTest, (float)target.zTestMode);
+            }
 
             // call the full unlit material setup function
             URPLitGUI.UpdateMaterial(material);
@@ -108,7 +106,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
 
-            // Lit
+            if (!target.allowMaterialOverride)
+            {
+                // Surface Type & Blend Mode -- when controlled by target
+                // These must be set per SubTarget as Sprite SubTargets override them
+
+                // TODO: are any of these actually used?
+//                context.AddField(UniversalFields.SurfaceOpaque,         target.surfaceType == SurfaceType.Opaque);
+//                context.AddField(UniversalFields.SurfaceTransparent,    target.surfaceType != SurfaceType.Opaque);
+//                context.AddField(UniversalFields.BlendAdd,              target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+//                context.AddField(Fields.BlendAlpha,                     target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+//                context.AddField(UniversalFields.BlendMultiply,         target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+//                context.AddField(UniversalFields.BlendPremultiply,      target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+                // context.AddField(UniversalFields.SpecularSetup,         workflowMode == WorkflowMode.Specular);  // TODO: used??
+            }
+
+            // Lit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS,       normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(UniversalFields.NormalDropOffTS,       normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(UniversalFields.NormalDropOffWS,       normalDropOffSpace == NormalDropOffSpace.World);
@@ -123,8 +136,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // TODO: these blocks should only be disabled when "material control" is disabled / they are locked
-
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -132,37 +143,40 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
-            // TODO: these should be predicated on workflow mode ONLY when not locked
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || m_WorkflowMode_MaterialControl);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || m_WorkflowMode_MaterialControl);
+            // when the surface options are material controlled, we must show all of these blocks
+            // when target controlled, we can cull the unnecessary blocks
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
 
-            // TODO: these should be predicated on transparency and alpha clip ONLY when those values are locked
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
-
-            // this is controlled 100% by the Target clearCoat checkbox (for now)
+            // always controlled by subtarget clearCoat checkbox (no Material control)
             context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
             context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            if (m_WorkflowMode_MaterialControl)     // if using material control, add the material property to control it
+            // if using material control, add the material property to control workflow mode
+            if (target.allowMaterialOverride)
+            {
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
+                collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
 
-            collector.AddFloatProperty(Property.SG_CastShadows, target.castShadows ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SG_ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
+                // setup properties using the defaults
+                collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
+                collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
+                collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+                collector.AddFloatProperty(Property.SG_ZWriteControl, (float)target.zWriteControl);
+                collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
+                collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            }
 
-            // setup properties using the defaults
-            collector.AddFloatProperty(Property.SG_Surface, (float)target.surfaceType);
-            collector.AddFloatProperty(Property.SG_Blend, (float)target.alphaMode);
-            collector.AddFloatProperty(Property.SG_AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SG_SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-            collector.AddFloatProperty(Property.SG_DstBlend, 0.0f);    // always set by material inspector
-            collector.AddFloatProperty(Property.SG_ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SG_ZWriteControl, (float) target.zWriteControl);
-            collector.AddFloatProperty(Property.SG_ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
-            collector.AddFloatProperty(Property.SG_Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
+            // properties that always exist
             collector.AddFloatProperty(Property.SG_QueueOffset, 0.0f);
         }
 
@@ -178,18 +192,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            // TODO use new lock behavior when Material Variants get merged
-            context.AddProperty("Allow Material Control of Workflow Mode", new Toggle() { value = m_WorkflowMode_MaterialControl }, (evt) =>
-            {
-                if (Equals(m_WorkflowMode_MaterialControl, evt.newValue))
-                    return;
-
-                registerUndo("Change Workflow Mode Material Control");
-                m_WorkflowMode_MaterialControl = evt.newValue;
-                onChange();
-            });
-
-            // show the target default surface properties
+            // show the target default surface properties UI
             var universalTarget = (target as UniversalTarget);
             universalTarget.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: true);
 
@@ -221,8 +224,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return false;
 
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
-            m_WorkflowMode_MaterialControl = false;
-
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
 
             // Handle mapping of Normal block specifically
@@ -268,7 +269,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SubShaders
         {
             // SM 4.5, compute with dots instancing
-            public static SubShaderDescriptor LitComputeDotsSubShader(WorkflowMode workflowMode, bool workflowMode_MaterialControl, string renderType, string renderQueue, bool complexLit)
+            public static SubShaderDescriptor LitComputeDotsSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -281,23 +282,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
                 else
-                    result.passes.Add(LitPasses.Forward(workflowMode, workflowMode_MaterialControl, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, CorePragmas.DOTSForward));
 
                 if (!complexLit)
-                    result.passes.Add(LitPasses.GBuffer(workflowMode, workflowMode_MaterialControl));
+                    result.passes.Add(LitPasses.GBuffer(target, workflowMode));
 
-                result.passes.Add(PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault));
+                // cull the shadowcaster pass if we know it will never be used
+                if (target.castShadows || target.allowMaterialOverride)
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target),   CorePragmas.DOTSInstanced));
+
+                result.passes.Add(PassVariant(CorePasses.DepthOnly(target),      CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(LitPasses.Meta(target),            CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(LitPasses._2D(target),             CorePragmas.DOTSDefault));
 
                 return result;
             }
 
-            public static SubShaderDescriptor LitGLESSubShader(WorkflowMode workflowMode, bool workflowMode_MaterialControl, string renderType, string renderQueue, bool complexLit)
+            public static SubShaderDescriptor LitGLESSubShader(UniversalTarget target, WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit)
             {
                 // SM 2.0, GLES
 
@@ -315,15 +319,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
                 else
-                    result.passes.Add(LitPasses.Forward(workflowMode, workflowMode_MaterialControl));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode));
 
-                result.passes.Add(CorePasses.ShadowCaster);
-                result.passes.Add(CorePasses.DepthOnly);
-                result.passes.Add(LitPasses.DepthNormalOnly);
-                result.passes.Add(LitPasses.Meta);
-                result.passes.Add(LitPasses._2D);
+                // cull the shadowcaster pass if we know it will never be used
+                if (target.castShadows || target.allowMaterialOverride)
+                    result.passes.Add(CorePasses.ShadowCaster(target));
+
+                result.passes.Add(CorePasses.DepthOnly(target));
+                result.passes.Add(LitPasses.DepthNormalOnly(target));
+                result.passes.Add(LitPasses.Meta(target));
+                result.passes.Add(LitPasses._2D(target));
 
                 return result;
             }
@@ -333,10 +340,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class LitPasses
         {
-            public static PassDescriptor Forward(
-                WorkflowMode workflowMode,
-                bool workflowMode_MaterialControl,
-                PragmaCollection pragmas = null)
+            static void AddWorkflowModeControlToPass(ref PassDescriptor pass, UniversalTarget target, WorkflowMode workflowMode)
+            {
+                if (target.allowMaterialOverride)
+                    pass.keywords.Add(LitDefines.SpecularSetup);
+                else if (workflowMode == WorkflowMode.Specular)
+                    pass.defines.Add(LitDefines.SpecularSetup, 1);
+            }
+
+            static void AddReceiveShadowsControlToPass(ref PassDescriptor pass, UniversalTarget target, bool receiveShadows)
+            {
+                if (target.allowMaterialOverride)
+                    pass.keywords.Add(LitKeywords.ReceiveShadowsOff);
+                else if (!receiveShadows)
+                    pass.defines.Add(LitKeywords.ReceiveShadowsOff, 1);
+            }
+
+            public static PassDescriptor Forward(UniversalTarget target, WorkflowMode workflowMode, PragmaCollection pragmas = null)
             {
                 var result = new PassDescriptor()
                 {
@@ -360,28 +380,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.UberDefault,
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
+                    keywords = new KeywordCollection() { LitKeywords.Forward },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                // setup defines
-                if (workflowMode_MaterialControl)
-                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
-                else if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                AddWorkflowModeControlToPass(ref result, target, workflowMode);
+                AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
             }
 
             public static PassDescriptor ForwardOnly(
+                UniversalTarget target,
                 WorkflowMode workflowMode,
-                bool workflowMode_MaterialControl,
                 bool complexLit,
                 BlockFieldDescriptor[] vertexBlocks,
                 BlockFieldDescriptor[] pixelBlocks,
@@ -409,32 +427,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.UberDefault,
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = pragmas,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
+                    keywords = new KeywordCollection() { LitKeywords.Forward },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                // setup defines
                 if (complexLit)
                     result.defines.Add(LitDefines.ClearCoat, 1);
 
-                if (workflowMode_MaterialControl)
-                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
-                else if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                AddWorkflowModeControlToPass(ref result, target, workflowMode);
+                AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
             }
 
             // Deferred only in SM4.5, MRT not supported in GLES2
-            public static PassDescriptor GBuffer(
-                WorkflowMode workflowMode,
-                bool workflowMode_MaterialControl)
+            public static PassDescriptor GBuffer(UniversalTarget target, WorkflowMode workflowMode)
             {
                 var result = new PassDescriptor
                 {
@@ -457,113 +471,135 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.UberDefault,
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = CorePragmas.DOTSGBuffer,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.GBuffer, LitKeywords.ReceiveShadows },
+                    keywords = new KeywordCollection() { LitKeywords.GBuffer },
                     includes = LitIncludes.GBuffer,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                if (workflowMode_MaterialControl)
-                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
-                else if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
+                CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                AddWorkflowModeControlToPass(ref result, target, workflowMode);
+                AddReceiveShadowsControlToPass(ref result, target, target.receiveShadows);
 
                 return result;
             }
 
-            public static PassDescriptor Meta = new PassDescriptor()
+            public static PassDescriptor Meta(UniversalTarget target)
             {
-                // Definition
-                displayName = "Meta",
-                referenceName = "SHADERPASS_META",
-                lightMode = "Meta",
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "Meta",
+                    referenceName = "SHADERPASS_META",
+                    lightMode = "Meta",
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentMeta,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentMeta,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.Meta,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.Meta,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.Default,
-                defines = CoreDefines.UseFragmentFog,
-                keywords = LitKeywords.Meta,
-                includes = LitIncludes.Meta,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Meta,
+                    pragmas = CorePragmas.Default,
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
+                    keywords = new KeywordCollection() { LitKeywords.Meta },
+                    includes = LitIncludes.Meta,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
 
-            public static readonly PassDescriptor _2D = new PassDescriptor()
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor _2D(UniversalTarget target)
             {
-                // Definition
-                referenceName = "SHADERPASS_2D",
-                lightMode = "Universal2D",
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    referenceName = "SHADERPASS_2D",
+                    lightMode = "Universal2D",
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.UberDefault,
-                pragmas = CorePragmas.Instanced,
-                keywords = LitKeywords._2D,
-                includes = LitIncludes._2D,
+                    // Conditional State
+                    renderStates = CoreRenderStates.UberSwitchedRenderState(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection() { LitKeywords._2D },
+                    includes = LitIncludes._2D,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
 
-            public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
             {
-                // Definition
-                displayName = "DepthNormals",
-                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                lightMode = "DepthNormals",
-                useInPreview = false,
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthNormals",
+                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    lightMode = "DepthNormals",
+                    useInPreview = false,
 
-                // Template
-                passTemplatePath = UniversalTarget.kUberTemplatePath,
-                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.DepthNormals,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.DepthNormalsOnly,
-                pragmas = CorePragmas.Instanced,
-                keywords = LitKeywords.DepthNormalsOnly,
-                includes = CoreIncludes.DepthNormalsOnly,
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection() { LitKeywords.DepthNormalsOnly },
+                    includes = CoreIncludes.DepthNormalsOnly,
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
         }
         #endregion
 
@@ -692,7 +728,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Keywords
         static class LitKeywords
         {
-            public static readonly KeywordDescriptor ReceiveShadows = new KeywordDescriptor()
+            public static readonly KeywordDescriptor ReceiveShadowsOff = new KeywordDescriptor()
             {
                 displayName = "Receive Shadows Off",
                 referenceName = Keyword.HW_ReceiveShadowsOff,
@@ -730,9 +766,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
-                CoreKeywordDescriptors.AlphaPremultiplyOn,    // TODO: double check if this is needed
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -744,25 +777,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
-                CoreKeywordDescriptors.AlphaTestOn,
-                CoreKeywordDescriptors.SurfaceTypeTransparent,
-                CoreKeywordDescriptors.AlphaPremultiplyOn,    // TODO: double check if this is needed
             };
 
+            // TODO: remove these empty collections?
             public static readonly KeywordCollection Meta = new KeywordCollection
             {
-                // { CoreKeywordDescriptors.SmoothnessChannel },
-                CoreKeywordDescriptors.AlphaTestOn,
             };
 
             public static readonly KeywordCollection _2D = new KeywordCollection
             {
-                CoreKeywordDescriptors.AlphaTestOn,
             };
 
             public static readonly KeywordCollection DepthNormalsOnly = new KeywordCollection
             {
-                CoreKeywordDescriptors.AlphaTestOn,
             };
         }
         #endregion
