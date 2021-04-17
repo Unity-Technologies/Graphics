@@ -22,8 +22,8 @@ ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/wrap_utr.py --args "--architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  pip install gitpython
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -86,7 +86,7 @@ ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  python .yamato/tooling/wrap_utr.py --args "--architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  pip install gitpython
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -150,8 +150,8 @@ ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/wrap_utr.py --args "--architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  pip install gitpython
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -221,7 +221,7 @@ ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  python .yamato/tooling/wrap_utr.py --args "--architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  pip install gitpython
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
