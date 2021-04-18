@@ -130,7 +130,7 @@ Shader "Hidden/HDRP/FinalPass"
                 float lum = 1.0 - sqrt(Luminance(outColor));
                 lum = lerp(1.0, lum, _GrainParams.y);
 
-                outColor += outColor * grain * _GrainParams.x * lum;
+                outColor.xyz += outColor.xyz * grain * _GrainParams.x * lum;
             }
             #endif
 
