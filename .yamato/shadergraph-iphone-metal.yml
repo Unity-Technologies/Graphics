@@ -20,8 +20,7 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  choco install python3 && refreshenv
-      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git checkout py2 && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
@@ -76,7 +75,7 @@ ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  choco install python3 && refreshenv
       -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git checkout py2 && git submodule update --init --recursive && python setup.py install
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
@@ -129,8 +128,7 @@ ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  choco install python3 && refreshenv
-      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git checkout py2 && git submodule update --init --recursive && python setup.py install
       -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
@@ -192,7 +190,7 @@ ShaderGraph_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  chmod +x ./utr
       -  choco install python3 && refreshenv
       -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1"
-      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git submodule update --init --recursive && python setup.py install
+      -  git clone https://github.com/gitpython-developers/GitPython && cd GitPython && git checkout py2 && git submodule update --init --recursive && python setup.py install
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/ShaderGraph/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
