@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Lens Flare
-            if (!SRPLensFlareCommon.Instance.IsEmpty())
+            if (!LensFlareCommonSRP.Instance.IsEmpty())
             {
                 bool usePanini;
                 float paniniDistance;
@@ -840,11 +840,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        return SRPLensFlareCommon.ShapeAttenuationDirLight(light.transform.forward, wo);
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, wo);
                     case LightType.Point:
-                        return SRPLensFlareCommon.ShapeAttenuationPointLight();
+                        return LensFlareCommonSRP.ShapeAttenuationPointLight();
                     case LightType.Spot:
-                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
                     default:
                         return 1.0f;
                 }
@@ -855,7 +855,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
-            SRPLensFlareCommon.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 cmd, source,
                 GetLensFlareLightAttenuation,

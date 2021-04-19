@@ -5,16 +5,16 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// SRPLensFlareEditor shows how the SRP Lens Flare Asset is shown in the UI
+    /// LensFlareDataSRP shows how the SRP Lens Flare Asset is shown in the UI
     /// </summary>
-    [CustomEditorForRenderPipeline(typeof(SRPLensFlareData), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
-    internal class SRPLensFlareEditor : Editor
+    [CustomEditorForRenderPipeline(typeof(LensFlareDataSRP), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
+    internal class LensFlareEditorSRP : Editor
     {
         SerializedProperty m_Elements;
 
         void OnEnable()
         {
-            PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
+            PropertyFetcher<LensFlareDataSRP> entryPoint = new PropertyFetcher<LensFlareDataSRP>(serializedObject);
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering
             m_Elements.serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-            SRPLensFlareData lensFlareData = m_Elements.serializedObject.targetObject as SRPLensFlareData;
+            LensFlareDataSRP lensFlareData = m_Elements.serializedObject.targetObject as LensFlareDataSRP;
             int countBefore = lensFlareData != null && lensFlareData.elements != null ? lensFlareData.elements.Length : 0;
             EditorGUILayout.PropertyField(m_Elements, Styles.elements);
             if (EditorGUI.EndChangeCheck())
@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering
                 {
                     for (int i = countBefore; i < countAfter; ++i)
                     {
-                        lensFlareData.elements[i] = new SRPLensFlareDataElement(); // Set Default values
+                        lensFlareData.elements[i] = new LensFlareDataElementSRP(); // Set Default values
                     }
                     m_Elements.serializedObject.Update();
                 }

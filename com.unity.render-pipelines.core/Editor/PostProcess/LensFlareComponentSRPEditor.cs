@@ -5,11 +5,11 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// Editor for SRPLensFlareOverride: Lens Flare Data-Driven which can be added on any GameObject
+    /// Editor for LensFlareComponentSRP: Lens Flare Data-Driven which can be added on any GameObject
     /// </summary>
     [CanEditMultipleObjects]
-    [CustomEditorForRenderPipeline(typeof(SRPLensFlareOverride), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
-    internal class SRPLensFlareOverrideEditor : Editor
+    [CustomEditorForRenderPipeline(typeof(LensFlareComponentSRP), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
+    internal class LensFlareComponentSRPEditor : Editor
     {
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
-            PropertyFetcher<SRPLensFlareOverride> entryPoint = new PropertyFetcher<SRPLensFlareOverride>(serializedObject);
+            PropertyFetcher<LensFlareComponentSRP> entryPoint = new PropertyFetcher<LensFlareComponentSRP>(serializedObject);
             m_LensFlareData = entryPoint.Find("m_LensFlareData");
             m_Intensity = entryPoint.Find(x => x.intensity);
             m_Scale = entryPoint.Find(x => x.scale);
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public override void OnInspectorGUI()
         {
-            SRPLensFlareOverride lensFlareData = m_Intensity.serializedObject.targetObject as SRPLensFlareOverride;
+            LensFlareComponentSRP lensFlareData = m_Intensity.serializedObject.targetObject as LensFlareComponentSRP;
             bool attachedToLight = false;
             bool lightIsDirLight = false;
             Light light = null;

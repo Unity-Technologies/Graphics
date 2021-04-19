@@ -5,10 +5,10 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// SRPLensFlareElementEditor shows how each element in the SRP Lens Flare Asset are show in the UI
+    /// LensFlareElementEditorSRP shows how each element in the SRP Lens Flare Asset are show in the UI
     /// </summary>
-    [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
-    internal class SRPLensFlareElementEditor : PropertyDrawer
+    [CustomPropertyDrawer(typeof(LensFlareDataElementSRP))]
+    internal class LensFlareElementEditorSRP : PropertyDrawer
     {
         float m_LastOffset = 0.0f;
         Rect m_CurrentRect;

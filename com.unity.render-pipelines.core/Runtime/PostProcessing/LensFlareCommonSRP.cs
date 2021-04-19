@@ -3,20 +3,20 @@ namespace UnityEngine
     /// <summary>
     /// Common code for all Data-Driven Lens Flare used
     /// </summary>
-    public sealed class SRPLensFlareCommon
+    public sealed class LensFlareCommonSRP
     {
-        private static SRPLensFlareCommon m_Instance = null;
+        private static LensFlareCommonSRP m_Instance = null;
         private static readonly object m_Padlock = new object();
-        private static System.Collections.Generic.List<SRPLensFlareOverride> m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
+        private static System.Collections.Generic.List<LensFlareComponentSRP> m_Data = new System.Collections.Generic.List<LensFlareComponentSRP>();
 
-        private SRPLensFlareCommon()
+        private LensFlareCommonSRP()
         {
         }
 
         /// <summary>
         /// Current unique instance
         /// </summary>
-        public static SRPLensFlareCommon Instance
+        public static LensFlareCommonSRP Instance
         {
             get
             {
@@ -26,7 +26,7 @@ namespace UnityEngine
                     {
                         if (m_Instance == null)
                         {
-                            m_Instance = new SRPLensFlareCommon();
+                            m_Instance = new LensFlareCommonSRP();
                         }
                     }
                 }
@@ -34,13 +34,13 @@ namespace UnityEngine
             }
         }
 
-        private System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return SRPLensFlareCommon.m_Data; } }
+        private System.Collections.Generic.List<LensFlareComponentSRP> Data { get { return LensFlareCommonSRP.m_Data; } }
 
         /// <summary>
         /// Return the pool of Lens Flare added
         /// </summary>
         /// <returns>The Lens Flare Pool</returns>
-        public System.Collections.Generic.List<SRPLensFlareOverride> GetData()
+        public System.Collections.Generic.List<LensFlareComponentSRP> GetData()
         {
             return Data;
         }
@@ -58,9 +58,9 @@ namespace UnityEngine
         /// Add a new lens flare component on the pool.
         /// </summary>
         /// <param name="newData">The new data added</param>
-        public void AddData(SRPLensFlareOverride newData)
+        public void AddData(LensFlareComponentSRP newData)
         {
-            Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
+            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
 
             if (!m_Data.Contains(newData))
             {
@@ -275,7 +275,7 @@ namespace UnityEngine
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             Rendering.CommandBuffer cmd,
             Rendering.RenderTargetIdentifier colorBuffer,
@@ -298,12 +298,12 @@ namespace UnityEngine
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
-            foreach (SRPLensFlareOverride comp in lensFlares.GetData())
+            foreach (LensFlareComponentSRP comp in lensFlares.GetData())
             {
                 if (comp == null)
                     continue;
 
-                SRPLensFlareData data = comp.lensFlareData;
+                LensFlareDataSRP data = comp.lensFlareData;
 
                 if (!comp.enabled ||
                     !comp.gameObject.activeSelf ||
@@ -379,7 +379,7 @@ namespace UnityEngine
                     cmd.DisableShaderKeyword("FLARE_OCCLUSION");
                 }
 
-                foreach (SRPLensFlareDataElement element in data.elements)
+                foreach (LensFlareDataElementSRP element in data.elements)
                 {
                     if (element == null ||
                         (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
@@ -678,9 +678,9 @@ namespace UnityEngine
         /// Remove a lens flare data which exist in the pool.
         /// </summary>
         /// <param name="data">The data which exist in the pool</param>
-        public void RemoveData(SRPLensFlareOverride data)
+        public void RemoveData(LensFlareComponentSRP data)
         {
-            Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
+            Debug.Assert(Instance == this, "LensFlareCommonSRP can have only one instance");
 
             if (m_Data.Contains(data))
             {

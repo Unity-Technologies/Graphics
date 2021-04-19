@@ -71,15 +71,15 @@ namespace UnityEngine
     }
 
     /// <summary>
-    /// SRPLensFlareDataElement defines collection of parameters describing the behavior a Lens Flare Element.
+    /// LensFlareDataElementSRP defines collection of parameters describing the behavior a Lens Flare Element.
     /// </summary>
     [System.Serializable]
-    public sealed class SRPLensFlareDataElement
+    public sealed class LensFlareDataElementSRP
     {
         /// <summary>
         /// Initialize default values
         /// </summary>
-        public SRPLensFlareDataElement()
+        public LensFlareDataElementSRP()
         {
             localIntensity = 1.0f;
             position = 0.0f;
@@ -288,24 +288,24 @@ namespace UnityEngine
     }
 
     /// <summary>
-    /// SRPLensFlareData defines a Lens Flare with a set of SRPLensFlareDataElement
+    /// LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP
     /// </summary>
     [System.Serializable]
-    public sealed class SRPLensFlareData : ScriptableObject
+    public sealed class LensFlareDataSRP : ScriptableObject
     {
         /// <summary>
         /// Initialize default value
         /// </summary>
-        public SRPLensFlareData()
+        public LensFlareDataSRP()
         {
             elements = null;
         }
 
         /// <summary>
-        /// List of SRPLensFlareDataElement
+        /// List of LensFlareDataElementSRP
         /// </summary>
         [SerializeField]
-        public SRPLensFlareDataElement[] elements;
+        public LensFlareDataElementSRP[] elements;
     }
 
 #if UNITY_EDITOR
@@ -333,14 +333,14 @@ namespace UnityEngine
 
         private static ScriptableObject Create(string className, string assetName, string folder)
         {
-            ScriptableObject asset = ScriptableObject.CreateInstance<SRPLensFlareData>();
+            ScriptableObject asset = ScriptableObject.CreateInstance<LensFlareDataSRP>();
             if (asset == null)
             {
                 Debug.LogError("failed to create instance of " + className);
                 return null;
             }
 
-            asset.name = assetName ?? typeof(SRPLensFlareData).Name;
+            asset.name = assetName ?? typeof(LensFlareDataSRP).Name;
 
             string assetPath = GetUnusedAssetPath(folder, asset.name);
             AssetDatabase.CreateAsset(asset, assetPath);
@@ -366,7 +366,7 @@ namespace UnityEngine
         [MenuItem("Assets/Create/Lens Flare (SRP)", priority = UnityEngine.Rendering.CoreUtils.Priorities.srpLensFlareMenuPriority)]
         private static void CreateSRPLensFlareAsset()
         {
-            string className = typeof(SRPLensFlareData).Name;
+            string className = typeof(LensFlareDataSRP).Name;
             string assetName = "New Lens Flare (SRP)";
             string folder = GetSelectedAssetFolder();
 

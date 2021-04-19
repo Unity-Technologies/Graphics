@@ -9,15 +9,15 @@ namespace UnityEngine
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Lens Flare (SRP)")]
-    public sealed class SRPLensFlareOverride : MonoBehaviour
+    public sealed class LensFlareComponentSRP : MonoBehaviour
     {
         [SerializeField]
-        private SRPLensFlareData m_LensFlareData = null;
+        private LensFlareDataSRP m_LensFlareData = null;
 
         /// <summary>
         /// Lens flare asset used on this component
         /// </summary>
-        public SRPLensFlareData lensFlareData
+        public LensFlareDataSRP lensFlareData
         {
             get
             {
@@ -96,9 +96,9 @@ namespace UnityEngine
         void OnEnable()
         {
             if (lensFlareData)
-                SRPLensFlareCommon.Instance.AddData(this);
+                LensFlareCommonSRP.Instance.AddData(this);
             else
-                SRPLensFlareCommon.Instance.RemoveData(this);
+                LensFlareCommonSRP.Instance.RemoveData(this);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace UnityEngine
         /// </summary>
         void OnDisable()
         {
-            SRPLensFlareCommon.Instance.RemoveData(this);
+            LensFlareCommonSRP.Instance.RemoveData(this);
         }
 
         /// <summary>
@@ -116,11 +116,11 @@ namespace UnityEngine
         {
             if (lensFlareData != null)
             {
-                SRPLensFlareCommon.Instance.AddData(this);
+                LensFlareCommonSRP.Instance.AddData(this);
             }
             else
             {
-                SRPLensFlareCommon.Instance.RemoveData(this);
+                LensFlareCommonSRP.Instance.RemoveData(this);
             }
         }
 
