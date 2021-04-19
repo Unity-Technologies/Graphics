@@ -545,20 +545,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
         {
-            int index = 0;
-            RendererList[] allRendererLists = new RendererList[rendererLists.Count];
+            RendererList[] activeRendererLists = new RendererList[rendererLists.Count];
 
             // For now we just create a simple structure
             // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
-            foreach (var rendererList in rendererLists)
+            for (int i = 0; i < rendererLists.Count; ++i)
             {
-                ref var rendererListResource = ref m_RendererListResources[rendererList];
+                ref var rendererListResource = ref m_RendererListResources[rendererLists[i]];
                 ref var desc = ref rendererListResource.desc;
                 rendererListResource.rendererList = context.CreateRendererList(desc);
-                allRendererLists[index++] = rendererListResource.rendererList;
+                activeRendererLists[i] = rendererListResource.rendererList;
             }
 
-            context.PrepareRendererListsAsync(allRendererLists);
+            context.PrepareRendererListsAsync(activeRendererLists);
         }
 
         internal void Clear(bool onException)
