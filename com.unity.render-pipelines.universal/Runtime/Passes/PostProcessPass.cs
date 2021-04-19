@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (m_IsStereo)
                 {
-                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
+                    cmd.Blit(GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
 
                     // TODO: We need a proper camera texture swap chain in URP.
                     // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!finishPostProcessOnScreen)
                     {
                         cmd.SetGlobalTexture("_BlitTex", cameraTarget);
-                        Blit(cmd, BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
+                        cmd.Blit(BuiltinRenderTextureType.CurrentActive, m_Source.id, m_BlitMaterial);
                     }
                 }
                 else
@@ -1086,7 +1086,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.isStereoEnabled)
             {
-                Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
+                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
             }
             else
             {
