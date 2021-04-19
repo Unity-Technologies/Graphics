@@ -107,6 +107,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved URP profiling scopes. Remove low impact scopes from the command buffer for a small performance gain. Fix the name and invalid scope for context.submit() scope. Change the default profiling name of ScriptableRenderPass to Unnamed_ScriptableRenderPass.
 - Using the same MaterialHeaderScope for material editor as HDRP is using
 
+### Removed
+- Code to upgrade from LWRP to URP was removed. This means if you want to upgrade from LWRP you must first upgrade to previous versions of URP and then upgrade to this version.
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.

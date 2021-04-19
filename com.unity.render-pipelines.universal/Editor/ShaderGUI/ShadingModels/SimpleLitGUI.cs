@@ -5,7 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class SimpleLitGUI
+    public static class SimpleLitGUI
     {
         public enum SpecularSource
         {
