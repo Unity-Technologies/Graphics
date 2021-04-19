@@ -22,7 +22,7 @@ struct Varyings
     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
     #endif
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     float3 positionWS : TEXCOORD5;
     #endif
     float4  PositionCS      : SV_POSITION; // Clip Position
@@ -47,7 +47,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.bakedGI = SampleLightmap(input.LightmapUV, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-    inputData.normalTS = half3(0, 0, 1);
 
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.LightmapUV;
@@ -59,7 +58,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.tangentMatrixWS;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.uv = input.UV01;
     #else
@@ -85,7 +84,7 @@ void InitializeSurfaceData(half3 albedo, half alpha, out SurfaceData surfaceData
 
 half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
 {
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
     if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
@@ -167,7 +166,7 @@ Varyings TerrainLitVertex(Attributes input)
     // Fog factor
     output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     output.positionWS = vertexInput.positionWS;
     #endif
 

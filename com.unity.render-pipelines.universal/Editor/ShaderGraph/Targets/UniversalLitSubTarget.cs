@@ -298,7 +298,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
-                    { PassVariant(LitPasses.DebugMaterial,   CorePragmas.DOTSForward) },
                 },
             };
 
@@ -318,7 +317,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault)   },
-                    { PassVariant(LitPasses.DebugMaterial,   CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit)   },
                 },
             };
 
@@ -336,7 +334,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
-                    { LitPasses.DebugMaterial},
                 },
             };
 
@@ -355,7 +352,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
-                    { LitPasses.DebugMaterial},
                 },
             };
         }
@@ -547,35 +543,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
-
-            public static PassDescriptor DebugMaterial = new PassDescriptor
-            {
-                // Definition
-                displayName = "Debug Material",
-                referenceName = "SHADERPASS_DEBUGMATERIAL",
-                lightMode = "DebugMaterial",
-                useInPreview = true,
-
-                // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.DebugMaterial,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas  = CorePragmas.Forward, // NOTE: SM 2.0 only GL
-                keywords = LitKeywords.Forward,
-                includes = LitIncludes.Forward,
-                defines = LitDefines.DebugLit,
-            };
         }
         #endregion
 
@@ -674,20 +641,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Attributes.uv2,                            //needed for meta vertex position
             };
-
-            public static readonly FieldCollection DebugMaterial = new FieldCollection()
-            {
-                StructFields.Attributes.uv1, // needed for meta vertex position
-                StructFields.Varyings.positionWS,
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS, // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
-                StructFields.Varyings.texCoord1,
-                UniversalStructFields.Varyings.lightmapUV,
-                UniversalStructFields.Varyings.sh,
-                UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-            };
         }
         #endregion
 
@@ -703,24 +656,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
-            {
-                displayName = "Debug Shader",
-                referenceName = "_DEBUG_SHADER",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
             public static readonly DefineCollection ComplexLit = new DefineCollection()
             {
                 {CoreKeywordDescriptors.UseFragmentFog, 1},
                 {ClearCoat, 1},
-            };
-
-            public static readonly DefineCollection DebugLit = new DefineCollection()
-            {
-                {DebugShader, 1},
             };
         }
         #endregion
@@ -757,6 +696,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.DebugDisplay },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -767,24 +707,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.DebugDisplay },
                 { GBufferNormalsOct },
             };
 
             public static readonly KeywordCollection Meta = new KeywordCollection
             {
                 { CoreKeywordDescriptors.SmoothnessChannel },
-            };
-
-            public static readonly KeywordCollection DebugMaterial = new KeywordCollection
-            {
-                { ScreenSpaceAmbientOcclusion },
-                { CoreKeywordDescriptors.Lightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
-                { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.AdditionalLights },
-                { CoreKeywordDescriptors.AdditionalLightShadows },
-                { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
             };
         }
         #endregion

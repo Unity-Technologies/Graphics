@@ -34,7 +34,7 @@ AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpa
     aoFactor.indirectAmbientOcclusion = 1;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     switch(_DebugLightingMode)
     {
         case DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS:

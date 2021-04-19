@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
-                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(this, ref renderingData, drawSettings);
+                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
 
                         if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {

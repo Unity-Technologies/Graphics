@@ -49,6 +49,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma vertex UniversalVertexUnlit
             #pragma fragment UniversalFragmentUnlit
@@ -104,34 +105,6 @@ Shader "Universal Render Pipeline/Unlit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug Material"
-            Tags{"LightMode" = "DebugMaterial"}
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile_fog
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
-
-            #define _DEBUG_SHADER
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
             ENDHLSL
         }
     }
@@ -160,6 +133,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma vertex UniversalVertexUnlit
             #pragma fragment UniversalFragmentUnlit
@@ -215,33 +189,6 @@ Shader "Universal Render Pipeline/Unlit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"
 
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug Material"
-            Tags{"LightMode" = "DebugMaterial"}
-
-            HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
-            #pragma target 2.0
-
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile_fog
-            #pragma multi_compile_instancing
-
-            #pragma vertex UniversalVertexUnlit
-            #pragma fragment UniversalFragmentUnlit
-
-            #define _DEBUG_SHADER
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
             ENDHLSL
         }
     }

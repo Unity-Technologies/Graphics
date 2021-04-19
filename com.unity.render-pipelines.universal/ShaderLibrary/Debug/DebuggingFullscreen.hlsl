@@ -1,7 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
 
 int _ValidationChannels;
 float _RangeMinimum;

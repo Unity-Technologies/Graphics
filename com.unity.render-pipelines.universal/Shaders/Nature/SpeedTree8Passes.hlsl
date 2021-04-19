@@ -345,7 +345,6 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
-    inputData.normalTS = normalTS;
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
     #else
@@ -468,7 +467,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
     inputData.uv = uv;
 #endif
 

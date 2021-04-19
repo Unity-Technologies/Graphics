@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
 
 #define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
 #define SETUP_DEBUG_DATA_2D(inputData, positionWS)                     SetupDebugData(inputData, positionWS)

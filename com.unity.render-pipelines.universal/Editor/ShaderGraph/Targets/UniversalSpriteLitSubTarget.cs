@@ -88,7 +88,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { SpriteLitPasses.Lit },
                     { SpriteLitPasses.Normal },
                     { SpriteLitPasses.Forward },
-                    { SpriteLitPasses.DebugMaterial },
                 },
             };
         }
@@ -177,6 +176,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = SpriteLitRequiredFields.Forward,
+                keywords = SpriteLitKeywords.Forward,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -186,54 +186,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            public static PassDescriptor DebugMaterial = new PassDescriptor
-            {
-                // Definition
-                displayName = "Debug Material",
-                referenceName = "SHADERPASS_DEBUGMATERIAL",
-                lightMode = "DebugMaterial",
-                useInPreview = false,
-
-                // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.DebugMaterial,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
-                keywords = SpriteLitKeywords.Lit,
-                includes = SpriteLitIncludes.Lit,
-                defines = SpriteLitDefines.DebugMaterial,
-            };
-        }
-        #endregion
-
-        #region Defines
-        static class SpriteLitDefines
-        {
-            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
-            {
-                displayName = "Debug Shader",
-                referenceName = "_DEBUG_SHADER",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
-            public static readonly DefineCollection DebugMaterial = new DefineCollection()
-            {
-                {DebugShader, 1},
             };
         }
         #endregion
@@ -265,6 +217,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Lit = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.screenPosition,
             };
@@ -278,15 +231,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Varyings.color,
-                StructFields.Varyings.texCoord0,
-            };
-
-            public static FieldCollection DebugMaterial = new FieldCollection()
-            {
-                StructFields.Varyings.color,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
-                StructFields.Varyings.screenPosition,
             };
         }
         #endregion
@@ -300,6 +246,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShapeLightType1 },
                 { CoreKeywordDescriptors.ShapeLightType2 },
                 { CoreKeywordDescriptors.ShapeLightType3 },
+                { CoreKeywordDescriptors.DebugDisplay },
+            };
+
+            public static KeywordCollection Forward = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

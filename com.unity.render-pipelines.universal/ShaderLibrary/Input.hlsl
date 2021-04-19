@@ -30,7 +30,6 @@ struct InputData
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
 
-    half3   normalTS;
     #if defined(LIGHTMAP_ON)
     half2   lightmapUV;
     #else
@@ -40,7 +39,7 @@ struct InputData
     half3x3 tangentMatrixWS;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     half3 brdfDiffuse;
     half3 brdfSpecular;
     float2 uv;

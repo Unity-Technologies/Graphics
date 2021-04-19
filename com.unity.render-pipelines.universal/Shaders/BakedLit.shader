@@ -58,6 +58,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
@@ -218,48 +219,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
             ENDHLSL
         }
-
-        Pass
-        {
-            Name "Debug Material"
-            Tags{ "LightMode" = "DebugMaterial" }
-
-            HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
-
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-
-            // -------------------------------------
-            // Universal Pipeline keywords
-            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fog
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-
-            #pragma vertex BakedLitForwardPassVertex
-            #pragma fragment BakedLitForwardPassFragment
-
-            #define _DEBUG_SHADER
-
-            // Lighting include is needed because of GI
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitForwardPass.hlsl"
-            ENDHLSL
-        }
     }
 
     SubShader
@@ -296,6 +255,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
@@ -412,47 +372,6 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug Material"
-            Tags{ "LightMode" = "DebugMaterial" }
-
-            HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
-            #pragma target 2.0
-
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-
-            // -------------------------------------
-            // Universal Pipeline keywords
-            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fog
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-
-            #pragma vertex BakedLitForwardPassVertex
-            #pragma fragment BakedLitForwardPassFragment
-
-            #define _DEBUG_SHADER
-
-            // Lighting include is needed because of GI
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitForwardPass.hlsl"
             ENDHLSL
         }
     }

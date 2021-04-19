@@ -5,7 +5,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirectionWS;
@@ -21,7 +21,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
 
-    inputData.normalTS = half3(0, 0, 1);
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = half2(0, 0);
     #else
@@ -56,7 +55,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     InputData inputData;
-    InitializeInputData(packedInput, inputData);
+    InitializeInputData(unpacked, inputData);
     //SETUP_DEBUG_TEXTURE_DATA(inputData, input.texCoord1, _MainTex);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);

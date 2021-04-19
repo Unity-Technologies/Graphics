@@ -5,7 +5,7 @@
 // Ensure that we always include "DebuggingCommon.hlsl" even if we don't use it - saves extraneous includes elsewhere...
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
-#if defined(_DEBUG_SHADER)
+#if defined(DEBUG_DISPLAY)
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"
@@ -76,7 +76,6 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         #else
         inputData.normalWS = inputData.normalWS;
         #endif
-        inputData.normalTS = normalTS;
         surfaceData.normalTS = normalTS;
         changed = true;
     }
@@ -307,7 +306,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
 #else
 
-// When "_DEBUG_SHADER" isn't defined this macro does nothing - there's no debug-data to set-up...
+// When "DEBUG_DISPLAY" isn't defined this macro does nothing - there's no debug-data to set-up...
 #define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)
 
 #endif

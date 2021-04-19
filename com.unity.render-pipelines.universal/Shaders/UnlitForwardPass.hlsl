@@ -9,7 +9,7 @@ struct Attributes
     float4 positionOS : POSITION;
     float2 uv : TEXCOORD0;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     float3 normalOS : NORMAL;
     float4 tangentOS : TANGENT;
     #endif
@@ -23,7 +23,7 @@ struct Varyings
     float fogCoord : TEXCOORD1;
     float4 positionCS : SV_POSITION;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     float3 positionWS : TEXCOORD2;
     float3 normalWS : TEXCOORD3;
     float3 viewDirWS : TEXCOORD4;
@@ -37,7 +37,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
     inputData.viewDirectionWS = input.viewDirWS;
@@ -53,7 +53,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.normalizedScreenSpaceUV = 0;
     inputData.shadowMask = half4(1, 1, 1, 1);
 
-    inputData.normalTS = half3(0, 0, 1);
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = half2(0, 0);
     #else
@@ -79,7 +78,7 @@ Varyings UniversalVertexUnlit(Attributes input)
     output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex lighting and SH evaluation

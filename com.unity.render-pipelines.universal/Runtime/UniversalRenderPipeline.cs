@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if URP_ENABLE_DEBUG_VIEWS
+#if URP_ENABLE_DEBUG_DISPLAY
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 #endif
 
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
-#if URP_ENABLE_DEBUG_VIEWS
+#if URP_ENABLE_DEBUG_DISPLAY
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
 #endif
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
-#if URP_ENABLE_DEBUG_VIEWS
+#if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.UnregisterDebug();
 #endif
 

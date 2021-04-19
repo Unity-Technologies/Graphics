@@ -23,7 +23,7 @@ struct Varyings
     half4 tangentWS : TEXCOORD3;
     #endif
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     float3 positionWS : TEXCOORD4;
     float3 viewDirWS : TEXCOORD5;
     #endif
@@ -36,7 +36,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.viewDirectionWS = input.viewDirWS;
     #else
@@ -60,7 +60,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
-    inputData.normalTS = normalTS;
 
     #if defined(LIGHTMAP_ON)
     inputData.lightmapUV = input.lightmapUV;
@@ -98,7 +97,7 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(output.normalWS, output.vertexSH);
 
-    #if defined(_DEBUG_SHADER)
+    #if defined(DEBUG_DISPLAY)
     output.positionWS = vertexInput.positionWS;
     output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     #endif

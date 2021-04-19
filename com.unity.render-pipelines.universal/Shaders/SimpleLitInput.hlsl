@@ -33,7 +33,7 @@ TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 half4 SampleSpecularSmoothness(float2 uv, half alpha, half4 specColor, TEXTURE2D_PARAM(specMap, sampler_specMap))
 {
-    half4 specularSmoothness = half4(0.0h, 0.0h, 0.0h, 1.0h);
+    half4 specularSmoothness = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularSmoothness = SAMPLE_TEXTURE2D(specMap, sampler_specMap, uv) * specColor;
 #elif defined(_SPECULAR_COLOR)

@@ -96,6 +96,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex vertParticleUnlit
@@ -271,50 +272,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Debug Material"
-            Tags{ "LightMode" = "DebugMaterial" }
-
-            ZWrite[_ZWrite]
-            Cull[_Cull]
-            ColorMask RGB
-
-            HLSLPROGRAM
-            #pragma target 2.0
-
-            // -------------------------------------
-            // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _EMISSION
-
-            // -------------------------------------
-            // Particle Keywords
-            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
-            #pragma shader_feature_local _SOFTPARTICLES_ON
-            #pragma shader_feature_local _FADING_ON
-            #pragma shader_feature_local _DISTORTION_ON
-
-            // -------------------------------------
-            // Unity defined keywords
-            #pragma multi_compile_fog
-            #pragma multi_compile_instancing
-            #pragma instancing_options procedural:ParticleInstancingSetup
-
-            #pragma vertex vertParticleUnlit
-            #pragma fragment fragParticleUnlit
-
-            #define _DEBUG_SHADER
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
 
             ENDHLSL
         }

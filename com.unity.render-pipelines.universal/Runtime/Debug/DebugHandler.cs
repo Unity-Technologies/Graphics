@@ -146,9 +146,14 @@ namespace UnityEngine.Rendering.Universal
 
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if (passIndex == 1)
+                    if (passIndex == 0)
+                    {
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                    }
+                    else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
                     }
                     break;
                 }
@@ -188,11 +193,11 @@ namespace UnityEngine.Rendering.Universal
         {
             if (IsActiveForCamera(ref cameraData))
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
             }
             else
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
             }
 
             if (m_HasDebugRenderTarget)
@@ -214,8 +219,6 @@ namespace UnityEngine.Rendering.Universal
         internal void Setup(ScriptableRenderContext context)
         {
             var cmd = CommandBufferPool.Get("");
-
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEBUG_SHADER);
 
             // Material settings...
             cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);

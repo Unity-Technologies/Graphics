@@ -96,6 +96,11 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
 }
 
+inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfData)
+{
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+}
+
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
 #if defined(SHADER_API_MOBILE)
@@ -143,9 +148,16 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
 }
 
-inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData brdfData)
+BRDFData CreateClearCoatBRDFData(SurfaceData surfaceData, inout BRDFData brdfData)
 {
-    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    BRDFData brdfDataClearCoat = (BRDFData)0;
+
+    #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+    #endif
+
+    return brdfDataClearCoat;
 }
 
 // Computes the specular term for EnvironmentBRDF

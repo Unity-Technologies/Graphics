@@ -7,7 +7,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-        #pragma multi_compile _ _DEBUG_SHADER
+        #pragma multi_compile _ DEBUG_DISPLAY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -135,7 +135,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             half4 finalColor = half4(color, 1);
 
-            #if defined(_DEBUG_SHADER)
+            #if defined(DEBUG_DISPLAY)
             half4 debugColor = 0;
 
             if(CanDebugOverrideOutputColor(finalColor, uv, debugColor))
