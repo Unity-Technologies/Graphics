@@ -98,37 +98,34 @@ namespace UnityEditor.Rendering
             SerializedProperty distortionRelativeToCenterProp = property.FindPropertyRelative("distortionRelativeToCenter");
 
             SRPLensFlareType flareType = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
-            if (lensFlareProp.objectReferenceValue != null)
+            Texture texture = lensFlareProp.objectReferenceValue ? lensFlareProp.objectReferenceValue as Texture : null;
+            float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
+            float imgWidth = 1.5f * 35.0f;
+            float usedAspectRatio;
+            if (flareType == SRPLensFlareType.Image)
+                usedAspectRatio = (lensFlareProp.objectReferenceValue && preserveAspectRatioProp.boolValue) ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
+            else
+                usedAspectRatio = preserveAspectRatioProp.boolValue ? 1.0f : localAspectRatio;
+            if (isFoldOpenedProp.boolValue)
             {
-                Texture texture = lensFlareProp.objectReferenceValue ? lensFlareProp.objectReferenceValue as Texture : null;
-                float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
-                float imgWidth = 1.5f * 35.0f;
-                float usedAspectRatio;
+                Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
                 if (flareType == SRPLensFlareType.Image)
-                    usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
-                else
-                    usedAspectRatio = preserveAspectRatioProp.boolValue ? 1.0f : localAspectRatio;
-                if (isFoldOpenedProp.boolValue)
-                {
-                    Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
-                    if (flareType == SRPLensFlareType.Image)
-                        EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
-                    else if (flareType == SRPLensFlareType.Circle)
-                        EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
-                    else //if (flareType != SRPLensFlareType.Polygon)
-                        EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
-                }
-                else
-                {
-                    float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
-                    Rect imgRect = new Rect(position.x - 35.0f + 15.0f, position.y + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
-                    if (flareType == SRPLensFlareType.Image)
-                        EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
-                    else if (flareType == SRPLensFlareType.Circle)
-                        EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
-                    else //if (flareType != SRPLensFlareType.Polygon)
-                        EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
-                }
+                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                else if (flareType == SRPLensFlareType.Circle)
+                    EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+                else //if (flareType != SRPLensFlareType.Polygon)
+                    EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+            }
+            else
+            {
+                float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
+                Rect imgRect = new Rect(position.x - 35.0f + 15.0f, position.y + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
+                if (flareType == SRPLensFlareType.Image)
+                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                else if (flareType == SRPLensFlareType.Circle)
+                    EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+                else //if (flareType != SRPLensFlareType.Polygon)
+                    EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
             }
             Rect rect = m_CurrentRect;
             if (isFoldOpenedProp.boolValue)
