@@ -45,7 +45,7 @@ This table provides an overview of the current features supported in the Univers
 | *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes     | <br/>Yes<br/>No                       |
 | Shadow Bias                                                  | Constant clip space offset + normal bias                     | Offsets shadowmap texels in the light direction + normal bias|
 | ***Lightmapping***                 |                                                              |                                                              |
-| Enlighten                                                    | Yes                                                          | Yes                                                          |
+| Enlighten                                                    | Yes                                                          | Not supported                                                          |
 | Progressive Lightmapper, CPU                                              | Yes                                                          | Yes                                                          |
 | Progressive Lightmapper, GPU                                              | Yes                                                          | Yes                                                          |
 | ***Realtime Global Illumination***                 |                                                              |                                                              |

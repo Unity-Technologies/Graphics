@@ -1309,8 +1309,6 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Compute a hash of texture properties.
         /// </summary>
-        /// <param name="texture"> Source texture.</param>
-        /// <returns>Returns hash of texture properties.</returns>
         public static int GetTextureHash(Texture texture)
         {
             int hash = texture.GetHashCode();
@@ -1335,10 +1333,8 @@ namespace UnityEngine.Rendering
 
         // Hacker’s Delight, Second Edition page 66
         /// <summary>
-        /// Branchless previous power of two.
+        /// Branchless prvious power of two.
         /// </summary>
-        /// <param name="size">Starting size or number.</param>
-        /// <returns>Previous power of two.</returns>
         public static int PreviousPowerOfTwo(int size)
         {
             if (size <= 0)

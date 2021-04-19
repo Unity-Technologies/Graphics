@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
 
                         // TODO: We're working on irradiance instead of radiance coefficients
                         //       Add safety margin 2 to avoid out-of-bounds values
-                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
+                        float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
                         float l2scale = 3.5777088f; // 4/sqrt(5) * 2
 
                         // L_1^m
@@ -199,6 +199,7 @@ namespace UnityEngine.Rendering
                         shv[rgb, 7] = sh[j][rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
                         shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
+                        // Assert coefficient range
                         for (int coeff = 1; coeff < 9; ++coeff)
                             Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
                     }
@@ -208,13 +209,18 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
                     SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(shv[0, 4], shv[1, 4], shv[2, 4]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(shv[0, 5], shv[1, 5], shv[2, 5]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
-
                     cell.validity[i] = validity[j];
+                }
+
+                for (int i = 0; i < numProbes; ++i)
+                {
+                    int j = bakingCells[c].probeIndices[i];
+
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(sh[j][0, 4], sh[j][1, 4], sh[j][2, 4]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(sh[j][0, 5], sh[j][1, 5], sh[j][2, 5]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(sh[j][0, 6], sh[j][1, 6], sh[j][2, 6]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
                 // Reset index

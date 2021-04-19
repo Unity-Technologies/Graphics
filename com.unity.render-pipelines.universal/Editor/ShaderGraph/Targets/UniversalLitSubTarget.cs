@@ -605,14 +605,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static readonly FieldCollection Forward = new FieldCollection()
             {
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.staticLightmapUV,
-                UniversalStructFields.Varyings.dynamicLightmapUV,
+                UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
@@ -620,14 +618,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
             {
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.staticLightmapUV,
-                UniversalStructFields.Varyings.dynamicLightmapUV,
+                UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
@@ -692,8 +688,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
                 { ScreenSpaceAmbientOcclusion },
-                { CoreKeywordDescriptors.StaticLightmap },
-                { CoreKeywordDescriptors.DynamicLightmap },
+                { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
@@ -705,8 +700,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
-                { CoreKeywordDescriptors.StaticLightmap },
-                { CoreKeywordDescriptors.DynamicLightmap },
+                { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },

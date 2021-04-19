@@ -67,10 +67,6 @@ struct Varyings
         float4 shadowCoord              : TEXCOORD8;
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    float2 dynamicLightmapUV        : TEXCOORD9;
-#endif
-
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -115,11 +111,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, input.normalWS);
-#else
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-#endif
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
@@ -282,17 +274,12 @@ Varyings SplatmapVert(Attributes v)
 
     o.uvMainAndLM.xy = v.texcoord;
     o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
-
     #ifndef TERRAIN_SPLAT_BASEPASS
         o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
         o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
         o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
         o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
     #endif
-
-#if defined(DYNAMICLIGHTMAP_ON)
-    o.dynamicLightmapUV = v.texcoord * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-#endif
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(Attributes.positionWS);

@@ -15,7 +15,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
-        bool allowsNegative;
 
         /// <summary>The position of the center of the box in Handle.matrix space. On plane z=0.</summary>
         public Vector2 center { get; set; }
@@ -59,10 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public DisplacableRectHandles(Color baseColor, bool allowsNegative = false)
+        public DisplacableRectHandles(Color baseColor)
         {
             this.baseColor = baseColor;
-            this.allowsNegative = allowsNegative;
         }
 
         /// <summary>Draw the rect.</summary>
@@ -260,8 +258,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             case NamedEdge.Bottom: topPosition.y -= delta; break;
                         }
 
-                        if (!allowsNegative)
-                            EnsureEdgeFacesOutsideForSymetry(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
+                        EnsureEdgeFacesOutsideForSymetry(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
                     }
 
                     if (useHomothety)
@@ -281,14 +278,13 @@ namespace UnityEditor.Rendering.HighDefinition
                                 break;
                         }
 
-                        if (!allowsNegative)
-                            EnsureEdgeFacesOutsideForHomothety(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
+                        EnsureEdgeFacesOutsideForHomothety(theChangedEdge, ref leftPosition, ref rightPosition, ref topPosition, ref bottomPosition);
                     }
 
                     var max = new Vector2(rightPosition.x, topPosition.y);
                     var min = new Vector2(leftPosition.x, bottomPosition.y);
 
-                    if (!useSymetry && !useHomothety && !allowsNegative)
+                    if (!useSymetry && !useHomothety)
                         EnsureEdgeFacesOutsideForOtherTransformation(ref max, ref min);
 
                     center = (max + min) * .5f;

@@ -47,9 +47,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty specularOcclusionMode = null;
-        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
-
         MaterialProperty addPrecomputedVelocity = null;
+
+        const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
         const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
 
         Features    m_Features;

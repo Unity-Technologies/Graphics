@@ -70,12 +70,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 #endif
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, NOT_USED, input.vertexSH, inputData.normalWS);
-#else
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
-#endif
-
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 }

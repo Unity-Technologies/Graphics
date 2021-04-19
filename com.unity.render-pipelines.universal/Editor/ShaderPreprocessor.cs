@@ -54,7 +54,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
         ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
         ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
-        ShaderKeyword m_DynamicLightmap = new ShaderKeyword(ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
@@ -89,13 +88,8 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
         {
-            // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission.
             if (snippetData.passType == PassType.Meta)
-            {
-                if (SupportedRenderingFeatures.active.enlighten == false ||
-                    ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
-                    return true;
-            }
+                return true;
 
             if (snippetData.passType == PassType.ShadowCaster)
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
@@ -187,10 +181,10 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnsupportedVariants(ShaderCompilerData compilerData)
         {
-            // We can strip variants that have directional lightmap enabled but not static nor dynamic lightmap.
+            // Dynamic GI is not supported so we can strip variants that have directional lightmap
+            // enabled but not baked lightmap.
             if (compilerData.shaderKeywordSet.IsEnabled(m_DirectionalLightmap) &&
-                !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
-                  compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
+                !compilerData.shaderKeywordSet.IsEnabled(m_Lightmap))
                 return true;
 
             // As GLES2 has low amount of registers, we strip:
