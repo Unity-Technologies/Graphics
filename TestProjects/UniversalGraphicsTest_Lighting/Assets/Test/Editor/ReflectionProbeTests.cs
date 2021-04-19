@@ -15,8 +15,8 @@ public class Editmode_ParametricReflectionProbeTests
     public enum BakeAPI
     {
         Bake = 0,
-        BakeAllReflectionProbeSnapshots,
-        BakeReflectionProbeSnapshot
+        BakeAll,
+        BakeSingle
     }
 
     [UnityEngine.Scripting.Preserve]
@@ -40,19 +40,19 @@ public class Editmode_ParametricReflectionProbeTests
                     break;
                 case 2:
                     settings = "nonAuto-Progressive";
-                    bakeAPI = BakeAPI.BakeAllReflectionProbeSnapshots;
+                    bakeAPI = BakeAPI.BakeAll;
                     break;
                 case 3:
                     settings = "nonAuto-nonProgressive";
-                    bakeAPI = BakeAPI.BakeAllReflectionProbeSnapshots;
+                    bakeAPI = BakeAPI.BakeAll;
                     break;
                 case 4:
                     settings = "nonAuto-Progressive";
-                    bakeAPI = BakeAPI.BakeReflectionProbeSnapshot;
+                    bakeAPI = BakeAPI.BakeSingle;
                     break;
                 case 5:
                     settings = "nonAuto-nonProgressive";
-                    bakeAPI = BakeAPI.BakeReflectionProbeSnapshot;
+                    bakeAPI = BakeAPI.BakeSingle;
                     break;
             }
             testCaseArray[i] = new object[] { settings, bakeAPI };
@@ -61,7 +61,7 @@ public class Editmode_ParametricReflectionProbeTests
     }
 
     [TestCaseSource("GetReflectionProbeTestCases")]
-    public void ReflectionProbeTest(string settings, BakeAPI bakeAPI)
+    public void RefProbeAPI(string settings, BakeAPI bakeAPI)
 	{
 		EditorSceneManager.OpenScene(sceneFileName, OpenSceneMode.Single);
 
@@ -84,7 +84,7 @@ public class Editmode_ParametricReflectionProbeTests
             case BakeAPI.Bake:
                 result = Lightmapping.Bake();
                 break;
-            case BakeAPI.BakeAllReflectionProbeSnapshots:
+            case BakeAPI.BakeAll:
                 {
                     var probe = Object.FindObjectOfType<ReflectionProbe>();
                     Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
@@ -97,7 +97,7 @@ public class Editmode_ParametricReflectionProbeTests
                     result &= Lightmapping.BakeAllReflectionProbesSnapshots();
                 }
                 break;
-            case BakeAPI.BakeReflectionProbeSnapshot:
+            case BakeAPI.BakeSingle:
                 {
                     var probe = Object.FindObjectOfType<ReflectionProbe>();
                     Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
@@ -116,15 +116,16 @@ public class Editmode_ParametricReflectionProbeTests
 		// Get Test settings.
 		var graphicsTestSettingsCustom = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
 		Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
-		
-		// Load reference image.
-		var referenceImagePath = System.IO.Path.Combine("Assets/ReferenceImages", string.Format("{0}/{1}/{2}/{3}/{4}",
+
+        // Load reference image.
+        var referenceImagePath = System.IO.Path.Combine("Assets/ReferenceImages", string.Format("{0}/{1}/{2}/{3}/{4}",
 			UseGraphicsTestCasesAttribute.ColorSpace,
 			UseGraphicsTestCasesAttribute.Platform,
 			UseGraphicsTestCasesAttribute.GraphicsDevice,
 			UseGraphicsTestCasesAttribute.LoadedXRDevice,
-			"ReflectionProbeTest(" + settings + "-" + bakeAPI.ToString() + ").png"));
-		Debug.Log("referenceImagePath " + referenceImagePath);
+			"RefProbeAPI(" + settings + "," + bakeAPI.ToString() + ").png"));
+
+        Debug.Log("referenceImagePath " + referenceImagePath);
 		var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
 		
 		// Compare screenshots.
