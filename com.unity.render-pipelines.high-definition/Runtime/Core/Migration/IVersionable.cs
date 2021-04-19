@@ -10,4 +10,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Accessors to the current version of the instance.</summary>
         TVersion version { get; set; }
     }
+
+    interface IMigratableAsset
+    {
+#if UNITY_EDITOR
+        bool Migrate();
+#endif
+    }
 }

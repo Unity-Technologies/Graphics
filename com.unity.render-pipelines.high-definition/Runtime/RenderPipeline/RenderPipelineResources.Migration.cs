@@ -2,7 +2,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>
+    partial class RenderPipelineResources : ScriptableObject, IVersionable<RenderPipelineResources.Version>, IMigratableAsset
     {
         enum Version
         {
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             })
         );
 
-        public void UpgradeIfNeeded() => k_Migration.Migrate(this);
+        bool IMigratableAsset.Migrate() => k_Migration.Migrate(this);
 #endif
     }
 }
