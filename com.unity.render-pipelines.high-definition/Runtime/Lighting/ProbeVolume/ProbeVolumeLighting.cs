@@ -71,7 +71,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var probeVolumeOptions = hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>();
             var normalBias = probeVolumeOptions.normalBias.value;
 
-            ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, normalBias);
+            if (cb._EnableProbeVolumes > 0)
+            {
+                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, normalBias);
+            }
         }
     }
 }

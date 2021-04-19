@@ -105,10 +105,10 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     bool hasValidUVW = true;
 
     // transform into APV space
-    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias, 1.0));
+    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias, 1.0)).xyz;
 
-    int3 indexDim = (int3)_IndexDim;
-    int3 poolDim = (int3)_PoolDim;
+    uint3 indexDim = (uint3)_IndexDim;
+    uint3 poolDim = (uint3)_PoolDim;
     int3 centerIS = indexDim / 2;
     // check bounds
 #ifdef APV_USE_BASE_OFFSET
