@@ -208,6 +208,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
+- Materials with Transparent Surface type, the property Sorting Priority is clamped on the UI from -50 to 50 instead of -100 to 100.
 - Improved lighting models for AxF shader area lights.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 - UI for Frame Settings has been updated: default values in the HDRP Settings and Custom Frame Settings are always editable
