@@ -11,13 +11,13 @@ PR_ShaderGraph_2020.3:
     name: ShaderGraph PR Job - 2020.3
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -25,13 +25,13 @@ Nightly_ShaderGraph_2020.3:
     name: Nightly ShaderGraph - 2020.3
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -39,11 +39,11 @@ PR_ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -52,13 +52,13 @@ Nightly_ShaderGraph_CUSTOM-REVISION:
     name: Nightly ShaderGraph - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#Nightly_ShaderGraph_Stereo_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

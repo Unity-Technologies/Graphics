@@ -529,6 +529,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
         }
 
+        static GBufferOutput ReadGBuffer(GBufferOutput gBufferOutput, RenderGraphBuilder builder)
+        {
+            // We do the reads "in place" because we don't want to allocate a struct with dynamic arrays each time we do that and we want to keep loops for code sanity.
+            for (int i = 0; i < gBufferOutput.gBufferCount; ++i)
+                gBufferOutput.mrt[i] = builder.ReadTexture(gBufferOutput.mrt[i]);
+
+            return gBufferOutput;
+        }
+
         static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
         {
             if (!data.needProbeVolumeLightLists)

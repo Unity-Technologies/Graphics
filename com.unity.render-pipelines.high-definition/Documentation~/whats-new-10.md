@@ -188,6 +188,13 @@ Note that the graph should not contain nodes that rely on screen-space different
 
 The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
+### Dynamic Resolution Scale
+
+This version of HDRP introduces multiple improvements to Dynamic Resolution Scaling:
+- The exposure and pixel to pixel quality now match between the software and hardware modes.
+- The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
+- The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
+- Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
 
 ### Scene view Camera properties
 

@@ -76,7 +76,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -102,4 +102,4 @@ VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

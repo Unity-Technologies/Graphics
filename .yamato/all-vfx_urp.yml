@@ -11,9 +11,9 @@ PR_VFX_URP_2020.3:
     name: VFX_URP PR Job - 2020.3
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_cache_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -21,9 +21,9 @@ Nightly_VFX_URP_2020.3:
     name: Nightly VFX_URP - 2020.3
     dependencies:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -31,7 +31,7 @@ PR_VFX_URP_CUSTOM-REVISION:
     name: VFX_URP PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -40,9 +40,9 @@ Nightly_VFX_URP_CUSTOM-REVISION:
     name: Nightly VFX_URP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

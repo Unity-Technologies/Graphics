@@ -4,12 +4,45 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added support for alpha channel in FXAA (case 1323941).
 
-## [10.4.0] - 2020-01-26
+### Fixed
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
+- Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
+- Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed missing Update in Wizard's DXR Documentation
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
+- Fixed SSR Precision for 4K Screens
+- Fixed issue with gbuffer debug view when virtual texturing is enabled.
+- Fixed volumetric fog noise due to sun light leaking (case 1319005)
+- Fixed an issue with Decal normal blending producing NaNs.
+- Fixed issue in wizard when resource folder don't exist
+- Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+
+### Changed
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
+- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
+- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
+- Assets going through the migration system are now dirtied.
+
+## [10.4.0] - 2021-03-11
 
 ### Added
 - Added support for XboxSeries platform.
@@ -66,7 +99,7 @@ The version number for this package has increased due to a version update of a r
 - Display a warning help box when decal atlas is out of size.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
@@ -155,6 +188,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.

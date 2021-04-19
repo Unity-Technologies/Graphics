@@ -223,6 +223,15 @@ MonoBehaviour:
       038)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 57b37a9fcda3f244992f314e76964faa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Mismatched Terrain shader varyings on iOS Metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
     ColorSpace: -1
     BuildPlatform: 9

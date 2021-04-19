@@ -13,24 +13,26 @@ using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    enum InclusiveScope
+    enum InclusiveMode
     {
-        HDRPAsset = 1 << 0,
-        HDRP = HDRPAsset | 1 << 1, //HDRPAsset is inside HDRP and will be indented
-        XRManagement = 1 << 2,
-        VR = XRManagement | 1 << 3, //XRManagement is inside VR and will be indented
-        DXR = 1 << 4,
-        DXROptional = DXR | 1 << 5,
+        HDRP = 1 << 0, 
+        XRManagement = 1 << 1,
+        VR = XRManagement | 1 << 2, //XRManagement is inside VR and will be indented
+        DXR = 1 << 3,
+        DXROptional = DXR | 1 << 4,
     }
+    
+    enum QualityScope { Global, CurrentQuality }
 
     static class InclusiveScopeExtention
     {
-        public static bool Contains(this InclusiveScope thisScope, InclusiveScope scope)
+        public static bool Contains(this InclusiveMode thisScope, InclusiveMode scope)
             => ((~thisScope) & scope) == 0;
     }
 
     partial class HDWizard
     {
+
         #region REFLECTION
 
         //reflect internal legacy enum
@@ -118,8 +120,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public delegate bool Checker();
             public delegate void Fixer(bool fromAsync);
-
-            public readonly InclusiveScope scope;
+            
+            public readonly QualityScope scope;
+            public readonly InclusiveMode inclusiveScope;
             public readonly Style.ConfigStyle configStyle;
             public readonly Checker check;
             public readonly Fixer fix;
@@ -128,14 +131,15 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly bool skipErrorIcon;
             public readonly bool displayAssetName;
 
-            public Entry(InclusiveScope scope, Style.ConfigStyle configStyle, Checker check, Fixer fix, bool forceDisplayCheck = false, bool skipErrorIcon = false, bool displayAssetName = false)
+            public Entry(QualityScope scope, InclusiveMode mode, Style.ConfigStyle configStyle, Checker check, Fixer fix, bool forceDisplayCheck = false, bool skipErrorIcon = false, bool displayAssetName = false)
             {
                 this.scope = scope;
+                this.inclusiveScope = mode;
                 this.configStyle = configStyle;
                 this.check = check;
                 this.fix = fix;
                 this.forceDisplayCheck = forceDisplayCheck;
-                indent = scope == InclusiveScope.HDRPAsset || scope == InclusiveScope.XRManagement ? 1 : 0;
+                indent = mode == InclusiveMode.XRManagement ? 1 : 0;
                 this.skipErrorIcon = skipErrorIcon;
                 this.displayAssetName = displayAssetName;
             }
@@ -154,49 +158,50 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_Entries == null)
                     m_Entries = new[]
                     {
-                        new Entry(InclusiveScope.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpAsset, IsHdrpAssetCorrect, FixHdrpAsset),
-                        new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetAssigned, IsHdrpAssetUsedCorrect, FixHdrpAssetUsed),
-                        new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetRuntimeResources, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources),
-                        new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetEditorResources, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources),
-                        new Entry(InclusiveScope.HDRPAsset, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
-                        new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetDiffusionProfile, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetRuntimeResources, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetEditorResources, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetDiffusionProfile, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileAssigned, FixDefaultLookDevVolumeProfileAssigned),
 
-                        new Entry(InclusiveScope.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
-                        new Entry(InclusiveScope.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
-                        new Entry(InclusiveScope.XRManagement, Style.vrOculusPlugin, () => false, null),
-                        new Entry(InclusiveScope.XRManagement, Style.vrSinglePassInstancing, () => false, null),
-                        new Entry(InclusiveScope.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers),
+                        new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
+                        new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
+                        new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrOculusPlugin, () => false, null),
+                        new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrSinglePassInstancing, () => false, null),
+                        new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers),
 
-                        new Entry(InclusiveScope.DXR, Style.dxrAutoGraphicsAPI, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI),
-                        new Entry(InclusiveScope.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
-                        new Entry(InclusiveScope.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
-                        new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
-                        new Entry(InclusiveScope.DXR, Style.dxr64bits, IsArchitecture64Bits, FixArchitecture64Bits),
-                        new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
+                        new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrAutoGraphicsAPI, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI),
+                        new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
+                        new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
+                        new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxr64bits, IsArchitecture64Bits, FixArchitecture64Bits),
+                        new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
 
                         // Optional checks
-                        new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadowFS, IsDXRScreenSpaceShadowFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrReflectionsFS, IsDXRReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrScreenSpaceShadowFS, IsDXRScreenSpaceShadowFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrReflectionsFS, IsDXRReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
                     };
                 return m_Entries;
             }
         }
 
         // Utility that grab all check within the scope or in sub scope included and check if everything is correct
-        bool IsAllEntryCorrectInScope(InclusiveScope scope)
+        bool IsAllEntryCorrectInScope(InclusiveMode scope)
         {
-            IEnumerable<Entry.Checker> checks = entries.Where(e => scope.Contains(e.scope)).Select(e => e.check);
+            IEnumerable<Entry.Checker> checks = entries.Where(e => scope.Contains(e.inclusiveScope)).Select(e => e.check);
             if (checks.Count() == 0)
                 return true;
 
@@ -210,9 +215,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Utility that grab all check and fix within the scope or in sub scope included and performe fix if check return incorrect
-        void FixAllEntryInScope(InclusiveScope scope)
+        void FixAllEntryInScope(InclusiveMode scope)
         {
-            IEnumerable<(Entry.Checker, Entry.Fixer)> pairs = entries.Where(e => scope.Contains(e.scope)).Select(e => (e.check, e.fix));
+            IEnumerable<(Entry.Checker, Entry.Fixer)> pairs = entries.Where(e => scope.Contains(e.inclusiveScope)).Select(e => (e.check, e.fix));
             if (pairs.Count() == 0)
                 return;
 
@@ -321,17 +326,14 @@ namespace UnityEditor.Rendering.HighDefinition
         #region HDRP_FIXES
 
         bool IsHDRPAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveScope.HDRP);
-        void FixHDRPAll()
-            => FixAllEntryInScope(InclusiveScope.HDRP);
+            => IsAllEntryCorrectInScope(InclusiveMode.HDRP);
 
-        bool IsHdrpAssetCorrect()
-            => IsAllEntryCorrectInScope(InclusiveScope.HDRPAsset);
-        void FixHdrpAsset(bool fromAsyncUnused)
-            => FixAllEntryInScope(InclusiveScope.HDRPAsset);
+        void FixHDRPAll()
+            => FixAllEntryInScope(InclusiveMode.HDRP);
 
         bool IsColorSpaceCorrect()
             => PlayerSettings.colorSpace == ColorSpace.Linear;
+
         void FixColorSpace(bool fromAsyncUnused)
             => PlayerSettings.colorSpace = ColorSpace.Linear;
 
@@ -354,6 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsShadowCorrect()
             => QualitySettings.shadows == ShadowQuality.All;
+
         void FixShadow(bool fromAsyncUnised)
         {
             int currentQuality = QualitySettings.GetQualityLevel();
@@ -366,8 +369,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsShadowmaskCorrect()
-            //QualitySettings.SetQualityLevel.set quality is too costy to be use at frame
             => QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;
+
         void FixShadowmask(bool fromAsyncUnused)
         {
             int currentQuality = QualitySettings.GetQualityLevel();
@@ -379,9 +382,10 @@ namespace UnityEditor.Rendering.HighDefinition
             QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
         }
 
-        bool IsHdrpAssetUsedCorrect()
-            => GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
-        void FixHdrpAssetUsed(bool fromAsync)
+        bool IsHdrpAssetGraphicsUsedCorrect()
+            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+
+        void FixHdrpAssetGraphicsUsed(bool fromAsync)
         {
             if (ObjectSelector.opened)
                 return;
@@ -391,13 +395,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 asset => GraphicsSettings.renderPipelineAsset = asset);
         }
 
+        bool IsHdrpAssetQualityUsedCorrect()
+            => QualitySettings.renderPipeline == null || QualitySettings.renderPipeline is HDRenderPipelineAsset;
+
+        void FixHdrpAssetQualityUsed(bool fromAsync)
+            => QualitySettings.renderPipeline = null;
+
         bool IsHdrpAssetRuntimeResourcesCorrect()
-            => IsHdrpAssetUsedCorrect()
+            => IsHdrpAssetGraphicsUsedCorrect()
             && HDRenderPipeline.defaultAsset.renderPipelineResources != null;
+
         void FixHdrpAssetRuntimeResources(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
 
             var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset == null)
@@ -417,12 +428,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsHdrpAssetEditorResourcesCorrect()
-            => IsHdrpAssetUsedCorrect()
+            => IsHdrpAssetGraphicsUsedCorrect()
             && HDRenderPipeline.defaultAsset.renderPipelineEditorResources != null;
+
         void FixHdrpAssetEditorResources(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
 
             var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset == null)
@@ -434,11 +446,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsSRPBatcherCorrect()
-            => IsHdrpAssetUsedCorrect() && HDRenderPipeline.currentAsset.enableSRPBatcher;
+            => IsHdrpAssetQualityUsedCorrect() && (HDRenderPipeline.currentAsset?.enableSRPBatcher ?? false);
+
         void FixSRPBatcher(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetQualityUsedCorrect())
+                FixHdrpAssetQualityUsed(fromAsync: false);
 
             var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset == null)
@@ -451,12 +464,12 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsHdrpAssetDiffusionProfileCorrect()
         {
             var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
-            return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
+            return IsHdrpAssetGraphicsUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
         void FixHdrpAssetDiffusionProfile(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
 
             var hdrpAsset = HDRenderPipeline.defaultAsset;
             if (hdrpAsset == null)
@@ -464,6 +477,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
             hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+
+            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
 
             foreach (var diffusionProfileAsset in defaultAssetList)
             {
@@ -476,28 +492,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorUtility.SetDirty(hdrpAsset);
         }
-
-        bool IsDefaultVolumeProfileAssigned()
+        
+        VolumeProfile CreateDefaultVolumeProfileIfNeeded(VolumeProfile defaultSettingsVolumeProfileInPackage)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                return false;
-
-            var hdAsset = HDRenderPipeline.currentAsset;
-            return hdAsset.defaultVolumeProfile != null
-                && !hdAsset.defaultVolumeProfile.Equals(null)
-                && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-        }
-        void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
-        {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
-
-            var hdrpAsset = HDRenderPipeline.currentAsset;
-            if (hdrpAsset == null)
-                return;
-
-            VolumeProfile defaultSettingsVolumeProfileInPackage = hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
             string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
+
+            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
 
             //try load one if one already exist
             VolumeProfile defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
@@ -507,7 +508,55 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultSettingsVolumeProfileInPackage), defaultSettingsVolumeProfilePath);
                 defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
             }
-            hdrpAsset.defaultVolumeProfile = defaultSettingsVolumeProfile;
+
+            return defaultSettingsVolumeProfile;
+        }
+
+        bool IsDefaultVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                return false;
+
+            var hdAsset = HDRenderPipeline.defaultAsset;
+            return hdAsset.defaultVolumeProfile != null
+                && !hdAsset.defaultVolumeProfile.Equals(null)
+                && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+        }
+        void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+            
+            hdrpAsset.defaultVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile);
+
+            EditorUtility.SetDirty(hdrpAsset);
+        }
+
+        bool IsDefaultLookDevVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                return false;
+
+            var hdAsset = HDRenderPipeline.defaultAsset;
+            return hdAsset.defaultLookDevProfile != null
+                && !hdAsset.defaultLookDevProfile.Equals(null)
+                && hdAsset.defaultLookDevProfile != hdAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+        }
+
+        void FixDefaultLookDevVolumeProfileAssigned(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+            
+            hdrpAsset.defaultLookDevProfile = CreateDefaultVolumeProfileIfNeeded(hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpAsset);
         }
@@ -517,17 +566,14 @@ namespace UnityEditor.Rendering.HighDefinition
         #region HDRP_VR_FIXES
 
         bool IsVRAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveScope.VR);
-        void FixVRAll()
-            => FixAllEntryInScope(InclusiveScope.VR);
+            => IsAllEntryCorrectInScope(InclusiveMode.VR);
 
-        bool IsVRXRManagementCorrect()
-            => IsAllEntryCorrectInScope(InclusiveScope.XRManagement);
-        void FixVRXRManagement(bool fromAsyncUnused)
-            => FixAllEntryInScope(InclusiveScope.XRManagement);
+        void FixVRAll()
+            => FixAllEntryInScope(InclusiveMode.VR);
 
         bool IsOldVRSystemForCurrentBuildTargetGroupCorrect()
             => !VREditor.GetVREnabledOnTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
         void FixOldVRSystemForCurrentBuildTargetGroup(bool fromAsyncUnused)
             => VREditor.SetVREnabledOnTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup, false);
 
@@ -566,18 +612,20 @@ namespace UnityEditor.Rendering.HighDefinition
         #region HDRP_DXR_FIXES
 
         bool IsDXRAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveScope.DXR);
+            => IsAllEntryCorrectInScope(InclusiveMode.DXR);
 
         void FixDXRAll()
-            => FixAllEntryInScope(InclusiveScope.DXR);
+            => FixAllEntryInScope(InclusiveMode.DXR);
 
         bool IsDXRAutoGraphicsAPICorrect()
             => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
+
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRDirect3D12Correct()
             => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
@@ -637,10 +685,11 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipeline.defaultAsset != null
             && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
             && SystemInfo.supportsRayTracing;
+        
         void FixDXRAsset(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetGraphicsUsedCorrect())
+                FixHdrpAssetGraphicsUsed(fromAsync: false);
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
@@ -660,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRScreenSpaceShadowFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset; // Default FrameSettings is a global quality independent parameter
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset; // Default FrameSettings is a global quality independent parameter
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -676,7 +725,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRReflectionsFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset; // Default FrameSettings is a global quality independent parameter
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset; // Default FrameSettings is a global quality independent parameter
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -692,7 +741,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRTransparentReflectionsFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset; // Default FrameSettings is a global quality independent parameter
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset; // Default FrameSettings is a global quality independent parameter
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -708,7 +757,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRGIFSCorrect()
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset; // Default FrameSettings is a global quality independent parameter
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset; // Default FrameSettings is a global quality independent parameter
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -720,6 +769,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsArchitecture64Bits()
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
+
+
 		void FixArchitecture64Bits(bool fromAsyncUnused)
 		{
 			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
@@ -727,6 +778,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());
+
         void FixDXRStaticBatching(bool fromAsyncUnused)
         {
             SetStaticBatching(CalculateSelectedBuildTarget(), false);
@@ -735,10 +787,11 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsDXRActivationCorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
+
         void FixDXRActivation(bool fromAsyncUnused)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
+            if (!IsHdrpAssetQualityUsedCorrect())
+                FixHdrpAssetQualityUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
             var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");

@@ -228,7 +228,11 @@ You can find a small ray tracing project that contains all the effects mention a
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
-## Unsupported features of ray tracing
+## Limitations
+
+This section contains information on the limitations of HDRP's ray tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its ray-traced render pipeline.
+
+### Unsupported features of ray tracing
 
 There is no support for ray tracing on platforms other than DX12 for now.
 
@@ -244,27 +248,13 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 
-## Unsupported features of path tracing
-
-There is no support for path tracing on platforms other than DX12 for now.
-
-HDRP path tracing in Unity 2020.2 has the following limitations:
-
-- Does not support 3D Text and TextMeshPro.
-- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
-- Does not support decals.
-- Does not support tessellation.
-- Does not support Tube and Disc shaped Area Light.
-- Does not support Translucent Opaque Materials.
-- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
-- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
-- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
-
-## Unsupported shader graph nodes for ray tracing
+### Unsupported shader graph nodes for ray tracing
 
 When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
 - DDX, DDY and DDXY nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
 - Checkerboard node.
+
+### Unsupported features of path tracing
+
+For information about unsupported features of path tracing, see [Path tracing limitations](Ray-Tracing-Path-Tracing.md#limitations).

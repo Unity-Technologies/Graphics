@@ -1,5 +1,5 @@
-editor_priming_agent: package_ci_ubuntu_small 
-editor_pin_agent: package_ci_ubuntu_small_v124
+editor_priming_agent: package_ci_ubuntu_small
+editor_pin_agent: package_ci_ubuntu_small
 
 # EDITOR PINNING
 
@@ -54,18 +54,18 @@ yamato_project_id: 902
 nightly_job_definition: .yamato%252F_abv.yml%2523all_project_ci_nightly_2020.3
 green_revision_jobs:
   - _Nightly ABV against 2020.3
-  
+
   - Nightly Universal - 2020.3
   - Universal PR Job - 2020.3
-  
+
   - Nightly HDRP - 2020.3
   - HDRP PR Job - 2020.3
-  
+
   - Nightly ShaderGraph - 2020.3
   - ShaderGraph PR Job - 2020.3
-  
+
   - Nightly VFX_HDRP - 2020.3
   - VFX_HDRP PR Job - 2020.3
-  
+
   - Nightly VFX_URP - 2020.3
   - VFX_URP PR Job - 2020.3

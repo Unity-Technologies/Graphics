@@ -11,11 +11,11 @@ PR_VFX_HDRP_2020.3:
     name: VFX_HDRP PR Job - 2020.3
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -23,11 +23,11 @@ Nightly_VFX_HDRP_2020.3:
     name: Nightly VFX_HDRP - 2020.3
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -35,9 +35,9 @@ PR_VFX_HDRP_CUSTOM-REVISION:
     name: VFX_HDRP PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -46,11 +46,11 @@ Nightly_VFX_HDRP_CUSTOM-REVISION:
     name: Nightly VFX_HDRP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

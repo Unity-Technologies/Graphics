@@ -5,8 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
-        // This will be used during GBuffer and/or forward passes.
         TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
         {
 #if UNITY_2020_2_OR_NEWER

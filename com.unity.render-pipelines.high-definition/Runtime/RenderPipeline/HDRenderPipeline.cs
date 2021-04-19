@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(asset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            if (m_RayTracingSupported)
+            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
             {
                 if (asset.renderPipelineRayTracingResources == null)
                     asset.renderPipelineRayTracingResources
@@ -1605,25 +1605,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDCamera.CleanUnused();
             }
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            if(m_EnableRenderGraph)
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-            }
-            else
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
-                {
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
-                }
-                );
-            }
-
-
-
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1672,6 +1653,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hasGameViewCamera && camera.cameraType == CameraType.Preview)
                         continue;
 #endif
+
+                    if(m_EnableRenderGraph)
+                    {
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
+                    }
+                    else
+                    {
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
+                        {
+                            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                            var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
+                            var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
+                            hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
+                        }
+                        );
+                    }
+
+                    var dynResHandler = DynamicResolutionHandler.instance;
 
                     bool cameraRequestedDynamicRes = false;
                     HDAdditionalCameraData hdCam;
@@ -1975,6 +1974,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+
+                        var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                        settingsCopy.forcedPercentage = 100.0f;
+                        settingsCopy.forceResolution = true;
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
 
                         if (additionalCameraData == null)
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
@@ -2297,6 +2301,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            DynamicResolutionHandler.ClearSelectedCamera();
+
             if (m_EnableRenderGraph)
                 m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
@@ -2325,6 +2331,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData aovRequest
         )
         {
+            DynamicResolutionHandler.UpdateAndUseCamera(renderRequest.hdCamera.camera);
             InitializeGlobalResources(renderContext);
 
             var hdCamera = renderRequest.hdCamera;
@@ -2622,7 +2629,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Only on consoles is safe to read and write from/to the depth atlas
             bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                                                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
             mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
             DownsampleDepthForLowResTransparency(hdCamera, cmd, m_SharedRTManager.GetDepthTexture(), mip1FromDownsampleForLowResTrans);
@@ -3860,7 +3869,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool canReadBoundDepthBuffer =  SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                                             SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
             if(!canReadBoundDepthBuffer)
             {

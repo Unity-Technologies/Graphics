@@ -106,7 +106,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.Group((serialized, owner) =>
                 {
-                    RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+                    HDRenderPipelineAsset HDRPAsset = GetHDRPAssetFor(owner);
+                    if (HDRPAsset == null || HDRPAsset.Equals(null))
+                        return;
+
+                    RenderPipelineSettings hdrpSettings = HDRPAsset.currentPlatformRenderPipelineSettings;
                     if (hdrpSettings.supportRayTracing)
                     {
                         bool rtEffectUseAsync = (serialized.IsEnabled(FrameSettingsField.SSRAsync) ?? false) || (serialized.IsEnabled(FrameSettingsField.SSAOAsync) ?? false)
