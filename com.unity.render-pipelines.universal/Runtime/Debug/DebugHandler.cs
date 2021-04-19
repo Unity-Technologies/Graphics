@@ -189,8 +189,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
+        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, ref CameraData cameraData, bool isFinalPass)
         {
+            // Ensure final validation debug modes are only done once in the very final pass.
+            if (!isFinalPass)
+            {
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                return;
+            }
+
             if (IsActiveForCamera(ref cameraData))
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
