@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
   - Added View Vector Node doc
+  - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
+  - For Texture2D properties, added linearGrey and red as options for default texture mode.
+  - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
 
 ### Changed
 - Updated/corrected View Direction doc
