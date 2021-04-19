@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("HDRP-Camera")]
     [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
@@ -347,6 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
+        internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();

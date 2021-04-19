@@ -295,7 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
             }
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha())
             {
                 return true;
             }

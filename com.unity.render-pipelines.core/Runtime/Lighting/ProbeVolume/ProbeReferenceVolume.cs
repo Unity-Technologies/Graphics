@@ -397,8 +397,10 @@ namespace UnityEngine.Rendering
 
         private void PerformPendingDeletion()
         {
-            if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
-                return;
+            if (!m_ProbeReferenceVolumeInit)
+            {
+                m_PendingAssetsToBeUnloaded.Clear(); // If we are not init, we have not loaded yet.
+            }
 
             var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
             foreach (var asset in dictionaryValues)

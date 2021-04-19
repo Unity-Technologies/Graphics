@@ -130,7 +130,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
               -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -158,7 +158,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_CUSTOM-REV
               -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -186,7 +186,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
               -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -214,4 +214,4 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_CUSTOM-
               -  "PrebuildLog/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

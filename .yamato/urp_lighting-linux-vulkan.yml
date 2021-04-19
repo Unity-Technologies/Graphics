@@ -28,7 +28,7 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -42,6 +42,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -69,6 +70,7 @@ URP_Lighting_Linux_Vulkan_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -93,6 +95,7 @@ URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -117,6 +120,7 @@ URP_Lighting_Linux_Vulkan_editmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -149,7 +153,7 @@ URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -163,6 +167,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -198,7 +203,7 @@ URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_XR_cache_build_Player on version trunk
     agent:
@@ -212,6 +217,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -248,9 +254,9 @@ URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -265,6 +271,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -281,7 +288,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -296,6 +303,7 @@ URP_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -309,7 +317,7 @@ URP_Lighting_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Linux_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -324,6 +332,7 @@ URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -337,7 +346,7 @@ URP_Lighting_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -352,6 +361,7 @@ URP_Lighting_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -365,7 +375,7 @@ URP_Lighting_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -388,9 +398,9 @@ URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -405,6 +415,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -421,7 +432,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Linux_Vulkan_Standalone_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -444,9 +455,9 @@ URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-linux-vulkan.yml#Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Linux_Vulkan_mono_Linear_Standalone_XR_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -461,6 +472,7 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -477,4 +489,4 @@ Build_URP_Lighting_Linux_Vulkan_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision

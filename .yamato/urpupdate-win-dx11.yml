@@ -109,7 +109,7 @@ URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/URP-Update-Testing/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -146,4 +146,4 @@ URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/URP-Update-Testing/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

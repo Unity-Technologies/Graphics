@@ -16,7 +16,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_tr
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -32,7 +32,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_tr
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build VikingVillage_BuiltIn on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
@@ -42,7 +42,7 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -90,7 +90,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trun
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -137,7 +137,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CU
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -153,9 +153,9 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CU
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build VikingVillage_BuiltIn on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
@@ -166,7 +166,7 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -207,7 +207,7 @@ Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Lin
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision
 VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -218,7 +218,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -257,4 +257,4 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUST
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision

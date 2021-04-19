@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(24, Extension, -905)]
+    [ScriptedImporter(25, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";

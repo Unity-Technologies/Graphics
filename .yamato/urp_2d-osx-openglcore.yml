@@ -98,7 +98,7 @@ URP_2D_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_2D_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on OSX_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -124,7 +124,7 @@ URP_2D_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_2D_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_2D on OSX_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -150,4 +150,4 @@ URP_2D_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

@@ -880,6 +880,18 @@ namespace UnityEditor.ShaderGraph
                 spliceCommands.Add("PreGraphIncludes", command);
             }
 
+            using (var graphIncludeBuilder = new ShaderStringBuilder())
+            {
+                foreach (var include in allIncludes.Where(x => x.location == IncludeLocation.Graph))
+                {
+                    if (include.TestActive(activeFields))
+                        graphIncludeBuilder.AppendLine(include.value);
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(graphIncludeBuilder.ToCodeBlock(), "GraphIncludes");
+                spliceCommands.Add("GraphIncludes", command);
+            }
+
             using (var postGraphIncludeBuilder = new ShaderStringBuilder())
             {
                 foreach (var include in allIncludes.Where(x => x.location == IncludeLocation.Postgraph))

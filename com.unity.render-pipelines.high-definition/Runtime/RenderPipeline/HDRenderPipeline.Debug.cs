@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return fullScreenDebugEnabled || lightingDebugEnabled;
         }
 
-        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
+        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
         {
             // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
             // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
@@ -187,6 +187,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._MouseClickPixelCoord = HDUtils.GetMouseClickCoordinates(hdCamera);
 
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
+
+                cb._DebugAOVOutput = aovOutput ? 1 : 0;
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
@@ -1038,13 +1040,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
+            public GBufferOutput gbuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
@@ -1066,10 +1069,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
+                    passData.gbuffer = ReadGBuffer(gbuffer, builder);
 
                     builder.SetRenderFunc(
                         (DebugViewMaterialData data, RenderGraphContext context) =>
                         {
+                            var gbufferHandles = data.gbuffer;
+                            for (int i = 0; i < gbufferHandles.gBufferCount; ++i)
+                            {
+                                data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
+                            }
+
                             HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
                         });
                 }

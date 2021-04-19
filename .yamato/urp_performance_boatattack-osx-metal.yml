@@ -254,7 +254,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -316,7 +316,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on OSX_Metal_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -378,4 +378,4 @@ URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUST
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

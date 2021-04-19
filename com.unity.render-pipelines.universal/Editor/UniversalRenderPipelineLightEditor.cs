@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent ShadowNormalBias = EditorGUIUtility.TrTextContent("Normal", "Controls the distance shadow caster vertices are offset along their normals when rendering shadow maps. Currently ignored for Point Lights.");
 
             // Resolution (default or custom)
-            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage. Rounded to the next power of two, and clamped to be at least 128.");
+            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", $"Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
             public static readonly int[] ShadowResolutionDefaultValues =
             {
                 UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom,
@@ -93,17 +94,16 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void OnEnable()
         {
-            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+            MultipleAdditionalLightDataCheck();
             settings.OnEnable();
-            init(m_AdditionalLightData);
             UpdateShowOptions(true);
         }
 
-        void init(UniversalAdditionalLightData additionalLightData)
+        void init(List<Object> additionalLightData)
         {
             if (additionalLightData == null)
                 return;
-            m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
+            m_AdditionalLightDataSO = new SerializedObject(additionalLightData.ToArray());
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
@@ -262,34 +262,64 @@ namespace UnityEditor.Rendering.Universal
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
-            if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+            // Check mixed values
+            if (!m_UseAdditionalDataProp.hasMultipleDifferentValues)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
-                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
-                EditorGUI.indentLevel--;
+                if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
+                    EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                    EditorGUI.indentLevel--;
 
-                m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                }
             }
 
             if (hasChanged)
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-
-                    var asset = UniversalRenderPipeline.asset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
+                    MultipleAdditionalLightDataCheck();
+                    SetupSettings();
                 }
+                else
+                {
+                    foreach (var lightTarget in targets)
+                    {
+                        var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                        if (additionData == null)
+                            break;
 
-                m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
+                        additionData.usePipelineSettings = selectedUseAdditionalData != 0;
+                    }
+                }
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
+        }
+
+        void MultipleAdditionalLightDataCheck()
+        {
+            var additionalLightList = new List<Object>();
+            foreach (var lightTarget in targets)
+            {
+                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                if (additionData == null)
+                    additionData = (lightTarget as Component).gameObject.AddComponent<UniversalAdditionalLightData>();
+
+                additionalLightList.Add(additionData);
+            }
+            m_AdditionalLightData = (target as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+
+            init(additionalLightList);
+        }
+
+        void SetupSettings()
+        {
+            var asset = UniversalRenderPipeline.asset;
+            settings.shadowsBias.floatValue = asset.shadowDepthBias;
+            settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
+            settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
         }
 
         void DrawShadowsResolutionGUI()
@@ -346,7 +376,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 // show the custom value field GUI.
                 var newResolution = EditorGUI.IntField(fieldRect, settings.shadowsResolution.intValue);
-                settings.shadowsResolution.intValue = Mathf.Max(128, Mathf.NextPowerOfTwo(newResolution));
+                settings.shadowsResolution.intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(newResolution));
 
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
@@ -361,15 +391,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
+                    MultipleAdditionalLightDataCheck();
+                    SetupSettings();
                 }
 
                 m_AdditionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;
