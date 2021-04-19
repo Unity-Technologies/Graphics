@@ -29,6 +29,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             urpMetadata.shaderID = shaderID;
             return urpMetadata;
         }
+
+        private int lastMaterialNeedsUpdateHash = 0;
+        protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
+
+        public override object saveContext
+        {
+            get
+            {
+                int hash = ComputeMaterialNeedsUpdateHash();
+                bool needsUpdate = hash != lastMaterialNeedsUpdateHash;
+                if (needsUpdate)
+                    lastMaterialNeedsUpdateHash = hash;
+
+                return new UniversalShaderGraphSaveContext { updateMaterials = needsUpdate };
+            }
+        }
     }
 
     internal static class SubShaderUtils

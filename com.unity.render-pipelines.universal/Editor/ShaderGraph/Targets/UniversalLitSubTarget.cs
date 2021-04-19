@@ -217,6 +217,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
+        protected override int ComputeMaterialNeedsUpdateHash()
+        {
+            int hash = base.ComputeMaterialNeedsUpdateHash();
+            hash = hash * 23 + target.allowMaterialOverride.GetHashCode();
+            return hash;
+        }
+
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
