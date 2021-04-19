@@ -147,7 +147,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with the color space of AOVs (case 1324759)
 - Fixed issue with history buffers when using multiple AOVs (case 1323684).
 - Fixed camera preview with multi selection (case 1324126).
-- Fixed a NaN generating in Area light code.
 - Fix potential NaN on apply distortion pass.
 - Fixed the camera controller in the template with the old input system (case 1326816).
 - Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
