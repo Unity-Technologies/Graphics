@@ -809,6 +809,8 @@ namespace UnityEngine.Rendering.Universal
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
         {
+            RenderPassEvent beforeMainRenderingEvent = m_RenderingMode == RenderingMode.Deferred ? RenderPassEvent.BeforeRenderingGbuffer : RenderPassEvent.BeforeRenderingOpaques;
+
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
@@ -816,10 +818,10 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
+                bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
-                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
+                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeMainRendering;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
             }
