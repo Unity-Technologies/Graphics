@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 5991ec3b02565304692b00788ab59fa9
 ModelImporter:
-  serializedVersion: 20200
+  serializedVersion: 21201
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -79,6 +79,7 @@ ModelImporter:
     bakeSimulation: 0
     resampleCurves: 1
     optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
     motionNodeName: 
     rigImportErrors: 
     rigImportWarnings: 
@@ -119,6 +120,7 @@ ModelImporter:
     skinWeightsMode: 0
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
+    optimizeBones: 1
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 1
