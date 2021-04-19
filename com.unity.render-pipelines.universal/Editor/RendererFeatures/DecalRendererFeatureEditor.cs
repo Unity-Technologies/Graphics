@@ -3,92 +3,67 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomPropertyDrawer(typeof(DecalSettings), true)]
-    internal class DecalRendererFeatureEditor : PropertyDrawer
+    [CustomEditor(typeof(DecalRendererFeature))]
+    internal class DecalSettings : Editor
     {
-        private readonly static float s_DefaultLineSpace = EditorGUIUtility.singleLineHeight;
+        private struct Styles
+        {
+            public static GUIContent Technique = EditorGUIUtility.TrTextContent("Technique", "This option determines what method used for rendering decals.");
+            public static GUIContent MaxDrawDistance = EditorGUIUtility.TrTextContent("Max Draw Distance", "Maximum global draw distance of decals.");
+            public static GUIContent SurfaceData = EditorGUIUtility.TrTextContent("Surface Data", "Allows specifying which decals surface data should be blended with surfaces.");
+            public static GUIContent NormalBlend = EditorGUIUtility.TrTextContent("Normal Blend", "Controls the quality of normal reconstruction. The higher the value the more accurate normal reconstruction and the cost on performance.");
+            public static GUIContent UseGBuffer = EditorGUIUtility.TrTextContent("Use GBuffer", "Uses traditional GBuffer decals, if renderer is set to deferred. Support only base color, normal and emission.");
+        }
+
         private SerializedProperty m_Technique;
         private SerializedProperty m_MaxDrawDistance;
         private SerializedProperty m_DBufferSettings;
+        private SerializedProperty m_DBufferSurfaceData;
         private SerializedProperty m_ScreenSpaceSettings;
+        private SerializedProperty m_ScreenSpaceNormalBlend;
+        private SerializedProperty m_ScreenSpaceUseGBuffer;
 
-        private void Init(SerializedProperty property)
+        private bool m_IsInitialized = false;
+
+        private void Init()
         {
-            m_Technique = property.FindPropertyRelative("technique");
-            m_MaxDrawDistance = property.FindPropertyRelative("maxDrawDistance");
-            m_DBufferSettings = property.FindPropertyRelative("dBufferSettings");
-            m_ScreenSpaceSettings = property.FindPropertyRelative("screenSpaceSettings");
+            if (m_IsInitialized)
+                return;
+            SerializedProperty settings = serializedObject.FindProperty("m_Settings");
+            m_Technique = settings.FindPropertyRelative("technique");
+            m_MaxDrawDistance = settings.FindPropertyRelative("maxDrawDistance");
+            m_DBufferSettings = settings.FindPropertyRelative("dBufferSettings");
+            m_DBufferSurfaceData = m_DBufferSettings.FindPropertyRelative("surfaceData");
+            m_ScreenSpaceSettings = settings.FindPropertyRelative("screenSpaceSettings");
+            m_ScreenSpaceNormalBlend = m_ScreenSpaceSettings.FindPropertyRelative("normalBlend");
+            m_ScreenSpaceUseGBuffer = m_ScreenSpaceSettings.FindPropertyRelative("useGBuffer");
+            m_IsInitialized = true;
         }
 
-        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
+        public override void OnInspectorGUI()
         {
-            Init(property);
+            Init();
 
-            rect.height = EditorGUIUtility.singleLineHeight;
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.BeginProperty(rect, label, property);
-
-            EditorGUI.PropertyField(rect, m_Technique);
-            rect.y += s_DefaultLineSpace;
+            EditorGUILayout.PropertyField(m_Technique, Styles.Technique);
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
 
             if (technique == DecalTechniqueOption.DBuffer)
             {
                 EditorGUI.indentLevel++;
-                foreach (SerializedProperty prop in m_DBufferSettings)
-                {
-                    EditorGUI.PropertyField(rect, prop);
-                    rect.y += s_DefaultLineSpace;
-                }
+                EditorGUILayout.PropertyField(m_DBufferSurfaceData, Styles.SurfaceData);
                 EditorGUI.indentLevel--;
             }
 
             if (technique == DecalTechniqueOption.ScreenSpace)
             {
                 EditorGUI.indentLevel++;
-                foreach (SerializedProperty prop in m_ScreenSpaceSettings)
-                {
-                    EditorGUI.PropertyField(rect, prop);
-                    rect.y += s_DefaultLineSpace;
-                }
+                EditorGUILayout.PropertyField(m_ScreenSpaceNormalBlend, Styles.NormalBlend);
+                EditorGUILayout.PropertyField(m_ScreenSpaceUseGBuffer, Styles.UseGBuffer);
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUI.PropertyField(rect, m_MaxDrawDistance);
-            rect.y += s_DefaultLineSpace;
-
-            EditorGUI.EndProperty();
-            if (EditorGUI.EndChangeCheck())
-                property.serializedObject.ApplyModifiedProperties();
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            Init(property);
-
-            float height = 0;
-            height += s_DefaultLineSpace;
-            height += s_DefaultLineSpace;
-
-            DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
-
-            if (technique == DecalTechniqueOption.DBuffer)
-            {
-                foreach (SerializedProperty prop in m_DBufferSettings)
-                {
-                    height += s_DefaultLineSpace;
-                }
-            }
-            if (technique == DecalTechniqueOption.ScreenSpace)
-            {
-                foreach (SerializedProperty prop in m_ScreenSpaceSettings)
-                {
-                    height += s_DefaultLineSpace;
-                }
-            }
-
-            return height;
+            EditorGUILayout.PropertyField(m_MaxDrawDistance, Styles.MaxDrawDistance);
         }
     }
 }

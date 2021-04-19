@@ -5,8 +5,11 @@ namespace UnityEngine.Rendering.Universal
 {
     internal enum DecalSurfaceData
     {
+        [Tooltip("Decals will affect only base color and emission.")]
         Albedo,
+        [Tooltip("Decals will affect only base color, normal and emission.")]
         AlbedoNormal,
+        [Tooltip("Decals will affect only base color, normal, metallic, ambient occlusion, smoothness and emission.")]
         AlbedoNormalMAOS,
     }
 
@@ -20,8 +23,12 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum DecalTechniqueOption
     {
+        [Tooltip("Automatically selects technique based on build platform.")]
         Automatic,
+        [Tooltip("Renders decals into DBuffer and then applied during opaque rendering. Requires DepthNormal prepass which makes not viable solution for tiled based renderers.")]
+        [InspectorName("DBuffer")]
         DBuffer,
+        [Tooltip("Renders decals after opaque objects with normal reconstructed from depth. The decals are simply rendered as mesh on top of opaque ones, as result does not support blending per single surface data (etc. normal blending only).")]
         ScreenSpace,
     }
 
@@ -33,8 +40,11 @@ namespace UnityEngine.Rendering.Universal
 
     internal enum DecalNormalBlend
     {
+        [Tooltip("Low quality of normal reconstruction (Uses 1 sample).")]
         Low,
+        [Tooltip("Medium quality of normal reconstruction (Uses 5 samples).")]
         Medium,
+        [Tooltip("High quality of normal reconstruction (Uses 9 samples).")]
         High,
     }
 
