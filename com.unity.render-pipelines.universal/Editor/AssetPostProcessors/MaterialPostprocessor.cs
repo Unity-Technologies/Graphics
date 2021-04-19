@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.Universal
             if (shaderID.IsShaderGraph())
                 return;
 
-            var shaderPath = ShaderUtils.GetShaderPath((ShaderPathID) shaderID);
+            var shaderPath = ShaderUtils.GetShaderPath((ShaderPathID)shaderID);
             var upgradeFlag = MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound;
 
             switch (shaderID)
@@ -288,16 +288,6 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV4(Material material, ShaderID shaderID)
         {
-        }
-
-        static void UpgradeV5(Material material, ShaderID shaderID)
-        {
-            // ShaderGraph upgraded to have surface controls in the Material
-            // we need to ensure all existing ShaderGraph materials have set up their keywords properly
-            if (shaderID.IsShaderGraph())
-            {
-                Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material, shaderID);
-            }
         }
     }
 
