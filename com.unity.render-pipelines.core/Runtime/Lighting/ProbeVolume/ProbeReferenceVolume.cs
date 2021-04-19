@@ -775,10 +775,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// TODO
+        /// Update the constant buffer used by Probe Volumes in shaders.
         /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="normalBias"></param>
+        /// <param name="cmd">A command buffer used to perform the data update.</param>
+        /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
         public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
         {
             ShaderVariablesProbeVolumes shaderVars;
