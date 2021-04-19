@@ -4,16 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
 ### Added
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
-- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
-- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
-- Assets going through the migration system are now dirtied.
+- Added support for alpha channel in FXAA (case 1323941).
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
- 
+
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -33,12 +30,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 
-## [10.4.0] - 2020-01-26
+## [10.4.0] - 2021-03-11
 
 ### Added
 - Added support for XboxSeries platform.
@@ -95,7 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display a warning help box when decal atlas is out of size.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

@@ -23,7 +23,7 @@ all_project_ci_2020.3:
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.3
          rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 all_project_ci_nightly_2020.3:
     name: _Nightly ABV against 2020.3
     dependencies:
