@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEditor.Rendering;
 using UnityEditorInternal;
 
-// TODO(Nicholas): deduplicate with DensityVolumeUI.Drawer.cs.
+// TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
 namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;

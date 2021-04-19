@@ -99,7 +99,7 @@ void Frag(PackedVaryingsToPS packedInput,
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {
@@ -183,8 +183,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write
-        // So in the meantime we apply the inverse transform to linear data to compensate.
-        if (!needLinearToSRGB)
+        // So in the meantime we apply the inverse transform to linear data to compensate, unless we output to AOVs.
+        if (!needLinearToSRGB && _DebugAOVOutput == 0)
             result = SRGBToLinear(max(0, result));
 
         outColor = float4(result, 1.0);

@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.UnitTests.Controllers;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -23,6 +24,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         MaterialGraphEditWindow m_Window;
 
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
+
+        BlackboardTestController m_BlackboardTestController;
 
         [OneTimeSetUp]
         public void LoadGraph()
@@ -44,7 +47,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             m_Window = EditorWindow.GetWindow<MaterialGraphEditWindow>();
-
             if (m_Window == null)
             {
                 Assert.Fail("Could not open window");
@@ -57,14 +59,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             m_GraphEditorView = m_Window.graphEditorView;
+
+            // Create the blackboard test controller
+            var blackboardViewModel = new BlackboardViewModel() { parentView = m_Window.graphEditorView.graphView, model = m_Window.graphObject.graph, title = m_Window.assetName };
+            m_BlackboardTestController = new BlackboardTestController(m_Window, m_Graph, blackboardViewModel, m_Window.graphObject.graphDataStore);
+
+            // Remove the normal blackboard
+            m_GraphEditorView.blackboardController.blackboard.RemoveFromHierarchy();
+            // And override reference to the blackboard controller to point at the test controller
+            m_GraphEditorView.blackboardController = m_BlackboardTestController;
         }
 
         [OneTimeTearDown]
         public void Cleanup()
         {
             // Don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
-            m_Window.Close();
+            //m_Window.graphObject = null;
+            //m_Window.Close();
         }
 
         [Test]
@@ -86,20 +97,25 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var fieldViewElements = m_GraphEditorView.Query("blackboardFieldView");
             foreach (var visualElement in fieldViewElements.ToList())
             {
-                var blackboardFieldView = (BlackboardFieldView)visualElement;
-                if (blackboardFieldView == null) continue;
+                var blackboardPropertyView = (BlackboardPropertyView)visualElement;
+                if (blackboardPropertyView == null) continue;
 
-                var shaderInput = (AbstractShaderProperty)blackboardFieldView.shaderInput;
+                var shaderInput = (AbstractShaderProperty)blackboardPropertyView.shaderInput;
                 var originalReferenceName = shaderInput.referenceName;
                 var propertyType = shaderInput.GetPropertyTypeString();
                 var modifiedReferenceName = $"{propertyType}_Test";
                 shaderInput.SetReferenceNameAndSanitizeForGraph(m_Graph, modifiedReferenceName);
 
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
 
                 // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.SendMouseEventToVisualElement(blackboardFieldView, EventType.MouseDown);
-                ShaderGraphUITestHelpers.SendMouseEventToVisualElement(blackboardFieldView, EventType.MouseUp);
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
+
+                // Wait a frame for the inspector updates to trigger
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
@@ -112,6 +128,73 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 if (shaderInput.referenceName != originalReferenceName)
                     Assert.Fail("Failed to reset reference name to original value.");
             }
+        }
+
+        [UnityTest]
+        public IEnumerator AddInputTests()
+        {
+            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
+            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RemoveInputTests()
+        {
+            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
+            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+
+            var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
+            foreach (var property in cachedPropertyList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
+                var blackboardPropertyView = blackboardRow.Q<BlackboardPropertyView>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
+                yield return null;
+
+            }
+
+            var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
+            foreach (var keyword in cachedKeywordList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(keyword);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
+                var blackboardPropertyView = blackboardRow.Q<BlackboardPropertyView>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
+                yield return null;
+
+            }
+
+
+            yield return null;
         }
 
         [Test]

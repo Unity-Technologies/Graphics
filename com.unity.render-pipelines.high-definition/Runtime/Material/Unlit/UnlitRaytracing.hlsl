@@ -1,4 +1,4 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
 void FitToStandardLit( SurfaceData surfaceData

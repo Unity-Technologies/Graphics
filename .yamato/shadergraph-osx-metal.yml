@@ -150,7 +150,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -182,7 +182,7 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -214,7 +214,7 @@ ShaderGraph_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_Metal_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -246,4 +246,4 @@ ShaderGraph_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

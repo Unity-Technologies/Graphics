@@ -69,10 +69,17 @@ namespace  UnityEngine.Rendering.HighDefinition
                 int height = hdCamera.actualHeight;
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 GetResolveDimensions(ref width, ref height);
+
                 if (msaa)
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_ResolverMsaa);
                     m_ResolverMsaa.UpdateSize(width, height);
+                }
                 else
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_Resolver);
                     m_Resolver.UpdateSize(width, height);
+                }
             }
         }
 
@@ -144,6 +151,21 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             w = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.x * w), 1);
             h = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.y * h), 1);
+        }
+
+        void CalculateResolverDimensions(ref int w, ref int h, VirtualTexturing.Resolver resolver)
+        {
+            //RT handles don't downscale in the editor but render with subrects.
+#if UNITY_EDITOR
+            int currentWidth = resolver.CurrentWidth;
+            int currentHeight = resolver.CurrentHeight;
+
+            if (currentWidth < w || currentHeight < h)
+            {
+                w = currentWidth < w ? w : currentWidth;
+                h = currentHeight < h ? h : currentHeight;
+            }
+#endif
         }
     }
 }

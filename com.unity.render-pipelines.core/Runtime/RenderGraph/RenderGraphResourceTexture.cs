@@ -23,13 +23,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); }
 
         /// <summary>
-        /// Cast to RTHandle
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a RTHandle.</returns>
-        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
-
-        /// <summary>
         /// Cast to RenderTargetIdentifier
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
@@ -37,11 +30,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : default(RenderTargetIdentifier);
 
         /// <summary>
+        /// Cast to Texture
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a Texture.</returns>
+        public static implicit operator Texture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
         /// Cast to RenderTexture
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
         /// <returns>Resource as a RenderTexture.</returns>
         public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
+        /// Cast to RTHandle
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RTHandle.</returns>
+        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -392,6 +399,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return "Texture";
         }
 
+        override protected int GetSortIndex(RTHandle res)
+        {
+            return res.GetInstanceID();
+        }
+
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
         // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
@@ -400,19 +412,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             // Update the frame index for the lambda. Static because we don't want to capture.
             s_CurrentFrameIndex = currentFrameIndex;
+            m_RemoveList.Clear();
 
             foreach (var kvp in m_ResourcePool)
             {
+                // WARNING: No foreach here. Sorted list GetEnumerator generates garbage...
                 var list = kvp.Value;
-                list.RemoveAll(obj =>
+                var keys = list.Keys;
+                var values = list.Values;
+                for (int i = 0; i < list.Count; ++i)
                 {
-                    if (ShouldReleaseResource(obj.frameIndex, s_CurrentFrameIndex))
+                    var value = values[i];
+                    if (ShouldReleaseResource(value.frameIndex, s_CurrentFrameIndex))
                     {
-                        obj.resource.Release();
-                        return true;
+                        value.resource.Release();
+                        m_RemoveList.Add(keys[i]);
                     }
-                    return false;
-                });
+                }
+
+                foreach (var key in m_RemoveList)
+                    list.Remove(key);
             }
         }
     }

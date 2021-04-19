@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef VOLUMETRICCLOUDSDEF_CS_HLSL
@@ -41,7 +41,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
-    float2 _DepthMipOffset;
+    float2 _Padding;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
     float4 _AmbientProbeCoeffs[7];
@@ -52,8 +52,10 @@ CBUFFER_START(ShaderVariablesClouds)
     int _ShadowCookieResolution;
     float _ShadowPlaneOffset;
     float2 _ShadowRegionSize;
-    float _Padding0;
-    float _Padding1;
+    float2 _WorldSpaceShadowCenter;
+    float4x4 _CameraViewProjection_NO;
+    float4x4 _CameraInverseViewProjection_NO;
+    float4x4 _CameraPrevViewProjection_NO;
 CBUFFER_END
 
 

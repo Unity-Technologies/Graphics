@@ -366,6 +366,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTargetHandle TileDepthInfoTexture { get; set; }
 
         internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
+        internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
         internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
         internal RenderTargetIdentifier DepthInfoTextureIdentifier { get; set; }
@@ -771,9 +772,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
+            {
                 this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
+                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+            {
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferFormats[i] = this.GetGBufferFormat(i);
+            }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1071,6 +1078,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Workaround for bug.
+            // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
+            // materials passed in have not finished initializing at that point if they have fallback shader defined. In particular deferred shaders only have 1 pass available,
+            // which prevents from resolving correct pass indices.
+            if (m_StencilDeferredPasses[0] < 0)
+                InitStencilDeferredMaterial();
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
@@ -1511,13 +1525,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_StencilDeferredMaterial, GetType().Name);
                 return;
             }
-
-            // Workaround for bug.
-            // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
-            // materials passed in have not finished initializing at that point if they have fallback shader defined. In particular deferred shaders only have 1 pass available,
-            // which prevents from resolving correct pass indices.
-            if (m_StencilDeferredPasses[0] < 0)
-                InitStencilDeferredMaterial();
 
             Profiler.BeginSample(k_DeferredStencilPass);
 

@@ -295,7 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return true;
             }
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha())
             {
                 return true;
             }
@@ -317,8 +317,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
-                && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
+                && (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
@@ -363,13 +366,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         inputData.RemoveAt(i);
                 }
 
-                foreach (var hdAsset in hdPipelineAssets)
+                if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
                 {
-                    if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                    foreach (var hdAsset in hdPipelineAssets)
                     {
                         m_TotalVariantsInputCount += preStrippingCount;
                         m_TotalVariantsOutputCount += (uint)inputData.Count;
-                        LogShaderVariants(shader, kernelName, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                        LogShaderVariants(shader, kernelName, HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                     }
                 }
             }
@@ -472,8 +475,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
-                && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
+                && (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
@@ -534,13 +540,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
                         inputData.RemoveAt(i);
 
-                foreach (var hdAsset in hdPipelineAssets)
+                if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
                 {
-                    if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                    foreach (var hdAsset in hdPipelineAssets)
                     {
                         m_TotalVariantsInputCount += preStrippingCount;
                         m_TotalVariantsOutputCount += (uint)inputData.Count;
-                        LogShaderVariants(shader, snippet, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                        LogShaderVariants(shader, snippet, HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                     }
                 }
             }

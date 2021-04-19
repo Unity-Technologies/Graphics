@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Ray-Traced-Global-Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -80,6 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the layers that GI should include.")]
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// The LOD Bias HDRP applies to textures in the global illumination.
+        /// </summary>
+        [Tooltip("The LOD Bias HDRP applies to textures in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.")]
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(7, 0, 7);
 
         /// <summary>
         /// Controls the length of GI rays.
@@ -159,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>

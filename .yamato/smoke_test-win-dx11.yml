@@ -85,7 +85,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -145,7 +145,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -175,7 +175,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -203,9 +203,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -239,4 +239,4 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

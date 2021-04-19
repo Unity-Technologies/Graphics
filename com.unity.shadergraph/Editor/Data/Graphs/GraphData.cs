@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -70,6 +71,15 @@ namespace UnityEditor.ShaderGraph
         public bool movedContexts => m_MovedContexts;
 
         public string assetGuid { get; set; }
+
+        #endregion
+
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 
@@ -298,7 +308,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // when in "Graph switchable" mode, we choose Half as the default concrete precision
                 // so you can visualize the worst-case
-                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+                return graphDefaultPrecision.ToConcrete(ConcretePrecision.Half);
             }
         }
 
@@ -1270,6 +1280,8 @@ namespace UnityEditor.ShaderGraph
                     else
                         m_Keywords.Insert(index, keyword);
 
+                    OnKeywordChangedNoValidate();
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -1349,7 +1361,7 @@ namespace UnityEditor.ShaderGraph
 
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
 
             switch (input)
             {

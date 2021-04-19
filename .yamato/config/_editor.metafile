@@ -1,4 +1,4 @@
-editor_priming_agent: package_ci_ubuntu_small 
+editor_priming_agent: package_ci_ubuntu_small
 editor_pin_agent: package_ci_ubuntu_small
 
 # EDITOR PINNING

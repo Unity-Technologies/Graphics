@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: Test106RenderPipelineAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 7
-  k_AssetPreviousVersion: 7
+  k_AssetVersion: 8
+  k_AssetPreviousVersion: 8
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -41,6 +41,7 @@ MonoBehaviour:
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
+  m_CascadeBorder: 0.1
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 0

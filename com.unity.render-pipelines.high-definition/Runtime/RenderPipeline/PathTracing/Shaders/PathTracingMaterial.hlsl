@@ -13,6 +13,9 @@ struct MaterialData
     bool     isSubsurface;
     float    subsurfaceWeightFactor;
 
+    // Index of refraction (if relevant)
+    float    ior;
+
     // View vector
     float3   V;
 };
