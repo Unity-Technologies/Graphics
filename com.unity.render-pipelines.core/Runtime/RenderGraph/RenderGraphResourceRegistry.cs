@@ -96,7 +96,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            return GetTextureResource(handle.handle).graphicsResource;
+            var resource = GetTextureResource(handle.handle).graphicsResource;
+            if (resource == null && handle.fallBackResource != TextureHandle.nullHandle.handle)
+                return GetTextureResource(handle.fallBackResource).graphicsResource;
+
+            return resource;
         }
 
         internal bool TextureNeedsFallback(in TextureHandle handle)

@@ -60,6 +60,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             usedRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
+            allowRendererListCulling = true;
             generateDebugData = true;
             refCount = 0;
 
