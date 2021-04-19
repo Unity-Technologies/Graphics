@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
@@ -115,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] List<int> m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -160,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
-        internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
+        internal List<int> affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
 
@@ -286,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
-            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            for (var i = 0; i < m_ApplyToSortingLayers.Count; ++i)
             {
                 for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
@@ -355,7 +356,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ApplyToSortingLayers == null)
                 return false;
 
-            for (var i = 0; i < m_ApplyToSortingLayers.Length; i++)
+            for (var i = 0; i < m_ApplyToSortingLayers.Count; i++)
                 if (m_ApplyToSortingLayers[i] == layer)
                     return true;
 
@@ -368,12 +369,7 @@ namespace UnityEngine.Rendering.Universal
                 m_NormalMapQuality = NormalMapQuality.Disabled;
 
             if (m_ApplyToSortingLayers == null)
-            {
-                // Target all sorting layers
-                m_ApplyToSortingLayers = new int[SortingLayer.layers.Length];
-                for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
-                    m_ApplyToSortingLayers[i] = SortingLayer.layers[i].id;
-            }
+                TargetAllSortingLayers();
 
             bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
             UpdateMesh(updateMesh);
@@ -421,6 +417,22 @@ namespace UnityEngine.Rendering.Universal
 
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
+        }
+
+        private void TargetAllSortingLayers()
+        {
+            var layers = SortingLayer.layers;
+            m_ApplyToSortingLayers = new List<int>(layers.Length);
+            for (int i = 0; i < layers.Length; ++i)
+                m_ApplyToSortingLayers.Add(layers[i].id);
+        }
+
+        public void OnAddSortLayer(SortingLayer layer)
+        {
+            m_ApplyToSortingLayers.RemoveAll(id => !SortingLayer.IsValid(id));
+
+            if (m_ApplyToSortingLayers.Count + 1 == SortingLayer.GetSortingLayerCount())
+                m_ApplyToSortingLayers.Add(layer.id);
         }
     }
 }

@@ -8,6 +8,11 @@ namespace UnityEngine.Rendering.Universal
 
         public static List<Light2D> lights { get; } = new List<Light2D>();
 
+        static Light2DManager()
+        {
+            SortingLayer.OnLayerAdded += OnAddSortLayer;
+        }
+
         // Called during OnEnable
         public static void RegisterLight(Light2D light)
         {
@@ -112,6 +117,12 @@ namespace UnityEngine.Rendering.Universal
                 s_SortingLayers = SortingLayer.layers;
 #endif
             return s_SortingLayers;
+        }
+
+        private static void OnAddSortLayer(SortingLayer layer)
+        {
+            foreach (var light in lights)
+                light.OnAddSortLayer(layer);
         }
     }
 }
