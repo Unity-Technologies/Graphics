@@ -16,6 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         bool IMigratableAsset.Migrate() { return false; } // must call migration once there will be migration step availables
+
+        bool IMigratableAsset.IsAtLastVersion()
+            => m_Version == MigrationDescription.LastVersion<Version>();
 #endif
     }
 }

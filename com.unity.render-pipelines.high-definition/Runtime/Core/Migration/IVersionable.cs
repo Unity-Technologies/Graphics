@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 #if UNITY_EDITOR
         bool Migrate();
+        bool IsAtLastVersion();
 #endif
     }
 }

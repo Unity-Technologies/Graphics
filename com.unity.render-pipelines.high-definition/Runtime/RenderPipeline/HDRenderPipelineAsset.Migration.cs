@@ -284,6 +284,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IMigratableAsset.Migrate()
             => Migrate();
+
+        bool IMigratableAsset.IsAtLastVersion()
+            => m_Version == MigrationDescription.LastVersion<Version>();
 #endif
 
         bool Migrate()

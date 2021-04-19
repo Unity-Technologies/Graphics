@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditorInternal;
 using UnityEditorInternal.VR;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -171,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
 
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
@@ -533,6 +533,40 @@ namespace UnityEditor.Rendering.HighDefinition
             hdrpSettings.lookDevVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpSettings);
+        }
+
+        IEnumerable<IMigratableAsset> migratableAssets
+        {
+            get
+            {
+                // Note: ideally we should grab all migratableAssets with LoadAllAsset<IMigratableAsset but this can be at high cost for big project. So we check only currently used.
+                //construct it wih all assets used in quality followed by current global settings asset
+                List<IMigratableAsset> collection = new List<IMigratableAsset>();
+                for (int i = QualitySettings.names.Length - 1; i >= 0; --i)
+                {
+                    HDRenderPipelineAsset hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                    if (hdrpAsset != null)
+                        collection.Add(hdrpAsset);
+                }
+                if (HDRenderPipelineGlobalSettings.instance)
+                {
+                    collection.Add(HDRenderPipelineGlobalSettings.instance.renderPipelineResources); //only resource that have migration
+                    collection.Add(HDRenderPipelineGlobalSettings.instance);
+                }
+                return collection;
+            }
+        }
+
+        bool IsMigratableAssetsCorrect()
+            => !migratableAssets.Any(asset => !asset.IsAtLastVersion());
+
+        void FixMigratableAssets(bool fromAsyncUnused)
+        {
+            foreach (var asset in migratableAssets)
+            {
+                if (asset.Migrate())
+                    Debug.LogWarning($"Migrated asset {AssetDatabase.GetAssetPath(asset as UnityEngine.Object)}. You should save your project to save changes.");
+            }
         }
 
         #endregion
