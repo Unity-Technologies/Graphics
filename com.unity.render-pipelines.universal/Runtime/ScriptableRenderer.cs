@@ -145,8 +145,9 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             Rect pixelRect = cameraData.pixelRect;
-            float scaledCameraWidth = (float)pixelRect.width * cameraData.renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * cameraData.renderScale;
+            float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
+            float scaledCameraWidth = (float)pixelRect.width * renderScale;
+            float scaledCameraHeight = (float)pixelRect.height * renderScale;
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
 
@@ -244,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (!m_IsPipelineExecuting)
+                if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
                 {
                     Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
@@ -266,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (!m_IsPipelineExecuting)
                 {
-                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    Debug.LogWarning("You can only call cameraDepthTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
                     // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
                 }
@@ -285,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns a list of render passes schedules to be executed by this renderer.
+        /// Returns a list of render passes scheduled to be executed by this renderer.
         /// <seealso cref="ScriptableRenderPass"/>
         /// </summary>
         protected List<ScriptableRenderPass> activeRenderPassQueue
@@ -333,6 +334,8 @@ namespace UnityEngine.Rendering.Universal
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
+        // This should be removed when early camera color target assignment is removed.
+        internal bool isCameraColorTargetValid = false;
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -377,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
             Clear(CameraRenderType.Base);
+            m_ActiveRenderPassQueue.Clear();
         }
 
         public void Dispose()
@@ -407,6 +411,12 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
+        }
+
+        // This should be removed when early camera color target assignment is removed.
+        internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
+        {
+            m_CameraColorTarget = colorTarget;
         }
 
         /// <summary>
@@ -676,8 +686,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
-
-            m_ActiveRenderPassQueue.Clear();
 
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
@@ -1042,6 +1050,7 @@ namespace UnityEngine.Rendering.Universal
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
                 }
+                m_ActiveRenderPassQueue.Clear();
             }
 
             context.ExecuteCommandBuffer(cmd);

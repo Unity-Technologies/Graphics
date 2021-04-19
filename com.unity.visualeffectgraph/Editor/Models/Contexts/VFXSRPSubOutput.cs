@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         // Caps
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
+        public virtual bool supportsExcludeFromTAA { get { return false; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies
         public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}

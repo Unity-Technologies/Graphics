@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
             public const float k_ThumbTooltipSize   = 10;
+            public const float k_KnobSize           = 10;
         }
 
         protected static class SliderStyles
@@ -42,16 +43,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedObject = serialized;
         }
 
-        public virtual void Draw(Rect rect, SerializedProperty value)
+        public virtual void Draw(Rect rect, SerializedProperty value, ref float floatValue)
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
 
             if (m_Descriptor.clampValue)
-                ClampValue(value, m_Descriptor.sliderRange);
+                ClampValue(ref floatValue, m_Descriptor.sliderRange);
 
-            var level = CurrentRange(value.floatValue);
+            var level = CurrentRange(floatValue);
 
-            DoSlider(sliderRect, value, m_Descriptor.sliderRange, level.value);
+            DoSlider(sliderRect, ref floatValue, m_Descriptor.sliderRange, level.value);
 
             if (m_Descriptor.hasMarkers)
             {
@@ -66,9 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var levelIconContent = level.content;
             var levelRange = level.value;
-            DoIcon(iconRect, levelIconContent, value, levelRange.y);
+            DoIcon(iconRect, levelIconContent, value, floatValue, levelRange.y);
 
-            var thumbValue = value.floatValue;
+            var thumbValue = floatValue;
             var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
             var thumbTooltip = levelIconContent.tooltip;
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
@@ -84,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            var cautionValue = m_Descriptor.sliderRange.y;
+            var cautionValue = value < m_Descriptor.sliderRange.x ? m_Descriptor.sliderRange.x : m_Descriptor.sliderRange.y;
             var cautionTooltip = value < m_Descriptor.sliderRange.x ? m_Descriptor.belowRangeTooltip : m_Descriptor.aboveRangeTooltip;
             return LightUnitSliderUIRange.CautionRange(cautionTooltip, cautionValue);
         }
@@ -99,8 +100,8 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
-        void ClampValue(SerializedProperty value, Vector2 range) =>
-            value.floatValue = Mathf.Clamp(value.floatValue, range.x, range.y);
+        void ClampValue(ref float value, Vector2 range) =>
+            value = Mathf.Clamp(value, range.x, range.y);
 
         private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
         private static Color k_LiteThemeColor = new Color32(97, 97, 97, 255);
@@ -118,11 +119,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // Vertically align with slider.
             markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
 
-            // Horizontally place on slider.
-            const float halfWidth = width * 0.5f;
-            markerRect.x = rect.x + rect.width * position;
+            // Horizontally place on slider. We need to take into account the "knob" size when doing this, because position 0 and 1 starts
+            // at the center of the knob when it's placed at the left and right corner respectively. We don't do this adjustment when placing
+            // the marker at the corners (to avoid havind the slider slightly extend past the marker)
+            float knobSize = (position > 0f && position < 1f) ? SliderConfig.k_KnobSize : 0f;
+            float start = rect.x + knobSize / 2f;
+            float range = rect.width - knobSize;
+            markerRect.x = start + range * position;
 
             // Center the marker on value.
+            const float halfWidth = width * 0.5f;
             markerRect.x -= halfWidth;
 
             // Clamp to the slider edges.
@@ -143,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
-        void DoIcon(Rect rect, GUIContent icon, SerializedProperty value, float range)
+        void DoIcon(Rect rect, GUIContent icon, SerializedProperty value, float floatValue, float range)
         {
             // Draw the context menu feedback before the icon
             GUI.Box(rect, GUIContent.none, SliderStyles.k_IconButton);
@@ -162,20 +168,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (rect.Contains(e.mousePosition))
                 {
                     var menuPosition = rect.position + rect.size;
-                    DoContextMenu(menuPosition, value);
+                    DoContextMenu(menuPosition, value, floatValue);
                     e.Use();
                 }
             }
         }
 
-        void DoContextMenu(Vector2 pos, SerializedProperty value)
+        void DoContextMenu(Vector2 pos, SerializedProperty value, float floatValue)
         {
             var menu = new GenericMenu();
 
             foreach (var preset in m_Descriptor.valueRanges)
             {
                 // Indicate a checkmark if the value is within this preset range.
-                var isInPreset = CurrentRange(value.floatValue).value == preset.value;
+                var isInPreset = CurrentRange(floatValue).value == preset.value;
 
                 menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
             }
@@ -218,17 +224,17 @@ namespace UnityEditor.Rendering.HighDefinition
             return new GUIContent(string.Empty, tooltip);
         }
 
-        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
         {
-            DoSlider(rect, value, sliderRange);
+            DoSlider(rect, ref value, sliderRange);
         }
 
         /// <summary>
         /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
         /// </summary>
-        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, sliderRange.x, sliderRange.y);
+            value = GUI.HorizontalSlider(rect, value, sliderRange.x, sliderRange.y);
         }
 
         // Remaps value in the domain { Min0, Max0 } to { Min1, Max1 } (by default, normalizes it to (0, 1).
@@ -338,36 +344,36 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        void SliderOutOfBounds(Rect rect, SerializedProperty value)
+        void SliderOutOfBounds(Rect rect, ref float value)
         {
             EditorGUI.BeginChangeCheck();
-            var internalValue = GUI.HorizontalSlider(rect, value.floatValue, 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, value, 0f, 1f);
             if (EditorGUI.EndChangeCheck())
             {
                 Piece p = new Piece();
                 UpdatePiece(ref p, internalValue);
-                value.floatValue = SliderToValue(p, internalValue);
+                value = SliderToValue(p, internalValue);
             }
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        protected override void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
         {
             // Map the internal slider value to the current piecewise function
             if (!m_PiecewiseFunctionMap.TryGetValue(valueRange, out var piece))
             {
                 // Assume that if the piece is not found, that means the unit value is out of bounds.
-                SliderOutOfBounds(rect, value);
+                SliderOutOfBounds(rect, ref value);
                 return;
             }
 
             // Maintain an internal value to support a single linear continuous function
             EditorGUI.BeginChangeCheck();
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value.floatValue), 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value), 0f, 1f);
             if (EditorGUI.EndChangeCheck())
             {
                 // Ensure that the current function piece is being used to transform the value
                 UpdatePiece(ref piece, internalValue);
-                value.floatValue = SliderToValue(piece, internalValue);
+                value = SliderToValue(piece, internalValue);
             }
         }
     }
@@ -404,18 +410,15 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SpotReflectorEnabled = light.enableSpotReflector.boolValue;
         }
 
-        public override void Draw(Rect rect, SerializedProperty value)
+        public override void Draw(Rect rect, SerializedProperty value, ref float floatValue)
         {
             // Convert the incoming unit value into Lumen as the punctual slider is always in these terms (internally)
-            value.floatValue = UnitToLumen(value.floatValue);
+            float convertedValue = UnitToLumen(floatValue);
 
-            base.Draw(rect, value);
-
-            value.floatValue = LumenToUnit(value.floatValue);
-
-            // Must apply properties here to ensure proper undo/redo functionality.
-            // The reason this is likely necessary is due to how we handle the internal unit conversion into lumen.
-            m_Light.Apply();
+            EditorGUI.BeginChangeCheck();
+            base.Draw(rect, value, ref convertedValue);
+            if (EditorGUI.EndChangeCheck())
+                floatValue = LumenToUnit(convertedValue);
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -551,27 +554,29 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Settings.ApplyModifiedProperties();
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
+        protected override void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
-            SliderWithTextureNoTextField(rect, value, sliderRange, m_Settings);
+            SliderWithTextureNoTextField(rect, ref value, sliderRange, m_Settings);
         }
 
         // Note: We could use the internal SliderWithTexture, however: the internal slider func forces a text-field (and no ability to opt-out of it).
-        void SliderWithTextureNoTextField(Rect rect, SerializedProperty value, Vector2 range, LightEditor.Settings settings)
+        void SliderWithTextureNoTextField(Rect rect, ref float value, Vector2 range, LightEditor.Settings settings)
         {
             GUI.DrawTexture(rect, GetKelvinGradientTexture(settings));
 
             EditorGUI.BeginChangeCheck();
 
             // Draw the exponential slider that fits 6500K to the white point on the gradient texture.
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value.floatValue), 0f, 1f, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
-
-            // Map the value back into kelvin.
-            value.floatValue = SliderToValue(internalValue);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
 
             // Round to nearest since so much precision is not necessary for kelvin while sliding.
             if (EditorGUI.EndChangeCheck())
-                value.floatValue = Mathf.Round(value.floatValue);
+            {
+                // Map the value back into kelvin.
+                value = SliderToValue(internalValue);
+
+                value = Mathf.Round(value);
+            }
         }
     }
 
@@ -620,20 +625,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDirectionalUnitSlider(SerializedProperty value, Rect rect)
         {
-            k_DirectionalLightUnitSlider.Draw(rect, value);
+            float val = value.floatValue;
+            k_DirectionalLightUnitSlider.Draw(rect, value, ref val);
+            if (val != value.floatValue)
+                value.floatValue = val;
         }
 
         void DrawPunctualLightUnitSlider(LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
         {
             k_PunctualLightUnitSlider.Setup(lightUnit, light, owner);
-            k_PunctualLightUnitSlider.Draw(rect, value);
+
+            float val = value.floatValue;
+            k_PunctualLightUnitSlider.Draw(rect, value, ref val);
+            if (val != value.floatValue)
+                value.floatValue = val;
         }
 
         public void DrawExposureSlider(SerializedProperty value, Rect rect)
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                k_ExposureSlider.Draw(rect, value);
+                float val = value.floatValue;
+                k_ExposureSlider.Draw(rect, value, ref val);
+                if (val != value.floatValue)
+                    value.floatValue = val;
             }
         }
 
@@ -642,7 +657,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 k_TemperatureSlider.Setup(settings);
-                k_TemperatureSlider.Draw(rect, value);
+
+                float val = value.floatValue;
+                k_TemperatureSlider.Draw(rect, value, ref val);
+                if (val != value.floatValue)
+                    value.floatValue = val;
             }
         }
     }

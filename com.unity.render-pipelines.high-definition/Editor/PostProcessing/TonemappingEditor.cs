@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
-            
+
             m_Mode             = Unpack(o.Find(x => x.mode));
             m_ToeStrength      = Unpack(o.Find(x => x.toeStrength));
             m_ToeLength        = Unpack(o.Find(x => x.toeLength));

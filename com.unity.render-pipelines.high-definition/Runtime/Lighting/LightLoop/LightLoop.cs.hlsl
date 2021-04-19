@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTLOOP_CS_HLSL
@@ -19,9 +19,10 @@
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
 #define LIGHTCATEGORY_PROBE_VOLUME (3)
-#define LIGHTCATEGORY_DECAL (4)
-#define LIGHTCATEGORY_DENSITY_VOLUME (5)
-#define LIGHTCATEGORY_COUNT (6)
+#define LIGHTCATEGORY_MASK_VOLUME (4)
+#define LIGHTCATEGORY_DECAL (5)
+#define LIGHTCATEGORY_DENSITY_VOLUME (6)
+#define LIGHTCATEGORY_COUNT (7)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -136,7 +137,7 @@ float3 GetCenter(SFiniteLightBound value)
 {
     return value.center;
 }
-float2 GetScaleXY(SFiniteLightBound value)
+float GetScaleXY(SFiniteLightBound value)
 {
     return value.scaleXY;
 }

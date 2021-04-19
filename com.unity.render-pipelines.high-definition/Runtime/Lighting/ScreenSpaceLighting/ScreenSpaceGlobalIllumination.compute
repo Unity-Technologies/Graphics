@@ -25,10 +25,15 @@
 // Epslon value used for the computation
 #define GI_TRACE_EPS 0.00024414
 
+#define PERCEPTUAL_SPACE
+
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
 // Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
 
 // Constant buffer that holds all scalar that we need
 CBUFFER_START(UnityScreenSpaceGlobalIllumination)
@@ -38,6 +43,8 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseProbeFallbackFlag;
     int _IndirectDiffuseProbeFallbackBias;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
+    int _SsrStencilBit;
+    int _IndirectDiffuseFrameIndex;
 CBUFFER_END
 
 // Output texture that holds the hit point NDC coordinates
@@ -58,7 +65,7 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
         // We start tracing from the center of the current pixel, and do so up to the far plane.
         float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
 
-        float3 sampledPosWS  = positionWS + sampleDir * 0.01;
+        float3 sampledPosWS  = positionWS + sampleDir * 0.001;
         float3 sampledPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledPosWS, UNITY_MATRIX_VP); // Jittered
         float3 sampledPosSS  = float3(sampledPosNDC.xy * _ScreenSize.xy, sampledPosNDC.z);
 
@@ -202,27 +209,20 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     uint2 currentCoord = dispatchThreadId.xy;
 
 #if HALF_RES
-    // Fetch the mipoffset for the second mip (half res)
-    int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
-    // Grab the depth of the half res pixel (better than grabbing a random one across the 4 candidates or averaging)
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    uint2 fullResCoord = currentCoord * 2;
-#else
+    currentCoord = currentCoord * 2;
+#endif
+
     // Read the depth value as early as possible
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-#endif
+
     // Initialize the hitpoint texture to a miss
-    _IndirectDiffuseHitPointTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float2(99.0, 0.0);
+    _IndirectDiffuseHitPointTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float2(99.0, 0.0);
 
     // Read the pixel normal
     NormalData normalData;
-#if HALF_RES
-    // For half resolution, we take the top left corner (0, 0) in the upscaled 2x2 pixel neighborhood
-    DecodeFromNormalBuffer(fullResCoord.xy, normalData);
-#else
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
-#endif
+
     // Generete a new direction to follow
     float2 newSample;
     newSample.x = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 0);
@@ -237,11 +237,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     // If this is a background pixel, we flag the ray as a dead ray (we are also trying to keep the usage of the depth buffer the latest possible)
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
     // Convert this to a world space position (camera relative)
-#if HALF_RES
-    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-#else
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-#endif 
 
     // Compute the view direction (world space)
     float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -262,7 +258,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _IndirectDiffuseHitPointTextureRW[COORD_TEXTURE2D_X(currentCoord)] = hitPositionNDC;
+        _IndirectDiffuseHitPointTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = hitPositionNDC;
     }
 }
 
@@ -306,19 +302,14 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
 #if HALF_RES
-    // Fetch the mipoffset for the second mip (given that we are in half res)
-    int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
-
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    uint2 fullResCoord = currentCoord * 2;
-#else
-    // Fetch the depth of the current pixel
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    currentCoord = currentCoord * 2;
 #endif
 
+    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
     // Read the hit point ndc position to fetch
-    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_IndirectDiffuseHitPointTexture, currentCoord).xy;
+    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_IndirectDiffuseHitPointTexture, dispatchThreadId.xy).xy;
 
     // Grab the depth of the hit point
     float hitPointDepth = LOAD_TEXTURE2D_X(_DepthTexture, hitPositionNDC * _ScreenSize.xy).x;
@@ -332,7 +323,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Fetch the motion vector of the current target pixel
     float2 motionVectorNDC;
-    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC, 0), motionVectorNDC);
 
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
@@ -362,20 +353,17 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // We need to recreate the direction that was generated
     float2 newSample;
-    newSample.x = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 0);
-    newSample.y = GetBNDSequenceSample(currentCoord.xy, _RaytracingFrameIndex, 1);
+    newSample.x = GetBNDSequenceSample(currentCoord.xy, _IndirectDiffuseFrameIndex, 0);
+    newSample.y = GetBNDSequenceSample(currentCoord.xy, _IndirectDiffuseFrameIndex, 1);
 
     // Read the pixel normal
     NormalData normalData;
-#if HALF_RES
-    // For half resolution, we take the top left corner (0, 0) in the upscaled 2x2 pixel neighborhood
-    DecodeFromNormalBuffer(fullResCoord.xy, normalData);
-#else
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
-#endif
 
+#ifdef PERCEPTUAL_SPACE
     // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal
     color = color / (1.0 + color);
+#endif
 
     // Re-compute the direction that was used to do the generation
     float3 sampleDir = SampleHemisphereCosine(newSample.x, newSample.y, normalData.normalWS);
@@ -388,8 +376,8 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // We are simply interested to know if the intersected pixel was moving, so we multiply it by a big number
     // TODO: make this process not binary
     // Write the output to the target pixel
-    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(outYSH);
-    _IndirectDiffuseTexture1RW[COORD_TEXTURE2D_X(currentCoord)] = float4(outCoCg, invalid ? 0.0 : 1.0, length(motionVectorNDC * 10000.0f));
+    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(outYSH);
+    _IndirectDiffuseTexture1RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(outCoCg, invalid ? 0.0 : 1.0, length(motionVectorNDC * 10000.0f));
 }
 
 void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out float3 outColor)
@@ -419,49 +407,47 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Fetch the current pixel coordinate
-    uint2 currentCoord = groupId * INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
+    uint2 currentCoord = dispatchThreadId.xy;
 
     // If the depth of this pixel is the depth of the background, we can end the process right away
 #if HALF_RES
-    // Fetch the mipoffset for the second mip (given that we are in half res)
-    int2 mipOffset =  _DepthPyramidMipLevelOffsets[1];
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, mipOffset + currentCoord).x;
+    currentCoord = currentCoord * 2;
+#endif
 
-    // Compute the full resolution pixel for the inputs that do not have a pyramid
-    uint2 fullResCoord = currentCoord * 2;
-#else
     // Fetch the depth of the current pixel
     float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-#endif
+
     if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+        _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.0, 0.0, 0.0, 0.0);
         return;
     }
 
     // Fetch the normal
     NormalData normalData;
-#if HALF_RES
-    // For half resolution, we take the top left corner (0, 0) in the upscaled 2x2 pixel neighborhood
-    DecodeFromNormalBuffer(fullResCoord.xy, normalData);
-#else
     DecodeFromNormalBuffer(currentCoord.xy, normalData);
-#endif
 
     // Convert the signal back to a color
     float3 color;
-    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)]; 
-    float3 cocgB = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1, currentCoord).xyz;
+    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float3 cocgB = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1, dispatchThreadId.xy).xyz;
     ConvertYCoCgToRGBUtil(ySH, cocgB.xy, normalData.normalWS, color);
 
+#ifdef PERCEPTUAL_SPACE
     // We invert the tonemap
     color = color / (1.0 - color);
 
     // The mulitplication is wrong, but with all the approximations that we need to compensate a bit
     // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness). 
     // This has been experimentally tested. However, it needs more testing and potetially reverted if found more harmful than useful
-    color *= (lerp(2.5, 1.0, cocgB.z));
+    color *= (lerp(5.0, 1.0, cocgB.z));
+#endif
+
+    // Does this pixel recieve SSGI?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        cocgB.z = 0.0;
 
     // Output the color as well as the blend factor
-    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(color, cocgB.z);
+    _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, cocgB.z);
 }

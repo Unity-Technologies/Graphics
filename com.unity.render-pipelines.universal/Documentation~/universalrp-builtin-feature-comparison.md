@@ -1,8 +1,8 @@
 # Feature comparison table
 
-This table provides an overview of the current features supported in the Universal Render Pipeline (URP), compared to the Unity Built-in render pipeline. 
+This table provides an overview of the current features supported in the Universal Render Pipeline (URP), compared to the Unity Built-in render pipeline.
 
-**Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
+**Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release.
 
 
 | Feature | Built-in Render Pipeline<br/>Unity 2018.x, 2019.x, 2020.x. | Universal Render Pipeline |
@@ -163,7 +163,7 @@ This table provides an overview of the current features supported in the Univers
 | Multipass                                                    | Yes                                                          | Yes                                                  |
 | Single Pass                                                  | Yes                                                          | Yes                                                          |
 | Single Pass Instanced                                        | Yes                                                          | Yes                                                          |
-| *Post-processing*<br>Oculus Rift<br/>Oculus Quest</br>Oculus Go<br/>Gear VR<br/>PSVR</br>HoloLens<br/>WMR<br/>Magic Leap One<br/>OpenVR| <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>No |
+| *Post-processing*<br>Oculus Rift<br/>Oculus Quest</br>PSVR</br>HoloLens<br/>WMR<br/>Magic Leap One | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes |
 | ***AR***                                                     |                                                              |                                                              |
 | AR Foundation                 | Yes                       | Yes                       |
 | ***Debug***                                                  |                                                              |                                                              |

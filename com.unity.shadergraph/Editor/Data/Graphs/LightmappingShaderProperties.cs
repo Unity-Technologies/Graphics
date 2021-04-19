@@ -6,9 +6,9 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public class LightmapTextureArrayProperty : Texture2DArrayShaderProperty
         {
-            internal override string GetPropertyDeclarationString(string delimiter = ";")
+            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
             {
-                return String.Empty;
+                // no declaration from ShaderGraph side -- declared by SRP internal include files
             }
 
             internal override string GetPropertyAsArgumentString()
@@ -21,7 +21,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "unity_Lightmaps",
             generatePropertyBlock = true,
-            gpuInstanced = false,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_Lightmaps",
@@ -32,7 +33,8 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 displayName = "unity_LightmapsInd",
                 generatePropertyBlock = true,
-                gpuInstanced = false,
+                overrideHLSLDeclaration = false,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 hidden = true,
                 modifiable = true,
                 overrideReferenceName = "unity_LightmapsInd",
@@ -43,7 +45,8 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "unity_ShadowMasks",
             generatePropertyBlock = true,
-            gpuInstanced = false,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             hidden = true,
             modifiable = true,
             overrideReferenceName = "unity_ShadowMasks",

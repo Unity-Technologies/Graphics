@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -148,11 +148,18 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
     uint _EnableDecalLayers;
+    float2 _ProbeVolumeBilateralFilterOctahedralDepthParameters;
+    float _Pad8;
+    float _Pad9;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
-    float _Pad8;
-    float _Pad9;
+    float _SpecularOcclusionBlend;
+    int _HybridDeformedVertexStreamIndex;
+    float4 _MaskVolumeAtlasResolutionAndSliceCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCountInverse;
+    uint _EnableMaskVolumes;
+    uint _MaskVolumeCount;
 CBUFFER_END
 
 

@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal void Reset()
         {
-            if (profile.hash == 0)
+            if (profile != null && profile.hash == 0)
             {
                 profile.ResetToDefault();
                 profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);

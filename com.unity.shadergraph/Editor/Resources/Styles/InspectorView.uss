@@ -12,7 +12,7 @@
     min-width: 100px;
     min-height: 100px;
     width: 300px;
-    height: 400px;
+    height: 275px;
 }
 
 .InspectorView > .mainContainer {
@@ -30,6 +30,8 @@
     flex-direction: column;
     flex-grow: 1;
     align-items: stretch;
+    padding-bottom: 15px;
+
 }
 
 .InspectorView > .mainContainer > #content > #header {
@@ -39,6 +41,20 @@
     padding: 8px;
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > {
+    padding-bottom: 12;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+    bottom: 12;
+}
+
+.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+    right: 12;
 }
 
 #labelContainer {

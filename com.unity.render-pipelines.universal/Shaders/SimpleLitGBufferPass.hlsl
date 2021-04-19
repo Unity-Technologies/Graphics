@@ -88,6 +88,9 @@ Varyings LitPassVertexSimple(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#if defined(DOTS_INSTANCINT_ON)
+    ReadComputeData(input.positionOS, input.normalOS, input.tangentOS, input.vertexID);
+#endif
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);

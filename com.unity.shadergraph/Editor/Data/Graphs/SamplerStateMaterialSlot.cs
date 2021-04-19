@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -21,13 +22,35 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        [SerializeField]
+        bool m_BareResource = false;
+        internal override bool bareResource
+        {
+            get { return m_BareResource; }
+            set { m_BareResource = value; }
+        }
+
+        public override void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
+        {
+            if (m_BareResource)
+            {
+                // we have to use our modified macro declaration here, to ensure that something is declared for GLES2 platforms
+                // (the standard SAMPLER macro doesn't declare anything, so the commas will be messed up in the parameter list)
+                sb.Append("UNITY_BARE_SAMPLER(");
+                sb.Append(paramName);
+                sb.Append(")");
+            }
+            else
+                base.AppendHLSLParameterDeclaration(sb, paramName);
+        }
+
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat";
+            return "UnityBuildSamplerStateStruct(SamplerState_Linear_Repeat)";
         }
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
@@ -36,8 +59,8 @@ namespace UnityEditor.ShaderGraph
         
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             properties.AddShaderProperty(new SamplerStateShaderProperty()
@@ -47,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                     filter = TextureSamplerState.FilterMode.Linear,
                     wrap = TextureSamplerState.WrapMode.Repeat
                 },
-                overrideReferenceName = $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat",
+                overrideReferenceName = "SamplerState_Linear_Repeat",
                 generatePropertyBlock = false,
             });
         }

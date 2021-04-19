@@ -126,15 +126,18 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly int indent;
             public readonly bool forceDisplayCheck;
             public readonly bool skipErrorIcon;
-            public Entry(InclusiveScope scope, Style.ConfigStyle configStyle, Checker check, Fixer fix, bool forceDisplayCheck = false, bool skipErrorIcon = false)
+            public readonly bool displayAssetName;
+
+            public Entry(InclusiveScope scope, Style.ConfigStyle configStyle, Checker check, Fixer fix, bool forceDisplayCheck = false, bool skipErrorIcon = false, bool displayAssetName = false)
             {
                 this.scope = scope;
                 this.configStyle = configStyle;
                 this.check = check;
                 this.fix = fix;
                 this.forceDisplayCheck = forceDisplayCheck;
-                indent = scope == InclusiveScope.HDRPAsset || scope == InclusiveScope.XRManagement || scope == InclusiveScope.DXROptional ? 1 : 0;
+                indent = scope == InclusiveScope.HDRPAsset || scope == InclusiveScope.XRManagement ? 1 : 0;
                 this.skipErrorIcon = skipErrorIcon;
+                this.displayAssetName = displayAssetName;
             }
         }
 
@@ -177,11 +180,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
 
                         // Optional checks
-                        new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
-                        new Entry(InclusiveScope.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
-
+                        new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadowFS, IsDXRScreenSpaceShadowFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrReflectionsFS, IsDXRReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflections, IsDXRTransparentReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
+                        new Entry(InclusiveScope.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
                     };
                 return m_Entries;
             }
@@ -397,15 +403,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrpAsset == null)
                 return;
 
-            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
-            hdrpAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
-            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
+            var runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
+            hdrpAsset.renderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
+            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources,
                 HDUtils.GetHDRenderPipelinePath()))
             {
                 InternalEditorUtility.SaveToSerializedFileAndForget(
-                    new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineEditorResources },
-                    editorResourcesPath,
+                    new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineResources },
+                    runtimeResourcesPath,
                     true);
             }
         }
@@ -652,19 +658,67 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
 
+        bool IsDXRScreenSpaceShadowFSCorrect()
+        {
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset != null)
+            {
+                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                return defaultCameraFS.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
+            }
+            else
+                return false;
+        }
+
         bool IsDXRReflectionsCorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSR;
+
+        bool IsDXRReflectionsFSCorrect()
+        {
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset != null)
+            {
+                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                return defaultCameraFS.IsEnabled(FrameSettingsField.SSR);
+            }
+            else
+                return false;
+        }
 
         bool IsDXRTransparentReflectionsCorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSRTransparent;
 
+        bool IsDXRTransparentReflectionsFSCorrect()
+        {
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset != null)
+            {
+                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                return defaultCameraFS.IsEnabled(FrameSettingsField.TransparentSSR);
+            }
+            else
+                return false;
+        }
+
         bool IsDXRGICorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSGI;
 
-		bool IsArchitecture64Bits()
+        bool IsDXRGIFSCorrect()
+        {
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.currentAsset;
+            if (hdrpAsset != null)
+            {
+                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
+            }
+            else
+                return false;
+        }
+
+        bool IsArchitecture64Bits()
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
 		void FixArchitecture64Bits(bool fromAsyncUnused)
 		{
@@ -694,7 +748,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion
 
-        #region Packman
+        #region Package Manager
 
         const string k_HdrpPackageName = "com.unity.render-pipelines.high-definition";
         const string k_HdrpConfigPackageName = "com.unity.render-pipelines.high-definition-config";
@@ -763,8 +817,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void RefreshDisplayOfConfigPackageArea()
         {
-            if (!m_UsedPackageRetriever.isRunning)
-                IsLocalConfigurationPackageInstalledAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
+            IsLocalConfigurationPackageInstalledAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
         }
 
         static void CopyFolder(string sourceFolder, string destFolder)
@@ -857,72 +910,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
-
-        class LastAvailablePackageVersionRetriever
-        {
-            PackageManager.Requests.SearchRequest m_CurrentRequest;
-            Action<string> m_CurrentAction;
-            string m_CurrentPackageName;
-
-            Queue<(string packageName, Action<string> action)> m_Queue = new Queue<(string packageName, Action<string> action)>();
-
-            bool isCurrentInProgress => m_CurrentRequest != null && !m_CurrentRequest.Equals(null) && !m_CurrentRequest.IsCompleted;
-
-            public bool isRunning => isCurrentInProgress || m_Queue.Count() > 0;
-
-            public void ProcessAsync(string packageName, Action<string> action)
-            {
-                if (isCurrentInProgress)
-                    m_Queue.Enqueue((packageName, action));
-                else
-                    Start(packageName, action);
-            }
-
-            void Start(string packageName, Action<string> action)
-            {
-                m_CurrentAction = action;
-                m_CurrentPackageName = packageName;
-                m_CurrentRequest = PackageManager.Client.Search(packageName, offlineMode: false);
-                EditorApplication.update += Progress;
-            }
-
-            void Progress()
-            {
-                //Can occures on Wizard close or if scripts reloads
-                if (m_CurrentRequest == null || m_CurrentRequest.Equals(null))
-                {
-                    EditorApplication.update -= Progress;
-                    return;
-                }
-
-                if (m_CurrentRequest.IsCompleted)
-                    Finished();
-            }
-
-            void Finished()
-            {
-                EditorApplication.update -= Progress;
-                if (m_CurrentRequest.Status == PackageManager.StatusCode.Success)
-                {
-                    string lastVersion = m_CurrentRequest.Result[0].versions.latestCompatible;
-                    m_CurrentAction?.Invoke(lastVersion);
-                }
-                else if (m_CurrentRequest.Status >= PackageManager.StatusCode.Failure)
-                    Debug.LogError($"Failed to find package {m_CurrentPackageName}. Reason: {m_CurrentRequest.Error.message}");
-                else
-                    Debug.LogError("Unsupported progress state " + m_CurrentRequest.Status);
-
-                m_CurrentRequest = null;
-
-                if (m_Queue.Count > 0)
-                {
-                    (string packageIdOrName, Action<string> action) = m_Queue.Dequeue();
-                    EditorApplication.delayCall += () => Start(packageIdOrName, action);
-                }
-            }
-        }
-        LastAvailablePackageVersionRetriever m_LastAvailablePackageRetriever = new LastAvailablePackageVersionRetriever();
-
+        
         class PackageInstaller
         {
             PackageManager.Requests.AddRequest m_CurrentRequest;

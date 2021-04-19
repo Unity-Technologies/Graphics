@@ -4,6 +4,62 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.3.1] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.3.0] - 2020-11-16
+
+### Added
+- Added support for the PlayStation 5 platform.
+
+### Fixed
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
+- Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
+- Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed an issue where Universal Render Pipeline with disabled antiAliasing was overwriting QualitySettings.asset on frequent cases. [case 1219159](https://issuetracker.unity3d.com/issues/urp-qualitysettings-dot-asset-file-gets-overwritten-with-the-same-content-when-the-editor-is-closed)
+- Fixed a case where overlay camera with output texture caused base camera not to render to screen. [case 1283225](https://issuetracker.unity3d.com/issues/game-view-renders-a-black-view-when-having-an-overlay-camera-which-had-output-texture-assigned-in-the-camera-stack)
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed an issue so it is now possible to enqueue render passes at runtime.
+- Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
+
+## [10.2.0] - 2020-10-19
+
+### Added
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
+
+### Changed
+- Changed RenderObjectsFeature UI to only expose valid events. Previously, when selecting events before BeforeRenderingPrepasses objects would not be drawn correctly as stereo and camera setup only happens before rendering opaques objects.
+- Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
+- Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
+
+### Fixed
+- Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
+- Fixed an issue with soft particles not rendering correctly for overlay cameras with post processing. [case 1241626](https://issuetracker.unity3d.com/issues/soft-particles-does-not-fade-out-near-the-opaque-surfaces-when-post-processing-is-enabled-on-a-stacked-camera)
+- Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
+- Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
+- Fixed camera renders black in XR when user sets invalid MSAA value.
+- Fixed an issue causing additional lights to stop working when set as the sun source. [case 1278768](https://issuetracker.unity3d.com/issues/urp-every-light-type-is-rendered-as-directional-light-if-it-is-set-as-sun-source-of-the-environment)
+- Fixed an issue that caused a null reference when Lift Gamma Gain was being displayed in the Inspector and URP was upgraded to a newer version.  [case 1283588](https://issuetracker.unity3d.com/issues/argumentnullexception-is-thrown-when-upgrading-urp-package-and-volume-with-lift-gamma-gain-is-focused-in-inspector)
+- Fixed an issue where soft particles were not rendered when depth texture was disabled in the URP Asset. [case 1162556](https://issuetracker.unity3d.com/issues/lwrp-unlit-particles-shader-is-not-rendered-when-soft-particles-are-enabled-on-built-application)
+- Fixed an issue where soft particles were rendered opaque on OpenGL. [case 1226288](https://issuetracker.unity3d.com/issues/urp-objects-that-are-using-soft-particles-are-rendered-opaque-when-opengl-is-used)
+- Fixed an issue where the depth texture sample node used an incorrect texture in some frames. [case 1268079](https://issuetracker.unity3d.com/issues/urp-depth-texture-sample-node-does-not-use-correct-texture-in-some-frames)
+- Fixed MSAA on Metal MacOS and Editor.
+- Fixed an issue causing passthrough camera to not render. [case 1283894](https://issuetracker.unity3d.com/product/unity/issues/guid/1283894/) 
+- Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
+- Fixed a compiler error in BakedLit shader when using Hybrid Renderer.
+- Fixed XR camera fov can be changed through camera inspector.
+- Fixed LightProbes to have gamma correct when using gamma color space. [case 1268911](https://issuetracker.unity3d.com/issues/urp-has-no-gamma-correction-for-lightprobes)
+- Fixed an issue causing materials to be upgraded multiple times.
+- Fixed an issue where the Camera inspector was grabbing the URP asset in Graphics Settings rather than the currently active.
+- Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
+- Fixed an issue where the scene view camera ignored the pipeline assets HDR setting. [case 1284369](https://issuetracker.unity3d.com/issues/urp-scene-view-camera-ignores-pipeline-assets-hdr-settings-when-main-camera-uses-pipeline-settings)
+- Fixed bloom inconsistencies between Gamma and Linear color-spaces.
+- Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
+- Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+
 ## [10.1.0] - 2020-10-12
 ### Added
 - Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
@@ -42,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC when using XR single-pass automated tests.
 - Fixed an issue that caused a null reference when deleting camera component in a prefab. [case 1244430](https://issuetracker.unity3d.com/issues/urp-argumentnullexception-error-is-thrown-on-removing-camera-component-from-camera-prefab)
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
+- Fixed indirect albedo not working with shadergraph shaders in some rare setups. [case 1274967](https://issuetracker.unity3d.com/issues/gameobjects-with-custom-mesh-are-not-reflecting-the-light-when-using-the-shader-graph-shaders)
 - Fixed XR mirroView sRGB issue when color space is gamma.
 - Fixed an issue where XR eye textures are recreated multiple times per frame due to per camera MSAA change.
 - Fixed an issue wehre XR mirror view selector stuck. 
@@ -51,6 +108,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where multiple cameras would cause GC each frame. [case 1259717](https://issuetracker.unity3d.com/issues/urp-scriptablerendercontext-dot-getcamera-array-dot-resize-creates-garbage-every-frame-when-more-than-one-camera-is-active)
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
+- Fixed slow down in the editor when editing properties in the UI for renderer features. [case 1279804](https://issuetracker.unity3d.com/issues/a-short-freeze-occurs-in-the-editor-when-expanding-or-collapsing-with-the-arrow-the-renderer-feature-in-the-forward-renderer)
 
 ## [10.0.0] - 2020-06-10
 ### Added

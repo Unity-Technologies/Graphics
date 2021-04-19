@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader colorPyramidPS;
             [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
             public ComputeShader depthPyramidCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
+            public ComputeShader maxZCS;
+
             [Reload("Runtime/Core/CoreResources/GPUCopy.compute")]
             public ComputeShader copyChannelCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute")]
@@ -93,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
+            [Reload("Runtime/Material/MaskVolume/MaskVolumeAtlasBlit.compute")]
+            public ComputeShader maskVolumeAtlasBlitCS;
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
@@ -112,6 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader blitPS;
             [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
             public Shader blitColorAndDepthPS;
+            [Reload("Runtime/ShaderLibrary/Blit3d.compute")]
+            public ComputeShader blit3dCS;
 
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
@@ -418,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
         }
 

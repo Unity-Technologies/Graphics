@@ -57,6 +57,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         string m_ObjectId = Guid.NewGuid().ToString("N");
 
         internal void OverrideObjectId(string namespaceUid, string newObjectId) { m_ObjectId = GenerateNamespaceUUID(namespaceUid, newObjectId).ToString("N"); }
+        internal void OverrideObjectId(string newObjectId) { m_ObjectId = newObjectId; }
 
         public string objectId => m_ObjectId;
 

@@ -25,7 +25,7 @@ class Project_AllJob():
                 for test_platform in dep["test_platforms"]:
                         
                     file = project_filepath_specific(project_dep, dep["platform"], dep["api"])
-                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform, editor["name"])
+                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["name"],dep["build_config"],dep["color_space"])
 
                     dependencies.append({
                             'path' : f'{file}#{job_id}',
@@ -36,6 +36,9 @@ class Project_AllJob():
         job.set_name(f'All {project} CI - {editor["name"]}')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["track"])
+        if project == "URP_Performance_BoatAttack":
+            job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
+            job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
         return job
     
     

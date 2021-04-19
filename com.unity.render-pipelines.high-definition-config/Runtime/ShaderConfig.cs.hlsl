@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERCONFIG_CS_HLSL
@@ -26,6 +26,12 @@
 #define PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH (2)
 
 //
+// UnityEngine.Rendering.HighDefinition.ProbeVolumesBilateralFilteringModes:  static fields
+//
+#define PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_APPROXIMATE_SAMPLE (0)
+#define PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_PRECISE_LOAD (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.ShaderOptions:  static fields
 //
 #define SHADEROPTIONS_COLORED_SHADOW (1)
@@ -36,6 +42,7 @@
 #define SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE (2)
 #define SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING (1)
 #define SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE (1)
+#define SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_SAMPLE_MODE (0)
 #define SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE (2)
 #define SHADEROPTIONS_AREA_LIGHTS (1)
 #define SHADEROPTIONS_BARN_DOOR (0)

@@ -107,14 +107,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var mesh in meshRenderers)
             {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                 mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
             }
 
             var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
 
             foreach (var terrain in terrains)
             {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
                 terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
             }
         }
 
@@ -131,13 +135,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     MeshRenderer mesh;
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                         mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
                     }
 
                     Terrain terrain;
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
                         terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
                     }
                 }
             }
@@ -173,14 +181,14 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom FullScreen Pass")]
         static void MenuCreateCustomFullScreenPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom Renderers Pass")]
         static void MenuCreateCustomRenderersPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
@@ -201,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";

@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
         public static implicit operator RenderTargetIdentifier(RTHandle handle)
         {
-            return handle.nameID;
+            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
         }
 
         internal void SetRenderTexture(RenderTexture rt)

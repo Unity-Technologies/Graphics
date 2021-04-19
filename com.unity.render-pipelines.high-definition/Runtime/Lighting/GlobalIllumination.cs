@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
-        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1.0f);
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.2f, 0.0f, 0.5f);
 
         GlobalIllumination()
         {

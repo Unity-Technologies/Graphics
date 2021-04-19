@@ -52,7 +52,7 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 | **- Rendering Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For more information on this property, see the [Surface Type documentation](Surface-Type.md). |
 | **Double-Sided**     | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.md). |
 | **Receive Decals**   | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR**      | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. |
+| **Receive SSR (Transparent)**  | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type. |
 
 ### Main Mapping Configuration
 

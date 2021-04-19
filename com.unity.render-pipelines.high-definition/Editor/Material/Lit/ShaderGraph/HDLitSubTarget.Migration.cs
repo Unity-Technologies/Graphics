@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.dotsInstancing = false;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
             builtinData.addPrecomputedVelocity = false;
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
@@ -106,10 +106,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdLitMasterNode.m_RenderingPass;
+            systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdLitMasterNode.m_RenderingPass);
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && !hdLitMasterNode.m_DrawBeforeRefraction)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
             // Patch rendering pass in case the master node had an old configuration
-            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
-                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
@@ -154,16 +156,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
 
@@ -173,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDLitMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { HDLitMasterNode1.SlotMask.Normal, normalBlock },
                 { HDLitMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { HDLitMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
+                { HDLitMasterNode1.SlotMask.Tangent, tangentBlock },
                 { HDLitMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
                 { HDLitMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
                 { HDLitMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },
@@ -181,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDLitMasterNode1.SlotMask.IridescenceMask, HDBlockFields.SurfaceDescription.IridescenceMask },
                 { HDLitMasterNode1.SlotMask.IridescenceLayerThickness, HDBlockFields.SurfaceDescription.IridescenceThickness },
                 { HDLitMasterNode1.SlotMask.Specular, BlockFields.SurfaceDescription.Specular },
-                { HDLitMasterNode1.SlotMask.CoatMask, HDBlockFields.SurfaceDescription.CoatMask },
+                { HDLitMasterNode1.SlotMask.CoatMask, BlockFields.SurfaceDescription.CoatMask },
                 { HDLitMasterNode1.SlotMask.Metallic, BlockFields.SurfaceDescription.Metallic },
                 { HDLitMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness },
                 { HDLitMasterNode1.SlotMask.Occlusion, BlockFields.SurfaceDescription.Occlusion },
@@ -262,7 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Refraction
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
             if(hasRefraction)
             {
                 if(!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))

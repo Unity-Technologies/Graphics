@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
             public readonly string cookieBaking = "Light Baking for cookies disabled on the Project Settings.";
+            public readonly GUIContent includeLightForRayTracing = new GUIContent("Include For RayTracing", "When enabled, the light affects the scene for cameras with the Ray-Tracing frame setting enabled.");
 
             // Additional light data
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
@@ -59,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
             public readonly GUIContent lightDimmer = new GUIContent("Intensity Multiplier", "Multiplies the intensity of the Light by the given number. This is useful for modifying the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
-            public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
+            public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "Sets the distance from the camera at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotIESCutoffPercent = new GUIContent("IES Cutoff Angle (%)", "Cutoff the IES Light in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
@@ -97,19 +98,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = new GUIContent("Enable", "When enabled, this Light uses Volumetrics.");
             public readonly GUIContent volumetricDimmer = new GUIContent("Multiplier", "Controls the intensity of the scattered Volumetric lighting.");
+            public readonly GUIContent volumetricFadeDistance = new GUIContent("Fade Distance", "Sets the distance from the camera at which light smoothly fades out from contributing to volumetric lighting.");
             // Volumetric Additional shadow data
             public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Dims the volumetric shadows this Light casts.");
 
             // Additional shadow data
             public readonly GUIContent useShadowQualityResolution = new GUIContent("Use Quality Settings", "Allows to the resolution from the set of predetermined resolutions specified in the quality settings.");
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage.");
-            public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance at which Shadows fade before HDRP culls them completely. This minimizes popping.");
+            public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance from the camera at which Shadows fade before HDRP culls them completely. This minimizes popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Specifies the color and transparency that HDRP tints this Light's shadows to. The tint affects dynamic shadows, Contact Shadows, and ShadowMask. It does not affect baked shadows.");
             public readonly GUIContent penumbraTint = new GUIContent("Penumbra Tint", "When enabled, the tint only affects the shadow's penumbra.");
@@ -139,8 +141,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
             public readonly GUIContent distanceBasedFiltering = new GUIContent("Distance Based Denoising", "This defines if the denoiser should use the distance to the occluder to improve the filtering.");
-            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the light will cast a semi transparent ray traced shadow.");
-            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the directional light will cast a ray traced colored shadow.");
+            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the opacity of shadow casters will be taken into account when generating the shadow.");
+            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the opacity and transmittance color of shadow casters will be taken into account when generating the shadow.");
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");

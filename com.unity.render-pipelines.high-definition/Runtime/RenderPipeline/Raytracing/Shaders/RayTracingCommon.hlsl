@@ -49,4 +49,10 @@ struct StandardBSDFData
     uint isUnlit;
 };
 
+// This function defines what is the source pixel from where we should read the depth and normal for rendering in half resolution
+uint2 ComputeSourceCoordinates(uint2 halfResCoord, int frameIndex)
+{
+    return halfResCoord * 2;
+}
+
 #endif // RAY_TRACING_COMMON_HLSL

@@ -91,9 +91,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
-        // Used to detect material changes for Path Tracing
+        // Used to detect material and transform changes for Path Tracing
         Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
         bool m_MaterialsDirty = false;
+        bool m_TransformDirty = false;
 
         // Ray Direction/Distance buffers
         RTHandle m_RayTracingDirectionBuffer;
@@ -342,6 +343,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Add it to the acceleration structure
             m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
 
+            // Indicates that a transform has changed in our scene (mesh or light)
+            m_TransformDirty |= currentRenderer.transform.hasChanged;
+            currentRenderer.transform.hasChanged = false;
+
             // return the status
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
@@ -383,6 +388,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Check if there is a ray traced shadow in the scene
                     m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
                     m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
+
+                    // Indicates that a transform has changed in our scene (mesh or light)
+                    m_TransformDirty |= hdLight.transform.hasChanged;
+                    hdLight.transform.hasChanged = false;
 
                     switch (hdLight.type)
                     {
@@ -571,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)

@@ -36,7 +36,6 @@ namespace UnityEditor.VFX.UI
                 OnNewController();
                 if (m_Controller != null)
                 {
-                    controller.model.RefreshErrors(controller.viewController.graph);
                     m_Controller.RegisterHandler(this);
                 }
             }

@@ -1,18 +1,16 @@
-# HD Camera
+# HDRP Camera
 
-Cameras capture and display your world to the user. Customize and manipulate your Cameras to present your Unity Project however you like. You can use an unlimited number of Cameras in a Scene and set them to render in any order, at any position on the screen. 
-
-The High Definition Render Pipeline (HDRP) includes an HD Camera that uses the HDAdditionalCameraData component. If you use a script to interact with the Camera, some properties that are inside the HDAdditionalCameraData component are displayed inside the Camera component.
+The High Definition Render Pipeline (HDRP) adds extra properties and methods to Unity's [standard Camera](https://docs.unity3d.com/ScriptReference/Camera.html) to control HDRP features, such as [Frame Settings](Frame-Settings.md). Although HDRP displays these extra properties in the Camera component Inspector, HDRP stores them in the [HDAdditionalCameraData](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html) component. This means if you use a script to access properties or methods for the Camera, be aware that they may be inside the HDAdditionalCameraData component. For the full list of properties and methods HDRP stores in the HDAdditionalCameraData component, see the [scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html).
 
 ## Properties
 
-The HDRP Camera shares many properties with the [Standard Unity Camera](https://docs.unity3d.com/Manual/class-Camera.html).
+The HDRP Camera shares many properties with the Unity's [standard Camera](https://docs.unity3d.com/Manual/class-Camera.html).
 
 ### General
 
 | **Property**                    | **Description**                                              |
 | ------------------------------- | ------------------------------------------------------------ |
-| **Background Type**             | Use the drop-down to select the type of background that the Camera fills the screen with before it renders a frame.<br />&#8226; **Sky**: The Camera fills the screen with the sky defined in the [Visual Environment](Override-Visual-Environment.md) of the current [Volume](Volumes.md) settings.<br />&#8226; **Color**: The Camera fills the screen with the color set in **Background Color**.<br />&#8226; **None**: The Camera does not clear the screen and shows what it rendered in the previous frame as the background instead. |
+| **Background Type**             | Use the drop-down to select the type of background that the Camera fills the screen with before it renders a frame.<br />&#8226; **Sky**: The Camera fills the screen with the sky defined in the [Visual Environment](Override-Visual-Environment.md) of the current [Volume](Volumes.md) settings.<br />&#8226; **Color**: The Camera fills the screen with the color set in **Background Color**.<br />&#8226; **None**: The Camera does not clear the screen and the color buffer is left uninitialized. In this case, there are no guarantees on what the contents of the buffer are when you start drawing. It could be content from the previous frame or content from another camera. Because of this, use this option with caution. |
 | **Background Color**            | Use the HDR color picker to select the color that the Camera uses to clear the screen before it renders a frame. The Camera uses this color if:You select **Color** from the **Background Type** drop-down.You select **Sky** from the **Background Type** drop-down and there is no valid sky for the Camera to use. |
 | **Culling Mask**                | Use the drop-down to set the Layer Mask that the Camera uses to exclude GameObjects from the rendering process. The Camera only renders Layers that you include in the Layer Mask. |
 | **Volume Layer Mask**           | Use the drop-down to set the Layer Mask that defines which Volumes affect this Camera. |

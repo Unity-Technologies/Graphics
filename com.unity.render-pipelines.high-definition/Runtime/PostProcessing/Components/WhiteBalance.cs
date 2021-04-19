@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the White Balance effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/White Balance")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-White-Balance" + Documentation.endURL)]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

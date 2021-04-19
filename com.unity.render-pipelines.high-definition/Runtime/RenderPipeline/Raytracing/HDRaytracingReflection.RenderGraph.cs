@@ -99,8 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsPerformance(RenderGraph renderGraph, HDCamera hdCamera,
-                                                    TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
-                                                    int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             // Pointer to the final result
             TextureHandle rtrResult;
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, true);
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
             }
 
             return rtrResult;
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.clearCoatMaskTexture = builder.ReadTexture(clearCoatTexture);
-                passData.rayCountTexture = builder.WriteTexture(builder.ReadTexture(rayCountTexture));
+                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Reflections" }));
 
@@ -179,8 +179,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderReflectionsQuality(RenderGraph renderGraph, HDCamera hdCamera,
-                                            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
-                                            int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             TextureHandle rtrResult;
 
@@ -199,15 +199,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, rtrQRenderingParameters.bounceCount == 1);
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
             }
 
             return rtrResult;
         }
 
         TextureHandle RenderRayTracedReflections(RenderGraph renderGraph, HDCamera hdCamera,
-                                        TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
-                                        int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
+            ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
@@ -223,12 +223,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (qualityMode)
                 rtreflResult = RenderReflectionsQuality(renderGraph, hdCamera,
-                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
-                                                    frameCount, shaderVariablesRaytracing, transparent);
+                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    shaderVariablesRaytracing, transparent);
             else
                 rtreflResult = RenderReflectionsPerformance(renderGraph, hdCamera,
-                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
-                                                    frameCount, shaderVariablesRaytracing, transparent);
+                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    shaderVariablesRaytracing, transparent);
 
             return rtreflResult;
         }

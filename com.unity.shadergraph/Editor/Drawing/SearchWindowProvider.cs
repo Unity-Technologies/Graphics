@@ -113,11 +113,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
                     if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
                     {
-                        for(int i = 0; i <= node.latestVersion; ++i)
+                        var versions = node.allowedNodeVersions ?? Enumerable.Range(0, node.latestVersion + 1);
+                        bool multiple = (versions.Count() > 1);
+                        foreach (int i in versions)
                         {
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
-                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                            if (multiple)
+                                AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                            else
+                                AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }
                     }
                     else
@@ -152,6 +157,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var property in m_Graph.properties)
             {
+                if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                    continue;
+
                 var node = new PropertyNode();
                 node.property = property;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
@@ -310,9 +318,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
-                return false;
+                return true;
 
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
+
+            if (nodeEntry.node is PropertyNode propNode)
+                if (propNode.property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                    return true;
+
             var node = CopyNodeForGraph(nodeEntry.node);
 
             var windowRoot = m_EditorWindow.rootVisualElement;
@@ -324,12 +337,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(node is BlockNode blockNode)
             {
                 if(!(target is ContextView contextView))
-                    return false;
+                    return true;
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
                 if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
-                    return false;
+                    return true;
                 
                 // Insert block to Data
                 blockNode.owner = m_Graph;

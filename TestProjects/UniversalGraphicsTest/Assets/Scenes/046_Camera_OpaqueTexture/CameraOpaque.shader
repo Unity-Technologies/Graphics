@@ -42,7 +42,7 @@
 				v2f o;
 				UNITY_SETUP_INSTANCE_ID(v);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-				o.vertex = TransformObjectToHClip(v.vertex);
+				o.vertex = TransformObjectToHClip(v.vertex.xyz);
 				o.uv = v.uv;
 				o.screenUV = ComputeScreenPos(o.vertex);
 				return o;

@@ -8,11 +8,17 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
+      - name: DX11
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - playmode
         - editmode

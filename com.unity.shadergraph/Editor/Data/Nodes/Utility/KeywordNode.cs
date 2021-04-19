@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Keyword = value;
+                m_Keyword.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
@@ -39,6 +40,14 @@ namespace UnityEditor.ShaderGraph
         public override bool canSetPrecision => false;
         public override bool hasPreview => true;
         public const int OutputSlotId = 0;
+
+        public void UpdateNodeDisplayName(string newDisplayName)
+        {
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);
+
+            if (foundSlot != null)
+                foundSlot.displayName = newDisplayName;
+        }
 
         public void OnEnable()
         {

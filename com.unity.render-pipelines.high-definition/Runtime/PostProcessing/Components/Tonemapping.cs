@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Tonemapping effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Tonemapping" + Documentation.endURL)]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

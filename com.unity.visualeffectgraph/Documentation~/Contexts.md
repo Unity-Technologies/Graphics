@@ -2,7 +2,7 @@
 
 Contexts are the main element of the Visual Effect Graph's **processing** (vertical) workflow and determine how particles spawn and simulate. The way you organize Contexts on the graph defines order of operation for the processing workflow. For information on the processing workflow, see [Visual Effect Graph Logic](GraphLogicAndPhilosophy.md). Every Context defines one stage of computation. For example a Context can:
 
-* Calculate how many particles the effect should spawn.
+* Calculate how many particles the effect spawns.
 * Create new particles.
 * Update all living particles.
 

@@ -242,6 +242,10 @@ namespace UnityEngine.Rendering.HighDefinition
             data.additionalCameraData.clearColorMode = oldClearMode;
         }
 
+        /// <summary>
+        /// The HDRP implementation for the callback that the look dev raises to process any necessary cleanup.
+        /// </summary>
+        /// <param name="SRI">Access element of the LookDev's scene</param>
         void IDataProvider.Cleanup(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;

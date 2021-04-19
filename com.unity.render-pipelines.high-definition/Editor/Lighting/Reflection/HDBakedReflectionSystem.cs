@@ -15,6 +15,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    // custom-begin
+    public
+    // custom-end
     unsafe class HDBakedReflectionSystem : ScriptableBakedReflectionSystem
     {
         struct HDProbeBakingState
@@ -323,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // == 5. ==
 
                 // Create new baked state array
-                var targetSize = m_HDProbeBakedStates.Length + addCount - remCount;
+                var targetSize = m_HDProbeBakedStates.Length - remCount + toBakeIndicesList.Count;
                 var targetBakedStates = stackalloc HDProbeBakedState[targetSize];
                 // Copy baked state that are not removed
                 var targetI = 0;
@@ -331,12 +334,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (CoreUnsafeUtils.IndexOf(remIndices, remCount, i) != -1)
                         continue;
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = m_HDProbeBakedStates[i];
                 }
                 // Add new baked states
                 for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
                     var state = states[toBakeIndicesList.GetUnchecked(i)];
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = new HDProbeBakedState
                     {
                         instanceID = state.instanceID,
@@ -376,12 +381,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
             {
-                Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
-                    "please switch your render pipeline or use another reflection system");
+                Debug.LogWarning("HDBakedReflectionSystem only works with HDRP, " +
+                    "please switch your render pipeline or use another reflection probe system.");
                 return false;
             }
-            
 
+            hdPipeline.reflectionProbeBaking = true;
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
             // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
@@ -439,7 +444,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // to update the texture.
             // updateCount is a transient data, so don't execute this code before the asset reload.
             {
-                UnityEngine.Random.InitState((int)(1000 * hdPipeline.GetTime()));
+                UnityEngine.Random.InitState((int)(1000 * EditorApplication.timeSinceStartup));
                 foreach (var probe in bakedProbes)
                 {
                     var c = UnityEngine.Random.Range(2, 10);
@@ -448,6 +453,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             cubeRT.Release();
+
+            hdPipeline.reflectionProbeBaking = false;
 
             return true;
         }

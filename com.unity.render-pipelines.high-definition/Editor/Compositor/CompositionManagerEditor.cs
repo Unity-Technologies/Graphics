@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly string k_AlphaWarningPipeline = "The rendering pipeline was not configured to output an alpha channel. You can select a color buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_AlphaWarningPost = "The post processing system was not configured to process the alpha channel. You can select a buffer format that supports alpha in the HDRP quality settings.";
             static public readonly string k_ShaderWarning = "You must specify a composition graph to see an output from the compositor.";
+
+            static public readonly GUIStyle k_HeaderStyle = new GUIStyle(EditorStyles.helpBox) { fontSize = CompositorStyle.k_HeaderFontSize };
         }
 
         ReorderableList m_layerList;
@@ -47,13 +49,22 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
         public bool isDirty => m_IsEditorDirty;
 
         public int defaultSelection = -1;
-        public int selectionIndex => m_layerList != null ? m_layerList.index : -1;
+        public int selectionIndex
+        {
+            get => m_layerList != null ? m_layerList.index : -1;
+            set
+            {
+                if (m_layerList != null) m_layerList.index = Math.Min(value, m_layerList.count - 1);
+            }
+        }
+            
 
         void AddLayerOfTypeCallback(object type)
         {
             Undo.RecordObject(m_compositionManager, "Add compositor sublayer");
             m_compositionManager.AddNewLayer(m_layerList.index + 1, (CompositorLayer.LayerType)type);
             m_SerializedProperties.layerList.serializedObject.Update();
+            m_compositionManager.DeleteLayerRTs();
             m_compositionManager.UpdateLayerSetup();
         }
 
@@ -120,9 +131,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Debug.LogError("Compositor target was null");
                 return;
             }
-
-            var headerStyle = EditorStyles.helpBox;
-            headerStyle.fontSize = 14;
 
             // Cache the serialized property fields
             if (m_IsEditorDirty || m_SerializedProperties == null)
@@ -218,7 +226,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     m_IsEditorDirty = true;
 
                     m_compositionManager.ReorderChildren(oldIndex, newIndex);
-                    m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex);
+                    if (!m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex))
+                    {
+                        // The new position is invalid, so set the currently selected layer to the old/starting position s
+                        m_layerList.index = oldIndex; 
+                    }
                 };
 
                 m_layerList.elementHeightCallback = (index) =>
@@ -269,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(Styles.k_RenderSchedule, headerStyle);
+            EditorGUILayout.LabelField(Styles.k_RenderSchedule, Styles.k_HeaderStyle);
             m_layerList.DoLayoutList();
             EditorGUILayout.EndVertical();
             if (EditorGUI.EndChangeCheck())
@@ -288,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.BeginChangeCheck();
             if (m_layerList.index >= 0)
             {
-                EditorGUILayout.LabelField(Styles.k_Properties, headerStyle);
+                EditorGUILayout.LabelField(Styles.k_Properties, Styles.k_HeaderStyle);
 
                 rectangle.y += EditorGUIUtility.singleLineHeight * 1.5f;
                 rectangle.x += 5;
@@ -388,7 +400,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             var filter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             return filter.GetHeight();
                         }
-                        return 0;
+                        return CompositorStyle.k_Spacing;
                     };
                 }
 

@@ -157,6 +157,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         //due to FB 1175514, this not work. It is being fixed though.
                         //delayed call of the following work in some case and cause infinite loop in other cases.
                         AssetDatabase.AddObjectToAsset(assetVersion, asset);
+
+                        // Init material in case it's used before an inspector window is opened
+                        HDShaderUtils.ResetMaterialKeywords(material);
                     }
                     else
                     {
@@ -201,6 +204,8 @@ namespace UnityEditor.Rendering.HighDefinition
              MigrateDecalRenderQueue,
              ExposedDecalInputsFromShaderGraph,
              FixIncorrectEmissiveColorSpace,
+             ExposeRefraction,
+             MetallicRemapping,
         };
 
         #region Migrations
@@ -587,6 +592,57 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Reset the value of kEmissiveColor
                 material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+            }
+        }
+
+        static void ExposeRefraction(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Lit SG now have a shader feature for refraction instead of an hardcoded material
+            if (id == HDShaderUtils.ShaderID.SG_Lit)
+            {
+                // Sync the default refraction model from the shader graph to the shader
+                // We need to do this because the material may already have a refraction model information (from the Lit)
+                // In order to not break the rendering of the material, we patch the refraction model:
+                if (material.HasProperty(kRefractionModel))
+                {
+                    var refractionModel = material.shader.GetPropertyDefaultFloatValue(material.shader.FindPropertyIndex(kRefractionModel));
+                    material.SetFloat(kRefractionModel, refractionModel);
+                }
+                HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void MetallicRemapping(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kMetallicRemapMax = "_MetallicRemapMax";
+
+            // Lit shaders now have metallic remapping for the mask map
+            if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+             || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
+                const string kMetallic = "_Metallic";
+                if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))
+                {
+                    var metallic = material.GetFloat(kMetallic);
+                    material.SetFloat(kMetallicRemapMax, metallic);
+                }
+            }
+            else if (id == HDShaderUtils.ShaderID.Decal)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
+                var serializedMaterial = new SerializedObject(material);
+
+                const string kMetallicScale = "_MetallicScale";
+                float metallicScale = 1.0f;
+                if (TryFindProperty(serializedMaterial, kMetallicScale, SerializedType.Float, out var propertyMetallicScale, out _, out _))
+                {
+                    metallicScale = propertyMetallicScale.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMetallicScale);
+                }
+
+                serializedMaterial.ApplyModifiedProperties();
+
+                material.SetFloat(kMetallicRemapMax, metallicScale);
             }
         }
 

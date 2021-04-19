@@ -11,4 +11,4 @@ VFXManager:
   m_FixedTimeStep: 0.016666668
   m_MaxDeltaTime: 0.05
   m_CompiledVersion: 2
-  m_RuntimeVersion: 12
+  m_RuntimeVersion: 16

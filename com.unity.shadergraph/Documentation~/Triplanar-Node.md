@@ -6,6 +6,8 @@ Triplanar is a method of generating UVs and sampling a texture by projecting in 
 
 The expected type of the input **Texture** can be switched with the dropdown **Type**. If set to **Normal** the normals will be converted into world space so new tangents can be constructed then converted back to tangent space before output.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 
 ## Ports

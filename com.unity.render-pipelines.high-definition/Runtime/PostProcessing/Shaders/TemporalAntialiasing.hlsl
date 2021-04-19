@@ -18,22 +18,30 @@
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
 
+float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
+{
+    float2 maxCoord = 1.0f - _ScreenSize.zw;
+    return min(uv, maxCoord) * scale;
+}
 
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
 
 float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
 }
 
@@ -695,11 +703,18 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 {
     CTYPE linearC = color * PerceptualInvWeight(color);
     CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
-    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
 
 #if YCOCG
-    linearC.x = clamp(linearC.x, 0, CLAMP_MAX);
+    // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.
+
+    linearC.xyz = ConvertToOutputSpace(linearC.xyz);
+    linearAvg.xyz = ConvertToOutputSpace(linearAvg.xyz);
+    linearC.xyz = linearC.xyz + (linearC.xyz - linearAvg.xyz) * sharpenStrength * 3;
+    linearC.xyz = clamp(linearC.xyz, 0, CLAMP_MAX);
+
+    linearC = ConvertToWorkingSpace(linearC);
 #else
+    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
     return linearC * PerceptualWeight(linearC);

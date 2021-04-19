@@ -3,11 +3,15 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+
+---
+
 editor:priming:CUSTOM-REVISION:macos:
     name: '[CUSTOM-REVISION,macos] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -26,7 +30,7 @@ editor:priming:test_min_editor:macos:
     name: '[Min_Editor,macos] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -45,7 +49,7 @@ editor:priming:CUSTOM-REVISION:android:
     name: '[CUSTOM-REVISION,android] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -64,7 +68,7 @@ editor:priming:test_min_editor:android:
     name: '[Min_Editor,android] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -83,7 +87,7 @@ editor:priming:CUSTOM-REVISION:windows:
     name: '[CUSTOM-REVISION,windows] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -102,7 +106,7 @@ editor:priming:test_min_editor:windows:
     name: '[Min_Editor,windows] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -121,7 +125,7 @@ editor:priming:CUSTOM-REVISION:linux:
     name: '[CUSTOM-REVISION,linux] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -140,7 +144,7 @@ editor:priming:test_min_editor:linux:
     name: '[Min_Editor,linux] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -159,7 +163,7 @@ editor:priming:CUSTOM-REVISION:ios:
     name: '[CUSTOM-REVISION,ios] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -169,7 +173,7 @@ editor:priming:CUSTOM-REVISION:ios:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c iOS -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -178,7 +182,7 @@ editor:priming:test_min_editor:ios:
     name: '[Min_Editor,ios] Editor priming'
     agent:
         type: Unity::VM
-        image: cds-ops/ubuntu-16.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.small
     variables:
         PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
@@ -187,7 +191,7 @@ editor:priming:test_min_editor:ios:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/ruamel/jobs/editor/util/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c iOS -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:

@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture3D;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -27,14 +26,25 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            return $"TEXTURE3D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            action(new HLSLProperty(HLSLType._Texture3D, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";
+            return "UnityTexture3D " + referenceName;
+        }
+
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            if (isSubgraphProperty)
+                return referenceName;
+            else
+                return $"UnityBuildTexture3DStruct({referenceName})";
         }
 
         [SerializeField]

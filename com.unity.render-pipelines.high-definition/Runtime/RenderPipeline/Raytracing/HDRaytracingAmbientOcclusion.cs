@@ -36,6 +36,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_PipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
+        public float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
+        {
+            float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
+            return Mathf.Lerp(0.0f, 1.0f, 1.0f - remappedRayLength);
+        }
+
         public void InitializeNonRenderGraphResources()
         {
             // Allocate the intermediate textures

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Ambient-Occlusion" + Documentation.endURL)]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
         /// <summary>
@@ -302,6 +303,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
+        internal float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
+        {
+            AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
+            if (enableRTAO)
+                return m_RaytracingAmbientOcclusion.EvaluateRTSpecularOcclusionFlag(hdCamera, ssoSettings);
+            else
+                return 1.0f;
+        }
+
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, RTHandle depthTexture, RTHandle normalBuffer, RTHandle motionVectors, in ShaderVariablesRaytracing globalRTCB, int frameCount)
@@ -352,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new RenderAOParameters();
 
@@ -375,6 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float invHalfTanFOV = -camera.mainViewConstants.projMatrix[1, 1];
             float aspectRatio = parameters.runningRes.y / parameters.runningRes.x;
+            uint frameCount = camera.GetCameraFrameCount();
 
             cb._AOParams0 = new Vector4(
                 parameters.fullResolution ? 0.0f : 1.0f,
@@ -626,7 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
 
                     var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, frameCount, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
+                    var aoParameters = PrepareRenderAOParameters(camera, historySize * rtScaleForHistory, hdrp.sharedRTManager.GetDepthBufferMipChainInfo());
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HorizonSSAO)))
                     {
                         RenderAO(aoParameters, m_PackedDataTex, depthTexture, normalBuffer, cmd);

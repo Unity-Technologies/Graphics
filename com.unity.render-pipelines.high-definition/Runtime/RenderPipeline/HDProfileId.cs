@@ -37,14 +37,15 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        SsrAccumulate,
         PrepareForTransparentSsr,
 
         // SSGI
         SSGIPass,
         SSGITrace,
         SSGIDenoise,
-        SSGIConvert,
         SSGIUpscale,
+        SSGIConvert,
 
         ForwardEmissive,
         ForwardOpaque,
@@ -136,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIndirectDiffuseEvaluation,
         RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        RaytracingIndirectDiffuseAdjustWeight,
+
         // RTSSS
         RaytracingSSS,
         RaytracingSSSTrace,
@@ -235,6 +238,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+        PrepareMaskVolumeList,
+        MaskVolumeDebug,
+        BuildGPULightListMaskVolumes,
+        PushMaskVolumeLightListGlobalParameters,
 
         AOVExecute,
         // Enum AOVBuffers
@@ -246,6 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
+        VTFeedbackDownsample,
 #endif
     }
 }

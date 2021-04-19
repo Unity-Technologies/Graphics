@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDRISkyRenderer : SkyRenderer
@@ -9,10 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static int m_RenderCubemapID                                = 0; // FragBaking
         private static int m_RenderFullscreenSkyID                          = 1; // FragRender
-        private static int m_RenderCubemapWithBackplateID                   = 2; // FragBakingBackplate
-        private static int m_RenderFullscreenSkyWithBackplateID             = 3; // FragRenderBackplate
-        private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
-        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
+        private static int m_RenderFullscreenSkyWithBackplateID             = 2; // FragRenderBackplate
+        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 3; // FragRenderBackplateDepth
 
         public HDRISkyRenderer()
         {
@@ -82,19 +84,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
-        public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
+        public override bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams)
+        {
+            var hdriSky = builtinParams.skySettings as HDRISky;
+            return hdriSky.enableBackplate.value;
+        }
+
+        public override void PreRenderSky(BuiltinSkyParameters builtinParams)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
             if (hdriSky.enableBackplate.value == false)
             {
                 return;
             }
-
-            int passID;
-            if (renderForCubemap)
-                passID = m_RenderDepthOnlyCubemapWithBackplateID;
-            else
-                passID = m_RenderDepthOnlyFullscreenSkyWithBackplateID;
 
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
@@ -107,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
-                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, passID);
+                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, m_RenderDepthOnlyFullscreenSkyWithBackplateID);
             }
         }
 
@@ -117,19 +119,20 @@ namespace UnityEngine.Rendering.HighDefinition
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, builtinParams, hdriSky);
             int passID;
-            if (hdriSky.enableBackplate.value == false)
+            if (renderForCubemap)
             {
-                if (renderForCubemap)
-                    passID = m_RenderCubemapID;
-                else
-                    passID = m_RenderFullscreenSkyID;
+                passID = m_RenderCubemapID;
             }
             else
             {
-                if (renderForCubemap)
-                    passID = m_RenderCubemapWithBackplateID;
+                if (hdriSky.enableBackplate.value == false)
+                {
+                    passID = m_RenderFullscreenSkyID;
+                }
                 else
+                {
                     passID = m_RenderFullscreenSkyWithBackplateID;
+                }
             }
 
             if (hdriSky.enableDistortion.value == true)
@@ -143,14 +146,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
 
+                var hdCamera = builtinParams.hdCamera;
                 float rot = -Mathf.Deg2Rad*hdriSky.scrollDirection.value;
                 bool upperHemisphereOnly = hdriSky.upperHemisphereOnly.value || hdriSky.procedural.value;
                 Vector4 flowmapParam = new Vector4(upperHemisphereOnly ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-                scrollFactor += hdriSky.scrollSpeed.value * (Time.time - lastTime) * 0.01f;
-                lastTime = Time.time;
+                scrollFactor += hdCamera.animateMaterials ? hdriSky.scrollSpeed.value * (hdCamera.time - lastTime) * 0.01f : 0.0f;
+                lastTime = hdCamera.time;
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
@@ -169,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdriSky.rectLightShadow.value)
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
             m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
+
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

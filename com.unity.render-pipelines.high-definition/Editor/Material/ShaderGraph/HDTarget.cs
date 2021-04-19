@@ -407,8 +407,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
-            new FieldDependency(HDStructFields.FragInputs.primitiveID,                               HDStructFields.VaryingsMeshToPS.primitiveID),
-            new FieldDependency(HDStructFields.FragInputs.IsFrontFace,                               HDStructFields.VaryingsMeshToPS.cullFace),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
@@ -596,8 +594,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask 0") },
         };
 
+        public static RenderStateCollection ScenePicking = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
+        };
+
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off) },
             { RenderState.ColorMask("ColorMask 0") },
         };
 
@@ -801,6 +805,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Defines
     static class CoreDefines
     {
+        public static DefineCollection ScenePicking = new DefineCollection
+        {
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
+
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -815,6 +824,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
         {
+            // When using Shadow matte, we need to output a normal buffer even for unlit so it is compatible with ambient occlusion
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
+        public static DefineCollection MotionVectorUnlit = new DefineCollection
+        {
+            // When using Shadow matte, we need to output a normal buffer even for unlit so it is compatible with ambient occlusion
             { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
         };
 
@@ -835,6 +851,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection Forward = new DefineCollection
         {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
@@ -846,6 +863,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection BackThenFront = new DefineCollection
         {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             // { CoreKeywordDescriptors.LightList, 1 }, // BackThenFront Transparent use #define USE_CLUSTERED_LIGHTLIST 
@@ -861,6 +879,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         public const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
         public const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
+        public const string kPickingSpaceTransforms = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl";
 
         // CoreUtility
         public const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
@@ -874,8 +893,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
         public const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
         public const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
+        public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
         public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
@@ -913,6 +934,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassPlaceholder = "Pass Include Placeholder, replace me !";
         public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
         public const string kRaytracingPlaceholder = "Raytracing Include Placeholder, replace me !";
+        public const string kPathtracingPlaceholder = "Pathtracing Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";
@@ -1158,6 +1180,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
+        public static KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
         public static KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
         {
             displayName = "Scene Selection Pass",
@@ -1266,13 +1297,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
-        public static KeywordDescriptor BlendModePreserveSpecularLighting = new KeywordDescriptor
+        public static KeywordDescriptor SupportBlendModePreserveSpecularLighting = new KeywordDescriptor
         {
             displayName = "BlendMode Preserve Specular Lighting",
-            referenceName = "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING",
+            referenceName = "SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
         };
 
         public static KeywordDescriptor AddPrecomputedVelocity = new KeywordDescriptor
@@ -1300,6 +1331,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
+        {
+            displayName = "Multi Bounce Indirect",
+            referenceName = "MULTI_BOUNCE_INDIRECT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
 #endregion

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERPASS_CS_HLSL
@@ -32,7 +32,7 @@
 #define SHADERPASS_RAYTRACING_SUB_SURFACE (22)
 #define SHADERPASS_PATH_TRACING (23)
 #define SHADERPASS_CONSTANT (24)
-#define SHADERPASS_FULLSCREEN_DEBUG (25)
+#define SHADERPASS_FULL_SCREEN_DEBUG (25)
 
 
 #endif

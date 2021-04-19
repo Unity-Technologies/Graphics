@@ -1,13 +1,16 @@
-#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
+#if (SHADERPASS != SHADERPASS_DEPTH_ONLY) && (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DecalMeshBiasTypeEnum.cs.hlsl"
+#endif
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
 	input.vmesh.positionCS.z -= _DecalMeshDepthBias;
 #else
 	input.vmesh.positionCS.z += _DecalMeshDepthBias;
@@ -17,9 +20,23 @@ void MeshDecalsPositionZBias(inout VaryingsToPS input)
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-	MeshDecalsPositionZBias(varyingsType);
+
+    float3 worldSpaceBias = 0.0f;
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_VIEW_BIAS)
+    {
+        float3 positionRWS = TransformObjectToWorld(inputMesh.positionOS);
+        float3 V = GetWorldSpaceNormalizeViewDir(positionRWS);
+
+        worldSpaceBias = V * (_DecalMeshViewBias);
+    }
+    varyingsType.vmesh = VertMesh(inputMesh, worldSpaceBias);
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_DEPTH_BIAS)
+    {
+        MeshDecalsPositionZBias(varyingsType);
+    }
+#else
+    varyingsType.vmesh = VertMesh(inputMesh);
 #endif
     return PackVaryingsType(varyingsType);
 }
@@ -27,15 +44,18 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     OUTPUT_DBUFFER(outDBuffer)
-#elif (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph
+#elif defined(SCENEPICKINGPASS) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph and scene picking
     out float4 outColor : SV_Target0
 #else
     out float4 outEmissive : SV_Target0
 #endif
 )
 {
+#ifdef SCENEPICKINGPASS
+    outColor = _SelectionID;
+#else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
     float angleFadeFactor = 1.0;
@@ -79,6 +99,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     // we discard during decal projection, or we get artifacts along the
     // edges of the projection(any partial quads get bad partial derivatives
     //regardless of whether they are computed implicitly or explicitly).
+    ZERO_INITIALIZE(DecalSurfaceData, surfaceData); // Require to quiet compiler warning with Metal
     if (clipValue > 0.0)
     {
 #endif
@@ -100,11 +121,12 @@ void Frag(  PackedVaryingsToPS packedInput,
         float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
         float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
 
-        if (angleFade.x > 0.0f) // if angle fade is enabled
+        if (angleFade.y < 0.0f) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(material.geomNormalWS, normalToWorld[2].xyz);
-            // See equation in DecalSystem.cs - simplified to a madd here
-            angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
+            float dotAngle = dot(material.geomNormalWS, decalNormal);
+            // See equation in DecalSystem.cs - simplified to a madd mul add here
+            angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
         }
     }
 
@@ -146,5 +168,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
     outEmissive.a = 1.0;
+#endif
 #endif
 }

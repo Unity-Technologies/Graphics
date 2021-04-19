@@ -134,7 +134,11 @@ namespace UnityEngine.Rendering
 
         class TypedConstantBuffer<CBType> : ConstantBufferBase where CBType : struct
         {
-            CBType[] m_Data = new CBType[1]; // Array is required by the ComputeBuffer SetData API
+            // Used to track all global bindings used by this CB type.
+            HashSet<int> m_GlobalBindings = new HashSet<int>();
+            // Array is required by the ComputeBuffer SetData API
+            CBType[] m_Data = new CBType[1];
+
             static TypedConstantBuffer<CBType> s_Instance = null;
             internal static TypedConstantBuffer<CBType> instance
             {
@@ -169,6 +173,7 @@ namespace UnityEngine.Rendering
 
             public void SetGlobal(CommandBuffer cmd, int shaderId)
             {
+                m_GlobalBindings.Add(shaderId);
                 cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
             }
 
@@ -187,6 +192,13 @@ namespace UnityEngine.Rendering
 
             public override void Release()
             {
+                // Depending on the device, globally bound buffers can leave stale "valid" shader ids pointing to a destroyed buffer.
+                // In DX11 it does not cause issues but on Vulkan this will result in skipped drawcalls (even if the buffer is not actually accessed in the shader).
+                // To avoid this kind of issues, it's good practice to "unbind" all globally bound buffers upon destruction.
+                foreach (int shaderId in m_GlobalBindings)
+                    Shader.SetGlobalConstantBuffer(shaderId, (ComputeBuffer)null, 0, 0);
+                m_GlobalBindings.Clear();
+
                 CoreUtils.SafeRelease(m_GPUConstantBuffer);
                 s_Instance = null;
             }

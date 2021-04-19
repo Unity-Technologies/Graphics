@@ -21,8 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<ContactShadows>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
@@ -36,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Opacity = Unpack(o.Find(x => x.opacity));
             m_Bias = Unpack(o.Find(x => x.rayBias));
             m_Thickness = Unpack(o.Find(x => x.thicknessScale));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()
@@ -57,11 +57,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Thickness, EditorGUIUtility.TrTextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows."));
 
                 base.OnInspectorGUI();
-                using (new EditorGUI.DisabledScope(!useCustomValue))
+
+                using (new HDEditorUtils.IndentScope())
+                using (new QualityScope(this))
                 {
                     PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
                 }
             }
+        }
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            settings.Save<int>(m_SampleCount);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            settings.TryLoad<int>(ref m_SampleCount);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            CopySetting(ref m_SampleCount, settings.lightingQualitySettings.ContactShadowSampleCount[level]);
         }
     }
 }

@@ -21,13 +21,13 @@ float2 ScramblingValueFloat2(uint2 pixelCoord)
 uint ScramblingValueUInt(uint2 pixelCoord)
 {
     pixelCoord = pixelCoord & 255;
-    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), 0, 255);
+    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0), 0, 255);
 }
 
 uint2 ScramblingValueUInt2(uint2 pixelCoord)
 {
     pixelCoord = pixelCoord & 255;
-    return clamp((uint2)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)] * 256.0f), uint2(0,0), uint2(255, 255));
+    return clamp((uint2)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)] * 256.0), uint2(0,0), uint2(255, 255));
 }
 
 // Wrapper to sample the scrambled low Low-Discrepancy sequence (returns a float)
@@ -49,7 +49,7 @@ uint GetLDSequenceSampleUInt(uint sampleIndex, uint sampleDimension)
     // sampleDimension = sampleDimension & 255;
 
     // Fetch the sequence value and return it
-    return clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, sampleIndex)] * 256.0f), 0, 255);
+    return clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, sampleIndex)] * 256.0), 0, 255);
 }
 
 // This is an implementation of the method from the paper
@@ -63,17 +63,18 @@ float GetBNDSequenceSample(uint2 pixelCoord, uint sampleIndex, uint sampleDimens
 
     // xor index based on optimized ranking
     uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
-    uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0f), 0, 255);
+    uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0), 0, 255);
 
     // fetch value in sequence
-    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0f), 0, 255);
+    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0), 0, 255);
 
     // If the dimension is optimized, xor sequence value based on optimized scrambling
     uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
-    value = value ^ clamp((uint)(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)] * 256.0f), 0, 255);
+    float scramblingValue = min(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)], 0.999);
+    value = value ^ uint(scramblingValue * 256.0);
 
-    // convert to float and return
-    return (0.5f + value) / 256.0f;
+    // Convert to float (to avoid the same 1/256th quantization everywhere, we jitter by the pixel scramblingValue)
+    return (scramblingValue + value) / 256.0;
 }
 
 #endif // UNITY_RAYTRACING_SAMPLING_INCLUDED

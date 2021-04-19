@@ -215,9 +215,11 @@ HDRP processes effects from the top of the list to the bottom and the order of e
 
 1. Before Transparent.
 
-2. Before Post Process.
+2. Before TAA
 
-3. After Post Process.
+3. Before Post Process.
+
+4. After Post Process.
 
 <a name="CustomEditor"></a>
 
@@ -281,3 +283,7 @@ If your effect does not display correctly:
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
 * Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
+
+## Known issues and Limitations
+
+* Renaming a custom post process class name and file will remove it from the list in HDRP Project Settings causing the effect to not be rendered anymore.

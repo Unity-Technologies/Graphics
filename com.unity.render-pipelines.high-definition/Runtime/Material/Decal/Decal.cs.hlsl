@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef DECAL_CS_HLSL
@@ -31,7 +31,7 @@ struct DecalData
     float4 maskScaleBias;
     float4 baseColor;
     float4 remappingAOS;
-    float4 scalingMBAndAngle;
+    float4 scalingBAndRemappingM;
     float3 blendParams;
     uint decalLayerMask;
 };

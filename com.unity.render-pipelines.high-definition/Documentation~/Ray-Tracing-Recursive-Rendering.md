@@ -13,19 +13,23 @@ The smoothness of a Material does not affect the way a ray reflects or refracts,
 Recursive Rendering uses the [Volume](Volumes.md) framework, so to enable this feature and modify its properties, you need to add a Recursive Rendering override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to Add Override > Ray Tracing and click on Recursive Rendering.
-3. In the Inspector for the Recursive Rendering Volume Override, enable Ray Tracing. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
+2. In the Inspector, go to **Add Override > Ray Tracing** and click on **Recursive Rendering**.
+3. In the Inspector for the Recursive Rendering Volume Override, check the **Enable** option. If you do not see the **Enable** option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 Now that you have recursive rendering set up in your Scene, you must set GameObjects to use the Raytracing rendering pass to make HDRP use recursive rendering for them. To do this:
 
 1. Select the GameObject in the Scene view or Hierarchy to view it in the Inspector.
 2. Select the Material attached to the GameObject.
-3. In the Surface Options foldout, select Raytracing from the Rendering Pass drop-down.
+3. In the **Surface Options** foldout, enable **Recursive Rendering (Preview)**.
 
 You can also do this for Shader Graph master nodes:
 
 1. In the Project window, double-click on the Shader to open it in Shader Graph.
-2. On the master node, click the gear, then select Raytracing from the Rendering Pass drop-down.
+2. In the **Graph Settings** tab of the **Graph Inspector**, go to **Surface Options** and enable **Recursive Rendering (Preview)**.
+
+It is best practice to use recursive rendering in situations that require multi-bounced reflection and refraction, for example car headlights. Although recursive rendering also produces ray-traced reflections in more simple scenarios, like for a mirror or a puddle, it is best practice to use [ray-traced reflections](Ray-Traced-Reflections.md) here for performance reasons.
+
+Since recursive rendering uses an independent render pass, HDRP cannot render any other ray-traced effects on recursively rendered GameObjects. For example, it cannot render effects such as ray-traced subsurface scattering or ray-traced shadows.
 
 ## Properties
 

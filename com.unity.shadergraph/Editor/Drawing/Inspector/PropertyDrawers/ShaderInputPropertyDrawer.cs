@@ -56,6 +56,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.normal = new GUIStyleState { textColor = Color.grey };
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
+
+            // Initializing this callback early on as it is needed by the BlackboardFieldView and PropertyNodeView
+            // for binding to the menu action that triggers the reset
+            _resetReferenceNameCallback = newValue =>
+            {
+                m_ReferenceNameField.value = newValue;
+                m_ReferenceNameField.RemoveFromClassList("modified");
+            };
         }
 
         GraphData graphData;
@@ -102,7 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var propertySheet = new PropertySheet();
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
-            BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
@@ -133,7 +140,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
                     out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable);
+                propertyToggle.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             }
         }
 
@@ -193,12 +200,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
-                _resetReferenceNameCallback = newValue =>
-                {
-                    m_ReferenceNameField.value = newValue;
-                    m_ReferenceNameField.RemoveFromClassList("modified");
-                };
-
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");
                 propertyVisualElement.SetEnabled(shaderInput.isRenamable);
@@ -224,8 +225,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             switch (property)
             {
-            case IShaderPropertyDrawer propDrawer:	
-                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
+            case IShaderPropertyDrawer propDrawer:
+                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
+                break;
+            case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
+                var helpBox = new HelpBoxRow(MessageType.Warning);
+                helpBox.Add(new Label("Cannot find the code for this Property, a package may be missing."));
+                propertySheet.Add(helpBox);
                 break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
@@ -278,8 +284,90 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             BuildPrecisionField(propertySheet, property);
-            if(property.isGpuInstanceable)
-                BuildGpuInstancingField(propertySheet, property);
+
+            BuildExposedField(propertySheet);
+
+            BuildHLSLDeclarationOverrideFields(propertySheet, property);
+        }
+
+        static string[] allHLSLDeclarationStrings = new string[]
+        {
+            "Do Not Declare",       // HLSLDeclaration.DoNotDeclare
+            "Global",               // HLSLDeclaration.Global
+            "Per Material",         // HLSLDeclaration.UnityPerMaterial
+            "Hybrid Per Instance",  // HLSLDeclaration.HybridPerInstance
+        };
+
+        void BuildHLSLDeclarationOverrideFields(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            var hlslDecls = Enum.GetValues(typeof(HLSLDeclaration));
+            var allowedDecls = new List<HLSLDeclaration>();
+
+            bool anyAllowed = false;
+            for (int i = 0; i < hlslDecls.Length; i++)
+            {
+                HLSLDeclaration decl = (HLSLDeclaration) hlslDecls.GetValue(i);
+                var allowed = property.AllowHLSLDeclaration(decl);
+                anyAllowed = anyAllowed || allowed;
+                if (allowed)
+                    allowedDecls.Add(decl);
+            }
+
+            if (anyAllowed)
+            {
+                var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Shader Declaration", 1));
+                var popupField = new PopupField<HLSLDeclaration>(
+                    allowedDecls,
+                    property.GetDefaultHLSLDeclaration(),
+                    (h => allHLSLDeclarationStrings[(int) h]),
+                    (h => allHLSLDeclarationStrings[(int) h]));
+
+                popupField.RegisterValueChangedCallback(
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change Override");
+                        if (property.hlslDeclarationOverride == evt.newValue)
+                            return;
+                        property.hlslDeclarationOverride = evt.newValue;
+                        this._postChangeValueCallback();
+                    });
+
+                propRow.Add(popupField);
+
+                var toggleOverride = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleOverride.CreateGUI(
+                    newValue =>
+                    {
+                        if (property.overrideHLSLDeclaration == newValue.isOn)
+                            return;
+
+                        this._preChangeValueCallback("Override Property Declaration");
+
+                        // add or remove the sub field based on what the toggle is
+                        if (newValue.isOn)
+                        {
+                            // setup initial state based on current state
+                            property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            popupField.value = property.hlslDeclarationOverride;
+                            propertySheet.Add(propRow);
+                        }
+                        else
+                        {
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            propRow.RemoveFromHierarchy();
+                        }
+
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    },
+                    new ToggleData(property.overrideHLSLDeclaration),
+                    "Override Property Declaration", out var overrideToggle));
+
+                // set up initial state
+                overrideToggle.SetEnabled(anyAllowed);
+                if (property.overrideHLSLDeclaration)
+                    propertySheet.Add(propRow);
+            }
         }
 
         void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
@@ -294,19 +382,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
-        }
-
-        void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
-        {
-            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
-            {
-                this._preChangeValueCallback("Change Hybrid Instanced Toggle");
-                property.gpuInstanced = newValue.isOn;
-                this._postChangeValueCallback(false, ModificationScope.Graph);
-            }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
-
-            gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
+            if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                precisionField.SetEnabled(false);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
@@ -1077,7 +1154,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 KeywordEntry entry = ((KeywordEntry)m_KeywordReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
+                Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+                var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
+                //This is gross but I cant find any other way to make a DelayedTextField have a tooltip (tried doing the empty label on the field itself and it didnt work either)
+                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters and `_`"));
+
                 var referenceName = EditorGUI.TextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
                     keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
@@ -1200,15 +1281,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[^\\w_#() .]");
         }
 
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_])", "_");
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, @"(?:[^A-Za-z_0-9_])");
         }
     }
 }

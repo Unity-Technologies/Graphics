@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            
+
             // Decal
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
@@ -136,6 +136,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
 
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_DecalMeshBiasType",
+                floatType = FloatType.Enum,
+                value = (int)DecalMeshDepthBiasType.DepthBias,
+                enumNames = { "Depth Bias", "View Bias" },
+                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias},
+                hidden = true
+            });
+
+
             Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
             decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
             decalMeshDepthBias.displayName = "DecalMesh DepthBias";
@@ -143,6 +154,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
+
+            Vector1ShaderProperty decalMeshViewBias = new Vector1ShaderProperty();
+            decalMeshViewBias.overrideReferenceName = "_DecalMeshViewBias";
+            decalMeshViewBias.displayName = "DecalMesh ViewBias";
+            decalMeshViewBias.hidden = true;
+            decalMeshViewBias.floatType = FloatType.Default;
+            decalMeshViewBias.value = 0;
+            collector.AddShaderProperty(decalMeshViewBias);
+
             AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
@@ -197,6 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region SubShaders
         static class SubShaders
         {
+            // Relies on the order shader passes are declared in DecalSystem.cs
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 generatesPreview = true,
@@ -206,6 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalMeshForwardEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
             };
@@ -215,8 +237,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Passes
         public static class DecalPasses
         {
-            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames array
-            // and DecalSet.InitializeMaterialValues()
+            // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - enum MaterialDecalPass
+
+            public static PassDescriptor ScenePicking = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Collections
+                renderStates = DecalRenderStates.ScenePicking,
+                pragmas = DecalPragmas.Instanced,
+                defines = CoreDefines.ScenePicking,
+                includes = DecalIncludes.ScenePicking,
+            };
+
             public static PassDescriptor DBufferProjector = new PassDescriptor()
             {
                 // Definition
@@ -385,6 +422,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0]\n\tColorMask [_DecalColorMask1] 1\n\tColorMask [_DecalColorMask2] 2\n\tColorMask [_DecalColorMask3] 3";
             readonly static string s_DecalBlend = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha \n\tBlend 3 Zero OneMinusSrcColor";
 
+            public static RenderStateCollection ScenePicking = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Back) },
+            };
+
             public static RenderStateCollection DBufferProjector = new RenderStateCollection
             {
                 { RenderState.Blend(s_DecalBlend) },
@@ -446,6 +488,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CorePragmas.Basic },
                 { Pragma.MultiCompileInstancing },
+#if ENABLE_HYBRID_RENDERER_V2
+                { Pragma.DOTSInstancing },
+#endif
             };
         }
         #endregion
@@ -531,6 +576,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.MinimalCorePregraph },
                 { kDecal, IncludeLocation.Pregraph },
+                { kPassDecal, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection ScenePicking = new IncludeCollection
+            {
+                { kPacking, IncludeLocation.Pregraph },
+                { kColor, IncludeLocation.Pregraph },
+                { kFunctions, IncludeLocation.Pregraph },
+                { CoreIncludes.MinimalCorePregraph },
+                { kDecal, IncludeLocation.Pregraph },
+                { CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
             };
         }

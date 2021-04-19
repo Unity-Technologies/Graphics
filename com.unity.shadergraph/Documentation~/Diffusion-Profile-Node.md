@@ -2,7 +2,7 @@
 
 The Diffusion Profile Node allows you to sample a [Diffusion Profile](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Diffusion-Profile.html) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Diffusion-Profile.html).
 
-## Render pipeline compatability
+## Render pipeline compatibility
 
 | **Node**               | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
 | ---------------------- | ----------------------------------- | ------------------------------------------ |

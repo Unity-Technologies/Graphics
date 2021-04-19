@@ -303,7 +303,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (currentLight != null)
                 {
                     Light light = currentLight.gameObject.GetComponent<Light>();
-                    if (light == null || !light.enabled) continue;
+                    if (light == null || !light.enabled)
+                        continue;
+
+                    // If the light is flagged as baked and has been effectively been baked, we need to skip it and not add it to the light cluster
+                    if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
+                        continue;
+
+                    // If this light should not be included when ray tracing is active on the camera, skip it
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !currentLight.includeForRayTracing)
+                        continue;
 
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
@@ -358,16 +367,20 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
 
-                // Compute the camera relative position
-                Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    probePositionRWS -= hdCamera.camera.transform.position;
-                }
 
                 if (currentEnvLight != null)
                 {
-                    if(currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
+                    // If the reflection probe is disabled, we should not be adding it
+                    if (!currentEnvLight.enabled) continue;
+
+                    // Compute the camera relative position
+                    Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        probePositionRWS -= hdCamera.camera.transform.position;
+                    }
+
+                    if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
@@ -543,6 +556,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Both of these positions are non-camera-relative.
                 processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
                 processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
+                processedData.volumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
                 processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
                 // Build a visible light

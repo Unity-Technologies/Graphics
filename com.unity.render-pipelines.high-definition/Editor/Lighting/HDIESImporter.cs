@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="iesMaximumIntensity">Intensity</param>
         /// <param name="light">Light used for the prefab</param>
         /// <param name="ies">Texture used for the prefab</param>
-        /// <returns></returns>
         static public void CreateRenderPipelinePrefabLight(AssetImportContext ctx, string iesFileName, bool useIESMaximumIntensity, string iesMaximumIntensityUnit, float iesMaximumIntensity, Light light, Texture ies)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;

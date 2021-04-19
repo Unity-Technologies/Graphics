@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent materialType = new GUIContent("Material Type", "Allow to select the lighting model to used with this Material.");
         }
 
         StackLitData stackLitData;
@@ -33,7 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit specific properties:
 
             AddProperty("Base Color Parametrization", () => stackLitData.baseParametrization, (newValue) => stackLitData.baseParametrization = newValue);
-            AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor)
+            {
+                AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            }
 
             // Material type enables:
             context.AddLabel("Material Core Features", 0);

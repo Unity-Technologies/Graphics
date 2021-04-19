@@ -88,12 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             UnRegister(this);
+            CleanupPasses();
 #if UNITY_EDITOR
             UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
 #endif
         }
-
-        void OnDestroy() => CleanupPasses();
 
 #if UNITY_EDITOR
         void UpdateCustomPassVolumeVisibility()

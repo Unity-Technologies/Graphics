@@ -234,7 +234,7 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         clip(diffuse.a - _Cutoff);
     #endif
 
-    float3 normalWS = input.normalWS;
+    float3 normalWS = input.normalWS.xyz;
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 

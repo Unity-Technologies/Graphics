@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.surfaceType = (SurfaceType)stackLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)stackLitMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = stackLitMasterNode.m_AlphaTest;
             systemData.sortPriority = stackLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = stackLitMasterNode.m_DoubleSidedMode;
@@ -86,24 +86,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap.Add(BlockFields.VertexDescription.Normal, StackLitMasterNode1.VertexNormalSlotId);
             blockMap.Add(BlockFields.VertexDescription.Tangent, StackLitMasterNode1.VertexTangentSlotId);
 
-            // Handle mapping of Normal block specifically
+            // Handle mapping of Normal and Tangent block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
             blockMap.Add(normalBlock, StackLitMasterNode1.NormalSlotId);
 
             blockMap.Add(HDBlockFields.SurfaceDescription.BentNormal, StackLitMasterNode1.BentNormalSlotId);
-            blockMap.Add(HDBlockFields.SurfaceDescription.Tangent, StackLitMasterNode1.TangentSlotId);
+            blockMap.Add(tangentBlock, StackLitMasterNode1.TangentSlotId);
             blockMap.Add(BlockFields.SurfaceDescription.BaseColor, StackLitMasterNode1.BaseColorSlotId);
 
             if (stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic)
@@ -143,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (stackLitData.coat)
             {
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatIor, StackLitMasterNode1.CoatIorSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatThickness, StackLitMasterNode1.CoatThicknessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatExtinction, StackLitMasterNode1.CoatExtinctionSlotId);
@@ -153,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormalTS, StackLitMasterNode1.CoatNormalSlotId);
                 }
 
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
             }
 
             if (stackLitData.dualSpecularLobe)

@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-            
+
         }
 
         void Reset() => OnValidate();
@@ -93,6 +93,13 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_LensAttenuation = value;
         }
 
+        [SerializeField] private bool m_UseRenderGraph = true;
+
+        internal bool useRenderGraph
+        {
+            get => m_UseRenderGraph;
+            set => m_UseRenderGraph = value;
+        }
 
 #if UNITY_EDITOR
         [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
@@ -428,7 +435,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
-        // Implement IVirtualTexturingEnabledRenderPipeline
+        /// <summary>
+        /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
+        /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
     }
 }

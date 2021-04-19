@@ -24,7 +24,8 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("When enabled, uvs for the strips are swapped.")]
         protected bool swapUV = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
+        // Deprecated
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
         public class NormalBendingProperties
@@ -60,9 +61,9 @@ namespace UnityEditor.VFX
                 if (colorMode != ColorMode.None)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
@@ -105,13 +106,16 @@ namespace UnityEditor.VFX
                 if (swapUV)
                     yield return "VFX_STRIPS_SWAP_UV";
 
-                if (UseCustomZAxis)
-                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
-
                 yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
+        }
+
+        public override void Sanitize(int version)
+        {
+            VFXQuadStripOutput.SanitizeOrient(this, version, UseCustomZAxis);
+            base.Sanitize(version);
         }
     }
 }

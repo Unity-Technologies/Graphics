@@ -61,6 +61,7 @@ namespace UnityEditor.VFX
                 yield return "castShadows";
                 yield return "sort";
                 yield return "useAlphaClipping";
+                yield return "excludeFromTAA";
             }
         }
 

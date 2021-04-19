@@ -26,6 +26,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### ABV related changes (_abv.metafile)
 - Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
 - Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
+- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
@@ -52,6 +53,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
+
 
 ### Custom test platforms:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
@@ -82,6 +84,53 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
         - playmode_perf_build
   ```
 
+### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual. The `apply` section corresponds to list of platforms/apis for which this repeated block applies.
+  ```
+  - type: Standalone
+    is_performance: True
+    - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
+        utr_flags_build:
+        - [all]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
+  - type: playmode
+     - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+  ```
+
+### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual.
+  ```
+  - type: Standalone
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+    utr_repeat:
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+  ```
+
 
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
@@ -107,20 +156,15 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Gets the editor in a separate job to save on the compute resources, stores the editor version in a .txt file which is then picked up by the parent job which calls unity-downloader-cli
     - Still used for custom-revision jobs, because we don't want to hold on to expensive compute resources the job itself requires, while waiting for the editor 
 - Editor pinning:
-    - Updates editor revisions (`config/_latest_editor_versions_[track].metafile`) on a nightly basis, on the condition that ABV for this editor track passes. This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
+    - Updates editor revisions (`_latest_editor_versions_[track].metafile`) on a nightly basis, on the condition that ABV for this editor track passes. This way, if e.g. trunk breaks, it is discovered by the nightly update job (and revisions for this platform won't be updated), and we continue using the latest working revision, until a new working one becomes available.
     - There are 3 types of revisions retrieved from _unity-downloader-cli_: `staging` corresponds to `--fast`, `latest_public` corresponds to `--published-only`, and `latest_internal` corresponds to no flags
     - There are 2 `merge-all` jobs, which are identical except for triggers and dependencies:
         - _[ABV] [CI]_ is the main one used in the CI flow. It is has the branch trigger for versions file, and the dependent merge revision jobs have ABV as dependency (updated revisions only get merged on green ABV)
-        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target, and regenerates ymls based on those). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
-    - Setup on master: 
-        - 2 nightlies, one for trunk and other for 2020.2 (nightlies contain ABV, package pack/test all, and some additional jobs)
-        - ABV on PRs is triggered for 2020.2 (change under `_abv.metafile` `abv.trigger_editors`)
-        - Trunk targets latest_internal, 2020.2 targets staging (editor revisions)
-        - Package publish all (dependencies) run against trunk (change under `_packages.metafile` `publish_all_track`)
+        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
     - Workflow in short:
-        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these together with updated ymls to ci branch
-        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. Once everything is done, it regenerates all ymls based on whichever revisions have reached master branch.
-    - Workflow in details is on figure below
+        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these to ci branch
+        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. 
+    - Workflow in details is on figure below (figure is for 2 tracks, but currently master works with 1 track)
     ![Editor pinning flow](editor_pinning.png)
 
 - Running editor pinning locally:
@@ -143,6 +187,12 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - What are smoke tests? Blank Unity projects containing all SRP packages (and default packages) to make sure all packages work with each other
 - Why does OpenGLCore not have standalone? Because the GPU is simulated and this job is too resource heavy for these machines
 - What happens to editor pinning if ABV is red? If ABV is red, then editor pinning merge job fails, i.e. the target branch (on which ABV runs) will not get editor revisions updated automatically. To remedy this, there are 2 merge jobs, one postfixed with \[ABV\] (triggered automatically, dependent on ABV), other with \[manual\] (triggered manually, not dependent on ABV). If editor revisions must be updated despite the red ABV, then the manual job must be triggered.
+- How to UTR flags work? UTR flag order is preserved while parsing in metafiles, and shared metafile is parsed before project metafile. Thus, if shared metafile has `[all]: --timeout=1200, [Win_DX11, Win_DX12]: --timeout=3000` and project metafile has `[Win_DX11]: --timeout=5000`, this will result in DX11 having 5000, DX12 having 3000, and everything else 1200. Note that flags end up alphabetically sorted in the final ymls.
+- How are nested UTR flags overriden? Flags are overriden if they are specified multiple times: checking if a flag is already specified is done by checking the flag 'key', which is the flag without its value. This applies also for nested keys, see below cases that are supported (refer to _utr_utils.py_ for implementation logic):
+  - `--timeout=1800`: key is `--timeout`
+  - `--extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"`: key is `--extra-editor-arg="-executemethod`
+  - `--extra-editor-arg="-playergraphicsapi=Direct3D11"`: key is `--extra-editor-arg="-playergraphicsapi"`
+
 
 # Configuration files (metafiles)
 
@@ -151,17 +201,22 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 # main branch for ci triggers etc
 target_branch: master 
 
+# specifies the branch on which editor pinning ci runs
+target_branch_editor_ci: ci/editor-pinning 
+
 # target editor version used for this branch 
 target_editor: trunk
 
 # editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  # run editor pinning for trunk, and set up a recurrent nightly
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
   - track: trunk 
     name: trunk #name used in job ids
     rerun_strategy: on-new-revision
     editor_pinning: True  #use editor pinning for this track
     nightly: True  #run the _Nightly job nightly
+    weekly: True  #run the _Weekly job weekly
+    abv_pr: True  #trigger ABV on PRs 
   
   # run editor pinning for 2020.2, and set up a recurrent nightly
   - track: 2020.2
@@ -196,18 +251,36 @@ editors:
     rerun_strategy: always
     editor_pinning: False #custom revision always has editor pinning as false
     fast: False  #custom revision always has fast as false
+
+# specify  list of build configs as follows (name is used to retrieve the configuration in project files)
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+
+# specify utr flags for 3 base testplatforms
+test_platforms:
+  - type: Standalone
+    utr_flags: # flags for standalone jobs
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> # use <> for values which must be replaced inside python (check utr_utils.py)
+      - [all]: --timeout=1200 # use [all] if flag applies to all platform_api combinations
+      - [Win_DX11, OSX_Metal]: --timeout=2000 # use list of [platform_api] to add a flag for specific platform_api combinations. If flag is specified multiple times, last specification overwrites preceding ones
+      - ...
+    utr_flags_build: # flags for standaline split build jobs
+      - ...
+  - type: playmode
+    utr_flags:
+      - ...
+  - type: editmode
+    utr_flags:
+      - ...
+
+
 # specifies platform details for each platform 
 platforms:
   Win:
     name: Win
     os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
@@ -241,11 +314,6 @@ platforms:
   OSX:
     name: OSX
     os: macos
-    apis:
-      - name: Metal
-      - name: OpenGLCore
-        exclude_test_platforms: # specify which test platforms to exclude for this api
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -272,7 +340,7 @@ platforms:
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image:  package-ci/ubuntu:stable
     flavor: b1.small  
   package_ci_ubuntu_large:
     type: Unity::VM
@@ -308,14 +376,14 @@ nightly: # all_project_ci_nightly job configuration
       all: true  
     - ...  
 
-smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # (used for editmode)
-  agent_gpu: sdet_win_large_gpu 
-  test_platforms: # test platforms to create smoke tests for
-    - Standalone
-    - playmode
-    - editmode
+weekly: # all_project_ci_nightly job configuration
+  extra_dependencies: # project jobs to run in addition to ABV
+    - project: HDRP # use this format to run a specific job
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode_NonRenderGraph
+    - ...
 
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
@@ -327,10 +395,6 @@ trunk_verification: # jobs to include in trunk verification job
         - editmode
     - ...
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
 ```
 
 ### _editor.metafile: configuration for editor priming jobs
@@ -425,9 +489,9 @@ agent_pack: package_ci_win_large
 agent_publish: package_ci_win_large
 agent_publish_all: package_ci_ubuntu_large
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
+# specify track on which publish job dependencies run on
+publish_all_tracks:
+  - trunk
 
 ```
 
@@ -456,9 +520,6 @@ packages:
 agent_promote: package_ci_win_large
 agent_auto_version: package_ci_ubuntu_large
 
-# override editors from __shared.metafile file
-override_editors:
-  - version: trunk
 ```
 
 ### _templates.metafile: template jobs configuration (highly similar for packages configuration)
@@ -487,9 +548,6 @@ agent_pack: package_ci_win_large
 agent_test:  package_ci_win_large
 agent_all_ci: package_ci_win_large
 
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
 ```
 
 
@@ -504,90 +562,56 @@ project:
 
 # test platforms to generate jobs for
 test_platforms:
+  test_platforms:
   - type: Standalone
-    extra_utr_flags: # specify additional utr flags to run for this project and test platform
-      - --some-extra-utr-flag
-    extra_utr_flags_build:
-      - --some-extra-utr-flag # additional utr flags for build (only available for standalone type)
-    timeout: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files
-    # timeout: # overrides default timeout per platform (for unspecified platforms, default is used)
-    #  OSX_Metal: 2400 
-    #  Win: 3000 
-    timeout_build: 3000 # overrides default timeout 1200 for all platforms which use this property in cmd files (only for split build jobs)
-    # timeout_build: # overrides default timeout per platform (for unspecified platforms, default is used)
-    #  Win: 3000 
+    utr_flags: # specify flags same way as in shared.metafile
+      - [OSX_Metal]: --timeout=2400 # override timeout flag from shared.metafile for standalone job OSX_Metal
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      - [iPhone_Metal]: --timeout=1800
+    utr_repeat: # run utr multiple times inside the same job, but with different flags. Each block specified by - in the list below corresponds to one UTR run.
+      - utr_flags: # valid for standalone/editmode/playmode
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build: # valid only for standalone build jobs
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
   - type: playmode
   - type: editmode
-  - type: playmode # custom testplatform: specify the 'base' type, name it to what you want, and add any additional flags
+  - type: playmode
     name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests" # add additional flag to playmode XR on top of normal playmode flags 
 
 # platforms to use (platform details obtained from __shared.metafile)
 # platforms can be overridden by using the same structure from shared
 platforms:
-  - name: OSX 
-    apis:
-      - Metal
-      - OpenGLCore
-  - name: Linux
-    apis: 
-      - Vulkan
-      - OpenGLCore
-  - name: Android
-    apis: 
-      - Vulkan
-      - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
-  - name: Win
-    apis:
-      - DX11
-      - DX12
-      - Vulkan
-    ## override example for Win
-    # overrides: # allows to override keys under __shared platform section (copycmd, editorpath, agent_package, agents_project)
-    #  copycmd: your new copy cmd
-    #  editorpath: your new editor path
-    #  agents_project:
-    #    default:
-    #      type: Unity::VM::GPU
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
-    #    editmode:
-    #      type: Unity::VM
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #    standalone:
-    #      type: Unity::VM::GPU
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
-    #    standalone_build:
-    #      type: Unity::VM
-    #      image: graphics-foundation/win10-dxr:stable
-    #      flavor: b1.xlarge
-    #      model: rtx2080
+      - name: DX11
+        exclude_test_platforms: # exclude testplatforms for this specific api by referencing their name
+          - name: editmode
+      - name: DX12
+      - name: Vulkan
+    build_configs: # specify build configs for this platform by their name in shared.metafile
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
+    color_spaces: # specify color spaces 
+      - Linear
+      - Gamma
+  - name: OSX
+    ...
 
 # which jobs to run under All_{project_name} job
 # this is the same structure as in abv nightly extra dependencies
 all: 
   dependencies:
-    - platform: Win
-      api: DX11
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        - playmode_XR
-    - platform: OSX
+    - platform: OSX # use this to refer to the current project 
       api: Metal
       test_platforms:
         - Standalone
@@ -600,11 +624,6 @@ all:
     - project: HDRP_DXR # use this if there is a dependency to another project
       all: true
     - ...  
-
-# optionally to override editors from __shared.metafile
-override_editors:
-  - version: trunk
-    rerun_strategy: always
 
 ```
 

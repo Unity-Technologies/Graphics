@@ -78,7 +78,7 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 
 void MotionVectorPositionZBias(VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
     input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
 #else
     input.vmesh.positionCS.z += unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
@@ -87,7 +87,6 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 
 PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
 {
-
 #if !defined(TESSELLATION_ON)
     MotionVectorPositionZBias(varyingsType);
 #endif
@@ -107,7 +106,13 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
-        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+        float3 deformedPrevPos = inputPass.previousPositionOS;
+
+#if defined(DOTS_INSTANCING_ON)
+        FetchComputeVertexPosition(inputMesh.positionOS, deformedPrevPos, inputMesh.vertexID);
+#endif
+        float3 effectivePositionOS = (hasDeformation) ? deformedPrevPos : inputMesh.positionOS;
+
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
@@ -115,7 +120,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
-        previousMesh.positionOS = effectivePositionOS ;
+        previousMesh.positionOS = effectivePositionOS;
 
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);

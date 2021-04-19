@@ -277,6 +277,11 @@ namespace UnityEditor.Rendering.Universal
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
 
+            if (material.IsKeywordEnabled("_ALPHATEST_ON"))
+            {
+                material.SetFloat("_AlphaClip", 1.0f);
+            }
+
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));

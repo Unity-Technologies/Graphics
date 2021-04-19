@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
             }
 
-            Assert.AreEqual(kExpectedPreviewDeclaration, sb.ToString(), "Keyword declaration snippet for preview shader was invalid");
+            Assert.AreEqual(kExpectedPreviewDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword declaration snippet for preview shader was invalid");
         }
 
         [Test]
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
             }
 
-            Assert.AreEqual(kExpectedForRealsDeclaration, sb.ToString(), "Keyword declaration snippet for final shader was invalid");
+            Assert.AreEqual(kExpectedForRealsDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword declaration snippet for final shader was invalid");
         }
 
         [Test]
@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var sb =  new ShaderStringBuilder();
             KeywordUtil.GetKeywordPermutationDeclarations(sb, m_Collector.permutations);
 
-            Assert.AreEqual(kExpectedPermutationDeclaration, sb.ToString(), "Keyword permutation snippet was invalid");
+            Assert.AreEqual(kExpectedPermutationDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword permutation snippet was invalid");
         }
 
         [Test]

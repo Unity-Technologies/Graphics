@@ -2,6 +2,7 @@
 #pragma kernel RaytracingIndirectDiffuseFullRes
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleHalfRes HALF_RESOLUTION
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleFullRes
+#pragma kernel AdjustIndirectDiffuseWeight
 
 #pragma only_renderers d3d11
 
@@ -20,7 +21,7 @@
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 // Tile size of this compute
 #define RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE 8
@@ -28,6 +29,9 @@
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
+int _SsrStencilBit;
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -37,16 +41,11 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
-    // Pick which subpixel we will be launching our effects from
-    float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
-    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
-    uint2 shift = HalfResIndexToCoordinateShift[subPixel];
-
     // Pixel where we will store the result of the raytracing
     uint2 outputCoord = halfResCoord * 2;
 
     // Pixel coordinate in full res of the pixel that we will be using for our computation
-    uint2 sourceCoord = outputCoord + shift;
+    uint2 sourceCoord = ComputeSourceCoordinates(halfResCoord, _RaytracingFrameIndex);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -55,7 +54,7 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
-    // Convert this to a world space position 
+    // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     // Compute the view in world space
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -64,7 +63,7 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     NormalData normalData;
     DecodeFromNormalBuffer(sourceCoord, normalData);
 
-    // Generate the new sample (follwing values of the sequence)
+    // Generate the new sample (following values of the sequence)
     float2 newSample;
     newSample.x = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 0);
     newSample.y = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 1);
@@ -108,12 +107,12 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Generate the new sample (follwing values of the sequence)
-    float2 sample;
-    sample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
-    sample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
+    float2 theSample;
+    theSample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
+    theSample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
 
     // Importance sample with a cosine lobe
-    float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);
+    float3 sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, normalData.normalWS);
 
     // PDF is the cosine
     float samplePDF = dot(sampleDir, normalData.normalWS);
@@ -197,23 +196,21 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
             float4 sampleColor = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord);
 
             // Compute the position of the actual source pixel
-            uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
-            uint2 shift = HalfResIndexToCoordinateShift[subPixel];
             #ifdef HALF_RESOLUTION
-            uint2 actualSourceCoord = sampleCoord + shift;
+            uint2 actualSourceCoord = ComputeSourceCoordinates(sampleCoord * 0.5, _RaytracingFrameIndex);
             #else
             uint2 actualSourceCoord = sampleCoord;
             #endif
 
             // Fetch the Depth
             float sampleDepth = LOAD_TEXTURE2D_X(_DepthTexture, actualSourceCoord).x;
-            
+
             // If this the background, it should not be used as a valid sample
             if(sampleDepth == UNITY_RAW_FAR_CLIP_VALUE) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
-            int index = clamp(floor(sample * 4.0f), 0, 3);
+            float theSample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            int index = clamp(floor(theSample * 4.0f), 0, 3);
 
             if (index != localIndex) continue;
 
@@ -232,4 +229,30 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
     {
         _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, 1.0);
     }
+}
+
+RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
+
+[numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
+void AdjustIndirectDiffuseWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 sourceCoord = dispatchThreadId.xy;
+
+    // Fetch the depth
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).x;
+    // If this is a background pixel, there is nothing to do
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    float4 previousGIValue = _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)];
+
+    // Nullify the weight if the surface is not supposed to recieve SSGI
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sourceCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        previousGIValue.w = 0.0f;
+    else
+        previousGIValue.w = 1.0f;
+
+    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)] = previousGIValue;
 }

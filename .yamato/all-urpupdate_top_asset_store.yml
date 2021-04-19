@@ -3,26 +3,23 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-All_URPUpdate_Top_Asset_Store_trunk:
-    name: All URPUpdate_Top_Asset_Store CI - trunk
-    dependencies:
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_trunk
-         rerun: on-new-revision
+{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+
+---
+
 All_URPUpdate_Top_Asset_Store_2020.2:
     name: All URPUpdate_Top_Asset_Store CI - 2020.2
     dependencies:
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_2020.2
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_2020.2
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
 All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: All URPUpdate_Top_Asset_Store CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

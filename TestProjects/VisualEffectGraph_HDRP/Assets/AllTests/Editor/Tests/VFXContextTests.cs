@@ -194,6 +194,24 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(2, from.outputContexts.Count());
         }
 
+
+        [Test] //see fogbugz 1269756
+        public void Link_Fail_From_Event_To_OutputEvent()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var to = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
+
+        [Test]
+        public void Link_Fail_From_Event_To_Initialize()
+        {
+            //For now, we can't use direct link from event to initialize context.
+            var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            Assert.IsFalse(VFXContext.CanLink(from, to));
+        }
+
         [Test]
         public void Link_Fail()
         {

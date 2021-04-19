@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Panini Projection effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Panini Projection")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Panini-Projection" + Documentation.endURL)]
     public sealed class PaniniProjection : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

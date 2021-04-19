@@ -7,10 +7,12 @@ Shader "HDRP/Decal"
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
-		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
-		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
-		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
-		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+        [HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
+        [HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
+        [Enum(Depth Bias, 0, View Bias, 1)] _DecalMeshBiasType("_DecalMeshBiasType", Int) = 0
+        [HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
+        [HideInInspector] _DecalMeshViewBias("_DecalMeshViewBias", Float) = 0.0
+        [HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
         // in the shader only the _EmissiveColor should be used
@@ -23,13 +25,14 @@ Shader "HDRP/Decal"
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         // Remapping
+        [HideInInspector] _MetallicRemapMin("_MetallicRemapMin", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _MetallicRemapMax("_MetallicRemapMax", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         [HideInInspector] _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
         [HideInInspector] _AORemapMin("AORemapMin", Float) = 0.0
         [HideInInspector] _AORemapMax("AORemapMax", Float) = 1.0
 
         // scaling
-        [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
 
         // Alternative when no mask map is provided
@@ -97,8 +100,10 @@ Shader "HDRP/Decal"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
-		// c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
-        // and DecalSet.InitializeMaterialValues()
+        // c# code relies on the order in which the passes are declared, any change will need to be reflected in
+        // DecalSystem.cs - enum MaterialDecalPass
+        // DecalSubTarget.cs  - class SubShaders
+        // Caution: passes stripped in builds (like the scene picking pass) need to be put last to have consistent indices
 
 		Pass // 0
 		{
@@ -252,6 +257,40 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass // 4
+        {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // Note: Require _SelectionID variable
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+            
+            #pragma editor_sync_compilation
 
             ENDHLSL
         }

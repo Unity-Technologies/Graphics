@@ -78,9 +78,11 @@ To set up ray tracing manually, you need to:
 2. Select the Other Settings fold-out, and in the Rendering section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
 3. In the Graphics APIs for Windows section, click the plus (+) button and select Direct3d12.
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move Direct3d12 (Experimental) to the top of the list.
-5. Apply your changes.
+5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the <DX12> tag in the title bar like so:
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar like so:
+
+![](Images/RayTracingGettingStarted1.png)
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 
@@ -177,7 +179,7 @@ HDRP uses ray tracing to replace some of its screen space effects, shadowing tec
 - [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattero,g.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattering.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
 ## Ray tracing mode
 
@@ -205,9 +207,9 @@ You can find a small ray tracing project that contains all the effects mention a
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
-## Advice and supported feature of preview ray tracing
+## Unsupported features of ray tracing
 
-There is no support for ray tracing on other platform than DX12 for now.
+There is no support for ray tracing on platforms other than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support vertex animation.
@@ -216,3 +218,32 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
+- Does not support MSAA.
+- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
+- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+- Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
+
+## Unsupported features of path tracing
+
+There is no support for path tracing on platforms other than DX12 for now.
+
+HDRP path tracing in Unity 2020.2 has the following limitations:
+
+- Does not support 3D Text and TextMeshPro.
+- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
+- Does not support decals.
+- Does not support tessellation.
+- Does not support Tube and Disc shaped Area Light.
+- Does not support Translucent Opaque Materials.
+- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
+- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
+- Does not support MSAA.
+- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
+- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+
+## Unsupported shader graph nodes for ray tracing
+
+When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
+- DDX, DDY and DDXY nodes.
+- All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
+- Checkerboard node.

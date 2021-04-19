@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxSmoothness;
         public SerializedProperty applyRangeAttenuation;
         public SerializedProperty volumetricDimmer;
+        public SerializedProperty volumetricFadeDistance;
         public SerializedProperty lightUnit;
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty areaLightEmissiveMeshCastShadow;
@@ -44,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty areaLightCookie; // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
         public SerializedProperty iesPoint;
         public SerializedProperty iesSpot;
+        public SerializedProperty includeForRayTracing;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -336,6 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotIESCutoffPercent = o.Find("m_SpotIESCutoffPercent");
                 lightDimmer = o.Find("m_LightDimmer");
                 volumetricDimmer = o.Find("m_VolumetricDimmer");
+                volumetricFadeDistance = o.Find("m_VolumetricFadeDistance");
                 lightUnit = o.Find("m_LightUnit");
                 displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh");
                 fadeDistance = o.Find("m_FadeDistance");
@@ -359,6 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightCookie = o.Find("m_AreaLightCookie");
                 iesPoint = o.Find("m_IESPoint");
                 iesSpot = o.Find("m_IESSpot");
+                includeForRayTracing = o.Find("m_IncludeForRayTracing");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

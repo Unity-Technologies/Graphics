@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import yaml
+import datetime
 
 from util.subprocess_helpers import run_cmd, git_cmd
 
@@ -16,6 +17,7 @@ from util.subprocess_helpers import run_cmd, git_cmd
 SUPPORTED_VERSION_TYPES = ('latest_internal', 'latest_public', 'staging')
 PROJECT_VERSION_NAME = 'project_revision'
 PLATFORMS = ('windows', 'macos', 'linux', 'android', 'ios')
+UPDATED_AT = str(datetime.datetime.utcnow())
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # DEFAULT_CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.yml')
@@ -44,7 +46,7 @@ def generate_downloader_cmd(track, version, trunk_track, platform, unity_downloa
         raise ValueError(f'Could not parse track: {track} version: {version}.')
     components = ' '.join('-c ' + c for c in unity_downloader_components[platform])
     
-    if platform.lower() == 'android':
+    if platform.lower() in ['android']:
         platform = 'windows'
     elif platform.lower() == 'ios':
         platform = 'macos'
@@ -68,7 +70,8 @@ def create_version_files(config, root):
                                 versions)
         if versions_file_is_unchanged(editor_versions_filename_track, root):
                 print(f'INFO: No changes in {editor_versions_filename_track}, or file is not tracked by git diff')
-        editor_version_files.append(editor_versions_filename_track)
+        else:
+            editor_version_files.append(editor_versions_filename_track)
     return editor_version_files
 
 
@@ -105,13 +108,13 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
     versions = editor_versions_file.get("editor_versions", {})
 
     # drop all the keys that don't correspond to specified tracks (useful when different tracks are used between branches)
-    false_keys = [key for key in versions if key.split('_')[0] not in tracks] 
+    false_keys = [key for key in versions if not key.startswith(tuple([str(t).replace('.','_') for t in tracks]))] 
     for key in false_keys: del versions[key] 
 
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
 
-            key = f'{track}_{version_type}'
+            key = f'{str(track).replace(".","_")}_{version_type}'
 
             if not versions.get(key):
                 versions[key] = {}
@@ -124,19 +127,25 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
                                                 unity_downloader_components), stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout, cwd='.')
                     
                     revision = result.strip().splitlines()[-1]
-                    versions[key][platform] = {}
-                    versions[key][platform]['revision'] = revision
+                    if not versions.get(key).get(platform):
+                        versions[key][platform] = {}
+                    
+                    if versions[key][platform]['revision'] != revision:
+                        versions[key][platform]['updated_at'] = UPDATED_AT
+                        versions[key][platform]['revision'] = revision
                    
-                    # Parse for the version in stderr (only exists for some cases):
-                    versions[key][platform]['version'] = ''
-                    for line in result.strip().splitlines():
-                        match = VERSION_PARSER_RE.match(line)
-                        version = ''
-                        if match:
-                            version = match.group(1)
-                            versions[key][platform]['version'] = version
-                            break
-                    print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
+                        # Parse for the version in stderr (only exists for some cases):
+                        versions[key][platform]['version'] = ''
+                        for line in result.strip().splitlines():
+                            match = VERSION_PARSER_RE.match(line)
+                            version = ''
+                            if match:
+                                version = match.group(1)
+                                versions[key][platform]['version'] = version
+                                break
+                        print(f'INFO: Latest revision for {key} [{platform}]: {revision} (version: {version})')
+                    else:
+                        print(f'INFO: Latest revision for {key} [{platform}] matches existing one: {revision}')
                 except subprocess.TimeoutExpired as err:
                     print(f'WARNING: {key} [{platform}]: Timout {timeout}s exceeded')
 
@@ -279,8 +288,8 @@ def main(argv):
     try:
         
         editor_version_files = create_version_files(config, ROOT)
-        subprocess.call(['python', config['ruamel_build_file']])
-        if not args.local:
+        #subprocess.call(['python', config['ruamel_build_file']])
+        if not args.local and len(editor_version_files) > 0:
             checkout_and_push(editor_version_files, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')
         print(f'INFO: Done updating editor versions.')

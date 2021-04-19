@@ -439,7 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var shadowResolution = lightData.shadowResolution;
 
                     EditorGUI.BeginChangeCheck();
-                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels), shadowResolution.level, shadowResolution.useOverride);
+                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With4Levels), shadowResolution.level, shadowResolution.useOverride);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(lightData, "Changed contact shadow resolution");

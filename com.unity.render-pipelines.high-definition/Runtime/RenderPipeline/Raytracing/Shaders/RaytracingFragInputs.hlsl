@@ -3,10 +3,10 @@ void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, float3 in
 {
 	outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
 	outFragInputs.positionRWS = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
-	outFragInputs.texCoord0 = float4(currentVertex.texCoord0, 0.0, 0.0);
-	outFragInputs.texCoord1 = float4(currentVertex.texCoord1, 0.0, 0.0);
-	outFragInputs.texCoord2 = float4(currentVertex.texCoord2, 0.0, 0.0);
-	outFragInputs.texCoord3 = float4(currentVertex.texCoord3, 0.0, 0.0);
+	outFragInputs.texCoord0 = currentVertex.texCoord0;
+	outFragInputs.texCoord1 = currentVertex.texCoord1;
+	outFragInputs.texCoord2 = currentVertex.texCoord2;
+	outFragInputs.texCoord3 = currentVertex.texCoord3;
 	outFragInputs.color = currentVertex.color;
 
     float3 normalWS = normalize(mul(currentVertex.normalOS, (float3x3)WorldToObject3x4()));

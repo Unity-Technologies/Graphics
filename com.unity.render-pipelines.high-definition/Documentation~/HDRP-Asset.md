@@ -1,8 +1,8 @@
 # The High Definition Render Pipeline Asset
 
-The High Definition Render Pipeline (HDRP) Asset controls the global rendering settings of your Project and creates an instance of the rendering pipeline. A rendering pipeline instance contains intermediate resources and an implementation of the render pipeline. 
+The High Definition Render Pipeline (HDRP) Asset controls the global rendering settings of your Project and creates an instance of the render pipeline. 
 
-Unity does not allocate memory or build Shader variants for disabled features in your HDRP Asset. This means that you can disable settings that you are not using to save memory, but you can not enable disabled features at runtime. You can toggle enabled features at runtime on a per-Camera basis using [Frame-Settings](Frame-Settings.md).
+Unity only allocates memory and builds shader variants for features you enable in the HDRP Asset. This means that you can disable features your project does not use to save memory. Since certain features require shader variants or other resources when Unity builds your project, you can only enable and disable features at edit time. However, it is possible to toggle the rendering of particular features at runtime, just not using the HDRP Asset. Instead, [Frame-Settings](Frame-Settings.md) control the features that cameras in the scene render. Frame Settings can only toggle features that are enabled in the HDRP Asset; they cannot enable features that are disabled.
 
 <a name="CreatingAnHDRPAsset"></a>
 
@@ -26,9 +26,9 @@ Unity now uses the High Definition Render Pipeline (HDRP) in your Unity Project.
 1. Navigate to **Edit > Project Settings > Player > Other Settings** and locate the **Color Space** property.
 2. Select **Linear** from the **Color Space** drop-down.
 
-You can create multiple HDRP Assets containing different settings. This is useful for Project that support multiple platforms, such as PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform.
+You can create multiple HDRP Assets containing different settings. This is useful for Project that support multiple platforms, such as PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform. For more information on using creating HDRP Assets to target different platforms, see [Scalability in HDRP](Scalability-Manual.md).
 
-To change the HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or  use the GraphicsSettings.renderPipelineAsset property via script.
+To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
 
 When you create an HDRP Asset, open it in the Inspector to edit its properties. 
 
@@ -49,7 +49,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Transparent Depth Postpass**          | Enable the checkbox to make HDRP support transparent depth render postpasses. If your Unity Project does not make use of a transparent depth postpass. Uncheck this checkbox to reduce build time . |
 | **Custom Pass**                         | Enable the checkbox to make HDRP support custom passes. If your Unity Project does not make use [Custom Passes](Custom-Pass.md), Uncheck this checkbox to save memory . |
 | - **Custom Buffer Format**              | Specify the texture format for the custom buffer. If you experience banding issues due to your custom passes, you can change it to either `R11G11B10` if you don't need alpha or `R16G16B16A16`. |
-| **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Experimental). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
+| **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Preview). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
 | **Supported Ray Tracing Mode (Preview)**| Select the supported modes for ray tracing effects (Performance, Quality or Both). For more information, see the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md) page. |
 | - **LOD Bias**                          | Set the value that Cameras use to calculate their LOD bias. The Camera uses this value differently depending on the **LOD Bias Mode** you select. |
 | - **Maximum LOD Level**                 | Set the value that Cameras use to calculate their maximum level of detail. The Camera uses this value differently depending on the **Maximum LOD Level Mode** you select. |
@@ -110,15 +110,16 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Reflection**              | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
-| **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes. |
+| **- Transparent**                        | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html) on transparent materials. |
+| **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes.          |
 | **Compress Reflection Probe Cache**      | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
 | **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                     | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
 | **Planar Reflection Atlas Size**         | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution. |
-| ****Planar Resolution Tiers**** |                                                              |
-| **- L**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Low** use this resolution for their planar reflection. |
-| **- M**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Medium** use this resolution for their planar reflection. |
-| **- H**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **High** use this resolution for their planar reflection. |
+| ***Planar Resolution Tiers***            |                                                              |
+| **- L**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Low** use this resolution for their planar reflection. |
+| **- M**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Medium** use this resolution for their planar reflection. |
+| **- H**                                  | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **High** use this resolution for their planar reflection. |
 | **Max Planar Reflection On Screen**      | The maximum number of planar reflections on screen at once.  |
 | **Maximum Environment Lights on Screen** | The maximum number of environment Lights HDRP can manage on screen at once. |
 
@@ -141,7 +142,7 @@ These settings adjust the size of the shadowmask. Smaller values causes Unity to
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.md) in your Unity Project. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.md) override. |
-| **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.md). **Deferred** mode uses Medium.<br />To edit this property, select **Both** or **Forward Only** from the **Lit Shader Mode** drop-down. For information on each filtering quality preset, see the [Filtering Qualities table](#FilteringQualities). |
+| **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.md). **Deferred** mode uses Medium.<br />To edit this property, select **Both** or **Forward Only** from the **Lit Shader Mode** drop-down. For information on each filtering quality preset, see the [Filtering Qualities table](#filtering-qualities). |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
 | - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
 | - **Buffer Format**              | Defines the format (R11G11B10 or R16G16B16A16) of the buffer used for screen space shadows.|
@@ -172,8 +173,6 @@ They all share the same properties, except **Directional Light Shadows** which d
 | **H**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
 | **U**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
 | **Maximum Shadow Resolution** | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
-
-<a name="FilteringQualities"></a>
 
 #### Filtering Qualities
 
@@ -215,7 +214,7 @@ Use these settings to enable or disable settings relating to lighting in HDRP.
 | **Buffer Format** |  Use the drop-down to select the format of the color buffers that are used in the post-processing passes. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. 
 
 ## Post-processing Quality Settings
-These settings define the quality levels (low, medium, high) related to post processing effects in HDRP. For a detailed description of each setting, see the [Post-processing in HDRP](Post-Processing-Main) section of the documentation.
+These settings define the quality levels (low, medium, high) related to post processing effects in HDRP. For a detailed description of each setting, see the [Post-processing in HDRP](Post-Processing-Main.md) section of the documentation.
 
 ## Virtual Texturing
 

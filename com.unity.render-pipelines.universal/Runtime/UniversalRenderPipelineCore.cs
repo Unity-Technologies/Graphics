@@ -361,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -461,6 +461,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
+                desc.graphicsFormat = isHdrEnabled ? desc.graphicsFormat : renderTextureFormatDefault;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some
@@ -471,6 +472,11 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
             return desc;
         }
 
@@ -635,16 +641,11 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            lightOcclusionProbeChannel = Vector4.zero;
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&
                 light.bakingOutput.occlusionMaskChannel < 4)
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
-            }
-            else
-            {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }

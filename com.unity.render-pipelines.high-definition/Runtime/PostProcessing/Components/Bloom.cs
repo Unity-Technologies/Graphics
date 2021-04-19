@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Bloom" + Documentation.endURL)]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -91,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.
+        /// When enabled, bloom uses multiple bilinear samples for the prefiltering pass.
         /// </summary>
         public bool highQualityPrefiltering
         {

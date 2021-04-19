@@ -69,6 +69,38 @@ groupshared float4 lightPlanes[4*6]; // Each plane is defined by a float4. 6 pla
 
 groupshared uint lightOffs;
 
+groupshared int categoryListCountScratch[NR_THREADS * LIGHTCATEGORY_COUNT];
+groupshared int shiftIndexScratch[NR_THREADS * LIGHTCATEGORY_COUNT];
+
+void ZeroCategoryListCountAndShiftIndex(uint threadIdx)
+{
+    for (int i = 0; i < LIGHTCATEGORY_COUNT; ++i)
+    {
+        categoryListCountScratch[threadIdx * LIGHTCATEGORY_COUNT + i] = 0;
+        shiftIndexScratch[threadIdx * LIGHTCATEGORY_COUNT + i] = 0;
+    }
+}
+
+void WriteShiftIndex(uint threadIdx, uint index, int value)
+{
+    shiftIndexScratch[threadIdx * LIGHTCATEGORY_COUNT + index] = value;
+}
+
+int ReadShiftIndex(uint threadIdx, uint index)
+{
+    return shiftIndexScratch[threadIdx * LIGHTCATEGORY_COUNT + index];
+}
+
+void IncrementCategoryListCount(uint threadIdx, uint index)
+{
+    categoryListCountScratch[threadIdx * LIGHTCATEGORY_COUNT + index]++;
+}
+
+int ReadCategoryListCount(uint threadIdx, uint index)
+{
+    return categoryListCountScratch[threadIdx * LIGHTCATEGORY_COUNT + index];
+}
+
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 groupshared uint ldsZMax;
 #endif
@@ -233,7 +265,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
         const float fDpth = FetchDepthMSAA(uPixCrd, i);
-		const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;		// this is optimized away when USE_OBLIQUE_MODE is NOT set.
+        #if defined(SHADER_API_METAL) // GetSamplePosition isn't supported on Metal yet in Unity. TODO: remove when support is added
+        const float2 fracSampleCoord = float2(0.0, 0.0);
+        #else
+        const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+        #endif
 #else
         const float fDpth = FetchDepth(uPixCrd);
 		const float2 fracSampleCoord = float2(0.5,0.5);
@@ -375,15 +411,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     // All our cull data are in the same list, but at render time envLights are separated so we need to shift the index
     // to make it work correctly
-    int shiftIndex[LIGHTCATEGORY_COUNT];
-    ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-    shiftIndex[LIGHTCATEGORY_ENV] = _EnvLightIndexShift;
-    shiftIndex[LIGHTCATEGORY_DECAL] = _DecalIndexShift;
-    shiftIndex[LIGHTCATEGORY_DENSITY_VOLUME] = _DensityVolumeIndexShift;
-    shiftIndex[LIGHTCATEGORY_PROBE_VOLUME] = _ProbeVolumeIndexShift;
+    ZeroCategoryListCountAndShiftIndex(t);
 
-    int categoryListCount[LIGHTCATEGORY_COUNT]; // number of direct lights, reflection probes, decals, density volumes, and probe volumes
-    ZERO_INITIALIZE_ARRAY(int, categoryListCount, LIGHTCATEGORY_COUNT);
+    WriteShiftIndex(t, LIGHTCATEGORY_ENV, _EnvLightIndexShift);
+    WriteShiftIndex(t, LIGHTCATEGORY_DECAL, _DecalIndexShift);
+    WriteShiftIndex(t, LIGHTCATEGORY_DENSITY_VOLUME, _DensityVolumeIndexShift);
 
     uint offs = start;
     for(int ll=0; ll<iNrCoarseLights; ll+=4)
@@ -402,8 +434,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             {
                 const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
                 uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
-                ++categoryListCount[lightCategory];
-                g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];
+                IncrementCategoryListCount(t, lightCategory);
+                g_vLayeredLightList[offs++] = coarseList[l] - ReadShiftIndex(t, lightCategory);
             }
         }
 
@@ -417,12 +449,12 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     offs = GenerateLayeredOffsetBufferIndex(0, tileIDX, i, nrTilesX, nrTilesY, nrClusters, eyeIndex);
     for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
     {
-        int numLights = min(categoryListCount[category],31);        // only allow 5 bits
+        int numLights = min(ReadCategoryListCount(t, category),31);        // only allow 5 bits
         if(i<nrClusters)
         {
             g_LayeredOffset[offs] = (start+localOffs) | (((uint) numLights)<<27);
             offs += (nrClusters*nrTilesX*nrTilesY);
-            localOffs += categoryListCount[category];       // use unclamped count for localOffs
+            localOffs += ReadCategoryListCount(t, category);       // use unclamped count for localOffs
         }
     }
 

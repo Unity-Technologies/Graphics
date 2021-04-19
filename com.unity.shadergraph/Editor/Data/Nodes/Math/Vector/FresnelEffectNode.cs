@@ -9,12 +9,7 @@ namespace UnityEditor.ShaderGraph
         public FresnelNode()
         {
             name = "Fresnel Effect";
-        }
-
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
+            m_PreviewMode = PreviewMode.Preview3D;
         }
 
         protected override MethodInfo GetFunctionToConvert()

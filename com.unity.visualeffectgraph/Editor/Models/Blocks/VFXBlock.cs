@@ -90,5 +90,19 @@ namespace UnityEditor.VFX
                 return GetParent().space;
             return (VFXCoordinateSpace)int.MaxValue;
         }
+
+        public VFXContext flattenedParent
+        {
+            get
+            {
+                return m_FlattenedParent != null ? m_FlattenedParent : GetParent();
+            }
+            set
+            {
+                m_FlattenedParent = value;
+            }
+        }
+
+        private VFXContext m_FlattenedParent;
     }
 }

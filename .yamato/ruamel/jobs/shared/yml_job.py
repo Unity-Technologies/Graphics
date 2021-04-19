@@ -1,4 +1,5 @@
-from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS_padded, PATH_PACKAGES, PATH_UNITY_REVISION, PATH_TEMPLATES, PATH_PACKAGES_temp
+
+from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS_padded, PATH_PLAYERS_padded_extra, PATH_PACKAGES, PATH_UNITY_REVISION, PATH_TEMPLATES, PATH_PACKAGES_temp
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from collections import defaultdict
 import pickle
@@ -25,6 +26,9 @@ class YMLJob():
 
     def set_trigger_on_expression(self, expression): 
         self.yml['triggers']['expression'] = expression
+
+    def set_timeout(self, value):
+        self.yml['timeout'] = value
 
     def add_trigger_recurrent(self, branch, frequency):
         existing_triggers = list(self.yml['triggers']['recurring'])
@@ -69,7 +73,10 @@ class YMLJob():
         self.yml['artifacts']['logs']['paths'].append(dss(f'TestProjects/{project_folder}/Logs/*.log')) 
 
     def add_artifacts_players(self):
-        self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded)) 
+        self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded))
+
+    def add_artifacts_players_extra(self):
+        self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded_extra)) 
 
     def add_artifacts_packages(self,package_id=None):
         if package_id is not None:
@@ -82,7 +89,3 @@ class YMLJob():
 
     def add_artifacts_unity_revision(self): # used by editor
         self.yml['artifacts']['unity_revision.zip']['paths'].append(dss(PATH_UNITY_REVISION)) 
-
-
-
-

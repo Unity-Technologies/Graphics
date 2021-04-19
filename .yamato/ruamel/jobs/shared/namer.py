@@ -1,7 +1,7 @@
 
 parent_dir = '.yamato'
 
-# editor specific 
+# editor specific
 def editor_priming_filepath():
     return f'{parent_dir}/_editor_priming.yml'.lower()
 
@@ -17,14 +17,17 @@ def editor_job_id_test_min_editor(platform_os):
 def editor_job_id_update():
     return 'editor-pinning-update'
 
+def editor_job_id_store_green():
+    return 'editor-pinning-store-green'
+
 def editor_job_id_target_to_ci():
     return 'editor-pinning-target-to-ci'
 
 def editor_job_id_merge_revisions(editor_track, abv):
-    return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}' 
+    return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}'
 
-def editor_job_id_merge_all(abv):
-    return f'editor-pinning-merge-all-abv' if abv else f'editor-pinning-merge-all'
+def editor_job_id_merge_all(ci):
+    return f'editor-pinning-merge-all-ci' if ci else f'editor-pinning-merge-all'
 
 # package specific
 def packages_filepath():
@@ -115,11 +118,11 @@ def project_filepath_all(project_name):
     # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
     return f'{parent_dir}/all-{project_name}.yml'.lower()
 
-def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_name):
-    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_name}'.replace('__','_')
+def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_name, scripting_backend, color_space):
+    return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_name}'.replace('__','_')
 
-def project_job_id_build(project_name, platform_name, api_name, editor_name):
-    return f'Build_{project_name}_{platform_name}_{api_name}_Player_{editor_name}'.replace('__','_')
+def project_job_id_build(project_name, platform_name, api_name, test_platform_name, editor_name, scripting_backend, color_space):
+    return f'Build_{project_name}_{platform_name}_{api_name}_{test_platform_name}_{scripting_backend}_{color_space}_{editor_name}'.replace('__','_')
 
 def project_job_id_all(project_name, editor_name):
     return f'All_{project_name}_{ editor_name}'
@@ -135,8 +138,19 @@ def abv_job_id_all_project_ci(editor_name):
 def abv_job_id_all_project_ci_nightly(editor_name):
     return f'all_project_ci_nightly_{editor_name}'
 
+def abv_job_id_all_project_ci_weekly(editor_name):
+    return f'all_project_ci_weekly_{editor_name}'
+
 def abv_job_id_trunk_verification(editor_name):
     return f'trunk_verification_{editor_name}'
+
+
+# formatting specific
+def formatting_filepath():
+    return f'{parent_dir}/_formatting.yml'.lower()
+
+def formatting_job_id():
+    return f'formatting'
 
 
 # preview publish specific

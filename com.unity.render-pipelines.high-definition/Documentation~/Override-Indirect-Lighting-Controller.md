@@ -11,6 +11,8 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Indirect Lighting Controller**. You can now use the **Indirect Lighting Controller** to control baked or precomputed indirect lighting.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-IndirectLightingController1.png)
@@ -23,7 +25,7 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so
 | **Indirect Diffuse Lighting Layers** | Specifies the [Light Layers](Light-Layers.md) for indirect diffuse lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
 | **Reflection Lighting Multiplier**  | A multiplier for baked, realtime, custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md), [Screen-Space Reflection](Override-Screen-Space-Reflection.md), [Ray-Traced Reflection](Ray-Traced-Reflections.md), and Sky Reflection. HDRP multiplies the light data from all of these by this value. |
 | **Reflection Lighting Layers**  | LSpecifies the [Light Layers](Light-Layers.md) for reflection lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
-| **Reflection Probe Intensity Multiplier**  | A multiplier for baked, realtime, and custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md). HDRP multiplies the Reflection Probe data by this value. |
+| **Reflection/Planar Probe Intensity Multiplier** | A multiplier for baked, realtime, and custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md). HDRP multiplies the Reflection Probe data by this value. |
 
 ## Details
 

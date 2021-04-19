@@ -248,7 +248,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>An array of volumes sorted by influence.</returns>
         public Volume[] GetVolumes()
         {
-            return VolumeManager.instance.GetVolumes(selectedCameraLayerMask).Reverse().ToArray();
+            return VolumeManager.instance.GetVolumes(selectedCameraLayerMask)
+                .Where(v => v.sharedProfile != null)
+                .Reverse().ToArray();
         }
 
         VolumeParameter[,] savedStates = null;

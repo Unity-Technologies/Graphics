@@ -14,8 +14,8 @@ To create and edit a Material that uses this master node, see [Creating and Edit
 
 There are properties on the master node as well as properties on the Materials that use it. [Material properties](#material-inspector) are in the Inspector for Materials that use this Shader, and the master node properties are inside the Shader Graph itself in two sections:
 
-- [**Master node input ports**](#Master-node-input-ports): Shader Graph input ports on the master node itself. You can connect these ports to the output of other nodes or, in some cases, input your own values.
-- [**Master node settings menu**](#Master-node-settings-menu): Settings you can use to customize your master node and expose more input ports.
+- [**Master node input ports**](#master-node-input-ports): Shader Graph input ports on the master node itself. You can connect these ports to the output of other nodes or, in some cases, input your own values.
+- [**Master node settings menu**](#master-node-settings-menu): Settings you can use to customize your master node and expose more input ports.
 
 ### Master node input ports
 
@@ -91,12 +91,12 @@ To view these properties, click the gear icon in the top right of the master nod
 | **Transmission**                     | Enable the checkbox to make HDRP simulate the translucency of an object using a thickness map. Configure subsurface scattering and transmission settings using a [Diffusion Profile](Diffusion-Profile.md). For more information, see documentation on [Subsurface Scattering](Subsurface-Scattering.md).<br/>This setting only appears when you set **Material Type** to **Subsurface Scattering** |
 | **Energy Conserving Specular**       | Enable the checkbox to make HDRP reduce the diffuse color of the Material if the specular effect is more intense. This makes the lighting of the Material more consistent, which makes the Material look more physically accurate.<br/>This port only appears when you set **Material Type** to **Specular Color** |
 | **Receive Decals**                   | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR**                      | Enable this setting to make HDRP include this Material when it processes the screen space reflection pass. |
+| **Receive SSR (Transparent)**        | Enable this setting to make HDRP include this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type. |
 | **Add Precomputed Velocity**         | Enable this setting to use precomputed velocity information stored in an Alembic file. |
 | **Geometric Specular AA**            | Enable this setting to make HDRP perform geometric anti-aliasing on this Material. This modifies the smoothness values on surfaces of curved geometry to remove specular artifacts. For more information about the feature and for the list of properties this feature exposes, see the [Geometric Specular Anti-aliasing documentation](Geometric-Specular-Anti-Aliasing.md). |
 | **Specular Occlusion Mode**          | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
-| **Override Baked GI**                | Enable this setting to expose two baked GI [input ports](#Master-node-input-ports). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
-| **Depth Offset**                     | Enable this setting to expose the **DepthOffset** [InputPort](#Master-node-input-ports) which you can use to increase the depth value of the fragment and push it away from the Camera. |
+| **Override Baked GI**                | Enable this setting to expose two baked GI [input ports](#master-node-input-ports). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
+| **Depth Offset**                     | Enable this setting to expose the **DepthOffset** [input port](#master-node-input-ports) which you can use to increase the depth value of the fragment and push it away from the Camera. |
 | **DOTS instancing**                  | Enable GPU Instancing for use with the Hybrid Renderer.      |
 | **Support LOD CrossFade**            | Indicates whether HDRP processes dithering when moving from one LOD level to another when sampling Textures. |
 

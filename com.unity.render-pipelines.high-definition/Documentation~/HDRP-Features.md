@@ -71,13 +71,13 @@ Use the Lit Shader to easily create realistic Materials and includes options for
 
 ![](Images/HDRPFeatures-LayeredLitShader.png)
 
-The Layered Lit Shader combines a main Material with other tileable Materials in order to produce visuals with a similar quality to a single high-resolution texture, but at a lower performance cost than a [Lit Shader](Lit-Shader) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader).
+The Layered Lit Shader combines a main Material with other tileable Materials in order to produce visuals with a similar quality to a single high-resolution texture, but at a lower performance cost than a [Lit Shader](Lit-Shader.md) using the single high-resolution Texture. For more information, including a full list of Shader properties, see the [Layered Lit Shader documentation](Layered-Lit-Shader.md).
 
 ### Unlit Shader
 
 ![](Images/HDRPFeatures-UnlitShader.png)
 
-The Unlit Shader allows you to create Materials that are not affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader).
+The Unlit Shader allows you to create Materials that are not affected by lighting. Unlit Shaders are perfect for visual effects. For more information, including a full list of Shader properties, see the [Unlit Shader documentation](Unlit-Shader.md).
 
 With the **Shadow Matte** option in the settings, we can have the surface receive shadow without lighting. We have Opaque or Transparent shadow with alpha for each of them.
 
@@ -91,19 +91,19 @@ The StackLit Shader improves on the Lit Shader in favor of quality over performa
 
 ![](Images/HDRPFeatures-HairShader.png)
 
-The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader documentation](Master-Node-Hair).
+The Hair Shader is purpose-built to accurately render realistic hair in your Unity Project. It uses an improved Kajiya Kay lighting model which features better energy conservation and provides you with more flexibility. For more information, including a full list of Shader properties, see the [Hair Shader documentation](Master-Node-Hair.md).
 
 ### Fabric Shader
 
 ![](Images/HDRPFeatures-FabricShader.png)
 
-The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Fabric Shader documentation](Master-Node-Fabric).
+The Fabric Shader allows you to render realistic fabric Materials in HDRP. You can use the cotton wool or silk lighting model to create a wide variety of fabrics. For more information, including a full list of Shader properties, see the [Fabric Shader documentation](Master-Node-Fabric.md).
 
 ### AxF Shader
 
 ![](Images/HDRPFeatures-AxFShader.png)
 
-The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets. For more information, including a full list of Shader properties, see the [AxF Shader documentation](AxF-Shader).
+The AxF Shader supports the [X-Rite AxF](https://www.xrite.com/axf) measured Material format. The AxF importer, available in [Unity Enterprise for Product Lifecylce](https://unity.com/products/unity-enterprise-product-lifecycle), automatically populates an AxF Material when it imports AxF Assets. For more information, including a full list of Shader properties, see the [AxF Shader documentation](AxF-Shader.md).
 
 ### Decals
 
@@ -128,7 +128,7 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 
 ![](Images/HDRPFeatures-LightTypes.png)
 
-The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
+The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. To assist you in creating physically-accurate lights, the [Light component](Light-Component.md) Inspector includes icons alongside the **Intensity** and **Temperature** properties. Each icon displays the real-world light source that the value of each property currently represents. Each icon is also a button which you can click to access a list of preset values that match real-world light sources. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
 
 - **Directional**
   - Color temperature
@@ -159,7 +159,7 @@ The HDRP light types use [physical light units](#PLU) to help you light your Sce
   - Color temperature
   - No [Shadowmask](Lighting-Mode-Shadowmask.md) support
 
-For more information, including the full list of light properties, see the [Light component documentation](Light-Component).
+For more information, including the full list of light properties, see the [Light component documentation](Light-Component.md).
 
 ### IES Profiles and light cookies
 
@@ -171,7 +171,7 @@ HDRP supports the Illuminating Engineering Society's (IES) file format for descr
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
 
-HDRP supports cubemap reflections that take surface smoothness into account. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection optionaly support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
 ### Planar reflection probe
 
@@ -183,7 +183,7 @@ For more information, see [Planar Reflection Probe](Planar-Reflection-Probe.md).
 
 ### Screen-space reflection and refraction
 
-HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP#ScreenSpaceRefraction) documentation.
+HDRP provides a screen-space solution for reflection and refraction. It uses the depth and color buffer of the screen to help simulate the path that light travels to the Camera and uses this to calculate accurate reflection and refraction. You can use this feature for transparent materials too, such as windows or water. For more information, see the [screen-space reflection](Reflection-in-HDRP.md#ScreenSpaceReflection) and [screen-space refraction](Refraction-in-HDRP.md#ScreenSpaceRefraction) documentation.
 
 ### Screen-space global illumination
 
@@ -231,11 +231,9 @@ HDRP uses multiple methods to calculate shadows:
 
 To decrease aliasing for the main cascade shadow maps, you can apply different filters to them, like PCF or PCSS.
 
-For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](Shadows-in-HDRP.md#FilteringQualities).
+For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
-
-<a name="SkyOverview"></a>
 
 ### Sky 
 
@@ -250,8 +248,6 @@ In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky
 
 HDRP is able to handle multiple skies seen by different Cameras.
 
-<a name="FogOverview"></a>
-om
 ### Fog
 
 ![](Images/HDRPFeatures-Fog.png)
@@ -295,7 +291,7 @@ Real time raytracing effect are currently in Preview and behavior could change i
 - [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
 
 <a name="Camera"></a>
 
@@ -305,7 +301,7 @@ Real time raytracing effect are currently in Preview and behavior could change i
 
 ![](Images/HDRPFeatures-PostProcessing.png)
 
-HDRP includes its own purpose-built implementation for post-processing to produce exceptionally high-quality graphics. You can use post-processing to apply full-screen filters and effects to the Camera to drastically improve the visuals of your Unity Project with little set-up time. For an overview on HDRP post-processing, see the [post-processing documentation](Post-Processing-Main).
+HDRP includes its own purpose-built implementation for post-processing to produce exceptionally high-quality graphics. You can use post-processing to apply full-screen filters and effects to the Camera to drastically improve the visuals of your Unity Project with little set-up time. For an overview on HDRP post-processing, see the [post-processing documentation](Post-Processing-Main.md).
 
 ### Accumulation motion blur 
 

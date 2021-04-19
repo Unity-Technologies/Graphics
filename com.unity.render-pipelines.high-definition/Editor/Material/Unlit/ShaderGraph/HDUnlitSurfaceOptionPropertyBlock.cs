@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent shadowMatte = new GUIContent("Shadow Matte", "TODO");
+            public static GUIContent shadowMatte = new GUIContent("Shadow Matte", "When enabled, shadow matte inputs are exposed on the master node.");
         }
 
         HDUnlitData unlitData;

@@ -110,6 +110,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _AO: 1
     - _AORemapMax: 0
@@ -143,7 +144,9 @@ Material:
     - _DecalColorMask3: 0
     - _DecalLayerMaskFromDecal: 1
     - _DecalMaskMapBlueScale: 1
+    - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: 0
+    - _DecalMeshViewBias: 0
     - _DecalStencilRef: 16
     - _DecalStencilWriteMask: 16
     - _DepthOffsetEnable: 0
@@ -198,7 +201,8 @@ Material:
     - _MaskBlendSrc: 0
     - _MaterialID: 1
     - _Metallic: 0
-    - _MetallicScale: 1
+    - _MetallicRemapMax: 1
+    - _MetallicRemapMin: 0
     - _NormalBlendSrc: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
@@ -283,4 +287,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 11

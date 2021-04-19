@@ -27,8 +27,13 @@ namespace UnityEditor.ShaderGraph
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+#if ENABLE_HYBRID_RENDERER_V2
+            public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "", ShaderValueType.Uint,
+                "SV_VertexID", "DOTS_INSTANCING_ON");
+#else
             public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
                 "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
+#endif
         }
 
         public struct Varyings
@@ -57,6 +62,8 @@ namespace UnityEditor.ShaderGraph
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor vertexID = new FieldDescriptor(Attributes.name, "vertexID", "", ShaderValueType.Uint,
+                "SV_VertexID", "DOTS_INSTANCING_ON");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
         }

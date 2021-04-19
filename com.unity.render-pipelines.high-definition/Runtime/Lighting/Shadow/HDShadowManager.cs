@@ -308,6 +308,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void InitShadowManager(RenderPipelineResources renderPipelineResources, HDShadowInitParameters initParams, Shader clearShader)
         {
+            // Even when shadows are disabled (maxShadowRequests == 0) we need to allocate compute buffers to avoid having
+            // resource not bound errors when dispatching a compute shader.
+            m_ShadowDataBuffer = new ComputeBuffer(Mathf.Max(initParams.maxShadowRequests, 1), System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
+            m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
+            m_MaxShadowRequests = initParams.maxShadowRequests;
+            m_ShadowRequestCount = 0;
+
+            if (initParams.maxShadowRequests == 0)
+                return;
+
             m_ClearShadowMaterial = CoreUtils.CreateEngineMaterial(clearShader);
             m_BlitShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.shadowBlitPS);
 
@@ -332,11 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
                                                         HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
-
-            m_ShadowDataBuffer = new ComputeBuffer(initParams.maxShadowRequests, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
-            m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
-
-            m_MaxShadowRequests = initParams.maxShadowRequests;
 
             cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
                                             HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
@@ -392,6 +397,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             cb._CascadeShadowCount = (uint)(m_CascadeCount + 1);
             cb._ShadowAtlasSize = new Vector4(m_Atlas.width, m_Atlas.height, 1.0f / m_Atlas.width, 1.0f / m_Atlas.height);
             cb._CascadeShadowAtlasSize = new Vector4(m_CascadeAtlas.width, m_CascadeAtlas.height, 1.0f / m_CascadeAtlas.width, 1.0f / m_CascadeAtlas.height);
@@ -595,6 +603,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             cachedShadowManager.UpdateDebugSettings(lightingDebugSettings);
 
             m_Atlas.UpdateDebugSettings(lightingDebugSettings);
@@ -626,6 +637,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCamera camera)
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             int shadowIndex = 0;
 
             m_ShadowDatas.Clear();
@@ -787,6 +801,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Clear()
         {
+            if (m_MaxShadowRequests == 0)
+                return;
+
             // Clear the shadows atlas infos and requests
             m_Atlas.Clear();
             m_CascadeAtlas.Clear();
@@ -896,6 +913,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ShadowDataBuffer.Dispose();
             m_DirectionalShadowDataBuffer.Dispose();
+
+            if (m_MaxShadowRequests == 0)
+                return;
+
             m_Atlas.Release();
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas.Release();

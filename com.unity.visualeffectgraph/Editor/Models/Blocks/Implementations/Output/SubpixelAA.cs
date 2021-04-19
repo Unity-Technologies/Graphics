@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Block
                 return @"
 float2 localSize = size * float2(scaleX, scaleY);
 float clipPosW = TransformPositionVFXToClip(position).w;
-float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
+float minSize = clipPosW / (0.5f * min(abs(UNITY_MATRIX_P[0][0]) * _ScreenParams.x, abs(UNITY_MATRIX_P[1][1]) * _ScreenParams.y)); // max size in one pixel
 float2 clampedSize = max(localSize,minSize);
 float fade = (localSize.x * localSize.y) / (clampedSize.x * clampedSize.y);
 alpha *= fade;

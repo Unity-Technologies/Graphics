@@ -76,7 +76,7 @@ void Frag(  PackedVaryingsToPS packedInput
             #endif
         )
 {
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);

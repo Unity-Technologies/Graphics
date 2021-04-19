@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph
             switch (type)
             {
                 case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
+                    return "UnitySamplerState";
                 case ConcreteSlotValueType.Matrix4:
                     return precisionToken + "4x4";
                 case ConcreteSlotValueType.Matrix3:
@@ -142,13 +142,13 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Matrix2:
                     return precisionToken + "2x2";
                 case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
+                    return "UnityTexture2D";
                 case ConcreteSlotValueType.Texture2DArray:
-                    return "Texture2DArray";
+                    return "UnityTexture2DArray";
                 case ConcreteSlotValueType.Texture3D:
-                    return "Texture3D";
+                    return "UnityTexture3D";
                 case ConcreteSlotValueType.Cubemap:
-                    return "TextureCube";
+                    return "UnityTextureCube";
                 case ConcreteSlotValueType.Gradient:
                     return "Gradient";
                 case ConcreteSlotValueType.Vector4:

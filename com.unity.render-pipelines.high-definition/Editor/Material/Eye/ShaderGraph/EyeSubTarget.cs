@@ -32,8 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Eye SubShader", "");
-
-        protected override bool supportRaytracing => false;
+        protected override string raytracingInclude => CoreIncludes.kEyeRaytracing;
         protected override bool requireSplitLighting => eyeData.subsurfaceScattering;
 
         EyeData m_EyeData;
@@ -52,6 +51,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static FieldDescriptor Eye =                     new FieldDescriptor(kMaterial, "Eye", "_MATERIAL_FEATURE_EYE 1");
         public static FieldDescriptor EyeCinematic =            new FieldDescriptor(kMaterial, "EyeCinematic", "_MATERIAL_FEATURE_EYE_CINEMATIC 1");
+
+        protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
+        {
+            var descriptor = base.GetRaytracingSubShaderDescriptor();
+
+            if (eyeData.subsurfaceScattering)
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
+
+            return descriptor;
+        }
 
         public override void GetFields(ref TargetFieldContext context)
         {

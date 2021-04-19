@@ -259,6 +259,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ProbeVolumeBilateralFilterWeight;
         public uint     _EnableDecalLayers;
 
+        public Vector2  _ProbeVolumeBilateralFilterOctahedralDepthParameters;
+        public float    _Pad8;
+        public float    _Pad9;
+
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 
@@ -268,7 +272,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
         public float    _GlobalTessellationFactorMultiplier;
 
-        public float    _Pad8;
-        public float    _Pad9;
+
+        public float    _SpecularOcclusionBlend;
+
+        public int      _HybridDeformedVertexStreamIndex;
+        
+        // Mask Volumes
+        public Vector4  _MaskVolumeAtlasResolutionAndSliceCount;
+        public Vector4  _MaskVolumeAtlasResolutionAndSliceCountInverse;
+        public uint  _EnableMaskVolumes;
+        public uint  _MaskVolumeCount;
+
+
     }
 }

@@ -67,11 +67,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 material.SetInt("_ZWrite", 0);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
+                material.EnableKeyword("_ALPHATEST_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                material.SetFloat("_SurfaceType", 1.0f);
+                material.SetFloat("_Cutoff", .0f);
+                material.SetFloat("_AlphaCutoffEnable", 1.0f);
+                material.SetFloat("_AlphaCutoff", .0f);
+                material.SetFloat("_AlphaCutoffShadow", 1.0f);
+                material.SetFloat("_UseShadowThreshold", 1.0f);
             }
             else
             {

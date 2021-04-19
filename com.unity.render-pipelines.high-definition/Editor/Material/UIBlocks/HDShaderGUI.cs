@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
         readonly static string[] floatPropertiesToSynchronize = {
-            kUseSplitLighting
+            kUseSplitLighting, 
         };
 
         /// <summary>

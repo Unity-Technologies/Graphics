@@ -6,7 +6,7 @@ You can reference multiple SRP assets for each test category. Unity pairs each S
 
 For example, if you have two SRP assets and four scenes, Unity generates eight tests in the Test Runner window (four for each SRP asset).
 
-![Test Description Asset](Images/Test Description Asset.png)
+![Test Description Asset](Images/TestDescriptionAsset.png)
 
 A. **Performance Counters**
 The Performance Counters test evaluates timings. It is particularly useful for counting frame timings gathered from profiling scopes using either:

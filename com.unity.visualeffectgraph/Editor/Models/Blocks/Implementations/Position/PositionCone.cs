@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionCone : PositionBase
     {
         public enum HeightMode
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
         public HeightMode heightMode;
 
-        public override string name { get { return "Position (Cone)"; } }
+        public override string name { get { return string.Format(base.name, "Cone"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
@@ -37,27 +37,25 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
+                var allSlots = GetExpressionsFromSlots(this);
+                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
                     yield return p;
 
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
 
                 VFXExpression radius0 = inputSlots[0][1].GetExpression();
                 VFXExpression radius1 = inputSlots[0][2].GetExpression();
                 VFXExpression height = inputSlots[0][3].GetExpression();
                 VFXExpression tanSlope = (radius1 - radius0) / height;
                 VFXExpression slope = new VFXExpressionATan(tanSlope);
+
+                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius0, thickness.exp), "volumeFactor");
+
                 yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
         }
 
-        protected override bool needDirectionWrite
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
@@ -108,10 +106,8 @@ float hNorm = HeightSequencer;
 ";
                 }
 
-                outSource += @"
-direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-position.xzy += lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy;
-";
+                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.xzy", "lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy", "blendPosition");
 
                 return outSource;
             }

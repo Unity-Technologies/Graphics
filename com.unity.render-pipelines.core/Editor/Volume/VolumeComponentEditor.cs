@@ -319,7 +319,7 @@ namespace UnityEditor.Rendering
         /// <param name="property">The property to draw in the editor</param>
         protected void PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName);
+            var title = EditorGUIUtility.TrTextContent(property.displayName, property.GetAttribute<TooltipAttribute>()?.tooltip);
             PropertyField(property, title);
         }
 

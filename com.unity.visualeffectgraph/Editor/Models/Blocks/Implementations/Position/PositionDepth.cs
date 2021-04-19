@@ -45,6 +45,17 @@ namespace UnityEditor.VFX.Block
             public Vector2 DepthRange = new Vector2(0.0f,1.0f);
         }
 
+        public class InputPropertiesBlendPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for position attribute.")]
+            public float blendPosition;
+        }
+        public class InputPropertiesBlendColor
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for color attribute.")]
+            public float blendColor;
+        }
+
         [VFXSetting, Tooltip("Specifies which Camera to use to project particles onto its depth. Can use the camera tagged 'Main', or a custom camera.")]
         public CameraMode camera;
 
@@ -57,17 +68,30 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particles inherit the color from the color buffer.")]
         public bool inheritSceneColor = false;
 
-        public override string name { get { return "Position (Depth)"; } }
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Color. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionColor = AttributeCompositionMode.Overwrite;
+
+        public override string name { get { return $"{VFXBlockUtility.GetNameString(compositionPosition)} Position (Depth)"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Init; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
+                manager.RegisterError("PositionDepthBlockUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
 
                 if (inheritSceneColor)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, compositionColor == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
 				
                 if (mode == PositionMode.Sequential)
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
@@ -93,6 +117,13 @@ namespace UnityEditor.VFX.Block
 					inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
                 if (cullMode == CullMode.Range)
                     inputs = inputs.Concat(PropertiesFromType("RangeInputProperties"));
+
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendPosition)));
+
+                if(inheritSceneColor && compositionColor == AttributeCompositionMode.Blend)
+                    inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendColor)));
+
                 return inputs;
             }
         }
@@ -183,16 +214,18 @@ if (depth < DepthRange.x || depth > DepthRange.y)
     return;
 }
 ";
-            source += @"
+                source += @"
 float4 clipPos = float4(projpos,depth * ZMultiplier * 2.0f - 1.0f,1.0f);
 float4 vfxPos = mul(ClipToVFX,clipPos);
-position = vfxPos.xyz / vfxPos.w;
 ";
+                source += VFXBlockUtility.GetComposeString(compositionPosition, "position", " vfxPos.xyz / vfxPos.w", "blendPosition");
+
 
                 if (inheritSceneColor)
-                    source += @"
-color = LoadTexture(Camera_colorBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).rgb;
-";
+                {
+                    source += "\n";
+                    source += VFXBlockUtility.GetComposeString(compositionColor, "color", " LoadTexture(Camera_colorBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).rgb", "blendColor");
+                }
 
                 return source;
             }

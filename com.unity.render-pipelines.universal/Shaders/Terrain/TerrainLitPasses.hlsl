@@ -565,7 +565,7 @@ half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
         ClipHoles(IN.uvMainAndLM.xy);
     #endif
 
-    half3 normalWS = IN.normal;
+    half3 normalWS = IN.normal.xyz;
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 

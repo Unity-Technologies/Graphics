@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity
     guid: 7fe3f9e94b4355641ba1534c54d5c356
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit_Smooth_Distortion.unity
+    guid: 50b2c92f5c04d254aa8df03d007f00a9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1102_Unlit_Distortion.unity
     guid: a6e4a81e1988f24459f57a881905a465
   - enabled: 1
@@ -83,6 +86,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1222_Lit_Aniso_Textures.unity
     guid: f83ad7ecd25ef1f4780fc5f190023046
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1223_Lit_Iridescence.unity
+    guid: b447fc323b2e7604e9404972d093fb77
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1224_Lit_Tesselation_Culling.unity
+    guid: e6dbeb027fe017c41839dd2fcfc728f3
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
@@ -170,6 +179,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1712_DecalAngleFading.unity
     guid: 4b93985ba01d5aa49a5f0cdd342faa27
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
+    guid: 0adc2fcc221085f45ba4dce7e4afae0d
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
@@ -282,6 +294,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
     guid: e67192984ee3d6b44a17da02cda1f17a
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2222_ReflectionProbeDistanceBased.unity
+    guid: edecbcde87e543140b1f4e2ffe510a3c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2220_SmoothPlanarReflection.unity
     guid: d4a7e5df537f6b0468c09ce661d8791d
   - enabled: 1
@@ -347,6 +362,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2503_LightLayer_DisableShadow.unity
     guid: a8cbd2435b2e88e4b8f3060f575e7af5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2505_Area_Light_ShadowMask_Baking.unity
+    guid: 091dc511a7c5d714cba984414c7b7ecf
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2551_SSR.unity
     guid: 62f2b88cccb280246a9211bbcf0c8245
@@ -535,6 +553,9 @@ EditorBuildSettings:
     guid: 446a8abf33eabaa4eb3228747da30066
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8107_UnlitShadowMatteAmbientOcclusion.unity
+    guid: 3258eb67f3c2f974bb87d063ef60ccb5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8108_UnlitShadowMatteAmbientOcclusionMSAA.unity
     guid: c2efdf3fe2a75b54588a53fc3be2bd17
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity

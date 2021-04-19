@@ -8,13 +8,15 @@ namespace UnityEditor.VFX.Block
 {
     class PositionSequentialVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
         {
-            get
+            var shapes = new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional };
+
+            foreach (var shape in shapes)
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "shape", Enum.GetValues(typeof(PositionSequential.SequentialShape)).Cast<object>().ToArray() }
+                yield return new[] {
+                    new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
+                    new KeyValuePair<string, object>("shape", shape)
                 };
             }
         }
@@ -36,6 +38,14 @@ namespace UnityEditor.VFX.Block
             Custom
         }
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Add;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Direction. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionDirection = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on TargetPosition. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionTargetPosition = AttributeCompositionMode.Add;
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         [Tooltip("Specifies the type of shape to use for the position sequence.")]
@@ -57,7 +67,7 @@ namespace UnityEditor.VFX.Block
         [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return string.Format("Position : Sequential ({0})", shape); } }
+        public override string name { get { return string.Format("{0} Position (Sequential : {1})",VFXBlockUtility.GetNameString(compositionPosition), shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
@@ -81,6 +91,23 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("Sets an offset to the initial index used to compute the target position.")]
             public int OffsetTargetIndex = 1;
+        }
+
+        public class InputPropertiesBlendPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for position attribute.")]
+            public float blendPosition = 1.0f;
+        }
+        public class InputPropertiesBlendTargetPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Sets the blending value for targetPosition attribute.")]
+            public float blendTargetPosition = 1.0f;
+        }
+
+        public class InputPropertiesBlendDirection
+        {
+            [Range(0.0f, 1.0f), Tooltip("Set the blending value for direction attribute.")]
+            public float blendDirection = 1.0f;
         }
 
         public class InputPropertiesLine
@@ -137,10 +164,22 @@ namespace UnityEditor.VFX.Block
                     commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesCustomIndex"));
 
                 if (writePosition)
+                {
                     commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesWritePosition"));
+                    if(compositionPosition == AttributeCompositionMode.Blend)
+                        commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesBlendPosition"));
+
+                    if (compositionDirection == AttributeCompositionMode.Blend)
+                        commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesBlendDirection"));
+
+                }
 
                 if (writeTargetPosition)
+                {
                     commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesWriteTargetPosition"));
+                    if (compositionTargetPosition == AttributeCompositionMode.Blend)
+                        commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesBlendTargetPosition"));
+                }
 
                 switch (shape)
                 {
@@ -149,7 +188,23 @@ namespace UnityEditor.VFX.Block
                     case SequentialShape.ThreeDimensional: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesThreeDimensional")); break;
                 }
 
+
+
                 return commonProperties;
+            }
+        }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                if (!writePosition)
+                {
+                    yield return "compositionPosition";
+                    yield return "compositionDirection";
+                }
+                if (!writeTargetPosition)
+                    yield return "compositionTargetPosition";
             }
         }
 
@@ -161,21 +216,25 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
 
                 if (writePosition)
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
+                {
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Direction, compositionDirection == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                }
 
                 if (writeTargetPosition)
-                    yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, compositionTargetPosition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
             }
         }
 
-        private VFXExpression GetPositionFromIndex(VFXExpression indexExpr, IEnumerable<VFXNamedExpression> expressions)
+        private void GetPositionAndDirectionFromIndex(VFXExpression indexExpr, IEnumerable<VFXNamedExpression> expressions, out VFXExpression positionExpr, out VFXExpression directionExpr)
         {
             if (shape == SequentialShape.Line)
             {
                 var start = expressions.First(o => o.name == "Start").exp;
                 var end = expressions.First(o => o.name == "End").exp;
                 var count = expressions.First(o => o.name == "Count").exp;
-                return VFXOperatorUtility.SequentialLine(start, end, indexExpr, count, mode);
+                positionExpr = VFXOperatorUtility.SequentialLine(start, end, indexExpr, count, mode);
+                directionExpr = VFXOperatorUtility.SafeNormalize(end - start);
             }
             else if (shape == SequentialShape.Circle)
             {
@@ -184,7 +243,8 @@ namespace UnityEditor.VFX.Block
                 var up = expressions.First(o => o.name == "Up").exp;
                 var radius = expressions.First(o => o.name == "Radius").exp;
                 var count = expressions.First(o => o.name == "Count").exp;
-                return VFXOperatorUtility.SequentialCircle(center, radius, normal, up, indexExpr, count, mode);
+                positionExpr = VFXOperatorUtility.SequentialCircle(center, radius, normal, up, indexExpr, count, mode);
+                directionExpr = VFXOperatorUtility.SafeNormalize(positionExpr - center);
             }
             else if (shape == SequentialShape.ThreeDimensional)
             {
@@ -195,12 +255,14 @@ namespace UnityEditor.VFX.Block
                 var countX = expressions.First(o => o.name == "CountX").exp;
                 var countY = expressions.First(o => o.name == "CountY").exp;
                 var countZ = expressions.First(o => o.name == "CountZ").exp;
-                return VFXOperatorUtility.Sequential3D(origin, axisX, axisY, axisZ, indexExpr, countX, countY, countZ, mode);
+                positionExpr = VFXOperatorUtility.Sequential3D(origin, axisX, axisY, axisZ, indexExpr, countX, countY, countZ, mode);
+                directionExpr = VFXOperatorUtility.SafeNormalize(positionExpr - origin);
             }
-            throw new NotImplementedException();
+            else throw new NotImplementedException();
         }
 
         private static readonly string s_computedPosition = "computedPosition";
+        private static readonly string s_computedDirection = "computedDirection";
         private static readonly string s_computedTargetPosition = "computedTargetPosition";
 
         public override IEnumerable<VFXNamedExpression> parameters
@@ -213,15 +275,27 @@ namespace UnityEditor.VFX.Block
                 if (writePosition)
                 {
                     var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetIndex").exp);
-                    var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
+
+                    GetPositionAndDirectionFromIndex(indexOffsetExpr, expressions, out var positionExpr, out var directionExpr);
+
                     yield return new VFXNamedExpression(positionExpr, s_computedPosition);
+                    yield return new VFXNamedExpression(directionExpr, s_computedDirection);
+
+                    if (compositionPosition == AttributeCompositionMode.Blend)
+                        yield return expressions.FirstOrDefault(o => o.name == "blendPosition");
+
+                    if (compositionDirection == AttributeCompositionMode.Blend)
+                        yield return expressions.FirstOrDefault(o => o.name == "blendDirection");
+
                 }
 
                 if (writeTargetPosition)
                 {
                     var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetTargetIndex").exp);
-                    var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
-                    yield return new VFXNamedExpression(positionExpr, s_computedTargetPosition);
+                    GetPositionAndDirectionFromIndex(indexOffsetExpr, expressions, out var targetPositionExpr, out var targetDirectionExpr);
+                    yield return new VFXNamedExpression(targetPositionExpr, s_computedTargetPosition);
+                    if (compositionTargetPosition == AttributeCompositionMode.Blend)
+                        yield return expressions.FirstOrDefault(o => o.name == "blendTargetPosition");
                 }
             }
         }
@@ -233,12 +307,16 @@ namespace UnityEditor.VFX.Block
                 var source = string.Empty;
                 if (writePosition)
                 {
-                    source += string.Format("position += {0};\n", s_computedPosition);
+                    source += VFXBlockUtility.GetComposeString(compositionPosition, "position", s_computedPosition, "blendPosition");
+                    source += "\n";
+                    source += VFXBlockUtility.GetComposeString(compositionDirection, "direction", s_computedDirection, "blendDirection");
+
                 }
 
                 if (writeTargetPosition)
                 {
-                    source += string.Format("targetPosition += {0};\n", s_computedTargetPosition);
+                    source += "\n";
+                    source += VFXBlockUtility.GetComposeString(compositionTargetPosition, "targetPosition", s_computedTargetPosition, "blendTargetPosition");
                 }
                 return source;
             }

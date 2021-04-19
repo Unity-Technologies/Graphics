@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
+using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -48,6 +49,15 @@ namespace UnityEditor.Rendering.HighDefinition
             // Disable the block if one of the materials is not transparent:
             if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
                 return ;
+
+            // If refraction model is not enabled in SG, we don't show the section
+            var shader = materials[0].shader;
+            if (shader.IsShaderGraph())
+            {
+                var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
+                if (defaultRefractionModel == 0)
+                    return;
+            }
 
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
             {

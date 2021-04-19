@@ -144,8 +144,12 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
+            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
+            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -302,6 +306,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cullingParams = cameraData.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device
+                if (!cameraData.camera.usePhysicalProperties)
+                    cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+
                 return true;
             }
 #endif
@@ -687,7 +696,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
             }
             else
@@ -699,7 +708,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
+                cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
 #endif
             }
 
@@ -803,6 +812,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderer = asset.scriptableRenderer;
             }
 
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+
+            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.resolveFinalTarget = resolveFinalTarget;
+
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
@@ -811,12 +826,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
             }
-
-            // Disables post if GLes2
-            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
-            cameraData.resolveFinalTarget = resolveFinalTarget;
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
@@ -1017,14 +1026,18 @@ namespace UnityEngine.Rendering.Universal
                 if (currLight == null)
                     break;
 
-                if (currLight == sunLight)
-                    return i;
-
-                // In case no shadow light is present we will return the brightest directional light
-                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                if (currVisibleLight.lightType == LightType.Directional)
                 {
-                    brightestLightIntensity = currLight.intensity;
-                    brightestDirectionalLightIndex = i;
+                    // Sun source needs be a directional light
+                    if (currLight == sunLight)
+                        return i;
+
+                    // In case no sun light is present we will return the brightest directional light
+                    if (currLight.intensity > brightestLightIntensity)
+                    {
+                        brightestLightIntensity = currLight.intensity;
+                        brightestDirectionalLightIndex = i;
+                    }
                 }
             }
 

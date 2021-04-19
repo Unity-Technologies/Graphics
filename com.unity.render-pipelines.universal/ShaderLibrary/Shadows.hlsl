@@ -42,6 +42,10 @@
 
 #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 
+#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
+#define CALCULATE_BAKED_SHADOWS
+#endif
+
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
@@ -310,25 +314,34 @@ half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shad
 
 half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
 {
-    // shadowMaskSelector.x is -1 if there is no shadow mask
-    // Note that we override shadow value (in case we don't have any dynamic shadow)
-    half bakedShadow = occlusionProbeChannels.x >= 0 ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    // Here occlusionProbeChannels used as mask selector to select shadows in shadowMask
+    // If occlusionProbeChannels all components are zero we use default baked shadow value 1.0
+    // This code is optimized for mobile platforms:
+    // half bakedShadow = any(occlusionProbeChannels) ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    half bakedShadow = 1.0h + dot(shadowMask - 1.0h, occlusionProbeChannels);
     return bakedShadow;
 }
 
 half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
 {
     half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+
+#ifdef CALCULATE_BAKED_SHADOWS
     half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+#else
+    half bakedShadow = 1.0h;
+#endif
 
 #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
     half shadowFade = GetShadowFade(positionWS);
 #else
     half shadowFade = 1.0h;
 #endif
-#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+
+#if defined(_MAIN_LIGHT_SHADOWS_CASCADE) && defined(CALCULATE_BAKED_SHADOWS)
     // shadowCoord.w represents shadow cascade index
     // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
+    // it is needed when realtime shadows gets cut to early during fade and causes disconnect between baked shadow
     shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
 #endif
 
@@ -338,7 +351,12 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
 half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
 {
     half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS);
+
+#ifdef CALCULATE_BAKED_SHADOWS
     half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+#else
+    half bakedShadow = 1.0h;
+#endif
 
 #ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
     half shadowFade = GetShadowFade(positionWS);

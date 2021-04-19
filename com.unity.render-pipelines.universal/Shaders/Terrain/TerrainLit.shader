@@ -99,6 +99,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma target 2.0

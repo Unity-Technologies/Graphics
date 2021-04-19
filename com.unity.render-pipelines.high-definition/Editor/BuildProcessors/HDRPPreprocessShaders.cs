@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
-            if (isSceneSelectionPass)
+            bool isScenePickingPass = snippet.passName == "ScenePickingPass";
+            if (isSceneSelectionPass || isScenePickingPass)
                 return true;
 
             // CAUTION: We can't identify transparent material in the stripped in a general way.

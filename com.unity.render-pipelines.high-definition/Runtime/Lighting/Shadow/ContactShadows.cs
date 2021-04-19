@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Contact Shadows effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Shadowing/Contact Shadows")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Contact-Shadows" + Documentation.endURL)]
     public class ContactShadows : VolumeComponentWithQuality
     {
         /// <summary>
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter                enable = new BoolParameter(false);
         /// <summary>
         /// Controls the length of the rays HDRP uses to calculate Contact Shadows. It is in meters, but it gets scaled by a factor depending on Distance Scale Factor
-        /// and the depth of the point from where the contact shadow ray is traced. 
+        /// and the depth of the point from where the contact shadow ray is traced.
         /// </summary>
         public ClampedFloatParameter        length = new ClampedFloatParameter(0.15f, 0.0f, 1.0f);
         /// <summary>

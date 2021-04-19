@@ -138,8 +138,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Material
             context.AddField(Anisotropy,                   stackLitData.anisotropy);
             context.AddField(Coat,                         stackLitData.coat);
-            context.AddField(CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
-                                                                        descs.Contains(HDBlockFields.SurfaceDescription.CoatMask));
+            context.AddField(CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) &&
+                descs.Contains(BlockFields.SurfaceDescription.CoatMask));
             // context.AddField(CoatMaskZero,                 coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
             // context.AddField(CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
@@ -165,8 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
-            context.AddField(Tangent,                      descs.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
-                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
             // if capHazinessWrtMetallic.isOn.
@@ -261,7 +259,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.Tangent);
+
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
+                    break;
+                default:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
+                    break;
+            }
+
+            context.AddBlock(tangentBlock);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       stackLitData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            stackLitData.transmission);
@@ -286,14 +299,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                                         stackLitData.specularOcclusionConeFixupMethod != StackLitData.SpecularOcclusionConeFixupMethod.Off);
 
             // Coat
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatSmoothness,       stackLitData.coat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,       stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatIor,              stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatThickness,        stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatExtinction,       stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalOS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalTS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalWS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             stackLitData.coat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,               stackLitData.coat);
 
             // Dual Specular Lobe
             context.AddBlock(HDBlockFields.SurfaceDescription.SmoothnessB,          stackLitData.dualSpecularLobe && stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.Direct);

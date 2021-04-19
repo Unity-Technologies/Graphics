@@ -15,12 +15,14 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
             | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 
-        MaterialUIBlockList uiBlocks = new MaterialUIBlockList
+        MaterialUIBlockList m_UIBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
         };
+
+        protected MaterialUIBlockList uiBlocks => m_UIBlocks;
 
         /// <summary>
         /// Implement your custom GUI in this function. To display a UI similar to HDRP shaders, use a MaterialUIBlock.
@@ -31,8 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
+                m_UIBlocks.OnGUI(materialEditor, props);
+                ApplyKeywordsAndPassesIfNeeded(changed.changed, m_UIBlocks.materials);
             }
         }
 

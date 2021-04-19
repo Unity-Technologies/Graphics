@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.TerrainLit, TerrainLitGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.AxF, AxFGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Unlit, HDUnlitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Lit, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_Lit, LitShaderGraphGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },

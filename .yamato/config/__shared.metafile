@@ -1,35 +1,171 @@
-target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
-target_editor: trunk # specifies the target editor used for some package/preview publish jobs
+target_branch: 10.x.x/release # specifies the branch on which recurrent or pr triggers are created, etc
+target_branch_editor_ci: 10.x.x/ci/editor-pinning # specifies the branch on which editor pinning is done
+target_editor: 2020.2 # specifies the target editor used for some package/preview publish jobs
 editors: # applied for all yml files
-  - track: trunk
-    name: trunk
-    rerun_strategy: on-new-revision
-    editor_pinning: True
-    nightly: True
   - track: 2020.2
     name: 2020.2
     rerun_strategy: on-new-revision
     editor_pinning: True
     # fast: True
-    abv_pr: True
+    editor_pinning_use_abv: False
     nightly: True
+    abv_pr: False
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always
     editor_pinning: False
     fast: False
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+  - name: il2cpp_apiNet4
+    scripting_backend: IL2CPP
+    api_level: NET_4_6
+  - name: mono_apiNet2
+    scripting_backend: Mono2x
+    api_level: NET_2_0
+  - name: mono_apiNet4
+    scripting_backend: Mono2x
+    api_level: NET_4_6
+  - name: il2cpp
+    scripting_backend: IL2CPP
+    api_level: '' # uses the project default
+  - name: mono
+    scripting_backend: Mono2x
+    api_level: '' # uses the project default
+color_spaces:
+  - Linear
+  - gamma
+test_platforms:
+  - type: Standalone
+    utr_flags:
+      - [all]: --suite=playmode
+      - [all]: --timeout=1200
+      - [all]: --reruncount=2
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
+      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [iPhone_Metal]: --platform=iOS
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players
+
+      - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+
+      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
+
+      - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
+
+    utr_flags_build:
+      - [all]: --suite=playmode
+      - [all]: --build-only
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
+      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [iPhone_Metal]: --platform=iOS
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+
+      - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
+
+      - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+
+      - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
+
+      - [all]: --timeout=1200
+      - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
+      - [iPhone]: --timeout=1800
+
+      ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+
+      - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
+
+  - type: playmode
+    utr_flags:
+      - [all]: --suite=playmode
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --reruncount=2
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+
+      - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+
+      - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+
+      - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+
+  - type: editmode
+    utr_flags:
+      - [all]: --suite=editor
+      - [all]: --reruncount=2
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --platform=editmode
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [iPhone_Metal]: --platform=iOS
+
+      - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
+
+      - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+
+      - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+
+      - [Win_DX11]: --extra-editor-arg="-force-d3d11"
+      - [Win_DX12]: --extra-editor-arg="-force-d3d12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+
 platforms:
   Win:
     name: Win
     os: windows
-    apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
@@ -46,7 +182,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-    agent_package: 
+    agent_package:
       type: Unity::VM
       image: package-ci/win10:stable
       flavor: b1.large
@@ -55,13 +191,6 @@ platforms:
   OSX:
     name: OSX
     os: macos
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - editmode
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - Standalone
     components:
       - editor
       - il2cpp
@@ -75,7 +204,7 @@ platforms:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
-    agent_package: 
+    agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
@@ -84,46 +213,25 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
-      - name: OpenGLCore
-        cmd: -force-glcore
-        exclude_test_platforms:
-          - Standalone
-          - playmode_XR
-      - name: Vulkan
-        cmd: -force-vulkan
-        exclude_test_platforms:
-          - playmode_XR
     components:
       - editor
       - il2cpp
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
   Android:
     name: Android
     os: android
-    apis:
-      - name: OpenGLES3
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
-      - name: Vulkan
-        exclude_test_platforms:
-          - editmode
-          - playmode
-          - playmode_XR
     components:
       - editor
       - il2cpp
@@ -140,15 +248,10 @@ platforms:
   iPhone:
     name: iPhone
     os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - playmode
-        - playmode_XR
     components:
       - editor
       - iOS
+      - il2cpp
     agents_project:
       default:
         type: Unity::mobile::iPhone
@@ -161,7 +264,7 @@ platforms:
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
+    image: package-ci/ubuntu:stable
     flavor: b1.small
   package_ci_ubuntu_large:
     type: Unity::VM
