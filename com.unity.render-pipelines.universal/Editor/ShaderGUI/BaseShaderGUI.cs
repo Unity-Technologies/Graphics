@@ -95,8 +95,8 @@ namespace UnityEditor
             public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
                 "Converts the assigned texture to be a normal map format.");
 
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Priority",
-                "Determines the chronological rendering order for a Material. High values are rendered first.");
+            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
         }
 
         #endregion
