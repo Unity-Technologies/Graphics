@@ -1,4 +1,4 @@
-﻿Shader "Universal Render Pipeline/Lit"
+Shader "Universal Render Pipeline/Lit"
 {
     Properties
     {

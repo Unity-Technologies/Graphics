@@ -1,4 +1,4 @@
-﻿Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
+Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 {
     Properties
     {
