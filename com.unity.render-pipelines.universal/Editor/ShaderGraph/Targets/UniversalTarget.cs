@@ -267,8 +267,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
-            //context.AddField(Fields.AlphaClip, alphaClip);
-            //context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -577,7 +575,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // setup material control of via keyword
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
-                pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn); // TODO: double check if this is needed
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
             }
             else
             {
@@ -619,7 +617,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthOnly(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
-                keywords = new KeywordCollection() { CoreKeywords.DepthOnly },
+                keywords = new KeywordCollection(),
                 includes = CoreIncludes.DepthOnly,
 
                 // Custom Interpolator Support
@@ -1204,17 +1202,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        /*      // this is a per-shader keyword, shouldn't be declared globally...
-        public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
-        {
-            displayName = "Smoothness Channel",
-            referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-        */
-
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
@@ -1273,10 +1260,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
-        };
-
-        public static readonly KeywordCollection DepthOnly = new KeywordCollection
-        {
         };
     }
     #endregion

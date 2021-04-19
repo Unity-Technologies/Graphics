@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.SurfaceType, (float)target.surfaceType);
                 collector.AddFloatProperty(Property.BlendMode, (float)target.alphaMode);
                 collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-                collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+                collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector
                 collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
                 collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);

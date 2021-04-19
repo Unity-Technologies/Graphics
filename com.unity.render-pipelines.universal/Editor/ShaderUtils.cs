@@ -4,6 +4,7 @@ using UnityEditor;
 using ShaderPathID = UnityEngine.Rendering.Universal.ShaderPathID;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGraph;
+using UnityEditor.Rendering.Universal.ShaderGUI;
 
 namespace Unity.Rendering.Universal
 {
@@ -32,7 +33,7 @@ namespace Unity.Rendering.Universal
 
         internal static bool IsShaderGraph(this ShaderID id)
         {
-            return ((int) id >= 1000);
+            return ((int)id >= 1000);
         }
 
         // NOTE: this won't work for non-Asset shaders... (i.e. shadergraph preview shaders)
@@ -62,13 +63,30 @@ namespace Unity.Rendering.Universal
 
             switch (shaderID)
             {
+                case ShaderID.Lit:
+                    LitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+                    break;
+                case ShaderID.SimpleLit:
+                    SimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
+                    break;
+                case ShaderID.Unlit:
+                    UnlitShader.SetMaterialKeywords(material);
+                    break;
+                case ShaderID.ParticlesLit:
+                    ParticlesLitShader.SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
+                    break;
+                case ShaderID.ParticlesSimpleLit:
+                    ParticlesSimpleLitShader.SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
+                    break;
+                case ShaderID.ParticlesUnlit:
+                    ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
+                    break;
                 case ShaderID.SG_Lit:
                     URPLitGUI.UpdateMaterial(material);
                     break;
                 case ShaderID.SG_Unlit:
                     URPUnlitGUI.UpdateMaterial(material);
                     break;
-                // TODO: handle other shaders that need keyword resets here
                 default:
                     break;
             }

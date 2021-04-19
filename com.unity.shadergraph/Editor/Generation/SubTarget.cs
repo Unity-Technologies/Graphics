@@ -14,8 +14,6 @@ namespace UnityEditor.ShaderGraph
         public string displayName { get; set; }
         public bool isHidden { get; set; }
         public abstract bool IsActive();
-
-        // TODO: we shouldn't be passing ref here, that gives the caller the ability to replace the class variable we're using...
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);
         public abstract void GetActiveBlocks(ref TargetActiveBlockContext context);

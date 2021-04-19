@@ -31,7 +31,7 @@ namespace UnityEditor
         public static void UpdateMaterial(Material material)
         {
             BaseShaderGUI.SetMaterialKeywords(material);
-            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
+            LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
         public override void MaterialChanged(Material material)

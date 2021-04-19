@@ -28,13 +28,9 @@ $splice(PassKeywords)
 $splice(GraphKeywords)
 
 // Defines
-$SurfaceType.Transparent:           // UBER SHADER NOW:  #define _SURFACE_TYPE_TRANSPARENT 1
-$AlphaClip:                         // UBER SHADER NOW:  #define _AlphaClip 1
-$Normal:                            #define _NORMALMAP 1
-$BlendMode.Add:                     // UBER SHADER NOW:  #define _BLENDMODE_ADD 1
-$BlendMode.Premultiply:             // UBER SHADER NOW:  #define _ALPHAPREMULTIPLY_ON 1
-$NormalDropOffTS:                   #define _NORMAL_DROPOFF_TS 1
-$NormalDropOffOS:                   #define _NORMAL_DROPOFF_OS 1
+$Normal: #define _NORMALMAP 1
+$NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
+$NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
 $NormalDropOffWS: #define _NORMAL_DROPOFF_WS 1
 $Attributes.normalOS: #define ATTRIBUTES_NEED_NORMAL
 $Attributes.tangentOS: #define ATTRIBUTES_NEED_TANGENT

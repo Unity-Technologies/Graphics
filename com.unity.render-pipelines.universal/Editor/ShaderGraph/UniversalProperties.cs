@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering.Universal.ShaderGraph;
-
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -47,15 +47,15 @@ namespace UnityEditor.Rendering.Universal
     internal static class Keyword
     {
         // for hand-written shaders (Lit.shader, Unlit.shader, maybe others)
-        public static readonly string HW_ReceiveShadowsOff = "_RECEIVE_SHADOWS_OFF";
-        public static readonly string HW_Emission = "_EMISSION";
-        public static readonly string HW_AlphaTestOn = "_ALPHATEST_ON";
-        public static readonly string HW_SurfaceTypeTransparent = "_SURFACE_TYPE_TRANSPARENT";
-        public static readonly string HW_AlphaPremultiplyOn = "_ALPHAPREMULTIPLY_ON";
-        public static readonly string HW_AlphaModulateOn = "_ALPHAMODULATE_ON";
+        public static readonly string HW_ReceiveShadowsOff = ShaderKeywordStrings._RECEIVE_SHADOWS_OFF;
+        public static readonly string HW_Emission = ShaderKeywordStrings._EMISSION;
+        public static readonly string HW_AlphaTestOn = ShaderKeywordStrings._ALPHATEST_ON;
+        public static readonly string HW_SurfaceTypeTransparent = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT;
+        public static readonly string HW_AlphaPremultiplyOn = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON;
+        public static readonly string HW_AlphaModulateOn = ShaderKeywordStrings._ALPHAMODULATE_ON;
 
         // custom keywords for Lit.shader
-        public static readonly string HW_NormalMap = "_NORMALMAP";
+        public static readonly string HW_NormalMap = ShaderKeywordStrings._NORMALMAP;
 
         // for ShaderGraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP and user keywords)
     }

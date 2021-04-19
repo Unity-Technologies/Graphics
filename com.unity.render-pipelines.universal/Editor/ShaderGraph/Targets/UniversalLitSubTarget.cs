@@ -70,9 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
-            {
                 context.AddCustomEditorForRenderPipeline(typeof(URPLitGUI).FullName, universalRPType);
-            }
 
             // Process SubShaders
             context.AddSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
@@ -105,21 +103,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             var descs = context.blocks.Select(x => x.descriptor);
-
-            if (!target.allowMaterialOverride)
-            {
-                // Surface Type & Blend Mode -- when controlled by target
-                // These must be set per SubTarget as Sprite SubTargets override them
-
-                // TODO: are any of these actually used?
-//                context.AddField(UniversalFields.SurfaceOpaque,         target.surfaceType == SurfaceType.Opaque);
-//                context.AddField(UniversalFields.SurfaceTransparent,    target.surfaceType != SurfaceType.Opaque);
-//                context.AddField(UniversalFields.BlendAdd,              target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-//                context.AddField(Fields.BlendAlpha,                     target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-//                context.AddField(UniversalFields.BlendMultiply,         target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-//                context.AddField(UniversalFields.BlendPremultiply,      target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
-                // context.AddField(UniversalFields.SpecularSetup,         workflowMode == WorkflowMode.Specular);  // TODO: used??
-            }
 
             // Lit -- always controlled by subtarget
             context.AddField(UniversalFields.NormalDropOffOS,       normalDropOffSpace == NormalDropOffSpace.Object);
@@ -521,7 +504,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection() { LitKeywords.Meta },
+                    keywords = new KeywordCollection(),
                     includes = LitIncludes.Meta,
 
                     // Custom Interpolator Support
@@ -557,7 +540,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { LitKeywords._2D },
+                    keywords = new KeywordCollection(),
                     includes = LitIncludes._2D,
 
                     // Custom Interpolator Support
@@ -596,7 +579,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
                     pragmas = CorePragmas.Instanced,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { LitKeywords.DepthNormalsOnly },
+                    keywords = new KeywordCollection(),
                     includes = CoreIncludes.DepthNormalsOnly,
 
                     // Custom Interpolator Support
@@ -714,7 +697,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordDescriptor ClearCoat = new KeywordDescriptor()
             {
                 displayName = "Clear Coat",
-                referenceName = "_CLEARCOAT 1",
+                referenceName = "_CLEARCOAT",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,
@@ -784,19 +767,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
-            };
-
-            // TODO: remove these empty collections?
-            public static readonly KeywordCollection Meta = new KeywordCollection
-            {
-            };
-
-            public static readonly KeywordCollection _2D = new KeywordCollection
-            {
-            };
-
-            public static readonly KeywordCollection DepthNormalsOnly = new KeywordCollection
-            {
             };
         }
         #endregion

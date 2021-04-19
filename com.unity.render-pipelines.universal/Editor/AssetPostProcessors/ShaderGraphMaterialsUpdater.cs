@@ -3,6 +3,13 @@ using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
+// The purpose of this file is to handle when a Universal ShaderGraph is saved,
+// and ensure all Materials that use that ShaderGraph
+// have updated their keywords and other settings appropriately.
+// This system should be removed once we can declare a Material to have
+// an import dependency on the ShaderGraph artifact
+// (which would have the same effect, but work faster)
+
 namespace UnityEditor.Rendering.Universal
 {
     class UniversalShaderGraphSaveContext

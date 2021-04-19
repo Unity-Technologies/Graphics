@@ -202,9 +202,9 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            // TODO: remove debug spew
-            if (!string.IsNullOrEmpty(upgradeLog))
-                Debug.LogWarning("UniversalRP Material log: " + upgradeLog);
+            // Uncomment to show upgrade debug logs
+            //if (!string.IsNullOrEmpty(upgradeLog))
+            //    Debug.Log("UniversalRP Material log: " + upgradeLog);
         }
 
         static void InitializeLatest(Material material, ShaderID id)

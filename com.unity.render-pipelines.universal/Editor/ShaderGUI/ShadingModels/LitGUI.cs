@@ -211,7 +211,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             DoSmoothness(materialEditor, material, properties.smoothness, properties.smoothnessMapChannel, smoothnessChannelNames);
         }
 
-        public static bool IsOpaque(Material material)
+        internal static bool IsOpaque(Material material)
         {
             bool opaque = true;
             if (material.HasProperty(Property.SurfaceType))
@@ -259,9 +259,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
-        // setup base keywords (shared by all lit shaders, including shadergraph Lit Target and Lit.shader)
-        // TODO: is this public API??  if so we've changed it :(
-        public static void SetMaterialKeywordsBase(Material material, out bool isSpecularWorkflow)
+        // (shared by all lit shaders, including shadergraph Lit Target and Lit.shader)
+        internal static void SetupSpecularWorkflowKeyword(Material material, out bool isSpecularWorkflow)
         {
             isSpecularWorkflow = false;     // default is metallic workflow
             if (material.HasProperty(Property.SpecularWorkflowMode))
@@ -272,7 +271,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         // setup keywords for Lit.shader
         public static void SetMaterialKeywords(Material material)
         {
-            SetMaterialKeywordsBase(material, out bool isSpecularWorkFlow);
+            SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkFlow);
 
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
