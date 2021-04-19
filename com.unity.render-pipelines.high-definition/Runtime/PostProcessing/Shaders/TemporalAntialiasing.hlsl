@@ -6,8 +6,6 @@
 // Legacy defines, DON'T USE IN NEW PASSES THAT USE TEMPORAL AA
 #define RADIUS              0.75
 
-#define SHARPEN_ALPHA 0
-
 #if !defined(CTYPE)
     #define CTYPE float3
     #define CTYPE_SWIZZLE xyz
@@ -49,6 +47,8 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // ---------------------------------------------------
 // Options
 // ---------------------------------------------------
+
+#define SHARPEN_ALPHA 0
 
 // History sampling options
 #define BILINEAR 0
