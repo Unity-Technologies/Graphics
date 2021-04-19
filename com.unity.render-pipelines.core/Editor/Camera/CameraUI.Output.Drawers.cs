@@ -1,0 +1,26 @@
+namespace UnityEditor.Rendering
+{
+    /// <summary> Camera UI Shared Properties among SRP</summary>
+    public static partial class CameraUI
+    {
+        public partial class Output
+        {
+            /// <summary>Draws Allow Dynamic Resolution related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
+            public static void Drawer_Output_AllowDynamicResolution(ISerializedCamera p, Editor owner)
+            {
+                EditorGUILayout.PropertyField(p.allowDynamicResolution, Styles.allowDynamicResolution);
+                p.baseCameraSettings.allowDynamicResolution.boolValue = p.allowDynamicResolution.boolValue;
+            }
+
+            /// <summary>Draws Normalized ViewPort related fields on the inspector</summary>
+            /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
+            /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
+            public static void Drawer_Output_NormalizedViewPort(ISerializedCamera p, Editor owner)
+            {
+                EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, Styles.viewport);
+            }
+        }
+    }
+}
