@@ -113,6 +113,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { UnlitPasses.Unlit },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
+                    { CorePasses.SceneSelection },
+                    { CorePasses.ScenePicking },
                 },
             };
         }
