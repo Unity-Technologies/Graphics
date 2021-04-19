@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
 - Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
+- Advanced Options > Priority has been renamed to Sorting Priority
 - Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
 - DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
@@ -106,6 +107,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
 - Improved URP profiling scopes. Remove low impact scopes from the command buffer for a small performance gain. Fix the name and invalid scope for context.submit() scope. Change the default profiling name of ScriptableRenderPass to Unnamed_ScriptableRenderPass.
 - Using the same MaterialHeaderScope for material editor as HDRP is using
+
+### Removed
+- Code to upgrade from LWRP to URP was removed. This means if you want to upgrade from LWRP you must first upgrade to previous versions of URP and then upgrade to this version.
 
 ## [11.0.0] - 2020-10-21
 ### Added
