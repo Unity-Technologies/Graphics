@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     public class DisallowMultipleRendererFeature : Attribute
     {
         /// <summary>
-        ///
+        /// Set the custom title for renderer feature.
         /// </summary>
         public string customTitle { private set; get; }
 

@@ -13,22 +13,22 @@ namespace UnityEditor.Rendering.Universal
     [CanEditMultipleObjects]
     partial class DecalProjectorEditor : Editor
     {
-        const float k_Limit = 100000;
-        const float k_LimitInv = 1 / k_Limit;
+        const float k_Limit = 100000f;
+        const float k_LimitInv = 1f / k_Limit;
 
         static Color fullColor
         {
             get
             {
                 Color c = s_LastColor;
-                c.a = 1;
+                c.a = 1f;
                 return c;
             }
         }
         static Color s_LastColor;
         static void UpdateColorsInHandlesIfRequired()
         {
-            Color c = new Color(1, 1, 1, 0.2f);
+            Color c = new Color(1f, 1f, 1f, 0.2f);
             if (c != s_LastColor)
             {
                 if (s_BoxHandle != null && !s_BoxHandle.Equals(null))
