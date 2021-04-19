@@ -290,6 +290,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
+
         public override object saveContext => m_ActiveSubTarget.value?.saveContext;
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -810,21 +811,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     result.Add(RenderState.Blend(Blend.One, Blend.Zero));
                 }
-                else switch (target.alphaMode)
-                {
-                    case AlphaMode.Alpha:
-                        result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
-                        break;
-                    case AlphaMode.Premultiply:
-                        result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
-                        break;
-                    case AlphaMode.Additive:
-                        result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
-                        break;
-                    case AlphaMode.Multiply:
-                        result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
-                        break;
-                }
+                else
+                    switch (target.alphaMode)
+                    {
+                        case AlphaMode.Alpha:
+                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            break;
+                        case AlphaMode.Premultiply:
+                            result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            break;
+                        case AlphaMode.Additive:
+                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                            break;
+                        case AlphaMode.Multiply:
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            break;
+                    }
 
                 return result;
             }
@@ -1259,7 +1261,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
         {
             displayName = "UseFragmentFog",
-            referenceName = "_FOG_FRAGMENT 1",
+            referenceName = "_FOG_FRAGMENT",
             type = KeywordType.Boolean,
         };
     }
