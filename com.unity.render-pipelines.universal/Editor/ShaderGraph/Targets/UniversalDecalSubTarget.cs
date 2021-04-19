@@ -216,6 +216,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = "_DecalMeshBiasType",
+                displayName = "DecalMesh BiasType",
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
                 enumNames = { "Depth Bias", "View Bias" },
