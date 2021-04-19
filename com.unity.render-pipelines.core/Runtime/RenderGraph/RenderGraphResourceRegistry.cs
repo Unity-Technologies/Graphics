@@ -220,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal bool IsRendererListCreated(in RendererListHandle res)
         {
-            return m_RendererListResources[res].rendererList.IsValid();
+            return m_RendererListResources[res].rendererList.isValid;
         }
 
         internal bool IsRenderGraphResourceImported(RenderGraphResourceType type, int index)

@@ -314,8 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
 
             var hdrpSettings = defaultSettings as HDRenderPipelineGlobalSettings;
-            if(hdrpSettings)
-                m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
+            m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
 
             m_RenderGraph.Execute();
 

@@ -1290,7 +1290,7 @@ namespace UnityEngine.Rendering
         /// <param name="rendererList">Renderer List to render.</param>
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
-            if (!rendererList.IsValid())
+            if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
 
             cmd.DrawRendererList(rendererList);

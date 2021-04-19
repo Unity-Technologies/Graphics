@@ -179,9 +179,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
-        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
-        public bool rendererListCulling;
-
         internal struct CompiledResourceInfo
         {
             public List<int>    producers;
@@ -306,6 +303,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public string name { get; private set; } = "RenderGraph";
         /// <summary>If true, the Render Graph will generate execution debug information.</summary>
         internal static bool requireDebugData { get; set; } = false;
+
+        ///<summary> Controls whether to enable Renderer List culling or not.</summary>
+        public bool rendererListCulling;
 
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
