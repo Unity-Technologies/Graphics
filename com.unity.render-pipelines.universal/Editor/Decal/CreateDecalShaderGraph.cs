@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    static class CreateDecalShaderGraph
+    internal static class CreateDecalShaderGraph
     {
         [MenuItem("Assets/Create/Shader Graph/URP/Decal Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
         public static void CreateLitGraph()
