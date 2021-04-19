@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 ### Fixed
 - Target GameObject attach button does not allow attaching a valid VFX if the last selection was invalid. [Case 1312178](https://issuetracker.unity3d.com/product/unity/issues/guid/1312178/)
 - Deleting flow edge between Init and Update throw an invalid opeation exception [Case 1315593](https://issuetracker.unity3d.com/product/unity/issues/guid/1315593/)
@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Regression with some settings not always triggering a recompilation [Case 1322844](https://issuetracker.unity3d.com/product/unity/issues/guid/1322844/)
 - Exception in VFXFilterWindow if search field is empty [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
 
-## [10.4.0] - 2020-01-26
+## [10.4.0] - 2021-03-11
 ### Changed
 - Sphere and Cube outputs are now experimental
 - Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
 - Fixed issue with VFX using incorrect buffer type for strip data
  
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

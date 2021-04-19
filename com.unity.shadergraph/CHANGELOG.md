@@ -4,13 +4,13 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
 ### Fixed
 - Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
 - Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
 
-## [10.4.0] - 2021-01-27
+## [10.4.0] - 2021-03-11
 
 ### Added
 - Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
