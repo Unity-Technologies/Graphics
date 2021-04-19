@@ -910,10 +910,9 @@
     "m_ObjectId": "79b01638febe482cb27dedbdef5a85b7",
     "m_DecalData": {
         "affectsAlbedo": true,
+        "affectsNormalBlend": true,
         "affectsNormal": false,
-        "affectsMetal": false,
-        "affectsAO": false,
-        "affectsSmoothness": false,
+        "affectsMAOS": false,
         "affectsEmission": false,
         "drawOrder": 0,
         "supportLodCrossFade": false,

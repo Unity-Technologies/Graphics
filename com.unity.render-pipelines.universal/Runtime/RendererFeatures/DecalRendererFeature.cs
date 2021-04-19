@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Albedo,
         AlbedoNormal,
-        AlbedoNormalMask,
+        AlbedoNormalMAOS,
     }
 
     internal enum DecalTechnique
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
     [System.Serializable]
     internal class DBufferSettings
     {
-        public DecalSurfaceData surfaceData = DecalSurfaceData.AlbedoNormalMask;
+        public DecalSurfaceData surfaceData = DecalSurfaceData.AlbedoNormalMAOS;
     }
 
     internal enum DecalNormalBlend
@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Settings.technique == DecalTechniqueOption.Automatic)
             {
-                return new DBufferSettings() { surfaceData = DecalSurfaceData.AlbedoNormalMask };
+                return new DBufferSettings() { surfaceData = DecalSurfaceData.AlbedoNormalMAOS };
             }
             else
             {

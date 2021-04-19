@@ -34,9 +34,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         private static FieldDescriptor AffectsAlbedo = new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
         private static FieldDescriptor AffectsNormal = new FieldDescriptor(kMaterial, "AffectsNormal", "");
         private static FieldDescriptor AffectsNormalBlend = new FieldDescriptor(kMaterial, "AffectsNormalBlend", "");
-        private static FieldDescriptor AffectsMetal = new FieldDescriptor(kMaterial, "AffectsMetal", "");
-        private static FieldDescriptor AffectsAO = new FieldDescriptor(kMaterial, "AffectsAO", "");
-        private static FieldDescriptor AffectsSmoothness = new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
+        private static FieldDescriptor AffectsMAOS = new FieldDescriptor(kMaterial, "AffectsAO", "");
         private static FieldDescriptor AffectsEmission = new FieldDescriptor(kMaterial, "AffectsEmission", "");
         private static FieldDescriptor AffectsDBuffer = new FieldDescriptor(kMaterial, "AffectsDBuffer", "");
         private static FieldDescriptor DecalDefault = new FieldDescriptor(kMaterial, "DecalDefault", "");
@@ -48,9 +46,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public bool affectsAlbedo = true;
             public bool affectsNormalBlend = true;
             public bool affectsNormal = true;
-            public bool affectsMetal;
-            public bool affectsAO;
-            public bool affectsSmoothness;
+            public bool affectsMAOS;
             public bool affectsEmission;
             public int drawOrder;
             public bool supportLodCrossFade;
@@ -91,8 +87,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     var passDescriptor = pass.descriptor;
 
-                    CollectPassDefines(ref passDescriptor);
-
                     CollectPassRenderState(ref passDescriptor);
 
                     passes.Add(passDescriptor, pass.fieldConditions);
@@ -100,50 +94,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 subShader.passes = passes;
 
                 context.AddSubShader(subShader);
-            }
-        }
-
-        private void CollectPassDefines(ref PassDescriptor pass)
-        {
-            // TODO: Check if we can move this to conditional fields
-
-            // Emissive pass only have the emission keyword
-            if (pass.lightMode == DecalShaderPassNames.DBufferProjector ||
-                pass.lightMode == DecalShaderPassNames.DBufferMesh ||
-                pass.lightMode == DecalShaderPassNames.DecalPreview ||
-                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceProjector ||
-                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceMesh ||
-                pass.lightMode == DecalShaderPassNames.DecalGBufferProjector ||
-                pass.lightMode == DecalShaderPassNames.DecalGBufferMesh
-            )
-            {
-                // Make copy to avoid overwriting static
-                pass.defines = pass.defines == null ? new DefineCollection() : new DefineCollection() { pass.defines };
-
-                if (decalData.affectsAlbedo)
-                    pass.defines.Add(DecalDefines.AffectsAlbedo);
-                if (decalData.affectsNormal)
-                    pass.defines.Add(DecalDefines.AffectsNormal);
-                if (decalData.affectsNormalBlend)
-                    pass.defines.Add(DecalDefines.AffectsNormalBlend);
-                if (decalData.affectsMetal)
-                    pass.defines.Add(DecalDefines.AffectsMetal);
-                if (decalData.affectsAO)
-                    pass.defines.Add(DecalDefines.AffectsAO);
-                if (decalData.affectsSmoothness)
-                    pass.defines.Add(DecalDefines.AffectsSmoothness);
-            }
-
-            if (pass.lightMode == DecalShaderPassNames.DecalMeshForwardEmissive ||
-                pass.lightMode == DecalShaderPassNames.DBufferMesh ||
-                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceMesh ||
-                pass.lightMode == DecalShaderPassNames.DecalGBufferMesh)
-            {
-                // Make copy to avoid overwriting static
-                pass.keywords = pass.keywords == null ? new KeywordCollection() : new KeywordCollection() { pass.keywords };
-
-                if (decalData.supportLodCrossFade)
-                    pass.keywords.Add(DecalKeywords.LodCrossFade);
             }
         }
 
@@ -187,18 +137,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     pass.renderStates.Add(DecalColorMasks.ColorMaskNone1);
 
-                string colorWriteMask = "";
-                if (decalData.affectsMetal)
-                    colorWriteMask += 'R';
-                if (decalData.affectsAO)
-                    colorWriteMask += 'G';
-                if (decalData.affectsSmoothness)
-                    colorWriteMask += 'B';
-                if (colorWriteMask != "")
-                    colorWriteMask += 'A';
+                if (decalData.affectsMAOS)
+                    pass.renderStates.Add(DecalColorMasks.ColorMaskRGBA2);
                 else
-                    colorWriteMask = "0";
-                pass.renderStates.Add(new RenderStateDescriptor() { type = RenderStateType.ColorMask, value = $"ColorMask {colorWriteMask} 2" });
+                    pass.renderStates.Add(DecalColorMasks.ColorMaskNone2);
             }
         }
 
@@ -258,14 +200,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(AffectsAlbedo, decalData.affectsAlbedo);
             context.AddField(AffectsNormal, decalData.affectsNormal);
             context.AddField(AffectsNormalBlend, decalData.affectsNormalBlend);
-            context.AddField(AffectsMetal, decalData.affectsMetal);
-            context.AddField(AffectsAO, decalData.affectsAO);
-            context.AddField(AffectsSmoothness, decalData.affectsSmoothness);
+            context.AddField(AffectsMAOS, decalData.affectsMAOS);
             context.AddField(AffectsEmission, decalData.affectsEmission);
-            context.AddField(AffectsDBuffer, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
-                decalData.affectsAO || decalData.affectsSmoothness);
-            context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
-                decalData.affectsAO || decalData.affectsSmoothness || decalData.affectsEmission);
+            context.AddField(AffectsDBuffer, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMAOS);
+            context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMAOS || decalData.affectsEmission);
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
             context.AddField(AngleFade, decalData.angleFade);
         }
@@ -282,10 +220,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Alpha, decalData.affectsAlbedo || decalData.affectsEmission);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS, decalData.affectsNormal);
             context.AddBlock(UniversalBlockFields.SurfaceDescription.NormalAlpha, decalData.affectsNormal && decalData.affectsNormalBlend);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic, decalData.affectsMetal);
-            context.AddBlock(BlockFields.SurfaceDescription.Occlusion, decalData.affectsAO);
-            context.AddBlock(BlockFields.SurfaceDescription.Smoothness, decalData.affectsSmoothness);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.MAOSAlpha, decalData.affectsMetal | decalData.affectsSmoothness | decalData.affectsAO);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic, decalData.affectsMAOS);
+            context.AddBlock(BlockFields.SurfaceDescription.Occlusion, decalData.affectsMAOS);
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness, decalData.affectsMAOS);
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.MAOSAlpha, decalData.affectsMAOS);
             context.AddBlock(BlockFields.SurfaceDescription.Emission, decalData.affectsEmission);
         }
 
@@ -311,7 +249,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Affect Normal Blend", new Toggle() { value = decalData.affectsNormalBlend }, (evt) =>
+            context.globalIndentLevel++;
+            context.AddProperty("Blend", new Toggle() { value = decalData.affectsNormalBlend }, (evt) =>
             {
                 if (Equals(decalData.affectsNormalBlend, evt.newValue))
                     return;
@@ -320,34 +259,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 decalData.affectsNormalBlend = (bool)evt.newValue;
                 onChange();
             });
+            context.globalIndentLevel--;
 
-            context.AddProperty("Affect Metal", new Toggle() { value = decalData.affectsMetal }, (evt) =>
+            context.AddProperty("Affect MAOS", new Toggle() { value = decalData.affectsMAOS }, (evt) =>
             {
-                if (Equals(decalData.affectsMetal, evt.newValue))
+                if (Equals(decalData.affectsMAOS, evt.newValue))
                     return;
 
-                registerUndo("Change Affect Metal");
-                decalData.affectsMetal = (bool)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Affect Ambient Occlusion", new Toggle() { value = decalData.affectsAO }, (evt) =>
-            {
-                if (Equals(decalData.affectsAO, evt.newValue))
-                    return;
-
-                registerUndo("Change Affect Ambient Occlusion");
-                decalData.affectsAO = (bool)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Affect Smoothness", new Toggle() { value = decalData.affectsSmoothness }, (evt) =>
-            {
-                if (Equals(decalData.affectsSmoothness, evt.newValue))
-                    return;
-
-                registerUndo("Change Affect Smoothness");
-                decalData.affectsSmoothness = (bool)evt.newValue;
+                registerUndo("Change Affect MAOS");
+                decalData.affectsMAOS = (bool)evt.newValue;
                 onChange();
             });
 
@@ -452,7 +372,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = DecalRenderStates.DBufferProjector,
                 pragmas = DecalPragmas.MultipleRenderTargets,
-                keywords = DecalKeywords.DBuffer,
+                keywords = DecalKeywords.DBufferProjector,
                 defines = DecalDefines.Projector,
                 includes = DecalIncludes.DBuffer,
             };
@@ -560,7 +480,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = DecalRenderStates.DBufferMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
-                keywords = DecalKeywords.DBuffer,
+                defines = DecalDefines.Mesh,
+                keywords = DecalKeywords.DBufferMesh,
                 includes = DecalIncludes.DBuffer,
             };
 
@@ -587,7 +508,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = DecalRenderStates.ForwardEmissiveMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
-                defines = DecalDefines.AffectsEmission,
+                defines = DecalDefines.MeshWithEmission,
                 includes = DecalIncludes.DBuffer,
             };
 
@@ -613,7 +534,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 renderStates = DecalRenderStates.ScreenSpaceMesh,
                 pragmas = DecalPragmas.ScreenSpace,
-                defines = DecalDefines.AffectsEmission,
+                defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.ScreenSpaceMesh,
                 includes = DecalIncludes.ScreenSpace,
             };
@@ -640,7 +561,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 renderStates = DecalRenderStates.GBufferMesh,
                 pragmas = DecalPragmas.GBuffer,
-                defines = DecalDefines.AffectsEmission,
+                defines = DecalDefines.MeshWithEmission,
                 keywords = DecalKeywords.GBufferMesh,
                 includes = DecalIncludes.GBuffer,
             };
@@ -745,6 +666,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static RenderStateDescriptor ColorMaskNone0 = RenderState.ColorMask("ColorMask 0");
             public static RenderStateDescriptor ColorMaskRGBA1 = RenderState.ColorMask("ColorMask RGBA 1");
             public static RenderStateDescriptor ColorMaskNone1 = RenderState.ColorMask("ColorMask 0 1");
+            public static RenderStateDescriptor ColorMaskRGBA2 = RenderState.ColorMask("ColorMask RGBA 2");
             public static RenderStateDescriptor ColorMaskNone2 = RenderState.ColorMask("ColorMask 0 2");
         }
         #endregion
@@ -902,31 +824,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     type = KeywordType.Boolean,
                 };
 
-                public static KeywordDescriptor AffectsMetal = new KeywordDescriptor()
+                public static KeywordDescriptor AffectsMAOS = new KeywordDescriptor()
                 {
                     displayName = "Affects Metal",
-                    referenceName = "_MATERIAL_AFFECTS_METAL",
-                    type = KeywordType.Boolean,
-                };
-
-                public static KeywordDescriptor AffectsAO = new KeywordDescriptor()
-                {
-                    displayName = "Affects Ambient Occlusion",
-                    referenceName = "_MATERIAL_AFFECTS_AO",
-                    type = KeywordType.Boolean,
-                };
-
-                public static KeywordDescriptor AffectsSmoothness = new KeywordDescriptor()
-                {
-                    displayName = "Affects Smoothness",
-                    referenceName = "_MATERIAL_AFFECTS_SMOOTHNESS",
-                    type = KeywordType.Boolean,
-                };
-
-                public static KeywordDescriptor AffectsMaskmap = new KeywordDescriptor()
-                {
-                    displayName = "Affects Maskmap",
-                    referenceName = "_MATERIAL_AFFECTS_MASKMAP",
+                    referenceName = "_MATERIAL_AFFECTS_MAOS",
                     type = KeywordType.Boolean,
                 };
 
@@ -954,22 +855,44 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static DefineCollection Projector = new DefineCollection
             {
+                { Descriptors.AffectsAlbedo, 1, new FieldCondition(AffectsAlbedo, true) },
+                { Descriptors.AffectsNormal, 1, new FieldCondition(AffectsNormal, true) },
+                { Descriptors.AffectsNormalBlend, 1, new FieldCondition(AffectsNormalBlend, true) },
+                { Descriptors.AffectsMAOS, 1, new FieldCondition(AffectsMAOS, true) },
                 { Descriptors.AngleFade, 1, new FieldCondition(AngleFade, true) }
+            };
+
+            public static DefineCollection ProjectorEmission = new DefineCollection
+            {
+                { Descriptors.AngleFade, 1, new FieldCondition(AngleFade, true) },
+                { Descriptors.AffectsEmission, 1, new FieldCondition(AffectsEmission, true) },
             };
 
             public static DefineCollection ProjectorWithEmission = new DefineCollection
             {
-                { Descriptors.AngleFade, 1, new FieldCondition(AngleFade, true) },
-                { Descriptors.AffectsEmission, 1 },
+                { Projector },
+                { Descriptors.AffectsEmission, 1, new FieldCondition(AffectsEmission, true) },
             };
 
-            public static DefineCollection AffectsAlbedo = new DefineCollection { { Descriptors.AffectsAlbedo, 1 }, };
-            public static DefineCollection AffectsNormal = new DefineCollection { { Descriptors.AffectsNormal, 1 }, };
-            public static DefineCollection AffectsNormalBlend = new DefineCollection { { Descriptors.AffectsNormalBlend, 1 }, };
-            public static DefineCollection AffectsMetal = new DefineCollection { { Descriptors.AffectsMetal, 1 }, };
-            public static DefineCollection AffectsAO = new DefineCollection { { Descriptors.AffectsAO, 1 }, };
-            public static DefineCollection AffectsSmoothness = new DefineCollection { { Descriptors.AffectsSmoothness, 1 }, };
-            public static DefineCollection AffectsEmission = new DefineCollection { { Descriptors.AffectsEmission, 1 }, };
+            public static DefineCollection Mesh = new DefineCollection
+            {
+                { Descriptors.AffectsAlbedo, 1, new FieldCondition(AffectsAlbedo, true) },
+                { Descriptors.AffectsNormal, 1, new FieldCondition(AffectsNormal, true) },
+                { Descriptors.AffectsNormalBlend, 1, new FieldCondition(AffectsNormalBlend, true) },
+                { Descriptors.AffectsMAOS, 1, new FieldCondition(AffectsMAOS, true) },
+            };
+
+            public static DefineCollection MeshEmission = new DefineCollection
+            {
+                { Descriptors.AffectsEmission, 1, new FieldCondition(AffectsEmission, true) },
+            };
+
+            public static DefineCollection MeshWithEmission = new DefineCollection
+            {
+                { Mesh },
+                { Descriptors.AffectsEmission, 1, new FieldCondition(AffectsEmission, true) },
+            };
+
             public static DefineCollection ScenePicking = new DefineCollection { { Descriptors.ScenePickingPass, 1 }, };
         }
         #endregion
@@ -1004,8 +927,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
             }
 
-            public static KeywordCollection DBuffer = new KeywordCollection { { CoreKeywordDescriptors.DBuffer } };
-            public static KeywordCollection LodCrossFade = new KeywordCollection { { Descriptors.LodCrossFade }, };
+            public static KeywordCollection DBufferMesh = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DBuffer },
+                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
+            };
+
+            public static KeywordCollection DBufferProjector = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DBuffer },
+            };
 
             public static readonly KeywordCollection ScreenSpaceMesh = new KeywordCollection
             {
@@ -1018,6 +949,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { Descriptors.DecalsNormalBlend },
+                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
@@ -1043,6 +975,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
+                { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection

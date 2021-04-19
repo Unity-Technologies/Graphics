@@ -533,7 +533,7 @@ namespace UnityEditor.Rendering.Universal
                                         case DecalSurfaceData.AlbedoNormal:
                                             shaderFeatures |= ShaderFeatures.DBufferMRT2;
                                             break;
-                                        case DecalSurfaceData.AlbedoNormalMask:
+                                        case DecalSurfaceData.AlbedoNormalMAOS:
                                             shaderFeatures |= ShaderFeatures.DBufferMRT3;
                                             break;
                                     }

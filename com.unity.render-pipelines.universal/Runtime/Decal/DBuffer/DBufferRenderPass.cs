@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[0]), desc);
             }
 
-            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
+            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[1]), desc);
             }
 
-            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
+            if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, m_Settings.surfaceData == DecalSurfaceData.Albedo);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
 
                 // for alpha compositing, color is cleared to 0, alpha to 1
                 // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
