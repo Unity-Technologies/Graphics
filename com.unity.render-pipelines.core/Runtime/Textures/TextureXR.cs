@@ -122,6 +122,18 @@ namespace UnityEngine.Rendering
         /// <returns>The default white texture.</returns>
         public static RTHandle GetWhiteTexture() { return useTexArray ? m_WhiteTexture2DArrayRTH : m_WhiteTextureRTH; }
 
+        static Texture2D m_OpaqueBlackTexture;
+        static Texture3D m_OpaqueBlackTexture3D;
+        static Texture2DArray m_OpaqueBlackTexture2DArray;
+        static RTHandle m_OpaqueBlackTexture2DArrayRTH;
+        static RTHandle m_OpaqueBlackTextureRTH;
+        static RTHandle m_OpaqueBlackTexture3DRTH;
+        /// <summary>
+        /// Default opaque black texture.
+        /// </summary>
+        /// <returns>The default opaque black texture.</returns>
+        public static RTHandle GetOpaqueBlackTexture() { return useTexArray ? m_OpaqueBlackTexture2DArrayRTH : m_OpaqueBlackTextureRTH; }
+
         /// <summary>
         /// Initialize XR textures. Must be called at least once.
         /// </summary>
@@ -175,6 +187,19 @@ namespace UnityEngine.Rendering
                 RTHandles.Release(m_WhiteTexture2DArrayRTH);
                 m_WhiteTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.whiteTexture, "White Texture2DArray");
                 m_WhiteTexture2DArrayRTH = RTHandles.Alloc(m_WhiteTexture2DArray);
+
+                // Opaque black
+                RTHandles.Release(m_OpaqueBlackTextureRTH);
+                m_OpaqueBlackTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Magenta Texture" };
+                m_OpaqueBlackTexture.SetPixel(0, 0, Color.black);
+                m_OpaqueBlackTexture.Apply();
+                m_OpaqueBlackTextureRTH = RTHandles.Alloc(m_OpaqueBlackTexture);
+                RTHandles.Release(m_OpaqueBlackTexture2DArrayRTH);
+                m_OpaqueBlackTexture2DArray = CreateTexture2DArrayFromTexture2D(m_OpaqueBlackTexture, "Black Texture2DArray");
+                m_OpaqueBlackTexture2DArrayRTH = RTHandles.Alloc(m_OpaqueBlackTexture2DArray);
+                RTHandles.Release(m_OpaqueBlackTexture3DRTH);
+                m_OpaqueBlackTexture3D = CreateBlackTexture3D("Black Texture3D");
+                m_OpaqueBlackTexture3DRTH = RTHandles.Alloc(m_OpaqueBlackTexture3D);
             }
         }
 
