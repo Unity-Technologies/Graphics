@@ -1352,6 +1352,7 @@ namespace UnityEngine.Rendering
             return size - (size >> 1);
         }
 
+
         /// <summary>
         /// Get the last declared value from an enum Type
         /// </summary>
@@ -1359,5 +1360,44 @@ namespace UnityEngine.Rendering
         /// <returns>Last value of the enum</returns>
         public static T GetLastEnumValue<T>() where T : Enum
             => typeof(T).GetEnumValues().Cast<T>().Last();
+
+#if UNITY_EDITOR
+        // This is required in Runtime assembly between #if UNITY_EDITOR
+        /// <summary>
+        /// AssetDataBase.FindAssets("t:<type>") load all asset in project to check the type.
+        /// This utility function will try to filter at much possible before loading anything.
+        /// This also works with Interface and inherited types.
+        /// This will not find embedded sub assets.
+        /// This still take times on big project so it must be only used in Editor context only.
+        /// </summary>
+        /// <typeparam name="T">Type or Interface to search</typeparam>
+        /// <param name="extension">Extension of files to search in</param>
+        /// <param name="allowSubTypes">Allows to retrieve type inheriting from T.</param>
+        /// <returns>List of all asset of type T or implementing interface T.</returns>
+        public static IEnumerable<T> LoadAllAssets<T>(string extension = "asset", bool allowSubTypes = true)
+            where T : class
+        {
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentNullException(nameof(extension), "You must pass a valid extension");
+
+            bool isInterface = typeof(T).IsInterface;
+            if (!typeof(UnityEngine.Object).IsAssignableFrom(typeof(T)) && !isInterface)
+                throw new Exception("T must be an interface or inherite UnityEngine.Object.");
+
+            Func<Type, bool> needsLoad = (allowSubTypes || isInterface)
+                ? (type) => typeof(T).IsAssignableFrom(type)
+                : (type) => typeof(T) == type;
+
+            string[] guids = UnityEditor.AssetDatabase.FindAssets($"glob:\"*.{extension}\"");
+            foreach (string guid in guids)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                Type type = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(path);
+                if (needsLoad(type))
+                    yield return UnityEditor.AssetDatabase.LoadAssetAtPath(path, type) as T;
+            }
+        }
+
+#endif
     }
 }
