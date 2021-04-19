@@ -2,8 +2,8 @@ project:
   name: VikingVillage_URP
   folder: Viking-Village-Perf
   variables:
-    VV_URP_BRANCH: symbols-test
-    VV_URP_REVISION: ce53e3196db02a5b4f0ed6fc6d6bee1b128652b6
+    VV_URP_BRANCH: master
+    VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
 
 reuse_blocks:
   unity_config:

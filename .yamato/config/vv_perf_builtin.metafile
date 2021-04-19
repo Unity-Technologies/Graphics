@@ -2,8 +2,8 @@ project:
   name: VikingVillage_BuiltIn
   folder: Viking-Village-Perf
   variables:
-    VV_BUILTIN_BRANCH: symbols-builtin
-    VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+    VV_BUILTIN_BRANCH: built-in
+    VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
 
 reuse_blocks:
   unity_config:

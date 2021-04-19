@@ -16,8 +16,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -45,8 +45,8 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_tr
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -97,8 +97,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -145,8 +145,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -195,8 +195,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-R
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -227,8 +227,8 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CU
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -283,8 +283,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-RE
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -335,8 +335,8 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REV
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

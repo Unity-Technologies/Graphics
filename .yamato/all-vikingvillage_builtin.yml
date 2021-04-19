@@ -33,8 +33,8 @@ PR_VikingVillage_BuiltIn_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
 Nightly_VikingVillage_BuiltIn_trunk:
     name: Nightly VikingVillage_BuiltIn - trunk
     dependencies:
@@ -43,8 +43,8 @@ Nightly_VikingVillage_BuiltIn_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
 PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn PR Job - CUSTOM-REVISION
     dependencies:
@@ -72,8 +72,8 @@ PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
 Nightly_VikingVillage_BuiltIn_CUSTOM-REVISION:
     name: Nightly VikingVillage_BuiltIn - CUSTOM-REVISION
     dependencies:
@@ -83,5 +83,5 @@ Nightly_VikingVillage_BuiltIn_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: symbols-builtin
-        VV_BUILTIN_REVISION: e4c0d780c5d17215e63757c4b685442fcb31e838
+        VV_BUILTIN_BRANCH: built-in
+        VV_BUILTIN_REVISION: 2fe76df185ca31af9d2febb6ac1397263e0d61e7
