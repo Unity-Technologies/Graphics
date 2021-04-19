@@ -139,11 +139,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderMinMaxZsHandle
             );
 
-            // LightExtractionJob lightExtractionJob;
-            // lightExtractionJob.viewOrigin = camera.transform.position;
-            // lightExtractionJob.lights = reorderedLights;
-            // lightExtractionJob.tilingLights = new NativeArray<TilingLightData>(lightCount, Allocator.TempJob);
-            // var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
+            LightExtractionJob lightExtractionJob;
+            lightExtractionJob.lights = reorderedLights;
+            var lightTypes = lightExtractionJob.lightTypes = new NativeArray<LightType>(lightCount, Allocator.TempJob);
+            var radiuses = lightExtractionJob.radiuses = new NativeArray<float>(lightCount, Allocator.TempJob);
+            var directions = lightExtractionJob.directions = new NativeArray<float3>(lightCount, Allocator.TempJob);
+            var positions = lightExtractionJob.positions = new NativeArray<float3>(lightCount, Allocator.TempJob);
+            var coneRadiuses = lightExtractionJob.coneRadiuses = new NativeArray<float>(lightCount, Allocator.TempJob);
+            var lightExtractionHandle = lightExtractionJob.ScheduleParallel(lightCount, 32, reorderHandle);
 
             var zBinningJob = new ZBinningJob
             {
@@ -170,11 +173,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 viewForward = camera.transform.forward.normalized,
                 viewRight = camera.transform.up.normalized * fovHalfHeight,
                 viewUp = -camera.transform.right.normalized * fovHalfWidth,
-                lights = reorderedLights,
+                lightTypes = lightTypes,
+                radiuses = radiuses,
+                directions = directions,
+                positions = positions,
+                coneRadiuses = coneRadiuses,
                 lightsPerTile = lightsPerTile,
-                sectionLightMasks = horizontalLightMasks
+                sliceLightMasks = horizontalLightMasks
             };
-            var horizontalHandle = horizontalJob.ScheduleParallel(sectionCount.y, 1, reorderHandle);
+            var horizontalHandle = horizontalJob.ScheduleParallel(sectionCount.y, 1, lightExtractionHandle);
 
             // Vertical slices along the x-axis
             var verticalJob = new SliceCullingJob
@@ -184,11 +191,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 viewForward = camera.transform.forward.normalized,
                 viewRight = camera.transform.right.normalized * fovHalfWidth,
                 viewUp = camera.transform.up.normalized * fovHalfHeight,
-                lights = reorderedLights,
+                lightTypes = lightTypes,
+                radiuses = radiuses,
+                directions = directions,
+                positions = positions,
+                coneRadiuses = coneRadiuses,
                 lightsPerTile = lightsPerTile,
-                sectionLightMasks = verticalLightMasks
+                sliceLightMasks = verticalLightMasks
             };
-            var verticalHandle = verticalJob.ScheduleParallel(sectionCount.x, 1, reorderHandle);
+            var verticalHandle = verticalJob.ScheduleParallel(sectionCount.x, 1, lightExtractionHandle);
 
             var tilingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle);
 
@@ -209,17 +220,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ZBinBuffer = new ComputeBuffer(math.ceilpow2(binCount), UnsafeUtility.SizeOf<ZBin>());
                 Shader.SetGlobalBuffer("_ZBinBuffer", m_ZBinBuffer);
             }
-
-            // if (m_TileBuffer == null || m_TileBuffer.count < tiles.Length)
-            // {
-            //     if (m_TileBuffer != null)
-            //     {
-            //         m_TileBuffer.Dispose();
-            //     }
-
-            //     m_TileBuffer = new ComputeBuffer(math.ceilpow2(tiles.Length), sizeof(uint));
-            //     Shader.SetGlobalBuffer("_TileBuffer", m_TileBuffer);
-            // }
 
             if (m_HorizontalBuffer == null || m_HorizontalBuffer.count < horizontalLightMasks.Length)
             {
@@ -242,12 +242,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_VerticalBuffer = new ComputeBuffer(math.ceilpow2(math.max(verticalLightMasks.Length, 1)), sizeof(uint));
                 Shader.SetGlobalBuffer("_VerticalBuffer", m_VerticalBuffer);
             }
-
-            // var sb = new StringBuilder();
-            // for (var i = 0; i < sectionCount.x; i++)
-            // {
-
-            // }
 
             {
                 var tileResolution = sectionCount;
@@ -277,6 +271,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             horizontalLightMasks.Dispose();
             verticalLightMasks.Dispose();
             // tiles.Dispose();
+            lightTypes.Dispose();
+            radiuses.Dispose();
+            directions.Dispose();
+            positions.Dispose();
+            coneRadiuses.Dispose();
             // lightExtractionJob.tilingLights.Dispose();
 
             mainThreadMarker.End();

@@ -17,12 +17,24 @@ namespace UnityEngine.Rendering.Universal
         public float3 viewUp;
 
         [ReadOnly]
-        public NativeArray<VisibleLight> lights;
+        public NativeArray<LightType> lightTypes;
+
+        [ReadOnly]
+        public NativeArray<float> radiuses;
+
+        [ReadOnly]
+        public NativeArray<float3> directions;
+
+        [ReadOnly]
+        public NativeArray<float3> positions;
+
+        [ReadOnly]
+        public NativeArray<float> coneRadiuses;
 
         public int lightsPerTile;
 
         [NativeDisableParallelForRestriction]
-        public NativeArray<uint> sectionLightMasks;
+        public NativeArray<uint> sliceLightMasks;
 
         public void Execute(int index)
         {
@@ -35,8 +47,8 @@ namespace UnityEngine.Rendering.Universal
                 viewOrigin + viewForward + viewRight * rightX - viewUp,
                 viewOrigin + viewForward + viewRight * rightX + viewUp);
 
-            var lightCount = lights.Length;
-            var lightWordCount = lightCount / 32;
+            var lightCount = lightTypes.Length;
+            var lightWordCount = (lightCount + 31) / 32;
             var lightTailCount = lightCount % 32;
 
             var sectionOffset = index * lightsPerTile / 32;
@@ -45,7 +57,8 @@ namespace UnityEngine.Rendering.Universal
             for (var lightWordIndex = 0; lightWordIndex < lightWordCount; lightWordIndex++)
             {
                 var wordLightMask = 0u;
-                for (var bitIndex = 0; bitIndex < 32; bitIndex++)
+                var lightsInWord = math.min(32, lightCount - lightWordIndex * 32);
+                for (var bitIndex = 0; bitIndex < lightsInWord; bitIndex++)
                 {
                     var lightIndex = lightWordIndex * 32 + bitIndex;
                     if (ContainsLight(leftPlane, rightPlane, lightIndex))
@@ -55,24 +68,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var wordIndex = sectionOffset + lightWordIndex;
-                sectionLightMasks[wordIndex] = sectionLightMasks[wordIndex] | wordLightMask;
-            }
-
-            // Handle the remaining tail of lights
-            if (lightTailCount > 0)
-            {
-                var wordLightMask = 0u;
-                for (var bitIndex = 0; bitIndex < lightTailCount; bitIndex++)
-                {
-                    var lightIndex = lightWordCount * 32 + bitIndex;
-                    if (ContainsLight(leftPlane, rightPlane, lightIndex))
-                    {
-                        wordLightMask |= 1u << bitIndex;
-                    }
-                }
-
-                var wordIndex = sectionOffset + lightWordCount;
-                sectionLightMasks[wordIndex] = sectionLightMasks[wordIndex] | wordLightMask;
+                sliceLightMasks[wordIndex] = sliceLightMasks[wordIndex] | wordLightMask;
             }
         }
 
@@ -81,12 +77,10 @@ namespace UnityEngine.Rendering.Universal
         {
             var hit = true;
 
-            var light = lights[lightIndex];
-
             var sphere = new Sphere
             {
-                center = (Vector3)light.localToWorldMatrix.GetColumn(3),
-                radius = light.range
+                center = positions[lightIndex],
+                radius = radiuses[lightIndex]
             };
 
             if (SphereBehindPlane(sphere, leftPlane) || SphereBehindPlane(sphere, rightPlane))
@@ -94,14 +88,14 @@ namespace UnityEngine.Rendering.Universal
                 hit = false;
             }
 
-            if (hit && light.lightType == LightType.Spot)
+            if (hit && lightTypes[lightIndex] == LightType.Spot)
             {
                 var cone = new Cone
                 {
                     tip = sphere.center,
-                    direction = (Vector3)light.localToWorldMatrix.GetColumn(2),
-                    height = light.range,
-                    radius = math.tan(math.radians(light.spotAngle * 0.5f)) * light.range
+                    direction = directions[lightIndex],
+                    height = radiuses[lightIndex],
+                    radius = coneRadiuses[lightIndex]
                 };
                 if (ConeBehindPlane(cone, leftPlane) || ConeBehindPlane(cone, rightPlane))
                 {
@@ -132,6 +126,7 @@ namespace UnityEngine.Rendering.Universal
             public float distanceToOrigin;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static Plane ComputePlane(float3 p0, float3 p1, float3 p2)
         {
             Plane plane;
@@ -147,17 +142,20 @@ namespace UnityEngine.Rendering.Universal
             return plane;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool SphereBehindPlane(Sphere sphere, Plane plane)
         {
             float dist = math.dot(sphere.center, plane.normal) - plane.distanceToOrigin;
             return dist < -sphere.radius;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool PointBehindPlane(float3 p, Plane plane)
         {
             return math.dot(plane.normal, p) - plane.distanceToOrigin < 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool ConeBehindPlane(Cone cone, Plane plane)
         {
             float3 furthestPointDirection = math.cross(math.cross(plane.normal, cone.direction), cone.direction);
