@@ -446,27 +446,28 @@ namespace UnityEditor.Rendering.Universal
             bool isDirectionalLight = settings.light.type == LightType.Directional;
             if (isDirectionalLight)
             {
+                if (m_AdditionalLightData == null)
+                {
+                    CreateAdditionalLightData();
+                }
+
+                bool isChanged = false;
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                {
+                    EditorGUILayout.PropertyField(m_LightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                }
+                isChanged |= EditorGUI.EndChangeCheck();
+
+                EditorGUI.BeginChangeCheck();
+                {
+                    EditorGUILayout.PropertyField(m_LightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                }
+                isChanged |= EditorGUI.EndChangeCheck();
+                EditorGUI.indentLevel--;
+
                 if (settings.cookie != null)
                 {
-                    if (m_AdditionalLightData == null)
-                    {
-                        CreateAdditionalLightData();
-                    }
-
-                    bool isChanged = false;
-                    EditorGUI.indentLevel++;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUILayout.PropertyField(m_LightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
-                    }
-                    isChanged |= EditorGUI.EndChangeCheck();
-
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUILayout.PropertyField(m_LightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
-                    }
-                    isChanged |= EditorGUI.EndChangeCheck();
-                    EditorGUI.indentLevel--;
                     if (isChanged)
                     {
                         m_AdditionalLightDataSO.ApplyModifiedProperties();
