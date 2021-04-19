@@ -16,7 +16,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -49,7 +49,7 @@ Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_L
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -101,7 +101,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_tr
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -151,7 +151,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -187,7 +187,7 @@ Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_L
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -243,7 +243,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CU
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
