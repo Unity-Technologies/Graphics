@@ -1,7 +1,7 @@
 # Documentation: https://internaldocs.hq.unity3d.com/copycat/
 
-vendor_and_test_abv:
-  name: Vendor Graphics
+nightly_test_katana_abv:
+  name: Nightly test Katana ABV
   agent:
     type: Unity::VM
     image: slough-ops/ubuntu-18.04-base:latest
