@@ -110,11 +110,10 @@ namespace UnityEditor.Rendering
             {
                 Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
                 if (flareType == SRPLensFlareType.Image)
+                {
                     EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
-                else if (flareType == SRPLensFlareType.Circle)
-                    EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
-                else //if (flareType != SRPLensFlareType.Polygon)
-                    EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+                    m_CurrentRect.y += 1.5f * 35.0f;
+                }
             }
             else
             {
@@ -128,10 +127,6 @@ namespace UnityEditor.Rendering
                     EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
             }
             Rect rect = m_CurrentRect;
-            if (isFoldOpenedProp.boolValue)
-            {
-                m_CurrentRect.y += 1.5f * 35.0f;
-            }
             EditorGUI.BeginProperty(new Rect(rect.x, rect.y, rect.width, 2.0f * rect.height), label, property);
 
             float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -397,7 +392,7 @@ namespace UnityEditor.Rendering
 
                 if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                 {
-                    coef += 2.0f;
+                    coef -= 0.5f;
 
                     if (flareType == SRPLensFlareType.Polygon)
                         coef += 2.0f;
