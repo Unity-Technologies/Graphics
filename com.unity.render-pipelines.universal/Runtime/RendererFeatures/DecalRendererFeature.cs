@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering.Universal
             m_RecreateSystems = false;
         }
 
-        public override void OnPreCull(ScriptableRenderer renderer, in CameraData cameraData)
+        public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (cameraData.cameraType == CameraType.Preview)
                 return;

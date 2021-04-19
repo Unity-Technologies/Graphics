@@ -779,7 +779,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Calls <c>OnCull</c> for each feature added to this renderer.
-        /// <seealso cref="ScriptableRendererFeature.OnPreCull(ScriptableRenderer, in CameraData)"/>
+        /// <seealso cref="ScriptableRendererFeature.OnCameraPreCull(ScriptableRenderer, in CameraData)"/>
         /// </summary>
         /// <param name="cameraData">Current render state information.</param>
         internal void OnPreCullRenderPasses(in CameraData cameraData)
@@ -791,7 +791,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     continue;
                 }
-                rendererFeatures[i].OnPreCull(this, in cameraData);
+                rendererFeatures[i].OnCameraPreCull(this, in cameraData);
             }
         }
 
