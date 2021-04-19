@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (version == ShaderGraphVersion.ExposableProperties)
             {
-                builtinData.MigrateToExposableProperties();
+                lightingData.MigrateToExposableProperties();
             }
         }
     }

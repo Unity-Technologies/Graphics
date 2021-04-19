@@ -92,13 +92,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Kept for migration
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         ScreenSpaceRefraction.RefractionModel m_RefractionModel;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ForceForwardEmissive = false;
 
         internal void MigrateToExposableProperties()
         {
+#pragma warning disable 618
             // Expose everything to keep same interface
             refractionModelProp.IsExposed = true;
             forceForwardEmissiveProp.IsExposed = true;
@@ -106,6 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Migrate Values
             refractionModel = m_RefractionModel;
             forceForwardEmissive = m_ForceForwardEmissive;
+#pragma warning restore 618
         }
     }
 }

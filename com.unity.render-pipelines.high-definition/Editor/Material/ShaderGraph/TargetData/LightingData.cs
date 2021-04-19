@@ -87,15 +87,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Kept for migration
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ReceiveDecals = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ReceiveSSR = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ReceiveSSRTransparent = false;
 
         internal void MigrateToExposableProperties()
         {
+#pragma warning disable 618
             // Expose everything to keep same interface
             receiveDecalsProp.IsExposed = true;
             receiveSSRProp.IsExposed = true;
@@ -105,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             receiveDecalsProp.value = m_ReceiveDecals;
             receiveSSRProp.value = m_ReceiveSSR;
             receiveSSRTransparentProp.value = m_ReceiveSSRTransparent;
+#pragma warning restore 618
         }
     }
 }

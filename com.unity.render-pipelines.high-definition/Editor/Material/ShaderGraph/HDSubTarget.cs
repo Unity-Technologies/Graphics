@@ -83,6 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         /// <param name="version">The current version of the migration</param>
         internal virtual void MigrateTo(ShaderGraphVersion version)
         {
+            if (version == ShaderGraphVersion.ExposableProperties)
+            {
+                systemData.MigrateToExposableProperties();
+            }
         }
 
         static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
@@ -94,18 +98,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
                 context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
 
-            if (migrationSteps.Migrate(this))
-                OnBeforeSerialize();
+            if (m_MigrateFromOldSG)
+            {
+                systemData.version = ShaderGraphVersion.Initial;
+                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
+            }
 
             // Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
-            if (!systemData.firstTimeMigrationExecuted)
+            bool upgraded = false;
+            if (!systemData.firstTimeMigrationExecuted && systemData.version == ShaderGraphVersion.Initial)
             {
                 // Force the initial migration step
                 MigrateTo(ShaderGraphVersion.FirstTimeMigration);
                 systemData.firstTimeMigrationExecuted = true;
-                OnBeforeSerialize();
-                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
+                upgraded = true;
             }
+
+            if (migrationSteps.Migrate(this) || upgraded)
+                OnBeforeSerialize();
 
             foreach (var subShader in EnumerateSubShaders())
             {

@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField, Obsolete("Keep for migration")]
         internal bool m_SupportLodCrossFade;
 
-        public ExposableProperty<DoubleSidedMode> doubleSidedModeProp;
+        public ExposableProperty<DoubleSidedMode> doubleSidedModeProp = new ExposableProperty<DoubleSidedMode>();
         public DoubleSidedMode doubleSidedMode
         {
             get => doubleSidedModeProp.value;
@@ -128,29 +128,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal int inspectorFoldoutMask;
 
         // Kept for migration
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         BlendMode m_BlendMode = BlendMode.Alpha;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         CompareFunction m_ZTest = CompareFunction.LessEqual;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ZWrite = false;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         TransparentCullMode m_TransparentCullMode = TransparentCullMode.Back;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         OpaqueCullMode m_OpaqueCullMode = OpaqueCullMode.Back;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         int m_SortPriority;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AlphaTest;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         DoubleSidedMode m_DoubleSidedMode;
 
         internal void MigrateToExposableProperties()
         {
+#pragma warning disable 618
             // Expose everything to keep same interface
             surfaceTypeProp.IsExposed = true;
             renderQueueTypeProp.IsExposed = true;
@@ -175,6 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             sortPriorityProp.value = m_SortPriority;
             alphaTestProp.value = m_AlphaTest;
             doubleSidedModeProp.value = m_DoubleSidedMode;
+#pragma warning restore 618
         }
     }
 

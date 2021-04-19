@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -48,14 +49,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => alphaToMaskProp.value = value;
         }
 
-        public ExposableProperty<bool> depthOffsetProp = new ExposableProperty<bool>(default, true);
+        public ExposableProperty<bool> depthOffsetProp = new ExposableProperty<bool>(default);
         public bool depthOffset
         {
             get => depthOffsetProp.value;
             set => depthOffsetProp.value = value;
         }
 
-        public ExposableProperty<bool> conservativeDepthOffsetProp = new ExposableProperty<bool>(default, true);
+        public ExposableProperty<bool> conservativeDepthOffsetProp = new ExposableProperty<bool>(default);
         public bool conservativeDepthOffset
         {
             get => conservativeDepthOffsetProp.value;
@@ -106,43 +107,44 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Kept for migration
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_Distortion = false;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AddPrecomputedVelocity = false;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_TransparentWritesMotionVec;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AlphaToMask = false;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_DepthOffset;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_ConservativeDepthOffset;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_TransparencyFog = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AlphaTestShadow;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_BackThenFrontRendering;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_TransparentDepthPrepass;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_TransparentDepthPostpass;
 
         internal void MigrateToExposableProperties()
         {
+#pragma warning disable 618
             // Expose everything to keep same interface
             distortionProp.IsExposed = true;
             addPrecomputedVelocityProp.IsExposed = true;
             transparentWritesMotionVecProp.IsExposed = true;
             alphaToMaskProp.IsExposed = true;
-            depthOffsetProp.IsExposed = true;
             conservativeDepthOffsetProp.IsExposed = true;
             transparencyFogProp.IsExposed = true;
             backThenFrontRenderingProp.IsExposed = true;
             transparentDepthPrepassProp.IsExposed = true;
             transparentDepthPostpassProp.IsExposed = true;
             // some properties were implicitely unexposed, now we can make it explicit
+            depthOffsetProp.IsExposed = m_DepthOffset;
             alphaTestShadowProp.IsExposed = m_AlphaTestShadow;
 
             // Migrate Values
@@ -157,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             backThenFrontRenderingProp.value = m_BackThenFrontRendering;
             transparentDepthPrepassProp.value = m_TransparentDepthPrepass;
             transparentDepthPostpassProp.value = m_TransparentDepthPostpass;
+#pragma warning restore 618
         }
     }
 }

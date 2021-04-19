@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -63,21 +64,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Kept for migration
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsMetal = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsAO = false;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsSmoothness = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsAlbedo = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsNormal = true;
-        [SerializeField]
+        [SerializeField, Obsolete("Keep for migration")]
         bool m_AffectsEmission = false;
 
         internal void MigrateToExposableProperties()
         {
+#pragma warning disable 618
             // Migrate Values
             affectsMetalProp.value = m_AffectsMetal;
             affectsAOProp.value = m_AffectsAO;
@@ -93,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             affectsAlbedoProp.IsExposed = m_AffectsAlbedo;
             affectsNormalProp.IsExposed = m_AffectsNormal;
             affectsEmissionProp.IsExposed = m_AffectsEmission;
+#pragma warning restore 618
         }
     }
 }

@@ -248,5 +248,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return hash;
         }
+
+        internal override void MigrateTo(ShaderGraphVersion version)
+        {
+            base.MigrateTo(version);
+
+            if (version == ShaderGraphVersion.ExposableProperties)
+            {
+                litData.MigrateToExposableProperties();
+            }
+        }
     }
 }
