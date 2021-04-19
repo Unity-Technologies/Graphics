@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     settings.atlas.resolution = asset.additionalLightsCookieResolution;
                 }
 
-                m_LightCookieManager = new LightCookieManager(settings);
+                m_LightCookieManager = new LightCookieManager(ref settings);
             }
         }
 
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
-                m_LightCookieManager.Setup(context, cmd, in renderingData.lightData);
+                m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

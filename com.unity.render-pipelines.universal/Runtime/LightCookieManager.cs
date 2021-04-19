@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         private struct LightCookieData : System.IComparable<LightCookieData>
         {
             public ushort visibleLightIndex; // Index into visible light (src) (after sorting)
-            public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
+            public ushort lightBufferIndex; // Index into light shader data buffer (dst)
             public int priority;
             public float score;
 
@@ -186,9 +186,9 @@ namespace UnityEngine.Rendering.Universal
 
         Texture2DAtlas        m_AdditionalLightsCookieAtlas;
         LightCookieShaderData m_AdditionalLightsCookieShaderData;
-        Settings              m_Settings;
+        readonly Settings     m_Settings;
 
-        public LightCookieManager(in Settings settings)
+        public LightCookieManager(ref Settings settings)
         {
             m_Settings = settings;
         }
@@ -233,25 +233,29 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsCookieShaderData?.Dispose();
         }
 
-        public void Setup(ScriptableRenderContext ctx, CommandBuffer cmd, in LightData lightData)
+        public void Setup(ScriptableRenderContext ctx, CommandBuffer cmd, ref LightData lightData)
         {
             using var profScope = new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LightCookies));
 
             // Main light, 1 directional, bound directly
             bool isMainLightAvailable = lightData.mainLightIndex >= 0;
             if (isMainLightAvailable)
-                isMainLightAvailable = SetupMainLight(cmd, lightData.visibleLights[lightData.mainLightIndex]);
+            {
+                var mainLight = lightData.visibleLights[lightData.mainLightIndex];
+                isMainLightAvailable = SetupMainLight(cmd, ref mainLight);
+            }
+
 
             // Additional lights, N spot and point lights in atlas
             bool isAdditionalLightsAvailable = lightData.additionalLightsCount > 0;
             if (isAdditionalLightsAvailable)
-                isAdditionalLightsAvailable = SetupAdditionalLights(cmd, lightData);
+                isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightCookie, isMainLightAvailable);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightCookies, isAdditionalLightsAvailable);
         }
 
-        bool SetupMainLight(CommandBuffer cmd, in VisibleLight visibleMainLight)
+        bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)
         {
             var mainLight                 = visibleMainLight.light;
             var cookieTexture             = mainLight.cookie;
@@ -266,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
-                    GetLightUVScaleOffset(additionalLightData, ref cookieUVScale, ref cookieUVOffset);
+                    GetLightUVScaleOffset(ref additionalLightData, out cookieUVScale, out cookieUVOffset);
 
                 cmd.SetGlobalTexture(ShaderProperty._MainLightTexture,       cookieTexture);
                 cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,   cookieMatrix);
@@ -280,7 +284,7 @@ namespace UnityEngine.Rendering.Universal
             return isMainLightCookieEnabled;
         }
 
-        void GetLightUVScaleOffset(in UniversalAdditionalLightData additionalLightData, ref Vector2 uvScale, ref Vector2 uvOffset)
+        void GetLightUVScaleOffset(ref UniversalAdditionalLightData additionalLightData, out Vector2 uvScale, out Vector2 uvOffset)
         {
             uvScale  = Vector2.one / additionalLightData.lightCookieSize;
             uvOffset = additionalLightData.lightCookieOffset;
@@ -291,12 +295,12 @@ namespace UnityEngine.Rendering.Universal
                 uvScale.y = Mathf.Sign(uvScale.y) * half.MinValue;
         }
 
-        bool SetupAdditionalLights(CommandBuffer cmd, in LightData lightData)
+        bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
         {
             // TODO: better to use growing arrays instead of native arrays, List<T> at interface
             // TODO: how fast is temp alloc???
             var validLights = new NativeArray<LightCookieData>(lightData.additionalLightsCount , Allocator.Temp);
-            int validLightCount = PrepareAndValidateAdditionalLights(lightData, ref validLights);
+            int validLightCount = PrepareAndValidateAdditionalLights(ref lightData, ref validLights);
 
             // Early exit if no valid cookie lights
             if (validLightCount <= 0)
@@ -319,11 +323,11 @@ namespace UnityEngine.Rendering.Universal
             // Update Atlas
             var validSortedLights = validLights.GetSubArray(0, validLightCount);
             var uvRects = new NativeArray<Vector4>(validLightCount , Allocator.Temp);
-            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, lightData, validSortedLights, ref uvRects);
+            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, ref lightData, ref validSortedLights, ref uvRects);
 
             // Upload shader data
             var validUvRects = uvRects.GetSubArray(0, validUVRectCount);
-            UploadAdditionalLights(cmd, lightData, validSortedLights, validUvRects);
+            UploadAdditionalLights(cmd, ref lightData, ref validSortedLights, ref validUvRects);
 
             bool isAdditionalLightsEnabled = validUvRects.Length > 0;
 
@@ -333,7 +337,7 @@ namespace UnityEngine.Rendering.Universal
             return isAdditionalLightsEnabled;
         }
 
-        int PrepareAndValidateAdditionalLights(in LightData lightData, ref NativeArray<LightCookieData> validLights)
+        int PrepareAndValidateAdditionalLights(ref LightData lightData, ref NativeArray<LightCookieData> validLights)
         {
             int skipMainLightIndex = lightData.mainLightIndex;
             int lightBufferOffset = 0;
@@ -389,7 +393,7 @@ namespace UnityEngine.Rendering.Universal
             return validLightCount;
         }
 
-        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, in LightData lightData, in NativeArray<LightCookieData> sortedLights, ref NativeArray<Vector4> textureAtlasUVRects)
+        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> sortedLights, ref NativeArray<Vector4> textureAtlasUVRects)
         {
             // Test if a texture is in atlas
             // If yes
@@ -561,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
             Debug.DrawLine(o, z, Color.blue);
         }
 
-        void UploadAdditionalLights(CommandBuffer cmd, in LightData lightData, in NativeArray<LightCookieData> validSortedLights, in NativeArray<Vector4> validUvRects)
+        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> validSortedLights, ref NativeArray<Vector4> validUvRects)
         {
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
             Debug.Assert(m_AdditionalLightsCookieShaderData != null);
@@ -617,7 +621,7 @@ namespace UnityEngine.Rendering.Universal
                     var light = lightData.visibleLights[visIndex].light;
                     var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
                     if (additionalLightData != null)
-                        GetLightUVScaleOffset(additionalLightData, ref uvScale, ref uvOffset);
+                        GetLightUVScaleOffset(ref additionalLightData, out uvScale, out uvOffset);
 
                     uvScaleOffsets[bufIndex] = new Vector4(uvScale.x, uvScale.y, uvOffset.x, uvOffset.y);
                     uvWrapModes[bufIndex] = (float)light?.cookie.wrapMode;
