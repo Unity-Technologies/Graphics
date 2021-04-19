@@ -1,6 +1,9 @@
 #ifndef HLSL_SUPPORT_SHIM_INCLUDED
 #define HLSL_SUPPORT_SHIM_INCLUDED
 
+// This file acts as the bridge to avoid including HlslSupport.cginc which contains old definitions for types, duplicate symbols, etc...
+
+// Use the include guard to force HlslSupport.cginc to not get included
 #define HLSL_SUPPORT_INCLUDED
 
 // Disable warnings we aren't interested in

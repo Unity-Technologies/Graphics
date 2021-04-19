@@ -1,6 +1,10 @@
 #ifndef UNITY_SHIMS_INCLUDED
 #define UNITY_SHIMS_INCLUDED
 
+// This file serves as the shim between the legacy cginc files that required for the built-in pipeline and the core srp library.
+// For the built-in RP to work correctly, all the lighting in the cginc files is necessary, but there's a lot of utility
+// required (especially for shader graph) in the core SRP library. There are also some duplicate symbols and other complications.
+// This set of files helps to bridge the gap by hiding and redefining some symbols and other helpful declarations.
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

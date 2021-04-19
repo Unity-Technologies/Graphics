@@ -450,23 +450,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static readonly BlockFieldDescriptor[] FragmentComplexLit = new BlockFieldDescriptor[]
-            {
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.NormalOS,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalWS,
-                BlockFields.SurfaceDescription.Emission,
-                BlockFields.SurfaceDescription.Metallic,
-                BlockFields.SurfaceDescription.Specular,
-                BlockFields.SurfaceDescription.Smoothness,
-                BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-                BlockFields.SurfaceDescription.CoatMask,
-                BlockFields.SurfaceDescription.CoatSmoothness,
-            };
-
             public static readonly BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
@@ -531,12 +514,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #endregion
 
         #region Defines
-        static class LitDefines
-        {
-            public static readonly DefineCollection ComplexLit = new DefineCollection()
-            {
-            };
-        }
+
         #endregion
 
         #region Keywords
@@ -649,7 +627,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
-                //{ kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
 
                 // Post-graph
