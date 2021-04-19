@@ -329,7 +329,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 };
                 listView.onSelectionChange += obj =>
                 {
-                    Debug.Log(listView.selectedIndex);
                     m_CoreConvertersList[id].OnClicked(listView.selectedIndex);
                 };
                 listView.unbindItem = (element, index) =>
@@ -373,7 +372,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
             m_ConverterStates[stateIndex].success++;
         }
 
-        // Making sure that this is set here so that if user is clicking Convert again
+        m_ConverterStates[stateIndex].pending--;
+
+        // Making sure that this is set here so that if user is clicking Convert again it will not run again.
         ctx.hasConverted = true;
 
         VisualElement child = m_ScrollView[stateIndex];
