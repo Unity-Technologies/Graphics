@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         string[] m_Labels; // this can be null, which means fallback to k_LabelDefaults
 
-        [SerializeField]
         bool m_Integer = false;
 
         static readonly string[] k_LabelDefaults = { "X", "Y" };
