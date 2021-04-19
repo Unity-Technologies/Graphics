@@ -10,28 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Polygon_Screen_Curve_Distortion_RelativeToCenter
+  m_Name: Occlusion 1
   m_EditorClassIdentifier: 
   elements:
-  - position: -0.08
-    positionOffset: {x: 0.06, y: 0}
+  - position: 0
+    positionOffset: {x: 0, y: 0}
     angularOffset: 0
-    translationScale: {x: 1, y: 1}
+    translationScale: {x: -2.82, y: 0}
     localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 1.81
+    uniformScale: 1
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 1
-    count: 9
+    count: 5
     preserveAspectRatio: 0
-    rotation: -9.04
-    tint: {r: 1, g: 0, b: 0.8624263, a: 0.5}
-    blendMode: 1
+    rotation: 0
+    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    blendMode: 0
     autoRotate: 0
-    flareType: 2
+    flareType: 1
     modulateByLightColor: 0
     isFoldOpened: 1
-    distribution: 1
+    distribution: 0
     lengthSpread: 1
     positionCurve:
       serializedVersion: 2
@@ -39,8 +39,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -48,8 +48,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 2
-        outSlope: 2
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -62,9 +62,9 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
-        inSlope: 2
-        outSlope: 2
+        value: 1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -115,34 +115,25 @@ MonoBehaviour:
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
     rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 6.26, y: 1.21}
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.004108429
-        value: 0.99935913
-        inSlope: 0
-        outSlope: 0
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.4774975
-        value: 0.44498217
-        inSlope: 0.0009651497
-        outSlope: 0.0009651497
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -150,9 +141,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 1
+    distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 1
-    sideCount: 7
+    edgeOffset: 0.1
+    sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
