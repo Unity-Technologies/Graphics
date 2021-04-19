@@ -1120,7 +1120,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     return false;
                 }
             }
-            return rendererLists.Count > 0 ? true : false; ;
+            return rendererLists.Count > 0 ? true : false;;
         }
 
         void TryCullPassAtIndex(int passIndex)
@@ -1164,13 +1164,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             InitializeCompilationData();
             CountReferences();
 
-            // First cull all passes thet produce unused output 
+            // First cull all passes thet produce unused output
             CullUnusedPasses();
 
-            // Create the renderer lists of the remaining passes  
+            // Create the renderer lists of the remaining passes
             CreateRendererLists();
 
-            // Cull dynamically the graph passes based on the renderer list visibility 
+            // Cull dynamically the graph passes based on the renderer list visibility
             if (rendererListCulling)
                 CullRendererLists();
 
