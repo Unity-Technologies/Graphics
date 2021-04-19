@@ -1133,7 +1133,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 if (AreRendererListsEmpty(pass.usedRendererListList) || AreRendererListsEmpty(pass.dependsOnRendererListList))
                 {
-                    Debug.Log($"Culling pass <color=red> {pass.name} </color>");
+                    //Debug.Log($"Culling pass <color=red> {pass.name} </color>");
                     m_CompiledPassInfos[passIndex].culled = true;
                 }
             }
