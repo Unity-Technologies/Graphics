@@ -15,3 +15,7 @@ vendor_and_test_abv:
     - hg branch -R ../destination -f draft/copycat/graphics
     - copycat vendor --revision "${GIT_BRANCH:-$GIT_TAG}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
     - copycat katana "../destination/$MANIFEST"
+  triggers:
+    recurring:
+      - branch: master
+        frequency: daily
