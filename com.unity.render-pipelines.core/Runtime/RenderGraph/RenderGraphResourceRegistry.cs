@@ -548,10 +548,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
         {
+            // We gather the active renderer lists of a frame in a list/array before we pass it in the core API for batch processing
             m_ActiveRendererLists.Clear();
 
-            // For now we just create a simple structure
-            // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
             foreach (var rendererList in rendererLists)
             {
                 ref var rendererListResource = ref m_RendererListResources[rendererList];
