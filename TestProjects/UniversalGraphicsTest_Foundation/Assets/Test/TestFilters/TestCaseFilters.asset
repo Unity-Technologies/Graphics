@@ -51,24 +51,6 @@ MonoBehaviour:
     Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: a13b9207cccbd4cbb99cf2a72b761eef, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305639/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
