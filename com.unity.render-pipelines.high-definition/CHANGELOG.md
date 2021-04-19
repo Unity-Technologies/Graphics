@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.5.0] - 2020-03-15
 
 ### Added
-Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
- 
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added support for alpha channel in FXAA (case 1323941).
+
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -29,6 +30,9 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 - Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
