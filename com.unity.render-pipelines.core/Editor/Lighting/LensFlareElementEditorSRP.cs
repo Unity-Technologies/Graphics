@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering
             if (flareType == SRPLensFlareType.Image)
                 usedAspectRatio = (lensFlareProp.objectReferenceValue && preserveAspectRatioProp.boolValue) ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
             else
-                usedAspectRatio = preserveAspectRatioProp.boolValue ? 1.0f : localAspectRatio;
+                usedAspectRatio = 1.0f;
             if (isFoldOpenedProp.boolValue)
             {
                 Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
