@@ -108,14 +108,14 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
-        /// <summary>Black background to visualize the Lens Flare</summary>
-        LensFlareDataDriven,
         /// <summary>Display Quad Overdraw.</summary>
         QuadOverdraw,
         /// <summary>Display Vertex Density.</summary>
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
