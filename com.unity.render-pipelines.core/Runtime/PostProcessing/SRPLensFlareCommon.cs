@@ -236,7 +236,7 @@ namespace UnityEngine
             else
             {
                 Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
-                rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x));
+                rotation -= Mathf.Rad2Deg * Mathf.Atan2(pos.y, pos.x);
             }
             rotation *= Mathf.Deg2Rad;
             float localCos0 = Mathf.Cos(-rotation);
@@ -525,7 +525,7 @@ namespace UnityEngine
 
                     float usedSDFRoundness = element.sdfRoundness;
 
-                    cmd.SetGlobalVector(_FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - element.fallOff))), 0.0f));
+                    cmd.SetGlobalVector(_FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(element.fallOff))), 0.0f));
                     if (element.flareType == SRPLensFlareType.Polygon)
                     {
                         float invSide = 1.0f / (float)element.sideCount;

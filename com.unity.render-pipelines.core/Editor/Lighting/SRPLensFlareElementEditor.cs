@@ -98,26 +98,40 @@ namespace UnityEditor.Rendering
             SerializedProperty distortionRelativeToCenterProp = property.FindPropertyRelative("distortionRelativeToCenter");
 
             SRPLensFlareType flareType = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
-            if (lensFlareProp.objectReferenceValue != null && flareType != SRPLensFlareType.Circle && flareType != SRPLensFlareType.Polygon)
+            if (lensFlareProp.objectReferenceValue != null)
             {
-                Texture texture = lensFlareProp.objectReferenceValue as Texture;
+                Texture texture = lensFlareProp.objectReferenceValue ? lensFlareProp.objectReferenceValue as Texture : null;
                 float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
                 float imgWidth = 1.5f * 35.0f;
-                float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
+                float usedAspectRatio;
+                if (flareType == SRPLensFlareType.Image)
+                    usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
+                else
+                    usedAspectRatio = preserveAspectRatioProp.boolValue ? 1.0f : localAspectRatio;
                 if (isFoldOpenedProp.boolValue)
                 {
                     Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
-                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                    if (flareType == SRPLensFlareType.Image)
+                        EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                    else if (flareType == SRPLensFlareType.Circle)
+                        EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+                    else //if (flareType != SRPLensFlareType.Polygon)
+                        EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
                 }
                 else
                 {
                     float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
                     Rect imgRect = new Rect(position.x - 35.0f + 15.0f, position.y + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
-                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                    if (flareType == SRPLensFlareType.Image)
+                        EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                    else if (flareType == SRPLensFlareType.Circle)
+                        EditorGUI.DrawTextureTransparent(imgRect, Styles.circleIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
+                    else //if (flareType != SRPLensFlareType.Polygon)
+                        EditorGUI.DrawTextureTransparent(imgRect, Styles.polygonIcon.image, ScaleMode.ScaleToFit, usedAspectRatio);
                 }
             }
             Rect rect = m_CurrentRect;
-            if (isFoldOpenedProp.boolValue && flareType != SRPLensFlareType.Circle && flareType != SRPLensFlareType.Polygon)
+            if (isFoldOpenedProp.boolValue)
             {
                 m_CurrentRect.y += 1.5f * 35.0f;
             }
@@ -414,11 +428,6 @@ namespace UnityEditor.Rendering
                     }
                 }
 
-                if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
-                {
-                    coef -= 2.5f;
-                }
-
                 offset = 1.5f * 35.0f;
             }
             else
@@ -435,6 +444,10 @@ namespace UnityEditor.Rendering
 
         static class Styles
         {
+            static public string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/Resources/";
+            static public GUIContent circleIcon = EditorGUIUtility.TrIconContent(/*"Lens Flare (SRP) Circle Icon", */UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "CircleFlareThumbnail", ".png", false));
+            static public GUIContent polygonIcon = EditorGUIUtility.TrIconContent(/*"Lens Flare(SRP) Polygon Icon", */UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "PolygonFlareThumbnail", ".png", false));
+
             static public readonly GUIContent lensFlareElement = EditorGUIUtility.TrTextContent("Lens Flare Element");
             static public readonly GUIContent typeElement = EditorGUIUtility.TrTextContent("Type");
             static public readonly GUIContent colorElement = EditorGUIUtility.TrTextContent("Color");
