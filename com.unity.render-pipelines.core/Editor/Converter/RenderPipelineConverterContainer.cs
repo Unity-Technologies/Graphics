@@ -3,7 +3,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// A class for different conversions.
     /// </summary>
-    public abstract class RenderPipelineConversion
+    public abstract class RenderPipelineConverterContainer
     {
         /// <summary>
         /// Name = The name of the conversion.

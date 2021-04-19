@@ -99,12 +99,12 @@ public class RenderPipelineConvertersEditor : EditorWindow
         kImgPending = CoreEditorStyles.iconPending;
 
         // This is the drop down choices.
-        m_Conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
+        m_Conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
         for (int j = 0; j < m_Conversions.Count; j++)
         {
-            // Iterate over the converters
-            RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(m_Conversions[j]);
-            m_ConversionsChoices.Add(conversion.name);
+            // Iterate over the conversions
+            RenderPipelineConverterContainer converterContainer = (RenderPipelineConverterContainer)Activator.CreateInstance(m_Conversions[j]);
+            m_ConversionsChoices.Add(converterContainer.name);
         }
 
         var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
@@ -143,9 +143,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
         //m_ConversionsDropdownField.choices = conversionsChoices;
 
         // This is temp now to get the information filled in
-        RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(m_Conversions[0]);
-        rootVisualElement.Q<Label>("conversionName").text = conversion.name;
-        rootVisualElement.Q<TextElement>("conversionInfo").text = conversion.info;
+        RenderPipelineConverterContainer converterContainer = (RenderPipelineConverterContainer)Activator.CreateInstance(m_Conversions[0]);
+        rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
+        rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
 
         // Getting the scrollview where the converters should be added
         m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
@@ -153,7 +153,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
         {
             // Making an item using the converterListAsset as a template.
             // Then adding the information needed for each converter
-            // Why do I need to create a new visual element here? MTT
             VisualElement item = new VisualElement();
             m_ConverterListAsset.CloneTree(item);
             var conv = m_CoreConvertersList[i];

@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override Type conversion => typeof(BuiltInToURPConversion);
+        public override Type conversion => typeof(BuiltInToURPConverterContainer);
 
         private List<GUID> m_MaterialGUIDs = new();
 
