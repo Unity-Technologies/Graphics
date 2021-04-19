@@ -90,6 +90,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         RTHandle                            m_CurrentBackbuffer;
 
+        const int                           kInitialRendererListCount = 256;
+        List<RendererList>                  m_ActiveRendererLists = new List<RendererList>(kInitialRendererListCount);
+
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)
         {
@@ -545,19 +548,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
         {
-            RendererList[] activeRendererLists = new RendererList[rendererLists.Count];
+            m_ActiveRendererLists.Clear();
 
             // For now we just create a simple structure
             // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
-            for (int i = 0; i < rendererLists.Count; ++i)
+            foreach (var rendererList in rendererLists)
             {
-                ref var rendererListResource = ref m_RendererListResources[rendererLists[i]];
+                ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
                 rendererListResource.rendererList = context.CreateRendererList(desc);
-                activeRendererLists[i] = rendererListResource.rendererList;
+                m_ActiveRendererLists.Add(rendererListResource.rendererList);
             }
 
-            context.PrepareRendererListsAsync(activeRendererLists);
+            context.PrepareRendererListsAsync(m_ActiveRendererLists);
         }
 
         internal void Clear(bool onException)
@@ -567,6 +570,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].Clear(onException, m_CurrentFrameIndex);
             m_RendererListResources.Clear();
+            m_ActiveRendererLists.Clear();
         }
 
         internal void PurgeUnusedGraphicsResources()
