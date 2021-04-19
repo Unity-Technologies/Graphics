@@ -198,6 +198,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.MotionVectors, hdCamera, prepassOutput.resolvedMotionVectorsBuffer, aovBuffers);
                 }
 
+                var distortionRendererList = m_RenderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, HDShaderPassNames.s_DistortionVectorsName));
+
                 // This final Gaussian pyramid can be reused by SSR, so disable it only if there is no distortion
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion))
                 {
@@ -210,14 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             autoGenerateMips = false,
                             name = "DistortionColorBufferMipChain"
                         });
-                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid);
+                    GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid, distortionRendererList);
                     currentColorPyramid = distortionColorPyramid;
                 }
 
                 using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
                 {
-                    var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
-                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
+                    var distortionBuffer = AccumulateDistortion(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, distortionRendererList);
+                    RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer, distortionRendererList);
                 }
 
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker, fullScreenDebugFormat);
@@ -1338,11 +1340,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
         }
 
-        void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, FullScreenDebugMode fsDebugMode)
+        void GenerateColorPyramid(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputColor, TextureHandle output, FullScreenDebugMode fsDebugMode, RendererListHandle? depedency = null)
         {
             using (var builder = renderGraph.AddRenderPass<GenerateColorPyramidData>("Color Gaussian MIP Chain", out var passData, ProfilingSampler.Get(HDProfileId.ColorPyramid)))
             {
-                builder.AllowRendererListCulling(true);
+                if (depedency != null)
+                {
+                    builder.DependsOn(depedency.Value);
+                }
 
                 passData.colorPyramid = builder.WriteTexture(output);
                 passData.inputColor = builder.ReadTexture(inputColor);
@@ -1375,20 +1380,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle AccumulateDistortion(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   depthStencilBuffer,
-            CullingResults  cullResults)
+            HDCamera            hdCamera,
+            TextureHandle       depthStencilBuffer,
+            RendererListHandle  distortionRendererList)
         {
             using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.AccumulateDistortion)))
             {
-                builder.AllowRendererListCulling(true);
-
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
-                passData.distortionRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
-                    CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_DistortionVectorsName)));
+                passData.distortionRendererList = builder.UseRendererList(distortionRendererList);
 
                 builder.SetRenderFunc(
                     (AccumulateDistortionPassData data, RenderGraphContext context) =>
@@ -1412,18 +1414,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderDistortion(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   colorBuffer,
-            TextureHandle   depthStencilBuffer,
-            TextureHandle   colorPyramidBuffer,
-            TextureHandle   distortionBuffer)
+            HDCamera            hdCamera,
+            TextureHandle       colorBuffer,
+            TextureHandle       depthStencilBuffer,
+            TextureHandle       colorPyramidBuffer,
+            TextureHandle       distortionBuffer,
+            RendererListHandle  distortionRendererList)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Distortion))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderDistortionPassData>("Apply Distortion", out var passData, ProfilingSampler.Get(HDProfileId.ApplyDistortion)))
             {
-                builder.AllowRendererListCulling(true);
+                builder.DependsOn(distortionRendererList);
 
                 passData.applyDistortionMaterial = m_ApplyDistortionMaterial;
                 passData.roughDistortion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);

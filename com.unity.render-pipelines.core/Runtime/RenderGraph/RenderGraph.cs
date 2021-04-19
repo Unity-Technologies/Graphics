@@ -1110,27 +1110,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        bool AreRendererListsEmpty(List<RendererListHandle> rendererLists)
+        {
+            foreach (RendererListHandle handle in rendererLists)
+            {
+                var rendererList = m_Resources.GetRendererList(handle);
+                if (m_RenderGraphContext.renderContext.QueryRendererList(rendererList) == RendererListResult.kRendererListPopulated)
+                {
+                    return false;
+                }
+            }
+            return rendererLists.Count > 0 ? true : false; ;
+        }
+
         void TryCullPassAtIndex(int passIndex)
         {
-            // TODO: we can do better than this recursive implementation
             var pass = m_CompiledPassInfos[passIndex].pass;
             if (!m_CompiledPassInfos[passIndex].culled &&
                 pass.allowPassCulling &&
                 pass.allowRendererListCulling &&
                 !m_CompiledPassInfos[passIndex].hasSideEffect)
             {
-                bool shouldCull = true;
-                foreach (RendererListHandle handle in pass.usedRendererListList)
-                {
-                    var rendererList = m_Resources.GetRendererList(handle);
-                    if (m_RenderGraphContext.renderContext.QueryRendererList(rendererList) == RendererListResult.kRendererListPopulated)
-                    {
-                        shouldCull = false;
-                        break; // no need to check the rest
-                    }
-                }
-
-                if (shouldCull)
+                if (AreRendererListsEmpty(pass.usedRendererListList) || AreRendererListsEmpty(pass.dependsOnRendererListList))
                 {
                     Debug.Log($"Culling pass <color=red> {pass.name} </color>");
                     m_CompiledPassInfos[passIndex].culled = true;
@@ -1138,14 +1139,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void CullPassesWithEmptyRendererLists()
+        void CullRendererLists()
         {
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
                 if (!m_CompiledPassInfos[passIndex].culled && !m_CompiledPassInfos[passIndex].hasSideEffect)
                 {
                     var pass = m_CompiledPassInfos[passIndex].pass;
-                    if (pass.usedRendererListList.Count > 0)
+                    if (pass.usedRendererListList.Count > 0 || pass.dependsOnRendererListList.Count > 0)
                     {
                         TryCullPassAtIndex(passIndex);
                     }
@@ -1171,7 +1172,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             // Cull dynamically the graph passes based on the renderer list visibility 
             if (rendererListCulling)
-                CullPassesWithEmptyRendererLists();
+                CullRendererLists();
 
             // After all culling passes, allocate the resources for this frame
             UpdateResourceAllocationAndSynchronization();

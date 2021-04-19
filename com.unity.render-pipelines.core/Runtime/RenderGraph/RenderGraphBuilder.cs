@@ -223,17 +223,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_RenderPass.AllowPassCulling(value);
         }
 
-        public void AllowRendererListCulling(bool value)
-        {
-            m_RenderPass.AllowRendererListCulling(value);
-        }
-
         /// <summary>
         /// Dispose the RenderGraphBuilder instance.
         /// </summary>
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public void AllowRendererListCulling(bool value)
+        {
+            m_RenderPass.AllowRendererListCulling(value);
+        }
+
+        public RendererListHandle DependsOn(in RendererListHandle input)
+        {
+            m_RenderPass.UseRendererList(input);
+            return input;
         }
 
         #endregion
