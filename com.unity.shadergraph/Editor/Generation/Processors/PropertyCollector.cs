@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var n = h.name;
                     string type = h.GetValueTypeString();
-                    builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
+                    builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT({type}, {n})");
                 }
                 builder.AppendLine("#endif");
             }

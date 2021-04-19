@@ -251,8 +251,13 @@
     #define UNITY_DOTS_INSTANCED_PROP(type, name)
 
     #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) var
-    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) This_macro_cannot_be_called_without_UNITY_DOTS_INSTANCING_ENABLED
     #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
+
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) var
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
+
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) var
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) UNITY_ACCESS_INSTANCED_PROP(arr, var)
 #endif
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.
@@ -363,11 +368,11 @@
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld)))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject)))
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject)))
         #else
-            #define UNITY_MATRIX_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject))
+            #define UNITY_MATRIX_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_WorldToObject))
         #endif
     #else
 
