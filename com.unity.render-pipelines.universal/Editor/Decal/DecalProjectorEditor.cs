@@ -561,7 +561,7 @@ namespace UnityEditor.Rendering.Universal
                 }
                 if (negativeScale)
                 {
-                    EditorGUILayout.HelpBox("Does not support negative combined scale (scale.x * scale.y * scale.z must be greater or equal to zero).", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Does not work with negative odd scaling (When there are odd number of scale components)", MessageType.Warning);
                 }
 
                 var widthRect = EditorGUILayout.GetControlRect();
