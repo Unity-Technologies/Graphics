@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         RenderTargetHandle m_InternalLut;
 
+        bool m_AllowColorGradingACESHDR = true;
+
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
             base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
@@ -51,6 +53,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_LdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
             base.useNativeRenderPass = false;
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30 && SystemInfo.graphicsDeviceName.StartsWith("Adreno (TM) 3"))
+                m_AllowColorGradingACESHDR = false;
         }
 
         public void Setup(in RenderTargetHandle internalLut)
@@ -160,7 +165,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     switch (tonemapping.mode.value)
                     {
                         case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
-                        case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
+                        case TonemappingMode.ACES: material.EnableKeyword(m_AllowColorGradingACESHDR ? ShaderKeywordStrings.TonemapACES : ShaderKeywordStrings.TonemapNeutral); break;
                         default: break; // None
                     }
                 }
