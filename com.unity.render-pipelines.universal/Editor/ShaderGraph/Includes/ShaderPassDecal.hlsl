@@ -178,6 +178,10 @@ void Frag(PackedVaryings packedInput,
 #ifdef DECAL_PROJECTOR
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+#ifdef VARYINGS_NEED_POSITION_WS
+    input.positionWS = posInput.positionWS;
+#endif
+
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0);
