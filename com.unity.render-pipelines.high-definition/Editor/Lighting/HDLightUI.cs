@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DistanceShadowmask
         }
 
+        [HDRPHelpURL("Light-Component.html")]
         enum Expandable
         {
             General = 1 << 0,
