@@ -1309,6 +1309,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Compute a hash of texture properties.
         /// </summary>
+        /// <param name="texture"> Source texture.</param>
+        /// <returns>Returns hash of texture properties.</returns>
         public static int GetTextureHash(Texture texture)
         {
             int hash = texture.GetHashCode();
@@ -1333,8 +1335,10 @@ namespace UnityEngine.Rendering
 
         // Hacker’s Delight, Second Edition page 66
         /// <summary>
-        /// Branchless prvious power of two.
+        /// Branchless previous power of two.
         /// </summary>
+        /// <param name="size">Starting size or number.</param>
+        /// <returns>Previous power of two.</returns>
         public static int PreviousPowerOfTwo(int size)
         {
             if (size <= 0)
@@ -1347,5 +1351,13 @@ namespace UnityEngine.Rendering
             size |= (size >> 16);
             return size - (size >> 1);
         }
+
+        /// <summary>
+        /// Get the last declared value from an enum Type
+        /// </summary>
+        /// <typeparam name="T">Type of the enum</typeparam>
+        /// <returns>Last value of the enum</returns>
+        public static T GetLastEnumValue<T>() where T : Enum
+            => typeof(T).GetEnumValues().Cast<T>().Last();
     }
 }
