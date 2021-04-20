@@ -112,7 +112,6 @@ namespace UnityEngine.Experimental.Rendering
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
             refVol.SetNormalBias(m_Profile.normalBias);
-            refVol.SetProfileCellSize(m_Profile.cellSize);
 
             refVol.AddPendingAssetLoading(volumeAsset);
         }
