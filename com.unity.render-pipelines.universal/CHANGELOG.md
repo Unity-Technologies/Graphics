@@ -5,10 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
-### Changed
-- Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
-- UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
-
 ### Added
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
@@ -20,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for SSAO in Particle and Unlit shaders.
 
 ### Changed
+- Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
+- UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer) to Assets/Create/Rendering/URP Asset (with 2D Renderer)
@@ -34,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
 - Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
+- Advanced Options > Priority has been renamed to Sorting Priority
 - Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
 - DepthNormals passes now sample normal maps if used on the material, otherwise output the geometry normal.
 - SSAO Texture is now R8 instead of ARGB32 if supported by the platform.
@@ -43,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
+- Fixed an issue where filtering in the scene view would not properly highlight the filtered objects. case 1324359
 - Fixed an issue where the scene view camera was not correctly cleared for the 2D Renderer. [case 1311377](https://issuetracker.unity3d.com/product/unity/issues/guid/1311377/)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
 - Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where copy depth depth pass for gizmos was being skipped in game view [case 1302504](https://issuetracker.unity3d.com/issues/urp-handles-with-set-ztest-do-not-respect-depth-sorting-in-the-game-view)
 - Fixed an issue where transparent objects sampled SSAO.
 - Fixed an issue where Depth Prepass was not run when SSAO was set to Depth Mode.
+- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
@@ -105,6 +106,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved URP profiling scopes. Remove low impact scopes from the command buffer for a small performance gain. Fix the name and invalid scope for context.submit() scope. Change the default profiling name of ScriptableRenderPass to Unnamed_ScriptableRenderPass.
 - Using the same MaterialHeaderScope for material editor as HDRP is using
 
+### Removed
+- Code to upgrade from LWRP to URP was removed. This means if you want to upgrade from LWRP you must first upgrade to previous versions of URP and then upgrade to this version.
+
 ## [11.0.0] - 2020-10-21
 ### Added
 - Added real-time Point Light Shadows.
@@ -117,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
 - Added screen space shadow as renderer feature
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added support for Enlighten precomputed realtime Global Illumination.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.

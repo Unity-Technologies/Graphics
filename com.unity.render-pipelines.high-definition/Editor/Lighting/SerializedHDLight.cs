@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useVolumetric;
 
         // Layers
-        public SerializedProperty linkLightLayers;
+        public SerializedProperty linkShadowLayers;
         public SerializedProperty lightlayersMask;
 
         // Shadow datas
@@ -403,7 +403,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 renderingLayerMask = settings.renderingLayerMask;
 
                 // Layers
-                linkLightLayers = o.Find("m_LinkShadowLayers");
+                linkShadowLayers = o.Find("m_LinkShadowLayers");
                 lightlayersMask = o.Find("m_LightlayersMask");
 
                 // Shadow datas:

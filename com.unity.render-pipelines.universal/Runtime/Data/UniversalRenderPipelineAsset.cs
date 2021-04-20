@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
@@ -9,25 +8,16 @@ using UnityEditorInternal;
 using System.ComponentModel;
 using System.Linq;
 
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset", true)]
-    public class LightweightRenderPipelineAsset
-    {
-    }
-}
-
-
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
+    public enum ShadowQuality
     {
         Disabled,
         HardShadows,
         SoftShadows,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowResolution
+    public enum ShadowResolution
     {
         _256 = 256,
         _512 = 512,
@@ -36,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         _4096 = 4096
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MsaaQuality
+    public enum MsaaQuality
     {
         Disabled = 1,
         _2x = 2,
@@ -44,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         _8x = 8
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum Downsampling
+    public enum Downsampling
     {
         None,
         _2xBilinear,
@@ -61,14 +51,14 @@ namespace UnityEngine.Rendering.Universal
         UnityBuiltinDefault
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum LightRenderingMode
+    public enum LightRenderingMode
     {
         Disabled = 0,
         PerVertex = 2,
         PerPixel = 1,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderVariantLogLevel
+    public enum ShaderVariantLogLevel
     {
         Disabled,
         OnlyUniversalRPShaders,
@@ -82,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         Profiling,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
+    public enum RendererType
     {
         Custom,
         UniversalRenderer,
