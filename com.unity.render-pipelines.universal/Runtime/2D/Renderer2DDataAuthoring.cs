@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
 
-        [SerializeField, Reload("Runtime/Materials/SpriteMask-Lit-Default.mat")]
+        [SerializeField, Reload("Runtime/Materials/SpriteMask-Default.mat")]
         Material m_DefaultMaskMaterial = null;
 
         internal override Shader GetDefaultShader()
