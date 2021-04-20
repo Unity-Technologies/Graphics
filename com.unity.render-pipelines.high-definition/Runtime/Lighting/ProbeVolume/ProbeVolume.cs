@@ -751,9 +751,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
 
             dataUpdated = false;
-            dataNeedsDilation = false;
 
 #if UNITY_EDITOR
+            dataNeedsDilation = false;
             ForceBakingEnabled();
 #endif
 
@@ -781,7 +781,10 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnDisable()
         {
             dataUpdated = false;
+
+#if UNITY_EDITOR
             dataNeedsDilation = false;
+#endif
 
             ProbeVolumeManager.manager.DeRegisterVolume(this);
 
