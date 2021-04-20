@@ -203,6 +203,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added localization on Wizard window
 - UI for Frame Settings has been updated: default values in the HDRP Settings and Custom Frame Settings are always editable
 - Updated Light's shadow layer name in Editor.
+- The HDRP Render Graph now uses the new RendererList API for rendering and (optional) pass culling.
 
 ## [11.0.0] - 2020-10-21
 
