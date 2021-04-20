@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         continue;
 
                     // TODO: NoInterpolation only for non-strips.
-                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, "nointerpolation"));
+                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation"));
                 }
             }
 
