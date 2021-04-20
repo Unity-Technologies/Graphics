@@ -524,6 +524,12 @@ namespace UnityEditor.Rendering.Universal
             bool isDefaultMaterial = false;
             bool isValidDecalMaterial = true;
 
+            bool isDecalSupported = DecalProjector.isSupported;
+            if (!isDecalSupported)
+            {
+                EditorGUILayout.HelpBox("No renderer has a Decal Renderer Feature added.", MessageType.Warning);
+            }
+
             EditorGUI.BeginChangeCheck();
             {
                 EditorGUILayout.BeginHorizontal();
@@ -673,12 +679,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     (decalProjector as DecalProjector).OnValidate();
                 }
-            }
-
-            bool isDecalSupported = DecalProjector.isSupported;
-            if (!isDecalSupported)
-            {
-                EditorGUILayout.HelpBox("No Renderer has Decal Renderer Feature added.", MessageType.Info);
             }
 
             if (m_MaterialEditor != null)
