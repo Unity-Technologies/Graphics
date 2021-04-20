@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateModeOverrideOption.UsePipelineSettings)
                 {
-                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
+                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
                 }
                 else
                 {

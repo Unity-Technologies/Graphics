@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
-    public enum VolumeUpdateMode
+    public enum VolumeFrameworkUpdateMode
     {
         EveryFrame = 0,
         ViaScripting = 1,
@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-        [SerializeField] VolumeUpdateMode m_VolumeFrameworkUpdateMode = VolumeUpdateMode.EveryFrame;
+        [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
@@ -729,7 +729,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>
-        public VolumeUpdateMode volumeFrameworkUpdateMode
+        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode
         {
             get { return m_VolumeFrameworkUpdateMode; }
         }

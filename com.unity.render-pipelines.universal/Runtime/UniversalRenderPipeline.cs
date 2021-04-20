@@ -877,7 +877,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = false;
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.requiresVolumeUpdate = settings.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
+                cameraData.requiresVolumeUpdate = settings.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
                 cameraData.renderer = asset.scriptableRenderer;
             }
 
