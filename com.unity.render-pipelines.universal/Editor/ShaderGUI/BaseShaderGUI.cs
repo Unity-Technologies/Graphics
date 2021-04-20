@@ -455,25 +455,25 @@ namespace UnityEditor
                 }
                 if (material.HasProperty("_Color"))
                     material.SetColor("_Color", material.GetColor("_BaseColor"));
+
+                // Emission
+                if (material.HasProperty(Property.EmissionColor))
+                    MaterialEditor.FixupEmissiveFlag(material);
+
+                bool shouldEmissionBeEnabled =
+                    (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+
+                // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
+                // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
+                if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
+                    shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
+
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, shouldEmissionBeEnabled);
+
+                // Normal Map
+                if (material.HasProperty("_BumpMap"))
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
             }
-
-            // Emission
-            if (material.HasProperty(Property.EmissionColor))
-                MaterialEditor.FixupEmissiveFlag(material);
-
-            bool shouldEmissionBeEnabled =
-                (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
-
-            // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
-            // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
-            if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
-                shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
-
-            CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, shouldEmissionBeEnabled);
-
-            // Normal Map
-            if (material.HasProperty("_BumpMap"))
-                CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
