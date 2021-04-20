@@ -223,31 +223,40 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ScriptableRenderContext context)
+        internal void Setup(ScriptableRenderContext context, ref CameraData cameraData)
         {
             var cmd = CommandBufferPool.Get("");
 
-            // Material settings...
-            cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
-            cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
+            if (IsActiveForCamera(ref cameraData))
+            {
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
-            cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
+                // Material settings...
+                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
+                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
 
-            // Rendering settings...
-            cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
-            cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
-            cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
-            cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
-            cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
-            cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
+                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
 
-            // Lighting settings...
-            cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.DebugLightingMode);
-            cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
+                // Rendering settings...
+                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
+                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
+                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
+                cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
+                cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
+                cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
-            // Set-up any other persistent properties...
-            cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
-            cmd.SetGlobalTexture(k_DebugNumberTexturePropertyId, m_NumberFontTexture);
+                // Lighting settings...
+                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.DebugLightingMode);
+                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
+
+                // Set-up any other persistent properties...
+                cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
+                cmd.SetGlobalTexture(k_DebugNumberTexturePropertyId, m_NumberFontTexture);
+            }
+            else
+            {
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

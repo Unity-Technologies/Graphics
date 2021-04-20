@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
             [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]

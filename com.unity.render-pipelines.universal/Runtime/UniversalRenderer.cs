@@ -191,38 +191,6 @@ namespace UnityEngine.Rendering.Universal
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
-            if (DebugHandler != null)
-            {
-                // Hook in the debug-render where appropriate...
-                m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
-                m_FinalBlitPass.DebugHandler = DebugHandler;
-
-                if (m_RenderOpaqueForwardOnlyPass != null)
-                {
-                    m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
-                }
-                if (m_RenderTransparentForwardPass != null)
-                {
-                    m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
-                }
-                if (m_DrawSkyboxPass != null)
-                {
-                    m_DrawSkyboxPass.DebugHandler = DebugHandler;
-                }
-                if (m_GBufferPass != null)
-                {
-                    m_GBufferPass.DebugHandler = DebugHandler;
-                }
-                if (m_PostProcessPasses.postProcessPass != null)
-                {
-                    m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
-                }
-                if (m_PostProcessPasses.finalPostProcessPass != null)
-                {
-                    m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
-                }
-            }
-
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_CameraColorAttachment.Init("_CameraColorTexture");
@@ -336,10 +304,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
-            {
-                DebugHandler.Setup(context);
-            }
+            DebugHandler?.Setup(context, ref cameraData);
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;

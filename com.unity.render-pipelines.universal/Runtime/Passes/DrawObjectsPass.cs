@@ -95,9 +95,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
                 {
-                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    foreach (DebugRenderSetup debugRenderSetup in activeDebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
 

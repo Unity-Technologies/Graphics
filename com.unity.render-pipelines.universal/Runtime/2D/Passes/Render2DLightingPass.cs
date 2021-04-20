@@ -102,11 +102,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return short.MinValue;
         }
 
-        private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings, bool debugRender)
+        private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings)
         {
-            if (debugRender)
+            var activeDebugHandler = GetActiveDebugHandler(renderingData);
+            if (activeDebugHandler != null)
             {
-                foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                foreach (DebugRenderSetup debugRenderSetup in activeDebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                 {
                     DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
 
@@ -138,7 +139,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
-            bool drawLights = (DebugHandler == null) || DebugHandler.IsLightingActive;
+            var debugHandler = GetActiveDebugHandler(renderingData);
+            bool drawLights = debugHandler?.IsLightingActive ?? true;
             var batchesDrawn = 0;
             var rtCount = 0U;
 
@@ -220,22 +222,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
 
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
-                        bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                         // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
                             CopyCameraSortingLayerRenderTexture(context, renderingData);
 
                             filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
                         }
                         else
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
-                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings);
 
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData);
@@ -318,7 +319,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
             {
                 var unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-                bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
@@ -341,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBufferPool.Release(cmd);
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
+                Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings);
                 Profiler.EndSample();
             }
 

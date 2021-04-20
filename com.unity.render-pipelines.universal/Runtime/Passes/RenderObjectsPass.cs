@@ -120,9 +120,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                var activeDebugHandler = GetActiveDebugHandler(renderingData);
+                if (activeDebugHandler != null)
                 {
-                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    foreach (DebugRenderSetup debugRenderSetup in activeDebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
 
