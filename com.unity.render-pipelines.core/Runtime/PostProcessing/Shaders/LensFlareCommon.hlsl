@@ -6,6 +6,8 @@
 struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct VaryingsLensFlare
@@ -117,6 +119,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 {
     VaryingsLensFlare output;
 
+    UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float screenRatio = _ScreenRatio;
