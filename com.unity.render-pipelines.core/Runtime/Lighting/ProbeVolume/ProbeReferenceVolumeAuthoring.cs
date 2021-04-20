@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Collections.Generic;
 #endif
 
 namespace UnityEngine.Experimental.Rendering
