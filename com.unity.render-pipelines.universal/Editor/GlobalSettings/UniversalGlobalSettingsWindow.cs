@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
             internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
             internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
 
-            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layers Names", "When enabled, URP allocates memory for processing Light Layers. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layers Names (3D)", "When enabled, URP allocates memory for processing Light Layers. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
             internal static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
             internal static readonly GUIContent lightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer 1", "The display name for Light Layer 1. This is purely cosmetic, and can be used to articulate intended use of Light Layer 1");
             internal static readonly GUIContent lightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer 2", "The display name for Light Layer 2. This is purely cosmetic, and can be used to articulate intended use of Light Layer 2");
