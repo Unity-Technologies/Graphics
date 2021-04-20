@@ -653,10 +653,8 @@ namespace UnityEngine.Rendering.Universal
                 additionalCameraData.lastRequiresVolumeFrameworkUpdate = shouldUpdate;
             }
 
-            //Debug.Log(camera.name + " -> Updating");
-
             // When we want to update the volumes every frame...
-            VolumeManager.instance.ResetDefaultStack();
+            VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
 

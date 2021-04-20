@@ -91,7 +91,11 @@ namespace UnityEngine.Rendering
             return stack;
         }
 
-        public void ResetDefaultStack()
+        /// <summary>
+        /// Resets the stack to be the default one.
+        /// Call this function if you've assigned the main stack to something other than the default one.
+        /// </summary>
+        public void ResetMainStack()
         {
             stack = s_DefaultStack;
         }
