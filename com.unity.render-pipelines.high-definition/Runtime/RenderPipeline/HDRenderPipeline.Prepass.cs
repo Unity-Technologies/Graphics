@@ -56,10 +56,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
         }
 
-        bool NeedClearGBuffer()
+        bool NeedClearGBuffer(HDCamera hdCamera)
         {
-            // TODO: Add an option to force clear
-            return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
+            return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers);
         }
 
         HDUtils.PackedMipChainInfo GetDepthBufferMipChainInfo()
@@ -118,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(depthDesc);
         }
 
-        TextureHandle CreateNormalBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateNormalBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
         {
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
@@ -129,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(hdCamera), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -402,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 decalBuffer = renderGraph.defaultResources.blackTextureXR;
                 output.depthAsColor = CreateDepthAsColorBuffer(renderGraph);
-                output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
                 return false;
             }
 
@@ -460,7 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int mrtIndex = 0;
                 if (msaa)
                     output.depthAsColor = builder.UseColorBuffer(CreateDepthAsColorBuffer(renderGraph), mrtIndex++);
-                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, msaa), mrtIndex++);
+                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, hdCamera, msaa), mrtIndex++);
                 if (decalLayersEnabled)
                     decalBuffer = builder.UseColorBuffer(decalBuffer, mrtIndex++);
 
@@ -564,7 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
         {
-            bool clearGBuffer = NeedClearGBuffer();
+            bool clearGBuffer = NeedClearGBuffer(hdCamera);
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
@@ -701,7 +700,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 output.resolvedDepthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 output.depthValuesMSAA = builder.UseColorBuffer(depthValuesBuffer, 0);
-                output.resolvedNormalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
+                output.resolvedNormalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, hdCamera, false), 1);
                 if (passData.needMotionVectors)
                     output.resolvedMotionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
                 else
