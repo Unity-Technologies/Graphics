@@ -1,5 +1,5 @@
 {
-    "name": "UniversalEditorTests",
+    "name": "UniversalTestEditor",
     "rootNamespace": "",
     "references": [
         "GUID:e18141520846dcc44b725b2f74e91229",
