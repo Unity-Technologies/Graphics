@@ -6,20 +6,20 @@ namespace UnityEditor.Rendering
 
         internal SerializedProperty size;
 
-        SerializedObject m_SerializedObject;
+        internal SerializedObject serializedObject;
 
-        internal SerializedProbeVolume(SerializedObject serializedObject)
+        internal SerializedProbeVolume(SerializedObject obj)
         {
-            m_SerializedObject = serializedObject;
+            serializedObject = obj;
 
-            probeVolumeParams = m_SerializedObject.FindProperty("parameters");
+            probeVolumeParams = serializedObject.FindProperty("parameters");
 
             size = probeVolumeParams.FindPropertyRelative("size");
         }
 
         internal void Apply()
         {
-            m_SerializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

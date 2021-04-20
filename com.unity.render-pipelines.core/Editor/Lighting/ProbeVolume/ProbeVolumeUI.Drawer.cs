@@ -33,7 +33,8 @@ namespace UnityEditor.Rendering
             CED.Conditional(
                 IsFeatureEnabled,
                 CED.Group(
-                    Drawer_VolumeContent
+                    Drawer_VolumeContent,
+                    Drawer_BakeToolBar
                 )
             )
         );
@@ -60,6 +61,62 @@ namespace UnityEditor.Rendering
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
+            Bounds bounds = new Bounds();
+            bool foundABound = false;
+            bool performFitting = false;
+            bool performFittingOnlyOnSelection = false;
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene"), EditorStyles.miniButton))
+            {
+                performFitting = true;
+            }
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection"), EditorStyles.miniButton))
+            {
+                performFitting = true;
+                performFittingOnlyOnSelection = true;
+            }
+
+            if (performFitting)
+            {
+                var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+
+                foreach (Renderer renderer in renderers)
+                {
+                    var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
+                    bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
+
+                    bool increaseBound = true;
+                    if (contributeGI)
+                    {
+                        if (performFittingOnlyOnSelection)
+                        {
+                            increaseBound = Selection.Contains(renderer.gameObject);
+                        }
+
+                        if (increaseBound)
+                        {
+                            if (!foundABound)
+                            {
+                                bounds = renderer.bounds;
+                                foundABound = true;
+                            }
+                            bounds.Encapsulate(renderer.bounds);
+                        }
+                    }
+                }
+
+                (serialized.serializedObject.targetObject as ProbeVolume).transform.position = bounds.center;
+
+                // Inflate a bit to allow easier control of the fitted box.
+                Vector3 tmpClamp = bounds.size * 1.05f;
+                tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
+                tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
+                tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
+                serialized.size.vector3Value = tmpClamp;
+            }
+
+            GUILayout.EndHorizontal();
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
