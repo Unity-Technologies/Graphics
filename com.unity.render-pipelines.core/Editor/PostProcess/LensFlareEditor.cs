@@ -15,7 +15,7 @@ namespace UnityEngine
         /// </summary>
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("This asset doesn't work on SRP {URP & HDRP}, use Lens Flare (SRP) instead.", MessageType.Error);
+            EditorGUILayout.HelpBox("This asset doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
         }
     }
 
@@ -30,7 +30,7 @@ namespace UnityEngine
         /// </summary>
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("This component doesn't work on SRP {URP & HDRP}, use Lens Flare (SRP) instead.", MessageType.Error);
+            EditorGUILayout.HelpBox("This component doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
         }
     }
 }
