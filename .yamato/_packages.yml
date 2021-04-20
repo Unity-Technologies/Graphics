@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -55,58 +56,6 @@ publish_core_dry:
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-pack_lwrp:
-    name: Pack Lightweight
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  mkdir packages_temp\lwrp
-      -  upm-ci package pack --package-path com.unity.render-pipelines.lightweight --artifacts-path packages_temp/lwrp
-    artifacts:
-        packages:
-            paths:
-              -  "packages_temp/lwrp/upm-ci~/packages/**/*"
-publish_lwrp:
-    name: Publish Lightweight
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-    commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-publish_lwrp_dry:
-    name: Publish Lightweight [dry run]
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-    commands:
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:
@@ -409,55 +358,6 @@ test_core_Win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_Win_trunk:
-    name: Test Lightweight Win trunk
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight --extra-utr-arg="--compilation-errors-as-warnings"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_Win_trunk_dependencies:
-    name: Test Lightweight Win trunk - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 test_shadergraph_Win_trunk:
     name: Test ShaderGraph Win trunk
     agent:
@@ -727,55 +627,6 @@ test_core_OSX_trunk_dependencies:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_OSX_trunk:
-    name: Test Lightweight OSX trunk
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
-      -  mkdir upm-ci~ && mkdir upm-ci~/packages
-      -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
-      -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight --extra-utr-arg="--compilation-errors-as-warnings"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_OSX_trunk_dependencies:
-    name: Test Lightweight OSX trunk - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
-      -  mkdir upm-ci~ && mkdir upm-ci~/packages
-      -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
-      -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -1053,59 +904,6 @@ test_core_Win_CUSTOM-REVISION_dependencies:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-test_lwrp_Win_CUSTOM-REVISION:
-    name: Test Lightweight Win CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight --extra-utr-arg="--compilation-errors-as-warnings"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-test_lwrp_Win_CUSTOM-REVISION_dependencies:
-    name: Test Lightweight Win CUSTOM-REVISION - dependencies
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_packages.yml#test_lwrp_Win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  mkdir upm-ci~\packages
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -1407,59 +1205,6 @@ test_core_OSX_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_OSX_CUSTOM-REVISION:
-    name: Test Lightweight OSX CUSTOM-REVISION
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  mkdir upm-ci~ && mkdir upm-ci~/packages
-      -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
-      -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight --extra-utr-arg="--compilation-errors-as-warnings"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-test_lwrp_OSX_CUSTOM-REVISION_dependencies:
-    name: Test Lightweight OSX CUSTOM-REVISION - dependencies
-    agent:
-        type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
-    dependencies:
-      -  .yamato/_packages.yml#test_lwrp_OSX_CUSTOM-REVISION
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  mkdir upm-ci~ && mkdir upm-ci~/packages
-      -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
-      -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 test_shadergraph_OSX_CUSTOM-REVISION:
     name: Test ShaderGraph OSX CUSTOM-REVISION
     agent:
@@ -1723,14 +1468,12 @@ all_package_ci_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#test_core_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
       -  .yamato/_packages.yml#test_shadergraph_Win_trunk
       -  .yamato/_packages.yml#test_hdrp_Win_trunk
       -  .yamato/_packages.yml#test_universal_Win_trunk
       -  .yamato/_packages.yml#test_vfx_Win_trunk
       -  .yamato/_packages.yml#test_config_Win_trunk
       -  .yamato/_packages.yml#test_core_OSX_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
       -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
       -  .yamato/_packages.yml#test_hdrp_OSX_trunk
       -  .yamato/_packages.yml#test_universal_OSX_trunk
@@ -1748,14 +1491,12 @@ all_package_ci_CUSTOM-REVISION:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#test_core_Win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_shadergraph_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_hdrp_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_universal_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_vfx_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_config_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_core_OSX_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_shadergraph_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_hdrp_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#test_universal_OSX_CUSTOM-REVISION
@@ -1771,7 +1512,6 @@ publish_all:
     name: Publish all packages [package context][manual]
     dependencies:
       -  .yamato/_packages.yml#publish_core
-      -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#publish_universal
@@ -1785,7 +1525,6 @@ publish_all_tag:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#publish_core
-      -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#publish_universal
