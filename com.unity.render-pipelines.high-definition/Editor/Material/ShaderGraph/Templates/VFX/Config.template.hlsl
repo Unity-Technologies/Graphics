@@ -2,6 +2,8 @@ $splice(VFXDefineSpace)
 
 $splice(VFXDefines)
 
+#define NULL_GEOMETRY_INPUT defined(HAVE_VFX_PLANAR_PRIMITIVE)
+
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
 #define HAS_ATTRIBUTES 1
 
@@ -183,20 +185,20 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 void BuildWorldToElement(VaryingsMeshType input)
 {
 #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
-    UNITY_MATRIX_I_M[0] = input.worldToElement0;
-    UNITY_MATRIX_I_M[1] = input.worldToElement1;
-    UNITY_MATRIX_I_M[2] = input.worldToElement2;
-    UNITY_MATRIX_I_M[3] = float4(0,0,0,1);
+    worldToElement[0] = input.worldToElement0;
+    worldToElement[1] = input.worldToElement1;
+    worldToElement[2] = input.worldToElement2;
+    worldToElement[3] = float4(0,0,0,1);
 #endif
 }
 
 void BuildElementToWorld(VaryingsMeshType input)
 {
 #ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
-    UNITY_MATRIX_M[0] = input.elementToWorld0;
-    UNITY_MATRIX_M[1] = input.elementToWorld1;
-    UNITY_MATRIX_M[2] = input.elementToWorld2;
-    UNITY_MATRIX_M[3] = float4(0,0,0,1);
+    elementToWorld[0] = input.elementToWorld0;
+    elementToWorld[1] = input.elementToWorld1;
+    elementToWorld[2] = input.elementToWorld2;
+    elementToWorld[3] = float4(0,0,0,1);
 #endif
 }
 

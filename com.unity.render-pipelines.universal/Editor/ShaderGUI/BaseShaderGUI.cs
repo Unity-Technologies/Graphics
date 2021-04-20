@@ -35,8 +35,8 @@ namespace UnityEditor
 
         public enum SmoothnessSource
         {
+            SpecularAlpha,
             BaseAlpha,
-            SpecularAlpha
         }
 
         public enum RenderFace
@@ -95,8 +95,8 @@ namespace UnityEditor
             public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
                 "Converts the assigned texture to be a normal map format.");
 
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Priority",
-                "Determines the chronological rendering order for a Material. High values are rendered first.");
+            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
+                "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
         }
 
         #endregion
@@ -262,6 +262,7 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp.textureValue != null;
 
+            EditorGUI.indentLevel -= 1;
             if (!keyword)
             {
                 materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
@@ -281,23 +282,17 @@ namespace UnityEditor
                 }
                 EditorGUI.EndDisabledGroup();
             }
+            EditorGUI.indentLevel += 1;
 
             // If texture was assigned and color was black set color to white
             var brightness = emissionColorProp.colorValue.maxColorComponent;
             if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                 emissionColorProp.colorValue = Color.white;
 
-            // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
-                var oldFlags = material.globalIlluminationFlags;
-                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-
-                if (brightness <= 0f)
-                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                if (newFlags != oldFlags)
-                    material.globalIlluminationFlags = newFlags;
+                // Change the GI emission flag and fix it up with emissive as black if necessary.
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
             }
         }
 
@@ -408,6 +403,7 @@ namespace UnityEditor
                     material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
                     material.SetFloat("_ZWrite", 1.0f);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else
@@ -443,6 +439,7 @@ namespace UnityEditor
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetFloat("_ZWrite", 0.0f);
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
