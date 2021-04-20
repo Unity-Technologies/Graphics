@@ -227,7 +227,7 @@ void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData)
 
 void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData, AmbientOcclusionFactor aoFactor)
 {
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     }

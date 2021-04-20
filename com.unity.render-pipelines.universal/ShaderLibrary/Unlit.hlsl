@@ -17,7 +17,7 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }

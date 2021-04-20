@@ -27,8 +27,8 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
         {
             float2 uvOffset = half2(uv.x - _DebugTextureDisplayRect.x, uv.y - _DebugTextureDisplayRect.y);
 
-            if((uvOffset.x >= 0) && (uvOffset.x < _DebugTextureDisplayRect.z) &&
-               (uvOffset.y >= 0) && (uvOffset.y < _DebugTextureDisplayRect.w))
+            if ((uvOffset.x >= 0) && (uvOffset.x < _DebugTextureDisplayRect.z) &&
+                (uvOffset.y >= 0) && (uvOffset.y < _DebugTextureDisplayRect.w))
             {
                 float2 debugTextureUv = float2(uvOffset.x / _DebugTextureDisplayRect.z, uvOffset.y / _DebugTextureDisplayRect.w);
 
@@ -76,12 +76,12 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
 
         case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
         {
-            if(color.r < _RangeMinimum || color.g < _RangeMinimum || color.b < _RangeMinimum ||
+            if (color.r < _RangeMinimum || color.g < _RangeMinimum || color.b < _RangeMinimum ||
                 (_HighlightOutOfRangeAlpha && (color.a < _RangeMinimum)))
             {
                 debugColor = _DebugValidateBelowMinThresholdColor;
             }
-            else if(color.r > _RangeMaximum || color.g > _RangeMaximum || color.b > _RangeMaximum ||
+            else if (color.r > _RangeMaximum || color.g > _RangeMaximum || color.b > _RangeMaximum ||
                     (_HighlightOutOfRangeAlpha && (color.a > _RangeMaximum)))
             {
                 debugColor = _DebugValidateAboveMaxThresholdColor;

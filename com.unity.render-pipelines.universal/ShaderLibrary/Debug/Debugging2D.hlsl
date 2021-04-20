@@ -68,7 +68,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
 
 bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
-    if(CalculateColorForDebugSceneOverride(debugColor))
+    if (CalculateColorForDebugSceneOverride(debugColor))
     {
         return true;
     }
@@ -154,19 +154,19 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
 
 bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)
 {
-    if(CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
+    if (CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorForRenderingSettings(surfaceData, inputData, debugColor))
+    else if (CalculateDebugColorForRenderingSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorLightingSettings(surfaceData, inputData, debugColor))
+    else if (CalculateDebugColorLightingSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorValidationSettings(surfaceData, inputData, debugColor))
+    else if (CalculateDebugColorValidationSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }

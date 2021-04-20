@@ -41,9 +41,6 @@ namespace UnityEngine.Rendering.Universal
     {
         None,
         Depth,
-
-        // TODO: Restore this once we have access to the screen-space shadow texture...
-        //MainLightShadowsOnly,
         AdditionalLightsShadowMap,
         MainLightShadowMap,
     }
@@ -64,10 +61,6 @@ namespace UnityEngine.Rendering.Universal
         None,
         Level,
         Count,
-
-        //CountReduction,
-        //StreamingMipBudget,
-        //StreamingMip,
     }
 
     [GenerateHLSL]

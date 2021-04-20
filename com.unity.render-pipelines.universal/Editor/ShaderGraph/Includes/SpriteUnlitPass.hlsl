@@ -36,7 +36,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SETUP_DEBUG_DATA_2D(inputData, unpacked.positionWS);
 
-    if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
+    if (CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
     {
         return debugColor;
     }

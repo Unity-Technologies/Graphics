@@ -136,7 +136,7 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
     #ifdef _ALPHATEST_ON
-    if(IsAlphaDiscardEnabled())
+    if (IsAlphaDiscardEnabled())
         clip(alpha - cutoff + offset);
     #endif
 }
@@ -280,7 +280,7 @@ half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    if(IsFogEnabled())
+    if (IsFogEnabled())
     {
         float fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);

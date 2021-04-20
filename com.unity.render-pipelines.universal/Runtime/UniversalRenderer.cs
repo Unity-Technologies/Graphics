@@ -293,10 +293,6 @@ namespace UnityEngine.Rendering.Universal
                             DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), new Rect(0, 0, 1, 1));
                             break;
                         }
-                        // TODO: Restore this once we have access to the screen-space shadow texture...
-                        // case DebugFullScreenMode.MainLightShadowsOnly:
-                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
-                        //     break;
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
                         {
                             DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
@@ -484,17 +480,26 @@ namespace UnityEngine.Rendering.Universal
                 && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                mainLightShadows = false;
-                additionalLightShadows = false;
-
-                if (!isSceneViewCamera)
+                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode);
+                if (fullScreenMode == DebugFullScreenMode.Depth)
                 {
-                    requiresDepthPrepass = false;
-                    generateColorGradingLUT = false;
-                    copyColorPass = false;
-                    requiresDepthCopyPass = false;
+                    requiresDepthPrepass = true;
+                }
+
+                if (!DebugHandler.IsLightingActive)
+                {
+                    mainLightShadows = false;
+                    additionalLightShadows = false;
+
+                    if (!isSceneViewCamera)
+                    {
+                        requiresDepthPrepass = false;
+                        generateColorGradingLUT = false;
+                        copyColorPass = false;
+                        requiresDepthCopyPass = false;
+                    }
                 }
             }
 

@@ -107,11 +107,11 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
 bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugColor)
 {
-    if(metallic < _DebugValidateMetallicMinValue)
+    if (metallic < _DebugValidateMetallicMinValue)
     {
         debugColor = _DebugValidateBelowMinThresholdColor;
     }
-    else if(metallic > _DebugValidateMetallicMaxValue)
+    else if (metallic > _DebugValidateMetallicMaxValue)
     {
         debugColor = _DebugValidateAboveMaxThresholdColor;
     }
@@ -222,19 +222,19 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
 
 bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
-    if(CalculateColorForDebugSceneOverride(debugColor))
+    if (CalculateColorForDebugSceneOverride(debugColor))
     {
         return true;
     }
-    else if(CalculateColorForDebugMaterial(inputData, surfaceData, debugColor))
+    else if (CalculateColorForDebugMaterial(inputData, surfaceData, debugColor))
     {
         return true;
     }
-    else if(CalculateValidationColorForDebug(inputData, surfaceData, debugColor))
+    else if (CalculateValidationColorForDebug(inputData, surfaceData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorForMipmaps(inputData, surfaceData, debugColor))
+    else if (CalculateDebugColorForMipmaps(inputData, surfaceData, debugColor))
     {
         return true;
     }
@@ -262,7 +262,7 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
 {
-    if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
+    if (_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
@@ -271,7 +271,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     {
         debugColor = half4(0, 0, 0, 1);
 
-        if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
@@ -281,7 +281,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         }
         else
         {
-            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
                 inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
@@ -297,14 +297,14 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout half4 debugColor)
 {
-    if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
+    if (_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
         debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
     }
     else
     {
-        if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
@@ -314,7 +314,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         }
         else
         {
-            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
                 inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);

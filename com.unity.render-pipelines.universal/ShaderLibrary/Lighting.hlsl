@@ -142,29 +142,29 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
     half3 lightingColor = 0;
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
     {
         lightingColor += lightingData.giColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
         lightingColor += lightingData.mainLightColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
         lightingColor += lightingData.additionalLightsColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
     {
         lightingColor += lightingData.vertexLightingColor;
     }
 
     lightingColor *= albedo;
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_EMISSION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_EMISSION))
     {
         lightingColor += lightingData.emissionColor;
     }
@@ -250,7 +250,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
     {
         return debugColor;
     }
@@ -329,7 +329,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -400,7 +400,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -409,7 +409,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         lightingData.giColor *= aoFactor.indirectAmbientOcclusion;
     }
