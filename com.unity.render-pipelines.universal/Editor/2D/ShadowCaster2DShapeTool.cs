@@ -1,8 +1,10 @@
-using UnityEditor.Rendering.Universal.Path2D;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor.Experimental.Rendering.Universal.Path2D;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     class ShadowCaster2DShapeTool : PathEditorTool<ShadowCasterPath>
     {
