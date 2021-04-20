@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
