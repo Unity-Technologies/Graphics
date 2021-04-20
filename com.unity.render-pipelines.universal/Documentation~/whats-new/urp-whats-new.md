@@ -16,13 +16,13 @@ For information on the known issues in URP 10, see the section [Known issues](..
 
 URP 10.5 is a maintenance update, it contains fixes to issues found in previous releases of URP 10.
 
-For a complete list of changes made in URP 10.3, refer to the [Changelog](../../changelog/CHANGELOG.html).
+For a complete list of changes, refer to the [Changelog](../../changelog/CHANGELOG.html).
 
 # What's new in URP 10.4<a name="urp-10-4"></a>
 
 URP 10.4 is a maintenance update, it contains fixes to issues found in previous releases of URP 10.
 
-For a complete list of changes made in URP 10.3, refer to the [Changelog](../../changelog/CHANGELOG.html).
+For a complete list of changes, refer to the [Changelog](../../changelog/CHANGELOG.html).
 
 # What's new in URP 10.3<a name="urp-10-3"></a>
 
