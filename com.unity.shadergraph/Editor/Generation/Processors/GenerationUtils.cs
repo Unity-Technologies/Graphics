@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
-
+            int fillerSemanticCount = 0;
             foreach (FieldDescriptor subscript in shaderStruct.fields)
             {
                 var fieldIsActive = false;
@@ -148,8 +148,16 @@ namespace UnityEditor.ShaderGraph
                     // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
                     if (subscript.HasPreprocessor() && subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT"))
                         postUnpackedSubscripts.Add(subscript);
+                    // don't pack nonvectors or those that have specific semantics already.
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
+                    else if (subscript.HasInterpolationModifier())
+                    {
+                        // interpolation modifiers shouldn't be packed, but they are also not required to have a semantic, so we will have to fill one in.
+                        var copyWithSemantic = new FieldDescriptor(subscript.tag, subscript.name, subscript.define, $"AUTOFILL{fillerSemanticCount++}",
+                            subscript.type, preprocessor : subscript.preprocessor, subscriptOptions : subscript.subscriptOptions, interpolation : subscript.interpolation);
+                        packedSubscripts.Add(copyWithSemantic);
+                    }
                     else
                     {
                         // pack float field
