@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
+            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (usesRenderPass || useDepthPriming)
             {
