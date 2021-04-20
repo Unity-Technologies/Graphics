@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
     public sealed class VolumeManager
     {
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
-        static VolumeStack m_DefaultStack = null;
+        static VolumeStack s_DefaultStack = null;
 
         /// <summary>
         /// The current singleton instance of <see cref="VolumeManager"/>.
@@ -73,8 +73,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            m_DefaultStack = CreateStack();
-            stack = m_DefaultStack;
+            s_DefaultStack = CreateStack();
+            stack = s_DefaultStack;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
 
         public void ResetDefaultStack()
         {
-            stack = m_DefaultStack;
+            stack = s_DefaultStack;
         }
 
         /// <summary>
