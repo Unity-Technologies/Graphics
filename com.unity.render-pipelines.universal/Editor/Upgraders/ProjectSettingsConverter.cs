@@ -66,7 +66,7 @@ public class ProjectSettingsConverter : RenderPipelineConverter
                 text = "Will Generate Pipeline Asset";
             }
 
-            item.path = text;
+            item.info = text;
             projectSettings.index = id;
             settingsItems.Add(projectSettings);
             context.AddAssetToConvert(item);
@@ -229,8 +229,8 @@ public class ProjectSettingsConverter : RenderPipelineConverter
             ConverterItemDescriptor info = new ConverterItemDescriptor()
             {
                 name = $"Camera:{camera.name} > {camSettings.renderingPath}",
-                path = camSettings.assetPath,
-                initialInfo = "",
+                info = camSettings.assetPath,
+                warningMessage = "",
             };
             context.AddAssetToConvert(info);
             // TODO remove in final
