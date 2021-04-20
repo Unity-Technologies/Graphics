@@ -167,9 +167,9 @@ test_universal_template_Win_trunk_dependencies:
 pre_pack_hdrp_template_OSX_trunk:
     name: Pre-Pack HDRP Template OSX trunk
     agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
@@ -247,9 +247,9 @@ test_hdrp_template_OSX_trunk_dependencies:
 pre_pack_universal_template_OSX_trunk:
     name: Pre-Pack Universal Template OSX trunk
     agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
@@ -483,9 +483,9 @@ test_universal_template_Win_CUSTOM-REVISION_dependencies:
 pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template OSX CUSTOM-REVISION
     agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -565,9 +565,9 @@ test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
 pre_pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pre-Pack Universal Template OSX CUSTOM-REVISION
     agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
