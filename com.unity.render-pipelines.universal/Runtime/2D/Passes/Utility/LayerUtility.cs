@@ -1,6 +1,7 @@
 using Unity.Mathematics;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal struct LayerBatch
     {

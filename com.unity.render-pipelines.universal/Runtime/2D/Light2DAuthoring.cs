@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     public sealed partial class Light2D
     {
