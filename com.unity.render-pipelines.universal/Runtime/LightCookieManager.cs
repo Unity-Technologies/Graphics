@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 cookieMatrix = visibleMainLight.localToWorldMatrix.inverse;
                 Vector2 cookieUVScale  = Vector2.one;
                 Vector2 cookieUVOffset = Vector2.zero;
-                float cookieFormat     = ((cookieTexture as Texture2D)?.format == TextureFormat.Alpha8) ? 1.0f : 0.0f;
+                float cookieFormat     = GetCookieFormat((cookieTexture as Texture2D).format);
 
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
@@ -284,7 +284,22 @@ namespace UnityEngine.Rendering.Universal
             return isMainLightCookieEnabled;
         }
 
-        void GetLightUVScaleOffset(ref UniversalAdditionalLightData additionalLightData, out Vector2 uvScale, out Vector2 uvOffset)
+        private int GetCookieFormat(TextureFormat cookieFormat)
+        {
+            // RGB 0, A 1, R 2, (G 3), (B 4)
+            switch (cookieFormat)
+            {
+                default:
+                    return 0;
+                case TextureFormat.Alpha8:
+                    return 1;
+                case TextureFormat.R8:
+                case TextureFormat.R16:
+                    return 2;
+            }
+        }
+
+        private void GetLightUVScaleOffset(ref UniversalAdditionalLightData additionalLightData, out Vector2 uvScale, out Vector2 uvOffset)
         {
             uvScale  = Vector2.one / additionalLightData.lightCookieSize;
             uvOffset = additionalLightData.lightCookieOffset;

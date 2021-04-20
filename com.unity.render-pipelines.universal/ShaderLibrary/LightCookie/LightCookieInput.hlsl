@@ -99,14 +99,24 @@ int URP_LightCookie_GetCookieUVWrapMode(int lightIndex)
     #endif
 }
 
+bool URP_LightCookie_MainLightTextureIsRGBFormat()
+{
+    return _MainLightCookieFormat == 0;
+}
+
+bool URP_LightCookie_AdditionalLightsTextureIsRGBFormat()
+{
+    return _AdditionalLightsCookieAtlasFormat == 0;
+}
+
 bool URP_LightCookie_MainLightTextureIsAlphaFormat()
 {
-    return _MainLightCookieFormat != 0;
+    return _MainLightCookieFormat == 1;
 }
 
 bool URP_LightCookie_AdditionalLightsTextureIsAlphaFormat()
 {
-    return _AdditionalLightsCookieAtlasFormat != 0;
+    return _AdditionalLightsCookieAtlasFormat == 1;
 }
 
 // Sampling

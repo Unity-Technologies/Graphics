@@ -80,10 +80,11 @@ real3 URP_LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
     float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(0, 0, 1, 1),
                 _MainLightCookieUVScale, _MainLightCookieUVOffset, URP_TEXTURE_WRAP_MODE_NONE);
-    return
-        URP_LightCookie_MainLightTextureIsAlphaFormat() ?
-        URP_LightCookie_SampleMainLightTexture(uv).aaa :
-        URP_LightCookie_SampleMainLightTexture(uv).rgb;
+    real4 color = URP_LightCookie_SampleMainLightTexture(uv);
+
+    return URP_LightCookie_MainLightTextureIsRGBFormat() ? color.rgb
+             : URP_LightCookie_MainLightTextureIsAlphaFormat() ? color.aaa
+             : color.rrr;
 }
 
 real3 URP_LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
@@ -117,9 +118,11 @@ real3 URP_LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float
         uv = URP_LightCookie_ComputeUVPoint(worldToLight, samplePositionWS, uvRect);
     }
 
-    return URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ?
-        URP_LightCookie_SampleAdditionalLightsTexture(uv).aaa :
-        URP_LightCookie_SampleAdditionalLightsTexture(uv).rgb;
+    real4 color = URP_LightCookie_SampleAdditionalLightsTexture(uv);
+
+    return URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? color.rgb
+            : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? color.aaa
+            : color.rrr;
 }
 
 #endif //UNIVERSAL_LIGHT_COOKIE_INCLUDED
