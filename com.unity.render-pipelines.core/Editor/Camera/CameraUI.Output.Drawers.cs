@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Output Section
         /// </summary>
-        public partial class Output
+        public static partial class Output
         {
             /// <summary>Draws Allow Dynamic Resolution related fields on the inspector</summary>
             /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>

@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Environment section
         /// </summary>
-        public partial class Environment
+        public static partial class Environment
         {
             /// <summary>
             /// Styles
             /// </summary>
-            public class Styles
+            public static class Styles
             {
                 /// <summary>
                 /// Header of the section

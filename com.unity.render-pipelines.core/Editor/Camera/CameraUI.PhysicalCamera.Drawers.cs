@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Physical camera related drawers
         /// </summary>
-        public partial class PhysicalCamera
+        public static partial class PhysicalCamera
         {
             // Saves the value of the sensor size when the user switches from "custom" size to a preset per camera.
             // We use a ConditionalWeakTable instead of a Dictionary to avoid keeping alive (with strong references) deleted cameras

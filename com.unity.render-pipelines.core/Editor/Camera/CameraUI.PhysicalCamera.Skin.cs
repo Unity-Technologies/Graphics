@@ -9,12 +9,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Physical camera content content
         /// </summary>
-        public partial class PhysicalCamera
+        public static partial class PhysicalCamera
         {
             /// <summary>
             /// Styles
             /// </summary>
-            public class Styles
+            public static class Styles
             {
                 // Camera Body
                 /// <summary>

@@ -3,7 +3,7 @@ namespace UnityEditor.Rendering
     /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
-        public partial class Rendering
+        public static partial class Rendering
         {
             /// <summary>Draws Stop NaNs related fields on the inspector</summary>
             /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>

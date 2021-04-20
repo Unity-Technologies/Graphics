@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -10,7 +8,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Styles
         /// </summary>
-        public class Styles
+        public static class Styles
         {
             /// <summary>
             /// Projection section header

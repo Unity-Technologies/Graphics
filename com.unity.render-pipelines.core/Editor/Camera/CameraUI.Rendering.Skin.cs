@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Rendering section
         /// </summary>
-        public partial class Rendering
+        public static partial class Rendering
         {
             /// <summary>
             /// Styles
             /// </summary>
-            public class Styles
+            public static class Styles
             {
                 /// <summary>
                 /// Header of the section
