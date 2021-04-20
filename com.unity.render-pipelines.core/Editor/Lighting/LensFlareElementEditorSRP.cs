@@ -437,8 +437,8 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             static public string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/Resources/";
-            static public GUIContent circleIcon = EditorGUIUtility.TrIconContent(/*"Lens Flare (SRP) Circle Icon", */UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "CircleFlareThumbnail", ".png", false));
-            static public GUIContent polygonIcon = EditorGUIUtility.TrIconContent(/*"Lens Flare(SRP) Polygon Icon", */UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "PolygonFlareThumbnail", ".png", false));
+            static public GUIContent circleIcon = EditorGUIUtility.TrIconContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "CircleFlareThumbnail", ".png", false));
+            static public GUIContent polygonIcon = EditorGUIUtility.TrIconContent(UnityEditor.Rendering.CoreEditorUtils.LoadIcon(Styles.k_IconFolder, "PolygonFlareThumbnail", ".png", false));
 
             static public readonly GUIContent lensFlareElement = EditorGUIUtility.TrTextContent("Lens Flare Element");
             static public readonly GUIContent typeElement = EditorGUIUtility.TrTextContent("Type");
