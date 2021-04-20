@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
-        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
@@ -598,12 +598,14 @@ namespace UnityEngine.Rendering.Universal
             LayerMask layerMask = 1; // "Default"
             Transform trigger = camera.transform;
 
+            bool shouldUpdate = false;
             if (additionalCameraData != null)
             {
                 layerMask = additionalCameraData.volumeLayerMask;
                 trigger = additionalCameraData.volumeTrigger != null
                     ? additionalCameraData.volumeTrigger
                     : trigger;
+                shouldUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
             }
             else if (camera.cameraType == CameraType.SceneView)
             {
@@ -612,11 +614,51 @@ namespace UnityEngine.Rendering.Universal
                 UniversalAdditionalCameraData mainAdditionalCameraData = null;
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                {
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
+                }
 
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
+            // We skip updating if the asset has volume updates disabled
+            if (additionalCameraData)
+            {
+                // Create stack for camera
+                if (additionalCameraData.volumeStack == null)
+                {
+                    additionalCameraData.volumeStack = VolumeManager.instance.CreateStack();
+                    VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
+                }
+
+                // When we have volume updates per-frame disabled...
+                if (!shouldUpdate)
+                {
+                    VolumeManager.instance.stack = additionalCameraData.volumeStack;
+
+                    // If the update setting was enabled in the previous scene, we need to update...
+                    if (additionalCameraData.lastVolumeUpdateSetting)
+                    {
+                        VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
+                        additionalCameraData.lastVolumeUpdateSetting = false;
+                    }
+
+                    // We always want to update normally in the editor when not in playmode
+                    #if UNITY_EDITOR
+                    if (Application.isPlaying)
+                    #endif
+                    {
+                        return;
+                    }
+                }
+
+                additionalCameraData.lastVolumeUpdateSetting = shouldUpdate;
+            }
+
+            //Debug.Log(camera.name + " -> Updating");
+
+            // When we want to update the volumes every frame...
+            VolumeManager.instance.ResetDefaultStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
 
@@ -814,6 +856,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.requiresVolumeUpdate = true;
                 cameraData.renderer = asset.scriptableRenderer;
             }
             else if (additionalCameraData != null)
@@ -824,6 +867,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
+                cameraData.requiresVolumeUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
             }
             else
@@ -833,6 +877,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = false;
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.requiresVolumeUpdate = settings.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
                 cameraData.renderer = asset.scriptableRenderer;
             }
 

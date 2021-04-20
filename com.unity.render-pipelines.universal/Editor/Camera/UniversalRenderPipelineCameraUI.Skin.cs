@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.Universal
         {
             public static GUIContent projectionSettingsText = EditorGUIUtility.TrTextContent("Projection", "These settings control how the camera views the world.");
             public static GUIContent environmentSettingsText = EditorGUIUtility.TrTextContent("Environment", "These settings control what the camera background looks like.");
+            public static GUIContent volumesSettingsText = EditorGUIUtility.TrTextContent("Volumes", "These settings control how volumes affect this camera.");
             public static GUIContent outputSettingsText = EditorGUIUtility.TrTextContent("Output", "These settings control how the camera output is formatted.");
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
@@ -27,8 +28,9 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer", "Controls which renderer this camera uses.");
 
-            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
-            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
+            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This camera will only be affected by volumes in the selected scene-layers.");
+            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
+            public static GUIContent volumeUpdates = EditorGUIUtility.TrTextContent("Update Mode", "Should volumes be updated every frame or via scripting?");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");

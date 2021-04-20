@@ -72,6 +72,13 @@ namespace UnityEngine.Rendering.Universal
         High
     }
 
+    public enum CameraVolumesOverrideOption
+    {
+        EveryFrame,
+        ViaScripting,
+        UsePipelineSettings,
+    }
+
     /// <summary>
     /// Contains extension methods for Camera class.
     /// </summary>
@@ -128,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
+        [SerializeField] CameraVolumesOverrideOption m_VolumeFrameworkUpdateModeOption = CameraVolumesOverrideOption.UsePipelineSettings;
 
         [SerializeField] bool m_RenderPostProcessing = false;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
@@ -337,17 +345,57 @@ namespace UnityEngine.Rendering.Universal
             m_RendererIndex = index;
         }
 
+        /// <summary>
+        /// Returns the selected scene-layers affecting this camera.
+        /// </summary>
         public LayerMask volumeLayerMask
         {
             get => m_VolumeLayerMask;
             set => m_VolumeLayerMask = value;
         }
 
+        /// <summary>
+        /// Returns the transform that will act as a trigger for volume blending.
+        /// </summary>
         public Transform volumeTrigger
         {
             get => m_VolumeTrigger;
             set => m_VolumeTrigger = value;
         }
+
+        /// <summary>
+        /// Returns true if this camera requires to color information in a texture.
+        /// If enabled, color texture is available to be bound and read from shaders as _CameraOpaqueTexture after rendering skybox.
+        /// </summary>
+        public bool requiresVolumeFrameworkUpdate
+        {
+            get
+            {
+                if (m_VolumeFrameworkUpdateModeOption == CameraVolumesOverrideOption.UsePipelineSettings)
+                {
+                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
+                }
+                else
+                {
+                    return m_VolumeFrameworkUpdateModeOption == CameraVolumesOverrideOption.EveryFrame;
+                }
+            }
+            set { m_VolumeFrameworkUpdateModeOption = (value) ? CameraVolumesOverrideOption.EveryFrame : CameraVolumesOverrideOption.ViaScripting; }
+        }
+
+        /// <summary>
+        /// Returns the current volume stack used by this camera
+        /// </summary>
+        VolumeStack m_VolumeStack = null;
+        public VolumeStack volumeStack
+        {
+            get => m_VolumeStack;
+            set => m_VolumeStack = value;
+        }
+
+        internal bool lastVolumeUpdateSetting { get; set; }
+
+        public List<Volume> volumeList { get; set; }
 
         /// <summary>
         /// Returns true if this camera should render post-processing.
@@ -378,12 +426,18 @@ namespace UnityEngine.Rendering.Universal
             set => m_AntialiasingQuality = value;
         }
 
+        /// <summary>
+        /// Returns true if this camera should automatically replace NaN/Inf in shaders by a black pixel to avoid breaking some effects.
+        /// </summary>
         public bool stopNaN
         {
             get => m_StopNaN;
             set => m_StopNaN = value;
         }
 
+        /// <summary>
+        /// Returns true if this camera applies 8-bit dithering to the final render to reduce color banding
+        /// </summary>
         public bool dithering
         {
             get => m_Dithering;
