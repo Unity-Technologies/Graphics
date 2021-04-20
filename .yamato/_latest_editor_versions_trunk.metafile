@@ -9,20 +9,20 @@ editor_versions:
       updated_at: '2021-04-18 23:32:58.196701'
       version: ''
     Linux:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-16 09:22:51.092647'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-20 00:03:29.618902'
       version: ''
     OSX:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-16 09:22:51.092647'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-20 00:03:29.618902'
       version: ''
     Win:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-16 09:22:51.092647'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-20 00:03:29.618902'
       version: ''
     iPhone:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-14 23:25:07.773558'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-20 00:03:29.618902'
       version: ''
   trunk_latest_public:
     Android:

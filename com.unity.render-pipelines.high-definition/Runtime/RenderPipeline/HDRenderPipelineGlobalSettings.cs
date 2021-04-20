@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AssetDatabase.CreateFolder("Assets", folderPath);
                         assetCreated = Create(path);
 
-                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                     }
                     else
                     {
