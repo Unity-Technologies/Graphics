@@ -1398,6 +1398,33 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Create any missing folder in the folder path given
+        /// </summary>
+        /// <param name="folderPath">Path to ensure existance</param>
+        public static void EnsureFolderTree(string folderPath, bool verifyRootAsset = true)
+        {
+            void Recurse(string _folderPath)
+            {
+                int lastSeparator = _folderPath.LastIndexOf('/');
+                if (lastSeparator == -1)
+                    return;
+
+                string rootPath = _folderPath.Substring(0, lastSeparator);
+
+                Recurse(rootPath);
+
+                string folder = _folderPath.Substring(lastSeparator);
+                if (!UnityEditor.AssetDatabase.IsValidFolder(_folderPath))
+                    UnityEditor.AssetDatabase.CreateFolder(rootPath, folder);
+            }
+
+            if (verifyRootAsset && !folderPath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
+                throw new System.ArgumentException("Path should start with \"Assets/\"", folderPath);
+
+            Recurse(folderPath);
+        }
+
 #endif
     }
 }
