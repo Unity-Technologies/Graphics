@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 
 using UnityEditor;
-using UnityEditor.Rendering;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
