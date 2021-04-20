@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;

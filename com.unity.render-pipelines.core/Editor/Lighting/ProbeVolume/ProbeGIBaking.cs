@@ -6,10 +6,11 @@ using System;
 using System.Linq;
 using UnityEditor;
 
-using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     struct DilationProbe : IComparable<DilationProbe>
     {

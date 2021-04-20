@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.IO;
 
@@ -7,7 +6,7 @@ using System.IO;
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
     internal struct ProbeDilationSettings

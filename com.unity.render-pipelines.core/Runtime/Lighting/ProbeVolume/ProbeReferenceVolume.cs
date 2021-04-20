@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using UnityEngine.Rendering;
+using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// Possible values for the probe volume memory budget (determines the size of the textures used).
