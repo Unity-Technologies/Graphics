@@ -154,8 +154,16 @@ namespace UnityEditor.ShaderGraph
                     else if (subscript.HasInterpolationModifier())
                     {
                         // interpolation modifiers shouldn't be packed, but they are also not required to have a semantic, so we will have to fill one in.
-                        var copyWithSemantic = new FieldDescriptor(subscript.tag, subscript.name, subscript.define, $"AUTOFILL{fillerSemanticCount++}",
-                            subscript.type, preprocessor : subscript.preprocessor, subscriptOptions : subscript.subscriptOptions, interpolation : subscript.interpolation);
+                        var copyWithSemantic = new FieldDescriptor(
+                            tag :subscript.tag,
+                            name : subscript.name,
+                            define : subscript.define,
+                            type : subscript.type,
+                            semantic : $"AUTOFILL{fillerSemanticCount++}",
+                            preprocessor : subscript.preprocessor,
+                            subscriptOptions : subscript.subscriptOptions,
+                            interpolation : subscript.interpolation);
+
                         packedSubscripts.Add(copyWithSemantic);
                     }
                     else
