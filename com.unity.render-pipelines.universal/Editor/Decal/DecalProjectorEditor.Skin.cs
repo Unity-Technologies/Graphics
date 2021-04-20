@@ -22,8 +22,8 @@ namespace UnityEditor.Rendering.Universal
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
 
         static readonly string k_BaseSceneEditingToolText = "<color=grey>Decal Scene Editing Mode:</color> ";
-        static readonly string k_EditShapeWithoutPreservingUVName = k_BaseSceneEditingToolText + "Edit Shape";
-        static readonly string k_EditShapePreservingUVName = k_BaseSceneEditingToolText + "Edit Shape Preserve UV";
-        static readonly string k_EditUVAndPivotName = k_BaseSceneEditingToolText + "Edit Pivot and UV";
+        static readonly string k_EditShapeWithoutPreservingUVName = k_BaseSceneEditingToolText + "Scale";
+        static readonly string k_EditShapePreservingUVName = k_BaseSceneEditingToolText + "Crop";
+        static readonly string k_EditUVAndPivotName = k_BaseSceneEditingToolText + "Pivot / UV";
     }
 }
