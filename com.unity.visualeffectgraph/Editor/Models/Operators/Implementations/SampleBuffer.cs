@@ -36,6 +36,9 @@ namespace UnityEditor.VFX.Operator
 
         public override string name { get { return "Sample Graphics Buffer"; } }
 
+        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom index is out the out of bounds of GraphicsBuffer")]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
+
         public class InputProperties
         {
             [Tooltip("Sets the Graphics Buffer to sample from.")]
@@ -75,9 +78,10 @@ namespace UnityEditor.VFX.Operator
 
             var buffer = inputExpression[0];
             var index = inputExpression[1];
-            var stride = new VFXExpressionBufferStride(buffer);
             var count = new VFXExpressionBufferCount(buffer);
 
+            index = VFXOperatorUtility.ApplyAddressingMode(index, count, mode);
+            var stride = new VFXExpressionBufferStride(buffer);
             var expressions = new List<VFXExpression>();
             foreach (var slot in slots)
             {
