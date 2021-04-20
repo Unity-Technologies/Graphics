@@ -23,23 +23,13 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_MULTIPLE_DISPLAYS
                     Drawer_Output_MultiDisplay,
 #endif
-                    Drawer_Output_RenderTarget,
+                    CameraUI.Output.Drawer_Output_RenderTarget,
                     Drawer_Output_MSAA_Warning,
                     CameraUI.Output.Drawer_Output_AllowDynamicResolution,
-                    Drawer_Output_Depth,
+                    CameraUI.Output.Drawer_Output_Depth,
                     CameraUI.Output.Drawer_Output_NormalizedViewPort
                 )
             );
-
-            static void Drawer_Output_Depth(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.depth, Styles.depth);
-            }
-
-            static void Drawer_Output_RenderTarget(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
-            }
 
             static void Drawer_Output_MSAA_Warning(SerializedHDCamera p, Editor owner)
             {

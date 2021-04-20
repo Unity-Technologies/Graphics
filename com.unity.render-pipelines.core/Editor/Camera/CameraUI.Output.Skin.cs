@@ -36,6 +36,11 @@ namespace UnityEditor.Rendering
                 /// Allow dynamic resolution content
                 /// </summary>
                 public static readonly GUIContent allowDynamicResolution = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
+
+                /// <summary>
+                /// Depth content
+                /// </summary>
+                public static readonly GUIContent depth = EditorGUIUtility.TrTextContent("Depth");
             }
         }
     }

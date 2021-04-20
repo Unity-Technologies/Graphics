@@ -7,6 +7,9 @@ namespace UnityEditor.Rendering
     /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
+        /// <summary>
+        /// Physical camera related drawers
+        /// </summary>
         public partial class PhysicalCamera
         {
             // Saves the value of the sensor size when the user switches from "custom" size to a preset per camera.

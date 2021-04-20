@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering
     {
         public partial class Rendering
         {
-            /// <summary>Draws Stop nans related fields on the inspector</summary>
+            /// <summary>Draws Stop NaNs related fields on the inspector</summary>
             /// <param name="p"><see cref="ISerializedCamera"/> The serialized camera</param>
             /// <param name="owner"><see cref="Editor"/> The editor owner calling this drawer</param>
             public static void Drawer_Rendering_StopNaNs(ISerializedCamera p, Editor owner)

@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent xrRenderingContent = EditorGUIUtility.TrTextContent("XR Rendering");
 #endif
 
-                public static readonly GUIContent depth = EditorGUIUtility.TrTextContent("Depth");
-
                 public const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
             }
         }
