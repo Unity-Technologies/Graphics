@@ -26,7 +26,14 @@ if __name__ == "__main__":
         pass
 
     editor = ""
-    with open(path.join(args.root, "UpdateTests.txt")) as f:
+    update_tests_file_path = path.join(args.root, "UpdateTests.txt")
+    if not path.exists(update_tests_file_path):
+        print("No update file found, skipping recommit")
+        print(os.getcwd())
+        for file in os.listdir("C:\\Users\\bokken\\build\\Graphics\\TestProjects\\ShaderGraph"):
+            print(file)
+        exit(0)
+    with open(update_tests_file_path) as f:
         while True:
             line = f.readline().strip()
             if line == "":
