@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private UniversalGlobalSettings m_GlobalSettings;
+        private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)

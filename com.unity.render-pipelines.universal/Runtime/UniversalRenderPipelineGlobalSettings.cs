@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    partial class UniversalGlobalSettings : RenderPipelineGlobalSettings
+    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         #region Version system
         [SerializeField] int k_AssetVersion = 1;
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalGlobalSettings asset)
+        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
         {
             EditorUtility.SetDirty(asset);
         }
@@ -32,18 +32,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
         #endregion
 
-        private static UniversalGlobalSettings cachedInstance = null;
-        public static UniversalGlobalSettings instance
+        private static UniversalRenderPipelineGlobalSettings cachedInstance = null;
+        public static UniversalRenderPipelineGlobalSettings instance
         {
             get
             {
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalGlobalSettings;
+                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
         }
 
-        static internal void UpdateGraphicsSettings(UniversalGlobalSettings newSettings)
+        static internal void UpdateGraphicsSettings(UniversalRenderPipelineGlobalSettings newSettings)
         {
             if (newSettings == null || newSettings == cachedInstance)
                 return;
@@ -53,23 +53,23 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
         //Making sure there is at least one UniversalGlobalSettings instance in the project
-        internal static UniversalGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
+        internal static UniversalRenderPipelineGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
         {
-            if (UniversalGlobalSettings.instance)
-                return UniversalGlobalSettings.instance;
+            if (UniversalRenderPipelineGlobalSettings.instance)
+                return UniversalRenderPipelineGlobalSettings.instance;
 
-            UniversalGlobalSettings assetCreated = null;
-            string path = "Assets/" + folderPath + "/UniversalGlobalSettings.asset";
-            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalGlobalSettings>(path);
+            UniversalRenderPipelineGlobalSettings assetCreated = null;
+            string path = "Assets/" + folderPath + "/UniversalRenderPipelineGlobalSettings.asset";
+            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
-                var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalGlobalSettings");
+                var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalRenderPipelineGlobalSettings");
                 //If we could not find the asset at the default path, find the first one
                 if (guidGlobalSettingsAssets.Length > 0)
                 {
                     var curGUID = guidGlobalSettingsAssets[0];
                     path = AssetDatabase.GUIDToAssetPath(curGUID);
-                    assetCreated = AssetDatabase.LoadAssetAtPath<UniversalGlobalSettings>(path);
+                    assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
                 }
                 else if (canCreateNewAsset)// or create one altogether
                 {
@@ -87,18 +87,18 @@ namespace UnityEngine.Rendering.Universal
             }
             Debug.Assert(assetCreated, "Could not create URP's Global Settings - URP may not work correctly - Open  Project Settings > Graphics > URP Settings for additional help.");
             UpdateGraphicsSettings(assetCreated);
-            return UniversalGlobalSettings.instance;
+            return UniversalRenderPipelineGlobalSettings.instance;
         }
 
-        internal static UniversalGlobalSettings Create(string path, UniversalGlobalSettings src = null)
+        internal static UniversalRenderPipelineGlobalSettings Create(string path, UniversalRenderPipelineGlobalSettings src = null)
         {
-            UniversalGlobalSettings assetCreated = null;
+            UniversalRenderPipelineGlobalSettings assetCreated = null;
 
             // make sure the asset does not already exists
-            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalGlobalSettings>(path);
+            assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
-                assetCreated = ScriptableObject.CreateInstance<UniversalGlobalSettings>();
+                assetCreated = ScriptableObject.CreateInstance<UniversalRenderPipelineGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 if (assetCreated != null)
                 {

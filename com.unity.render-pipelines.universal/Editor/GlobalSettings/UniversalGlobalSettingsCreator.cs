@@ -11,15 +11,15 @@ namespace UnityEngine.Rendering.Universal
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var newAsset = UniversalGlobalSettings.Create(pathName, settings);
+            var newAsset = UniversalRenderPipelineGlobalSettings.Create(pathName, settings);
             if (updateGraphicsSettings)
-                UniversalGlobalSettings.UpdateGraphicsSettings(newAsset);
+                UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
             ProjectWindowUtil.ShowCreatedAsset(newAsset);
         }
 
-        static UniversalGlobalSettings settings;
+        static UniversalRenderPipelineGlobalSettings settings;
         static bool updateGraphicsSettings = false;
-        public static void Clone(UniversalGlobalSettings src, bool activateAsset)
+        public static void Clone(UniversalRenderPipelineGlobalSettings src, bool activateAsset)
         {
             settings = src;
             updateGraphicsSettings = activateAsset;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             settings = null;
             updateGraphicsSettings = activateAsset;
 
-            var path = "Assets/UniversalGlobalSettings.asset";
+            var path = "Assets/UniversalRenderPipelineGlobalSettings.asset";
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
         }
 

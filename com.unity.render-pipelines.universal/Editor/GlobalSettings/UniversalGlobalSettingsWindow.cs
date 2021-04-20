@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.Universal
 {
-    using CED = CoreEditorDrawer<SerializedUniversalGlobalSettings>;
+    using CED = CoreEditorDrawer<SerializedUniversalRenderPipelineGlobalSettings>;
 
     class UniversalGlobalSettingsPanelProvider
     {
@@ -75,8 +75,8 @@ namespace UnityEditor.Rendering.Universal
             );
         }
 
-        SerializedUniversalGlobalSettings serializedSettings;
-        UniversalGlobalSettings settingsSerialized;
+        SerializedUniversalRenderPipelineGlobalSettings serializedSettings;
+        UniversalRenderPipelineGlobalSettings settingsSerialized;
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -86,13 +86,13 @@ namespace UnityEditor.Rendering.Universal
                 settingsSerialized = null;
             }
 
-            if (serializedSettings == null || settingsSerialized != UniversalGlobalSettings.instance)
+            if (serializedSettings == null || settingsSerialized != UniversalRenderPipelineGlobalSettings.instance)
             {
-                if (UniversalRenderPipeline.asset != null || UniversalGlobalSettings.instance != null)
+                if (UniversalRenderPipeline.asset != null || UniversalRenderPipelineGlobalSettings.instance != null)
                 {
-                    settingsSerialized = UniversalGlobalSettings.Ensure();
+                    settingsSerialized = UniversalRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
-                    serializedSettings = new SerializedUniversalGlobalSettings(serializedObject);
+                    serializedSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal
         {
         }
 
-        void DrawWarnings(ref SerializedUniversalGlobalSettings serialized, Editor owner)
+        void DrawWarnings(ref SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
             bool isURPinUse = UniversalRenderPipeline.asset != null;
             if (isURPinUse && serialized != null)
@@ -138,17 +138,17 @@ namespace UnityEditor.Rendering.Universal
         }
 
         #region Universal Global Settings asset selection
-        void DrawAssetSelection(ref SerializedUniversalGlobalSettings serialized, Editor owner)
+        void DrawAssetSelection(ref SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
-                var newAsset = (UniversalGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(UniversalGlobalSettings), false);
+                var newAsset = (UniversalRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(UniversalRenderPipelineGlobalSettings), false);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    UniversalGlobalSettings.UpdateGraphicsSettings(newAsset);
+                    UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
                     if (settingsSerialized != null && !settingsSerialized.Equals(null))
                         EditorUtility.SetDirty(settingsSerialized);
                 }
@@ -180,7 +180,7 @@ namespace UnityEditor.Rendering.Universal
             CED.Group((serialized, owner) => EditorGUILayout.Space())
         );
 
-        static void DrawLightLayerNames(SerializedUniversalGlobalSettings serialized, Editor owner)
+        static void DrawLightLayerNames(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;

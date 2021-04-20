@@ -3,17 +3,17 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(UniversalGlobalSettings))]
+    [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     [CanEditMultipleObjects]
     sealed class UniversalGlobalSettingsEditor : Editor
     {
-        SerializedUniversalGlobalSettings m_SerializedGlobalSettings;
+        SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
         internal bool largeLabelWidth = true;
 
         void OnEnable()
         {
-            m_SerializedGlobalSettings = new SerializedUniversalGlobalSettings(serializedObject);
+            m_SerializedGlobalSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
         }
 
         public override void OnInspectorGUI()
