@@ -117,7 +117,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             // Create a new ConvertState which holds the active state of the converter
             var converterState = new ConverterState
             {
-                isEnabled = conv.Enabled(),
+                isEnabled = conv.IsEnabled,
                 isActive = true,
                 isInitialized = false,
                 items = null,
@@ -156,7 +156,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             VisualElement item = new VisualElement();
             m_ConverterListAsset.CloneTree(item);
             var conv = m_CoreConvertersList[i];
-            item.SetEnabled(conv.Enabled());
+            item.SetEnabled(conv.IsEnabled);
             item.Q<Label>("converterName").text = conv.name;
             item.Q<Label>("converterInfo").text = conv.info;
             item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;

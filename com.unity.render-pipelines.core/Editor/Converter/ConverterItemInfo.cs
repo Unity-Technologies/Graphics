@@ -7,7 +7,10 @@ namespace UnityEditor.Rendering
     /// </summary>
     public struct ConverterItemInfo
     {
+        /// <summary> The ConverterItemDescriptor this item contain. </summary>
         public ConverterItemDescriptor descriptor { get; internal set; }
+
+        /// <summary> The index for this item in the list of converter items. </summary>
         public int index { get; internal set; }
     }
 }

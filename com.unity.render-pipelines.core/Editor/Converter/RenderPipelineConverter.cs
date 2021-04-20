@@ -1,7 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -18,13 +15,11 @@ namespace UnityEditor.Rendering
         /// </summary>
         public abstract string info { get; }
 
+        private bool m_IsEnabled = true;
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
-        public virtual bool Enabled()
-        {
-            return true;
-        }
+        public virtual bool IsEnabled { get => m_IsEnabled; set => m_IsEnabled = value; }
 
         /// <summary>
         /// This method getting triggered when clicking the listview item in the UI.

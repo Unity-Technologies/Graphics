@@ -37,12 +37,6 @@ namespace UnityEditor.Rendering
         string m_OldShader;
         string m_NewShader;
 
-        public string oldShader
-        {
-            get => m_OldShader;
-            set => m_OldShader = value;
-        }
-
         MaterialFinalizer m_Finalizer;
 
         Dictionary<string, string> m_TextureRename = new Dictionary<string, string>();
@@ -276,6 +270,11 @@ namespace UnityEditor.Rendering
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
+        /// <summary>
+        /// Checking if the passed in value is a path to a Material.
+        /// </summary>
+        /// <param name="path">Path to test.</param>
+        /// <return>Returns true if the passed in value is a path to a material.</return>
         public static bool IsMaterialPath(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -309,6 +308,12 @@ namespace UnityEditor.Rendering
             AssetDatabase.Refresh();
         }
 
+        /// <summary>
+        /// Checking if the passed in value is a path to a Material.
+        /// </summary>
+        /// <param name="material">Material to check.</param>
+        /// <param name="shaderNamesToIgnore">HashSet of strings to ignore.</param>
+        /// <return>Returns true if the passed in material's shader is not in the passed in ignore list.</return>
         public static bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
         {
             if (material == null)

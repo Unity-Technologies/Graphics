@@ -199,9 +199,6 @@ namespace UnityEditor.Rendering.Universal
                     };
                     // Each converter needs to add this info using this API.
                     context.AddAssetToConvert(desc);
-                    //MaterialUpgrader.Upgrade(m, m_Upgraders, flags);
-
-                    //SaveAssetsAndFreeMemory();
                 }
             }
         }
