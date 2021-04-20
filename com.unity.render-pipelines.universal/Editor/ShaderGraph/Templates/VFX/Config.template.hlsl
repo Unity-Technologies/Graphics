@@ -2,6 +2,9 @@ $splice(VFXDefineSpace)
 
 $splice(VFXDefines)
 
+//TODOPAUL See VisualEffectVertex.hlsl in HDRP, special case for null geometry
+#define NULL_GEOMETRY_INPUT defined(HAVE_VFX_PLANAR_PRIMITIVE)
+
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
 #define HAS_ATTRIBUTES 1
 
