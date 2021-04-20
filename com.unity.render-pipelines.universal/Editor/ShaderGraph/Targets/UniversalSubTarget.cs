@@ -1,13 +1,7 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEditor.UIElements;
-using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Legacy;
 using static Unity.Rendering.Universal.ShaderUtils;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -49,6 +43,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
     internal static class SubShaderUtils
     {
+        internal static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                floatType = FloatType.Default,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = declarationType,
+                value = defaultValue,
+                displayName = referenceName,
+                overrideReferenceName = referenceName,
+            });
+        }
+
         // Overloads to do inline PassDescriptor modifications
         // NOTE: param order should match PassDescriptor field order for consistency
         #region PassVariant

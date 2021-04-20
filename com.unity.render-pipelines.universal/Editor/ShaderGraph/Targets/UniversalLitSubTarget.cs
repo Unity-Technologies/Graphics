@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // if using material control, add the material property to control workflow mode
             if (target.allowMaterialOverride)
             {
-                collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
+                collector.AddFloatProperty(Property.SpecularWorkflowMode, (float)workflowMode);
                 collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
 
@@ -721,7 +721,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordDescriptor ReceiveShadowsOff = new KeywordDescriptor()
             {
                 displayName = "Receive Shadows Off",
-                referenceName = Keyword.HW_ReceiveShadowsOff,
+                referenceName = ShaderKeywordStrings._RECEIVE_SHADOWS_OFF,
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

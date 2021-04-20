@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.ShaderGraph;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor
 {
@@ -432,7 +433,7 @@ namespace UnityEditor
 
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
-                CoreUtils.SetKeyword(material, Keyword.HW_ReceiveShadowsOff, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
 
             // Setup double sided GI based on Cull state
             if (material.HasProperty(Property.CullMode))
@@ -468,11 +469,11 @@ namespace UnityEditor
             if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
                 shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
 
-            CoreUtils.SetKeyword(material, Keyword.HW_Emission, shouldEmissionBeEnabled);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, shouldEmissionBeEnabled);
 
             // Normal Map
             if (material.HasProperty("_BumpMap"))
-                CoreUtils.SetKeyword(material, Keyword.HW_NormalMap, material.GetTexture("_BumpMap"));
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
@@ -502,7 +503,7 @@ namespace UnityEditor
             bool alphaClip = false;
             if (material.HasProperty(Property.AlphaClip))
                 alphaClip = material.GetFloat(Property.AlphaClip) >= 0.5;
-            CoreUtils.SetKeyword(material, Keyword.HW_AlphaTestOn, alphaClip);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._ALPHATEST_ON, alphaClip);
 
             // default is to use the shader render queue
             int renderQueue = material.shader.renderQueue;
@@ -511,7 +512,7 @@ namespace UnityEditor
             {
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(Property.SurfaceType);
                 bool zwrite = false;
-                CoreUtils.SetKeyword(material, Keyword.HW_SurfaceTypeTransparent, surfaceType == SurfaceType.Transparent);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT, surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     if (alphaClip)
@@ -527,7 +528,7 @@ namespace UnityEditor
 
                     SetMaterialSrcDstBlendProperties(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
                     zwrite = true;
-                    material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
+                    material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                 }
                 else // SurfaceType Transparent
                 {
@@ -540,26 +541,26 @@ namespace UnityEditor
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
+                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                             break;
                         case BlendMode.Premultiply:
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.One,
                                 UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                            material.EnableKeyword(Keyword.HW_AlphaPremultiplyOn);
+                            material.EnableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                             break;
                         case BlendMode.Additive:
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.SrcAlpha,
                                 UnityEngine.Rendering.BlendMode.One);
-                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
+                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
                             break;
                         case BlendMode.Multiply:
                             SetMaterialSrcDstBlendProperties(material,
                                 UnityEngine.Rendering.BlendMode.DstColor,
                                 UnityEngine.Rendering.BlendMode.Zero);
-                            material.DisableKeyword(Keyword.HW_AlphaPremultiplyOn);
-                            material.EnableKeyword(Keyword.HW_AlphaModulateOn);
+                            material.DisableKeyword(ShaderKeywordStrings._ALPHAPREMULTIPLY_ON);
+                            material.EnableKeyword(ShaderKeywordStrings._ALPHAMODULATE_ON);
                             break;
                     }
 

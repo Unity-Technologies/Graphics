@@ -1088,8 +1088,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
         {
-            displayName = Keyword.HW_AlphaTestOn,
-            referenceName = Keyword.HW_AlphaTestOn,
+            displayName = ShaderKeywordStrings._ALPHATEST_ON,
+            referenceName = ShaderKeywordStrings._ALPHATEST_ON,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
@@ -1099,8 +1099,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
         {
-            displayName = Keyword.HW_SurfaceTypeTransparent,
-            referenceName = Keyword.HW_SurfaceTypeTransparent,
+            displayName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
+            referenceName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
@@ -1109,8 +1109,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
         {
-            displayName = Keyword.HW_AlphaPremultiplyOn,
-            referenceName = Keyword.HW_AlphaPremultiplyOn,
+            displayName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
+            referenceName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
