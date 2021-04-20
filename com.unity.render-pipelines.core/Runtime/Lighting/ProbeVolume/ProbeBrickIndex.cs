@@ -3,27 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
+using UnityEngine.Rendering;
+using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using RegId = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.RegId;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickIndex
     {
         // a few constants
-        internal const int kMaxSubdivisionLevels = 15; // 4 bits
+        internal const int kMaxSubdivisionLevels = 7; // 3 bits
         private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
         [System.Serializable]
         public struct Brick
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            public int size;              // size as factor covered elementary cells
+            public int subdivisionLevel;              // size as factor covered elementary cells
 
-            internal Brick(Vector3Int position, int size)
+            internal Brick(Vector3Int position, int subdivisionLevel)
             {
                 this.position = position;
-                this.size = size;
+                this.subdivisionLevel = subdivisionLevel;
             }
         }
 
@@ -134,7 +135,7 @@ namespace UnityEngine.Rendering
                 {
                     Brick brick = bricks[brick_idx];
 
-                    int cellSize = ProbeReferenceVolume.CellSize(brick.size);
+                    int cellSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Debug.Assert(cellSize <= largest_cell, "Cell sizes are not correctly sorted.");
                     largest_cell = Mathf.Min(largest_cell, cellSize);
 
@@ -142,7 +143,7 @@ namespace UnityEngine.Rendering
 
                     ReservedBrick rbrick = new ReservedBrick();
                     rbrick.brick = brick;
-                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.size);
+                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.subdivisionLevel);
                     bm.bricks.Add(rbrick);
 
                     foreach (var v in bm.voxels)
@@ -210,11 +211,11 @@ namespace UnityEngine.Rendering
         private void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels)
         {
             // create a list of all voxels this brick will touch
-            int brick_subdiv = brick.size;
+            int brick_subdiv = brick.subdivisionLevel;
             int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
 
             Vector3Int ipos = brick.position;
-            int        brick_size = ProbeReferenceVolume.CellSize(brick.size);
+            int        brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
             int        voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
 
             if (voxels_touched_cnt <= 1)
@@ -331,7 +332,7 @@ namespace UnityEngine.Rendering
             foreach (var rbrick in bricks)
             {
                 // clip brick to clipped voxel
-                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.size);
+                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.subdivisionLevel);
                 Vector3Int brick_min = rbrick.brick.position;
                 Vector3Int brick_max = rbrick.brick.position + Vector3Int.one * brick_cell_size;
                 brick_min.x = Mathf.Max(vx_min.x, brick_min.x - m_CenterRS.x);

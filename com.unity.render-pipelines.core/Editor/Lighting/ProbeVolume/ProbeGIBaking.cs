@@ -3,12 +3,14 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using System;
+using System.Linq;
 using UnityEditor;
 
-using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     struct DilationProbe : IComparable<DilationProbe>
     {
@@ -252,9 +254,9 @@ namespace UnityEngine.Rendering
 
                         foreach (var p in cell.probePositions)
                         {
-                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x);
-                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y);
-                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z);
+                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
+                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
+                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
                             asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
                             asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
                             asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
@@ -371,8 +373,8 @@ namespace UnityEngine.Rendering
                 var currentBrick = bricks[brickIdx];
                 var otherBrick = bricks[otherBrickIdx];
 
-                float currentBrickSize = Mathf.Pow(3f, currentBrick.size);
-                float otherBrickSize = Mathf.Pow(3f, otherBrick.size);
+                float currentBrickSize = Mathf.Pow(3f, currentBrick.subdivisionLevel);
+                float otherBrickSize = Mathf.Pow(3f, otherBrick.subdivisionLevel);
 
                 // TODO: This should probably be revisited.
                 float sqrt2 = 1.41421356237f;
@@ -438,37 +440,27 @@ namespace UnityEngine.Rendering
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, out Vector3[] deduplicatedProbePositions, out int[] indices)
         {
-            List<Vector3> uniqueProbePositions = new List<Vector3>();
-
+            var uniquePositions = new Dictionary<Vector3, int>();
             indices = new int[probePositions.Length];
 
-            // find duplicates
-            for (int i = 0; i < probePositions.Length; ++i)
+            int uniqueIndex = 0;
+            for (int i = 0; i < probePositions.Length; i++)
             {
-                Vector3 ppi = probePositions[i];
-                bool isDuplicate = false;
-                int index = uniqueProbePositions.Count;
+                var pos = probePositions[i];
 
-                // push if not a duplicate
-                for (int j = 0; j < uniqueProbePositions.Count; ++j)
+                if (uniquePositions.TryGetValue(pos, out var index))
                 {
-                    Vector3 ppj = uniqueProbePositions[j];
-
-                    if (ppi == ppj)
-                    {
-                        isDuplicate = true;
-                        index = j;
-                        break;
-                    }
+                    indices[i] = index;
                 }
-
-                if (!isDuplicate)
-                    uniqueProbePositions.Add(ppi);
-
-                indices[i] = index;
+                else
+                {
+                    uniquePositions[pos] = uniqueIndex;
+                    indices[i] = uniqueIndex;
+                    uniqueIndex++;
+                }
             }
 
-            deduplicatedProbePositions = uniqueProbePositions.ToArray();
+            deduplicatedProbePositions = uniquePositions.Keys.ToArray();
         }
 
         public static void RunPlacement()
@@ -510,9 +502,20 @@ namespace UnityEngine.Rendering
                 Renderer[] renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
                 ProbeVolume[] probeVolumes = UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
 
+                // Calculate the cell volume:
+                ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
+                cellVolume.corner = new Vector3(cellPos.x * bakingReferenceVolumeAuthoring.cellSize, cellPos.y * bakingReferenceVolumeAuthoring.cellSize, cellPos.z * bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.X = new Vector3(bakingReferenceVolumeAuthoring.cellSize, 0, 0);
+                cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSize, 0);
+                cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.Transform(cellTrans);
+
+                // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
+                cellVolume.maxSubdivisionMultiplier = 0;
+
                 Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, bakingReferenceVolumeAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
+                ProbePlacement.CreateInfluenceVolumes(ref cellVolume, renderers, probeVolumes, out influenceVolumes, out sceneRefs);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
@@ -523,8 +526,7 @@ namespace UnityEngine.Rendering
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
-                ProbePlacement.Subdivide(cell.position, refVol, bakingReferenceVolumeAuthoring.cellSize, refVolTransform.posWS, refVolTransform.rot,
-                    influenceVolumes, ref probePositionsArr, ref bricks);
+                ProbePlacement.Subdivide(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
 
                 if (probePositionsArr.Length > 0 && bricks.Count > 0)
                 {
