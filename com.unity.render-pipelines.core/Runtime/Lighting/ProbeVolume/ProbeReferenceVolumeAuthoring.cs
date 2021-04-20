@@ -1,7 +1,6 @@
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.IO;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
