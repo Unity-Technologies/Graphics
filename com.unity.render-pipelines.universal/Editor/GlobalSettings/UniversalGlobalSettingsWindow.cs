@@ -11,9 +11,9 @@ namespace UnityEditor.Rendering.Universal
 {
     using CED = CoreEditorDrawer<SerializedUniversalGlobalSettings>;
 
-    class DefaultSettingsPanelProvider
+    class UniversalGlobalSettingsPanelProvider
     {
-        static DefaultSettingsPanelIMGUI s_IMGUIImpl = new DefaultSettingsPanelIMGUI();
+        static UniversalGlobalSettingsPanelIMGUI s_IMGUIImpl = new UniversalGlobalSettingsPanelIMGUI();
 
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -21,13 +21,13 @@ namespace UnityEditor.Rendering.Universal
             return new SettingsProvider("Project/Graphics/URP Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<DefaultSettingsPanelIMGUI.Styles>().ToArray(),
+                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<UniversalGlobalSettingsPanelIMGUI.Styles>().ToArray(),
                 guiHandler = s_IMGUIImpl.DoGUI
             };
         }
     }
 
-    internal class DefaultSettingsPanelIMGUI
+    internal class UniversalGlobalSettingsPanelIMGUI
     {
         public class Styles
         {
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
             internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.largeLabel) { richText = true, fontSize = 18, fixedHeight = 42 };
             internal static GUIStyle subSectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel);
 
-            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layers Names", "When enabled, HDRP allocates memory for processing Light Layers. For deferred rendering, this allocation includes an extra render target in memory and extra cost. See the Quality Settings window to enable Decal Layers on your Render pipeline asset.");
+            internal static readonly GUIContent lightLayersLabel = EditorGUIUtility.TrTextContent("Light Layers Names", "When enabled, URP allocates memory for processing Light Layers. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
             internal static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
             internal static readonly GUIContent lightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer 1", "The display name for Light Layer 1. This is purely cosmetic, and can be used to articulate intended use of Light Layer 1");
             internal static readonly GUIContent lightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer 2", "The display name for Light Layer 2. This is purely cosmetic, and can be used to articulate intended use of Light Layer 2");
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
 
         public static readonly CED.IDrawer Inspector;
 
-        static DefaultSettingsPanelIMGUI()
+        static UniversalGlobalSettingsPanelIMGUI()
         {
             Inspector = CED.Group(
                 LightLayerNamesSection

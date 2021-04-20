@@ -40,11 +40,11 @@ namespace UnityEngine.Rendering.Universal
             assetCreated = AssetDatabase.LoadAssetAtPath<UniversalGlobalSettings>(path);
             if (assetCreated == null)
             {
-                var guidHDGlobalAssets = AssetDatabase.FindAssets("t:UniversalGlobalSettings");
+                var guidGlobalSettingsAssets = AssetDatabase.FindAssets("t:UniversalGlobalSettings");
                 //If we could not find the asset at the default path, find the first one
-                if (guidHDGlobalAssets.Length > 0)
+                if (guidGlobalSettingsAssets.Length > 0)
                 {
-                    var curGUID = guidHDGlobalAssets[0];
+                    var curGUID = guidGlobalSettingsAssets[0];
                     path = AssetDatabase.GUIDToAssetPath(curGUID);
                     assetCreated = AssetDatabase.LoadAssetAtPath<UniversalGlobalSettings>(path);
                 }
