@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         High
     }
 
-    public enum VolumeFrameworkUpdateOverrideOption
+    public enum VolumeFrameworkUpdateModeOverrideOption
     {
         EveryFrame,
         ViaScripting,
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
-        [SerializeField] VolumeFrameworkUpdateOverrideOption m_VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateOverrideOption.UsePipelineSettings;
+        [SerializeField] VolumeFrameworkUpdateModeOverrideOption m_VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateModeOverrideOption.UsePipelineSettings;
 
         [SerializeField] bool m_RenderPostProcessing = false;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
@@ -371,16 +371,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateOverrideOption.UsePipelineSettings)
+                if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateModeOverrideOption.UsePipelineSettings)
                 {
                     return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
                 }
                 else
                 {
-                    return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateOverrideOption.EveryFrame;
+                    return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateModeOverrideOption.EveryFrame;
                 }
             }
-            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateOverrideOption.EveryFrame : VolumeFrameworkUpdateOverrideOption.ViaScripting;
+            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateModeOverrideOption.EveryFrame : VolumeFrameworkUpdateModeOverrideOption.ViaScripting;
         }
 
         /// <summary>
