@@ -58,7 +58,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool NeedClearGBuffer(HDCamera hdCamera)
         {
-            // TODO: Add an option to force clear
             return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers);
         }
 
