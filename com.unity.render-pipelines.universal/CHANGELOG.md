@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
 - UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
 - Moved all 2D APIs out of experimental namespace.
+- Changed default target sorting layers of Light2D to "All". Newly added sorting layers will be included in Light2Ds that have target sorting layers already set to "All".
 
 ### Added
 - Added View Vector node to mimic old behavior of View Direction node in URP.
