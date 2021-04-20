@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -216,7 +215,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public static class SupportedUpgradeParams
+    public static class SupportedUpgradeParams
     {
         static public UpgradeParams diffuseOpaque = new UpgradeParams()
         {
@@ -309,7 +308,7 @@ namespace UnityEditor.Rendering.Universal
         };
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class StandardUpgrader : MaterialUpgrader
+    public class StandardUpgrader : MaterialUpgrader
     {
         enum LegacyRenderingMode
         {
@@ -366,16 +365,19 @@ namespace UnityEditor.Rendering.Universal
             var legacyRenderingMode = (LegacyRenderingMode)material.GetFloat("_Surface");
             if (legacyRenderingMode == LegacyRenderingMode.Transparent)
             {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
                 material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Premultiply);
             }
             else if (legacyRenderingMode == LegacyRenderingMode.Fade)
             {
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
                 material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Alpha);
             }
             else
             {
+                material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
             }
         }
@@ -468,7 +470,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class TerrainUpgrader : MaterialUpgrader
+    public class TerrainUpgrader : MaterialUpgrader
     {
         public TerrainUpgrader(string oldShaderName)
         {
@@ -498,7 +500,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ParticleUpgrader : MaterialUpgrader
+    public class ParticleUpgrader : MaterialUpgrader
     {
         public ParticleUpgrader(string oldShaderName)
         {
@@ -538,27 +540,33 @@ namespace UnityEditor.Rendering.Universal
             switch (material.GetFloat("_Mode"))
             {
                 case 0: // opaque
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Opaque);
                     break;
                 case 1: // cutout > alphatest
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Opaque);
                     material.SetFloat("_AlphaClip", 1);
                     break;
                 case 2: // fade > alpha
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Alpha);
                     break;
                 case 3: // transparent > premul
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Premultiply);
                     break;
                 case 4: // add
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Additive);
                     break;
                 case 5: // sub > none
                     break;
                 case 6: // mod > multiply
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     material.SetFloat("_Surface", (int)UpgradeSurfaceType.Transparent);
                     material.SetFloat("_Blend", (int)UpgradeBlendMode.Multiply);
                     break;
@@ -566,7 +574,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {
