@@ -173,7 +173,7 @@ pre_pack_hdrp_template_OSX_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
-      -  .Editor/Unity -project-path com.unity.template-hd -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -project-path com.unity.template-hd -batchmode -quit
     artifacts:
         primed:
             paths:
@@ -253,7 +253,7 @@ pre_pack_universal_template_OSX_trunk:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
-      -  .Editor/Unity -project-path com.unity.template-universal -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -project-path com.unity.template-universal -batchmode -quit
     artifacts:
         primed:
             paths:
@@ -489,7 +489,7 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity -project-path com.unity.template-hd -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -project-path com.unity.template-hd -batchmode -quit
     artifacts:
         primed:
             paths:
@@ -571,7 +571,7 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity -project-path com.unity.template-universal -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -project-path com.unity.template-universal -batchmode -quit
     artifacts:
         primed:
             paths:
