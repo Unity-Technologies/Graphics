@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
-
+            int fillerSemanticCount = 0;
             foreach (FieldDescriptor subscript in shaderStruct.fields)
             {
                 var fieldIsActive = false;
@@ -148,8 +148,24 @@ namespace UnityEditor.ShaderGraph
                     // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
                     if (subscript.HasPreprocessor() && subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT"))
                         postUnpackedSubscripts.Add(subscript);
+                    // don't pack nonvectors or those that have specific semantics already.
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
+                    else if (subscript.HasInterpolationModifier())
+                    {
+                        // interpolation modifiers shouldn't be packed, but they are also not required to have a semantic, so we will have to fill one in.
+                        var copyWithSemantic = new FieldDescriptor(
+                            tag: subscript.tag,
+                            name: subscript.name,
+                            define: subscript.define,
+                            type: subscript.type,
+                            semantic: $"AUTOFILL{fillerSemanticCount++}",
+                            preprocessor: subscript.preprocessor,
+                            subscriptOptions: subscript.subscriptOptions,
+                            interpolation: subscript.interpolation);
+
+                        packedSubscripts.Add(copyWithSemantic);
+                    }
                     else
                     {
                         // pack float field
@@ -212,7 +228,7 @@ namespace UnityEditor.ShaderGraph
                         packBuilder.AppendLine($"#if {subscript.preprocessor}");
                         unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
                     }
-                    if (subscript.HasSemantic() || vectorCount == 0)
+                    if (subscript.HasSemantic() || vectorCount == 0 || subscript.HasInterpolationModifier())
                     {
                         packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
