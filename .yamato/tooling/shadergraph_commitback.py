@@ -30,7 +30,7 @@ if __name__ == "__main__":
     if not path.exists(update_tests_file_path):
         print("No update file found, skipping recommit")
         print(os.getcwd())
-        for file in os.listdir("C:\\Users\\bokken\\build\\Graphics\\TestProjects\\ShaderGraph"):
+        for file in os.listdir("C:\\build\\output\\Unity-Technologies\\Graphics\\TestProjects\\ShaderGraph"):
             print(file)
         exit(0)
     with open(update_tests_file_path) as f:
