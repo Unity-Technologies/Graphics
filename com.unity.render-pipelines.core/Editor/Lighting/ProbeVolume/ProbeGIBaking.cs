@@ -249,6 +249,7 @@ namespace UnityEngine.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
+                        asset.cellLocations.Add((cell.position * refVol.cellSize) + refVol.transform.position);
 
                         foreach (var p in cell.probePositions)
                         {

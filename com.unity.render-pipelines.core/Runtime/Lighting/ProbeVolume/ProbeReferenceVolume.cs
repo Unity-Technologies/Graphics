@@ -54,6 +54,26 @@ namespace UnityEngine.Rendering
             public float[] validity;
         }
 
+        private class CellSortInfo
+        {
+            internal string sourceAsset;
+            internal int indexInAsset;
+            internal float distanceToCamera;
+            internal Vector3 position;
+
+            public int CompareTo(object obj)
+            {
+                CellSortInfo other = obj as CellSortInfo;
+
+                if (distanceToCamera < other.distanceToCamera)
+                    return -1;
+                else if (distanceToCamera > other.distanceToCamera)
+                    return 1;
+                else
+                    return 0;
+            }
+        }
+
         internal struct Volume
         {
             internal Vector3 corner;
@@ -221,6 +241,9 @@ namespace UnityEngine.Rendering
         private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information of the probe volume asset that is being loaded (if one is pending)
         private Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
+
+        // List of info for cells that are yet to be loaded.
+        private List<CellSortInfo> m_CellsToBeLoaded;
 
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
@@ -456,6 +479,19 @@ namespace UnityEngine.Rendering
                 normalBiasFromProfile = m_NormalBias;
             }
             m_NeedLoadAsset = true;
+        }
+
+        /// <summary>
+        /// Perform sorting of pending cells to be loaded.
+        /// </summary>
+        public void SortPendingCells(Vector3 cameraPosition)
+        {
+            for (int i = 0; i < m_CellsToBeLoaded.Count; ++i)
+            {
+                m_CellsToBeLoaded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeLoaded[i].position);
+            }
+
+            m_CellsToBeLoaded.Sort();
         }
 
         private ProbeReferenceVolume()
