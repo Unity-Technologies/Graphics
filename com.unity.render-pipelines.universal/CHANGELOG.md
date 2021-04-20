@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
 - UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
+- Moved all 2D APIs out of experimental namespace.
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer) to Assets/Create/Rendering/URP Asset (with 2D Renderer)
