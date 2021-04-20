@@ -98,35 +98,36 @@ namespace UnityEditor.Rendering
 
             if (performFitting)
             {
-                var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
-
-                foreach (Renderer renderer in renderers)
+                if (performFittingOnlyOnSelection)
                 {
-                    bool contributeGI = ContributesToGI(renderer);
-
-                    if (contributeGI)
+                    var transforms = Selection.transforms;
+                    foreach (var transform in transforms)
                     {
-                        if (performFittingOnlyOnSelection)
+                        var childrens = transform.gameObject.GetComponentsInChildren<Transform>();
+                        foreach (var children in childrens)
                         {
-                            if (Selection.Contains(renderer.gameObject))
+                            Renderer childRenderer;
+                            if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
                             {
-                                var childrens = renderer.gameObject.GetComponentsInChildren<Transform>();
-                                foreach (var children in childrens)
-                                {
-                                    Renderer childRenderer;
-                                    if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
-                                    {
-                                        bool childContributeGI = ContributesToGI(childRenderer);
+                                bool childContributeGI = ContributesToGI(childRenderer);
 
-                                        if (childContributeGI)
-                                        {
-                                            ExpandBounds(childRenderer.bounds);
-                                        }
-                                    }
+                                if (childContributeGI)
+                                {
+                                    ExpandBounds(childRenderer.bounds);
                                 }
                             }
                         }
-                        else
+                    }
+                }
+                else
+                {
+                    var renderers = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+
+                    foreach (Renderer renderer in renderers)
+                    {
+                        bool contributeGI = ContributesToGI(renderer);
+
+                        if (contributeGI)
                         {
                             ExpandBounds(renderer.bounds);
                         }
