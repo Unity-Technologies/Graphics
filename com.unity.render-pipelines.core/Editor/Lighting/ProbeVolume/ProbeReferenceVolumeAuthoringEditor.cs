@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
 
-                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].size;
+                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
 
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering
                     for (int i = 0; i < cell.probePositions.Length; i++)
                     {
                         // Skip probes which aren't of current brick size
-                        if (cell.bricks[i / 64].size == brickSize)
+                        if (cell.bricks[i / 64].subdivisionLevel == brickSize)
                         {
                             probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                             probeMap.Add(i);
