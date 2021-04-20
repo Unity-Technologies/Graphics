@@ -8,7 +8,23 @@
 
 ---
 
-pack_hdrp_template:
+pre_pack_hdrp_template_Win_trunk:
+    name: Pre-Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-hd -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-hd/Library/Artifacts/**
+              -  com.unity.template-hd/Library/ArtifactDB
+              -  com.unity.template-hd/Library/SourceAssetDB
+pack_hdrp_template_Win_trunk:
     name: Pack HDRP Template
     agent:
         type: Unity::VM
@@ -17,20 +33,8 @@ pack_hdrp_template:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-              -  "upm-ci~/templates/**/*"
-pack_universal_template:
-    name: Pack Universal Template
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci template pack --project-path com.unity.template-universal
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_trunk
     artifacts:
         packages:
             paths:
@@ -43,7 +47,7 @@ test_hdrp_template_Win_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -67,7 +71,7 @@ test_hdrp_template_Win_trunk_dependencies:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -84,6 +88,38 @@ test_hdrp_template_Win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_universal_template_Win_trunk:
+    name: Pre-Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-universal -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-universal/Library/Artifacts/**
+              -  com.unity.template-universal/Library/ArtifactDB
+              -  com.unity.template-universal/Library/SourceAssetDB
+pack_universal_template_Win_trunk:
+    name: Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-universal
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_universal_template_Win_trunk
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_universal_template_Win_trunk:
     name: Test Universal Template Win trunk
     agent:
@@ -91,7 +127,7 @@ test_universal_template_Win_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -113,7 +149,7 @@ test_universal_template_Win_trunk_dependencies:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -128,6 +164,38 @@ test_universal_template_Win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_hdrp_template_OSX_trunk:
+    name: Pre-Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-hd -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-hd/Library/Artifacts/**
+              -  com.unity.template-hd/Library/ArtifactDB
+              -  com.unity.template-hd/Library/SourceAssetDB
+pack_hdrp_template_OSX_trunk:
+    name: Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-hd
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_trunk
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_hdrp_template_OSX_trunk:
     name: Test HDRP Template OSX trunk
     agent:
@@ -135,7 +203,7 @@ test_hdrp_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -159,7 +227,7 @@ test_hdrp_template_OSX_trunk_dependencies:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -176,6 +244,38 @@ test_hdrp_template_OSX_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_universal_template_OSX_trunk:
+    name: Pre-Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-universal -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-universal/Library/Artifacts/**
+              -  com.unity.template-universal/Library/ArtifactDB
+              -  com.unity.template-universal/Library/SourceAssetDB
+pack_universal_template_OSX_trunk:
+    name: Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-universal
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_trunk
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_universal_template_OSX_trunk:
     name: Test Universal Template OSX trunk
     agent:
@@ -183,7 +283,7 @@ test_universal_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -205,7 +305,7 @@ test_universal_template_OSX_trunk_dependencies:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -220,6 +320,38 @@ test_universal_template_OSX_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_hdrp_template_Win_CUSTOM-REVISION:
+    name: Pre-Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-hd -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-hd/Library/Artifacts/**
+              -  com.unity.template-hd/Library/ArtifactDB
+              -  com.unity.template-hd/Library/SourceAssetDB
+pack_hdrp_template_Win_CUSTOM-REVISION:
+    name: Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-hd
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_hdrp_template_Win_CUSTOM-REVISION:
     name: Test HDRP Template Win CUSTOM-REVISION
     agent:
@@ -227,7 +359,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -252,7 +384,7 @@ test_hdrp_template_Win_CUSTOM-REVISION_dependencies:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -270,6 +402,38 @@ test_hdrp_template_Win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_universal_template_Win_CUSTOM-REVISION:
+    name: Pre-Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-universal -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-universal/Library/Artifacts/**
+              -  com.unity.template-universal/Library/ArtifactDB
+              -  com.unity.template-universal/Library/SourceAssetDB
+pack_universal_template_Win_CUSTOM-REVISION:
+    name: Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-universal
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_universal_template_Win_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_universal_template_Win_CUSTOM-REVISION:
     name: Test Universal Template Win CUSTOM-REVISION
     agent:
@@ -277,7 +441,7 @@ test_universal_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -300,7 +464,7 @@ test_universal_template_Win_CUSTOM-REVISION_dependencies:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -316,6 +480,38 @@ test_universal_template_Win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
+    name: Pre-Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-hd -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-hd/Library/Artifacts/**
+              -  com.unity.template-hd/Library/ArtifactDB
+              -  com.unity.template-hd/Library/SourceAssetDB
+pack_hdrp_template_OSX_CUSTOM-REVISION:
+    name: Pack HDRP Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-hd
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_hdrp_template_OSX_CUSTOM-REVISION:
     name: Test HDRP Template OSX CUSTOM-REVISION
     agent:
@@ -323,7 +519,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -348,7 +544,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -366,6 +562,38 @@ test_hdrp_template_OSX_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
+pre_pack_universal_template_OSX_CUSTOM-REVISION:
+    name: Pre-Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  .Editor\Unity.exe -project-path com.unity.template-universal -batchmode -quit
+    artifacts:
+        primed:
+            paths:
+              -  com.unity.template-universal/Library/Artifacts/**
+              -  com.unity.template-universal/Library/ArtifactDB
+              -  com.unity.template-universal/Library/SourceAssetDB
+pack_universal_template_OSX_CUSTOM-REVISION:
+    name: Pack Universal Template
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  upm-ci template pack --project-path com.unity.template-universal
+    dependencies:
+      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
 test_universal_template_OSX_CUSTOM-REVISION:
     name: Test Universal Template OSX CUSTOM-REVISION
     agent:
@@ -373,7 +601,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -396,7 +624,7 @@ test_universal_template_OSX_CUSTOM-REVISION_dependencies:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template
+      -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
