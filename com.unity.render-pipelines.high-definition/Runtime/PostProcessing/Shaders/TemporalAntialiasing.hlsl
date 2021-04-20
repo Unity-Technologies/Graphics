@@ -48,7 +48,7 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // Options
 // ---------------------------------------------------
 
-#define SHARPEN_ALPHA 0
+#define SHARPEN_ALPHA 0 // switch to 1 if you want to enable TAA sharpenning on alpha channel
 
 // History sampling options
 #define BILINEAR 0
