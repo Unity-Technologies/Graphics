@@ -427,6 +427,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ApplyToSortingLayers.Count + 1 == SortingLayer.layers.Length && !m_ApplyToSortingLayers.Contains(layer.id))
                 m_ApplyToSortingLayers.Add(layer.id);
         }
+
 #endif
     }
 }

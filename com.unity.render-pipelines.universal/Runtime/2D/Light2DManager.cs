@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
 
             s_SortingLayers = layers;
         }
+
 #endif
     }
 }
