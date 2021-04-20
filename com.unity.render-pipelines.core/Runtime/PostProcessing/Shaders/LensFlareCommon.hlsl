@@ -13,6 +13,8 @@ struct VaryingsLensFlare
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 TEXTURE2D(_FlareTex);
@@ -114,6 +116,8 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
 {
     VaryingsLensFlare output;
+
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float screenRatio = _ScreenRatio;
 
@@ -221,6 +225,8 @@ float4 GetFlareShape(float2 uv)
 
 float4 frag(VaryingsLensFlare input) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
     float4 col = GetFlareShape(input.texcoord);
     return col * _FlareColor * input.occlusion;
 }
