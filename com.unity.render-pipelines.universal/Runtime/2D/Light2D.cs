@@ -1,10 +1,8 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
-#if UNITY_EDITOR
-using UnityEditor.Experimental.SceneManagement;
-#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -368,8 +366,9 @@ namespace UnityEngine.Rendering.Universal
             if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
                 m_NormalMapQuality = NormalMapQuality.Disabled;
 
+            // Default target sorting layers to "All"
             if (m_ApplyToSortingLayers == null)
-                TargetAllSortingLayers();
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToList();
 
             bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
             UpdateMesh(updateMesh);
@@ -419,20 +418,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void TargetAllSortingLayers()
-        {
-            var layers = SortingLayer.layers;
-            m_ApplyToSortingLayers = new List<int>(layers.Length);
-            for (int i = 0; i < layers.Length; ++i)
-                m_ApplyToSortingLayers.Add(layers[i].id);
-        }
-
-        public void OnAddSortLayer(SortingLayer layer)
+#if UNITY_EDITOR
+        // Handles adding of new layers and removing of invalid layers
+        public void UpdateTargetSortingLayer(SortingLayer layer)
         {
             m_ApplyToSortingLayers.RemoveAll(id => !SortingLayer.IsValid(id));
 
-            if (m_ApplyToSortingLayers.Count + 1 == SortingLayer.GetSortingLayerCount())
+            if (m_ApplyToSortingLayers.Count + 1 == SortingLayer.layers.Length && !m_ApplyToSortingLayers.Contains(layer.id))
                 m_ApplyToSortingLayers.Add(layer.id);
         }
+#endif
     }
 }

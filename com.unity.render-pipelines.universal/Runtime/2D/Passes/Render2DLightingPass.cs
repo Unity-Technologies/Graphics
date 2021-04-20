@@ -318,6 +318,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
                 isLitView = false;
+
+            Light2DManager.InitializeFrame();
 #endif
             var camera = renderingData.cameraData.camera;
             var filterSettings = new FilteringSettings();

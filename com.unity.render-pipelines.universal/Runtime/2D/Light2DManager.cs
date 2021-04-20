@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,11 +8,6 @@ namespace UnityEngine.Rendering.Universal
         private static SortingLayer[] s_SortingLayers;
 
         public static List<Light2D> lights { get; } = new List<Light2D>();
-
-        static Light2DManager()
-        {
-            SortingLayer.OnLayerAdded += OnAddSortLayer;
-        }
 
         // Called during OnEnable
         public static void RegisterLight(Light2D light)
@@ -108,21 +104,30 @@ namespace UnityEngine.Rendering.Universal
         public static SortingLayer[] GetCachedSortingLayer()
         {
             if (s_SortingLayers is null)
-            {
                 s_SortingLayers = SortingLayer.layers;
-            }
-#if UNITY_EDITOR
-            // we should fix. Make a non allocating version of this
-            if (!Application.isPlaying)
-                s_SortingLayers = SortingLayer.layers;
-#endif
+
             return s_SortingLayers;
         }
 
-        private static void OnAddSortLayer(SortingLayer layer)
+#if UNITY_EDITOR
+        // Gets called on the start of the lighting pass
+        public static void InitializeFrame()
         {
-            foreach (var light in lights)
-                light.OnAddSortLayer(layer);
+            UpdateLightsTargetSortingLayer();
         }
+
+        private static void UpdateLightsTargetSortingLayer()
+        {
+            var layers = SortingLayer.layers;
+            if (GetCachedSortingLayer().Length + 1 == layers.Length)
+            {
+                var layer = layers.Except(s_SortingLayers).FirstOrDefault();
+                foreach (var light in lights)
+                    light.UpdateTargetSortingLayer(layer);
+            }
+
+            s_SortingLayers = layers;
+        }
+#endif
     }
 }
