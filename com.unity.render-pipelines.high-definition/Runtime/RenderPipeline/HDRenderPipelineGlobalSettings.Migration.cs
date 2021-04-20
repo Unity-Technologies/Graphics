@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             First,
+            MigratedFromHDRPAssetOrCreated
         }
 
         [SerializeField]
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
-        bool IMigratableAsset.Migrate() { return false; } // must call migration once there will be migration step availables
+        bool IMigratableAsset.Migrate() { return false; } // must call migration once there will be migration step availables after the MigratedFromHDRPAssetOrCreated
 
         bool IMigratableAsset.IsAtLastVersion()
             => m_Version == MigrationDescription.LastVersion<Version>();
