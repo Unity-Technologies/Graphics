@@ -82,10 +82,10 @@ namespace Unity.Rendering.Universal
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
                 case ShaderID.SG_Lit:
-                    URPLitGUI.UpdateMaterial(material);
+                    ShaderGraphLitGUI.UpdateMaterial(material);
                     break;
                 case ShaderID.SG_Unlit:
-                    URPUnlitGUI.UpdateMaterial(material);
+                    ShaderGraphUnlitGUI.UpdateMaterial(material);
                     break;
                 default:
                     break;

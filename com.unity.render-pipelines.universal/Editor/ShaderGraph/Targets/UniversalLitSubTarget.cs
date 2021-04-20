@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
             if (!context.HasCustomEditorForRenderPipeline(universalRPType))
-                context.AddCustomEditorForRenderPipeline(typeof(URPLitGUI).FullName, universalRPType);
+                context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphLitGUI).FullName, universalRPType);
 
             // Process SubShaders
             context.AddSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit));
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // call the full unlit material setup function
-            URPLitGUI.UpdateMaterial(material);
+            ShaderGraphLitGUI.UpdateMaterial(material);
         }
 
         public override void GetFields(ref TargetFieldContext context)

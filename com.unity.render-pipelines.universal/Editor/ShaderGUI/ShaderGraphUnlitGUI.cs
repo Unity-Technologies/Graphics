@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor
 {
     // Used for ShaderGraph Unlit shaders
-    class URPUnlitGUI : BaseShaderGUI
+    class ShaderGraphUnlitGUI : BaseShaderGUI
     {
         MaterialProperty[] properties;
 

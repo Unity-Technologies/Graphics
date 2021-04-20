@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph;
 namespace UnityEditor
 {
     // Used for ShaderGraph Lit shaders
-    class URPLitGUI : BaseShaderGUI
+    class ShaderGraphLitGUI : BaseShaderGUI
     {
         public MaterialProperty workflowMode;
 
