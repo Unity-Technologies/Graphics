@@ -3903,6 +3903,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
 
+                    passData.fxaaCS.shaderKeywords = null;
+                    if (m_EnableAlpha)
+                        passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
+
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>
                         {
