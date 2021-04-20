@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     class StackTests
     {
-        static BlockFieldDescriptor s_DescriptorA = new BlockFieldDescriptor(BlockFields.m_ProviderInfo, "Test", "BlockA", string.Empty, new FloatControl(0.0f), ShaderStage.Fragment, true);
-        static BlockFieldDescriptor s_DescriptorB = new BlockFieldDescriptor(BlockFields.m_ProviderInfo, "Test", "BlockA", string.Empty, new FloatControl(0.0f), ShaderStage.Fragment, true);
+        static BlockFieldDescriptor s_DescriptorA = new BlockFieldDescriptor("Test", "BlockA", string.Empty, new FloatControl(0.0f), ShaderStage.Fragment, true);
+        static BlockFieldDescriptor s_DescriptorB = new BlockFieldDescriptor("Test", "BlockA", string.Empty, new FloatControl(0.0f), ShaderStage.Fragment, true);
 
         [OneTimeSetUp]
         public void RunBeforeAnyTests()

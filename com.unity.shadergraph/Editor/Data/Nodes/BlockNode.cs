@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             // custom blocks can be "copied" via a custom Field Descriptor, we'll use the CI name instead though.
             name = !isCustomBlock
                 ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}"
-                : $"{BlockFields.VertexDescription.tagName}.{k_CustomBlockDefaultName}";
+                : $"{BlockFields.VertexDescription.name}.{k_CustomBlockDefaultName}";
 
 
             // TODO: This exposes the MaterialSlot API
@@ -261,13 +261,15 @@ namespace UnityEditor.ShaderGraph
             base.OnBeforeSerialize();
             if (descriptor != null)
             {
-                // Note: format should be namespace.tag.name, ie
-                // m_SerializedDescriptor = $"{m_Descriptor.uniqueNamespace}.{m_Descriptor.tag}.{m_Descriptor.name}";
-                // but in case we have an unknown blockfield blocknode,
-                // it's important to serialize back as it was (the unknown node could be from the old blockfields).
-                string optionalPrefix = m_Descriptor.uniqueNamespace == "" ? "" : $"{m_Descriptor.uniqueNamespace}.";
-                string optionalSuffix = isCustomBlock ? $"#{ControlToWidth(m_Descriptor.control)}" : "";
-                m_SerializedDescriptor = $"{optionalPrefix}{m_Descriptor.tag}.{m_Descriptor.name}{optionalSuffix}";
+                if (isCustomBlock)
+                {
+                    int width = ControlToWidth(m_Descriptor.control);
+                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}#{width}";
+                }
+                else
+                {
+                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+                }
             }
         }
 
@@ -278,16 +280,15 @@ namespace UnityEditor.ShaderGraph
             {
                 string descName = k_CustomBlockDefaultName;
                 CustomBlockType descWidth = CustomBlockType.Vector4;
-                var descTag = BlockFields.VertexDescription.tagName;
+                var descTag = BlockFields.VertexDescription.name;
 
                 name = $"{descTag}.{descName}";
 
-                var wsplit = m_SerializedDescriptor.Split('#');
-                var nameSpaceTagNameSplit = wsplit[0].Split('.');
+                var wsplit = m_SerializedDescriptor.Split(new char[] {'#', '.' });
 
                 try
                 {
-                    descWidth = (CustomBlockType)int.Parse(wsplit[1]); // assume first chunk after (first and only) # is width
+                    descWidth = (CustomBlockType)int.Parse(wsplit[2]);
                 }
                 catch
                 {
@@ -299,8 +300,8 @@ namespace UnityEditor.ShaderGraph
                 try   { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
                 catch { control = WidthToControl((int)descWidth); }
 
-                descName = NodeUtils.ConvertToValidHLSLIdentifier(nameSpaceTagNameSplit.Last());
-                m_Descriptor = new BlockFieldDescriptor(BlockFields.m_ProviderInfo, descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
+                descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
+                m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
             }
         }
 
@@ -311,9 +312,9 @@ namespace UnityEditor.ShaderGraph
             var referenceName = name;
             var define = "";
             IControl control = WidthToControl((int)width);
-            var tag = BlockFields.VertexDescription.tagName;
+            var tag = BlockFields.VertexDescription.name;
 
-            return new BlockFieldDescriptor(BlockFields.m_ProviderInfo, tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
+            return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
         }
 
         private static IControl WidthToControl(int width)
