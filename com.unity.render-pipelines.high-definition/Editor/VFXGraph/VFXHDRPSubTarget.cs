@@ -416,7 +416,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { typeof(int),       ShaderValueType.Integer },
             { typeof(uint),      ShaderValueType.Uint    },
             { typeof(Matrix4x4), ShaderValueType.Matrix4 },
-            { typeof(bool),      ShaderValueType.Boolean },
+            { typeof(bool),      ShaderValueType.Float   }, // NOTE: Map boolean to float for VFX interpolator due to how ShaderGraph handles semantics for boolean interpolator.
         };
 
         static FieldDescriptor VFXAttributeToFieldDescriptor(VFXAttribute attribute)
