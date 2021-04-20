@@ -158,13 +158,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_Entries == null)
                     m_Entries = new[]
                     {
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
-                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
-                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
-                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources),
                         new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.instance != null;
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
-            => HDRenderPipelineGlobalSettings.Ensure();
+            => HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
 
         bool IsRuntimeResourcesCorrect()
             => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreResourcesCreated();
@@ -530,7 +530,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixEditorResources(fromAsyncUnused: false);
 
             var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
-            hdrpSettings.volumeProfileLookDev = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
+            hdrpSettings.lookDevVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpSettings);
         }

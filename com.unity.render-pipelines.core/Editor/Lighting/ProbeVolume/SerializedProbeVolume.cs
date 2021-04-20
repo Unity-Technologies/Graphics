@@ -1,10 +1,12 @@
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     internal class SerializedProbeVolume
     {
         internal SerializedProperty probeVolumeParams;
 
         internal SerializedProperty size;
+        internal SerializedProperty maxSubdivisionMultiplier;
+        internal SerializedProperty minSubdivisionMultiplier;
 
         SerializedObject m_SerializedObject;
 
@@ -15,6 +17,8 @@ namespace UnityEditor.Rendering
             probeVolumeParams = m_SerializedObject.FindProperty("parameters");
 
             size = probeVolumeParams.FindPropertyRelative("size");
+            maxSubdivisionMultiplier = probeVolumeParams.FindPropertyRelative("maxSubdivisionMultiplier");
+            minSubdivisionMultiplier = probeVolumeParams.FindPropertyRelative("minSubdivisionMultiplier");
         }
 
         internal void Apply()
