@@ -15,15 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305533/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
     - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
     - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
