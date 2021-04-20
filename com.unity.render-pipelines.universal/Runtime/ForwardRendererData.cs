@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -13,7 +12,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [System.Obsolete("ForwardRendererData has been deprecated (UnityUpgradable) -> UniversalRendererData", true)]
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
         private const string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
