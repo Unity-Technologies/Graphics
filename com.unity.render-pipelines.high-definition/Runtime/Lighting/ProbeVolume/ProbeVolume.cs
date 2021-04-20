@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         private bool dataUpdated = false;
-        
+
 #if UNITY_EDITOR
         private bool bakingEnabled = false;
         private bool dataNeedsDilation = false;
@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper;
 
             if (probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
-            
+
             int probeLength = ProbeVolumePayload.GetLength(ref probeVolumeAsset.payload);
             var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
 
@@ -751,9 +751,9 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
 
             dataUpdated = false;
+#if UNITY_EDITOR
             dataNeedsDilation = false;
 
-#if UNITY_EDITOR
             ForceBakingEnabled();
 #endif
 
@@ -781,7 +781,9 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnDisable()
         {
             dataUpdated = false;
+#if UNITY_EDITOR
             dataNeedsDilation = false;
+#endif
 
             ProbeVolumeManager.manager.DeRegisterVolume(this);
 
@@ -949,7 +951,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetBakeID());
                     probeVolumeAsset.instanceID = GetID();
                 }
-                
+
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
