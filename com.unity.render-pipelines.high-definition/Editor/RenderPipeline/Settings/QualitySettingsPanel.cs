@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 activateHandler = s_IMGUIImpl.OnActivate,
                 keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<QualitySettingsPanelIMGUI.Styles>()
                     .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles>())
-                    .Concat(SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDRenderPipelineUI.Styles.GeneralSection>())
                     .ToArray(),
                 guiHandler = s_IMGUIImpl.OnGUI,
             };

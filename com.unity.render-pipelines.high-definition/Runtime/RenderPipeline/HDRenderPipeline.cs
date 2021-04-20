@@ -24,9 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline : RenderPipeline
     {
         #region Global Settings
-        internal static HDRenderPipelineGlobalSettings defaultAsset
-            => HDRenderPipelineGlobalSettings.instance;
-
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
@@ -50,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return HDRenderPipelineGlobalSettings.instance.renderPipelineResources; } }
+        internal RenderPipelineResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -449,20 +446,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
+            bool requiresRayTracingResources = false;
             if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
             {
-                m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
+                requiresRayTracingResources = true;
             }
-            else
+            // Also make sure to include ray-tracing resources if at least one of the quality levels needs it
+            else if (rayTracingSupportedBySystem)
             {
-                // If ray tracing is not enabled we do not want to have ray tracing resources referenced
-                m_GlobalSettings.ClearRayTracingResources();
+                int qualityLevelCount = QualitySettings.names.Length;
+                for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
+                {
+                    var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                    if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                        requiresRayTracingResources = true;
+                }
             }
-        }
-
-        void ValidateResources()
-        {
-            HDRenderPipelineGlobalSettings.instance.EnsureShadersCompiled();
+            // If ray tracing is not enabled we do not want to have ray tracing resources referenced
+            if (requiresRayTracingResources)
+                m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
+            else
+                m_GlobalSettings.ClearRayTracingResources();
         }
 
 #endif
@@ -1004,10 +1008,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not ncessarily null)
+            // or been deleted/moved (m_globalSettings is not necessarily null)
             if (m_GlobalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
             {
-                Debug.LogError("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                 m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
                 m_GlobalSettings.EnsureShadersCompiled();
                 return;
@@ -1047,10 +1050,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
                 HDCamera.CleanUnused();
             }
-
-            var dynResHandler = DynamicResolutionHandler.instance;
-            dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1100,6 +1099,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hasGameViewCamera && camera.cameraType == CameraType.Preview)
                         continue;
 #endif
+
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
+                    var dynResHandler = DynamicResolutionHandler.instance;
 
                     bool cameraRequestedDynamicRes = false;
                     HDAdditionalCameraData hdCam;
@@ -1406,6 +1408,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
                         var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
+                        var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                        settingsCopy.forcedPercentage = 100.0f;
+                        settingsCopy.forceResolution = true;
+                        DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
+
                         if (additionalCameraData == null)
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
                         additionalCameraData.hasPersistentHistory = true;
@@ -1683,11 +1690,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
 
+                            // Save the camera history before rendering the AOVs
+                            var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
+
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
+                                    // Before rendering the AOV, bind the correct history buffers
+                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
@@ -1696,6 +1709,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.Submit();
                                 cmd.Clear();
                             }
+
+                            // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
+                            renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
@@ -1757,6 +1773,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            DynamicResolutionHandler.ClearSelectedCamera();
+
             m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
 
@@ -1788,6 +1806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData aovRequest
         )
         {
+            DynamicResolutionHandler.UpdateAndUseCamera(renderRequest.hdCamera.camera);
             InitializeGlobalResources(renderContext);
 
             var hdCamera = renderRequest.hdCamera;
@@ -1870,7 +1889,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Resize(hdCamera);
                 BeginPostProcessFrame(cmd, hdCamera, this);
 
-                ApplyDebugDisplaySettings(hdCamera, cmd);
+                ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
                 if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR

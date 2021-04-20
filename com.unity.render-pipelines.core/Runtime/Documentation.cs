@@ -61,7 +61,6 @@ namespace UnityEngine.Rendering
 #else
                 return fallbackVersion;
 #endif
-
             }
         }
     }

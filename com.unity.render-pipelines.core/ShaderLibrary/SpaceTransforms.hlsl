@@ -1,7 +1,9 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 // Caution: For HDRP, adding a function in this file requires adding the appropriate #define in PickingSpaceTransforms.hlsl
 
@@ -238,6 +240,8 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
     return TransformWorldToTangent(normalWS, tangentToWorld);
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif
