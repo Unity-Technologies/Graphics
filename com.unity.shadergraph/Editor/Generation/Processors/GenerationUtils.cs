@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph
                         packBuilder.AppendLine($"#if {subscript.preprocessor}");
                         unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
                     }
-                    if (subscript.HasSemantic() || vectorCount == 0)
+                    if (subscript.HasSemantic() || vectorCount == 0 || subscript.HasInterpolationModifier())
                     {
                         packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
