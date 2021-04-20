@@ -339,7 +339,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = InitializeInputDataFog(float4(input.interpolated.positionWS, 1.0), input.interpolated.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(NOT_USED, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 }
@@ -532,8 +532,33 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha - 0.3333, 0.0);
 
-    float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS.xyz);
-    return half4(normalWS, 0.0);
+    // normal
+    #if defined(EFFECT_BUMP)
+        half3 normalTs = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    #else
+        half3 normalTs = half3(0, 0, 1);
+    #endif
+
+    // flip normal on backsides
+    #ifdef EFFECT_BACKSIDE_NORMALS
+        if (input.facing < 0.5)
+        {
+            normalTs.z = -normalTs.z;
+        }
+    #endif
+
+    // adjust billboard normals to improve GI and matching
+    #if defined(EFFECT_BILLBOARD)
+        normalTs.z *= 0.5;
+        normalTs = normalize(normalTs);
+    #endif
+
+    #if defined(EFFECT_BUMP)
+        float3 normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
+        return half4(NormalizeNormalPerPixel(normalWS), 0.0h);
+    #else
+        return half4(NormalizeNormalPerPixel(input.interpolated.normalWS), 0.0h);
+    #endif
 }
 
 #endif

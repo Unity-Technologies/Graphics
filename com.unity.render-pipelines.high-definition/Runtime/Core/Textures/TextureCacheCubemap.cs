@@ -22,8 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureCacheCubemap(string cacheName = "", int sliceSize = 1)
             : base(cacheName, sliceSize)
         {
-            var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
-            m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(res.shaders.blitCubeTextureFacePS);
+            if (HDRenderPipeline.isReady)
+                m_BlitCubemapFaceMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.blitCubeTextureFacePS);
             m_BlitCubemapFaceProperties = new MaterialPropertyBlock();
         }
 
