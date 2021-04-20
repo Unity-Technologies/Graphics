@@ -198,8 +198,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
 
-            int normalSemanticIndex = 0;
-
             // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
             // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
             foreach (string fragmentParameter in context.fragmentParameters)
