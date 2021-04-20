@@ -21,7 +21,7 @@ public class ProjectSettingsConverter : RenderPipelineConverter
     public override string info =>
         "This converter will look at creating Universal Render Pipeline assets and respective renderers and set their " +
         "settings based on equivalent settings from builtin renderer.";
-    public override Type conversion => typeof(BuiltInToURPConversion);
+    public override Type conversion => typeof(BuiltInToURPConverterContainer);
 
     private List<ProjectSettingItem> settingsItems = new List<ProjectSettingItem>();
     private List<CameraSettings> cameraSettings = new List<CameraSettings>();
@@ -63,7 +63,19 @@ public class ProjectSettingsConverter : RenderPipelineConverter
             }
             else
             {
-                text = "Will Generate Pipeline Asset";
+                text = "Will Generate Pipeline Asset, ";
+                if (needsForward && needsDeferred)
+                {
+                    text += "Forward & Deferred Renderer Assets.";
+                }
+                else if (needsForward)
+                {
+                    text += "Forward Renderer Asset.";
+                }
+                else if (needsDeferred)
+                {
+                    text += "Deferred Renderer Asset.";
+                }
             }
 
             item.info = text;
@@ -74,70 +86,68 @@ public class ProjectSettingsConverter : RenderPipelineConverter
         }
     }
 
-    public override void OnRun(RunConverterContext context)
+    public override void OnRun(ref RunItemContext context)
     {
         var currentQualityLevel = QualitySettings.GetQualityLevel();
 
-        for (int i = context.items.Count() - 1; i >= 0; i--)
+        var item = context.item;
+        // is camera
+        if (item.index > cameraSettings.Count - 1)
         {
-            var item = context.items.ElementAt(i);
-            // is camera
-            if (item.index > cameraSettings.Count - 1)
-            {
-                var projectSetting = settingsItems[item.index - cameraSettings.Count];
-                // which one am I?
-                Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
+            var projectSetting = settingsItems[item.index - cameraSettings.Count];
+            // which one am I?
+            Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
 
-                //creating pipeline asset
+            //creating pipeline asset
+            Thread.Sleep(100);
+            var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
+            if(!AssetDatabase.IsValidFolder("Assets/TestAssets"))
+                AssetDatabase.CreateFolder("Assets", "TestAssets");
+            var path = $"Assets/TestAssets/{projectSetting.levelName}_PipelineAsset.asset";
+            AssetDatabase.CreateAsset(asset, path);
+
+            //create renderers
+            if (needsForward)
+            {
+                Debug.Log($"Generating a forward renderer");
+                var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
+                //Missing API to set deferred or forward
+                //missing API to assign to pipeline assetß
+                forwardIndex = asset.m_RendererDataList.Length == 1 ? -1 : 1;
+                // TODO remove in final
                 Thread.Sleep(100);
-                var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
-                if(!AssetDatabase.IsValidFolder("Assets/TestAssets"))
-                    AssetDatabase.CreateFolder("Assets", "TestAssets");
-                var path = $"Assets/TestAssets/{projectSetting.levelName}_PipelineAsset.asset";
-                AssetDatabase.CreateAsset(asset, path);
-
-                //create renderers
-                if (needsForward)
-                {
-                    Debug.Log($"Generating a forward renderer");
-                    var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
-                    //Missing API to set deferred or forward
-                    //missing API to assign to pipeline assetß
-                    forwardIndex = asset.m_RendererDataList.Length == 1 ? -1 : 1;
-                    // TODO remove in final
-                    Thread.Sleep(100);
-                }
-
-                if (needsDeferred)
-                {
-                    Debug.Log("Generating a deferred renderer");
-                    var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
-                    //Missing API to set deferred or forward
-                    //missing API to assign to pipeline asset
-                    deferredIndex = asset.m_RendererDataList.Length == 1 ? -1 : asset.m_RendererDataList.Length - 1;
-                    // TODO remove in final
-                    Thread.Sleep(100);
-                }
-
-                //looping through all settings
-
-                //assign asset
-                QualitySettings.SetQualityLevel(projectSetting.index);
-                QualitySettings.renderPipeline = asset;
             }
-            else // is quality level
+
+            if (needsDeferred)
             {
-                if (cameraSettings[item.index].renderingPath == RenderingPath.Forward)
-                {
-                    needsForward = true;
-                }
-                if (cameraSettings[item.index].renderingPath == RenderingPath.DeferredLighting ||
-                    cameraSettings[item.index].renderingPath == RenderingPath.DeferredShading)
-                {
-                    needsDeferred = true;
-                }
+                Debug.Log("Generating a deferred renderer");
+                var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
+                //Missing API to set deferred or forward
+                //missing API to assign to pipeline asset
+                deferredIndex = asset.m_RendererDataList.Length == 1 ? -1 : asset.m_RendererDataList.Length - 1;
+                // TODO remove in final
+                Thread.Sleep(100);
+            }
+
+            //looping through all settings
+
+            //assign asset
+            QualitySettings.SetQualityLevel(projectSetting.index);
+            QualitySettings.renderPipeline = asset;
+        }
+        else // is quality level
+        {
+            if (cameraSettings[item.index].renderingPath == RenderingPath.Forward)
+            {
+                needsForward = true;
+            }
+            if (cameraSettings[item.index].renderingPath == RenderingPath.DeferredLighting ||
+                cameraSettings[item.index].renderingPath == RenderingPath.DeferredShading)
+            {
+                needsDeferred = true;
             }
         }
+
         QualitySettings.SetQualityLevel(currentQualityLevel);
     }
 
