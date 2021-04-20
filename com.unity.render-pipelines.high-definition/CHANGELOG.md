@@ -202,6 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Film grain does not affect the alpha channel.
+- Disable TAA sharpening on alpha channel.
 
 ## [10.3.0] - 2020-12-01
 
