@@ -6,6 +6,8 @@
 
 #define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
 
+#define HAVE_VFX_PLANAR_PRIMITIVE
+
 bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
 {
     uint id = input.vertexID;

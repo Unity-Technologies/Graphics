@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -98,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 passDescriptor.pragmas = new PragmaCollection
                 {
-                    passDescriptor.pragmas,
+                    ModifyVertexEntry(passDescriptor.pragmas),
                     Pragma.MultiCompileInstancing
                 };
 
@@ -127,6 +128,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             subShaderDescriptor.passes = vfxPasses;
 
             return subShaderDescriptor;
+        }
+
+        private static readonly GraphicsDeviceType[] s_RequiresModifiedVertexEntry = new GraphicsDeviceType[]
+        {
+            GraphicsDeviceType.Direct3D12,
+            GraphicsDeviceType.Vulkan
+        };
+
+        static PragmaCollection ModifyVertexEntry(PragmaCollection pragmas)
+        {
+            // Only modify the entry for the required APIs.
+            var graphicsAPI = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget)[0];
+            if (s_RequiresModifiedVertexEntry.All(o => o != graphicsAPI))
+                return pragmas;
+
+            // Replace the default vertex shader entry with one defined by VFX.
+            // NOTE: Assumes they are named "Vert" for all shader passes, which they are.
+            const string k_CoreBasicVertex = "#pragma vertex Vert";
+
+            var pragmaVFX = new PragmaCollection();
+
+            foreach (var pragma in pragmas)
+            {
+                if (pragma.value != k_CoreBasicVertex)
+                    pragmaVFX.Add(pragma.descriptor);
+                else
+                    pragmaVFX.Add(Pragma.Vertex("VertVFX"));
+            }
+
+            return pragmaVFX;
         }
 
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()

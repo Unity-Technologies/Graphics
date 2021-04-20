@@ -330,5 +330,12 @@ Pass
 
     $splice(PostGraphIncludes)
 
+    // --------------------------------------------------
+    // Visual Effect Vertex Invocations
+
+	#ifdef HAVE_VFX_MODIFICATION
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+	#endif
+
     ENDHLSL
 }
