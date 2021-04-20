@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>Default white XR 2D texture.</summary>
         public TextureHandle whiteTextureXR { get; private set; }
 
-        /// <summary>Default opaue black XR 2D texture.</summary>
+        /// <summary>Default opaque black XR 2D texture.</summary>
         public TextureHandle opaqueBlackTextureXR { get; private set; }
 
         internal RenderGraphDefaultResources()

@@ -1120,7 +1120,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     return false;
                 }
             }
-            return rendererLists.Count > 0 ? true : false;;
+
+            // If the list of RendererLists is empty, then the default behavior is to not cull, so return false.
+            return rendererLists.Count > 0 ? true : false;
         }
 
         void TryCullPassAtIndex(int passIndex)
