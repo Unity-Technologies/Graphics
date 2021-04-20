@@ -66,6 +66,25 @@ namespace UnityEditor.Rendering
             bool performFitting = false;
             bool performFittingOnlyOnSelection = false;
 
+            bool ContributesToGI(Renderer renderer)
+            {
+                var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
+                return (flags & StaticEditorFlags.ContributeGI) != 0;
+            }
+
+            void ExpandBounds(Bounds currBound)
+            {
+                if (!foundABound)
+                {
+                    bounds = currBound;
+                    foundABound = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(currBound);
+                }
+            }
+
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene"), EditorStyles.miniButton))
             {
@@ -83,25 +102,33 @@ namespace UnityEditor.Rendering
 
                 foreach (Renderer renderer in renderers)
                 {
-                    var flags = GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) & StaticEditorFlags.ContributeGI;
-                    bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
+                    bool contributeGI = ContributesToGI(renderer);
 
-                    bool increaseBound = true;
                     if (contributeGI)
                     {
                         if (performFittingOnlyOnSelection)
                         {
-                            increaseBound = Selection.Contains(renderer.gameObject);
-                        }
-
-                        if (increaseBound)
-                        {
-                            if (!foundABound)
+                            if (Selection.Contains(renderer.gameObject))
                             {
-                                bounds = renderer.bounds;
-                                foundABound = true;
+                                var childrens = renderer.gameObject.GetComponentsInChildren<Transform>();
+                                foreach (var children in childrens)
+                                {
+                                    Renderer childRenderer;
+                                    if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
+                                    {
+                                        bool childContributeGI = ContributesToGI(childRenderer);
+
+                                        if (childContributeGI)
+                                        {
+                                            ExpandBounds(childRenderer.bounds);
+                                        }
+                                    }
+                                }
                             }
-                            bounds.Encapsulate(renderer.bounds);
+                        }
+                        else
+                        {
+                            ExpandBounds(renderer.bounds);
                         }
                     }
                 }
