@@ -43,6 +43,10 @@ namespace UnityEditor.VFX
 
                 m_PropertyMap.Add(p.name, p.floatValue);
             }
+
+            //TODOPAUL
+            if (m_PropertyMap.Count == 0)
+                Debug.LogError("TODOPAUL Unexpected empty property map for " + material.name);
         }
 
         public void ApplyToMaterial(Material material)
