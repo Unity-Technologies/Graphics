@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawCells;
         public DebugProbeShadingMode probeShading;
         public float probeSize = 1.0f;
-        public float cullingDistance = 200;
+        public float cullingDistance = 500;
         public float exposureCompensation;
     }
 
