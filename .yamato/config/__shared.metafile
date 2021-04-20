@@ -338,6 +338,7 @@ platforms:
         call_utr_without_git:
           - DISPLAY=:0.0 ./utr <UTR_FLAGS>
         unity_downloader_cli:
+          - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
           - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
           - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
           - sudo apt update
