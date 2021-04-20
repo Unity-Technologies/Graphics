@@ -234,7 +234,7 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
 #endif
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
@@ -253,6 +253,7 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS)
     }
     else
     {
+        ZERO_INITIALIZE(APVSample, outSample);
         outSample.status = APV_SAMPLE_STATUS_INVALID;
     }
 
