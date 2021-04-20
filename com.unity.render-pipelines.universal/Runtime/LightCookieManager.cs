@@ -17,20 +17,20 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _MainLightCookieUVOffset = Shader.PropertyToID("_MainLightCookieUVOffset");
             public static readonly int _MainLightCookieFormat   = Shader.PropertyToID("_MainLightCookieFormat");
 
-            public static readonly int _AdditionalLightsCookieAtlasTexture      = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
-            public static readonly int _AdditionalLightsCookieAtlasFormat       = Shader.PropertyToID("_AdditionalLightsCookieAtlasFormat");
+            public static readonly int _AdditionalLightsCookieAtlasTexture = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
+            public static readonly int _AdditionalLightsCookieAtlasFormat  = Shader.PropertyToID("_AdditionalLightsCookieAtlasFormat");
 
 
-            public static readonly int _AdditionalLightsCookieAtlasUVRectBuffer = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
-            public static readonly int _AdditionalLightsWorldToLightBuffer      = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");    // TODO: really a light property
-            public static readonly int _AdditionalLightsLightTypeBuffer         = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");        // TODO: really a light property
+            public static readonly int _AdditionalLightsCookieAtlasUVRectBuffer   = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
+            public static readonly int _AdditionalLightsWorldToLightBuffer        = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");    // TODO: really a light property
+            public static readonly int _AdditionalLightsLightTypeBuffer           = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");        // TODO: really a light property
             public static readonly int _AdditionalLightsCookieUVScaleOffsetBuffer = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsetBuffer"); // TODO: only for directional light
             public static readonly int _AdditionalLightsCookieUVWrapModeBuffer    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModeBuffer"); // TODO: only for directional light
 
 
-            public static readonly int _AdditionalLightsCookieAtlasUVRects      = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
-            public static readonly int _AdditionalLightsWorldToLights           = Shader.PropertyToID("_AdditionalLightsWorldToLights"); // TODO: really a light property
-            public static readonly int _AdditionalLightsLightTypes              = Shader.PropertyToID("_AdditionalLightsLightTypes");    // TODO: really a light property
+            public static readonly int _AdditionalLightsCookieAtlasUVRects   = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
+            public static readonly int _AdditionalLightsWorldToLights        = Shader.PropertyToID("_AdditionalLightsWorldToLights"); // TODO: really a light property
+            public static readonly int _AdditionalLightsLightTypes           = Shader.PropertyToID("_AdditionalLightsLightTypes");    // TODO: really a light property
             public static readonly int _AdditionalLightsCookieUVScaleOffsets = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsets"); // TODO: only for directional light
             public static readonly int _AdditionalLightsCookieUVWrapModes    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModes"); // TODO: only for directional light
         }
@@ -309,7 +309,8 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             }
 
-            // TODO: does this even make sense??? Lights are globally sorted by intensity. Kind of the same thing, as our sort is not strict cookie priority.
+            // TODO: does this even make sense???
+            // TODO: Lights are globally sorted by intensity. Kind of the same thing, as our sort is not strict cookie priority.
             // Sort by priority
             unsafe
             {
@@ -400,16 +401,17 @@ namespace UnityEngine.Rendering.Universal
             //  --> add UV rect
             // If no
             //    --> add into atlas
-            //      If no space
-            //          --> clear atlas
-            //          --> re-insert in priority order
-            //          --> TODO: add partial eviction mechanism??
-            //          If no space
-            //              --> warn
-            //          If space
-            //              --> add UV rect
-            //      If space
-            //          --> add UV rect
+            // If no space
+            //     --> clear atlas
+            //     --> re-insert in priority order
+            //     --> TODO: add partial eviction mechanism??
+            //     If space
+            //         --> add UV rect
+            //     If no space
+            //         --> warn
+            //         --> exit
+            //         --> TODO: remaining textures might fit into the atlas, add support
+
             bool atlasResetBefore = false;
             int uvRectCount = 0;
             for (int i = 0; i < sortedLights.Length; i++)
@@ -516,6 +518,8 @@ namespace UnityEngine.Rendering.Universal
             return Vector4.zero;
         }
 
+        // TODO: remove
+        #region CookieDebug
         void DrawDebugFrustum(Matrix4x4 m, float near = 1, float far = -1)
         {
             var src = new Vector4[]
@@ -564,6 +568,8 @@ namespace UnityEngine.Rendering.Universal
             Debug.DrawLine(o, y, Color.green);
             Debug.DrawLine(o, z, Color.blue);
         }
+
+        #endregion
 
         void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> validSortedLights, ref NativeArray<Vector4> validUvRects)
         {

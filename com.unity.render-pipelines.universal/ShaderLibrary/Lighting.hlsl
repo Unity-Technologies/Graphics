@@ -10,7 +10,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookies.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookie.hlsl"
 
 // If lightmap is not defined then we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
@@ -152,7 +152,7 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
     light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
 
     #ifdef _MAIN_LIGHT_COOKIE
-        half3 cookieColor = LightCookie_SampleMainLightCookie(positionWS);
+        half3 cookieColor = URP_LightCookie_SampleMainLightCookie(positionWS);
         light.color *= cookieColor;
     #endif
 
@@ -265,7 +265,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 #endif
     light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
 #ifdef _ADDITIONAL_LIGHT_COOKIES
-    half3 cookieColor = LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS /*, TODO: light type*/);
+    half3 cookieColor = URP_LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS /*, TODO: light type*/);
     light.color *= cookieColor;
 #endif
 
@@ -306,7 +306,7 @@ struct BRDFData
 half ReflectivitySpecular(half3 specular)
 {
 #if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+    return specular.r; // Red channel - because most metals are either monochrome or with redish/yellowish tint
 #else
     return Max3(specular.r, specular.g, specular.b);
 #endif
