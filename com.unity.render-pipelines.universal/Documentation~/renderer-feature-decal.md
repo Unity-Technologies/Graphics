@@ -32,6 +32,7 @@ Renders decals after opaque objects with normal reconstructed from depth. The de
 #### DBuffer
 
 Renders decals into DBuffer and then applied during opaque rendering. Requires DepthNormal prepass which makes not viable solution for tiled based renderers.
+Does not work on particles and terrain details.
 
 |__Propery__           | __Description__ |
 | -------------------- |---------------- |
