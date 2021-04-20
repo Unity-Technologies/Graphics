@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         High
     }
 
-    public enum CameraVolumesOverrideOption
+    public enum VolumeFrameworkUpdateOverrideOption
     {
         EveryFrame,
         ViaScripting,
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
-        [SerializeField] CameraVolumesOverrideOption m_VolumeFrameworkUpdateModeOption = CameraVolumesOverrideOption.UsePipelineSettings;
+        [SerializeField] VolumeFrameworkUpdateOverrideOption m_VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateOverrideOption.UsePipelineSettings;
 
         [SerializeField] bool m_RenderPostProcessing = false;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
@@ -371,16 +371,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (m_VolumeFrameworkUpdateModeOption == CameraVolumesOverrideOption.UsePipelineSettings)
+                if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateOverrideOption.UsePipelineSettings)
                 {
                     return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeUpdateMode.EveryFrame;
                 }
                 else
                 {
-                    return m_VolumeFrameworkUpdateModeOption == CameraVolumesOverrideOption.EveryFrame;
+                    return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateOverrideOption.EveryFrame;
                 }
             }
-            set { m_VolumeFrameworkUpdateModeOption = (value) ? CameraVolumesOverrideOption.EveryFrame : CameraVolumesOverrideOption.ViaScripting; }
+            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateOverrideOption.EveryFrame : VolumeFrameworkUpdateOverrideOption.ViaScripting;
         }
 
         /// <summary>
