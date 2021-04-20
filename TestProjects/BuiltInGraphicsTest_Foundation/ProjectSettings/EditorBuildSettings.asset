@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/Scenes/050_Shader_Graphs_deferred.unity
     guid: 96da3a5f3f80f534d81098bfe585331d
   - enabled: 1
+    path: Assets/Scenes/055_Lighting_BasicUnlit.unity
+    guid: b26153a0dfe8c4448835dd5d89134dd4
+  - enabled: 1
     path: Assets/Scenes/056_Lighting_BasicAlphaCut.unity
     guid: ba30e2ead57624e42a64622b129e06fe
   - enabled: 1
@@ -46,7 +49,7 @@ EditorBuildSettings:
     guid: d1de2dd8d6df6ba489d0459630f457a5
   - enabled: 1
     path: Assets/Scenes/062_Lighting_BasicKeywordTest.unity
-    guid: c745a4a7130c7c1418d2b1064a8f1f8e    
+    guid: c745a4a7130c7c1418d2b1064a8f1f8e
   - enabled: 1
     path: Assets/Scenes/065_Lighting_BasicVertexTangent.unity
     guid: 1cd2b6263e3a53c4aadfbbdd9da27a0b
