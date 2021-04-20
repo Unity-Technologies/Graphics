@@ -72,6 +72,9 @@ namespace UnityEngine.Rendering.Universal
         High
     }
 
+    /// <summary>
+    /// Controls the update frequency for the Volume Framework
+    /// </summary>
     public enum VolumeFrameworkUpdateModeOverrideOption
     {
         EveryFrame,
@@ -393,7 +396,10 @@ namespace UnityEngine.Rendering.Universal
             set => m_VolumeStack = value;
         }
 
-        internal bool lastVolumeUpdateSetting { get; set; }
+        // This variable is used to detect when volume framework updates
+        // are switched from being enabled to disabled. In those cases
+        // we want to update the stack to capture the last state.
+        internal bool lastRequiresVolumeFrameworkUpdate { get; set; }
 
         public List<Volume> volumeList { get; set; }
 

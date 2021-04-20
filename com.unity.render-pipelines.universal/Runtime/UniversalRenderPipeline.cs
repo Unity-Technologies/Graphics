@@ -602,9 +602,7 @@ namespace UnityEngine.Rendering.Universal
             if (additionalCameraData != null)
             {
                 layerMask = additionalCameraData.volumeLayerMask;
-                trigger = additionalCameraData.volumeTrigger != null
-                    ? additionalCameraData.volumeTrigger
-                    : trigger;
+                trigger = (additionalCameraData.volumeTrigger != null) ? additionalCameraData.volumeTrigger : trigger;
                 shouldUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
             }
             else if (camera.cameraType == CameraType.SceneView)
@@ -618,7 +616,7 @@ namespace UnityEngine.Rendering.Universal
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
                 }
 
-                trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
+                trigger = (mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null) ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
             // We skip updating if the asset has volume updates disabled
@@ -637,10 +635,10 @@ namespace UnityEngine.Rendering.Universal
                     VolumeManager.instance.stack = additionalCameraData.volumeStack;
 
                     // If the update setting was enabled in the previous scene, we need to update...
-                    if (additionalCameraData.lastVolumeUpdateSetting)
+                    if (additionalCameraData.lastRequiresVolumeFrameworkUpdate)
                     {
                         VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
-                        additionalCameraData.lastVolumeUpdateSetting = false;
+                        additionalCameraData.lastRequiresVolumeFrameworkUpdate = false;
                     }
 
                     // We always want to update normally in the editor when not in playmode
@@ -652,7 +650,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                additionalCameraData.lastVolumeUpdateSetting = shouldUpdate;
+                additionalCameraData.lastRequiresVolumeFrameworkUpdate = shouldUpdate;
             }
 
             //Debug.Log(camera.name + " -> Updating");
@@ -856,7 +854,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.requiresVolumeUpdate = true;
+                cameraData.requiresVolumeFrameworkUpdate = true;
                 cameraData.renderer = asset.scriptableRenderer;
             }
             else if (additionalCameraData != null)
@@ -867,7 +865,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
-                cameraData.requiresVolumeUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
+                cameraData.requiresVolumeFrameworkUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
             }
             else
@@ -877,7 +875,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = false;
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.requiresVolumeUpdate = settings.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
+                cameraData.requiresVolumeFrameworkUpdate = settings.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
                 cameraData.renderer = asset.scriptableRenderer;
             }
 

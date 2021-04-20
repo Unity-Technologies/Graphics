@@ -97,6 +97,9 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    /// <summary>
+    /// Controls the update frequency for the Volume Framework.
+    /// </summary>
     public enum VolumeFrameworkUpdateMode
     {
         EveryFrame = 0,
