@@ -25,9 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 updateGraphicsSettings = activateAsset;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
 
-                if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                    AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-                var path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + src.name + ".asset";
+                string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset";
+                CoreUtils.EnsureFolderTree(Path.GetDirectoryName(path));
 
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
             }
@@ -40,9 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 var path = "HDRenderPipelineGlobalSettings.asset";
                 if (useProjectSettingsFolder)
                 {
-                    if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                        AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-                    path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/HDRenderPipelineGlobalSettings.asset";
+                    path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
+                    CoreUtils.EnsureFolderTree(Path.GetDirectoryName(path));
                 }
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
             }
