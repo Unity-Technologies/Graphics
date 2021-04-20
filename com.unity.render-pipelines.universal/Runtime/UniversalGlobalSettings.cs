@@ -9,6 +9,29 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     partial class UniversalGlobalSettings : RenderPipelineGlobalSettings
     {
+        #region Version system
+        [SerializeField] int k_AssetVersion = 1;
+        [SerializeField] int k_AssetPreviousVersion = 1;
+
+        public void OnAfterDeserialize()
+        {
+#if UNITY_EDITOR
+            if (k_AssetPreviousVersion != k_AssetVersion)
+            {
+                EditorApplication.delayCall += () => UpgradeAsset(this);
+            }
+#endif
+        }
+
+#if UNITY_EDITOR
+        static void UpgradeAsset(UniversalGlobalSettings asset)
+        {
+            EditorUtility.SetDirty(asset);
+        }
+
+#endif
+        #endregion
+
         private static UniversalGlobalSettings cachedInstance = null;
         public static UniversalGlobalSettings instance
         {
@@ -77,7 +100,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 assetCreated = ScriptableObject.CreateInstance<UniversalGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
-                assetCreated.Init();
                 if (assetCreated != null)
                 {
                     assetCreated.name = System.IO.Path.GetFileName(path);
@@ -110,12 +132,12 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        void Init()
+        void Reset()
         {
             ResetLightLayerNames();
         }
 
-        #region Light Layer Names [Light]
+        #region Light Layer Names [3D]
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0;
