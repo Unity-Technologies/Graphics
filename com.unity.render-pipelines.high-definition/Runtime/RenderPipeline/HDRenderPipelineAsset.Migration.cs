@@ -169,10 +169,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_EDITOR
                 if (data == GraphicsSettings.defaultRenderPipeline)
-                {
                     HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data);
-                }
 #endif
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_ObsoleteDefaultVolumeProfile = null;
+                data.m_ObsoleteDefaultLookDevProfile = null;
+
+                data.m_ObsoleteRenderPipelineResources = null;
+                data.m_ObsoleteRenderPipelineRayTracingResources = null;
+
+                data.m_ObsoleteBeforeTransparentCustomPostProcesses = null;
+                data.m_ObsoleteBeforePostProcessCustomPostProcesses = null;
+                data.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
+                data.m_ObsoleteBeforeTAACustomPostProcesses = null;
+                data.m_ObsoleteDiffusionProfileSettingsList = null;
+#pragma warning restore 618
             })
         );
         #endregion

@@ -54,161 +54,129 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
-        static internal HDRenderPipelineGlobalSettings Ensure(string folderPath = "HDRPDefaultResources", bool canCreateNewAsset = true)
+        static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
-            bool needsMigration = (assetToBeMigrated != null && !assetToBeMigrated.Equals(null));
-
-            if (HDRenderPipelineGlobalSettings.instance && !needsMigration)
-                return HDRenderPipelineGlobalSettings.instance;
-
-            HDRenderPipelineGlobalSettings assetCreated = null;
-            string path = "Assets/" + folderPath + "/HDRenderPipelineGlobalSettings.asset";
-            if (needsMigration)
+            if (instance != null && !instance.Equals(null))
             {
-                if (HDRenderPipelineGlobalSettings.instance)
-                    path = AssetDatabase.GetAssetPath(HDRenderPipelineGlobalSettings.instance);
-                else if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
-                    AssetDatabase.CreateFolder("Assets", folderPath);
-
-                assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false, canCreateNewAsset: canCreateNewAsset);
-                if (assetCreated != null && !assetCreated.Equals(null))
-                    assetToBeMigrated = null;
+                //if there is an instance but at first version, check for migrating HDRPAsset data from GraphicSettings
+                if (instance.m_Version == Version.First
+                    && GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset
+                    && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
+                    (hdrpAsset as IMigratableAsset).Migrate(); //this will call MigrateFromHDRPAsset with this
             }
             else
             {
-                assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-                if (assetCreated == null)
+                //if there is no instance, check for migrating HDRPAsset data from GraphicSettings into a fresh one
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset
+                    && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
+                    (hdrpAsset as IMigratableAsset).Migrate(); //this will call MigrateFromHDRPAsset with this
+                else
                 {
-                    var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDRenderPipelineGlobalSettings");
-                    //If we could not find the asset at the default path, find the first one
-                    if (guidHDGlobalAssets.Length > 0)
-                    {
-                        var curGUID = guidHDGlobalAssets[0];
-                        path = AssetDatabase.GUIDToAssetPath(curGUID);
-                        assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-                    }
-                    else if (canCreateNewAsset)// or create one altogether
-                    {
-                        if (!AssetDatabase.IsValidFolder("Assets/" + folderPath))
-                            AssetDatabase.CreateFolder("Assets", folderPath);
-                        assetCreated = Create(path);
+                    //try load at default path
+                    HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
 
-                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
-                    }
-                    else
+                    if (loaded == null)
                     {
-                        Debug.LogError("Cannot migrate HDRP Asset to a new HDRP Global Settings asset. If you are building a Player, make sure to save an HDRP Global Settings asset by opening the project in the Editor.");
-                        return null;
+                        //Use any available
+                        IEnumerator<HDRenderPipelineGlobalSettings> enumerator = CoreUtils.LoadAllAssets<HDRenderPipelineGlobalSettings>().GetEnumerator();
+                        if (enumerator.MoveNext())
+                            loaded = enumerator.Current;
                     }
+
+                    if (loaded != null)
+                        UpdateGraphicsSettings(loaded);
                 }
+
+                // No migration available and no asset available? Create one if allowed
+                if (canCreateNewAsset && instance == null)
+                {
+                    var createdAsset = Create($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                    UpdateGraphicsSettings(createdAsset);
+
+                    Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                }
+
+                if (instance == null)
+                    Debug.LogError("Cannot find any HDRP Global Settings asset and Cannot create one from former used HDRP Asset.");
+
+                Debug.Assert(instance, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
             }
-            Debug.Assert(assetCreated, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
-            UpdateGraphicsSettings(assetCreated);
-            return HDRenderPipelineGlobalSettings.instance;
+
+            // Attempt upgrade (do notiong if up to date)
+            IMigratableAsset migratableAsset = instance;
+            if (!migratableAsset.IsAtLastVersion())
+                migratableAsset.Migrate();
+
+            return instance;
         }
 
-#endif
-
-        void Init()
+        void Reset()
         {
-            if (beforeTransparentCustomPostProcesses == null)
-            {
-                beforeTransparentCustomPostProcesses = new List<string>();
-                beforePostProcessCustomPostProcesses = new List<string>();
-                afterPostProcessCustomPostProcesses = new List<string>();
-                beforeTAACustomPostProcesses = new List<string>();
-            }
-
-            lightLayerName0 = "Light Layer default";
-            lightLayerName1 = "Light Layer 1";
-            lightLayerName2 = "Light Layer 2";
-            lightLayerName3 = "Light Layer 3";
-            lightLayerName4 = "Light Layer 4";
-            lightLayerName5 = "Light Layer 5";
-            lightLayerName6 = "Light Layer 6";
-            lightLayerName7 = "Light Layer 7";
-
-            decalLayerName0 = "Decal Layer default";
-            decalLayerName1 = "Decal Layer 1";
-            decalLayerName2 = "Decal Layer 2";
-            decalLayerName3 = "Decal Layer 3";
-            decalLayerName4 = "Decal Layer 4";
-            decalLayerName5 = "Decal Layer 5";
-            decalLayerName6 = "Decal Layer 6";
-            decalLayerName7 = "Decal Layer 7";
-
             UpdateRenderingLayerNames();
-
-            shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+            Debug.Log("Reset called");
         }
 
-#if UNITY_EDITOR
-
-        static HDRenderPipelineAsset assetToBeMigrated = null;
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {
-            assetToBeMigrated = oldAsset;
-        }
+            if (instance != null
+                && !instance.Equals(null)
+                && instance.m_Version != Version.First)
+                return;
 
-        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true, bool canCreateNewAsset = true)
-        {
-            HDRenderPipelineGlobalSettings assetCreated = null;
+            //1. Create the instance or load current one if at first version
+            HDRenderPipelineGlobalSettings assetToUpgrade;
 
-            // 1. Load or Create the HDAsset and save it on disk
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-            if (assetCreated == null)
+            if (instance == null || instance.Equals(null))
             {
-                if (!canCreateNewAsset)
-                {
-                    Debug.LogError("Cannot migrate HDRP Asset to a new HDRP Global Settings asset. If you are building a Player, make sure to save an HDRP Global Settings asset by opening the project in the Editor.");
-                    return null;
-                }
-                assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-                AssetDatabase.CreateAsset(assetCreated, path);
-                assetCreated.Init();
+                assetToUpgrade = Create($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+                UpdateGraphicsSettings(assetToUpgrade);
             }
+            else
+                assetToUpgrade = instance;
 
-#pragma warning disable 618 // Type or member is obsolete
+            Debug.Assert(assetToUpgrade);
+
             //2. Migrate obsolete assets (version DefaultSettingsAsAnAsset)
-            assetCreated.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
-            assetCreated.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
+#pragma warning disable 618 // Type or member is obsolete
+            assetToUpgrade.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
+            assetToUpgrade.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
 
-            assetCreated.m_RenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
-            assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
-            assetCreated.m_RenderingPathDefaultRealtimeReflectionFrameSettings      = oldAsset.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_RenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
+            assetToUpgrade.m_RenderingPathDefaultRealtimeReflectionFrameSettings      = oldAsset.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
 
-            assetCreated.m_RenderPipelineResources           = oldAsset.m_ObsoleteRenderPipelineResources;
-            assetCreated.m_RenderPipelineRayTracingResources = oldAsset.m_ObsoleteRenderPipelineRayTracingResources;
+            assetToUpgrade.m_RenderPipelineResources           = oldAsset.m_ObsoleteRenderPipelineResources;
+            assetToUpgrade.m_RenderPipelineRayTracingResources = oldAsset.m_ObsoleteRenderPipelineRayTracingResources;
 
-            assetCreated.beforeTransparentCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTransparentCustomPostProcesses);
-            assetCreated.beforePostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforePostProcessCustomPostProcesses);
-            assetCreated.afterPostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses);
-            assetCreated.beforeTAACustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTAACustomPostProcesses);
+            assetToUpgrade.beforeTransparentCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTransparentCustomPostProcesses);
+            assetToUpgrade.beforePostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforePostProcessCustomPostProcesses);
+            assetToUpgrade.afterPostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses);
+            assetToUpgrade.beforeTAACustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTAACustomPostProcesses);
 
-            assetCreated.lightLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0);
-            assetCreated.lightLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1);
-            assetCreated.lightLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2);
-            assetCreated.lightLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3);
-            assetCreated.lightLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4);
-            assetCreated.lightLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5);
-            assetCreated.lightLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
-            assetCreated.lightLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
+            assetToUpgrade.lightLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0;
+            assetToUpgrade.lightLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1;
+            assetToUpgrade.lightLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2;
+            assetToUpgrade.lightLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3;
+            assetToUpgrade.lightLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4;
+            assetToUpgrade.lightLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5;
+            assetToUpgrade.lightLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6;
+            assetToUpgrade.lightLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7;
 
             // Decal layer names were added in 2021 cycle
             if (oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0 != null)
             {
-                assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0);
-                assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName1);
-                assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName2);
-                assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName3);
-                assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName4);
-                assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName5);
-                assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName6);
-                assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7);
+                assetToUpgrade.decalLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0;
+                assetToUpgrade.decalLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName1;
+                assetToUpgrade.decalLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName2;
+                assetToUpgrade.decalLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName3;
+                assetToUpgrade.decalLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName4;
+                assetToUpgrade.decalLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName5;
+                assetToUpgrade.decalLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName6;
+                assetToUpgrade.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7;
             }
 
-            assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
-            assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
+            assetToUpgrade.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
+            assetToUpgrade.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
 
             // we need to make sure the old diffusion profile had time to upgrade before moving it away
             if (oldAsset.diffusionProfileSettings != null)
@@ -217,107 +185,84 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
-            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldSize);
+            System.Array.Resize(ref assetToUpgrade.diffusionProfileSettingsList, oldSize);
             for (int i = 0; i < oldSize; ++i)
-                assetCreated.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
-
-            //3. Clear obsolete fields
-            if (bClearObsoleteFields)
-            {
-                oldAsset.m_ObsoleteDefaultVolumeProfile = null;
-                oldAsset.m_ObsoleteDefaultLookDevProfile = null;
-
-                oldAsset.m_ObsoleteRenderPipelineResources = null;
-                oldAsset.m_ObsoleteRenderPipelineRayTracingResources = null;
-
-                oldAsset.m_ObsoleteBeforeTransparentCustomPostProcesses = null;
-                oldAsset.m_ObsoleteBeforePostProcessCustomPostProcesses = null;
-                oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
-                oldAsset.m_ObsoleteBeforeTAACustomPostProcesses = null;
-                oldAsset.m_ObsoleteDiffusionProfileSettingsList = null;
-            }
+                assetToUpgrade.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 #pragma warning restore 618
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            return assetCreated;
+            //3. Set version to next & Launch remaining of migration
+            assetToUpgrade.m_Version = Version.MigratedFromHDRPAssetOrCreated;
+            (assetToUpgrade as IMigratableAsset).Migrate();
         }
 
-        internal static HDRenderPipelineGlobalSettings Create(string path, HDRenderPipelineGlobalSettings src = null)
+        internal static HDRenderPipelineGlobalSettings Create(string path, HDRenderPipelineGlobalSettings dataSource = null)
         {
             HDRenderPipelineGlobalSettings assetCreated = null;
 
-            // make sure the asset does not already exists
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-            if (assetCreated == null)
+            //ensure folder tree exist
+            CoreUtils.EnsureFolderTree(Path.GetDirectoryName(path));
+
+            //prevent any path conflict
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+
+            //asset creation
+            assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
+            AssetDatabase.CreateAsset(assetCreated, path);
+            Debug.Assert(assetCreated);
+            assetCreated.Reset(); //TODO: check if not already called.
+            assetCreated.name = Path.GetFileName(path);
+
+            // copy data from provided source
+            if (dataSource != null)
             {
-                assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-                AssetDatabase.CreateAsset(assetCreated, path);
-                assetCreated.Init();
-                if (assetCreated != null)
-                {
-                    assetCreated.name = Path.GetFileName(path);
-                }
+                assetCreated.renderPipelineEditorResources = dataSource.renderPipelineEditorResources;
+                assetCreated.renderPipelineResources = dataSource.renderPipelineResources;
+                assetCreated.renderPipelineRayTracingResources = dataSource.renderPipelineRayTracingResources;
+
+                assetCreated.volumeProfile = dataSource.volumeProfile;
+                assetCreated.lookDevVolumeProfile = dataSource.lookDevVolumeProfile;
+
+                assetCreated.m_RenderingPathDefaultCameraFrameSettings = dataSource.m_RenderingPathDefaultCameraFrameSettings;
+                assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = dataSource.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
+                assetCreated.m_RenderingPathDefaultRealtimeReflectionFrameSettings = dataSource.m_RenderingPathDefaultRealtimeReflectionFrameSettings;
+
+                assetCreated.beforeTransparentCustomPostProcesses.AddRange(dataSource.beforeTransparentCustomPostProcesses);
+                assetCreated.beforePostProcessCustomPostProcesses.AddRange(dataSource.beforePostProcessCustomPostProcesses);
+                assetCreated.afterPostProcessCustomPostProcesses.AddRange(dataSource.afterPostProcessCustomPostProcesses);
+                assetCreated.beforeTAACustomPostProcesses.AddRange(dataSource.beforeTAACustomPostProcesses);
+
+                assetCreated.lightLayerName0 = dataSource.lightLayerName0;
+                assetCreated.lightLayerName1 = dataSource.lightLayerName1;
+                assetCreated.lightLayerName2 = dataSource.lightLayerName2;
+                assetCreated.lightLayerName3 = dataSource.lightLayerName3;
+                assetCreated.lightLayerName4 = dataSource.lightLayerName4;
+                assetCreated.lightLayerName5 = dataSource.lightLayerName5;
+                assetCreated.lightLayerName6 = dataSource.lightLayerName6;
+                assetCreated.lightLayerName7 = dataSource.lightLayerName7;
+
+                assetCreated.decalLayerName0 = dataSource.decalLayerName0;
+                assetCreated.decalLayerName1 = dataSource.decalLayerName1;
+                assetCreated.decalLayerName2 = dataSource.decalLayerName2;
+                assetCreated.decalLayerName3 = dataSource.decalLayerName3;
+                assetCreated.decalLayerName4 = dataSource.decalLayerName4;
+                assetCreated.decalLayerName5 = dataSource.decalLayerName5;
+                assetCreated.decalLayerName6 = dataSource.decalLayerName6;
+                assetCreated.decalLayerName7 = dataSource.decalLayerName7;
+
+                assetCreated.shaderVariantLogLevel = dataSource.shaderVariantLogLevel;
+                assetCreated.lensAttenuationMode = dataSource.lensAttenuationMode;
+
+                System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, dataSource.diffusionProfileSettingsList.Length);
+                for (int i = 0; i < dataSource.diffusionProfileSettingsList.Length; ++i)
+                    assetCreated.diffusionProfileSettingsList[i] = dataSource.diffusionProfileSettingsList[i];
             }
 
-            if (assetCreated)
-            {
-#if UNITY_EDITOR
-                assetCreated.EnsureEditorResources(forceReload: true);
-#endif
-                if (src != null)
-                {
-                    assetCreated.renderPipelineResources = src.renderPipelineResources;
-                    assetCreated.renderPipelineRayTracingResources = src.renderPipelineRayTracingResources;
-
-                    assetCreated.volumeProfile = src.volumeProfile;
-                    assetCreated.lookDevVolumeProfile = src.lookDevVolumeProfile;
-
-                    assetCreated.m_RenderingPathDefaultCameraFrameSettings = src.m_RenderingPathDefaultCameraFrameSettings;
-                    assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = src.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
-                    assetCreated.m_RenderingPathDefaultRealtimeReflectionFrameSettings = src.m_RenderingPathDefaultRealtimeReflectionFrameSettings;
-
-                    assetCreated.beforeTransparentCustomPostProcesses.AddRange(src.beforeTransparentCustomPostProcesses);
-                    assetCreated.beforePostProcessCustomPostProcesses.AddRange(src.beforePostProcessCustomPostProcesses);
-                    assetCreated.afterPostProcessCustomPostProcesses.AddRange(src.afterPostProcessCustomPostProcesses);
-                    assetCreated.beforeTAACustomPostProcesses.AddRange(src.beforeTAACustomPostProcesses);
-
-                    assetCreated.lightLayerName0 = System.String.Copy(src.lightLayerName0);
-                    assetCreated.lightLayerName1 = System.String.Copy(src.lightLayerName1);
-                    assetCreated.lightLayerName2 = System.String.Copy(src.lightLayerName2);
-                    assetCreated.lightLayerName3 = System.String.Copy(src.lightLayerName3);
-                    assetCreated.lightLayerName4 = System.String.Copy(src.lightLayerName4);
-                    assetCreated.lightLayerName5 = System.String.Copy(src.lightLayerName5);
-                    assetCreated.lightLayerName6 = System.String.Copy(src.lightLayerName6);
-                    assetCreated.lightLayerName7 = System.String.Copy(src.lightLayerName7);
-
-                    assetCreated.decalLayerName0 = System.String.Copy(src.decalLayerName0);
-                    assetCreated.decalLayerName1 = System.String.Copy(src.decalLayerName1);
-                    assetCreated.decalLayerName2 = System.String.Copy(src.decalLayerName2);
-                    assetCreated.decalLayerName3 = System.String.Copy(src.decalLayerName3);
-                    assetCreated.decalLayerName4 = System.String.Copy(src.decalLayerName4);
-                    assetCreated.decalLayerName5 = System.String.Copy(src.decalLayerName5);
-                    assetCreated.decalLayerName6 = System.String.Copy(src.decalLayerName6);
-                    assetCreated.decalLayerName7 = System.String.Copy(src.decalLayerName7);
-
-                    assetCreated.shaderVariantLogLevel = src.shaderVariantLogLevel;
-                    assetCreated.lensAttenuationMode = src.lensAttenuationMode;
-
-                    System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, src.diffusionProfileSettingsList.Length);
-                    for (int i = 0; i < src.diffusionProfileSettingsList.Length; ++i)
-                        assetCreated.diffusionProfileSettingsList[i] = src.diffusionProfileSettingsList[i];
-                }
-                else
-                {
-                    assetCreated.EnsureRuntimeResources(forceReload: false);
-                    assetCreated.EnsureRayTracingResources(forceReload: false);
-                    assetCreated.GetOrCreateDefaultVolumeProfile();
-                    assetCreated.GetOrAssignLookDevVolumeProfile();
-                }
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
+            // ensure resources are here
+            assetCreated.EnsureEditorResources(forceReload: true);
+            assetCreated.EnsureRuntimeResources(forceReload: true);
+            assetCreated.EnsureRayTracingResources(forceReload: true);
+            assetCreated.GetOrCreateDefaultVolumeProfile();
+            assetCreated.GetOrAssignLookDevVolumeProfile();
 
             return assetCreated;
         }
@@ -580,6 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 EnsureEditorResources(forceReload: false);
                 return m_RenderPipelineEditorResources;
             }
+            private set => m_RenderPipelineEditorResources = value;
         }
 
         string editorResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
@@ -728,21 +674,21 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Rendering Layer Names [Light + Decal]
 
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0;
+        public string lightLayerName0 = "Light Layer default";
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1;
+        public string lightLayerName1 = "Light Layer 1";
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2;
+        public string lightLayerName2 = "Light Layer 2";
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3;
+        public string lightLayerName3 = "Light Layer 3";
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4;
+        public string lightLayerName4 = "Light Layer 4";
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5;
+        public string lightLayerName5 = "Light Layer 5";
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6;
+        public string lightLayerName6 = "Light Layer 6";
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7;
+        public string lightLayerName7 = "Light Layer 7";
 
 
         [System.NonSerialized]
@@ -773,21 +719,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Name for decal layer 0.</summary>
-        public string decalLayerName0;
+        public string decalLayerName0 = "Decal Layer default";
         /// <summary>Name for decal layer 1.</summary>
-        public string decalLayerName1;
+        public string decalLayerName1 = "Decal Layer 1";
         /// <summary>Name for decal layer 2.</summary>
-        public string decalLayerName2;
+        public string decalLayerName2 = "Decal Layer 2";
         /// <summary>Name for decal layer 3.</summary>
-        public string decalLayerName3;
+        public string decalLayerName3 = "Decal Layer 3";
         /// <summary>Name for decal layer 4.</summary>
-        public string decalLayerName4;
+        public string decalLayerName4 = "Decal Layer 4";
         /// <summary>Name for decal layer 5.</summary>
-        public string decalLayerName5;
+        public string decalLayerName5 = "Decal Layer 5";
         /// <summary>Name for decal layer 6.</summary>
-        public string decalLayerName6;
+        public string decalLayerName6 = "Decal Layer 6";
         /// <summary>Name for decal layer 7.</summary>
-        public string decalLayerName7;
+        public string decalLayerName7 = "Decal Layer 7";
 
         [System.NonSerialized]
         string[] m_DecalLayerNames = null;

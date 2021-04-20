@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.instance != null;
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
-            => HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
+            => HDRenderPipelineGlobalSettings.Ensure();
 
         bool IsRuntimeResourcesCorrect()
             => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreResourcesCreated();
