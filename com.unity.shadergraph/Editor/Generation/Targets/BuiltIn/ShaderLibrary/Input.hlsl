@@ -76,9 +76,9 @@ CBUFFER_END
 #define UNITY_MATRIX_V     unity_MatrixV
 #define UNITY_MATRIX_I_V   unity_MatrixInvV
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-#define UNITY_MATRIX_I_P   InvertProjectionMatrix(UNITY_MATRIX_P)
+#define UNITY_MATRIX_I_P   (float4x4)0
 #define UNITY_MATRIX_VP    unity_MatrixVP
-#define UNITY_MATRIX_I_VP  InvertProjectionMatrix(UNITY_MATRIX_VP)
+#define UNITY_MATRIX_I_VP  (float4x4)0
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
@@ -86,8 +86,8 @@ CBUFFER_END
 #else
 // Not defined already by built-in
 #define UNITY_MATRIX_I_M   unity_WorldToObject
-#define UNITY_MATRIX_I_P   InvertProjectionMatrix(UNITY_MATRIX_P)
-#define UNITY_MATRIX_I_VP  InvertProjectionMatrix(UNITY_MATRIX_VP)
+#define UNITY_MATRIX_I_P   (float4x4)0
+#define UNITY_MATRIX_I_VP  (float4x4)0
 #endif
 
 
