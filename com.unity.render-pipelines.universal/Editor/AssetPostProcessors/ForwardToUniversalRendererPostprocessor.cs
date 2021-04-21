@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
         static void UpgradeAllAssets()
         {
             //Gets all the ForwardRendererData Assets in project
-            string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData", null);
+            string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
 
             //If there is no ForwardRendererData assets in project then skip the following
             if (allRenderers.Length == 0) return;
@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.Universal
             if (editedAssetsCount == 0) return;
 
             //Gets all the UniversalRenderPipeline Assets in project
-            string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset", null);
+            string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
             for (int i = 0; i < allURPassets.Length; i++)
             {
                 string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
