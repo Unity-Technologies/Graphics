@@ -301,8 +301,9 @@ namespace UnityEditor.Rendering
                 );
 
                 // get all clip dependency-assets
+                // this will not handle nested clips in FBX like assets, but these are less likely to be editable
                 clips.UnionWith(AssetDatabase.GetDependencies(assetPath)
-                    .Select(dependencyPath => AssetDatabase.LoadAssetAtPath<AnimationClip>(dependencyPath))
+                    .Select(AssetDatabase.LoadAssetAtPath<AnimationClip>)
                     .Where(asset => asset is AnimationClip)
                     .Select(asset => (IAnimationClip)(AnimationClipProxy)asset));
 
