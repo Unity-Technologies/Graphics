@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.Universal
     [Flags]
     enum ShaderFeatures
     {
+        None = 0,
         MainLight = (1 << 0),
         MainLightShadows = (1 << 1),
         AdditionalLights = (1 << 2),
@@ -524,42 +525,16 @@ namespace UnityEditor.Rendering.Universal
                             switch (technique)
                             {
                                 case DecalTechnique.DBuffer:
-                                {
-                                    switch (decal.GetDBufferSettings().surfaceData)
-                                    {
-                                        case DecalSurfaceData.Albedo:
-                                            shaderFeatures |= ShaderFeatures.DBufferMRT1;
-                                            break;
-                                        case DecalSurfaceData.AlbedoNormal:
-                                            shaderFeatures |= ShaderFeatures.DBufferMRT2;
-                                            break;
-                                        case DecalSurfaceData.AlbedoNormalMAOS:
-                                            shaderFeatures |= ShaderFeatures.DBufferMRT3;
-                                            break;
-                                    }
+                                    shaderFeatures |= GetFromDecalSurfaceData(decal.GetDBufferSettings().surfaceData);
                                     break;
-                                }
                                 case DecalTechnique.ScreenSpace:
+                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
                                     shaderFeatures |= ShaderFeatures.DecalScreenSpace;
                                     break;
                                 case DecalTechnique.GBuffer:
+                                    shaderFeatures |= GetFromNormalBlend(decal.GetScreenSpaceSettings().normalBlend);
                                     shaderFeatures |= ShaderFeatures.DecalGBuffer;
                                     break;
-                            }
-                            if (technique == DecalTechnique.ScreenSpace || technique == DecalTechnique.GBuffer)
-                            {
-                                switch (decal.GetScreenSpaceSettings().normalBlend)
-                                {
-                                    case DecalNormalBlend.Low:
-                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
-                                        break;
-                                    case DecalNormalBlend.Medium:
-                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
-                                        break;
-                                    case DecalNormalBlend.High:
-                                        shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;
-                                        break;
-                                }
                             }
                         }
                     }
@@ -582,6 +557,42 @@ namespace UnityEditor.Rendering.Universal
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
 
+            return shaderFeatures;
+        }
+
+        private static ShaderFeatures GetFromDecalSurfaceData(DecalSurfaceData surfaceData)
+        {
+            ShaderFeatures shaderFeatures = ShaderFeatures.None;
+            switch (surfaceData)
+            {
+                case DecalSurfaceData.Albedo:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT1;
+                    break;
+                case DecalSurfaceData.AlbedoNormal:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT2;
+                    break;
+                case DecalSurfaceData.AlbedoNormalMAOS:
+                    shaderFeatures |= ShaderFeatures.DBufferMRT3;
+                    break;
+            }
+            return shaderFeatures;
+        }
+
+        private static ShaderFeatures GetFromNormalBlend(DecalNormalBlend normalBlend)
+        {
+            ShaderFeatures shaderFeatures = ShaderFeatures.None;
+            switch (normalBlend)
+            {
+                case DecalNormalBlend.Low:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendLow;
+                    break;
+                case DecalNormalBlend.Medium:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendMedium;
+                    break;
+                case DecalNormalBlend.High:
+                    shaderFeatures |= ShaderFeatures.DecalNormalBlendHigh;
+                    break;
+            }
             return shaderFeatures;
         }
     }

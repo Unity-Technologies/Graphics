@@ -882,7 +882,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
         {
-            displayName = "GBuffer normal octaedron encoding",
+            displayName = "GBuffer normal octahedron encoding",
             referenceName = "_GBUFFER_NORMALS_OCT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,

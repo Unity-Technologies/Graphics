@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
                 if (targets.Length < 2)
                     return false;
                 int layerMask = (targets[0] as Component).gameObject.layer;
-                for (int index = 0; index < targets.Length; ++index)
+                for (int index = 1; index < targets.Length; ++index)
                 {
                     if ((targets[index] as Component).gameObject.layer != layerMask)
                         return true;
@@ -136,11 +136,13 @@ namespace UnityEditor.Rendering.Universal
                     continue;
                 bool allOk = true;
                 foreach (DecalProjector selectionTarget in selectionTargets)
+                {
                     if (!Array.Find(editor.targets, t => t == selectionTarget))
                     {
                         allOk = false;
                         break;
                     }
+                }
                 if (!allOk)
                     continue;
                 return editor;
@@ -454,11 +456,11 @@ namespace UnityEditor.Rendering.Universal
             };
         }
 
-        // Temporarilly save ratio beetwin size and pivot position while editing in inspector.
+        // Temporarily save ratio between  size and pivot position while editing in inspector.
         // null or NaN is used to say that there is no saved ratio.
-        // Aim is to keep propotion while sliding the value to 0 in Inspector and then go back to something else.
-        // Current solution only work for the life of this editor, but is enough in most case.
-        // Wich means if you go to there, selection something else and go back on it, pivot position is thus null.
+        // Aim is to keep proportion while sliding the value to 0 in Inspector and then go back to something else.
+        // Current solution only works for the life of this editor, but is enough in most cases.
+        // Which means if you go to there, selection something else and go back on it, pivot position is thus null.
         Dictionary<DecalProjector, Vector3> ratioSizePivotPositionSaved = null;
 
         void ReinitSavedRatioSizePivotPosition()

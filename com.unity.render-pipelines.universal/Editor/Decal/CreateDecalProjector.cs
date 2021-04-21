@@ -1,7 +1,7 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal.ShaderGraph
+namespace UnityEditor.Rendering.Universal
 {
     internal static class CreateDecalProjector
     {

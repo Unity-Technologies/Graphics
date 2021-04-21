@@ -20,6 +20,10 @@ namespace UnityEngine.Rendering.Universal
             m_WorldToDecals = new Matrix4x4[250];
             m_NormalToDecals = new Matrix4x4[250];
 
+            // In order instanced and non instanced rendering to work with _NormalToWorld
+            // We need to make sure array is created with maximum size
+            Shader.SetGlobalMatrixArray("_NormalToWorld", m_NormalToDecals);
+
             m_Sampler = new ProfilingSampler(sampler);
         }
 
@@ -140,15 +144,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (SystemInfo.supportsInstancing && material.enableInstancing)
             {
-                DrawInstanced(cameraData, decalEntityChunk, decalCachedChunk, decalDrawCallChunk, passIndex);
+                DrawInstanced(cameraData, decalEntityChunk, decalCachedChunk, decalDrawCallChunk);
             }
             else
             {
-                Draw(cameraData, decalEntityChunk, decalCachedChunk, decalDrawCallChunk, passIndex);
+                Draw(cameraData, decalEntityChunk, decalCachedChunk, decalDrawCallChunk);
             }
         }
 
-        private void Draw(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
+        private void Draw(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk)
         {
             var material = GetMaterial(decalEntityChunk);
             int subCallCount = decalDrawCallChunk.subCallCount;
@@ -164,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void DrawInstanced(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
+        private void DrawInstanced(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk)
         {
             var material = GetMaterial(decalEntityChunk);
             decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set

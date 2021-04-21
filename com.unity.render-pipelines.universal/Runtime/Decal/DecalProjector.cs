@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/Decal Projector")]
-    public partial class DecalProjector : MonoBehaviour
+    public class DecalProjector : MonoBehaviour
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
         internal static event DecalProjectorAction onDecalAdd;
@@ -29,8 +29,7 @@ namespace UnityEngine.Rendering.Universal
         internal static event DecalProjectorAction onDecalPropertyChange;
         internal static event DecalProjectorAction onDecalMaterialChange;
         internal static Material defaultMaterial { get; set; }
-
-        public static bool isSupported => onDecalAdd != null;
+        internal static bool isSupported => onDecalAdd != null;
 
         internal DecalEntity decalEntity { get; set; }
 
@@ -51,10 +50,6 @@ namespace UnityEngine.Rendering.Universal
                 OnValidate();
             }
         }
-
-#if UNITY_EDITOR
-        private int m_Layer;
-#endif
 
         [SerializeField]
         private float m_DrawDistance = 1000.0f;
@@ -268,7 +263,6 @@ namespace UnityEngine.Rendering.Universal
             onDecalAdd?.Invoke(this);
 
 #if UNITY_EDITOR
-            m_Layer = gameObject.layer;
             // Handle scene visibility
             UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
 #endif
