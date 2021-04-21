@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Release all currently allocated constant buffers.
+        /// Release all currently allocated singleton constant buffers.
         /// This needs to be called before shutting down the application. 
         /// </summary>
         public static void ReleaseAll()
@@ -161,7 +161,6 @@ namespace UnityEngine.Rendering
         public ConstantBuffer()
         {
             m_GPUConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<CBType>(), ComputeBufferType.Constant);
-            ConstantBuffer.Register(this);
         }
 
         /// <summary>
@@ -215,6 +214,18 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Update the GPU data of the constant buffer and bind it globally.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public void PushGlobal(CommandBuffer cmd, in CBType data, int shaderId)
+        {
+            UpdateData(cmd, data);
+            SetGlobal(cmd, shaderId);
+        }
+        
+        /// <summary>
         /// Release the constant buffers.
         /// </summary>
         public override void Release()
@@ -238,7 +249,10 @@ namespace UnityEngine.Rendering
             get
             {
                 if (s_Instance == null)
+                {
                     s_Instance = new ConstantBufferSingleton<CBType>();
+                    ConstantBuffer.Register(s_Instance);
+                }
                 return s_Instance;
             }
             set
@@ -249,6 +263,7 @@ namespace UnityEngine.Rendering
 
         public override void Release()
         {
+            base.Release();
             s_Instance = null;
         }
     }
