@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
-- Added support for alpha channel in FXAA (case 1323941).
+- Added an info box for micro shadow editor (case 1322830).
 
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix potential NaN on apply distortion pass.
 - Fixed the camera controller in the template with the old input system (case 1326816).
 - Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
@@ -42,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
 - Disable TAA sharpening on alpha channel.
+- Increased path tracing max samples from 4K to 16K (case 1327729).
 
 ## [10.4.0] - 2021-03-11
 
