@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
             }
-            else if(shaderInputReferenceGetter != null)
+            else if (shaderInputReferenceGetter != null)
             {
                 shaderInputReference = shaderInputReferenceGetter();
             }
@@ -68,6 +68,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 addItemToCategoryAction.itemToAdd = shaderInputReference;
                 graphData.owner.graphDataStore.Dispatch(addItemToCategoryAction);
             }
+        }
+
+        public static AddShaderInputAction adddDprecatedPropertyAction(AbstractShaderProperty property)
+        {
+            return new AddShaderInputAction() { shaderInputReferenceGetter = () => property, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+        }
+
+        public static AddShaderInputAction adddKeywordAction(ShaderKeyword keyword)
+        {
+            return new AddShaderInputAction() { shaderInputReferenceGetter = () => keyword, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+        }
+
+        public static AddShaderInputAction addPropertyAction(Type shaderInputType)
+        {
+            return new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
 
         public Action<GraphData> modifyGraphDataAction => AddShaderInput;
@@ -156,18 +171,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            foreach(var category in graphData.categories)
+            foreach (var category in graphData.categories)
             {
-                foreach(var child in category.Children)
+                foreach (var child in category.Children)
                 {
-                    if(child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
+                    if (child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
                     {
                         graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
                         return;
                     }
                 }
             }
-
         }
 
         public Action<GraphData> modifyGraphDataAction => CopyShaderInput;
@@ -335,16 +349,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu});
-                    ViewModel.propertyNameToAddActionMap.Add(name, new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.adddDprecatedPropertyAction(new ColorShaderProperty(ColorShaderProperty.deprecatedVersion)));
+                    ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.addPropertyAction(shaderInputType));
                 }
                 else
-                    ViewModel.propertyNameToAddActionMap.Add(name, new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                    ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.addPropertyAction(shaderInputType));
             }
 
             // Default Keywords next
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", AddShaderInputAction.adddKeywordAction(new ShaderKeyword(KeywordType.Boolean)));
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", AddShaderInputAction.adddKeywordAction(new ShaderKeyword(KeywordType.Enum)));
 
             // Built-In Keywords after that
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
@@ -357,7 +371,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddShaderInputAction() { shaderInputReferenceGetter = () => keyword.Copy(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName, AddShaderInputAction.adddKeywordAction((ShaderKeyword)keyword.Copy()));
                 }
             }
 
@@ -423,7 +437,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.isExpanded = EditorPrefs.GetBool($"{editorPrefsBaseKey}.{categoryInfo.categoryGuid}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}", true);
 
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
+            if (m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
             {
                 m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
             }
@@ -617,7 +631,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
 
                     int rowAfterIndex = category.IndexOf(row) + 1;
-                    if (rowAfterIndex  > indexPerCategory[categoryIndex])
+                    if (rowAfterIndex > indexPerCategory[categoryIndex])
                     {
                         indexPerCategory[categoryIndex] = rowAfterIndex;
                     }
