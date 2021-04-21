@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
+using System.Reflection;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -297,8 +298,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
-            // Discard any compute use for raytracing only if not required
-            if (!s_PlayerNeedRaytracing && IsRaytracingResources())
+            // Discard any compute shader use for raytracing if none of the RP asset required it
+            ComputeShader unused;
+            if (!ShaderBuildPreprocessor.playerNeedRaytracing && ShaderBuildPreprocessor.computeShaderCache.TryGetValue(shader.GetInstanceID(), out unused))
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
@@ -539,34 +541,58 @@ namespace UnityEditor.Rendering.HighDefinition
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
         private static List<HDRenderPipelineAsset> _hdrpAssets;
+        private static Dictionary<int, ComputeShader> s_ComputeShaderCache;
         private static bool s_PlayerNeedRaytracing;
-        private static List<string> _RaytracingComputeResources;
 
         public static List<HDRenderPipelineAsset> hdrpAssets
         {
             get
             {
-                if (_hdrpAssets == null || _hdrpAssets.Count == 0) GetAllValidHDRPAssets();
+                if (_hdrpAssets == null || _hdrpAssets.Count == 0)
+                    GetAllValidHDRPAssets();
                 return _hdrpAssets;
             }
         }
 
-        public static bool BuilRaytracingComputeList(System.Object container, string basePath)
+        public static Dictionary<int, ComputeShader> computeShaderCache
         {
+            get
+            {
+                if (s_ComputeShaderCache == null)
+                    BuilRaytracingComputeList();
+                return s_ComputeShaderCache;
+            }
+        }
+
+        public static bool playerNeedRaytracing
+        {
+            get
+            {
+                return s_PlayerNeedRaytracing;
+            }
+        }
+
+        public static void BuilRaytracingComputeList()
+        {
+            if (s_ComputeShaderCache != null)
+                s_ComputeShaderCache.Clear();
+            else
+                s_ComputeShaderCache = new Dictionary<int, ComputeShader>();
+
             if (HDRenderPipeline.defaultAsset == null)
                 return;
 
-            if (IsNull(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources))
+            if (HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null)
                 return;
 
-            var changed = false;
-            foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
+            foreach (var fieldInfo in HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
-                //Recurse on sub-containers
-                if (IsReloadGroup(fieldInfo))
+                ComputeShader computeshader;
+                computeshader = fieldInfo.GetValue(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources) as ComputeShader;
+
+                if (computeshader != null)
                 {
-                    changed |= FixGroupIfNeeded(container, fieldInfo);
-                    changed |= ReloadAllNullIn(fieldInfo.GetValue(container), basePath);
+                    s_ComputeShaderCache.Add(computeshader.GetInstanceID(), computeshader);
                 }
             }
         }
