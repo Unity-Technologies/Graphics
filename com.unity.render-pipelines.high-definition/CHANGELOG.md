@@ -217,6 +217,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Film grain does not affect the alpha channel.
 - Disable TAA sharpening on alpha channel.
+- Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
 
 ## [11.0.0] - 2020-10-21
 
