@@ -1352,7 +1352,6 @@ namespace UnityEngine.Rendering
             return size - (size >> 1);
         }
 
-
         /// <summary>
         /// Get the last declared value from an enum Type
         /// </summary>
@@ -1399,10 +1398,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Create any missing folder in the folder path given
+        /// Create any missing folder in the file path given.
+        /// Path must use '/' separator
         /// </summary>
-        /// <param name="folderPath">Path to ensure existance</param>
-        public static void EnsureFolderTree(string folderPath, bool verifyRootAsset = true)
+        /// <param name="filePath">Path to a file or to a folder (ending with '/') to ensure existance of each sub folder in it. </param>
+        public static void EnsureFolderTreeInAssetFilePath(string filePath)
         {
             void Recurse(string _folderPath)
             {
@@ -1414,15 +1414,15 @@ namespace UnityEngine.Rendering
 
                 Recurse(rootPath);
 
-                string folder = _folderPath.Substring(lastSeparator);
+                string folder = _folderPath.Substring(lastSeparator + 1);
                 if (!UnityEditor.AssetDatabase.IsValidFolder(_folderPath))
                     UnityEditor.AssetDatabase.CreateFolder(rootPath, folder);
             }
 
-            if (verifyRootAsset && !folderPath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
-                throw new System.ArgumentException("Path should start with \"Assets/\"", folderPath);
+            if (!filePath.StartsWith("assets/", System.StringComparison.CurrentCultureIgnoreCase))
+                throw new System.ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
 
-            Recurse(folderPath);
+            Recurse(filePath.Substring(0, filePath.LastIndexOf('/')));
         }
 
 #endif

@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipelineGlobalSettings assetCreated = null;
 
             //ensure folder tree exist
-            CoreUtils.EnsureFolderTree(Path.GetDirectoryName(path));
+            CoreUtils.EnsureFolderTreeInAssetFilePath(path);
 
             //prevent any path conflict
             path = AssetDatabase.GenerateUniqueAssetPath(path);
