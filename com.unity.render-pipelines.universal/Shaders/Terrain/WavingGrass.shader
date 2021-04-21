@@ -41,6 +41,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma vertex WavingGrassVert
             #pragma fragment LitPassFragmentGrass

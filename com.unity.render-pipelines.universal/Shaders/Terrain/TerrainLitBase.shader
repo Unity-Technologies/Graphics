@@ -54,7 +54,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
@@ -123,7 +123,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment

@@ -29,7 +29,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-            #pragma multi_compile _ _LIGHT_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
@@ -88,31 +87,22 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                     output.ShadowCoords = GetShadowCoord(vertexInput);
                 #endif
 
-                // Rendering layers.
-                uint meshRenderingLayers = GetMeshRenderingLightLayer();
-
                 // Vertex Lighting
                 half3 NormalWS = input.NormalOS;
                 OUTPUT_SH(NormalWS, output.vertexSH);
                 Light mainLight = GetMainLight();
                 half3 diffuseColor = 0.0;
 
-                if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
-                {
-                    half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-                    diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
-                }
+                half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
+                diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
 
                 #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
                     int pixelLightCount = GetAdditionalLightsCount();
                     for (int i = 0; i < pixelLightCount; ++i)
                     {
                         Light light = GetAdditionalLight(i, vertexInput.positionWS);
-                        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
-                        {
-                            half3 attenuatedLightColor = light.color * light.distanceAttenuation;
-                            diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
-                        }
+                        half3 attenuatedLightColor = light.color * light.distanceAttenuation;
+                        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
                     }
                 #endif
 
@@ -135,11 +125,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 half realtimeShadows = 1.0;
                 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                    #if defined(_LIGHT_LAYERS)
-                    Light mainLight = GetMainLight();
-                    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
-                    #endif
-                        realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
+                    realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
                 #endif
 
                 lighting += input.LightingFog.rgb * realtimeShadows;
