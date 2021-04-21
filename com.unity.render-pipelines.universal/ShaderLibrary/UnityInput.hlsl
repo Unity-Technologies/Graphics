@@ -119,7 +119,6 @@ real4 unity_SpecCube0_HDR;
 
 // Lightmap block feature
 float4 unity_LightmapST;
-float4 unity_LightmapIndex;
 float4 unity_DynamicLightmapST;
 
 // SH block feature
@@ -206,9 +205,17 @@ SAMPLER(samplerunity_Lightmap);
 TEXTURE2D_ARRAY(unity_Lightmaps);
 SAMPLER(samplerunity_Lightmaps);
 
+// Dynamic lightmap
+TEXTURE2D(unity_DynamicLightmap);
+SAMPLER(samplerunity_DynamicLightmap);
+// TODO ENLIGHTEN: Instanced GI
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
 TEXTURE2D_ARRAY(unity_LightmapsInd);
+TEXTURE2D(unity_DynamicDirectionality);
+// TODO ENLIGHTEN: Instanced GI
+// TEXTURE2D_ARRAY(unity_DynamicDirectionality);
 
 TEXTURE2D(unity_ShadowMask);
 SAMPLER(samplerunity_ShadowMask);
