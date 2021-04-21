@@ -163,6 +163,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 if (data == GraphicsSettings.defaultRenderPipeline)
                 {
+#pragma warning disable 618 // Type or member is obsolete
+                    // We need to duplicate the migration logic for the MSAA change on frame settings here (from HDRenderPipelineGlobalSettings.Migration.cs)
+                    // The reason is that, if we are upgrading a project prior to global settings change, the new global setting will be created to the latest version
+                    // So it will skip the MSAA migration code. To fix that, we need to migrate frame settings before creating the new asset.
+                    FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
+                    FrameSettings.MigrateMSAA(ref data.m_ObsoleteFrameSettingsMovedToDefaultSettings, ref unusedMaskForDefault);
+                    FrameSettings.MigrateMSAA(ref data.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings, ref unusedMaskForDefault);
+                    FrameSettings.MigrateMSAA(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings, ref unusedMaskForDefault);
+#pragma warning restore 618
+
                     HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data);
                 }
 #endif
