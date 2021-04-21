@@ -579,6 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wasRenderedAfterOnEnable = false;
         }
 
+#if UNITY_EDITOR
         private void QueueSHBaking()
         {
             if (m_SHRequestID < 0)
@@ -590,6 +591,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
             }
         }
+
+#endif
 
         void UpdateProbeName()
         {
