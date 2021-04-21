@@ -133,48 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // copy data from provided source
             if (dataSource != null)
-            {
-                assetCreated.renderPipelineEditorResources = dataSource.renderPipelineEditorResources;
-                assetCreated.renderPipelineResources = dataSource.renderPipelineResources;
-                assetCreated.renderPipelineRayTracingResources = dataSource.renderPipelineRayTracingResources;
-
-                assetCreated.volumeProfile = dataSource.volumeProfile;
-                assetCreated.lookDevVolumeProfile = dataSource.lookDevVolumeProfile;
-
-                assetCreated.m_RenderingPathDefaultCameraFrameSettings = dataSource.m_RenderingPathDefaultCameraFrameSettings;
-                assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = dataSource.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
-                assetCreated.m_RenderingPathDefaultRealtimeReflectionFrameSettings = dataSource.m_RenderingPathDefaultRealtimeReflectionFrameSettings;
-
-                assetCreated.beforeTransparentCustomPostProcesses.AddRange(dataSource.beforeTransparentCustomPostProcesses);
-                assetCreated.beforePostProcessCustomPostProcesses.AddRange(dataSource.beforePostProcessCustomPostProcesses);
-                assetCreated.afterPostProcessCustomPostProcesses.AddRange(dataSource.afterPostProcessCustomPostProcesses);
-                assetCreated.beforeTAACustomPostProcesses.AddRange(dataSource.beforeTAACustomPostProcesses);
-
-                assetCreated.lightLayerName0 = dataSource.lightLayerName0;
-                assetCreated.lightLayerName1 = dataSource.lightLayerName1;
-                assetCreated.lightLayerName2 = dataSource.lightLayerName2;
-                assetCreated.lightLayerName3 = dataSource.lightLayerName3;
-                assetCreated.lightLayerName4 = dataSource.lightLayerName4;
-                assetCreated.lightLayerName5 = dataSource.lightLayerName5;
-                assetCreated.lightLayerName6 = dataSource.lightLayerName6;
-                assetCreated.lightLayerName7 = dataSource.lightLayerName7;
-
-                assetCreated.decalLayerName0 = dataSource.decalLayerName0;
-                assetCreated.decalLayerName1 = dataSource.decalLayerName1;
-                assetCreated.decalLayerName2 = dataSource.decalLayerName2;
-                assetCreated.decalLayerName3 = dataSource.decalLayerName3;
-                assetCreated.decalLayerName4 = dataSource.decalLayerName4;
-                assetCreated.decalLayerName5 = dataSource.decalLayerName5;
-                assetCreated.decalLayerName6 = dataSource.decalLayerName6;
-                assetCreated.decalLayerName7 = dataSource.decalLayerName7;
-
-                assetCreated.shaderVariantLogLevel = dataSource.shaderVariantLogLevel;
-                assetCreated.lensAttenuationMode = dataSource.lensAttenuationMode;
-
-                System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, dataSource.diffusionProfileSettingsList.Length);
-                for (int i = 0; i < dataSource.diffusionProfileSettingsList.Length; ++i)
-                    assetCreated.diffusionProfileSettingsList[i] = dataSource.diffusionProfileSettingsList[i];
-            }
+                EditorUtility.CopySerialized(dataSource, assetCreated);
 
             // ensure resources are here
             assetCreated.EnsureEditorResources(forceReload: true);
