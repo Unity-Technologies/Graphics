@@ -192,6 +192,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 	if(drunkIntensity > 0){
 		
 		//To do :
+		// Add Frame settings (i.e don't use chromatic aberration FS)
 		// Make that work with chromatic abberation
 		// Correct stacked intensities
 		// Comment and clearer code
