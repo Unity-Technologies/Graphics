@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
 
                 string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset";
+                CoreUtils.EnsureFolderTreeInAssetFilePath(path);
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
             }
 
@@ -35,7 +36,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var path = "HDRenderPipelineGlobalSettings.asset";
                 if (useProjectSettingsFolder)
+                {
                     path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
+                    CoreUtils.EnsureFolderTreeInAssetFilePath(path);
+                }
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
             }
         }
