@@ -100,6 +100,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             contextData.blocks.InsertRange(insertIndex, refs);
+
+            var window = m_EditorWindow as MaterialGraphEditWindow;
+            window?.graphEditorView?.graphView?.graph?.ValidateCustomBlockLimit();
         }
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)

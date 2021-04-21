@@ -1,6 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class ShadowCasterGroup2DManager
     {
