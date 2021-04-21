@@ -130,6 +130,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertex
@@ -394,6 +395,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment

@@ -62,7 +62,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BILLBOARD
@@ -128,7 +128,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BILLBOARD
