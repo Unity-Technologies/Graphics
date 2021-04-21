@@ -297,6 +297,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
+            // Discard any compute use for raytracing only if not required
+            if (!s_PlayerNeedRaytracing && IsRaytracingResources())
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
@@ -535,6 +539,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
         private static List<HDRenderPipelineAsset> _hdrpAssets;
+        private static bool s_PlayerNeedRaytracing;
+        private static List<string> _RaytracingComputeResources;
 
         public static List<HDRenderPipelineAsset> hdrpAssets
         {
@@ -545,13 +551,37 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public static bool BuilRaytracingComputeList(System.Object container, string basePath)
+        {
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
+
+            if (IsNull(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources))
+                return;
+
+            var changed = false;
+            foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
+            {
+                //Recurse on sub-containers
+                if (IsReloadGroup(fieldInfo))
+                {
+                    changed |= FixGroupIfNeeded(container, fieldInfo);
+                    changed |= ReloadAllNullIn(fieldInfo.GetValue(container), basePath);
+                }
+            }
+        }
+
         static void GetAllValidHDRPAssets()
         {
+            s_PlayerNeedRaytracing = false;
+
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
-            if (_hdrpAssets != null) _hdrpAssets.Clear();
-            else _hdrpAssets = new List<HDRenderPipelineAsset>();
+            if (_hdrpAssets != null)
+                _hdrpAssets.Clear();
+            else
+                _hdrpAssets = new List<HDRenderPipelineAsset>();
 
             using (ListPool<HDRenderPipelineAsset>.Get(out var tmpAssets))
             {
@@ -640,6 +670,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                }
+            }
+            else
+            {
+                // Take the opportunity to know if we need raytracing at runtime
+                foreach (var hdrpAsset in _hdrpAssets)
+                {
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                        s_PlayerNeedRaytracing = true;
                 }
             }
 
