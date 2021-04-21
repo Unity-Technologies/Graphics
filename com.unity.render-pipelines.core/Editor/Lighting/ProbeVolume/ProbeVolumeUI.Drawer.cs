@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering
                             Renderer childRenderer;
                             if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
                             {
-                                bool childContributeGI = ContributesToGI(childRenderer);
+                                bool childContributeGI = ContributesToGI(childRenderer) && childRenderer.gameObject.activeInHierarchy;
 
                                 if (childContributeGI)
                                 {
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
 
                     foreach (Renderer renderer in renderers)
                     {
-                        bool contributeGI = ContributesToGI(renderer);
+                        bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy;
 
                         if (contributeGI)
                         {
@@ -136,8 +136,8 @@ namespace UnityEditor.Rendering
 
                 (serialized.serializedObject.targetObject as ProbeVolume).transform.position = bounds.center;
 
-                // Inflate a bit to allow easier control of the fitted box.
-                Vector3 tmpClamp = bounds.size * 1.05f;
+                float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
+                Vector3 tmpClamp = (bounds.size  + new Vector3(minBrickSize, minBrickSize, minBrickSize));
                 tmpClamp.x = Mathf.Max(0f, tmpClamp.x);
                 tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
