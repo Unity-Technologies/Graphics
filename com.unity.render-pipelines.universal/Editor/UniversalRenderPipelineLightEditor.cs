@@ -49,6 +49,9 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Custom"),
                 new GUIContent("Use Pipeline Settings")
             };
+
+            public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
+            public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
         }
 
         public bool typeIsSame { get { return !serializedLight.settings.lightType.hasMultipleDifferentValues; } }
@@ -128,6 +131,7 @@ namespace UnityEditor.Rendering.Universal
                 serializedLight.settings.DrawBounceIntensity();
 
             ShadowsGUI();
+            LightCookieGUI();
 
             serializedLight.settings.DrawRenderMode();
             serializedLight.settings.DrawCullingMask();
@@ -286,6 +290,22 @@ namespace UnityEditor.Rendering.Universal
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(Styles.BakingWarning.text, MessageType.Warning);
+        }
+
+        void LightCookieGUI()
+        {
+            settings.DrawCookie();
+
+            // Draw 2D cookie size for directional lights
+            bool isDirectionalLight = settings.light.type == LightType.Directional;
+            if (isDirectionalLight)
+            {
+                if (settings.cookie != null)
+                {
+                    EditorGUILayout.PropertyField(serializedLight.lightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                    EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                }
+            }
         }
 
         protected override void OnSceneGUI()

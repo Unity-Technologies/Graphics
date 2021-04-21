@@ -14,12 +14,15 @@ namespace UnityEditor.Rendering.Universal
         public UniversalAdditionalLightData additionalLightData => lightsAdditionalData[0];
         public UniversalAdditionalLightData[] lightsAdditionalData { get; private set; }
 
+
         // Common SRP's Lights properties
         public SerializedProperty intensity { get; }
 
         // URP Light Properties
         public SerializedProperty useAdditionalDataProp { get; }                     // Does light use shadow bias settings defined in UniversalRP asset file?
         public SerializedProperty additionalLightsShadowResolutionTierProp { get; }  // Index of the AdditionalLights ShadowResolution Tier
+        public SerializedProperty lightCookieSizeProp { get; }                       // Multi dimensional light cookie size replacing `cookieSize` in legacy light.
+        public SerializedProperty lightCookieOffsetProp { get; }                     // Multi dimensional light cookie offset.
 
         /// <summary>Method that updates the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>
         public void Update()
@@ -55,6 +58,8 @@ namespace UnityEditor.Rendering.Universal
 
             useAdditionalDataProp = serializedAdditionalDataObject.FindProperty("m_UsePipelineSettings");
             additionalLightsShadowResolutionTierProp = serializedAdditionalDataObject.FindProperty("m_AdditionalLightsShadowResolutionTier");
+            lightCookieSizeProp = serializedAdditionalDataObject.FindProperty("m_LightCookieSize");
+            lightCookieOffsetProp = serializedAdditionalDataObject.FindProperty("m_LightCookieOffset");
 
             settings.ApplyModifiedProperties();
         }
