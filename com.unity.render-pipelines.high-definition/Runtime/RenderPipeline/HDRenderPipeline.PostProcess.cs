@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderAfterPostProcessObjects(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults, in PrepassOutput prepassOutput)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
-                return renderGraph.defaultResources.opaqueBlackTextureXR;
+                return renderGraph.defaultResources.blackTextureXR;
 
             // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
             using (var builder = renderGraph.AddRenderPass<AfterPostProcessPassData>("After Post-Process Objects", out var passData, ProfilingSampler.Get(HDProfileId.AfterPostProcessingObjects)))
@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the pass is culled at runtime from the RendererList API, set the appropriate fall-back for the output
                 // Here we need an opaque black texture as default (alpha = 1) due to the way the output of this pass is composed with the post-process output (see FinalPass.shader)
-                output.SetFallBackResource(renderGraph.defaultResources.opaqueBlackTextureXR);
+                output.SetFallBackResource(renderGraph.defaultResources.blackTextureXR);
 
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
