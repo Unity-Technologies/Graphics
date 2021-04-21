@@ -41,7 +41,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/002_PixelPerfect_Snap_UpscaleRenderTexture.unity
     guid: 7448296ffbf688748a22e203bc2ed8b2
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/003_PixelPerfect_PostProcessing.unity
     guid: 9f750aafa54d07a43b7601615bb2c7ea
   - enabled: 1
