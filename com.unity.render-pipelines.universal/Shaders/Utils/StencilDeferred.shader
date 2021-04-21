@@ -230,7 +230,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half3 color = 0.0.xxx;
         half alpha = 1.0;
 
-        #if defined(_SCREEN_SPACE_OCCLUSION)
+        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
             unityLight.color *= aoFactor.directAmbientOcclusion;
             #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)

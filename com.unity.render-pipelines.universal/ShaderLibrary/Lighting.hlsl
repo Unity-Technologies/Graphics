@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 
-#ifdef LIGHTMAP_ON
+#if defined(LIGHTMAP_ON)
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
@@ -314,13 +314,6 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     return UniversalFragmentPBR(inputData, surfaceData);
 }
 
-//LWRP -> Universal Backwards Compatibility
-half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
-{
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
@@ -380,12 +373,6 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     surfaceData.normalTS = normalTS;
 
     return UniversalFragmentBlinnPhong(inputData, surfaceData);
-}
-
-//LWRP -> Universal Backwards Compatibility
-half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
-{
-    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha, half3(0, 0, 1));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

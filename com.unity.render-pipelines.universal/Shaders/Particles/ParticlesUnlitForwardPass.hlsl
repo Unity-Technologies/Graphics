@@ -141,6 +141,13 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+        finalColor.rgb *= aoFactor.directAmbientOcclusion;
+    #endif  
+
     finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
 

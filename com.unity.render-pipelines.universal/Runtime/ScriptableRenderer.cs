@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -334,7 +335,6 @@ namespace UnityEngine.Rendering.Universal
                 if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
                 {
                     Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
-
                     // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
                     // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
                 }
@@ -409,6 +409,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         const int k_RenderPassBlockCount = 4;
+
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
@@ -815,7 +816,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     continue;
                 }
-
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
@@ -1149,6 +1149,14 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
+#if UNITY_EDITOR
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                {
+                    finalClearColor.a = 0;
+                    finalClearFlag &= ~ClearFlag.Depth;
+                }
+#endif
+
                 // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
                 if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
                 {
@@ -1319,7 +1327,7 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
+            if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();

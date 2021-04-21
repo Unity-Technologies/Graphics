@@ -123,6 +123,12 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     #endif
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+    finalColor.rgb *= aoFactor.directAmbientOcclusion;
+ #endif
+
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 
     return finalColor;

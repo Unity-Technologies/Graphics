@@ -5,7 +5,7 @@ struct Attributes
 {
     float4 positionOS       : POSITION;
     float2 uv               : TEXCOORD0;
-    float2 lightmapUV       : TEXCOORD1;
+    float2 staticLightmapUV : TEXCOORD1;
     float3 normalOS         : NORMAL;
     float4 tangentOS        : TANGENT;
 
@@ -16,7 +16,7 @@ struct Varyings
 {
     float4 positionCS : SV_POSITION;
     float3 uv0AndFogCoord : TEXCOORD0; // xy: uv0, z: fogCoord
-    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
     half3 normalWS : TEXCOORD2;
 
     #if defined(_NORMALMAP)
@@ -57,7 +57,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
     inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
@@ -94,7 +94,7 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     real sign = input.tangentOS.w * GetOddNegativeScale();
     output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
     OUTPUT_SH(output.normalWS, output.vertexSH);
 
     #if defined(DEBUG_DISPLAY)

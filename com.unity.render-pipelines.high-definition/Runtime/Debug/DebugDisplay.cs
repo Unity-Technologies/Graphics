@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
         public int _DebugIsLitShaderModeDeferred;
+
+        public int _DebugAOVOutput;
     }
 
     /// <summary>
@@ -235,8 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
             public VolumeDebugSettings volumeDebugSettings = new VolumeDebugSettings();
-            /// <summary>Current number of samples for MSAA textures.</summary>
-            public MSAASamples msaaSamples = MSAASamples.None;
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -1017,7 +1017,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            // Explicitly invoke the render debug unregister to handle render graph items.
+            UnregisterRenderingDebug();
             RegisterRenderingDebug();
         }
 
@@ -1781,14 +1782,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.FloatField { displayName = "Range Threshold 2", getter = () => data.falseColorDebugSettings.colorThreshold2, setter = value => data.falseColorDebugSettings.colorThreshold2 = Mathf.Clamp(value, data.falseColorDebugSettings.colorThreshold1, data.falseColorDebugSettings.colorThreshold3) },
                         new DebugUI.FloatField { displayName = "Range Threshold 3", getter = () => data.falseColorDebugSettings.colorThreshold3, setter = value => data.falseColorDebugSettings.colorThreshold3 = Mathf.Max(value, data.falseColorDebugSettings.colorThreshold2) },
                     }
-                });
-            }
-
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
-            {
-                widgetList.AddRange(new DebugUI.Widget[]
-                {
-                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
                 });
             }
 

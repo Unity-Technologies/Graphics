@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjectsPass : ScriptableRenderPass
+    public class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;
@@ -66,7 +66,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForward"));
                 m_ShaderTagIdList.Add(new ShaderTagId("UniversalForwardOnly"));
-                m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
             }
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);

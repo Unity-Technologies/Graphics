@@ -1,7 +1,9 @@
 #ifndef UNITY_FIBONACCI_INCLUDED
 #define UNITY_FIBONACCI_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 // Computes a point using the Fibonacci sequence of length N.
 // Input: Fib[N - 1], Fib[N - 2], and the index 'i' of the point.
@@ -297,6 +299,8 @@ real2 SampleSphereFibonacci(uint i, uint sampleCount)
     return real2(1 - 2 * f.x, TWO_PI * f.y);
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_FIBONACCI_INCLUDED

@@ -113,7 +113,10 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
-    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
+#if defined(DYNAMICLIGHTMAP_ON)
+    output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
     OUTPUT_SH(normalWS, output.sh);
 #endif
 
