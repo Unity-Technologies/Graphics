@@ -58,9 +58,11 @@ namespace UnityEditor.ShaderGraph
             Invalid,      // File exists but isn't of a valid type (such as wrong extension)
             Valid
         };
-        public static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
-        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
-        const string k_MissingFile = "Source file does not exist. A valid .hlsl or .cginc file must be referenced";
+
+        // With ShaderInclude asset type, it should no longer be necessary to soft-check the extension.
+        public static string[] s_ValidExtensions = { ".hlsl", ".cginc", ".cg" };
+        const string k_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl, .cginc, and .cg";
+        const string k_MissingFile = "Source file does not exist. A valid .hlsl, .cginc, or .cg file must be referenced";
         const string k_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
@@ -457,11 +459,11 @@ namespace UnityEditor.ShaderGraph
                 // not sure why we don't use AssetDatabase.AssetPathToGUID...
                 // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
-                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
-                if (textAsset != null)
+                ShaderInclude shaderInclude = AssetDatabase.LoadAssetAtPath<ShaderInclude>(functionSource);
+                if (shaderInclude != null)
                 {
                     long localId;
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(shaderInclude, out guidString, out localId);
                 }
                 functionSource = guidString;
             }
