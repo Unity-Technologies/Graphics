@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Linq;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering
 {
@@ -81,11 +82,11 @@ namespace UnityEngine.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivisionMultiplier, pv.parameters.minSubdivisionMultiplier);
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
 
                 if (ProbeVolumePositioning.OBBIntersect(cellVolume, indicatorVolume))
                 {
-                    cellVolume.maxSubdivisionMultiplier = Mathf.Max(cellVolume.maxSubdivisionMultiplier, pv.parameters.maxSubdivisionMultiplier, pv.parameters.minSubdivisionMultiplier);
+                    cellVolume.maxSubdivisionMultiplier = Mathf.Max(cellVolume.maxSubdivisionMultiplier, pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
                     volumes.Add(indicatorVolume);
                     TrackSceneRefs(pv.gameObject.scene, sceneRefs);
                     num++;
@@ -210,7 +211,7 @@ namespace UnityEngine.Rendering
                 if (!pv.enabled)
                     continue;
 
-                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivisionMultiplier, pv.parameters.minSubdivisionMultiplier));
+                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier));
             }
 
             ProbeReferenceVolume.SubdivisionDel subdivDel =
@@ -227,6 +228,17 @@ namespace UnityEngine.Rendering
             refVol.ConvertBricksToPositions(bricks, positions);
         }
 
+        // TODO: alloc this in the BakeCells function
+        static RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
+        {
+            height = 64,
+            width = 64,
+            volumeDepth = 64,
+            enableRandomWrite = true,
+            dimension = TextureDimension.Tex3D,
+            graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+        };
+
         public static void SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes, List<Renderer> renderers, List<ProbeVolume> probeVolumes,
             ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
         {
@@ -236,27 +248,19 @@ namespace UnityEngine.Rendering
 
             try
             {
-                cellVolume.CalculateCenterAndSize(out var center, out var size);
+                // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
+                int maxSubdivLevel = refVol.GetMaxSubdivision();
+                int startSubdivisionLevel = maxSubdivLevel - refVol.GetMaxSubdivision(probeVolumes.Max(p => p.maxSubdivisionMultiplier));
 
                 // We assume that all the cells are cubes
-                int maxBrickCountPerAxis = (int)Mathf.Pow(3, refVol.GetMaxSubdivision());
+                int maxBrickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel);
                 int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCountPerAxis);
 
-                sceneSDF = new RenderTexture(sceneSDFSize, sceneSDFSize, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
-                {
-                    name = "Scene SDF",
-                    dimension = TextureDimension.Tex3D,
-                    volumeDepth = sceneSDFSize,
-                    enableRandomWrite = true,
-                };
+                sceneSDF = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
+                sceneSDF.name = "Scene SDF";
                 sceneSDF.Create();
-                sceneSDF2 = new RenderTexture(sceneSDFSize, sceneSDFSize, 0, Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat)
-                {
-                    name = "Scene SDF Double Buffer",
-                    dimension = TextureDimension.Tex3D,
-                    volumeDepth = sceneSDFSize,
-                    enableRandomWrite = true,
-                };
+                sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
+                sceneSDF2.name = "Scene SDF Double Buffer";
                 sceneSDF2.Create();
                 dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize * 2, sceneSDFSize * 2, 0, GraphicsFormat.R8_SNorm);
 
@@ -269,46 +273,76 @@ namespace UnityEngine.Rendering
                 var bricksBuffer = new ComputeBuffer(maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
                 var readbackCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 
-                List<Brick> bricksList = new List<Brick>();
+                HashSet<Brick> bricksList = new HashSet<Brick>();
 
                 Graphics.ExecuteCommandBuffer(cmd);
 
+                var probeVolumesVolume = new List<ProbeReferenceVolume.Volume>();
+
+                foreach (ProbeVolume pv in probeVolumes)
+                {
+                    ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
+                    probeVolumesVolume.Add(vol);
+                }
+
+                // Brick index offset based on the cell position
+                var brickOffset = new Vector3Int((int)cellVolume.corner.x, (int)cellVolume.corner.y, (int)cellVolume.corner.z) / 3;
+
                 var transform = refVol.GetTransform();
-                for (int subdivisionLevel = 0; subdivisionLevel <= refVol.GetMaxSubdivision(); subdivisionLevel++)
+                for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= maxSubdivLevel; subdivisionLevel++)
                 {
                     // Add the bricks from the probe volume min subdivision level:
-                    int brickCountPerAxis = (int)Mathf.Pow(3, refVol.GetMaxSubdivision() - subdivisionLevel);
+                    int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - subdivisionLevel);
                     int brickSize = (int)Mathf.Pow(3, subdivisionLevel);
 
+                    // Adds the bricks from the min subdivision setting of the volume
                     for (int x = 0; x < brickCountPerAxis; x++)
+                    {
                         for (int y = 0; y < brickCountPerAxis; y++)
+                        {
                             for (int z = 0; z < brickCountPerAxis; z++)
                             {
-                                var brick = new Brick(new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
+                                var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
                                 ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
+
+                                if (x == 0 && y == 0 && z == 0)
+                                    Debug.Log(brickVolume.CalculateAABB());
+
+                                // TODO: collider check on the probe volume:
+                                // var closestPoint = collider.ClosestPoint(triggerPos);
+                                // var d = (closestPoint - triggerPos).sqrMagnitude;
+
+                                // minSqrDistance = Mathf.Min(minSqrDistance, d);
+
+                                // // Update the list of overlapping colliders
+                                // if (d <= sqrFadeRadius)
+                                //     volume.m_OverlappingColliders.Add(collider);
 
                                 // Find the local max from all overlapping probe volumes:
                                 float localMaxSubdiv = 0;
                                 float localMinSubdiv = 0;
-                                foreach (ProbeVolume pv in probeVolumes)
+                                bool overlapVolume = false;
+                                foreach (var vol in probeVolumesVolume)
                                 {
-                                    // TODO: cache this:
-                                    ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivisionMultiplier, pv.parameters.minSubdivisionMultiplier);
                                     if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
                                     {
                                         localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
                                         // Do we use max for min subdiv too?
                                         localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
+                                        overlapVolume = true;
                                     }
                                 }
 
+                                // Debug.Log(localMinSubdiv);
                                 // bool belowMaxSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
-                                bool belowMinSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
+                                bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
 
                                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                                // if (belowMinSubdiv)
-                                //     bricksList.Add(brick);
+                                if (overlapVolume && belowMinSubdiv)
+                                    bricksList.Add(brick);
                             }
+                        }
+                    }
 
                     cmd.Clear();
                     // TODO: clear the buffer in a compute shader
@@ -337,9 +371,11 @@ namespace UnityEngine.Rendering
                 bricksBuffer.Release();
                 readbackCountBuffer.Release();
 
-                UnityEngine.Profiling.Profiler.BeginSample("sort");
+                bricks = bricksList.ToList();
+
+                Profiler.BeginSample("sort");
                 // sort from larger to smaller bricks
-                bricksList.Sort((Brick lhs, Brick rhs) =>
+                bricks.Sort((Brick lhs, Brick rhs) =>
                 {
                     if (lhs.subdivisionLevel != rhs.subdivisionLevel)
                         return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
@@ -352,9 +388,7 @@ namespace UnityEngine.Rendering
 
                     return 0;
                 });
-                UnityEngine.Profiling.Profiler.EndSample();
-
-                bricks = bricksList.ToList();
+                Profiler.EndSample();
 
                 // if (bricks.Count > 0)
                 // Debug.Log(bricks.Count + " | " + bricks[0].subdivisionLevel);
@@ -365,12 +399,12 @@ namespace UnityEngine.Rendering
             }
             finally // Release resources in case a fatal error occurs
             {
-                // TODO: destroy!
-                sceneSDF?.Release();
-                sceneSDF2?.Release();
+                if (sceneSDF != null)
+                    RenderTexture.ReleaseTemporary(sceneSDF);
+                if (sceneSDF2 != null)
+                    RenderTexture.ReleaseTemporary(sceneSDF2);
                 if (dummyRenderTarget != null)
                     RenderTexture.ReleaseTemporary(dummyRenderTarget);
-                // CoreUtils.Destroy(bakingCameraGO);
             }
         }
 

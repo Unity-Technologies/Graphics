@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
 
             // Round min and max subdiv
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1);
             float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
             float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
 
@@ -86,7 +86,10 @@ namespace UnityEditor.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
+            // To display the subdiv count, we add one because the first level is the cell.
+            int maxVisibleSubdiv = (int)maxSubdiv + 1;
+            // TODO: display distances in m instead of subdiv levels
+            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {serialized.minSubdivisionMultiplier.floatValue * maxVisibleSubdiv} and {serialized.maxSubdivisionMultiplier.floatValue * maxVisibleSubdiv}", MessageType.Info);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;
@@ -95,6 +98,8 @@ namespace UnityEditor.Rendering
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
             }
+
+            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
         }
     }
 }

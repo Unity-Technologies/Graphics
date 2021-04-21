@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering
             {
                 // Bounding box.
                 s_ShapeBox.center = Vector3.zero;
-                s_ShapeBox.size = probeVolume.parameters.size;
+                s_ShapeBox.size = probeVolume.size;
                 s_ShapeBox.DrawHull(EditMode.editMode == k_EditShape);
             }
         }
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering
             {
                 //contained must be initialized in all case
                 s_ShapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
-                s_ShapeBox.size = probeVolume.parameters.size;
+                s_ShapeBox.size = probeVolume.size;
 
                 s_ShapeBox.monoHandle = false;
                 EditorGUI.BeginChangeCheck();
@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering
                 {
                     Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
 
-                    probeVolume.parameters.size = s_ShapeBox.size;
+                    probeVolume.size = s_ShapeBox.size;
 
                     Vector3 delta = probeVolume.transform.rotation * s_ShapeBox.center - probeVolume.transform.position;
                     probeVolume.transform.position += delta;;

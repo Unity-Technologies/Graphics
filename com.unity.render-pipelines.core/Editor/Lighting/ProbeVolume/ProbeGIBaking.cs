@@ -506,12 +506,11 @@ namespace UnityEngine.Rendering
                     if (!r.enabled || !r.gameObject.activeSelf)
                         return false;
 
-                    Debug.Log(r + " | " + GameObjectUtility.GetStaticEditorFlags(r.gameObject));
+                    // TODO: do we need to filter out renderers that receives GI from Lightmaps?
+
                     var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
                     if ((flags & StaticEditorFlags.ContributeGI) == 0)
                         return false;
-
-                    // TODO: layer filtering
 
                     return true;
                 })
@@ -520,21 +519,17 @@ namespace UnityEngine.Rendering
                 .Where(p => p.isActiveAndEnabled)
                 .ToList();
 
-            foreach (var renderer in renderers)
-                Debug.Log(renderer.name + " | " + renderer.bounds);
-
             // Generate all the cell positions from probe volumes:
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
             foreach (var probeVolume in probeVolumes)
             {
-                var halfSize = probeVolume.parameters.size / 2.0f;
+                var halfSize = probeVolume.size / 2.0f;
                 var minCellPosition = (probeVolume.transform.position - halfSize) / refVolume.cellSize;
                 var maxCellPosition = (probeVolume.transform.position + halfSize) / refVolume.cellSize;
 
                 Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
                 Vector3Int max = new Vector3Int(Mathf.FloorToInt(maxCellPosition.x), Mathf.FloorToInt(maxCellPosition.y), Mathf.FloorToInt(maxCellPosition.z));
 
-                Debug.Log("min: " + min + " | " + max);
                 for (int x = min.x; x <= max.x; x++)
                     for (int y = min.y; y <= max.y; y++)
                         for (int z = min.z; z <= max.z; z++)
@@ -564,40 +559,49 @@ namespace UnityEngine.Rendering
                 var overlappingProbeVolumes = new List<ProbeVolume>();
                 foreach (var probeVolume in probeVolumes)
                 {
-                    if (!probeVolume.isActiveAndEnabled)
-                        return;
+                    ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, probeVolume.GetExtents()), probeVolume.maxSubdivisionMultiplier, probeVolume.minSubdivisionMultiplier);
 
-                    ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, probeVolume.GetExtents()), probeVolume.parameters.maxSubdivisionMultiplier, probeVolume.parameters.minSubdivisionMultiplier);
-
-                    Debug.Log("PV: " + volume.CalculateAABB());
+                    // Debug.Log("PV: " + volume.CalculateAABB());
 
                     if (ProbeVolumePositioning.OBBIntersect(volume, cellVolume))
                         overlappingProbeVolumes.Add(probeVolume);
                 }
 
+                // Calculate all the renderers we need in the cell (overlapping a probe volume and matching the layer)
                 var overlappingRenderers = new List<Renderer>();
                 foreach (var renderer in renderers)
                 {
                     var volume = ProbePlacement.ToVolume(renderer.bounds);
 
-                    if (ProbeVolumePositioning.OBBIntersect(volume, cellVolume))
+                    int rendererLayerMask = 1 << renderer.gameObject.layer;
+                    // TODO: scene filtering (only one scene per cell is allowed)
+
+                    foreach (var probeVolume in overlappingProbeVolumes)
                     {
-                        overlappingRenderers.Add(renderer);
+                        // TODO: cache this
+                        ProbeReferenceVolume.Volume probeVolumeVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, probeVolume.GetExtents()), probeVolume.maxSubdivisionMultiplier, probeVolume.minSubdivisionMultiplier);
+
+                        if (ProbeVolumePositioning.OBBIntersect(volume, probeVolumeVolume))
+                        {
+                            // Check if the renderer has a matching layer with probe volume
+                            if ((probeVolume.objectLayerMask & rendererLayerMask) != 0)
+                                overlappingRenderers.Add(renderer);
+                        }
                     }
                 }
 
-                Debug.Log("Cell " + cellVolume.CalculateAABB() + " | " + overlappingProbeVolumes.Count + " | " + overlappingRenderers.Count);
+                // Debug.Log("Cell " + cellVolume.CalculateAABB() + " | " + overlappingProbeVolumes.Count + " | " + overlappingRenderers.Count);
 
                 if (overlappingRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
                 {
-                    Debug.Log("Nothing in cell " + cellVolume.CalculateAABB());
+                    // Debug.Log("Nothing in cell " + cellVolume.CalculateAABB());
                     continue;
                 }
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
                 cellVolume.maxSubdivisionMultiplier = 0;
 
-                // TODO: get tid of this and compute directly sceneRefs with the first overlapping probe volume scene
+                // TODO: get rid of this and compute directly sceneRefs with the first overlapping probe volume scene
                 Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
                 ProbePlacement.CreateInfluenceVolumes(ref cellVolume, overlappingRenderers, overlappingProbeVolumes, out influenceVolumes, out sceneRefs);

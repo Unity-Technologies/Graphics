@@ -224,9 +224,14 @@ namespace UnityEngine.Rendering
             if (!enabled || !gameObject.activeSelf)
                 return;
 
+
             if (m_DrawBricks)
             {
-                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                IEnumerable<ProbeReferenceVolume.Cell> cells = ProbeReferenceVolume.instance.cells.Values;
+
+                // if (ProbeReferenceVolume.instance.sub)
+
+                foreach (var cell in cells)
                 {
                     if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                         continue;

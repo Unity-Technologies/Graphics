@@ -5,6 +5,7 @@ using Unity.Collections;
 using UnityEngine.Profiling;
 using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
+using System;
 
 namespace UnityEngine.Rendering
 {
@@ -15,7 +16,7 @@ namespace UnityEngine.Rendering
         private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
         [System.Serializable]
-        public struct Brick
+        public struct Brick : IEquatable<Brick>
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
             public int subdivisionLevel;              // size as factor covered elementary cells
@@ -25,6 +26,8 @@ namespace UnityEngine.Rendering
                 this.position = position;
                 this.subdivisionLevel = subdivisionLevel;
             }
+
+            public bool Equals(Brick other) => position == other.position && subdivisionLevel == other.subdivisionLevel;
         }
 
         private struct ReservedBrick
