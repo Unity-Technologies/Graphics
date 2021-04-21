@@ -67,7 +67,6 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
       
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
-      - [XRQuest_OpenGLES3, XRQuest_Vulkan]: --artifacts_path=build/logs
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
         
       - [OSX_Metal]: --editor-location=.Editor

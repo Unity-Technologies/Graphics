@@ -32,7 +32,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
               set artifactPath=Boatattack/Quest
               set jenkinsJob=SBR_Quest_RunTest
               set jenkinsNodeLabel=Quest
-              set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -43,7 +43,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
               set artifactPath=Boatattack/Quest
               set jenkinsJob=SBR_Quest_RunTest
               set jenkinsNodeLabel=Quest
-              set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
         logs:
@@ -225,7 +225,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
               set artifactPath=Boatattack/Quest
               set jenkinsJob=SBR_Quest_RunTest
               set jenkinsNodeLabel=Quest
-              set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -236,7 +236,7 @@ URP_Performance_BoatAttack_XRQuest_OpenGLES3_performance_playmode_runtime_il2cpp
               set artifactPath=Boatattack/Quest
               set jenkinsJob=SBR_Quest_RunTest
               set jenkinsNodeLabel=Quest
-              set cmd=--architecture=ARM64 --artifacts_path=build/logs --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              set cmd=--architecture=ARM64 --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
               python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
     artifacts:
         logs:
