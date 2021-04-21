@@ -12,8 +12,6 @@ namespace UnityEngine.Rendering.Universal
         public int passIndexScreenSpace;
         public int passIndexGBuffer;
         public int drawOrder;
-        public float drawDistance;
-        public bool enabledInstancing;
         public bool isCreated;
 
         public NativeArray<float4x4> decalToWorlds;
@@ -157,8 +155,6 @@ namespace UnityEngine.Rendering.Universal
 
                 int passIndexGBuffer = material.FindPass(DecalShaderPassNames.DecalGBufferProjector);
                 cachedChunk.passIndexGBuffer = passIndexGBuffer;
-
-                cachedChunk.enabledInstancing = material.enableInstancing;
 
                 cachedChunk.isCreated = true;
             }

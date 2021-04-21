@@ -60,11 +60,13 @@ namespace UnityEngine.Rendering.Universal
     {
         private DecalEntityManager m_EntityManager;
         private ProfilingSampler m_Sampler;
+        private float m_MaxDrawDistance;
 
-        public DecalCreateDrawCallSystem(DecalEntityManager entityManager)
+        public DecalCreateDrawCallSystem(DecalEntityManager entityManager, float maxDrawDistance)
         {
             m_EntityManager = entityManager;
             m_Sampler = new ProfilingSampler("DecalCreateDrawCallSystem.Execute");
+            m_MaxDrawDistance = maxDrawDistance;
         }
 
         public void Execute()
@@ -99,6 +101,7 @@ namespace UnityEngine.Rendering.Universal
                 cullingMask = culledChunk.cullingMask,
                 visibleDecalIndices = culledChunk.visibleDecalIndices,
                 visibleDecalCount = culledChunk.visibleDecalCount,
+                maxDrawDistance = m_MaxDrawDistance,
 
                 decalToWorldsDraw = drawCallChunk.decalToWorlds,
                 normalToDecalsDraw = drawCallChunk.normalToDecals,
@@ -132,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
             public int cullingMask;
             [ReadOnly] public NativeArray<int> visibleDecalIndices;
             public int visibleDecalCount;
+            public float maxDrawDistance;
 
             [WriteOnly] public NativeArray<float4x4> decalToWorldsDraw;
             [WriteOnly] public NativeArray<float4x4> normalToDecalsDraw;
@@ -161,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                     float2 drawDistance = drawDistances[decalIndex];
 
                     float distanceToDecal = (cameraPosition - boundingSphere.position).magnitude;
-                    float cullDistance = drawDistance.x + boundingSphere.radius;
+                    float cullDistance = math.min(drawDistance.x, maxDrawDistance) + boundingSphere.radius;
                     if (distanceToDecal > cullDistance)
                         continue;
 

@@ -265,7 +265,6 @@ namespace UnityEngine.Rendering.Universal
                 cachedChunks.Add(new DecalCachedChunk()
                 {
                     propertyBlock = propertyBlock,
-                    drawDistance = 1000,
                 });
 
                 culledChunks.Add(new DecalCulledChunk());
@@ -301,10 +300,7 @@ namespace UnityEngine.Rendering.Universal
             ulong sceneLayerMask = decalProjector.gameObject.sceneCullingMask;
             float fadeFactor = decalProjector.fadeFactor;
 
-            // draw distance can't be more than global draw distance
-            cachedChunk.drawDistances[arrayIndex] = new Vector2(cachedChunk.drawDistance > drawDistance
-                ? drawDistance
-                : cachedChunk.drawDistance, fadeScale);
+            cachedChunk.drawDistances[arrayIndex] = new Vector2(drawDistance, fadeScale);
             // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
             // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
             // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2

@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DecalUpdateCachedSystem = new DecalUpdateCachedSystem(m_DecalEntityManager);
             m_DecalUpdateCulledSystem = new DecalUpdateCulledSystem(m_DecalEntityManager);
-            m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager);
+            m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager, m_Settings.maxDrawDistance);
 
             if (intermediateRendering)
             {
