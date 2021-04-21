@@ -6,7 +6,6 @@ using System.IO;
 using UnityEditorInternal;
 #endif
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
 
 namespace UnityEngine.Rendering.Universal
