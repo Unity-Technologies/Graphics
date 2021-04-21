@@ -352,10 +352,16 @@ namespace UnityEngine.Rendering.Universal
             drawCallChunk.RemoveAtSwapBack(arrayIndex);
         }
 
-        public void Sort()
+        public void Update()
         {
             using (new ProfilingScope(null, m_SortChunks))
             {
+                for (int i = 0; i < chunkCount; ++i)
+                {
+                    if (entityChunks[i].material == null)
+                        entityChunks[i].material = errorMaterial;
+                }
+
                 // Combine chunks into single array
                 for (int i = 0; i < chunkCount; ++i)
                 {
@@ -391,6 +397,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 if (!dirty)
                     return;
+
 
                 // Update chunks
                 m_MaterialToChunkIndex.Clear();

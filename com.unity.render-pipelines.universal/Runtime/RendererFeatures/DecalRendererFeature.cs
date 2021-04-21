@@ -371,13 +371,14 @@ namespace UnityEngine.Rendering.Universal
 
             RecreateSystemsIfNeeded(renderer);
 
+            m_DecalEntityManager.Update();
+
+
             m_DecalUpdateCachedSystem.Execute();
 
             if (intermediateRendering)
             {
                 m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
-
-                m_DecalEntityManager.Sort();
             }
             else
             {
