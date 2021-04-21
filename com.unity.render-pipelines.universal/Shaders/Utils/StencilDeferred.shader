@@ -184,10 +184,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 unityLight.shadowAttenuation = 1.0;
             else
             {
-                #if defined(_MAIN_LIGHT_SHADOWS)
-                    float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                    unityLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
-                    unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
+                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                    #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                        float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
+                    #else
+                        float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                    #endif
+                    unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                 #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
                     unityLight.shadowAttenuation = AdditionalLightRealtimeShadow(_ShadowLightIndex, posWS.xyz);
                     unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
@@ -382,8 +385,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -423,8 +425,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT

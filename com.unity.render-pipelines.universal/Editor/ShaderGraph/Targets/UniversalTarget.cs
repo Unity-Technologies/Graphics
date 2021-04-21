@@ -710,19 +710,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
-            referenceName = "_MAIN_LIGHT_SHADOWS",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-        };
-
-        public static readonly KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
-        {
-            displayName = "Main Light Shadows Cascade",
-            referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
+                new KeywordEntry() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
+            }
         };
 
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()

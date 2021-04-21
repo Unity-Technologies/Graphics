@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.Universal
         Material m_BlitMaterial;
         Material m_CopyDepthMaterial;
         Material m_SamplingMaterial;
-        Material m_ScreenspaceShadowsMaterial;
         Material m_TileDepthInfoMaterial;
         Material m_TileDeferredMaterial;
         Material m_StencilDeferredMaterial;
@@ -102,7 +101,6 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
-            m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
             //m_TileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
             //m_TileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
@@ -128,9 +126,9 @@ namespace UnityEngine.Rendering.Universal
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
             m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 2, m_CopyDepthMaterial);
 #endif
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -234,7 +232,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
-            CoreUtils.Destroy(m_ScreenspaceShadowsMaterial);
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);

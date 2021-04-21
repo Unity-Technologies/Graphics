@@ -209,6 +209,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                     ref var blendStyle = ref rendererData.lightBlendStyles[i];
                     blendStyleNames.Add(blendStyle.name);
+
                     m_AnyBlendStyleEnabled = true;
                 }
             }
