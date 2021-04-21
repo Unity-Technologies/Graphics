@@ -32,9 +32,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>Default white XR 2D texture.</summary>
         public TextureHandle whiteTextureXR { get; private set; }
 
-        /// <summary>Default opaque black XR 2D texture.</summary>
-        public TextureHandle opaqueBlackTextureXR { get; private set; }
-
         internal RenderGraphDefaultResources()
         {
             m_BlackTexture2D = RTHandles.Alloc(Texture2D.blackTexture);
@@ -59,7 +56,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture());
             blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D());
             whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture());
-            opaqueBlackTextureXR = renderGraph.ImportTexture(TextureXR.GetOpaqueBlackTexture());
         }
     }
 }
