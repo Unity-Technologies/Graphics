@@ -96,21 +96,34 @@ namespace UnityEngine.Experimental.Rendering
                 serializedObject.Update();
 
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-                bool foundInconsistency = false;
+                bool mismatchedProfile = false;
+                bool mismatchedTransform = false;
                 if (probeReferenceVolumes.Length > 1)
                 {
                     foreach (var o1 in probeReferenceVolumes)
                     {
                         foreach (var o2 in probeReferenceVolumes)
                         {
-                            if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
+                            if (!o1.profile.IsEquivalent(o2.profile))
                             {
-                                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
-                                    + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                                foundInconsistency = true;
+                                mismatchedProfile = true;
                             }
-                            if (foundInconsistency) break;
+                            if (o1.transform.worldToLocalMatrix != o2.transform.worldToLocalMatrix)
+                            {
+                                mismatchedTransform = true;
+                            }
                         }
+                    }
+
+                    if (mismatchedProfile)
+                    {
+                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
+                            + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                    }
+                    if (mismatchedTransform)
+                    {
+                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
+                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 

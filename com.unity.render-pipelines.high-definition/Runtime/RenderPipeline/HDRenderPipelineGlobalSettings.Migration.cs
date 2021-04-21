@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             First,
-            MigratedFromHDRPAssetOrCreated
+            MigratedFromHDRPAssetOrCreated,
+            UpdateMSAA,
         }
 
         // Sadly we cannot create asset at last version
@@ -27,6 +28,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // if possible we need to finish migration of hdrpAsset in order to grab value from it
                 if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
                     (hdrpAsset as IMigratableAsset).Migrate();
+            }),
+            MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
+            {
+                FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
             })
         );
         bool IMigratableAsset.Migrate()
@@ -115,5 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
+        void OnEnable()
+            => (this as IMigratableAsset).Migrate();
     }
 }
