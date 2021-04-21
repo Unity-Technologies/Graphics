@@ -177,6 +177,49 @@ namespace UnityEngine.Rendering.Tests
                         m_Resources.Prefab_Animator_WithoutMaterialProperties,
                         m_Resources.Variant_Animator_WithoutMaterialProperties
                     }
+                },
+                // PlayableDirector
+                {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_NoMaterials,
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_NoRenderer
+                    }
+                }, {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_Upgradable,
+                        m_Resources.Variant_Timeline_WithMaterialProperties_Upgradable
+                    }
+                }, {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_NotUpgradable,
+                        m_Resources.Variant_Timeline_WithMaterialProperties_NotUpgradable
+                    }
+                }, {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_Upgradable_AlsoUsedByNotUpgradable,
+                        m_Resources.Prefab_Timeline_WithMaterialProperties_NotUpgradable_AlsoUsedByUpgradable,
+                    }
+                }, {
+                    m_Resources.Clip_Timeline_WithoutMaterialProperties,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_WithoutMaterialProperties,
+                        m_Resources.Variant_Timeline_WithoutMaterialProperties
+                    }
+                }, {
+                    m_Resources.Clip_Timeline_Standalone_WithMaterialProperties_Upgradable,
+                    new PrefabPath[]
+                    {
+                        m_Resources.Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable
+                    }
                 }
             };
 
@@ -307,6 +350,82 @@ namespace UnityEngine.Rendering.Tests
                     {
                         m_Resources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable
                     }
+                },
+                // PlayableDirector
+                {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_Upgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable
+                    }
+                },
+                {
+                    m_Resources.Variant_Timeline_WithMaterialProperties_Upgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable
+                    }
+                } , {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_NotUpgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable
+                    }
+                },
+                {
+                    m_Resources.Variant_Timeline_WithMaterialProperties_NotUpgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable
+                    }
+                }, {
+                    m_Resources.Prefab_Timeline_WithoutMaterialProperties,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithoutMaterialProperties
+                    }
+                },
+                {
+                    m_Resources.Variant_Timeline_WithoutMaterialProperties,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithoutMaterialProperties
+                    }
+                },
+                {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_NoMaterials,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable
+                    }
+                },
+                {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_NoRenderer,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable
+                    }
+                },
+                {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_NotUpgradable_AlsoUsedByUpgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable
+                    }
+                },
+                {
+                    m_Resources.Prefab_Timeline_WithMaterialProperties_Upgradable_AlsoUsedByNotUpgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable
+                    }
+                },
+                {
+                    m_Resources.Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_Standalone_WithMaterialProperties_Upgradable
+                    }
                 }
             };
         }
@@ -387,6 +506,39 @@ namespace UnityEngine.Rendering.Tests
                     {
                         m_Resources.Scene_Animator_WithoutMaterialProperties
                     }
+                },
+                // PlayableDirector
+                {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable,
+                    new ScenePath[]
+                    {
+                    }
+                },
+                {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable,
+                    new ScenePath[]
+                    {
+                        m_Resources.Scene_Timeline_WithMaterialProperties_Upgradable
+                    }
+                },
+                {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable,
+                    new ScenePath[]
+                    {
+                    }
+                },
+                {
+                    m_Resources.Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable,
+                    new ScenePath[]
+                    {
+                    }
+                },
+                {
+                    m_Resources.Clip_Timeline_WithoutMaterialProperties,
+                    new ScenePath[]
+                    {
+                        m_Resources.Scene_Timeline_WithoutMaterialProperties
+                    }
                 }
             };
 
@@ -425,6 +577,21 @@ namespace UnityEngine.Rendering.Tests
                     {
                         m_Resources.Clip_Animator_WithoutMaterialProperties
                     }
+                },
+                // PlayableDirector
+                {
+                    m_Resources.Scene_Timeline_WithMaterialProperties_Upgradable,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable
+                    }
+                },
+                {
+                    m_Resources.Scene_Timeline_WithoutMaterialProperties,
+                    new ClipPath[]
+                    {
+                        m_Resources.Clip_Timeline_WithoutMaterialProperties
+                    }
                 }
             };
         }
@@ -443,17 +610,20 @@ namespace UnityEngine.Rendering.Tests
         {
             var animationClip = m_Resources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable;
             var animatorClip = m_Resources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable;
+            var timelineClip = m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable;
 
             var result = AnimationClipUpgrader.GetAssetDataForClipsFiltered(new ClipPath[]
             {
                 m_Resources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable,
                 m_Resources.Clip_Animation_WithoutMaterialProperties,
                 m_Resources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable,
-                m_Resources.Clip_Animator_WithoutMaterialProperties
+                m_Resources.Clip_Animator_WithoutMaterialProperties,
+                m_Resources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable,
+                m_Resources.Clip_Timeline_WithoutMaterialProperties
             });
             var actualKeys = result.Keys.Select(k => k.Clip);
 
-            Assert.That(actualKeys, Is.EquivalentTo(new[] { animationClip, animatorClip }));
+            Assert.That(actualKeys, Is.EquivalentTo(new[] { animationClip, animatorClip, timelineClip }));
         }
 
         [Test]
@@ -470,37 +640,79 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [TestCase(
-            nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable),
             nameof(TestResources.Prefab_Animation_WithMaterialProperties_NoRenderer),
-            TestName = "Animation, no renderer"
-            )]
-        [TestCase(
             nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animation, no renderer = Unknown"
+        )]
+        [TestCase(
             nameof(TestResources.Prefab_Animation_WithMaterialProperties_NoMaterials),
-            TestName = "Animation, no materials"
+            nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animation, no materials = Unknown"
         )]
         [TestCase(
-            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
             nameof(TestResources.Prefab_Animator_WithMaterialProperties_NoRenderer),
-            TestName = "Animator, no renderer"
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animator, no renderer = Unknown"
         )]
         [TestCase(
-            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
             nameof(TestResources.Prefab_Animator_WithMaterialProperties_NoMaterials),
-            TestName = "Animator, no materials"
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animator, no materials = Unknown"
         )]
-        public void GatherClipsUsageInDependentPrefabs_WhenNoTarget_ReturnsEmpty(
-            string clipName,
-            string prefabName
+        [TestCase(
+            nameof(TestResources.Prefab_Timeline_WithMaterialProperties_NoRenderer),
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName ="Timeline, no renderer = Unknown"
+        )]
+        [TestCase(
+            nameof(TestResources.Prefab_Timeline_WithMaterialProperties_NoMaterials),
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName ="Timeline, no materials = Unknown"
+        )]
+        [TestCase(
+            nameof(TestResources.Prefab_Animator_WithMaterialProperties_Upgradable),
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Animator, with materials = UsedByNonUpgraded"
+        )]
+        [TestCase(
+            nameof(TestResources.Prefab_Animation_WithMaterialProperties_Upgradable),
+            nameof(TestResources.Clip_Animation_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Animation, with materials = UsedByNonUpgraded"
+        )]
+        [TestCase(
+            nameof(TestResources.Prefab_Timeline_WithMaterialProperties_Upgradable),
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Timeline with materials using nested clip = UsedByNonUpgraded"
+        )]
+        [TestCase(
+            nameof(TestResources.Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable),
+            nameof(TestResources.Clip_Timeline_Standalone_WithMaterialProperties_Upgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Timeline with materials using standalone clip = UsedByNonUpgraded"
+        )]
+        public SerializedShaderPropertyUsage GatherClipsUsageInDependentPrefabs_WhenUsingSpecifiedClipProvider_ReturnsExpectedUsage(
+            string prefabName,
+            string clipName
         )
         {
             var clipPath =
                 (ClipPath)(typeof(TestResources).GetField(clipName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(m_Resources) as AnimationClip);
             Assume.That(clipPath.Path, Is.Not.Null.And.Not.Empty);
+
             var prefabPath =
                 (PrefabPath)(typeof(TestResources).GetField(prefabName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(m_Resources) as GameObject);
             Assume.That(prefabPath.Path, Is.Not.Null.And.Not.Empty);
-            AnimationClipUpgrader.GetClipDependencyMappings(new[] { clipPath }, new[] { prefabPath }, out var clipDependents, out var prefabDependencies);
+            var clipPaths = new[] { clipPath };
+            AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, new[] { prefabPath }, out var clipDependents, out var prefabDependencies);
             var materialUpgrader = new MaterialUpgrader();
             materialUpgrader.RenameShader(
                 m_Resources.Material_Legacy_Upgradable.shader.name, m_Resources.Material_URP.shader.name
@@ -511,10 +723,8 @@ namespace UnityEngine.Rendering.Tests
             {
                 { m_Resources.Material_URP.shader.name, new[] { materialUpgrader } }
             };
-            var clipData = new Dictionary<
-                IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
-            >();
+
+            var clipData = AnimationClipUpgrader.GetAssetDataForClipsFiltered(clipPaths);
 
             AnimationClipUpgrader.GatherClipsUsageInDependentPrefabs(
                 clipDependents,
@@ -524,7 +734,7 @@ namespace UnityEngine.Rendering.Tests
                 upgradePathsUsedByMaterials: null
             );
 
-            Assert.That(clipData, Is.Empty);
+            return clipData.Values.Single().Usage;
         }
     }
 }
