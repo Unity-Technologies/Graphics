@@ -183,6 +183,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
                 data.m_ObsoleteBeforeTAACustomPostProcesses = null;
                 data.m_ObsoleteDiffusionProfileSettingsList = null;
+
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName0 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName1 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName2 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName3 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName4 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName5 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName6 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName7 = null;
+
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName0 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName1 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName2 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName3 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName4 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName5 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName6 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName7 = null;
 #pragma warning restore 618
             })
         );
