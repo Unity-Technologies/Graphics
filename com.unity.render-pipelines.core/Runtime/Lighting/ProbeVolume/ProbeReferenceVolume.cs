@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             internal string sourceAsset;
             internal int indexInAsset;
-            internal float distanceToCamera;
+            internal float distanceToCamera = 0;
             internal Vector3 position;
 
             public int CompareTo(object obj)
@@ -395,8 +395,16 @@ namespace UnityEngine.Experimental.Rendering
             var path = asset.GetSerializedFullPath();
             m_AssetPathToBricks[path] = new List<RegId>();
 
-            foreach (var cell in asset.cells)
+
+            for (int i = 0; i < asset.cells.Count; ++i)
             {
+                var cell = asset.cells[i];
+                CellSortInfo sortInfo = new CellSortInfo();
+                sortInfo.indexInAsset = i;
+                sortInfo.position = asset.cellLocations[i]; // TODO_FCC: Not needed?!
+                sortInfo.sourceAsset = asset.GetSerializedFullPath();
+                m_CellsToBeLoaded.Add(sortInfo);
+
                 // Push data to HDRP
                 bool compressed = false;
                 var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
