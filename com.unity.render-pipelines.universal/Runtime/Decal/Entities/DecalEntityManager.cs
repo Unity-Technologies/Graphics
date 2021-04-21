@@ -255,10 +255,16 @@ namespace UnityEngine.Rendering.Universal
         {
             if (!m_MaterialToChunkIndex.TryGetValue(material, out int chunkIndex))
             {
+                var propertyBlock = new MaterialPropertyBlock();
+
+                // In order instanced and non instanced rendering to work with _NormalToWorld
+                // We need to make sure array is created with maximum size
+                propertyBlock.SetMatrixArray("_NormalToWorld", new Matrix4x4[250]);
+
                 entityChunks.Add(new DecalEntityChunk() { material = material });
                 cachedChunks.Add(new DecalCachedChunk()
                 {
-                    propertyBlock = new MaterialPropertyBlock(),
+                    propertyBlock = propertyBlock,
                     drawDistance = 1000,
                 });
 

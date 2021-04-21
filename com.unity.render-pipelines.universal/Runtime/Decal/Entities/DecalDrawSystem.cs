@@ -20,10 +20,6 @@ namespace UnityEngine.Rendering.Universal
             m_WorldToDecals = new Matrix4x4[250];
             m_NormalToDecals = new Matrix4x4[250];
 
-            // In order instanced and non instanced rendering to work with _NormalToWorld
-            // We need to make sure array is created with maximum size
-            Shader.SetGlobalMatrixArray("_NormalToWorld", m_NormalToDecals);
-
             m_Sampler = new ProfilingSampler(sampler);
         }
 
