@@ -106,12 +106,12 @@ namespace UnityEngine.Rendering
         /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
         /// <param name="name">Name of the RTHandle.</param>
-        /// <returns></returns>
+        /// <returns>A new RTHandle.</returns>
         public static RTHandle Alloc(
             Vector2 scaleFactor,
             int slices = 1,
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering
             bool isShadowMap = false,
             int anisoLevel = 1,
             float mipMapBias = 0,
-            bool enableMSAA = false,
+            MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering
                 isShadowMap,
                 anisoLevel,
                 mipMapBias,
-                enableMSAA,
+                msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering
         /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="enableMSAA">Enable MSAA for this RTHandle.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="bindTextureMS">Set to true if the texture needs to be bound as a multisampled texture in the shader.</param>
         /// <param name="useDynamicScale">Set to true to use hardware dynamic scaling.</param>
         /// <param name="memoryless">Use this property to set the render texture memoryless modes.</param>
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering
             bool isShadowMap = false,
             int anisoLevel = 1,
             float mipMapBias = 0,
-            bool enableMSAA = false,
+            MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering
                 isShadowMap,
                 anisoLevel,
                 mipMapBias,
-                enableMSAA,
+                msaaSamples,
                 bindTextureMS,
                 useDynamicScale,
                 memoryless,
@@ -272,21 +272,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Initial reference rendering width.</param>
         /// <param name="height">Initial reference rendering height.</param>
-        /// <param name="scaledRTsupportsMSAA">Set to true if automatically scaled RTHandles should support MSAA</param>
-        /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
-        public static void Initialize(
-            int width,
-            int height,
-            bool scaledRTsupportsMSAA,
-            MSAASamples scaledRTMSAASamples
-        )
+        public static void Initialize(int width, int height)
         {
-            s_DefaultInstance.Initialize(
-                width,
-                height,
-                scaledRTsupportsMSAA,
-                scaledRTMSAASamples
-            );
+            s_DefaultInstance.Initialize(width, height);
         }
 
         /// <summary>
@@ -312,18 +300,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Reference rendering width for subsequent rendering.</param>
         /// <param name="height">Reference rendering height for subsequent rendering.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
-        public static void SetReferenceSize(
-            int width,
-            int height,
-            MSAASamples msaaSamples
-        )
+        public static void SetReferenceSize(int width, int height)
         {
-            s_DefaultInstance.SetReferenceSize(
-                width,
-                height,
-                msaaSamples
-            );
+            s_DefaultInstance.SetReferenceSize(width, height);
         }
 
         /// <summary>
