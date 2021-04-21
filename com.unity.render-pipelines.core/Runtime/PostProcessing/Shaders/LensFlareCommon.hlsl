@@ -124,9 +124,16 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 
     float screenRatio = _ScreenRatio;
 
-    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID % 6) - float4(1.0f, 1.0f, 0.0f, 0.0);
-    output.texcoord = GetQuadTexCoord(input.vertexID % 6);
-    output.texcoord.x = 1.0f - output.texcoord.x;
+#if SHADER_API_GLES
+    float4 posPreScale = input.positionCS;
+    float2 uv = input.uv;
+#else
+    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
+    float2 uv = GetQuadTexCoord(input.vertexID);
+    uv.x = 1.0f - uv.x;
+#endif
+
+    output.texcoord.xy = uv;
 
     posPreScale.xy *= _FlareSize;
     float2 local = Rotate(posPreScale.xy, _LocalCos0, _LocalSin0);

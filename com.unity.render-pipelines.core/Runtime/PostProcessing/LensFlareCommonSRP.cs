@@ -559,7 +559,7 @@ namespace UnityEngine
                         cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
                         cmd.SetGlobalVector(_FlareColorValue, curColor);
 
-                        cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                        UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
                     }
                     else
                     {
