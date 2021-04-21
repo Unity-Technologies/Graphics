@@ -71,8 +71,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+            // Always add the alpha and alpha clip blocks. These may or may not be active depending on the material controls so we have to always add them.
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
