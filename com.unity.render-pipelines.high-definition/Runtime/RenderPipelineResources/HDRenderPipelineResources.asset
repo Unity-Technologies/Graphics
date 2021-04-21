@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba, type: 3}
@@ -55,8 +55,8 @@ MonoBehaviour:
     clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040, type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
     copyDepthBufferPS: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
-    blitPS: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
-    blitColorAndDepthPS: {fileID: 4800000, guid: c6e57f5bdbd2a284a86a3097c03884c8, type: 3}
+    blitPS: {fileID: 4800000, guid: e22fc1942c664490980b8793dd4a163d, type: 3}
+    blitColorAndDepthPS: {fileID: 4800000, guid: b22ad378c678348729d3a3f981b9f270, type: 3}
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3, type: 3}
     resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
