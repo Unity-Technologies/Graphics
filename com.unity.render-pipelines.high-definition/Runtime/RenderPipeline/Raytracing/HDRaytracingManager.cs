@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
-        Dictionary<int, bool> m_MaterialValidityCache = new Dictionary<int, bool>();
+        Dictionary<int, bool> m_ShaderValidityCache = new Dictionary<int, bool>();
 
         // Used to detect material and transform changes for Path Tracing
         Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
@@ -122,21 +122,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool isValid;
 
-            // We use a cache, to speed up the case where materials are reused many times
-            int matId = currentMaterial.GetInstanceID();
-            if (m_MaterialValidityCache.TryGetValue(matId, out isValid))
+            // We use a cache, to speed up the case where materials/shaders are reused many times
+            int shaderId = currentMaterial.shader.GetInstanceID();
+            if (m_ShaderValidityCache.TryGetValue(shaderId, out isValid))
                 return isValid;
 
             // For the time being, we only consider non-decal HDRP materials as valid
-            // (testing the shader name is faster, but won't work on shader graph materials)
-            if (currentMaterial.shader.name.Substring(0, 5) == "HDRP/")
-                isValid = currentMaterial.shader.name.Substring(5) != "Decal";
-            else if (currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline")
-                isValid = !DecalSystem.IsDecalMaterial(currentMaterial);
-            else
-                isValid = false;
+            isValid = currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" ?
+                !DecalSystem.IsDecalMaterial(currentMaterial) : false;
 
-            m_MaterialValidityCache.Add(matId, isValid);
+            m_ShaderValidityCache.Add(shaderId, isValid);
 
             return isValid;
         }
@@ -348,7 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingLights.hdRectLightArray.Clear();
             m_RayTracingLights.hdLightArray.Clear();
             m_RayTracingLights.reflectionProbeArray.Clear();
-            m_MaterialValidityCache.Clear();
             m_RayTracingLights.lightCount = 0;
             m_CurrentRAS.Dispose();
             m_CurrentRAS = new RayTracingAccelerationStructure();
