@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor
 {
@@ -18,9 +18,9 @@ namespace UnityEditor
             base.FindProperties(properties);
         }
 
-        public static void UpdateMaterial(Material material)
+        public static void UpdateMaterial(Material material, MaterialUpdateType updateType)
         {
-            BaseShaderGUI.SetMaterialKeywords(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material);
         }
 
         public override void MaterialChanged(Material material)
@@ -28,7 +28,7 @@ namespace UnityEditor
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            UpdateMaterial(material);
+            UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial);
         }
 
         // material main surface inputs

@@ -7,6 +7,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEditor.ShaderGraph;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
 using UnityEngine.Rendering.Universal;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor
 {
@@ -402,7 +403,8 @@ namespace UnityEditor
         ////////////////////////////////////
         #region MaterialDataFunctions
 
-        public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
+        // this function is shared with ShaderGraph Lit/Unlit GUIs and also the hand-written GUIs
+        internal static void UpdateMaterialSurfaceOptions(Material material)
         {
             // Setup blending - consistent across all Universal RP shaders
             SetupMaterialBlendMode(material);
@@ -442,38 +444,40 @@ namespace UnityEditor
                 if (doubleSidedGI != material.doubleSidedGI)
                     material.doubleSidedGI = doubleSidedGI;
             }
+        }
 
-            if (!isShaderGraph)
+        // this is the function used by Lit.shader, Unlit.shader GUIs
+        public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
+        {
+            UpdateMaterialSurfaceOptions(material);
+
+            // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
+            if (material.HasProperty("_MainTex"))
             {
-                // TODO: This should be moved outside of the BaseShaderGUI class if it is not generic
-                // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
-                if (material.HasProperty("_MainTex"))
-                {
-                    material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
-                    material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
-                    material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
-                }
-                if (material.HasProperty("_Color"))
-                    material.SetColor("_Color", material.GetColor("_BaseColor"));
-
-                // Emission
-                if (material.HasProperty(Property.EmissionColor))
-                    MaterialEditor.FixupEmissiveFlag(material);
-
-                bool shouldEmissionBeEnabled =
-                    (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
-
-                // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
-                // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
-                if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
-                    shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
-
-                CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, shouldEmissionBeEnabled);
-
-                // Normal Map
-                if (material.HasProperty("_BumpMap"))
-                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
+                material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
+                material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
+                material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
             }
+            if (material.HasProperty("_Color"))
+                material.SetColor("_Color", material.GetColor("_BaseColor"));
+
+            // Emission
+            if (material.HasProperty(Property.EmissionColor))
+                MaterialEditor.FixupEmissiveFlag(material);
+
+            bool shouldEmissionBeEnabled =
+                (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+
+            // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
+            // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
+            if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
+                shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
+
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, shouldEmissionBeEnabled);
+
+            // Normal Map
+            if (material.HasProperty("_BumpMap"))
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
@@ -599,7 +603,7 @@ namespace UnityEditor
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
             // Setup keywords based on the new shader
-            Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material);
+            UpdateMaterial(material, MaterialUpdateType.ChangedAssignedShader);
         }
 
         #endregion

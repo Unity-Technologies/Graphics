@@ -1,15 +1,9 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEditor.UIElements;
-using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
-
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
-using UnityEditor.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
@@ -61,7 +55,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // call the full unlit material setup function
-            ShaderGraphUnlitGUI.UpdateMaterial(material);
+            ShaderGraphUnlitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
         }
 
         public override void GetFields(ref TargetFieldContext context)

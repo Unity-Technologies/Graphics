@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.Universal
         static void InitializeLatest(Material material, ShaderID id)
         {
             // newly created materials should reset their keywords immediately (in case inspector doesn't get invoked)
-            Unity.Rendering.Universal.ShaderUtils.ResetMaterialKeywords(material, id);
+            Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial, id);
         }
 
         static void UpgradeV1(Material material, ShaderID shaderID)

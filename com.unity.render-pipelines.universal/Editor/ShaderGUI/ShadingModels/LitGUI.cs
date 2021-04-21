@@ -1,9 +1,6 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEditor.Rendering.Universal;
-using static UnityEditor.ShaderGraph.GraphUtil;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {

@@ -53,8 +53,17 @@ namespace Unity.Rendering.Universal
             }
         }
 
-        // this is used to reset a material's keywords, based on the ShaderID it is using
-        internal static void ResetMaterialKeywords(Material material, ShaderID shaderID = ShaderID.Unknown)
+        internal enum MaterialUpdateType
+        {
+            CreatedNewMaterial,
+            ChangedAssignedShader,
+            ModifiedShader,
+            ModifiedMaterial
+        }
+
+        // this is used to update a material's keywords, applying any shader-associated logic to update dependent properties and keywords
+        // this is also invoked when a material is created, modified, or the material's shader is modified or reassigned
+        internal static void UpdateMaterial(Material material, MaterialUpdateType updateType, ShaderID shaderID = ShaderID.Unknown)
         {
             // if unknown, look it up from the material's shader
             // NOTE: this will only work for asset-based shaders..
@@ -82,10 +91,10 @@ namespace Unity.Rendering.Universal
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
                 case ShaderID.SG_Lit:
-                    ShaderGraphLitGUI.UpdateMaterial(material);
+                    ShaderGraphLitGUI.UpdateMaterial(material, updateType);
                     break;
                 case ShaderID.SG_Unlit:
-                    ShaderGraphUnlitGUI.UpdateMaterial(material);
+                    ShaderGraphUnlitGUI.UpdateMaterial(material, updateType);
                     break;
                 default:
                     break;

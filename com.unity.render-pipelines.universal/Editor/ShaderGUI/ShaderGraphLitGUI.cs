@@ -2,8 +2,7 @@ using System;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph;
+using static Unity.Rendering.Universal.ShaderUtils;
 
 namespace UnityEditor
 {
@@ -28,9 +27,13 @@ namespace UnityEditor
             workflowMode = BaseShaderGUI.FindProperty(Property.SpecularWorkflowMode, properties, false);
         }
 
-        public static void UpdateMaterial(Material material)
+        public static void UpdateMaterial(Material material, MaterialUpdateType updateType)
         {
-            BaseShaderGUI.SetMaterialKeywords(material);
+            // newly created materials should initialize the globalIlluminationFlags (default is off)
+            if (updateType == MaterialUpdateType.CreatedNewMaterial)
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
+
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
@@ -39,7 +42,7 @@ namespace UnityEditor
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            UpdateMaterial(material);
+            UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial);
         }
 
         public override void DrawSurfaceOptions(Material material)
@@ -65,6 +68,7 @@ namespace UnityEditor
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
             materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
+            materialEditor.DoubleSidedGIField();
         }
 
         // material main surface inputs

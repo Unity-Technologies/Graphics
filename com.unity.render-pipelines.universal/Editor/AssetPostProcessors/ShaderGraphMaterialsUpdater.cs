@@ -1,5 +1,4 @@
 using Unity.Rendering.Universal;
-using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
@@ -57,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
 
                     // Reset keywords
                     if ((material != null) && material.shader.name == shader.name)
-                        ShaderUtils.ResetMaterialKeywords(material);
+                        ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
 
                     material = null;
 
