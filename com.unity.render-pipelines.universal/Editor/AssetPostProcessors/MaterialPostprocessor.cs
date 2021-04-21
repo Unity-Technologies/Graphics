@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.Universal
                         {
                             // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
                             // so if we see a ShaderGraph material with no assetVersion, set it to 4 to ensure we apply all necessary versions.
-                            assetVersion.version = 4;
+                            assetVersion.version = 5;
                             debug += $" shadergraph material assumed to be version 4 due to missing version.";
                         }
                         else
@@ -287,7 +287,26 @@ namespace UnityEditor.Rendering.Universal
         }
 
         static void UpgradeV4(Material material, ShaderID shaderID)
+        {}
+
+        static void UpgradeV5(Material material, ShaderID shaderID)
         {
+            if (shaderID.IsShaderGraph())
+                return;
+
+            var propertyID = Shader.PropertyToID("_Surface");
+            if (material.HasProperty(propertyID))
+            {
+                float surfaceType = material.GetFloat(propertyID);
+                if (surfaceType >= 1.0f)
+                {
+                    material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+                else
+                {
+                    material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+            }
         }
     }
 

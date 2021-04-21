@@ -29,13 +29,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
-            m_CloudLayerMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cloudLayerPS);
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            m_CloudLayerMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.cloudLayerPS);
 
-            s_BakeCloudTextureCS = hdrp.renderPipelineResources.shaders.bakeCloudTextureCS;
+            s_BakeCloudTextureCS = globalSettings.renderPipelineResources.shaders.bakeCloudTextureCS;
             s_BakeCloudTextureKernel = s_BakeCloudTextureCS.FindKernel("BakeCloudTexture");
 
-            s_BakeCloudShadowsCS = hdrp.renderPipelineResources.shaders.bakeCloudShadowsCS;
+            s_BakeCloudShadowsCS = globalSettings.renderPipelineResources.shaders.bakeCloudShadowsCS;
             s_BakeCloudShadowsKernel = s_BakeCloudShadowsCS.FindKernel("BakeCloudShadows");
         }
 

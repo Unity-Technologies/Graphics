@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
+    public static class LitGUI
     {
         public enum WorkflowMode
         {
