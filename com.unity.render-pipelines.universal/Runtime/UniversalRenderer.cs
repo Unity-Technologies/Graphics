@@ -156,24 +156,7 @@ namespace UnityEngine.Rendering.Universal
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.usesRenderPass = data.useNativeRenderPass;
 
-#if !UNITY_ANDROID && !UNITY_IOS
-            this.m_CanUseDepthPriming = true;
-
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(SystemInfo.graphicsDeviceVendor, "ARM", CompareOptions.IgnoreCase) >= 0)
-            {
-                this.m_CanUseDepthPriming = false;
-            }
-#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-            if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(SystemInfo.graphicsDeviceVendor, "SILICON", CompareOptions.IgnoreCase) >= 0)
-            {
-                this.m_CanUseDepthPriming = false;
-            }
-#endif
-
-#else
-            this.m_CanUseDepthPriming = false;
-#endif
+            this.m_CanUseDepthPriming = !SystemInfo.hasHiddenSurfaceRemovalOnGPU;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
