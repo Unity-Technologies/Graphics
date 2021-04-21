@@ -9,6 +9,7 @@
 
 #pragma kernel Uber
 
+#pragma multi_compile _ DRUNK
 #pragma multi_compile _ CHROMATIC_ABERRATION
 #pragma multi_compile _ VIGNETTE
 #pragma multi_compile _ LENS_DISTORTION
@@ -32,6 +33,7 @@ SAMPLER(sampler_VignetteMask);
 
 CBUFFER_START(cb0)
     float4 _ChromaParams;
+    float4 _Drunk;
     float4 _VignetteParams1;
     float4 _VignetteParams2;
     float4 _VignetteColor;
@@ -46,6 +48,9 @@ CBUFFER_START(cb0)
     float4 _DebugFlags;
     float4 _AlphaScaleBias;
 CBUFFER_END
+
+#define drunkIntensity          _Drunk.x
+#define drunkTime		        _Drunk.y
 
 #define DistCenter              _DistortionParams1.xy
 #define DistAxis                _DistortionParams1.zw
@@ -181,6 +186,72 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         inputColor.xyz = color.xyz;
 #endif
     }
+	
+#ifdef DRUNK
+	UNITY_BRANCH
+	if(drunkIntensity > 0){
+		
+		//To do :
+		// Make that work with chromatic abberation
+		// Correct stacked intensities
+		// Comment and clearer code
+		// Optimize
+		
+		//Here we simply distort the UV horizontally and vertically
+		float speedMultiplier = .5;
+		float2 speeds = float2(0.95 * speedMultiplier, 1.05 * speedMultiplier);
+
+		float2 factors = float2(sin(drunkTime*speeds.x)+1, cos(drunkTime*speeds.y)+1);
+		
+		float2 drunkIntensities = float2(factors.x * drunkIntensity, factors.y * drunkIntensity);
+		drunkIntensities.x = 1 - (drunkIntensities.x)/10;
+		drunkIntensities.y = 1 - (drunkIntensities.x)/10;
+		
+		float2 center = float2(-.5, -.5);
+		float2 uvOffset = uv+center;
+		float2 uvScaled = float2(uvOffset.x*drunkIntensities.x, uvOffset.y*drunkIntensities.y);
+		float2 uvFinal = uvScaled - center;
+		float3 stretched = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(uvFinal)), 0.0).xyz;
+		
+		
+		//Here we sample 2 more version en the diagonals and radial blur results
+		float3 moved = float3(0,0,0);
+		float passes = 1;	//
+		for(int k=-passes; k<=passes; k++){
+			
+			if(k != 0){
+				
+				const float Deg2Rad = 0.017453293;
+				uint samp = drunkIntensity * 16;
+
+				if (samp < 1)	samp = 1;
+				
+				for (float l = 0; l < samp; l++)
+				{
+					
+					float2 offset = float2(k*sin(drunkTime*speeds.x), k*cos(drunkTime*speeds.y)) * .025 * drunkIntensity;
+					float intensity = 0.5/passes;
+					float2 uv2 = uvFinal + offset;
+				
+					float rotationRadians = l * Deg2Rad / samp * (sin(drunkTime) * 8);
+					float s = sin(-rotationRadians);
+					float c = cos(-rotationRadians);
+					float2x2 rotationMatrix = float2x2(c, -s, s, c);
+					uv2 -= abs(center);
+					uv2 = mul(rotationMatrix, uv2);
+					uv2 += abs(center);
+					float3 t = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(uv2)), 0.0).xyz * intensity;
+					t *= 1.0 / samp;
+					moved += t;
+				}
+
+			}
+		}
+		
+		//Add the two effect together
+		color.xyz = stretched + moved;
+	}
+#endif
 
     // Vignette
 #ifdef VIGNETTE

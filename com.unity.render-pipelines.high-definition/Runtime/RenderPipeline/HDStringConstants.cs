@@ -804,6 +804,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");
+		
+        public static readonly int _Drunk		                   = Shader.PropertyToID("_Drunk");
 
         public static readonly int _AlphaScaleBias                 = Shader.PropertyToID("_AlphaScaleBias");
 

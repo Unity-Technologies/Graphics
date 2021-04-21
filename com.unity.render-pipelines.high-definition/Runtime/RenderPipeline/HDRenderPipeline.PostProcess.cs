@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         ChromaticAberration m_ChromaticAberration;
+        Drunk m_Drunk;
         LensDistortion m_LensDistortion;
         Vignette m_Vignette;
         Tonemapping m_Tonemapping;
@@ -89,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
         bool m_ChromaticAberrationFS;
+        bool m_DrunkFS;
         bool m_LensDistortionFS;
         bool m_VignetteFS;
         bool m_ColorGradingFS;
@@ -244,6 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
+            m_Drunk = stack.GetComponent<Drunk>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_Vignette = stack.GetComponent<Vignette>();
             m_Tonemapping = stack.GetComponent<Tonemapping>();
@@ -266,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
             m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
+            m_DrunkFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
             m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
             m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
@@ -3590,6 +3594,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var flags = UberPostFeatureFlags.None;
 
+			if (m_Drunk.IsActive() && m_DrunkFS)
+                flags |= UberPostFeatureFlags.Drunk;
+				
             if (m_ChromaticAberration.IsActive() && m_ChromaticAberrationFS)
                 flags |= UberPostFeatureFlags.ChromaticAberration;
 
@@ -3630,6 +3637,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 1f / m_LensDistortion.scale.value,
                 m_LensDistortion.intensity.value * 100f
             );
+        }
+		
+		void PrepareDrunkParameters(UberPostPassData data, UberPostFeatureFlags flags)
+        {
+            if ((flags & UberPostFeatureFlags.Drunk) != UberPostFeatureFlags.Drunk)
+                return;
+
+            data.uberPostCS.EnableKeyword("DRUNK");
+
+            data.drunkParameters = new Vector4(Mathf.Pow(m_Drunk.intensity.value, .5f), Time.time, 0, 0);
         }
 
         void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
@@ -3763,6 +3780,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Texture spectralLut;
             public Vector4 chromaticAberrationParameters;
+			
+			public Vector4 drunkParameters;
 
             public Vector4 vignetteParams1;
             public Vector4 vignetteParams2;
@@ -3815,10 +3834,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Setup the rest of the effects
                 PrepareLensDistortionParameters(passData, featureFlags);
+                PrepareDrunkParameters(passData, featureFlags);
                 PrepareChromaticAberrationParameters(passData, featureFlags);
                 PrepareVignetteParameters(passData, featureFlags);
                 PrepareUberBloomParameters(passData, hdCamera);
                 PrepareAlphaScaleParameters(passData, hdCamera);
+
 
                 passData.source = builder.ReadTexture(source);
                 passData.bloomTexture = builder.ReadTexture(bloomTexture);
@@ -3828,6 +3849,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
+						// Drunk
+						ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._Drunk, data.drunkParameters);
+						
                         // Color grading
                         ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._LogLut3D, data.logLut);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LogLut3D_Params, data.logLutSettings);
