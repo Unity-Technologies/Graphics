@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Problem on domain reload of Volume Parameter Ranges and UI values
 - Fixed Right Align of additional properties on Volume Components Editors
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed L2 for Probe Volumes.
+- Fixed assertion on compression of L1 coefficients for Probe Volume.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 - Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
+- Improved load asset time for probe volumes.
 
 ### Added
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.

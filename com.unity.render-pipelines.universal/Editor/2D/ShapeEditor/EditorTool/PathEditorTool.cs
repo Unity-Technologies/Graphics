@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.Rendering.Universal.Path2D.GUIFramework;
+using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
 
 using UnityObject = UnityEngine.Object;
 #if !UNITY_2020_2_OR_NEWER
 using ToolManager = UnityEditor.EditorTools.EditorTools;
 #endif
 
-namespace UnityEditor.Rendering.Universal.Path2D
+namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
     internal static class PathEditorToolContents
     {
