@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable TAA sharpening on alpha channel.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Default black texture XR is now opaque (alpha = 1).
  
 ## [10.4.0] - 2021-03-11
 
