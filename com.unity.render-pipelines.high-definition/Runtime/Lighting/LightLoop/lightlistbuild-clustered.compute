@@ -411,7 +411,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     WriteShiftIndex(t, LIGHTCATEGORY_ENV, _EnvLightIndexShift);
     WriteShiftIndex(t, LIGHTCATEGORY_DECAL, _DecalIndexShift);
-    WriteShiftIndex(t, LIGHTCATEGORY_DENSITY_VOLUME, _DensityVolumeIndexShift);
+    WriteShiftIndex(t, LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG, _LocalVolumetricFogIndexShift);
 
     uint offs = start;
     for(int ll=0; ll<iNrCoarseLights; ll+=4)

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
@@ -132,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
-            // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
+            // TODO: Add SetPerCameraClippingPlaneProperties here once we are sure it correctly behaves in overlay camera for some time
         }
 
         /// <summary>
@@ -195,20 +196,98 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Projection flip sign logic is very deep in GfxDevice::SetInvertProjectionMatrix
-            // For now we don't deal with _ProjectionParams.x and let SetupCameraProperties handle it.
-            // We need to enable this when we remove SetupCameraProperties
-            // float projectionFlipSign = ???
-            // Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
-            // cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
+            // This setup is tailored especially for overlay camera game view
+            // For other scenarios this will be overwritten correctly by SetupCameraProperties
+            bool isOffscreen = cameraData.targetTexture != null;
+            bool invertProjectionMatrix = isOffscreen && SystemInfo.graphicsUVStartsAtTop;
+            float projectionFlipSign = invertProjectionMatrix ? -1.0f : 1.0f;
+            Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
+            cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
 
             Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, camera.transform.position);
+            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
             cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+        }
+
+        /// <summary>
+        /// Set the Camera billboard properties.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        void SetPerCameraBillboardProperties(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
+            Vector3 cameraPos = cameraData.worldSpaceCameraPos;
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
+
+            Vector3 billboardTangent;
+            Vector3 billboardNormal;
+            float cameraXZAngle;
+            CalculateBillboardProperties(worldToCameraMatrix, out billboardTangent, out billboardNormal, out cameraXZAngle);
+
+            cmd.SetGlobalVector(ShaderPropertyId.billboardNormal, new Vector4(billboardNormal.x, billboardNormal.y, billboardNormal.z, 0.0f));
+            cmd.SetGlobalVector(ShaderPropertyId.billboardTangent, new Vector4(billboardTangent.x, billboardTangent.y, billboardTangent.z, 0.0f));
+            cmd.SetGlobalVector(ShaderPropertyId.billboardCameraParams, new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, cameraXZAngle));
+        }
+
+        private static void CalculateBillboardProperties(
+            in Matrix4x4 worldToCameraMatrix,
+            out Vector3 billboardTangent,
+            out Vector3 billboardNormal,
+            out float cameraXZAngle)
+        {
+            Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix;
+            cameraToWorldMatrix = cameraToWorldMatrix.transpose;
+
+            Vector3 cameraToWorldMatrixAxisX = new Vector3(cameraToWorldMatrix.m00, cameraToWorldMatrix.m10, cameraToWorldMatrix.m20);
+            Vector3 cameraToWorldMatrixAxisY = new Vector3(cameraToWorldMatrix.m01, cameraToWorldMatrix.m11, cameraToWorldMatrix.m21);
+            Vector3 cameraToWorldMatrixAxisZ = new Vector3(cameraToWorldMatrix.m02, cameraToWorldMatrix.m12, cameraToWorldMatrix.m22);
+
+            Vector3 front = cameraToWorldMatrixAxisZ;
+
+            Vector3 worldUp = Vector3.up;
+            Vector3 cross = Vector3.Cross(front, worldUp);
+            billboardTangent = !Mathf.Approximately(cross.sqrMagnitude, 0.0f)
+                ? cross.normalized
+                : cameraToWorldMatrixAxisX;
+
+            billboardNormal = Vector3.Cross(worldUp, billboardTangent);
+            billboardNormal = !Mathf.Approximately(billboardNormal.sqrMagnitude, 0.0f)
+                ? billboardNormal.normalized
+                : cameraToWorldMatrixAxisY;
+
+            // SpeedTree generates billboards starting from looking towards X- and rotates counter clock-wisely
+            Vector3 worldRight = new Vector3(0, 0, 1);
+            // signed angle is calculated on X-Z plane
+            float s = worldRight.x * billboardTangent.z - worldRight.z * billboardTangent.x;
+            float c = worldRight.x * billboardTangent.x + worldRight.z * billboardTangent.z;
+            cameraXZAngle = Mathf.Atan2(s, c);
+
+            // convert to [0,2PI)
+            if (cameraXZAngle < 0)
+                cameraXZAngle += 2 * Mathf.PI;
+        }
+
+        private void SetPerCameraClippingPlaneProperties(CommandBuffer cmd, in CameraData cameraData)
+        {
+            Matrix4x4 projectionMatrix = cameraData.GetGPUProjectionMatrix();
+            Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
+
+            Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projectionMatrix, viewMatrix, cameraData.camera.orthographic);
+            Plane[] planes = s_Planes;
+            GeometryUtility.CalculateFrustumPlanes(viewProj, planes);
+
+            Vector4[] cameraWorldClipPlanes = s_VectorPlanes;
+            for (int i = 0; i < planes.Length; ++i)
+                cameraWorldClipPlanes[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, planes[i].distance);
+
+            cmd.SetGlobalVectorArray(ShaderPropertyId.cameraWorldClipPlanes, cameraWorldClipPlanes);
         }
 
         /// <summary>
@@ -369,6 +448,9 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
 
+        private static Plane[] s_Planes = new Plane[6];
+        private static Vector4[] s_VectorPlanes = new Vector4[6];
+
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
@@ -509,7 +591,12 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, profilingExecute))
+
+            // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
+            // Until then, we can't use nested profiling scopes with XR multipass
+            CommandBuffer cmdScope = renderingData.cameraData.xr.enabled ? null : cmd;
+
+            using (new ProfilingScope(cmdScope, profilingExecute))
             {
                 InternalStartRendering(context, ref renderingData);
 
@@ -568,8 +655,18 @@ namespace UnityEngine.Rendering.Universal
                     // is because this need to be called for each eye in multi pass VR.
                     // The side effect is that this will override some shader properties we already setup and we will have to
                     // reset them.
-                    context.SetupCameraProperties(camera);
-                    SetCameraMatrices(cmd, ref cameraData, true);
+                    if (cameraData.renderType == CameraRenderType.Base)
+                    {
+                        context.SetupCameraProperties(camera);
+                        SetCameraMatrices(cmd, ref cameraData, true);
+                    }
+                    else
+                    {
+                        // Set new properties
+                        SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraClippingPlaneProperties(cmd, in cameraData);
+                        SetPerCameraBillboardProperties(cmd, ref cameraData);
+                    }
 
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
@@ -1029,6 +1126,14 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
+#if UNITY_EDITOR
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                {
+                    finalClearColor.a = 0;
+                    finalClearFlag &= ~ClearFlag.Depth;
+                }
+#endif
+
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
                     if (!renderPass.overrideCameraTarget)
@@ -1196,7 +1301,7 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
+            if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();

@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(params IDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(-1f, GroupOption.None, contentDrawers.Draw);
+            return new GroupDrawerInternal(-1f, null, GroupOption.None, contentDrawers.Draw);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(params ActionDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(-1f, GroupOption.None, contentDrawers);
+            return new GroupDrawerInternal(-1f, null, GroupOption.None, contentDrawers);
         }
 
         /// <summary> Group of drawing function for inspector with a set width for labels </summary>
@@ -229,7 +229,16 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(float labelWidth, params IDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(labelWidth, GroupOption.None, contentDrawers.Draw);
+            return new GroupDrawerInternal(labelWidth, null, GroupOption.None, contentDrawers.Draw);
+        }
+
+        /// <summary> Group of drawing function for inspector with a set width for labels </summary>
+        /// <param name="header">Adds a header on top <see cref="GUIContent"/></param>
+        /// <param name="contentDrawers">The content of the group</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer Group(GUIContent header, params IDrawer[] contentDrawers)
+        {
+            return new GroupDrawerInternal(-1f, header, GroupOption.None, contentDrawers.Draw);
         }
 
         /// <summary> Group of drawing function for inspector with a set width for labels </summary>
@@ -238,7 +247,16 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(float labelWidth, params ActionDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(labelWidth, GroupOption.None, contentDrawers);
+            return new GroupDrawerInternal(labelWidth, null, GroupOption.None, contentDrawers);
+        }
+
+        /// <summary> Group of drawing function for inspector with a set width for labels </summary>
+        /// <param name="header">Adds a header on top <see cref="GUIContent"/></param>
+        /// <param name="contentDrawers">The content of the group</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer Group(GUIContent header, params ActionDrawer[] contentDrawers)
+        {
+            return new GroupDrawerInternal(-1f, header, GroupOption.None, contentDrawers);
         }
 
         /// <summary>
@@ -250,7 +268,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(GroupOption options, params IDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(-1f, options, contentDrawers.Draw);
+            return new GroupDrawerInternal(-1f, null, options, contentDrawers.Draw);
         }
 
         /// <summary>
@@ -262,7 +280,7 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(GroupOption options, params ActionDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(-1f, options, contentDrawers);
+            return new GroupDrawerInternal(-1f, null, options, contentDrawers);
         }
 
         /// <summary> Group of drawing function for inspector with a set width for labels </summary>
@@ -272,7 +290,17 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(float labelWidth, GroupOption options, params IDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(labelWidth, options, contentDrawers.Draw);
+            return new GroupDrawerInternal(labelWidth, null, options, contentDrawers.Draw);
+        }
+
+        /// <summary> Group of drawing function for inspector with a set width for labels </summary>
+        /// <param name="header">Adds a header on top <see cref="GUIContent"/></param>
+        /// <param name="options">Allow to add indentation on this group</param>
+        /// <param name="contentDrawers">The content of the group</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer Group(GUIContent header, GroupOption options, params IDrawer[] contentDrawers)
+        {
+            return new GroupDrawerInternal(-1f, header, options, contentDrawers.Draw);
         }
 
         /// <summary> Group of drawing function for inspector with a set width for labels </summary>
@@ -282,18 +310,30 @@ namespace UnityEditor.Rendering
         /// <returns>A IDrawer object</returns>
         public static IDrawer Group(float labelWidth, GroupOption options, params ActionDrawer[] contentDrawers)
         {
-            return new GroupDrawerInternal(labelWidth, options, contentDrawers);
+            return new GroupDrawerInternal(labelWidth, null, options, contentDrawers);
+        }
+
+        /// <summary> Group of drawing function for inspector with a set width for labels </summary>
+        /// <param name="header">Adds a header on top <see cref="GUIContent"/></param>
+        /// <param name="options">Allow to add indentation on this group</param>
+        /// <param name="contentDrawers">The content of the group</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer Group(GUIContent header, GroupOption options, params ActionDrawer[] contentDrawers)
+        {
+            return new GroupDrawerInternal(-1, header, options, contentDrawers);
         }
 
         class GroupDrawerInternal : IDrawer
         {
             ActionDrawer[] actionDrawers { get; set; }
+            GUIContent header { get; }
             float m_LabelWidth;
             bool isIndented;
 
-            public GroupDrawerInternal(float labelWidth = -1f, GroupOption options = GroupOption.None, params ActionDrawer[] actionDrawers)
+            public GroupDrawerInternal(float labelWidth = -1f, GUIContent header = null, GroupOption options = GroupOption.None, params ActionDrawer[] actionDrawers)
             {
                 this.actionDrawers = actionDrawers;
+                this.header = header;
                 m_LabelWidth = labelWidth;
                 isIndented = (options & GroupOption.Indent) != 0;
             }
@@ -307,8 +347,12 @@ namespace UnityEditor.Rendering
                 {
                     EditorGUIUtility.labelWidth = m_LabelWidth;
                 }
+                if (header != null)
+                    EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
+
                 for (var i = 0; i < actionDrawers.Length; i++)
                     actionDrawers[i](data, owner);
+
                 if (m_LabelWidth >= 0f)
                 {
                     EditorGUIUtility.labelWidth = currentLabelWidth;

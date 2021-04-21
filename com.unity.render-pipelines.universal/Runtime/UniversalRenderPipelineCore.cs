@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
@@ -9,14 +8,14 @@ using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
+    public enum MixedLightingSetup
     {
         None,
         ShadowMask,
         Subtractive,
     };
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderingData
+    public struct RenderingData
     {
         public CullingResults cullResults;
         public CameraData cameraData;
@@ -32,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessingEnabled;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
+    public struct LightData
     {
         public int mainLightIndex;
         public int additionalLightsCount;
@@ -42,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
+    public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
         // We might change this API soon.
@@ -120,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
                     return !xr.renderTargetDesc.sRGB && (QualitySettings.activeColorSpace == ColorSpace.Linear);
 #endif
 
-                return Display.main.requiresSrgbBlitToBackbuffer;
+                return targetTexture == null && Display.main.requiresSrgbBlitToBackbuffer;
             }
         }
 
@@ -191,9 +190,14 @@ namespace UnityEngine.Rendering.Universal
         /// When rendering a stack of cameras only the last camera in the stack will resolve to camera target.
         /// </summary>
         public bool resolveFinalTarget;
+
+        /// <summary>
+        /// Camera position in world space.
+        /// </summary>
+        public Vector3 worldSpaceCameraPos;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
+    public struct ShadowData
     {
         public bool supportsMainLightShadows;
         [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
@@ -284,6 +288,12 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int worldToCameraMatrix = Shader.PropertyToID("unity_WorldToCamera");
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
+        public static readonly int cameraWorldClipPlanes = Shader.PropertyToID("unity_CameraWorldClipPlanes");
+
+        public static readonly int billboardNormal = Shader.PropertyToID("unity_BillboardNormal");
+        public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
+        public static readonly int billboardCameraParams = Shader.PropertyToID("unity_BillboardCameraParams");
+
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
@@ -315,6 +325,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+        public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
@@ -359,6 +370,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
         public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
         public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
@@ -514,10 +526,9 @@ namespace UnityEngine.Rendering.Universal
 
         static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
-            // Editor only.
-#if UNITY_EDITOR
             LightDataGI lightData = new LightDataGI();
-
+#if UNITY_EDITOR
+            // Always extract lights in the Editor.
             for (int i = 0; i < requests.Length; i++)
             {
                 Light light = requests[i];
@@ -561,13 +572,55 @@ namespace UnityEngine.Rendering.Universal
                 lightsOutput[i] = lightData;
             }
 #else
-            LightDataGI lightData = new LightDataGI();
-
-            for (int i = 0; i < requests.Length; i++)
+            // If Enlighten realtime GI isn't active, we don't extract lights.
+            if (SupportedRenderingFeatures.active.enlighten == false || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
             {
-                Light light = requests[i];
-                lightData.InitNoBake(light.GetInstanceID());
-                lightsOutput[i] = lightData;
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    Light light = requests[i];
+                    lightData.InitNoBake(light.GetInstanceID());
+                    lightsOutput[i] = lightData;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    Light light = requests[i];
+                    switch (light.type)
+                    {
+                        case LightType.Directional:
+                            DirectionalLight directionalLight = new DirectionalLight();
+                            LightmapperUtils.Extract(light, ref directionalLight);
+                            lightData.Init(ref directionalLight);
+                            break;
+                        case LightType.Point:
+                            PointLight pointLight = new PointLight();
+                            LightmapperUtils.Extract(light, ref pointLight);
+                            lightData.Init(ref pointLight);
+                            break;
+                        case LightType.Spot:
+                            SpotLight spotLight = new SpotLight();
+                            LightmapperUtils.Extract(light, ref spotLight);
+                            spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
+                            spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
+                            lightData.Init(ref spotLight);
+                            break;
+                        case LightType.Area:
+                            // Rect area light is baked only in URP.
+                            lightData.InitNoBake(light.GetInstanceID());
+                            break;
+                        case LightType.Disc:
+                            // Disc light is baked only.
+                            lightData.InitNoBake(light.GetInstanceID());
+                            break;
+                        default:
+                            lightData.InitNoBake(light.GetInstanceID());
+                            break;
+                    }
+                    lightData.falloff = FalloffType.InverseSquared;
+                    lightsOutput[i] = lightData;
+                }
             }
 #endif
         };

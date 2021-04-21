@@ -80,8 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
-            m_RenderPipelineResources = renderPipeline.asset.renderPipelineResources;
-            m_RenderPipelineRayTracingResources = renderPipeline.asset.renderPipelineRayTracingResources;
+            m_RenderPipelineResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
+            m_RenderPipelineRayTracingResources = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources;
 
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;

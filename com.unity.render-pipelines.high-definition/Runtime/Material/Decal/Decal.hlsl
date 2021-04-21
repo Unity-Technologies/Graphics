@@ -82,6 +82,7 @@ void DecodeFromDBuffer(
     // Range goes from -0.99607 to 1.0039
     surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - (254.0 / 255.0);
     surfaceData.normalWS.w = inDBuffer1.w;
+
     surfaceData.mask = inDBuffer2;
 #ifdef DECALS_4RT
     surfaceData.MAOSBlend = inDBuffer3;

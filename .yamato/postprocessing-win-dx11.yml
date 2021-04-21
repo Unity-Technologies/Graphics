@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -55,7 +56,7 @@ PostProcessing_Win_DX11_playmode_cache_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -114,7 +115,7 @@ PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/postprocessing-win-dx11.yml#Build_PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_PostProcessing_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -163,7 +164,7 @@ PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -171,7 +172,7 @@ PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/postprocessing-win-dx11.yml#Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: Build PostProcessing on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -192,7 +193,7 @@ Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=3000
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=3000
     artifacts:
         logs:
             paths:
@@ -231,7 +232,7 @@ PostProcessing_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX11_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -254,7 +255,7 @@ PostProcessing_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -262,7 +263,7 @@ PostProcessing_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -292,7 +293,7 @@ PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -321,9 +322,9 @@ PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#Build_PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -356,7 +357,7 @@ Build_PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Win_DX11_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -377,7 +378,7 @@ PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -385,9 +386,9 @@ PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/postprocessing-win-dx11.yml#Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Win_DX11_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -409,7 +410,7 @@ Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=3000
+              utr --artifacts_path=TestProjects/PostProcessing_Tests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/PostProcessing_Tests --timeout=3000
     artifacts:
         logs:
             paths:
@@ -420,4 +421,4 @@ Build_PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

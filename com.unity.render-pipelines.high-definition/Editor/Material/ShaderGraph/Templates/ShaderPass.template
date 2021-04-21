@@ -116,6 +116,11 @@ Pass
         #endif
     #endif
 
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #if defined(SHADER_LIT) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _DEFERRED_CAPABLE_MATERIAL
+    #endif
+
     // Translate transparent motion vector define
     #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
         #define _WRITE_TRANSPARENT_MOTION_VECTOR
@@ -144,6 +149,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing

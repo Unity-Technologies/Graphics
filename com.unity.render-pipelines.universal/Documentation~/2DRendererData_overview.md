@@ -18,7 +18,6 @@ __Custom__: Unity assigns a Material with the Custom type. When you select this 
 
 ![The 2D Renderer Data Asset property settings](Images/2D/Default_Custom_Material.png)
 
-
 ## Use Depth/Stencil Buffer
 
 This option is enabled by default. Clear this option to disable the Depth/[Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html) Buffer. Doing so might improve your project’s performance, especially on mobile platforms. You should clear this option if you are not using any features that require the Depth/Stencil Buffer (such as [Sprite Mask](https://docs.unity3d.com/Manual/class-SpriteMask.html)).

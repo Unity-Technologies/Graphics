@@ -243,6 +243,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
                 CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+
+                // conservative depth offset for ShaderGraphs
+                if (material.HasProperty(kConservativeDepthOffsetEnable))
+                {
+                    // Depth offset is only enabled if per pixel displacement is
+                    bool conservativeDepthOffset = (material.GetFloat(kConservativeDepthOffsetEnable) > 0.0f);
+                    CoreUtils.SetKeyword(material, "_CONSERVATIVE_DEPTH_OFFSET", conservativeDepthOffset);
+                }
             }
 
             // DoubleSidedGI has to be synced with our double sided toggle
@@ -267,7 +275,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
+                var mainTexScale = material.GetTextureScale(colorMapPropertyName);
+                var mainTexOffset = material.GetTextureOffset(colorMapPropertyName);
                 material.SetTexture("_MainTex", mainTex);
+                material.SetTextureScale("_MainTex", mainTexScale);
+                material.SetTextureOffset("_MainTex", mainTexOffset);
             }
 
             if (material.HasProperty(colorPropertyName))

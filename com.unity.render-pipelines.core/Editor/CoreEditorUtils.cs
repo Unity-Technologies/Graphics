@@ -1,13 +1,13 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
         /// <param name="color">The color to fill the texture</param>
+        /// <param name="textureName">The name of the texture</param>
         /// <returns>a <see cref="Texture2D"/></returns>
         public static Texture2D CreateColoredTexture2D(Color color, string textureName)
         {
@@ -88,12 +89,22 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        /// <summary>Draw a Fix button</summary>
-        /// <param name="text">Displayed message</param>
-        /// <param name="action">Action performed when fix button is clicked</param>
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, Action action)
         {
-            EditorGUILayout.HelpBox(text, MessageType.Warning);
+            DrawFixMeBox(text, MessageType.Warning, action);
+        }
+
+        // UI Helpers
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string text, MessageType messageType, Action action)
+        {
+            EditorGUILayout.HelpBox(text, messageType);
 
             GUILayout.Space(-32);
             using (new EditorGUILayout.HorizontalScope())
@@ -422,7 +433,7 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
-            var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
 
             var labelRect = backgroundRect;
             labelRect.xMin += 32f;

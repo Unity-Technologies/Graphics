@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -46,7 +47,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
@@ -206,9 +207,9 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
@@ -273,7 +274,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -335,4 +336,4 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Line
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
