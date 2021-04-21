@@ -407,7 +407,8 @@ namespace UnityEngine.Rendering.Universal
                     cachedChunks[i] = m_CombinedChunks[i].cachedChunk;
                     culledChunks[i] = m_CombinedChunks[i].culledChunk;
                     drawCallChunks[i] = m_CombinedChunks[i].drawCallChunk;
-                    m_MaterialToChunkIndex.Add(entityChunks[i].material, i);
+                    if (!m_MaterialToChunkIndex.ContainsKey(entityChunks[i].material))
+                        m_MaterialToChunkIndex.Add(entityChunks[i].material, i);
                     m_CombinedChunkRemmap[m_CombinedChunks[i].previousChunkIndex] = i;
                 }
 

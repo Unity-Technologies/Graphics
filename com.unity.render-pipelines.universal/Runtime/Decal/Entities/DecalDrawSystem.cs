@@ -49,14 +49,14 @@ namespace UnityEngine.Rendering.Universal
 
         private void Execute(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
         {
+            decalCachedChunk.currentJobHandle.Complete();
+            decalDrawCallChunk.currentJobHandle.Complete();
+
             Material material = GetMaterial(decalEntityChunk);
             int passIndex = GetPassIndex(decalCachedChunk);
 
-            if (count == 0 || passIndex == -1)
+            if (count == 0 || passIndex == -1 || material == null)
                 return;
-
-            decalCachedChunk.currentJobHandle.Complete();
-            decalDrawCallChunk.currentJobHandle.Complete();
 
             if (SystemInfo.supportsInstancing && material.enableInstancing)
             {
@@ -129,14 +129,14 @@ namespace UnityEngine.Rendering.Universal
 
         private void Execute(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
         {
+            decalCachedChunk.currentJobHandle.Complete();
+            decalDrawCallChunk.currentJobHandle.Complete();
+
             Material material = GetMaterial(decalEntityChunk);
             int passIndex = GetPassIndex(decalCachedChunk);
 
             if (count == 0 || passIndex == -1 || material == null)
                 return;
-
-            decalCachedChunk.currentJobHandle.Complete();
-            decalDrawCallChunk.currentJobHandle.Complete();
 
             if (SystemInfo.supportsInstancing && material.enableInstancing)
             {
