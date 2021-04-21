@@ -189,6 +189,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 
 ## [10.3.0] - 2020-12-01
 
