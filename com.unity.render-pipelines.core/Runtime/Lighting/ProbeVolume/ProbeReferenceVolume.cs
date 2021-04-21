@@ -243,7 +243,6 @@ namespace UnityEngine.Experimental.Rendering
 
         private int m_ID = 0;
         private RefVolTransform m_Transform;
-        private float m_NormalBias;
         private int m_MaxSubdivision;
         private ProbeBrickPool m_Pool;
         private ProbeBrickIndex m_Index;
@@ -276,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
 
-        internal float normalBiasFromProfile;
+        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
@@ -386,16 +385,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private void PerformPendingNormalBiasChange()
-        {
-            if (m_NormalBias != normalBiasFromProfile)
-            {
-                m_NormalBias = normalBiasFromProfile;
-                if (m_Index != null)
-                    m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-            }
-        }
-
         private void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
@@ -501,7 +490,6 @@ namespace UnityEngine.Experimental.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
-            PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
             LoadPendingCells();
@@ -519,6 +507,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+                if ((indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z) == 0)
+                {
+                    // Give a momentarily dummy size to allow the system to function with no asset assigned.
+                    indexDimensions = new Vector3Int(1, 1, 1);
+                }
                 m_Index = new ProbeBrickIndex(indexDimensions);
 
                 m_TmpBricks[0] = new List<Brick>();
@@ -534,11 +527,6 @@ namespace UnityEngine.Experimental.Rendering
                 Profiler.EndSample();
 
                 m_ProbeReferenceVolumeInit = true;
-
-                // Write constants on init to start with right data.
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-                // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor
-                normalBiasFromProfile = m_NormalBias;
             }
             m_NeedLoadAsset = true;
         }
@@ -562,8 +550,6 @@ namespace UnityEngine.Experimental.Rendering
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
-
-            m_NormalBias = 0f;
         }
 
         /// <summary>
@@ -590,8 +576,6 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         internal void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
-        internal void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
-
         internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
         internal float MinBrickSize() { return m_Transform.scale; }
@@ -823,7 +807,6 @@ namespace UnityEngine.Experimental.Rendering
 
             // update the index
             m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
 
             Profiler.EndSample();
 
@@ -895,6 +878,23 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
             Profiler.EndSample();
+        }
+
+        /// <summary>
+        /// Update the constant buffer used by Probe Volumes in shaders.
+        /// </summary>
+        /// <param name="cmd">A command buffer used to perform the data update.</param>
+        /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
+        {
+            ShaderVariablesProbeVolumes shaderVars;
+            shaderVars._WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
+            shaderVars._IndexDim = m_Index.GetIndexDimension();
+            shaderVars._NormalBias = normalBias;
+            shaderVars._PoolDim = m_Pool.GetPoolDimensions();
+            shaderVars.pad0 = 0;
+
+            ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
 
         /// <summary>
