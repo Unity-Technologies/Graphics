@@ -249,8 +249,12 @@ namespace UnityEditor.VFX.UI
             set
             {
                 if (m_ComponentBoard.parent == null)
-                    ToggleComponentBoard();
-                m_ComponentBoard.Attach(value);
+                    m_ToggleComponentBoard.value = true;
+
+                if (value == null)
+                    m_ComponentBoard.Detach();
+                else
+                    m_ComponentBoard.Attach(value);
             }
         }
 
@@ -802,6 +806,11 @@ namespace UnityEditor.VFX.UI
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
+        }
+
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
+        {
+            m_ComponentBoard.OnVisualEffectComponentChanged(visualEffects);
         }
 
         void Delete(string cmd, AskUser askUser)

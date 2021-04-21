@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition RP",
-  "version": "10.4.0",
+  "version": "10.5.0",
   "type": "template",
   "host": "hub",
   "unity": "2020.2",
@@ -9,6 +9,6 @@
   "dependencies": {
     "com.unity.cinemachine": "2.6.3",
     "com.unity.inputsystem": "1.0.2",
-    "com.unity.render-pipelines.high-definition": "10.4.0"
+    "com.unity.render-pipelines.high-definition": "10.5.0"
   }
 }

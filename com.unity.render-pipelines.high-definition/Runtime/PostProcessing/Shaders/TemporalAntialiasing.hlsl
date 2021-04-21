@@ -11,7 +11,6 @@
     #define CTYPE_SWIZZLE xyz
 #endif
 
-
 #if UNITY_REVERSED_Z
     #define COMPARE_DEPTH(a, b) step(b, a)
 #else
@@ -48,6 +47,8 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // ---------------------------------------------------
 // Options
 // ---------------------------------------------------
+
+#define SHARPEN_ALPHA 0 // switch to 1 if you want to enable TAA sharpenning on alpha channel
 
 // History sampling options
 #define BILINEAR 0
@@ -717,5 +718,11 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
     linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
-    return linearC * PerceptualWeight(linearC);
+    CTYPE outputSharpened = linearC * PerceptualWeight(linearC);
+
+#if (SHARPEN_ALPHA == 0 && defined(ENABLE_ALPHA))
+    outputSharpened.a = color.a;
+#endif
+
+    return outputSharpened;
 }

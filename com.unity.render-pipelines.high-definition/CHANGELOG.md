@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
 ### Added
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 - Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 - Fixed Decal's UV edit mode with negative UV
 - Fixed issue with the color space of AOVs (case 1324759)
 - Fixed issue with history buffers when using multiple AOVs (case 1323684).
@@ -42,9 +45,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
+- Disable TAA sharpening on alpha channel.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 
-## [10.4.0] - 2020-01-26
+## [10.4.0] - 2021-03-11
 
 ### Added
 - Added support for XboxSeries platform.
@@ -101,7 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display a warning help box when decal atlas is out of size.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
