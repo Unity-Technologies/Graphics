@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
                 FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
-            });
+            }),
 
             MigrationStep.New(Version.UpdateLensFlare, (HDRenderPipelineGlobalSettings data) =>
             {
