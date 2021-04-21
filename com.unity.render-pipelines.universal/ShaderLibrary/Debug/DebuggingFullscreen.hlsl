@@ -54,11 +54,11 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
     {
         case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
         {
-            if (isnan(color.r) || isnan(color.g) || isnan(color.b) || isnan(color.a))
+            if (AnyIsNaN(color))
             {
                 debugColor = half4(1, 0, 0, 1);
             }
-            else if (isinf(color.r) || isinf(color.g) || isinf(color.b) || isinf(color.a))
+            else if (AnyIsInf(color))
             {
                 debugColor = half4(0, 1, 0, 1);
             }
