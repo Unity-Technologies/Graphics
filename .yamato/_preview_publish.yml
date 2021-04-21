@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -18,7 +19,7 @@ auto-version:
         DISPLAY: ":0"
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
+      -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config
       -  upm-ci utils auto-version commit --push
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-hd --target-dependency com.unity.render-pipelines.high-definition
       -  python3 ./Tools/standalone/templates_auto_bumper.py --template-name ./com.unity.template-universal --target-dependency com.unity.render-pipelines.universal
@@ -48,7 +49,6 @@ promote_all_preview:
       -  .yamato/_preview_publish.yml#promote_shadergraph
       -  .yamato/_preview_publish.yml#promote_vfx
       -  .yamato/_preview_publish.yml#promote_config
-      -  .yamato/_preview_publish.yml#promote_lwrp
 promote_all_preview_project:
     name: Promote all preview packages - nightly [project context]
     dependencies:
@@ -58,7 +58,6 @@ promote_all_preview_project:
       -  .yamato/_preview_publish.yml#promote_shadergraph_project
       -  .yamato/_preview_publish.yml#promote_vfx_project
       -  .yamato/_preview_publish.yml#promote_config_project
-      -  .yamato/_preview_publish.yml#promote_lwrp_project
 wait_for_nightly:
     name: Wait for nightly
     dependencies:
@@ -81,9 +80,6 @@ wait_for_nightly:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#test_config_Win_trunk
       -  .yamato/_packages.yml#test_config_OSX_trunk
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
 promote_core:
     name: '[core] Preview - Production Promote'
     agent:
@@ -572,88 +568,6 @@ promote_config_dry:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --dry-run
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-promote_lwrp:
-    name: '[lwrp] Preview - Production Promote'
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    variables:
-        UPMCI_PROMOTION: 1
-    dependencies:
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#publish_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-    commands:
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-promote_lwrp_project:
-    name: '[lwrp] Preview - Production Promote [project context]'
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    variables:
-        UPMCI_PROMOTION: 1
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#publish_lwrp_project
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-promote_lwrp_project_dry:
-    name: '[lwrp] Preview - Production Promote [project context] [dry run]'
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    variables:
-        UPMCI_PROMOTION: 1
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#publish_lwrp_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-promote_lwrp_dry:
-    name: '[lwrp] Preview - Production Promote [dry run]'
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    variables:
-        UPMCI_PROMOTION: 1
-    dependencies:
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#publish_lwrp_dry
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-    commands:
-      -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:

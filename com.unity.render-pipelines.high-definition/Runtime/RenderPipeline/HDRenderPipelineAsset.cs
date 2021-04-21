@@ -20,7 +20,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        void Reset() => OnValidate();
+        void Reset()
+        {
+#if UNITY_EDITOR
+            // we need to ensure we have a global settings asset to be able to create an HDRP Asset
+            HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
+#endif
+            OnValidate();
+        }
 
         /// <summary>
         /// CreatePipeline implementation.
@@ -102,17 +109,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
-            => HDRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
+            => globalSettings.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => HDRenderPipelineGlobalSettings.instance.lightLayerNames;
+        public string[] lightLayerNames => globalSettings.lightLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => HDRenderPipelineGlobalSettings.instance.decalLayerNames;
+        public string[] decalLayerNames => globalSettings.decalLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
@@ -159,6 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain detail grass billboard shader.</summary>
         public override Shader terrainDetailGrassBillboardShader
             => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
+
+        public override Shader defaultSpeedTree8Shader
+            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
 
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>
