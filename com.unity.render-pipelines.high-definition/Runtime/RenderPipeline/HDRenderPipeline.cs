@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreResourcesCreated() == false)
+            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
                 || (m_GlobalSettings.AreEditorResourcesCreated() == false)
                 || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
                 return;
