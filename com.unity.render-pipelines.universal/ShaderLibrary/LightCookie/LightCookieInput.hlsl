@@ -1,7 +1,7 @@
 #ifndef UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 #define UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/EngineTypes.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityTypes.hlsl"
 
 // TODO : _URP_LightCookie_MainLightTexture???
 // TODO : _URP_LightCookie_AdditionalLightsAtlasTexture???
