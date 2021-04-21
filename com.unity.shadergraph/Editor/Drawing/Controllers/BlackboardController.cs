@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             if (useDropdowns)
-                ViewModel.defaultDropdownNameToAddActionMap.Add("Dropdown", new AddShaderInputAction() { shaderInputReference = new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                ViewModel.defaultDropdownNameToAddActionMap.Add("Dropdown", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
 
             ViewModel.requestModelChangeAction = this.RequestModelChange;
 
