@@ -28,7 +28,7 @@ The Visual Effect Graph executes this Context every frame, according to the cull
 
 ### Implicit Behaviors
 
-Depending on the attributes present in the system, this Context performs extra behaviors implicitly: 
+Depending on the attributes present in the system, this Context performs extra behaviors implicitly:
 
 - **Velocity Integration**: If the Velocity attribute is in the system, this Context performs Euler velocity integration using the equation: `position += velocity * deltaTime`. This moves particles according to their velocity. Prior to Velocity integration, this Context backs up the position attribute into the oldPosition attribute.
 

@@ -4,20 +4,27 @@ using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
     internal struct ProbeVolumeArtistParameters
     {
-        public Vector3 size;
+        public Vector3  size;
+        [HideInInspector]
+        public float    maxSubdivisionMultiplier;
+        [HideInInspector]
+        public float    minSubdivisionMultiplier;
 
-        public ProbeVolumeArtistParameters(Color debugColor)
+        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1, float minSubdivision = 0)
         {
             this.size = Vector3.one;
+            this.maxSubdivisionMultiplier = maxSubdivision;
+            this.minSubdivisionMultiplier = minSubdivision;
         }
     } // class ProbeVolumeArtistParameters
 
     /// <summary>
+    /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Volume")]
@@ -25,6 +32,10 @@ namespace UnityEngine.Rendering
     {
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
+        /// <summary>
+        /// Returns the extents of the volume.
+        /// </summary>
+        /// <returns>The extents of the ProbeVolume.</returns>
         public Vector3 GetExtents()
         {
             return parameters.size;

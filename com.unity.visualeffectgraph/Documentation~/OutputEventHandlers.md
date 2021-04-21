@@ -23,9 +23,9 @@ The following example teleports a Game Object to the Given position when it rece
 public class VFXOutputEventTeleportObject : VFXOutputEventAbstractHandler
 {
     public Transform target;
-    
+
     static readonly int kPosition = Shader.PropertyToID("position");
-    
+
     public override void OnVFXOutputEvent(VFXEventAttribute eventAttribute)
     {
         if(target != null)
@@ -40,7 +40,7 @@ To help you create your own VFXOutputEventAbstractHandler, the Visual Effect  Gr
 
 ### Using Output Event Helpers
 
-The OutputEvent Helper scripts are deployed into the project as a Sample contained in the folder :  `Assets/Samples/Visual Effect Graph/(version)/OutputEvent Helpers/`. 
+The OutputEvent Helper scripts are deployed into the project as a Sample contained in the folder :  `Assets/Samples/Visual Effect Graph/(version)/OutputEvent Helpers/`.
 
 These helpers are MonoBehaviour Scripts that you can add to Game Objects that hold a VisualEffect Component. These scripts will listen for OutputEvents of a given name, and will react to these events by performing various actions.
 
@@ -72,7 +72,7 @@ Upon receiving a given OutputEvent, the system will look for a free (disabled) p
 
 * search for any **VFXOutputEventPrefabAttributeHandler** scripts in the prefab instance in order to perform attribute binding.
 
-  
+
 
 **VFXOutputEventPrefabAttributeHandler** scripts are used to configure parts of the prefab, based on the event that spawned the prefab. Here are two examples bundled with the samples:
 

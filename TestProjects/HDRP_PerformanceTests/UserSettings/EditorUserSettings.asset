@@ -6,10 +6,43 @@ EditorUserSettings:
   serializedVersion: 4
   m_ConfigSettings:
     RecentlyUsedScenePath-0:
-      value: 224247031146466b081c0a2d022e5e1e15122c2f3f3c357f1e2a183de7f37b68b2b764d6d3283e322a12ee2e01301510e40f1b0fe40a1d450400f41a08
+      value: 22424703114646680e0b0227036c6b191b1e162d3f670b31392c0f3ae3ec2776f7e93ffdfe
       flags: 0
     RecentlyUsedScenePath-1:
-      value: 2242470311464669081d033702205a0359241b2f222d357f7d794d63ddcc3d2cc1f234eca92f31352d1b
+      value: 22424703114646680e0b0227036c6b191b1e162d3f6776607d7f2217ebf32434e3e433e4e2342b083c11fc39083f1536fd04471ef8021e12
+      flags: 0
+    RecentlyUsedScenePath-2:
+      value: 22424703114646680e0b0227036c6b191b1e162d3f6776607d7b2207f0e13a2bf2e624ece92e102a3c10eb2e05294f2afc031d12
+      flags: 0
+    RecentlyUsedScenePath-3:
+      value: 22424703114646680e0b0227036c6b191b1e162d3f670924252c0f20acf53a31f6fe
+      flags: 0
+    RecentlyUsedScenePath-4:
+      value: 22424703114646680e0b0227036c7b021710580b222c66143f260d7df7ee3d2cfb
+      flags: 0
+    RecentlyUsedScenePath-5:
+      value: 22424703114646680e0b0227036c7c1f18030a25203b68252320092a
+      flags: 0
+    RecentlyUsedScenePath-6:
+      value: 22424703114646680e0b0227036c6b191b1e162d3f6776607d71221febe73c2cc1eb23faf33f2d2f7717e1351027
+      flags: 0
+    RecentlyUsedScenePath-7:
+      value: 22424703114646680e0b0227036c7319111f0c23222f68252320092a
+      flags: 0
+    RecentlyUsedScenePath-8:
+      value: 22424703114646680e0b0227036c721102120a232d24357e38271427fb
+      flags: 0
+    RecentlyUsedScenePath-9:
+      value: 22424703114646680e0b0227036c7a1610121b3e3f66333e243d04
+      flags: 0
+    UnityEditor.ShaderGraph.Blackboard:
+      value: 18135939215a0a5004000b0e15254b524c030a3f2964643d120d1230e9e93a3fd6e826abbd2e2d293c4ead313b08042de6030a0afa240c0d020be94c4ba75e435d8715fa32c70d15d11612dacc11fee5d3c5d1fe9ab1bf968e93e2ffcbc3e7e2f0b3ffe0e8b0be9af8ffaeffff8e85dd8390e3949c8899daa7
+      flags: 0
+    UnityEditor.ShaderGraph.FloatingWindowsLayout2:
+      value: 181344140043005e1a220d3b1f364b524c0c5a27130c293326201334cee5322ca0bd30e8eb293a707b0fd0180b3d0a36fc0d3d04e649500d1002ee0b5dbd1d2c27c00ad113cb1e10e41f1addc80993b98d9884a69ae6d8f0d1cda9e8fbfefaf9f9dea3fdb9ade882f0f7b0e1e380cafbf2c3adc18e9cd285a2908b82ec869c8395949c9483d68a8e97ddbd90bf
+      flags: 0
+    UnityEditor.ShaderGraph.InspectorWindow:
+      value: 18135939215a0a5004000b0e15254b524c1119263f2d6a722016393ce1eb3d36e5d339f9a560393d3511ea7046333e09f7181d02f50a06241708ee0b05bd4a435f95548717f73713d91006c1c309d0effad0d2f9ddffa5828e91f0beb6fdd1cbfceba0b9f0b3bed8e8f5ade1f78c978883d3f59e9b9f9989eacfcc
       flags: 0
     lightmappingDeviceAndPlatform:
       value: 53

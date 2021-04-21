@@ -9,23 +9,18 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
-        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
-
-        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
 
-        IManipulator m_ResetReferenceMenu;
-
-        ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Action m_ResetReferenceNameAction;
 
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
@@ -36,10 +31,7 @@ namespace UnityEditor.ShaderGraph
             userData = node;
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
-            var graph = node.owner as GraphData;
-            var property = node.property;
-            var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-            this.icon = icon;
+            UpdateIcon();
 
             // Setting the position of the node, otherwise it ends up in the center of the canvas
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
@@ -57,10 +49,12 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
-            UpdateReferenceNameResetMenu();
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
 
             // Set callback association for display name updates
-            m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
+            property.displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }
 
         public Node gvNode => this;
@@ -70,8 +64,6 @@ namespace UnityEditor.ShaderGraph
 
         [Inspectable("ShaderInput", null)]
         AbstractShaderProperty property => (node as PropertyNode)?.property;
-
-        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
 
         public object GetObjectToInspect()
         {
@@ -89,72 +81,37 @@ namespace UnityEditor.ShaderGraph
                     graph.isSubGraph,
                     graph,
                     this.ChangeExposedField,
-                    this.ChangeDisplayNameField,
-                    this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
-                    this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
-                this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                this.m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
             }
-
-            UpdateReferenceNameResetMenu();
         }
 
         void ChangeExposedField(bool newValue)
         {
             property.generatePropertyBlock = newValue;
-            icon = property.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+            UpdateIcon();
         }
 
-        void ChangeDisplayNameField(string newValue)
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            var graph = node.owner as GraphData;
-
-            if (newValue != property.displayName)
+            // Checks if the reference name has been overridden and appends menu action to reset it, if so
+            if (property.isRenamable &&
+                !string.IsNullOrEmpty(property.overrideReferenceName))
             {
-                property.displayName = newValue;
-                graph.SanitizeGraphInputName(property);
-                m_displayNameUpdateTrigger?.Invoke(newValue);
-                MarkNodesAsDirty(true, ModificationScope.Node);
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e =>
+                    {
+                        m_ResetReferenceNameAction();
+                        DirtyNodes(ModificationScope.Graph);
+                    },
+                    DropdownMenuAction.AlwaysEnabled);
             }
-        }
-
-        void ChangeReferenceNameField(string newValue)
-        {
-            var graph = node.owner as GraphData;
-
-            if (newValue != property.referenceName)
-                graph.SanitizeGraphInputReferenceName(property, newValue);
-
-            UpdateReferenceNameResetMenu();
-        }
-
-        void UpdateReferenceNameResetMenu()
-        {
-            if (string.IsNullOrEmpty(property.overrideReferenceName))
-            {
-                this.RemoveManipulator(m_ResetReferenceMenu);
-                m_ResetReferenceMenu = null;
-            }
-            else
-            {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildResetReferenceNameContextualMenu);
-                this.AddManipulator(m_ResetReferenceMenu);
-            }
-        }
-
-        void BuildResetReferenceNameContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction("Reset Reference", e =>
-            {
-                property.overrideReferenceName = null;
-                m_resetReferenceNameTrigger(property.referenceName);
-                DirtyNodes(ModificationScope.Graph);
-            }, DropdownMenuAction.AlwaysEnabled);
         }
 
         void RegisterPropertyChangeUndo(string actionName)
@@ -265,6 +222,15 @@ namespace UnityEditor.ShaderGraph
             return port != null && port.slot.slotReference.Equals(slot);
         }
 
+        void UpdateIcon()
+        {
+            var graph = node?.owner as GraphData;
+            if ((graph != null) && (property != null))
+                icon = (graph.isSubGraph || property.isExposed) ? exposedIcon : null;
+            else
+                icon = null;
+        }
+
         public void OnModified(ModificationScope scope)
         {
             //disconnected property nodes are always active
@@ -275,13 +241,7 @@ namespace UnityEditor.ShaderGraph
 
             if (scope == ModificationScope.Graph)
             {
-                // changing the icon to be exposed or not
-                var propNode = (PropertyNode)node;
-                var graph = node.owner as GraphData;
-                var property = propNode.property;
-
-                var icon = property.generatePropertyBlock ? exposedIcon : null;
-                this.icon = icon;
+                UpdateIcon();
             }
 
             if (scope == ModificationScope.Topological || scope == ModificationScope.Node)
@@ -336,18 +296,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        BlackboardRow GetAssociatedBlackboardRow()
+        SGBlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
-                return null;
 
-            var blackboardProvider = graphView.blackboardProvider;
-            if (blackboardProvider == null)
+            var blackboardController = graphView?.blackboardController;
+            if (blackboardController == null)
                 return null;
 
             var propNode = (PropertyNode)node;
-            return blackboardProvider.GetBlackboardRow(propNode.property);
+            return blackboardController.GetBlackboardRow(propNode.property);
         }
 
         void OnMouseHover(EventBase evt)
@@ -369,7 +327,7 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
             var propRow = GetAssociatedBlackboardRow();
-            // The associated blackboard row can be deleted in which case this property node view is also cleaned up with it, so we want to check for null
+            // If this node view is deleted, remove highlighting from associated blackboard row
             if (propRow != null)
             {
                 propRow.RemoveFromClassList("hovered");

@@ -91,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
+            if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
@@ -139,22 +140,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.requiredFields.Add(subShaderField);
 
                 IncludeCollection finalIncludes = new IncludeCollection();
-                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
 
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
                 {
-                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
-                        include.descriptor.value = subShaderInclude;
-                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
-                        include.descriptor.value = postDecalsInclude;
-                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
-                        include.descriptor.value = raytracingInclude;
-                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
-                        include.descriptor.value = pathtracingInclude;
+                    var path = include.path;
 
-                    if (!String.IsNullOrEmpty(include.descriptor.value))
-                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                    if (path == CoreIncludes.kPassPlaceholder)
+                        path = subShaderInclude;
+                    if (path == CoreIncludes.kPostDecalsPlaceholder)
+                        path = postDecalsInclude;
+                    if (path == CoreIncludes.kRaytracingPlaceholder)
+                        path = raytracingInclude;
+                    if (path == CoreIncludes.kPathtracingPlaceholder)
+                        path = pathtracingInclude;
+
+                    if (!String.IsNullOrEmpty(path))
+                        finalIncludes.Add(path, include.location, include.fieldConditions);
                 }
                 passDescriptor.includes = finalIncludes;
 

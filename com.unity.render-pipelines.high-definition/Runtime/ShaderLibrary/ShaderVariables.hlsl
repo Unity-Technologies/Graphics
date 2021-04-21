@@ -65,7 +65,6 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_RenderingLayer;
 
     float4 unity_LightmapST;
-    float4 unity_LightmapIndex;
     float4 unity_DynamicLightmapST;
 
     // SH lighting environment

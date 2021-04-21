@@ -99,13 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (intensityUnit == EmissiveIntensityUnit.EV100)
                 intensityValue = "ConvertEvToLuminance(" + intensityValue + ")";
 
-            sb.AppendLine("#ifdef SHADERGRAPH_PREVIEW");
-            sb.AppendLine($"$precision inverseExposureMultiplier = 1.0;");
-            sb.AppendLine("#else");
-            sb.AppendLine($"$precision inverseExposureMultiplier = GetInverseCurrentExposureMultiplier();");
-            sb.AppendLine("#endif");
-
-            sb.AppendLine(@"$precision3 {0} = {1}({2}.xyz, {3}, {4}, inverseExposureMultiplier);",
+            sb.AppendLine(@"$precision3 {0} = {1}({2}.xyz, {3}, {4});",
                 outputValue,
                 GetFunctionName(),
                 colorValue,
@@ -116,17 +110,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string GetFunctionName()
         {
-            return $"Unity_HDRP_GetEmissionHDRColor_{concretePrecision.ToShaderString()}";
+            return "Unity_HDRP_GetEmissionHDRColor_$precision";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
+            // We may need ConvertEvToLuminance() so we include CommonLighting.hlsl
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl");
+
             registry.ProvideFunction(GetFunctionName(), s =>
             {
-                // We may need ConvertEvToLuminance() so we include CommonLighting.hlsl
-                s.AppendLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl\"");
-
-                s.AppendLine("$precision3 {0}($precision3 ldrColor, {1} luminanceIntensity, {1} exposureWeight, {1} inverseCurrentExposureMultiplier)",
+                s.AppendLine("$precision3 {0}($precision3 ldrColor, {1} luminanceIntensity, {1} exposureWeight)",
                     GetFunctionName(),
                     intensitySlot.concreteValueType.ToShaderString());
                 using (s.BlockScope())
@@ -137,8 +131,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     s.AppendLine("$precision3 hdrColor = ldrColor * luminanceIntensity;");
                     s.AppendNewLine();
+                    s.AppendLine("#ifdef SHADERGRAPH_PREVIEW");
+                    s.AppendLine($"$precision inverseExposureMultiplier = 1.0;");
+                    s.AppendLine("#else");
+                    s.AppendLine($"$precision inverseExposureMultiplier = GetInverseCurrentExposureMultiplier();");
+                    s.AppendLine("#endif");
+                    s.AppendNewLine();
+
                     s.AppendLine("// Inverse pre-expose using _EmissiveExposureWeight weight");
-                    s.AppendLine("hdrColor = lerp(hdrColor * inverseCurrentExposureMultiplier, hdrColor, exposureWeight);");
+                    s.AppendLine("hdrColor = lerp(hdrColor * inverseExposureMultiplier, hdrColor, exposureWeight);");
                     s.AppendLine("return hdrColor;");
                 }
             });

@@ -177,7 +177,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 6
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
@@ -1098,6 +1098,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: f1220cf6edd47f144b54af154c1a37f1,
     type: 3}
   materialType: 0
@@ -1344,6 +1345,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 8df48ba98a8a0834c82bc312800e6c49,
     type: 3}
   materialType: 0
@@ -1787,6 +1789,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 8628baf7ceed85e42aa667264011737c,
     type: 3}
   materialType: 0
@@ -2228,6 +2231,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: f1220cf6edd47f144b54af154c1a37f1,
     type: 3}
   materialType: 0
@@ -2741,6 +2745,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 8df48ba98a8a0834c82bc312800e6c49,
     type: 3}
   materialType: 0
@@ -3254,6 +3259,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 8628baf7ceed85e42aa667264011737c,
     type: 3}
   materialType: 0

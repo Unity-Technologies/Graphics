@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal class Renderer2D : ScriptableRenderer
     {
         Render2DLightingPass m_Render2DLightingPass;
+        PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         FinalBlitPass m_FinalBlitPass;
         Light2DCullResult m_LightCullResult;
 
@@ -40,6 +41,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
+            // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
+            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
@@ -90,7 +93,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
                     || cameraData.requireSrgbConversion
-                    || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
@@ -140,6 +142,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+#if UNITY_EDITOR
+            // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
+            if (cameraData.cameraType == CameraType.SceneView)
+            {
+                renderingData.cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
+            }
+#endif
+
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
@@ -175,6 +185,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
+            // Add passes from Renderer Features. - NOTE: This should be reexamined in the future. Please see feedback from this PR https://github.com/Unity-Technologies/Graphics/pull/3147/files
+            isCameraColorTargetValid = true;    // This is to make it possible to call ScriptableRenderer.cameraColorTarget in the custom passes.
+            AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
+
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
@@ -182,8 +197,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
-            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
-            m_Render2DLightingPass.Setup(hasValidDepth);
+            var needsDepth = m_CreateDepthTexture || (!m_CreateColorTexture && m_UseDepthStencilBuffer);
+            m_Render2DLightingPass.Setup(needsDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
@@ -210,6 +225,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
             }
+
+            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+                EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {

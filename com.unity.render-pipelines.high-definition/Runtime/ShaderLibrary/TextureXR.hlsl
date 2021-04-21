@@ -7,7 +7,7 @@
 // single-pass doule-wide is deprecated
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
-#if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
+#if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_GAMECORE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
     #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
 #endif
 

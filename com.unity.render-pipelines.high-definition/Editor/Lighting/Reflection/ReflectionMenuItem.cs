@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class ReflectionMenuItems
     {
-        [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
         static void CreateMirrorGameObject(MenuCommand menuCommand)
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -18,16 +18,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
-            var hdrp = HDRenderPipeline.defaultAsset;
-            var material = hdrp != null ? hdrp.GetDefaultMirrorMaterial() : null;
-
+            var material = HDRenderPipelineGlobalSettings.instance?.GetDefaultMirrorMaterial();
             if (material)
             {
                 plane.GetComponent<MeshRenderer>().sharedMaterial = material;
             }
         }
 
-        [MenuItem("GameObject/Light/Planar Reflection Probe", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Light/Planar Reflection Probe", priority = 22)]
         static void CreatePlanarReflectionGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

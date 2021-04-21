@@ -63,16 +63,16 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadParameter:{targetOffset}}
 	attributes.targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
 	#endif
-		
+
+	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
 	float3 vPos = id & 1 ? attributes.targetPosition : attributes.position;
 	#endif
 	
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
-	
+
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
 	
 	return o;
 }
-
-${VFXFragmentCommonFunctions}

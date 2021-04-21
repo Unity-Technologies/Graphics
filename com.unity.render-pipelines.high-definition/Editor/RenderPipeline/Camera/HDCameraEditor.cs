@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,19 +15,25 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedHDCamera m_SerializedCamera;
 
         RenderTexture m_PreviewTexture;
-        Camera m_PreviewCamera;
-        HDAdditionalCameraData m_PreviewAdditionalCameraData;
+        Camera[] m_PreviewCameras;
+        HDAdditionalCameraData[] m_PreviewAdditionalCameraDatas;
 
         void OnEnable()
         {
             m_SerializedCamera = new SerializedHDCamera(serializedObject);
 
-            m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
-            m_PreviewCamera.enabled = false;
-            m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
-            m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-            // Say that we are a camera editor preview and not just a regular preview
-            m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
+            var targetCount = serializedObject.targetObjects.Length;
+            m_PreviewCameras = new Camera[targetCount];
+            m_PreviewAdditionalCameraDatas = new HDAdditionalCameraData[targetCount];
+            for (int i = 0; i < targetCount; i++)
+            {
+                m_PreviewCameras[i] = EditorUtility.CreateGameObjectWithHideFlags("Preview " + serializedObject.targetObject.name, HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
+                m_PreviewCameras[i].enabled = false;
+                m_PreviewCameras[i].cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
+                m_PreviewAdditionalCameraDatas[i] = m_PreviewCameras[i].gameObject.AddComponent<HDAdditionalCameraData>();
+                // Say that we are a camera editor preview and not just a regular preview
+                m_PreviewAdditionalCameraDatas[i].isEditorCameraPreview = true;
+            }
         }
 
         void OnDisable()
@@ -36,8 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_PreviewTexture.Release();
                 m_PreviewTexture = null;
             }
-            DestroyImmediate(m_PreviewCamera.gameObject);
-            m_PreviewCamera = null;
+            for (int i = 0; i < serializedObject.targetObjects.Length; i++)
+                DestroyImmediate(m_PreviewCameras[i].gameObject);
+            m_PreviewCameras = null;
+            m_PreviewAdditionalCameraDatas = null;
         }
 
         public override void OnInspectorGUI()
@@ -56,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_PreviewTexture != null)
                     m_PreviewTexture.Release();
 
-                m_PreviewTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                m_PreviewTexture = new RenderTexture(width, height, 0, GraphicsFormat.R16G16B16A16_SFloat);
                 m_PreviewTexture.enableRandomWrite = true;
                 m_PreviewTexture.Create();
             }

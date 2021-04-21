@@ -14,12 +14,14 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Controls the lightest portions of the render.")]
         public Vector4Parameter highlights = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
+        [Header("Shadow Limits")]
         [Tooltip("Start point of the transition between shadows and midtones.")]
         public MinFloatParameter shadowsStart = new MinFloatParameter(0f, 0f);
 
         [Tooltip("End point of the transition between shadows and midtones.")]
         public MinFloatParameter shadowsEnd = new MinFloatParameter(0.3f, 0f);
 
+        [Header("Highlight Limits")]
         [Tooltip("Start point of the transition between midtones and highlights.")]
         public MinFloatParameter highlightsStart = new MinFloatParameter(0.55f, 0f);
 

@@ -172,53 +172,51 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MixedRequestsPendingBlits.Add(request);
         }
 
-        public void ClearPendingBlitsRequests()
-        {
-            m_MixedRequestsPendingBlits.Clear();
-        }
-
-        public bool HasPendingBlitsRequests()
-        {
-            return m_MixedRequestsPendingBlits.Count > 0;
-        }
-
-        internal struct ShadowBlitParameters
+        class BlitCachedShadowPassData
         {
             public List<HDShadowRequest> requestsWaitingBlits;
-            public Material              blitMaterial;
-            public MaterialPropertyBlock blitMaterialPropertyBlock;
-            public Vector2Int            cachedShadowAtlasSize;
+            public Material blitMaterial;
+            public Vector2Int cachedShadowAtlasSize;
+
+            public TextureHandle sourceCachedAtlas;
+            public TextureHandle atlasTexture;
         }
 
-        internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
+        public void BlitCachedIntoAtlas(RenderGraph renderGraph, HDCachedShadowAtlas cachedAtlas, Material blitMaterial, string passName, HDProfileId profileID)
         {
-            ShadowBlitParameters parameters = new ShadowBlitParameters();
-            parameters.requestsWaitingBlits = m_MixedRequestsPendingBlits;
-            parameters.blitMaterial = blitMaterial;
-            parameters.blitMaterialPropertyBlock = blitMpb;
-            parameters.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
-            return parameters;
-        }
-
-        static internal void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
-        {
-            foreach (var request in parameters.requestsWaitingBlits)
+            if (m_MixedRequestsPendingBlits.Count > 0)
             {
-                cmd.SetRenderTarget(dynamicTexture);
+                using (var builder = renderGraph.AddRenderPass<BlitCachedShadowPassData>(passName, out var passData, ProfilingSampler.Get(profileID)))
+                {
+                    passData.requestsWaitingBlits = m_MixedRequestsPendingBlits;
+                    passData.blitMaterial = blitMaterial;
+                    passData.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
+                    passData.sourceCachedAtlas = builder.ReadTexture(cachedAtlas.GetOutputTexture(renderGraph));
+                    passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
 
-                cmd.SetViewport(request.dynamicAtlasViewport);
+                    builder.SetRenderFunc(
+                        (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
+                        {
+                            foreach (var request in data.requestsWaitingBlits)
+                            {
+                                var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                                ctx.cmd.SetRenderTarget(data.atlasTexture);
+                                ctx.cmd.SetViewport(request.dynamicAtlasViewport);
 
-                Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / parameters.cachedShadowAtlasSize.x,
-                    request.cachedAtlasViewport.height / parameters.cachedShadowAtlasSize.y,
-                    request.cachedAtlasViewport.x / parameters.cachedShadowAtlasSize.x,
-                    request.cachedAtlasViewport.y / parameters.cachedShadowAtlasSize.y);
+                                Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / data.cachedShadowAtlasSize.x,
+                                    request.cachedAtlasViewport.height / data.cachedShadowAtlasSize.y,
+                                    request.cachedAtlasViewport.x / data.cachedShadowAtlasSize.x,
+                                    request.cachedAtlasViewport.y / data.cachedShadowAtlasSize.y);
 
-                parameters.blitMaterialPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedTexture);
-                parameters.blitMaterialPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
-                CoreUtils.DrawFullScreen(cmd, parameters.blitMaterial, parameters.blitMaterialPropertyBlock, 0);
+                                mpb.SetTexture(HDShaderIDs._CachedShadowmapAtlas, data.sourceCachedAtlas);
+                                mpb.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
+                                CoreUtils.DrawFullScreen(ctx.cmd, data.blitMaterial, mpb, 0);
+                            }
+
+                            data.requestsWaitingBlits.Clear();
+                        });
+                }
             }
-
-            parameters.requestsWaitingBlits.Clear();
         }
 
         public override void Clear()

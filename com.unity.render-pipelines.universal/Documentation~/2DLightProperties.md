@@ -11,7 +11,7 @@ Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and sel
 - __Spot__: You can control the inner and outer radius, direction and angle of this Light type.
 - __Global__: This 2D Light affects all rendered Sprites on all targeted sorting layers.
 
-The following are the common properties used by the different Light types. 
+The following are the common properties used by the different Light types.
 
 ![](Images/2D/2DLightBasics.png)
 
@@ -33,7 +33,7 @@ The following are the common properties used by the different Light types.
 
 
 
-## Overlap Operation 
+## Overlap Operation
 
 This property controls the way in the selected Light interacts with other rendered Lights. You can toggle between the two modes by enabling or disabling this property. The effects of both modes are shown in the examples below:
 
@@ -47,7 +47,7 @@ When __Overlap Operation__ is set to __Alpha Blend__, Lights are blended togethe
 
 ## Light Order
 
-The __Light Order__ value determines the position of the Light in the Render queue relative to other Lights that target the same sorting layer(s). Lower numbered Lights are rendered first, with higher numbered Lights rendered above those below. This especially affects the appearance of blended Lights when __Overlap Operation__ is set to __Alpha Blend__. 
+The __Light Order__ value determines the position of the Light in the Render queue relative to other Lights that target the same sorting layer(s). Lower numbered Lights are rendered first, with higher numbered Lights rendered above those below. This especially affects the appearance of blended Lights when __Overlap Operation__ is set to __Alpha Blend__.
 
 ## Intensity
 

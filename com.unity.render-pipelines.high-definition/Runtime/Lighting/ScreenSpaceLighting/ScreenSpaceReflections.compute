@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel ScreenSpaceReflectionsTracing        SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection   SSR_REPROJECT
@@ -19,7 +19,7 @@
 #ifndef SSR_APPROX
     #define SAMPLES_VNDF
 #endif
-#define SSR_TRACE_EPS               0.00024414 // 2^-12, should be good up to 4K
+#define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
 #define MAX_GGX_ROUGHNESS           0.99999f
 
@@ -120,7 +120,7 @@ bool SampleGGX_VNDF(float roughness_,
 
     float VdotH;
     float3 localV, localH;
-    SampleGGXVisibleNormal(inputSample, V, localToWorld, roughness, localV, localH, VdotH);
+    SampleGGXVisibleNormal(inputSample.xy, V, localToWorld, roughness, localV, localH, VdotH);
 
     // Compute the reflection direction
     float3 localL = 2.0 * VdotH * localH - localV;

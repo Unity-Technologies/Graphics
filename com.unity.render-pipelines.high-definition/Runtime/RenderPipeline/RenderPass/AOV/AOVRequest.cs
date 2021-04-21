@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
         /// <summary>Motion vectors buffer.</summary>
-        MotionVectors
+        MotionVectors,
+        /// <summary> The world space position of visible surfaces.</summary>
+        WorldSpacePosition
     }
 
     /// <summary>Use this request to define how to render an AOV.</summary>
@@ -52,13 +54,19 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialProperty = MaterialSharedProperty.None,
             m_LightingProperty = LightingProperty.None,
             m_DebugFullScreen = DebugFullScreen.None,
-            m_LightFilterProperty = DebugLightFilterMode.None
+            m_LightFilterProperty = DebugLightFilterMode.None,
+            m_OverrideRenderFormat = false
         };
 
         MaterialSharedProperty m_MaterialProperty;
         LightingProperty m_LightingProperty;
         DebugLightFilterMode m_LightFilterProperty;
         DebugFullScreen m_DebugFullScreen;
+
+        // When this variable is true, HDRP will render internally with the graphics format of teh user provided AOV output buffer
+        // Use the SetOverrideRenderFormat member function to change the value of this parameter.
+        internal bool overrideRenderFormat => m_OverrideRenderFormat;
+        internal bool m_OverrideRenderFormat;
 
         AOVRequest* thisPtr
         {
@@ -77,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingProperty = other.m_LightingProperty;
             m_DebugFullScreen = other.m_DebugFullScreen;
             m_LightFilterProperty = other.m_LightFilterProperty;
+            m_OverrideRenderFormat = other.m_OverrideRenderFormat;
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
@@ -112,6 +121,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref AOVRequest SetLightFilter(DebugLightFilterMode filter)
         {
             m_LightFilterProperty = filter;
+            return ref *thisPtr;
+        }
+
+        /// <summary>Allows AOVs to be rendered at the same format/precision as the user allocated buffers.</summary>
+        /// <param name="flag">Set to true to override the rendering buffer format</param>
+        /// <returns>A ref return to chain calls.</returns>
+        public ref AOVRequest SetOverrideRenderFormat(bool flag)
+        {
+            m_OverrideRenderFormat = flag;
             return ref *thisPtr;
         }
 
@@ -172,9 +190,64 @@ namespace UnityEngine.Rendering.HighDefinition
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);
                     break;
+                case DebugFullScreen.WorldSpacePosition:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
+                    break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");
             }
+        }
+
+        /// <summary>
+        /// Equality operator.
+        /// </summary>
+        /// <param name="obj">The AOV request to compare to.</param>
+        /// <returns>True if the provided AOV request is equal to this.</returns>
+        public override bool Equals(object obj)
+        {
+            return obj is AOVRequest && ((AOVRequest)obj) == this;
+        }
+
+        /// <summary>
+        /// Compares if two AOV requests have the same settings.
+        /// </summary>
+        /// <param name="a">The first AOVRequest to compare.</param>
+        /// <param name="b">The second AOVRequest to compare.</param>
+        /// <returns>True if the two AOV requests have the same settings.</returns>
+        public static bool operator==(AOVRequest a, AOVRequest b)
+        {
+            return a.m_DebugFullScreen == b.m_DebugFullScreen &&
+                a.m_LightFilterProperty == b.m_LightFilterProperty &&
+                a.m_LightingProperty == b.m_LightingProperty &&
+                a.m_MaterialProperty == b.m_MaterialProperty &&
+                a.m_OverrideRenderFormat == b.m_OverrideRenderFormat;
+        }
+
+        /// <summary>
+        /// Compares if two AOV requests have the same settings.
+        /// </summary>
+        /// <param name="a">The first AOVRequest to compare.</param>
+        /// <param name="b">The second AOVRequest to compare.</param>
+        /// <returns>True if the two AOV requests have not the same settings.</returns>
+        public static bool operator!=(AOVRequest a, AOVRequest b)
+        {
+            return !(a == b);
+        }
+
+        /// <summary>
+        /// Computes a hash code for the AOV Request.
+        /// </summary>
+        /// <returns>A hash code for the AOV Request.</returns>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (int)m_DebugFullScreen;
+            hash = hash * 23 + (int)m_LightFilterProperty;
+            hash = hash * 23 + (int)m_LightingProperty;
+            hash = hash * 23 + (int)m_MaterialProperty;
+            hash = m_OverrideRenderFormat ? hash * 23 + 1 : hash;
+
+            return hash;
         }
     }
 }

@@ -1,8 +1,8 @@
 # Feature comparison table
 
-This table provides an overview of the current features supported in the Universal Render Pipeline (URP), compared to the Unity Built-in render pipeline. 
+This table provides an overview of the current features supported in the Universal Render Pipeline (URP), compared to the Unity Built-in render pipeline.
 
-**Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
+**Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release.
 
 
 | Feature | Built-in Render Pipeline<br/>Unity 2018.x, 2019.x, 2020.x. | Universal Render Pipeline |
@@ -45,7 +45,7 @@ This table provides an overview of the current features supported in the Univers
 | *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes     | <br/>Yes<br/>No                       |
 | Shadow Bias                                                  | Constant clip space offset + normal bias                     | Offsets shadowmap texels in the light direction + normal bias|
 | ***Lightmapping***                 |                                                              |                                                              |
-| Enlighten                                                    | Yes                                                          | Not supported                                                          |
+| Enlighten                                                    | Yes                                                          | Yes                                                          |
 | Progressive Lightmapper, CPU                                              | Yes                                                          | Yes                                                          |
 | Progressive Lightmapper, GPU                                              | Yes                                                          | Yes                                                          |
 | ***Realtime Global Illumination***                 |                                                              |                                                              |

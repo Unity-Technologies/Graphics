@@ -37,5 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Note: we can't call this code inside the HDAdditionalLightData, thus why we don't wrap it in a Reset() function
             HDUtils.s_DefaultHDAdditionalLightData.CopyTo(lightAdditionalData);
         }
+
+        [MenuItem("CONTEXT/Light/Show All Additional Properties...", false, 100)]
+        static void ShowAllAdditionalProperties(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
     }
 }

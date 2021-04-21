@@ -1,10 +1,8 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Rendering.HighDefinition.Compositor;
+using UnityEngine.Experimental.Rendering;
 
-using UnityEditor;
 using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition.Compositor
@@ -32,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             static public readonly GUIContent k_VolumeMask = EditorGUIUtility.TrTextContent("Volume Mask", "To override the volume mask, activate the option by clicking on the check-box and then select the desired value.");
             static public readonly GUIContent k_AlphaRange = EditorGUIUtility.TrTextContent("Alpha Range", "The range of alpha values used when transitioning from post-processed to plain image regions. A smaller range will result in a steeper transition.");
 
-            static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player require to to enable the Runtime AOV API support in the HDRP quality settings.";
+            static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player requires to enable the Runtime AOV API support in the HDRP quality settings.";
 
             static public readonly string k_ShaderCompilationWarning = "The Unity Editor is compiling the AOV shaders for the first time. The output might not be correct until the compilation is over.";
 
@@ -70,9 +68,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 rect.width -= previewRect.width + CompositorStyle.k_ThumbnailSpacing;
 
                 if (isAlphaEnbaled
-                    && (thumbnail.format == RenderTextureFormat.ARGBHalf
-                        || thumbnail.format == RenderTextureFormat.ARGBFloat
-                        || thumbnail.format == RenderTextureFormat.ARGB64))
+                    && (thumbnail.graphicsFormat == GraphicsFormat.R16G16B16A16_SFloat
+                        || thumbnail.graphicsFormat == GraphicsFormat.R32G32B32A32_SFloat
+                        || thumbnail.graphicsFormat == GraphicsFormat.R16G16B16A16_UNorm))
                 {
                     EditorGUI.DrawTextureAlpha(previewRect, thumbnail);
                     rect.x += previewRect.width + CompositorStyle.k_ThumbnailSpacing;
@@ -154,10 +152,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     Rect infoRect = rect;
                     // Compute the height of the infobox based on the width of the window and the amount of text
                     GUIStyle.none.CalcMinMaxWidth(new GUIContent(Styles.k_ShaderCompilationWarning), out float minWidth, out float maxWidth);
-                    float lines = Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth));
+                    float lines = Mathf.Max(2, Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth)));
                     infoRect.height = lines * CompositorStyle.k_Spacing;
                     EditorGUI.HelpBox(infoRect, Styles.k_ShaderCompilationWarning, MessageType.Warning);
-                    rect.y += infoRect.height;
+                    rect.y += infoRect.height + EditorGUIUtility.standardVerticalSpacing;
                 }
                 else
                 {
@@ -189,10 +187,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Rect infoRect = rect;
                 // Compute the height of the infobox based on the width of the window and the amount of text
                 GUIStyle.none.CalcMinMaxWidth(new GUIContent(Styles.k_AlphaInfoPost), out float minWidth, out float maxWidth);
-                float lines = Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth));
+                float lines = Mathf.Max(2, Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth)));
                 infoRect.height = lines * CompositorStyle.k_Spacing;
                 EditorGUI.HelpBox(infoRect, Styles.k_AlphaInfoPost, MessageType.Info);
-                rect.y += infoRect.height;
+                rect.y += infoRect.height + EditorGUIUtility.standardVerticalSpacing;
             }
         }
 

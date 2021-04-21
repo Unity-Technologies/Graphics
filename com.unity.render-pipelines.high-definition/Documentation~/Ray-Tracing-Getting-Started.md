@@ -15,9 +15,27 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
-NVIDIA TITAN RTX
-- NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
+- NVIDIA GeForce 20 series:
+  - RTX 2060
+  - RTX 2060 Super
+  - RTX 2070
+  - RTX 2070 Super
+  - RTX 2080
+  - RTX 2080 Super
+  - RTX 2080 Ti
+  - NVIDIA TITAN RTX
+- NVIDIA GeForce 30 series:
+  - RTX 3060
+  - RTX 3060Ti
+  - RTX 3070
+  - RTX 3080
+  - RTX 3090
+- NVIDIA Quadro:
+  - RTX 3000 (laptop only)
+  - RTX 4000
+  - RTX 5000
+  - RTX 6000
+  - RTX 8000
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
@@ -43,7 +61,7 @@ There are two ways to do this:
 
 * [Manual setup](#ManualSetup)
 
-Once you have completed one of these, move onto [Final setup](#FinalSetup).
+Once you have completed one of these, move onto [Final setup](#final-setup).
 
 <a name="WizardSetup"></a>
 
@@ -51,12 +69,12 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
-1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
+1. To open the HDRP Wizard, go to Window > Rendering > HDRP Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
-4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects. 
+4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
 
-Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
+Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
 <a name="ManualSetup"></a>
 
@@ -130,17 +148,16 @@ To enable the above effects in your HDRP Unity Project:
 4. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
 5. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
 
-Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
-
-<a name="FinalSetup"></a>
+Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
 ### Final setup
 
 Now that your HDRP Project supports ray tracing, there are a few steps you must complete in order to actually use it in your Scene.
 
-1. [Frame Settings validation](#FinalSetup-FrameSettings)
+1. [Frame Settings validation](#frame-settings)
+2. [Build settings validation](#build-settings)
+3. [Scene validation](#scene-validation)
 
-<a name="FinalSetup-FrameSettings"></a>
 
 #### Frame Settings
 
@@ -158,14 +175,18 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
-<a name="FinalSetup-BuildSettings"></a>
-
 #### Build settings
 
 To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
 
 1. Open the Build Settings window (menu: **File > Build Settings**).
 2. From the **Architecture** drop-down, select **x86_64**.
+
+#### Scene validation
+
+To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. To use it:
+1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
+2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
 
 <a name="RayTracingEffectsOverview"></a>
 
@@ -193,7 +214,7 @@ Depending on which ray tracing mode you select, HDRP may expose difference prope
 You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down.
 
 If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
 
@@ -207,7 +228,11 @@ You can find a small ray tracing project that contains all the effects mention a
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
-## Unsupported features of ray tracing
+## Limitations
+
+This section contains information on the limitations of HDRP's ray tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its ray-traced render pipeline.
+
+### Unsupported features of ray tracing
 
 There is no support for ray tracing on platforms other than DX12 for now.
 
@@ -223,27 +248,13 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 
-## Unsupported features of path tracing
-
-There is no support for path tracing on platforms other than DX12 for now.
-
-HDRP path tracing in Unity 2020.2 has the following limitations:
-
-- Does not support 3D Text and TextMeshPro.
-- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
-- Does not support decals.
-- Does not support tessellation.
-- Does not support Tube and Disc shaped Area Light.
-- Does not support Translucent Opaque Materials.
-- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
-- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
-- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
-
-## Unsupported shader graph nodes for ray tracing
+### Unsupported shader graph nodes for ray tracing
 
 When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
 - DDX, DDY and DDXY nodes.
 - All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
 - Checkerboard node.
+
+### Unsupported features of path tracing
+
+For information about unsupported features of path tracing, see [Path tracing limitations](Ray-Tracing-Path-Tracing.md#limitations).

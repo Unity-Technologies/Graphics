@@ -2,7 +2,7 @@
 
 Menu Path : **Context > Initialize Particle**
 
-The **Initialize** Context processes a [Spawn Event](Context-Spawn.md) or a [GPU Event](Context-GPUEvent) and initializes new elements for a Particle or ParticleStrip simulation. 
+The **Initialize** Context processes a [Spawn Event](Context-Spawn.md) or a [GPU Event](Context-GPUEvent) and initializes new elements for a Particle or ParticleStrip simulation.
 
 ## Context settings
 
@@ -44,7 +44,7 @@ The Visual Effect Graph executes the Initialize Context only once per new elemen
 
 ### Source attribute availability
 
-In an Initialize Context, Blocks and Operators can read from [source attributes](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html%23source), by using a Get Attribute (Source) Operator, or an Inherit \<Attribute\> Block. 
+In an Initialize Context, Blocks and Operators can read from [source attributes](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html%23source), by using a Get Attribute (Source) Operator, or an Inherit \<Attribute\> Block.
 
 ### Input flow compatibility
 

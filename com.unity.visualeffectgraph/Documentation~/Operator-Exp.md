@@ -6,7 +6,7 @@ The **Exp** Operator raises a base number to a specified power. It supports thre
 
 Exp raises the number **E**, which is a mathematical constant approximately equal to 2.718281828459, to a specified power. Exponential functions with a base **E** are frequently used in mathematics and science.
 
-Exp<sub>2</sub> raises the number **2** to a specified power. For example, Exp2(3) equals to *2\*2\*2*, which is 8. 
+Exp<sub>2</sub> raises the number **2** to a specified power. For example, Exp2(3) equals to *2\*2\*2*, which is 8.
 
 Exp<sub>10</sub> raises the number **10** to a specified power. For example, Exp10(3) equals to *10\*10\*10*, which is 1000.
 

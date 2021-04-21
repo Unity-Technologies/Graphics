@@ -131,12 +131,19 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 {
     VaryingsMeshType output;
+    ZERO_INITIALIZE(VaryingsMeshType, output);
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+
 #if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input, _TimeParameters.xyz);
+    input = ApplyMeshModification(input, _TimeParameters.xyz
+    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
+    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+        , output
+    #endif
+    );
 #endif
 
     // This return the camera relative position (if enable)

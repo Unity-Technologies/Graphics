@@ -8,7 +8,7 @@ The **Complement** Operator applies a bitwise logical *NOT* operation to each bi
 
 - A hexadecimal input of 0xF0F0F0F0 outputs 0x0F0F0F0F.
 
-  
+
 
 ## Operator properties
 

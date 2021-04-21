@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Ray-Traced-Global-Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
-        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.2f, 0.0f, 0.5f);
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
 
         GlobalIllumination()
         {
@@ -49,24 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
-
-        /// <summary>
-        /// Defines if the effect should be evaluated at full resolution.
-        /// </summary>
-        public bool fullResolutionSS
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_FullResolutionSS.value;
-                else
-                    return GetLightingQualitySettings().SSGIFullResolution[(int)quality.value];
-            }
-            set { m_FullResolutionSS.value = value; }
-        }
-        [SerializeField]
-        private BoolParameter m_FullResolutionSS = new BoolParameter(true);
+        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(48, 32, 256);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -84,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [Tooltip("Filter Radius")]
         [SerializeField]
-        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 16);
 
         /// <summary>
         /// Toggles ray traced global illumination.
@@ -97,6 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the layers that GI should include.")]
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// The LOD Bias HDRP applies to textures in the global illumination.
+        /// </summary>
+        [Tooltip("The LOD Bias HDRP applies to textures in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.")]
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(7, 0, 7);
 
         /// <summary>
         /// Controls the length of GI rays.
@@ -176,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>

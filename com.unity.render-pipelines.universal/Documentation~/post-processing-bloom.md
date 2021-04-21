@@ -6,7 +6,7 @@ The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a 
 
 ## Using Bloom
 
-**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](Volume.md) in your Scene. 
+**Bloom** uses the [Volume](Volumes.md) system, so to enable and modify **Bloom** properties, you must add a **Bloom** override to a [Volume](Volume.md) in your Scene.
 
 To add **Bloom** to a Volume:
 
@@ -38,8 +38,7 @@ To add **Bloom** to a Volume:
 
 ## Troubleshooting performance issues
 
-There are multiple ways to improve the performance impact of Bloom. Listed in order of effectiveness, you can: 
+There are multiple ways to improve the performance impact of Bloom. Listed in order of effectiveness, you can:
 
-1. Disable **High Quality Filtering**. Bloom then uses bilinear filtering instead of bicubic. This reduces the overall smoothness of the Bloom effect, but greatly improves performance, especially on lower-end hardware and platforms. In some extreme cases, you might see blocky graphical artifacts in your Scene. 
+1. Disable **High Quality Filtering**. Bloom then uses bilinear filtering instead of bicubic. This reduces the overall smoothness of the Bloom effect, but greatly improves performance, especially on lower-end hardware and platforms. In some extreme cases, you might see blocky graphical artifacts in your Scene.
 2. Use a lower resolution **Lens Dirt** Texture to reduce memory pressure and speed up blending across volumes.
-

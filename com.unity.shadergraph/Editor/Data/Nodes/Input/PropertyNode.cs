@@ -56,6 +56,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // this node's precision is always controlled by the property precision
         public override bool canSetPrecision => false;
 
         public void UpdateNodeDisplayName(string newDisplayName)
@@ -249,7 +250,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
+        public override void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)
@@ -258,12 +259,12 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 return;
             }
-            // If Property has a precision override use that
+
+            // this node's precision is always controlled by the property precision
             precision = property.precision;
-            if (precision != Precision.Inherit)
-                concretePrecision = precision.ToConcrete();
-            else
-                concretePrecision = owner.concretePrecision;
+
+            graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
     }
 }

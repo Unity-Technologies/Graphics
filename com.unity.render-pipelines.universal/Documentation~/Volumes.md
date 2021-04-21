@@ -1,8 +1,8 @@
 # Volumes
 
-The Universal Render Pipeline (URP) uses the Volume framework. Volumes can override or extend Scene properties depending on the Camera position relative to each Volume. 
+The Universal Render Pipeline (URP) uses the Volume framework. Volumes can override or extend Scene properties depending on the Camera position relative to each Volume.
 
-URP uses the Volume framework for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects. 
+URP uses the Volume framework for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects.
 
 URP implements dedicated GameObjects for Volumes: **Global Volume**, **Box Volume**, **Sphere Volume**, **Convex Mesh Volume**.
 

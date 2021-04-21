@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
@@ -15,6 +12,9 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
+
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -22,8 +22,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
-        internal delegate  void ChangeDisplayNameCallback(string newValue);
-        internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
         internal delegate void PostChangeValueCallback(bool bTriggerPropertyUpdate = false, ModificationScope modificationScope = ModificationScope.Node);
@@ -45,10 +43,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         TextField m_DisplayNameField;
 
         // Reference Name
+        TextPropertyDrawer m_ReferenceNameDrawer;
         TextField m_ReferenceNameField;
-        public ChangeReferenceNameCallback _resetReferenceNameCallback;
 
         ShaderInput shaderInput;
+
+        Toggle exposedToggle;
+        VisualElement keywordScopeField;
+        // Should be provided by the Inspectable
+        ShaderInputViewModel m_ViewModel;
+        ShaderInputViewModel ViewModel => m_ViewModel;
+
+        const string m_DisplayNameDisallowedPattern = "[^\\w_ ]";
+        const string m_ReferenceNameDisallowedPattern = @"(?:[^A-Za-z_0-9_])";
 
         public ShaderInputPropertyDrawer()
         {
@@ -56,47 +63,91 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.normal = new GUIStyleState { textColor = Color.grey };
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
-
-            // Initializing this callback early on as it is needed by the BlackboardFieldView
-            // for binding to the menu action that triggers the reset
-            _resetReferenceNameCallback = newValue =>
-            {
-                m_ReferenceNameField.value = newValue;
-                m_ReferenceNameField.RemoveFromClassList("modified");
-            };
         }
 
         GraphData graphData;
-        bool isSubGraph { get; set;  }
+        bool isSubGraph { get; set; }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
-        ChangeDisplayNameCallback _displayNameChangedCallback;
-        ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
+        Action<string> _displayNameChangedCallback;
+        Action<string> _referenceNameChangedCallback;
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
         PostChangeValueCallback _postChangeValueCallback;
+
         public void GetPropertyData(
             bool isSubGraph,
             GraphData graphData,
             ChangeExposedFieldCallback exposedFieldCallback,
-            ChangeDisplayNameCallback displayNameCallback,
-            ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
-            PreChangeValueCallback preChangeValueCallback,
             PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
-            this._exposedFieldChangedCallback = exposedFieldCallback;
-            this._displayNameChangedCallback = displayNameCallback;
-            this._referenceNameChangedCallback = referenceNameCallback;
-            this._precisionChangedCallback = precisionChangedCallback;
-            this._changeValueCallback = changeValueCallback;
             this._keywordChangedCallback = keywordChangedCallback;
-            this._preChangeValueCallback = preChangeValueCallback;
+            this._precisionChangedCallback = precisionChangedCallback;
+            this._exposedFieldChangedCallback = exposedFieldCallback;
+            this._changeValueCallback = changeValueCallback;
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+            this._postChangeValueCallback = postChangeValueCallback;
+        }
+
+        internal void GetViewModel(ShaderInputViewModel shaderInputViewModel, GraphData inGraphData, PostChangeValueCallback postChangeValueCallback)
+        {
+            m_ViewModel = shaderInputViewModel;
+            this.isSubGraph = m_ViewModel.isSubGraph;
+            this.graphData = inGraphData;
+            this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+
+            this._exposedFieldChangedCallback = newValue =>
+            {
+                var changeExposedFlagAction = new ChangeExposedFlagAction();
+                changeExposedFlagAction.shaderInputReference = shaderInput;
+                changeExposedFlagAction.newIsExposedValue = newValue;
+                ViewModel.requestModelChangeAction(changeExposedFlagAction);
+            };
+
+            this._displayNameChangedCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangeDisplayNameAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._changeValueCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangePropertyValueAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newShaderInputValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._referenceNameChangedCallback = newValue =>
+            {
+                var changeReferenceNameAction = new ChangeReferenceNameAction();
+                changeReferenceNameAction.shaderInputReference = shaderInput;
+                changeReferenceNameAction.newReferenceNameValue = newValue;
+                ViewModel.requestModelChangeAction(changeReferenceNameAction);
+            };
+
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+
+            if (shaderInput is AbstractShaderProperty abstractShaderProperty)
+            {
+                var changePropertyValueAction = new ChangePropertyValueAction();
+                changePropertyValueAction.shaderInputReference = abstractShaderProperty;
+                this._changeValueCallback = newValue =>
+                {
+                    changePropertyValueAction.newShaderInputValue = newValue;
+                    ViewModel.requestModelChangeAction(changePropertyValueAction);
+                };
+            }
+
             this._postChangeValueCallback = postChangeValueCallback;
         }
 
@@ -114,15 +165,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
+            UpdateEnableState();
             return propertySheet;
         }
 
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             if (shaderInput is ShaderKeyword)
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
             else
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
         void BuildExposedField(PropertySheet propertySheet)
@@ -137,10 +189,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._exposedFieldChangedCallback(evt.isOn);
                         this._postChangeValueCallback(false, ModificationScope.Graph);
                     },
-                    new ToggleData(shaderInput.generatePropertyBlock),
+                    new ToggleData(shaderInput.isExposed),
                     "Exposed",
-                    out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
+                    out var exposedToggleVisualElement));
+                exposedToggle = exposedToggleVisualElement as Toggle;
+            }
+        }
+
+        void UpdateEnableState()
+        {
+            // some changes may change the exposed state
+            exposedToggle?.SetValueWithoutNotify(shaderInput.isExposed);
+            exposedToggle?.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
+            if (shaderInput is ShaderKeyword keyword)
+            {
+                keywordScopeField?.SetEnabled(!keyword.isBuiltIn && (keyword.keywordDefinition != KeywordDefinition.Predefined));
+                this._exposedFieldChangedCallback(keyword.generatePropertyBlock); // change exposed icon appropriately
             }
         }
 
@@ -150,61 +214,107 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(textPropertyDrawer.CreateGUI(
                 null,
                 (string)shaderInput.displayName,
-                "Name",
-                out var propertyVisualElement));
+                "Name"));
 
-            m_DisplayNameField = (TextField)propertyVisualElement;
+            m_DisplayNameField = textPropertyDrawer.textField;
             m_DisplayNameField.RegisterValueChangedCallback(
                 evt =>
                 {
-                    this._preChangeValueCallback("Change Display Name");
-                    this._displayNameChangedCallback(evt.newValue);
+                    if (evt.newValue != shaderInput.displayName)
+                    {
+                        this._preChangeValueCallback("Change Display Name");
+                        shaderInput.SetDisplayNameAndSanitizeForGraph(graphData, evt.newValue);
 
-                    if (string.IsNullOrEmpty(shaderInput.displayName))
-                        m_DisplayNameField.RemoveFromClassList("modified");
-                    else
-                        m_DisplayNameField.AddToClassList("modified");
+                        if (string.IsNullOrEmpty(shaderInput.displayName))
+                            m_DisplayNameField.RemoveFromClassList("modified");
+                        else
+                            m_DisplayNameField.AddToClassList("modified");
 
-                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                        this._postChangeValueCallback(true, ModificationScope.Topological);
+                    }
                 });
 
             if (!string.IsNullOrEmpty(shaderInput.displayName))
-                propertyVisualElement.AddToClassList("modified");
-            propertyVisualElement.SetEnabled(shaderInput.isRenamable);
-            propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                m_DisplayNameField.AddToClassList("modified");
+            m_DisplayNameField.SetEnabled(shaderInput.isRenamable);
+            m_DisplayNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
         }
 
         void BuildReferenceNameField(PropertySheet propertySheet)
         {
             if (!isSubGraph || shaderInput is ShaderKeyword)
             {
-                var textPropertyDrawer = new TextPropertyDrawer();
-                propertySheet.Add(textPropertyDrawer.CreateGUI(
+                m_ReferenceNameDrawer = new TextPropertyDrawer();
+                propertySheet.Add(m_ReferenceNameDrawer.CreateGUI(
                     null,
                     (string)shaderInput.referenceName,
-                    "Reference",
-                    out var propertyVisualElement));
+                    "Reference"));
 
-                m_ReferenceNameField = (TextField)propertyVisualElement;
+                m_ReferenceNameField = m_ReferenceNameDrawer.textField;
                 m_ReferenceNameField.RegisterValueChangedCallback(
                     evt =>
                     {
                         this._preChangeValueCallback("Change Reference Name");
-                        this._referenceNameChangedCallback(evt.newValue);
+
+                        if (evt.newValue != shaderInput.referenceName)
+                            shaderInput.SetReferenceNameAndSanitizeForGraph(graphData, evt.newValue);
 
                         if (string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+                        {
                             m_ReferenceNameField.RemoveFromClassList("modified");
+                            m_ReferenceNameDrawer.label.RemoveFromClassList("modified");
+                        }
                         else
+                        {
                             m_ReferenceNameField.AddToClassList("modified");
+                            m_ReferenceNameDrawer.label.AddToClassList("modified");
+                        }
 
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
                 if (!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
-                    propertyVisualElement.AddToClassList("modified");
-                propertyVisualElement.SetEnabled(shaderInput.isRenamable);
-                propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                {
+                    m_ReferenceNameDrawer.textField.AddToClassList("modified");
+                    m_ReferenceNameDrawer.label.AddToClassList("modified");
+                }
+                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isRenamable);
+
+                // add the right click context menu to the label
+                IManipulator contextMenuManipulator = new ContextualMenuManipulator((evt) => AddShaderInputOptionsToContextMenu(shaderInput, evt));
+                m_ReferenceNameDrawer.label.AddManipulator(contextMenuManipulator);
             }
+        }
+
+        void AddShaderInputOptionsToContextMenu(ShaderInput shaderInput, ContextualMenuPopulateEvent evt)
+        {
+            if (shaderInput.isRenamable && !string.IsNullOrEmpty(shaderInput.overrideReferenceName))
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e => { ResetReferenceName(); },
+                    DropdownMenuAction.AlwaysEnabled);
+
+            if (shaderInput.IsUsingOldDefaultRefName())
+                evt.menu.AppendAction(
+                    "Upgrade To New Reference Name",
+                    e => { UpgradeDefaultReferenceName(); },
+                    DropdownMenuAction.AlwaysEnabled);
+        }
+
+        public void ResetReferenceName()
+        {
+            this._preChangeValueCallback("Reset Reference Name");
+            var refName = shaderInput.ResetReferenceName(graphData);
+            m_ReferenceNameField.value = refName;
+            this._postChangeValueCallback(true, ModificationScope.Graph);
+        }
+
+        public void UpgradeDefaultReferenceName()
+        {
+            this._preChangeValueCallback("Upgrade Reference Name");
+            var refName = shaderInput.UpgradeDefaultReferenceName(graphData);
+            m_ReferenceNameField.value = refName;
+            this._postChangeValueCallback(true, ModificationScope.Graph);
         }
 
         void BuildPropertyFields(PropertySheet propertySheet)
@@ -381,7 +491,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 property.precision = (Precision)newValue;
                 this._precisionChangedCallback();
                 this._postChangeValueCallback();
-            }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            }, (PropertyDrawerUtils.UIPrecisionForShaderGraphs)property.precision, "Precision", PropertyDrawerUtils.UIPrecisionForShaderGraphs.Inherit, out var precisionField));
             if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
                 precisionField.SetEnabled(false);
         }
@@ -666,15 +776,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
                     {
                         var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
-                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerName);
-                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", evt.newValue);
+                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerRefName);
+                        var newName = NodeUtils.ConvertToValidHLSLIdentifier(evt.newValue);
+                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", newName);
                         if (newLayerRefName != svt.layerRefName)
                         {
                             this._preChangeValueCallback("Change Layer Ref Name");
                             svt.layerRefName = newLayerRefName;
                             this._postChangeValueCallback(false, ModificationScope.Graph);
-                            m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                         }
+                        // Always update the display name to the sanitized name. If an invalid name was entered that ended up being sanitized to the old value,
+                        // the text box still needs to be updated to display the sanitized name.
+                        m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                     }
                 });
             AddPropertyRowToSheet(propertySheet, m_VTLayer_RefName, "  Layer Reference");
@@ -1031,6 +1144,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     if (keyword.keywordDefinition == (KeywordDefinition)newValue)
                         return;
                     keyword.keywordDefinition = (KeywordDefinition)newValue;
+                    UpdateEnableState();
                 },
                 keyword.keywordDefinition,
                 "Definition",
@@ -1039,7 +1153,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             typeField.SetEnabled(!keyword.isBuiltIn);
 
-            if (keyword.keywordDefinition != KeywordDefinition.Predefined)
             {
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
                     newValue =>
@@ -1052,9 +1165,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     keyword.keywordScope,
                     "Scope",
                     KeywordScope.Local,
-                    out var scopeField));
-
-                scopeField.SetEnabled(!keyword.isBuiltIn);
+                    out keywordScopeField));
             }
 
             switch (keyword.keywordType)
@@ -1066,6 +1177,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     BuildEnumKeywordField(propertySheet, keyword);
                     break;
             }
+
+            BuildExposedField(propertySheet);
         }
 
         void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
@@ -1158,18 +1271,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
                 var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
                 //This is gross but I cant find any other way to make a DelayedTextField have a tooltip (tried doing the empty label on the field itself and it didnt work either)
-                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters and `_`"));
+                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters, whitespace and `_`"));
                 var referenceName = EditorGUI.TextField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
                     keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
-                displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, displayName.ToUpper());
-
                 if (EditorGUI.EndChangeCheck())
                 {
-                    keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
+                    displayName = GetSanitizedDisplayName(displayName);
+                    referenceName = GetSanitizedReferenceName(displayName.ToUpper());
+                    var duplicateIndex = FindDuplicateReferenceNameIndex(entry.id, referenceName);
+                    if (duplicateIndex != -1)
+                    {
+                        var duplicateEntry = ((KeywordEntry)m_KeywordReorderableList.list[duplicateIndex]);
+                        Debug.LogWarning($"Display name '{displayName}' will create the same reference name '{referenceName}' as entry {duplicateIndex + 1} with display name '{duplicateEntry.displayName}'.");
+                    }
+                    else if (string.IsNullOrWhiteSpace(displayName))
+                        Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
+                    else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
+                        Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
+                    else
+                        keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
 
-                    // Rebuild();
                     this._postChangeValueCallback(true);
                 }
             };
@@ -1238,8 +1360,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (index <= 0)
                 return; // Error has already occured, don't attempt to add this entry.
 
-            var displayName = GetDuplicateSafeDisplayName(index, "New");
-            var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
+            var displayName = "New";
+            var referenceName = "NEW";
+            GetDuplicateSafeEnumNames(index, "New", out displayName, out referenceName);
 
             // Add new entry
             keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
@@ -1281,14 +1404,56 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[^\\w_#() .]");
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, m_DisplayNameDisallowedPattern);
+        }
+
+        public string GetDuplicateSafeEnumDisplayName(int id, string name)
+        {
+            name = name.Trim();
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} {1}", name, m_DisplayNameDisallowedPattern);
+        }
+
+        void GetDuplicateSafeEnumNames(int id, string name, out string displayName, out string referenceName)
+        {
+            name = name.Trim();
+            // Get de-duplicated display and reference names
+            displayName = GetDuplicateSafeEnumDisplayName(id, name);
+            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpper());
+            // Check when the simple reference name should be for the display name.
+            // If these don't match then there will be a desync which causes the enum entry to not work.
+            // An example where this happens is ["new 1", "NEW_1"] already exists.
+            // The display name "New_1" is added.
+            // This new display name doesn't exist, but it finds the reference name of "NEW_1" already exists so we get the pair ["New_1", "NEW_2"] which is invalid.
+            // The easiest fix in this case is to just use the safe reference name as the new display name which is guaranteed to be unique.
+            var simpleReferenceName = Regex.Replace(displayName.ToUpper(), m_ReferenceNameDisallowedPattern, "_");
+            if (referenceName != simpleReferenceName)
+                displayName = referenceName;
+        }
+
+        string GetSanitizedDisplayName(string name)
+        {
+            name = name.Trim();
+            return Regex.Replace(name, m_DisplayNameDisallowedPattern, "_");
         }
 
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, @"(?:[^A-Za-z_0-9_])");
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, m_ReferenceNameDisallowedPattern);
+        }
+
+        string GetSanitizedReferenceName(string name)
+        {
+            name = name.Trim();
+            return Regex.Replace(name, m_ReferenceNameDisallowedPattern, "_");
+        }
+
+        int FindDuplicateReferenceNameIndex(int id, string referenceName)
+        {
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
+            return entryList.FindIndex(entry => entry.id != id && entry.referenceName == referenceName);
         }
     }
 }

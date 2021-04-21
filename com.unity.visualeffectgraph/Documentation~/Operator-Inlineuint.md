@@ -18,4 +18,3 @@ The **uint** inline Operator allows you to store an instance of a uint. This is 
 | **Output** | uint   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

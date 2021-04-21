@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Log**
 
 The **Log** Operator outputs the logarithm of a number. This determines how many times you need to multiply a base number to get another final number. This Operator is useful to solve mathematical problems that involve compound interest. It is the reverse of the [**Exp**](Operator-Exp.md) Operator.
 
-The Log operator supports the following bases: 
+The Log operator supports the following bases:
 
 - Log,
 - Log<sub>2</sub>

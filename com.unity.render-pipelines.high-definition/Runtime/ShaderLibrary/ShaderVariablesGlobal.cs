@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Global Constant Buffers - b registers. Unity supports a maximum of 16 global constant buffers.
@@ -8,6 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRSky = 2,
         RayTracing = 3,
         RayTracingLightLoop = 4,
+        APV = APVConstantBufferRegister.GlobalRegister,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -43,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // ================================
         // TODO: all affine matrices should be 3x4.
         public Matrix4x4 _ViewMatrix;
+        public Matrix4x4 _CameraViewMatrix;
         public Matrix4x4 _InvViewMatrix;
         public Matrix4x4 _ProjMatrix;
         public Matrix4x4 _InvProjMatrix;
@@ -269,6 +273,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _GlobalTessellationFactorMultiplier;
 
         public float    _SpecularOcclusionBlend;
-        public float    _Pad9;
+        public float    _DeExposureMultiplier;
     }
 }

@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             UpdateSkyAndFogIntPopupData();
 
-            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Sky"), EditorStyles.miniLabel);
+            DrawHeader("Sky");
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawOverrideCheckbox(m_SkyType);
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawOverrideCheckbox(m_CloudType);
                 using (new EditorGUI.DisabledScope(!m_CloudType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Cloud type", "Specifies the type of cloud this Volume uses."));
+                    EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Background clouds", "Specifies the type of background cloud this Volume uses."));
                 }
             }
 

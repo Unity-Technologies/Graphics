@@ -53,7 +53,7 @@ Always apply **Tonemapping** when using an HDR camera, otherwise color intensity
 
 ## White Balance
 
-**White Balance** allows you to adjust the overall tint and temperature of your image to create a colder or warmer feel in the final render.  
+**White Balance** allows you to adjust the overall tint and temperature of your image to create a colder or warmer feel in the final render.
 
 ![](images/grading-3.png)
 

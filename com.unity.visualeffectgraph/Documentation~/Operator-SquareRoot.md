@@ -1,10 +1,10 @@
 # Square Root
 
-Menu Path : **Operator > Math > Arithmetic > Square Root** 
+Menu Path : **Operator > Math > Arithmetic > Square Root**
 
 The **Square Root** Operator calculates the square root of each input value. For example, an input of (0.25,1,9) outputs (0.5,1,3).  The square root of a negative number is undefined.
 
-This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **Square Root** Operator always returns a value in the same type as its input. 
+This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **Square Root** Operator always returns a value in the same type as its input.
 
 ## Operator properties
 

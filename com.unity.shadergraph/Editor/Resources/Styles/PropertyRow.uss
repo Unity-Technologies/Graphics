@@ -38,6 +38,10 @@ PropertyRow > #container > #label > Label {
     white-space: wrap;
 }
 
+PropertyRow > #container > #label > Label.modified {
+    -unity-font-style: bold;
+}
+
 PropertyRow > #container > #content{
     flex-grow: 10;
     flex-basis: 0;

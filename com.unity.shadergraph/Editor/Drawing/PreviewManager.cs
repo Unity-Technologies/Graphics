@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
 
-        Dictionary<string, PreviewRenderData> m_RenderDatas = new Dictionary<string, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node object ID
-        PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
+        Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node
+        PreviewRenderData m_MasterRenderData;                                                               // ref to preview renderer data for the master node
 
         int m_MaxPreviewsCompiling = 2;                                                                     // max preview shaders we want to async compile at once
 
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool m_TopologyDirty;                                                                               // indicates topology changed, used to rebuild timed node list and preview type (2D/3D) inheritance.
 
-        HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
+        HashSet<BlockNode> m_MasterNodeTempBlocks = new HashSet<BlockNode>();                               // temp blocks used by the most recent master node preview generation.
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                m_RenderDatas.TryGetValue(node.objectId, out result);
+                m_RenderDatas.TryGetValue(node, out result);
             }
 
             return result;
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             renderData.shaderData = shaderData;
 
-            m_RenderDatas.Add(node.objectId, renderData);
+            m_RenderDatas.Add(node, renderData);
             node.RegisterCallback(OnNodeModified);
 
             m_PreviewsNeedsRecompile.Add(renderData);
@@ -217,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
 
         // cache the Action to avoid GC
-        Action<AbstractMaterialNode> AddNextLevelNodesToWave =
+        static Action<AbstractMaterialNode> AddNextLevelNodesToWave =
             nextLevelNode =>
         {
             if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         };
 
-        enum PropagationDirection
+        internal enum PropagationDirection
         {
             Upstream,
             Downstream
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
         // sources and result can be the same HashSet
         private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
-        void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
+        internal static void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
             using (PropagateNodesMarker.Auto())
                 if (sources.Count > 0)
@@ -294,42 +294,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            // Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes...
+            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
+            {
+                foreach (var cin in CustomInterpolatorUtils.GetCustomBlockNodeDependents(bnode))
+                {
+                    action(cin);
+                }
+            }
+            // ... Just as custom Interpolator Nodes have implied connections to their custom interpolator blocks
+            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode && ciNode.e_targetBlockNode != null)
+            {
+                action(ciNode.e_targetBlockNode);
+            }
         }
 
         public void HandleGraphChanges()
         {
-            foreach (var node in m_Graph.removedNodes)
-            {
-                DestroyPreview(node);
-                m_TopologyDirty = true;
-            }
-
-            // remove the nodes from the state trackers
-            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
-            m_NodesPropertyChanged.ExceptWith(m_Graph.removedNodes);
-
-            m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
-
             foreach (var node in m_Graph.addedNodes)
             {
                 AddPreview(node);
                 m_TopologyDirty = true;
             }
 
-            foreach (var edge in m_Graph.removedEdges)
-            {
-                var node = edge.inputSlot.node;
-                if ((node is BlockNode) || (node is SubGraphOutputNode))
-                    UpdateMasterPreview(ModificationScope.Topological);
-                else
-                {
-                    m_NodesShaderChanged.Add(node);
-                    //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
-                    //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
-                    m_NodesPropertyChanged.Add(node);
-                }
-                m_TopologyDirty = true;
-            }
             foreach (var edge in m_Graph.addedEdges)
             {
                 var node = edge.inputSlot.node;
@@ -342,6 +330,49 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_TopologyDirty = true;
                 }
             }
+
+            foreach (var node in m_Graph.removedNodes)
+            {
+                DestroyPreview(node);
+                m_TopologyDirty = true;
+            }
+
+            foreach (var edge in m_Graph.removedEdges)
+            {
+                var node = edge.inputSlot.node;
+                if ((node is BlockNode) || (node is SubGraphOutputNode))
+                {
+                    UpdateMasterPreview(ModificationScope.Topological);
+                }
+
+                m_NodesShaderChanged.Add(node);
+                //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
+                //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
+                m_NodesPropertyChanged.Add(node);
+
+                m_TopologyDirty = true;
+            }
+
+            foreach (var edge in m_Graph.addedEdges)
+            {
+                var node = edge.inputSlot.node;
+                if (node != null)
+                {
+                    if ((node is BlockNode) || (node is SubGraphOutputNode))
+                    {
+                        UpdateMasterPreview(ModificationScope.Topological);
+                    }
+
+                    m_NodesShaderChanged.Add(node);
+                    m_TopologyDirty = true;
+                }
+            }
+
+            // remove the nodes from the state trackers
+            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
+            m_NodesPropertyChanged.ExceptWith(m_Graph.removedNodes);
+
+            m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
@@ -436,8 +467,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (requestShaders)
                     UpdateShaders();
 
+                // Need to late capture custom interpolators because of how their type changes
+                // can have downstream impacts on dynamic slots.
+                HashSet<AbstractMaterialNode> customProps = new HashSet<AbstractMaterialNode>();
+                PropagateNodes(
+                    new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
+                    PropagationDirection.Downstream,
+                    customProps);
+
+                m_NodesPropertyChanged.UnionWith(customProps);
+
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
+
+                // always update properties from temporary blocks created by master node preview generation
+                m_NodesPropertyChanged.UnionWith(m_MasterNodeTempBlocks);
 
                 CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
@@ -790,6 +834,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     ShaderUtil.ClearCachedData(shaderData.shader);
+                    ShaderUtil.ClearShaderMessages(shaderData.shader);
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
@@ -1038,6 +1083,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
@@ -1067,6 +1115,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = renderData.renderTexture;
 
                 m_PreviewsToDraw.Remove(renderData);
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             }
         }
 
@@ -1111,6 +1161,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
 
                     m_Messenger.AddOrAppendError(this, shaderData.node.objectId, messages[0]);
+                    ShaderUtil.ClearShaderMessages(shaderData.shader);
                 }
             }
         }
@@ -1125,12 +1176,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
                 shaderData.shaderString = generator.generatedShader;
 
-                // Blocks from the generation include those temporarily created for missing stack blocks
-                // We need to hold on to these to set preview property values during CollectShaderProperties
-                m_MasterNodePreviewBlocks.Clear();
-                foreach (var block in generator.blocks)
+                // record the blocks temporarily created for missing stack blocks
+                m_MasterNodeTempBlocks.Clear();
+                foreach (var block in generator.temporaryBlocks)
                 {
-                    m_MasterNodePreviewBlocks.Add(block);
+                    m_MasterNodeTempBlocks.Add(block);
                 }
             }
 
@@ -1158,6 +1208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 if (renderData.shaderData.shader != null)
                 {
+                    ShaderUtil.ClearShaderMessages(renderData.shaderData.shader);
                     Object.DestroyImmediate(renderData.shaderData.shader, true);
                 }
             }
@@ -1171,18 +1222,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyPreview(AbstractMaterialNode node)
         {
-            string nodeId = node.objectId;
-
             if (node is BlockNode)
             {
                 // block nodes don't have preview render data
-                Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
+                Assert.IsFalse(m_RenderDatas.ContainsKey(node));
                 node.UnregisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 return;
             }
 
-            if (!m_RenderDatas.TryGetValue(nodeId, out var renderData))
+            if (!m_RenderDatas.TryGetValue(node, out var renderData))
             {
                 return;
             }
@@ -1193,7 +1242,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TimedPreviews.Remove(renderData);
 
             DestroyRenderData(renderData);
-            m_RenderDatas.Remove(nodeId);
+            m_RenderDatas.Remove(node);
         }
 
         void ReleaseUnmanagedResources()

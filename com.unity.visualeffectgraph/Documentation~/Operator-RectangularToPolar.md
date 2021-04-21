@@ -1,6 +1,6 @@
 # Rectangular to Polar
 
-Menu Path : **Operator >  Math > Coordinates** 
+Menu Path : **Operator >  Math > Coordinates**
 
 The **Rectangular to Polar** Operator performs a 2D coordinate conversion between a rectangular XY space to a polar (theta/distance) space.
 

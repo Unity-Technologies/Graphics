@@ -115,9 +115,14 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
-        previousMesh.positionOS = effectivePositionOS ;
+        previousMesh.positionOS = effectivePositionOS;
 
-        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
+        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
+    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+            , varyingsType.vmesh
+    #endif
+            );
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);

@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -75,6 +77,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 4;
 
         public UniversalTarget()
         {
@@ -154,7 +159,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void Setup(ref TargetSetupContext context)
@@ -162,16 +171,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the Target
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
+            // Override EditorGUI (replaces the URP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(UniversalRenderPipelineAsset));
+
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
@@ -184,12 +191,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
-            context.AddField(Fields.AlphaClip,              alphaClip);
-            context.AddField(Fields.DoubleSided,            twoSided);
+            context.AddField(Fields.AlphaClip, alphaClip);
+            context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -342,8 +349,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             useInPreview = true,
 
             // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            passTemplatePath = UniversalTarget.kTemplatePath,
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -357,6 +364,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
             includes = CoreIncludes.DepthOnly,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
@@ -368,7 +378,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -384,6 +394,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             pragmas = CorePragmas.Instanced,
             keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
         };
     }
     #endregion
@@ -522,7 +535,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -530,7 +543,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -539,7 +552,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.Vertex("vert") },
@@ -627,7 +640,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly IncludeCollection CorePostgraph = new IncludeCollection
         {
-            { kShaderPass, IncludeLocation.Postgraph },
+            { kShaderPass, IncludeLocation.Pregraph },
             { kVaryings, IncludeLocation.Postgraph },
         };
 
@@ -673,6 +686,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
         };
+
+        public static readonly DefineCollection UseFragmentFog = new DefineCollection()
+        {
+            {CoreKeywordDescriptors.UseFragmentFog, 1},
+        };
     }
     #endregion
 
@@ -681,10 +699,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
-        public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()
+        public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
         {
-            displayName = "Lightmap",
+            displayName = "Static Lightmap",
             referenceName = "LIGHTMAP_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
+        {
+            displayName = "Dynamic Lightmap",
+            referenceName = "DYNAMICLIGHTMAP_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -844,6 +871,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "USELEGACYSPRITEBLOCKS",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
+        {
+            displayName = "UseFragmentFog",
+            referenceName = "_FOG_FRAGMENT 1",
+            type = KeywordType.Boolean,
+        };
     }
     #endregion
 
@@ -861,6 +895,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CoreFields
     {
         public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
+    }
+    #endregion
+
+    #region CustomInterpolators
+    static class CoreCustomInterpDescriptors
+    {
+        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        {
+            // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
+            // This entry point will let us generate a block of pass-through assignments for each field.
+            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
+
+            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
+            // this entry point allows for the function to be defined before it is used.
+            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC", "FEATURES_GRAPH_VERTEX")
+        };
     }
     #endregion
 }

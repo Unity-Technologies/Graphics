@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef MATERIALDEBUG_CS_HLSL
@@ -40,6 +40,7 @@
 #define DEBUGVIEWPROPERTIES_DEPTH_OFFSET (20)
 #define DEBUGVIEWPROPERTIES_LIGHTMAP (21)
 #define DEBUGVIEWPROPERTIES_INSTANCING (22)
+#define DEBUGVIEWPROPERTIES_DEFERRED_MATERIALS (23)
 
 
 #endif

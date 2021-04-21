@@ -59,6 +59,15 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return mul(UNITY_MATRIX_V, float4(posWS, 1.0f)).xyz;
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+    return posWS - _WorldSpaceCameraPos.xyz;
+#else
+    return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return unity_ObjectToWorld;
@@ -124,4 +133,9 @@ float4 VFXApplyPreExposure(float4 color, float exposureWeight)
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
     return color;
+}
+
+float3 VFXGetCameraWorldDirection()
+{
+    return unity_CameraToWorld._m02_m12_m22;
 }

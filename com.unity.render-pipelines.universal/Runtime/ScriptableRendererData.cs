@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine.Scripting.APIUpdating;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -14,7 +13,6 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
@@ -27,6 +25,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>
         /// List of additional render pass features for this renderer.
@@ -63,6 +62,16 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void OnEnable()
         {
             SetDirty();
+        }
+
+        public bool useNativeRenderPass
+        {
+            get => m_UseNativeRenderPass;
+            set
+            {
+                SetDirty();
+                m_UseNativeRenderPass = value;
+            }
         }
 
 #if UNITY_EDITOR

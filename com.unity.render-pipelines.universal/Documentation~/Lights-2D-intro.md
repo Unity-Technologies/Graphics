@@ -24,7 +24,7 @@ Currently both 3D and 2D Lights can only affect 3D and 2D Renderers respectively
 ### 2D Graphics Pipeline technical details
 The 2D Graphics pipeline rendering process can be broken down into 2 distinct phases:
 1) Draw Light Render Textures
-2) Draw Renderers 
+2) Draw Renderers
 
 Light Render Textures are Render Textures that contain information about the Light’s color and shape in screen space.
 
@@ -59,13 +59,13 @@ An example of a setup with 4 active blend styles illustrating how multiple blend
 In addition to the standard optimization techniques such as reducing draw calls, culling and optimizing Shaders, there are several techniques and considerations that are unique to the 2D Graphics pipeline.
 
 #### Number of Blend Styles
-The easiest way to increase rendering performance is to reduce the number of blend styles used. Each blend style is a Render Texture that needs to be rendered and subsequently uploaded. 
+The easiest way to increase rendering performance is to reduce the number of blend styles used. Each blend style is a Render Texture that needs to be rendered and subsequently uploaded.
 
 Reducing the number of blend styles has a direct impact on the performance. For simple scenes a single blend style could suffice. It is also common to use up to 2 blend styles in a scene.
 Light Render Texture Scale
-The 2D Graphics system relies on screen space Light Render Texture to capture light contribution. This means there are a lot of Render Texture drawing subsequent uploading. Choosing the right Render Texture size directly impacts the performance. 
+The 2D Graphics system relies on screen space Light Render Texture to capture light contribution. This means there are a lot of Render Texture drawing subsequent uploading. Choosing the right Render Texture size directly impacts the performance.
 
-By default it is set at 0.5x of screen resolution. Smaller Light Render Texture size will give better performance at the cost of visual artifact. Half screen size resolution provides a good performance with almost no noticeable artifact in most situations. 
+By default it is set at 0.5x of screen resolution. Smaller Light Render Texture size will give better performance at the cost of visual artifact. Half screen size resolution provides a good performance with almost no noticeable artifact in most situations.
 
 Experiment and find a scale suitable for your project.
 
@@ -80,6 +80,6 @@ Multiple sets of Light Render Textures can be rendered a head of drawing the ren
 In a very complex setup with a lot distinctly lit layers, it may not be practical to prerender all Light Render Textures. The limit can be configured in the 2D Renderer Data inspector.
 
 #### Normal Maps
-Using normalps to simulate depth is currently a very expensive operation. If it is enabled, a full size Render Texture is created during a depth prepass and the renderers are drawn onto it. This is done for each layer batch. 
+Using normalps to simulate depth is currently a very expensive operation. If it is enabled, a full size Render Texture is created during a depth prepass and the renderers are drawn onto it. This is done for each layer batch.
 
-If normal mapping effect to simulate depth perception is not needed, ensure that all lights have the normal map option disabled. 
+If normal mapping effect to simulate depth perception is not needed, ensure that all lights have the normal map option disabled.

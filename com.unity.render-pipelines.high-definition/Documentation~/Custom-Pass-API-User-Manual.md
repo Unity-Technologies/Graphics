@@ -50,7 +50,7 @@ class GaussianBlur : CustomPass
     }
 
     // Releases the GPU memory allocated for the half-resolution target. This is important otherwise the memory will leak.
-    protected override void Cleanup() => halfResTarget.Release();   
+    protected override void Cleanup() => halfResTarget.Release();
 }
 ```
 

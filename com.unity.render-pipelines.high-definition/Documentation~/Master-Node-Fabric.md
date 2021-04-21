@@ -6,7 +6,7 @@ You can use the Fabric Material to render various types of fabric in the High De
 
 ## Creating and editing a Fabric Material
 
-Fabric Materials use a Shader Graph Master Node which means you cannot edit any of its properties in the Inspector. Fabric Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Customizing HDRP materials with Shader Graph](Customizing-HDRP-materials-with-Shader-Graph.md). 
+Fabric Materials use a Shader Graph Master Node which means you cannot edit any of its properties in the Inspector. Fabric Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Customizing HDRP materials with Shader Graph](Customizing-HDRP-materials-with-Shader-Graph.md).
 
 When you apply the node to a Material, the **Surface Options** and **Exposed Properties** become available to edit in the Material’s Inspector.
 
@@ -98,7 +98,3 @@ These properties are in the **Exposed Properties** section of the Inspector, alo
 | **Emission**                           | Toggles whether emission affects global illumination. |
 | **- Global Illumination**              | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 | **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |
-
-## Limitations
-
-[!include[](snippets/area-light-material-support-disclaimer.md)]

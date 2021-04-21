@@ -6,8 +6,55 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+  - Added ability to define custom vertex-to-fragment interpolators.
+  - Support for the XboxSeries platform has been added.
+  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added View Vector Node doc
+  - Added custom interpolator thresholds on shadergraph project settings page.
+
+### Changed
+- Updated/corrected View Direction doc
+- Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
+- Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
+- Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
+- Limited max number of inspectable items in the Inspector View to 20 items
+- Added borders to inspector items styling, to better differentiate between separate items
+- Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
+
+### Fixed
+- Fixed an issue where fog node density was incorrectly calculated.
+- Fixed inspector property header styling
+- Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
+- Blackboard now properly handles selection persistence of items between undo and redos
+- Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+- Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
+- Prevent users from setting enum keywords with duplicate reference names and invalid characters [1287335]
+- Fixed a bug where old preview property values would be used for node previews after an undo operation.
+- Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
+- Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
+- Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
+- Fixed virtual texture layer reference names allowing invalid characters [1304146]
+- Fixed issue with SRP Batcher compatibility [1310624]
+- Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
+- Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
+- Fixed issue where vertex generation was incorrect when only custom blocks were present [1320695].
+- Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where big input values to the SimpleNoise node caused precision issues, especially noticeable on Mali GPUs. [1322891] (https://issuetracker.unity3d.com/issues/urp-mali-missing-glitch-effect-on-mali-gpu-devices)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1323744]
+- Fixed a regression where custom function node file-included functions could not access shadergraph properties [1322467]
+- Fixed an issue where a requirement was placed on a fixed-function emission property [1319637]
+- Fixed default shadergraph precision so it matches what is displayed in the graph settings UI (single) [1325934]
+- Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed a bug where changing a Target setting would switch the inspector view to the Node Settings tab if any nodes were selected.
+- Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
+- Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
+- Fixed an issue where users can't create multiple Boolean or Enum keywords on the blackboard. [1329021](https://issuetracker.unity3d.com/issues/shadergraph-cant-create-multiple-boolean-or-enum-keywords)
+- Fixed an issue where generated property reference names could conflict with Shader Graph reserved keywords [1328762] (https://issuetracker.unity3d.com/product/unity/issues/guid/1328762/)
+- Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
+
+
 
 ## [11.0.0] - 2020-10-21
 
@@ -18,20 +65,28 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
-- Fixed an issue with the Gradient color picker displaying different values than the selected color. 
+- Fixed an issue with the Gradient color picker displaying different values than the selected color.
 - Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
-- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible 
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible
 - Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
-- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview 
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview
 - Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
-- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types 
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
-- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed rounded rectangle shape not rendering correctly on some platforms.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
 - Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
 - Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
+- Fixed the InputNodes tests that were never correct. These were incorrect tests, no nodes needed tochange.
+- Fixed the ViewDirection Node in Tangent space's calculation to match how the transform node works [1296788]
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
+- Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
+- Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
+- Fixed ParallaxMapping node compile issue on GLES2
+- Fixed a selection bug with block nodes after changing tabs [1312222]
+- Fixed some shader graph compiler errors not being logged [1304162].
 
 ## [10.3.0] - 2020-11-03
 
@@ -39,6 +94,8 @@ The version number for this package has increased due to a version update of a r
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+- Adjusted and expanded Swizzle Node article as reviewed by docs editorial.(DOC-2695)
+- Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 

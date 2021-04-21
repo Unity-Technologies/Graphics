@@ -9,6 +9,7 @@ using UnityEditor.Experimental.AssetImporters;
 #endif
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -37,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!success)
                 return;
 
-            var tex = new Texture3D(lutSize, lutSize, lutSize, TextureFormat.RGBAHalf, false)
+            var tex = new Texture3D(lutSize, lutSize, lutSize, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
             {
                 filterMode = FilterMode.Bilinear,
                 wrapMode = TextureWrapMode.Clamp,

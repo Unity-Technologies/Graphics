@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
         private static bool m_DisplayExtraDebugInfo = false;
         private static bool m_ForceEditionCompilation = false;
         private static bool m_AdvancedLogs = false;
+        private static VFXMainCameraBufferFallback m_CameraBuffersFallback = VFXMainCameraBufferFallback.PreferMainCamera;
 
         public static bool displayExperimentalOperator
         {
@@ -50,11 +51,21 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static VFXMainCameraBufferFallback cameraBuffersFallback
+        {
+            get
+            {
+                LoadIfNeeded();
+                return m_CameraBuffersFallback;
+            }
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";
         public const string allowShaderExternalizationKey = "VFX.allowShaderExternalization";
         public const string advancedLogsKey = "VFX.AdvancedLogs";
+        public const string cameraBuffersFallbackKey = "VFX.CameraBuffersFallback";
 
         private static void LoadIfNeeded()
         {
@@ -65,6 +76,7 @@ namespace UnityEditor.VFX
                 m_ForceEditionCompilation = EditorPrefs.GetBool(forceEditionCompilationKey, false);
                 m_AllowShaderExternalization = EditorPrefs.GetBool(allowShaderExternalizationKey, false);
                 m_AdvancedLogs = EditorPrefs.GetBool(advancedLogsKey, false);
+                m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorPrefs.GetInt(cameraBuffersFallbackKey, (int)VFXMainCameraBufferFallback.PreferMainCamera);
                 m_Loaded = true;
             }
         }
@@ -110,6 +122,8 @@ namespace UnityEditor.VFX
                             vfxAsset.GetResource().GetOrCreateGraph().SetCompilationMode(m_ForceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
                     }
 
+                    m_CameraBuffersFallback = (VFXMainCameraBufferFallback)EditorGUILayout.EnumPopup(new GUIContent("Main Camera fallback", "Specifies the camera source for the color and depth buffer that MainCamera Operators use when in the editor."), m_CameraBuffersFallback);
+
                     var userTemplateDirectory = EditorGUILayout.DelayedTextField(new GUIContent("User Systems", "Directory for user-generated VFX templates (e.g. Assets/VFX/Templates)"), VFXResources.defaultResources.userTemplateDirectory);
 
                     if (GUI.changed)
@@ -119,6 +133,7 @@ namespace UnityEditor.VFX
                         EditorPrefs.SetBool(forceEditionCompilationKey, m_ForceEditionCompilation);
                         EditorPrefs.SetBool(advancedLogsKey, m_AdvancedLogs);
                         EditorPrefs.SetBool(allowShaderExternalizationKey, m_AllowShaderExternalization);
+                        EditorPrefs.SetInt(cameraBuffersFallbackKey, (int)m_CameraBuffersFallback);
                         userTemplateDirectory = userTemplateDirectory.Replace('\\', '/');
                         userTemplateDirectory = userTemplateDirectory.TrimEnd(new char[] { '/' });
                         userTemplateDirectory = userTemplateDirectory.TrimStart(new char[] { '/' });

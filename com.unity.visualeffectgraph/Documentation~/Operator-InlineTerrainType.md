@@ -18,4 +18,3 @@ The **TerrainType** inline Operator allows you to store an instance of a [Terrai
 | **Output** | TerrainType   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

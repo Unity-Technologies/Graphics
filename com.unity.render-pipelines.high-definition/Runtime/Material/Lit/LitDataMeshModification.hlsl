@@ -62,14 +62,14 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // TODO: the only reason I test the near plane here is that I am not sure that the product of other tessellation factors
     // (such as screen-space/distance-based) results in the tessellation factor of 1 for the geometry behind the near plane.
     // If that is the case (and, IMHO, it should be), we shouldn't have to test the near plane here.
-    bool3 frustumCullEdgesMainView = CullTriangleEdgesFrustum(p0, p1, p2, frustumEps, _FrustumPlanes, 5); // Do not test the far plane
+    bool4 frustumCullEdgesMainView = CullFullTriangleAndEdgesFrustum(p0, p1, p2, frustumEps, _FrustumPlanes, 5); // Do not test the far plane
 #else
     // During the scene picking pass, we have no access to camera frustum planes
-    bool3 frustumCullEdgesMainView = false;
+    bool4 frustumCullEdgesMainView = false;
 #endif
 
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
-    bool frustumCullCurrView = all(frustumCullEdgesMainView);
+    bool frustumCullCurrView = frustumCullEdgesMainView.w;
 #else
     bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, _ShadowFrustumPlanes, 4); // Do not test near/far planes
 #endif

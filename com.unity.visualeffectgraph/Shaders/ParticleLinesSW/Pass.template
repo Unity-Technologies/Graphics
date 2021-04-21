@@ -81,14 +81,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 	
 	// If ever used we need the position in vfx space (we dont take into account the pixel offset)
-	float3 vPos = ((id >> 1) & 1) ? attributes.position : attributes.targetPosition;
+	float3 vPos = ((id >> 1) & 1) ? attributes.targetPosition : attributes.position;
 	
 	o.VFX_VARYING_POSCS = vPosArray[id & 3];
-	
+
+	${VFXVertexComputeCurrentAndPreviousClipPos}
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
 
 	return o;
 }
-
-${VFXFragmentCommonFunctions}

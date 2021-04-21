@@ -1,6 +1,6 @@
 # Gravity
 
-Menu Path : **Force >** **Gravity**  
+Menu Path : **Force >** **Gravity**
 
 The **Gravity** block applies the given force to particles. To do this, it changes the affected particles’ velocity.
 

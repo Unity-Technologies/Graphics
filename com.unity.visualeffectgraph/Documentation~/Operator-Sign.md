@@ -1,6 +1,6 @@
 # Sign
 
-Menu Path : **Operator > Math > Arithmetic > Sign** 
+Menu Path : **Operator > Math > Arithmetic > Sign**
 
 The **Sign** Operator calculates the sign of the input and returns whether the input is positive, negative, or 0:
 
@@ -10,7 +10,7 @@ The **Sign** Operator calculates the sign of the input and returns whether the i
 
 For example, an input of (0.3, 0.4, -5) outputs (1, 1, -1).
 
-This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input. 
+This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input.
 
 ## Operator properties
 

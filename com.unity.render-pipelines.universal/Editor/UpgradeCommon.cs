@@ -2,13 +2,13 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum UpgradeSurfaceType
+    public enum UpgradeSurfaceType
     {
         Opaque,
         Transparent
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum UpgradeBlendMode
+    public enum UpgradeBlendMode
     {
         Alpha,
         Premultiply,
@@ -16,19 +16,19 @@ namespace UnityEditor.Rendering.Universal
         Multiply
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum SpecularSource
+    public enum SpecularSource
     {
         SpecularTextureAndColor,
         NoSpecular
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum SmoothnessSource
+    public enum SmoothnessSource
     {
+        SpecularAlpha,
         BaseAlpha,
-        SpecularAlpha
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum ReflectionSource
+    public enum ReflectionSource
     {
         NoReflection,
         Cubemap,

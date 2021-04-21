@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_ComputeDeformedVertex_{concretePrecision.ToShaderString()}";
+            return "Unity_ComputeDeformedVertex_$precision";
         }
     }
 }

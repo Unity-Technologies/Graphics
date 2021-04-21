@@ -10,7 +10,7 @@ CBUFFER_START(params)
     uint particlePerStripCount;
 CBUFFER_END
 
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer;
 
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl"
 

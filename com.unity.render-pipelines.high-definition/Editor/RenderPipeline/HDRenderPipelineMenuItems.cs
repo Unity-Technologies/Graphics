@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Export Sky to Image")]
+        [MenuItem("Edit/Rendering/Export HDRP Sky to Image", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 2)]
         static void ExportSkyToImage()
         {
             var renderpipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Sky and Fog Global Volume", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Global Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -93,14 +93,62 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Upgrade HDRP Materials to Latest Version")]
+        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Selected Materials")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is Material material)
+                {
+                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                    {
+                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                        HDShaderUtils.ResetMaterialKeywords(material);
+                    }
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
+        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
         internal static void UpgradeMaterials()
         {
             // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
             MaterialReimporter.ReimportAllMaterials();
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Loaded Mesh Renderers and Terrains")]
+        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Decal Layer Default to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeDefaultRenderingLayerMask()
         {
             var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
@@ -122,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Selected Mesh Renderers and Terrains")]
+        [MenuItem("Edit/Rendering/Decal Layers/Add HDRP Decal Layer Default to Selected Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeDefaultRenderingLayerMaskForSelection()
         {
             var selection = UnityEditor.Selection.objects;
@@ -174,46 +222,46 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/HDRP Diffusion Profile", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom FullScreen Pass")]
+        [MenuItem("Assets/Create/Shader/HDRP Custom FullScreen Pass")]
         static void MenuCreateCustomFullScreenPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom Renderers Pass")]
+        [MenuItem("Assets/Create/Shader/HDRP Custom Renderers Pass")]
         static void MenuCreateCustomRenderersPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Custom Pass", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCustomPassCSharpScript()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Post Process Volume", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
         }
 
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Shader/HDRP Post Process", priority = CoreUtils.Sections.section1)]
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
-            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.shader");
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
@@ -391,7 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return anyMaterialDirty;
         }
 
-        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 1)]
         static void CreateGlobalVolume(MenuCommand menuCommand)
         {
             var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
@@ -422,7 +470,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Check Scene Content for Ray Tracing")]
+        [MenuItem("Edit/Rendering/Check Scene Content for HDRP Ray Tracing", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 3)]
         static void CheckSceneContentForRayTracing(MenuCommand menuCommand)
         {
             // Flag that holds
@@ -480,6 +528,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
+                bool singleSided = true;
+                bool hasSingleSided = false;
 
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                 {
@@ -499,6 +549,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;
                             hasTransparentSubMaterial |= materialIsTransparent;
+
+                            // Evaluate if it is single sided
+                            bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+
+                            // Aggregate the double sided information
+                            hasSingleSided |= !doubleSided;
+                            singleSided &= !doubleSided;
                         }
                         else
                         {
@@ -513,6 +570,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     Debug.LogWarning("The object " + currentRenderer.name + " has both transparent and opaque sub-meshes. This may cause performance issues");
                     generalErrorFlag = true;
                 }
+
+                if (!singleSided && hasSingleSided)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. The double sided flag will be ignored.");
+                    generalErrorFlag = true;
+                }
             }
 
             if (!generalErrorFlag)
@@ -521,7 +584,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes")]
+        [MenuItem("Edit/Rendering/Fix Warning 'referenced script in (Game Object 'SceneIDMap') is missing' in loaded scenes", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 4)]
         static public void FixWarningGameObjectSceneIDMapIsMissingInLoadedScenes()
         {
             var rootCache = new List<GameObject>();

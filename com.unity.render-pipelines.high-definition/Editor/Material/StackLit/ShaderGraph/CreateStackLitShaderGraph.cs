@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateStackLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/StackLit Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/StackLit Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 6)]
         public static void CreateStackLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));

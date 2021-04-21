@@ -1,6 +1,6 @@
 # Floor
 
-Menu Path : **Operator > Math > Clamp > Floor**  
+Menu Path : **Operator > Math > Clamp > Floor**
 
 The **Floor** Operator rounds the input value down to the nearest integer. For example, an input of (4.1, 4, 4.8) outputs (4, 4, 4).
 

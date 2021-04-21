@@ -1,6 +1,6 @@
 # Sawtooth Wave
 
-Menu Path : **Operator > Math > Wave > Sawtooth Wave** 
+Menu Path : **Operator > Math > Wave > Sawtooth Wave**
 
 The **Sawtooth Wave** Operator evaluates an input to generate a value which linearly increases from a minimum to a maximum value. When the output value reaches the maximum, it resets to the minimum value.
 

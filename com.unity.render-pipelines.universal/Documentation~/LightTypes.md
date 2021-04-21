@@ -32,7 +32,7 @@ When creating a __Freeform__ Light, take care to avoid self-intersection as this
 
 ## Parametric
 
-The __Parametric__ light type has been deprecated. To convert existing Parametric lights to __Freeform__ lights, Edit->Render Pipeline->Universal Render Pipeline->Upgrade Project/Scene Parametric Lights to Freeform
+The __Parametric__ light type has been deprecated. To convert existing Parametric lights to __Freeform__ lights, Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform
 
 
 ## Sprite

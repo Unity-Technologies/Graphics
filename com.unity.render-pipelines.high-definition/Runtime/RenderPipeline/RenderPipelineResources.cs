@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("HDRP-Asset")]
     partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -94,8 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
             public Shader combineLightingPS;
 
-            [Reload("Runtime/Lighting/VolumetricLighting/DebugDensityVolumeAtlas.shader")]
-            public Shader debugDensityVolumeAtlasPS;
+            [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
+            public Shader debugLocalVolumetricFogAtlasPS;
 
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
@@ -156,6 +156,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader bakeCloudTextureCS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudShadows.compute")]
             public ComputeShader bakeCloudShadowsCS;
+
+            // Volumetric Clouds
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
+            public ComputeShader volumetricCloudsCS;
+            [Reload("Editor/Lighting/VolumetricLighting/CloudMapGenerator.compute")]
+            public ComputeShader volumetricCloudMapGeneratorCS;
+
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -304,8 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
             public ComputeShader dofGatherCS;
-            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
-            public ComputeShader DoFCoCPyramidCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCMinMax.compute")]
+            public ComputeShader dofCoCMinMaxCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
+            public ComputeShader dofMinMaxDilateCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
@@ -383,6 +392,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
+
+            // Clouds textures
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
+            public Texture2D cloudLutRainAO;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise128RGBA.png")]
+            public Texture3D worleyNoise128RGBA;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
+            public Texture3D worleyNoise32RGB;
 
             // Post-processing
             [Reload(new[]

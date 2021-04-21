@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public KeywordType type;
         public KeywordDefinition definition;
         public KeywordScope scope;
+        public KeywordShaderStage stages;
         public int value;
         public KeywordEntry[] entries;
     }

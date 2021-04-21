@@ -2,7 +2,7 @@
 
 ## Description
 
-Constructs square matrices from the four input vectors **M0**, **M1**, **M2** and **M3**. This node can be used to generate matrices of types **Matrix 2x2**, **Matrix 3x3** and **Matrix 4x4**. 
+Constructs square matrices from the four input vectors **M0**, **M1**, **M2** and **M3**. This node can be used to generate matrices of types **Matrix 2x2**, **Matrix 3x3** and **Matrix 4x4**.
 
 The dropdown on the node can be used to select whether the inputs values specify the matrix rows or columns.
 

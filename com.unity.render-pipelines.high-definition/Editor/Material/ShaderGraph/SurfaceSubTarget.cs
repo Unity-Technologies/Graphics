@@ -155,11 +155,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.BlendMode);
             pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
+            pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
+
             pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
             pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
             pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
 
-            if (pass.IsLightingOrMaterial())
+            if (pass.NeedsDebugDisplay())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
 
             if (!pass.IsDXR())
@@ -218,6 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.TransparentDepthPostPass, builtinData.transparentDepthPostpass);
 
             context.AddField(HDFields.DepthOffset, builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+            context.AddField(HDFields.ConservativeDepthOffset, builtinData.conservativeDepthOffset && builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
 
             // Depth offset needs positionRWS and is now a multi_compile
             if (builtinData.depthOffset)
@@ -315,6 +318,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kDepthOffsetEnable
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.conservativeDepthOffset,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kConservativeDepthOffsetEnable
             });
 
             collector.AddShaderProperty(new BooleanShaderProperty

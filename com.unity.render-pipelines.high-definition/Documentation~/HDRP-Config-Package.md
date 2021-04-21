@@ -13,7 +13,7 @@ For example, you can use it to:
 To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
 * **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
-* **HDRP Wizard**: Open the HDRP Wizard (**Windows > Render Pipeline > HD Render Pipeline Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package. 
+* **HDRP Wizard**: Open the HDRP Wizard (**Windows > Rendering > HDRP Wizard**) and click the **Install Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package.
 
 **Note**: Using the Package Manager to upgrade your HDRP package does not automatically upgrade the local config package. To manually upgrade the local config package:
 
@@ -39,4 +39,4 @@ To ensure that the two files are synchronized, you should follow the first metho
 You can use the method described above to disable [Camera-Relative rendering](Camera-Relative-Rendering.md):
 
 1. In the **ShaderConfig.cs** file, set **CameraRelativeRendering** to **0**.
-2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_CAMERA_RELATIVE_RENDERING** define should be set to **0** 
+2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_CAMERA_RELATIVE_RENDERING** define should be set to **0**

@@ -35,3 +35,7 @@ MaterialNodeView.Single #title {
 MaterialNodeView.Half #title {
     border-color:#CB3022;
 }
+
+MaterialNodeView.Graph #title {
+    border-color:#30CB22;
+}

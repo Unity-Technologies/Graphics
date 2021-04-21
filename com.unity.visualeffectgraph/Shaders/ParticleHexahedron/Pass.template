@@ -78,30 +78,34 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#endif
 	
 	#if USE_FLIPBOOK
-	${VFXLoadParameter:{flipBookSize}}
-	${VFXLoadParameter:{invFlipBookSize}}
-	#ifdef VFX_VARYING_TEXINDEX
-	o.VFX_VARYING_TEXINDEX = attributes.texIndex;
-	#endif
-	
-	#if defined(VFX_VARYING_FLIPBOOKSIZE) && defined(VFX_VARYING_INVFLIPBOOKSIZE)
-	o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
-	o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
-	#endif
-	#ifdef VFX_VARYING_TEXINDEX
-	#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
-	${VFXLoadParameter:{motionVectorScale}}
-	o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
-	#endif
-	#endif
+		${VFXLoadParameter:{flipBookSize}}
+		${VFXLoadParameter:{invFlipBookSize}}
+		#ifdef VFX_VARYING_TEXINDEX
+			o.VFX_VARYING_TEXINDEX = attributes.texIndex;
+		#endif
+		
+		#if defined(VFX_VARYING_FLIPBOOKSIZE)
+			o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
+		#endif
+		#if defined(VFX_VARYING_INVFLIPBOOKSIZE)
+			o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
+		#endif
+		#ifdef VFX_VARYING_TEXINDEX
+			#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+				${VFXLoadParameter:{motionVectorScale}}
+				#if USE_FLIPBOOK_ARRAY_LAYOUT
+					o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale;
+				#else
+					o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+				#endif
+			#endif
+			#endif
 	#endif
 
 	${VFXVertexAdditionalProcess}
 
 	return o;
 }
-
-${VFXFragmentCommonFunctions}
 
 float3 VFXCubeGetLocalNormal(VFX_VARYING_PS_INPUTS i)
 {

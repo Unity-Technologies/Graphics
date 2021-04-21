@@ -4,6 +4,8 @@
 
 The Parallax Occlusion Mapping (POM) Node allows you to create a parallax effect that displaces a Material's UVs and depth to create the illusion of depth inside a Material.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later.
+
 ## Ports
 
 | Name | **Direction** | Type | Description |
@@ -30,12 +32,12 @@ float ParallaxOcclusionMapping_MaxHeight = Amplitude * 0.01;
 
 // Transform the view vector into the UV space.
 float3 ParallaxOcclusionMapping_ViewDirUV    = normalize(float3(ParallaxOcclusionMapping_ViewDir.xy * ParallaxOcclusionMapping_MaxHeight, ParallaxOcclusionMapping_ViewDir.z)); // TODO: skip normalize
-                
+
 PerPixelHeightDisplacementParam ParallaxOcclusionMapping_POM;
 ParallaxOcclusionMapping_POM.uv = UVs.xy;
-                
+
 float ParallaxOcclusionMapping_OutHeight;
 float2 _ParallaxOcclusionMapping_ParallaxUVs = UVs.xy + ParallaxOcclusionMapping(Lod, Lod_Threshold, Steps, ParallaxOcclusionMapping_ViewDirUV, ParallaxOcclusionMapping_POM, ParallaxOcclusionMapping_OutHeight);
-                
+
 float _ParallaxOcclusionMapping_PixelDepthOffset = (ParallaxOcclusionMapping_MaxHeight - ParallaxOcclusionMapping_OutHeight * ParallaxOcclusionMapping_MaxHeight) / max(ParallaxOcclusionMapping_NdotV, 0.0001);
 ```
