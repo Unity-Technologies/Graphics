@@ -122,11 +122,11 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 
     // convert to index
     int3 index = centerIS + floor(posRS);
-    index = index % (int3)indexDim;
+    index = index % indexDim;
 
 #ifdef APV_USE_BASE_OFFSET
     // get the y-offset
-    int  yoffset = apvRes.index[index.z * (int)indexDim.x + index.x];
+    int  yoffset = apvRes.index[index.z * indexDim.x + index.x];
     if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(indexDim.y))
     {
         hasValidUVW = false;
