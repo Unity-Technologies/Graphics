@@ -1,14 +1,4 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
-
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalAdditionalLightData", true)]
-    public class LWRPAdditionalLightData
-    {
-    }
-}
-
 
 namespace UnityEngine.Rendering.Universal
 {

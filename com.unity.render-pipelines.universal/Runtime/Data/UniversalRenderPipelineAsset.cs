@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
@@ -8,28 +7,17 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
-// TODO: do not use .Experimental. Required for GraphicsFormat.
-using UnityEngine.Experimental.Rendering;
-
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset", true)]
-    public class LightweightRenderPipelineAsset
-    {
-    }
-}
-
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
+    public enum ShadowQuality
     {
         Disabled,
         HardShadows,
         SoftShadows,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowResolution
+    public enum ShadowResolution
     {
         _256 = 256,
         _512 = 512,
@@ -38,24 +26,7 @@ namespace UnityEngine.Rendering.Universal
         _4096 = 4096
     }
 
-    public enum LightCookieResolution
-    {
-        _256 = 256,
-        _512 = 512,
-        _1024 = 1024,
-        _2048 = 2048,
-        _4096 = 4096
-    }
-
-    public enum LightCookieFormat
-    {
-        _8Bit,
-        _16Bit,
-        _32Bit,
-        _32BitHDR,
-    }
-
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MsaaQuality
+    public enum MsaaQuality
     {
         Disabled = 1,
         _2x = 2,
@@ -63,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         _8x = 8
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum Downsampling
+    public enum Downsampling
     {
         None,
         _2xBilinear,
@@ -80,14 +51,14 @@ namespace UnityEngine.Rendering.Universal
         UnityBuiltinDefault
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum LightRenderingMode
+    public enum LightRenderingMode
     {
         Disabled = 0,
         PerVertex = 2,
         PerPixel = 1,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderVariantLogLevel
+    public enum ShaderVariantLogLevel
     {
         Disabled,
         OnlyUniversalRPShaders,
@@ -101,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
         Profiling,
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
+    public enum RendererType
     {
         Custom,
         UniversalRenderer,
@@ -172,10 +143,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
-
-        // Light Cookie Settings
-        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
-        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat._32Bit;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -273,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
                     return CreateInstance<UniversalRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
-                    return CreateInstance<Renderer2DData>();
+                    return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
                 // Universal Renderer is the fallback renderer that works on all platforms
                 default:
                     return CreateInstance<UniversalRendererData>();
@@ -510,40 +477,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
-        private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
-        {
-            /* 8-bit      */ new GraphicsFormat[] {GraphicsFormat.R8_SRGB, GraphicsFormat.R8_UNorm},
-            /* 16-bit     */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
-            /* 32-bit     */ new GraphicsFormat[] {GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
-            /* 32-bit-HDR */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
-        };
-
-        internal GraphicsFormat additionalLightsCookieFormat
-        {
-            get
-            {
-                GraphicsFormat result = GraphicsFormat.None;
-                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
-                {
-                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
-                    {
-                        result = format;
-                        break;
-                    }
-                }
-
-                // Fallback
-                if (result == GraphicsFormat.None)
-                {
-                    result = GraphicsFormat.R8G8B8A8_UNorm;
-                    Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
-                }
-
-                return result;
-            }
-        }
-
-        internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
 
         internal int[] rendererIndexList
         {
