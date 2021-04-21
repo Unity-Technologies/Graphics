@@ -62,7 +62,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowMask = half4(1, 1, 1, 1);
 
     #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.lightmapUV;
+    inputData.lightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
     #endif

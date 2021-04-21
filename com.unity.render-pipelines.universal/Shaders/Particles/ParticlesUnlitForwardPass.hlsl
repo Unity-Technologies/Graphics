@@ -146,7 +146,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
         float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
         finalColor.rgb *= aoFactor.directAmbientOcclusion;
-    #endif  
+    #endif
 
     finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
