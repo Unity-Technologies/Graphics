@@ -65,9 +65,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public static AddShaderInputAction adddDprecatedcolorPropertyAction()
+        public static AddShaderInputAction adddDprecatedPropertyAction(string name)
         {
-            return new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+            switch (name)
+            {
+                case "Color":
+                    return new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
+                default:
+                    return new AddShaderInputAction();
+            }
         }
 
         public static AddShaderInputAction adddKeywordAction(KeywordType keywordType)
@@ -343,7 +349,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.adddDprecatedcolorPropertyAction());
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.adddDprecatedPropertyAction(name));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.addPropertyAction(shaderInputType));
                 }
                 else
