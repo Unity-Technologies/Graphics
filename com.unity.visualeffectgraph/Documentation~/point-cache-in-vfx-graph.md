@@ -10,7 +10,7 @@ Unity imports and stores Point Caches as an asset. Point Cache assets follow the
 
 ## Using Point Caches
 
-The [Point Cache Operator](Operator-PointCache.md) enables you to use Point Caches in visual effects. This operator extracts the number of particles and their attributes from the Point Cache asset and exposes them as output ports in the Operator. You can then connect the ports to other Nodes, such as the [Set \<attribute> from Map](Block-SetAttributeFromMap.md) Block.
+The [Point Cache Operator](Operator-PointCache.md) enables you to use Point Caches in visual effects. This Operator extracts the number of particles and their attributes from the Point Cache asset and exposes them as output ports in the Operator. You can then connect the ports to other Nodes, such as the [Set \<attribute> from Map](Block-SetAttributeFromMap.md) Block.
 
 ![](Images/PointCacheOperator.png)
 
