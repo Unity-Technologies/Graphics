@@ -11,8 +11,13 @@ namespace UnityEngine.Rendering.HighDefinition
             MigratedFromHDRPAssetOrCreated
         }
 
+        // Sadly we cannot create asset at last version
+        // We must always check if they need to be created from HDRPAsset
+        // So we must always create them at first version and run the whole update process.
+        // Hopefully, creation of thoses asset are pretty rare.
+        // But this also means when adding a new feature that require a migration step, to be sure to comply with former patterns.
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        Version m_Version = Version.First;
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
