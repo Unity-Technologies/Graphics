@@ -200,7 +200,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
 }
 
-// Backwards compatiblity
+// Backwards compatibility
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
@@ -214,25 +214,20 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 #endif
 }
 
-// Backwards compatiblity
+// Backwards compatibility
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
     MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData)
-{
-    MixRealtimeAndBakedGI(light, inputData.normalWS, inputData.bakedGI);
-}
-
-void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData, AmbientOcclusionFactor aoFactor)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, AmbientOcclusionFactor aoFactor)
 {
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
-        inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
+        bakedGI *= aoFactor.indirectAmbientOcclusion;
     }
 
-    MixRealtimeAndBakedGI(light, inputData.normalWS, inputData.bakedGI);
+    MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
 
 #endif
