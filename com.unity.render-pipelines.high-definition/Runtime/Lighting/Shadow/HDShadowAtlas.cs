@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal ConstantBuffer<ShaderVariablesGlobal> cb;
 
             internal HDShadowAtlasInitParameters(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
-            Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
+                                                 Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
             {
                 this.renderPipelineResources = renderPipelineResources;
                 this.renderGraph = renderGraph;
@@ -96,33 +96,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDShadowAtlas() {}
 
-        public virtual void InitAtlas(HDShadowAtlasInitParameters initParmas)
+        public virtual void InitAtlas(HDShadowAtlasInitParameters initParams)
         {
-            this.width = initParmas.width;
-            this.height = initParmas.height;
-            m_FilterMode = initParmas.filterMode;
-            m_DepthBufferBits = initParmas.depthBufferBits;
-            m_Format = initParmas.format;
-            m_Name = initParmas.name;
+            this.width = initParams.width;
+            this.height = initParams.height;
+            m_FilterMode = initParams.filterMode;
+            m_DepthBufferBits = initParams.depthBufferBits;
+            m_Format = initParams.format;
+            m_Name = initParams.name;
             // With render graph, textures are "allocated" every frame so we need to prepare strings beforehand.
             m_MomentName = m_Name + "Moment";
             m_MomentCopyName = m_Name + "MomentCopy";
             m_IntermediateSummedAreaName = m_Name + "IntermediateSummedArea";
             m_SummedAreaName = m_Name + "SummedAreaFinal";
-            m_AtlasShaderID = initParmas.atlasShaderID;
-            m_ClearMaterial = initParmas.clearMaterial;
-            m_BlurAlgorithm = initParmas.blurAlgorithm;
-            m_RenderPipelineResources = initParmas.renderPipelineResources;
+            m_AtlasShaderID = initParams.atlasShaderID;
+            m_ClearMaterial = initParams.clearMaterial;
+            m_BlurAlgorithm = initParams.blurAlgorithm;
+            m_RenderPipelineResources = initParams.renderPipelineResources;
             m_IsACacheForShadows = false;
 
-            m_GlobalConstantBuffer = initParmas.cb;
+            m_GlobalConstantBuffer = initParams.cb;
 
-            InitializeRenderGraphOutput(initParmas.renderGraph, initParmas.useSharedTexture);
+            InitializeRenderGraphOutput(initParams.renderGraph, initParams.useSharedTexture);
         }
 
-        public HDShadowAtlas(HDShadowAtlasInitParameters initParmas)
+        public HDShadowAtlas(HDShadowAtlasInitParameters initParams)
         {
-            InitAtlas(initParmas);
+            InitAtlas(initParams);
         }
 
         TextureDesc GetMomentAtlasDesc(string name)
