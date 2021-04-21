@@ -52,6 +52,8 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdPipelineAsset == null)
                 return;
+            else if (!(hdPipelineAsset as IMigratableAsset).IsAtLastVersion())
+                throw new BuildFailedException($"GraphicSetting's HDRenderPipelineAsset {AssetDatabase.GetAssetPath(hdPipelineAsset)} is a non updated asset. Please use HDRP wizard to fix it.");
 
             // If platform is not supported, throw an exception to stop the build
             if (!HDUtils.IsSupportedBuildTargetAndDevice(report.summary.platform, out GraphicsDeviceType deviceType))

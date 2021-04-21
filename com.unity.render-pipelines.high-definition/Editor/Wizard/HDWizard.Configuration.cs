@@ -544,10 +544,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 List<IMigratableAsset> collection = new List<IMigratableAsset>();
                 for (int i = QualitySettings.names.Length - 1; i >= 0; --i)
                 {
-                    HDRenderPipelineAsset hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
-                    if (hdrpAsset != null)
-                        collection.Add(hdrpAsset);
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset qualityAsset)
+                        collection.Add(qualityAsset);
                 }
+                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset graphicsAsset)
+                    collection.Add(graphicsAsset);
                 if (HDRenderPipelineGlobalSettings.instance)
                 {
                     collection.Add(HDRenderPipelineGlobalSettings.instance.renderPipelineResources); //only resource that have migration
