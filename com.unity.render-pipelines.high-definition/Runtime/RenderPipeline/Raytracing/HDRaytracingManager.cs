@@ -128,8 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return isValid;
 
             // For the time being, we only consider non-decal HDRP materials as valid
-            isValid = currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" ?
-                !DecalSystem.IsDecalMaterial(currentMaterial) : false;
+            isValid = currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" && !DecalSystem.IsDecalMaterial(currentMaterial);
 
             m_ShaderValidityCache.Add(shaderId, isValid);
 
