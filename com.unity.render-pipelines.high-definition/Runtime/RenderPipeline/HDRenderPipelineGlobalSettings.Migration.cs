@@ -122,8 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
             (assetToUpgrade as IMigratableAsset).Migrate();
         }
 
-#endif
         void OnEnable()
             => (this as IMigratableAsset).Migrate();
+#endif
     }
 }
