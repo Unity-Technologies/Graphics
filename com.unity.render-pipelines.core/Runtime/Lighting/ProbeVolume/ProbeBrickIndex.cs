@@ -1,29 +1,31 @@
 //#define USE_INDEX_NATIVE_ARRAY
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
+using UnityEngine.Rendering;
+using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using RegId = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.RegId;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickIndex
     {
         // a few constants
-        internal const int kMaxSubdivisionLevels = 15; // 4 bits
+        internal const int kMaxSubdivisionLevels = 7; // 3 bits
         private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
         [System.Serializable]
         public struct Brick
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            public int size;              // size as factor covered elementary cells
+            public int subdivisionLevel;              // size as factor covered elementary cells
 
-            internal Brick(Vector3Int position, int size)
+            internal Brick(Vector3Int position, int subdivisionLevel)
             {
                 this.position = position;
-                this.size = size;
+                this.subdivisionLevel = subdivisionLevel;
             }
         }
 
@@ -53,6 +55,7 @@ namespace UnityEngine.Rendering
 
 
         private ComputeBuffer m_IndexBuffer;
+        private int[] m_IndexBufferData;
         private Vector3Int    m_IndexDim;
         private Vector3Int    m_CenterRS;   // the anchor in ref space, around which the index is defined
         private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
@@ -63,6 +66,8 @@ namespace UnityEngine.Rendering
         private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
         private int                                     m_VoxelSubdivLevel = 3;
+
+        private bool m_NeedUpdateIndexComputeBuffer;
 
         internal ProbeBrickIndex(Vector3Int indexDimensions)
         {
@@ -80,10 +85,35 @@ namespace UnityEngine.Rendering
 #else
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured);
 #endif
+            m_IndexBufferData = new int[index_size];
+            m_NeedUpdateIndexComputeBuffer = false;
             m_HeightRanges = new HeightRange[indexDimensions.x * indexDimensions.z];
             // Should be done by a compute shader
             Clear();
             Profiler.EndSample();
+        }
+
+        void UpdateIndexData(int[] data, int dataStartIndex, int dstStartIndex, int count)
+        {
+            Debug.Assert(count <= data.Length);
+            Debug.Assert(m_IndexBufferData.Length >= dstStartIndex + count);
+            Array.Copy(data, dataStartIndex, m_IndexBufferData, dstStartIndex, count);
+
+            // We made some modifications, we need to update the compute buffer before is used.
+            m_NeedUpdateIndexComputeBuffer = true;
+        }
+
+        void GetIndexData(ref int[] dst, int dstStartIndex, int srcStartIndex, int count)
+        {
+            Debug.Assert(count <= dst.Length);
+            Debug.Assert(m_IndexBufferData.Length >= srcStartIndex + count);
+            Array.Copy(m_IndexBufferData, srcStartIndex, dst, dstStartIndex, count);
+        }
+
+        internal void UploadIndexData()
+        {
+            m_IndexBuffer.SetData(m_IndexBufferData);
+            m_NeedUpdateIndexComputeBuffer = false;
         }
 
         internal void Clear()
@@ -100,7 +130,7 @@ namespace UnityEngine.Rendering
                 m_TmpUpdater[i] = -1;
 
             for (int i = 0; i < m_IndexBuffer.count; i += m_TmpUpdater.Length)
-                m_IndexBuffer.SetData(m_TmpUpdater, 0, i, Mathf.Min(m_TmpUpdater.Length, m_IndexBuffer.count - i));
+                UpdateIndexData(m_TmpUpdater, 0, i, Mathf.Min(m_TmpUpdater.Length, m_IndexBuffer.count - i));
 #endif
 
             HeightRange hr = new HeightRange() { min = -1, cnt = 0 };
@@ -134,7 +164,7 @@ namespace UnityEngine.Rendering
                 {
                     Brick brick = bricks[brick_idx];
 
-                    int cellSize = ProbeReferenceVolume.CellSize(brick.size);
+                    int cellSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Debug.Assert(cellSize <= largest_cell, "Cell sizes are not correctly sorted.");
                     largest_cell = Mathf.Min(largest_cell, cellSize);
 
@@ -142,7 +172,7 @@ namespace UnityEngine.Rendering
 
                     ReservedBrick rbrick = new ReservedBrick();
                     rbrick.brick = brick;
-                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.size);
+                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.subdivisionLevel);
                     bm.bricks.Add(rbrick);
 
                     foreach (var v in bm.voxels)
@@ -210,11 +240,11 @@ namespace UnityEngine.Rendering
         private void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels)
         {
             // create a list of all voxels this brick will touch
-            int brick_subdiv = brick.size;
+            int brick_subdiv = brick.subdivisionLevel;
             int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
 
             Vector3Int ipos = brick.position;
-            int        brick_size = ProbeReferenceVolume.CellSize(brick.size);
+            int        brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
             int        voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
 
             if (voxels_touched_cnt <= 1)
@@ -280,8 +310,9 @@ namespace UnityEngine.Rendering
                     if (hr.min == -1)
                         continue;
 
+                    int indexTrans = TranslateIndex(mx, 0, mz);
 
-                    m_IndexBuffer.GetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                    GetIndexData(ref m_TmpUpdater, 0, base_offset + indexTrans, hr.cnt);
                     int start = volMin.y - hr.min;
                     int end = Mathf.Min(start + volCellSize, m_IndexDim.y);
                     start = Mathf.Max(start, 0);
@@ -302,20 +333,20 @@ namespace UnityEngine.Rendering
                     {
                         hr.min = -1;
                         hr.cnt = 0;
-                        m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y);
+                        UpdateIndexData(m_TmpUpdater, 0, base_offset + indexTrans, m_IndexDim.y);
                     }
                     else
                     {
                         hr.min += hmin;
                         hr.cnt  = hmax - hmin;
-                        m_IndexBuffer.SetData(m_TmpUpdater, hmin, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y - hmin);
-                        m_IndexBuffer.SetData(m_TmpUpdater,    0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hmin);
+                        UpdateIndexData(m_TmpUpdater, hmin, base_offset + indexTrans, m_IndexDim.y - hmin);
+                        UpdateIndexData(m_TmpUpdater,    0, base_offset + indexTrans, hmin);
                     }
 
                     // update the column offset
                     m_HeightRanges[hoff_idx] = hr;
                     m_TmpUpdater[m_TmpUpdater.Length - 1] = hr.min;
-                    m_IndexBuffer.SetData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
+                    UpdateIndexData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
                 }
             }
         }
@@ -331,7 +362,7 @@ namespace UnityEngine.Rendering
             foreach (var rbrick in bricks)
             {
                 // clip brick to clipped voxel
-                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.size);
+                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.subdivisionLevel);
                 Vector3Int brick_min = rbrick.brick.position;
                 Vector3Int brick_max = rbrick.brick.position + Vector3Int.one * brick_cell_size;
                 brick_min.x = Mathf.Max(vx_min.x, brick_min.x - m_CenterRS.x);
@@ -368,7 +399,7 @@ namespace UnityEngine.Rendering
                         {
                             hr.min = brick_min.y;
                             hr.cnt = Mathf.Min(brick_cell_size, m_IndexDim.y);
-                            m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                            UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, 0, mz), hr.cnt);
                         }
                         else
                         {
@@ -381,16 +412,17 @@ namespace UnityEngine.Rendering
                             if (shift_cnt == 0)
                             {
                                 hr.cnt = Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min);
-                                m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, brick_min.y - hr.min, mz)), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
+                                UpdateIndexData(m_TmpUpdater, 0, base_offset + TranslateIndex(mx, brick_min.y - hr.min, mz), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
                             }
                             else
                             {
-                                m_IndexBuffer.GetData(m_TmpUpdater, shift_cnt, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                                int indexTrans = TranslateIndex(mx, 0, mz);
+                                GetIndexData(ref m_TmpUpdater, shift_cnt, base_offset + indexTrans, hr.cnt);
 
                                 hr.min = lowest_limit;
                                 hr.cnt += shift_cnt;
 
-                                m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
+                                UpdateIndexData(m_TmpUpdater, 0, base_offset + indexTrans, hr.cnt);
 
                                 // restore pool idx array
                                 for (int cidx = shift_cnt; cidx < brick_cell_size; cidx++)
@@ -401,7 +433,7 @@ namespace UnityEngine.Rendering
                         // update the column offset
                         m_HeightRanges[hoff_idx] = hr;
                         m_TmpUpdater[m_TmpUpdater.Length - 1] = hr.min;
-                        m_IndexBuffer.SetData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
+                        UpdateIndexData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
                     }
                 }
             }
@@ -428,9 +460,9 @@ namespace UnityEngine.Rendering
             outMaxpos = new Vector3Int(maxpos_x, maxpos_y, maxpos_z);
         }
 
-        private int TranslateIndex(Vector3Int pos)
+        private int TranslateIndex(int posX, int posY, int posZ)
         {
-            return pos.z * (m_IndexDim.x * m_IndexDim.y) + pos.x * m_IndexDim.y + pos.y;
+            return posZ * (m_IndexDim.x * m_IndexDim.y) + posX * m_IndexDim.y + posY;
         }
 
         private int MergeIndex(int index, int size)
@@ -480,11 +512,19 @@ namespace UnityEngine.Rendering
 #if USE_INDEX_NATIVE_ARRAY
             m_IndexBuffer.EndWrite<int>(kAPVConstantsSize);
 #else
-            m_IndexBuffer.SetData(dst, 0, 0, kAPVConstantsSize);
+            UpdateIndexData(dst, 0, 0, kAPVConstantsSize);
 #endif
         }
 
-        internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr) { rr.index = m_IndexBuffer; }
+        internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
+        {
+            // If we are pending an update of the actual compute buffer we do it here
+            if (m_NeedUpdateIndexComputeBuffer)
+            {
+                UploadIndexData();
+            }
+            rr.index = m_IndexBuffer;
+        }
 
         internal void Cleanup()
         {

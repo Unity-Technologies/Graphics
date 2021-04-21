@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeVolumeAsset : ScriptableObject
     {
