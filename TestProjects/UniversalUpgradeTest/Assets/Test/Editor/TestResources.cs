@@ -24,6 +24,7 @@ public class TestResources : ScriptableObject
     public AnimationClip Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable;
     public AnimationClip Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable;
     public AnimationClip Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable;
+    public AnimationClip Clip_Timeline_Standalone_WithMaterialProperties_Upgradable;
 
     public AnimationClip Clip_Animator_WithMaterialProperties_PotentiallyUpgradable_NotEditable;
 
@@ -65,6 +66,7 @@ public class TestResources : ScriptableObject
     public GameObject Prefab_Timeline_WithMaterialProperties_NotUpgradable_AlsoUsedByUpgradable;
     public GameObject Prefab_Timeline_WithMaterialProperties_NoMaterials;
     public GameObject Prefab_Timeline_WithMaterialProperties_NoRenderer;
+    public GameObject Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable;
     public GameObject Variant_Animation_WithMaterialProperties_NotUpgradable;
     public GameObject Variant_Animator_WithMaterialProperties_NotUpgradable;
     public GameObject Variant_Timeline_WithMaterialProperties_NotUpgradable;

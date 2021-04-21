@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering
         // reusable buffers
         static readonly List<Animation> s_AnimationBuffer = new List<Animation>(8);
         static readonly List<Animator> s_AnimatorBuffer = new List<Animator>(8);
-		static readonly List<IAnimationClipSource> s_CustomAnimationBuffer = new List<IAnimationClipSource>(8);
+        static readonly List<IAnimationClipSource> s_CustomAnimationBuffer = new List<IAnimationClipSource>(8);
         static readonly List<PlayableDirector> s_PlayableDirectorBuffer = new List<PlayableDirector>(8);
 
         /// <summary>
@@ -291,12 +291,20 @@ namespace UnityEditor.Rendering
                 if (playableAsset == null)
                     continue;
 
+                var assetPath = AssetDatabase.GetAssetPath(playableAsset);
+
                 // get all clip sub-assets
                 var clips = new HashSet<IAnimationClip>(
-                    AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(playableAsset))
+                    AssetDatabase.LoadAllAssetsAtPath(assetPath)
                         .Where(asset => asset is AnimationClip)
                         .Select(asset => (IAnimationClip)(AnimationClipProxy)(asset as AnimationClip))
                 );
+
+                // get all clip dependency-assets
+                clips.UnionWith(AssetDatabase.GetDependencies(assetPath)
+                    .Select(dependencyPath => AssetDatabase.LoadAssetAtPath<AnimationClip>(dependencyPath))
+                    .Where(asset => asset is AnimationClip)
+                    .Select(asset => (IAnimationClip)(AnimationClipProxy)asset));
 
                 // check if the value of a binding is an animator, and examines clip usage relative to it
                 // this is imprecise, but is suitable to catch the majority of cases (i.e., a single animator binding)
@@ -320,7 +328,7 @@ namespace UnityEditor.Rendering
             // release UnityObject references
             s_AnimationBuffer.Clear();
             s_AnimatorBuffer.Clear();
-			s_CustomAnimationBuffer.Clear();
+            s_CustomAnimationBuffer.Clear();
             s_PlayableDirectorBuffer.Clear();
         }
 

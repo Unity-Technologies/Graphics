@@ -19,6 +19,7 @@ MonoImporter:
   - Clip_Timeline_WithMaterialProperties_OnlyUsedByNotUpgradable: {fileID: -794025157766098318, guid: 3b93175ca2cd749abb604df3b4a97da7, type: 2}
   - Clip_Timeline_WithMaterialProperties_UsedByUpgradableAndNotUpgradable: {fileID: -794025157766098318, guid: 21b88de8b6297426385e569275fa87af, type: 2}
   - Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable: {fileID: -794025157766098318, guid: e61155f24e7824346a7ab65dc21495ec, type: 2}
+  - Clip_Timeline_Standalone_WithMaterialProperties_Upgradable: {fileID: 7400000, guid: 13339e6910fab4530b262fa17ccdd863, type: 2}
   - Clip_Animator_WithMaterialProperties_PotentiallyUpgradable_NotEditable: {fileID: 1827226128182048838, guid: 2c0a3acb1e5fb48daacd09b0fef59ebb, type: 3}
   - Clip_ParentAsset: {fileID: 11400000, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
   - Clip_ChildAsset_Animation_WithMaterialProperties: {fileID: -4727356117655969938, guid: 4eaa79821fdfb46e3bfe9ad13794bb84, type: 2}
@@ -51,6 +52,7 @@ MonoImporter:
   - Prefab_Timeline_WithMaterialProperties_NotUpgradable_AlsoUsedByUpgradable: {fileID: 669839463223903988, guid: e145b19fe2bbf41b0b101c166929cae0, type: 3}
   - Prefab_Timeline_WithMaterialProperties_NoMaterials: {fileID: 3698196622611980734, guid: d626b7607bf944a36aca9f8bf69c6d19, type: 3}
   - Prefab_Timeline_WithMaterialProperties_NoRenderer: {fileID: 3698196622611980734, guid: ffe27e131787c488ba2ed7e6c295fb20, type: 3}
+  - Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable: {fileID: 3698196622611980734, guid: 8fdb378444e8b45d8afc2074a9eb875f, type: 3}
   - Variant_Animation_WithMaterialProperties_NotUpgradable: {fileID: 8004010397986628456, guid: da729b53e56164f80a00701e67843440, type: 3}
   - Variant_Animator_WithMaterialProperties_NotUpgradable: {fileID: 4086699279291622987, guid: 5bfeee0eeaf4c425aa49e8bfba9cb923, type: 3}
   - Variant_Timeline_WithMaterialProperties_NotUpgradable: {fileID: 3191117540288799841, guid: 5607517bab8f34524a99e41e7bf0bb0b, type: 3}
