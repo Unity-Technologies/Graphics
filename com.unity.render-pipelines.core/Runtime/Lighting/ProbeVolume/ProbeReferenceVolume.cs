@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
             public float[] validity;
         }
 
-        private class CellSortInfo
+        private class CellSortInfo : IComparable
         {
             internal string sourceAsset;
             internal int indexInAsset;
@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering
         private Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
         // List of info for cells that are yet to be loaded.
-        private List<CellSortInfo> m_CellsToBeLoaded;
+        private List<CellSortInfo> m_CellsToBeLoaded = new List<CellSortInfo>();
 
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
@@ -347,6 +347,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             var key = asset.GetSerializedFullPath();
 
+            for (int i = m_CellsToBeLoaded.Count - 1; i >= 0; i--)
+            {
+                if (m_CellsToBeLoaded[i].sourceAsset == key)
+                    m_CellsToBeLoaded.RemoveAt(i);
+            }
+
             if (m_ActiveAssets.ContainsKey(key))
             {
                 m_ActiveAssets.Remove(key);
@@ -404,21 +410,6 @@ namespace UnityEngine.Experimental.Rendering
                 sortInfo.position = asset.cellLocations[i]; // TODO_FCC: Not needed?!
                 sortInfo.sourceAsset = asset.GetSerializedFullPath();
                 m_CellsToBeLoaded.Add(sortInfo);
-
-                // Push data to HDRP
-                bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
-
-                // TODO register ID of brick list
-                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
-
-                cells[cell.index] = cell;
-                m_AssetPathToBricks[path].Add(regId);
-
-                dataLocation.Cleanup();
             }
         }
 
@@ -466,6 +457,44 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
+        void LoadPendingCells()
+        {
+            int loadedCount = 0;
+
+            for (int i = m_CellsToBeLoaded.Count - 1; i >= 0; i--)
+            {
+                var sortInfo = m_CellsToBeLoaded[i];
+
+                var path = sortInfo.sourceAsset;
+                ProbeVolumeAsset asset;
+                if (m_ActiveAssets.TryGetValue(path, out asset))
+                {
+                    var cell = asset.cells[sortInfo.indexInAsset];
+
+                    // Push data to HDRP
+                    bool compressed = false;
+                    var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                    ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+                    // TODO register ID of brick list
+                    List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                    brickList.AddRange(cell.bricks);
+                    var regId = AddBricks(brickList, dataLocation);
+
+                    cells[cell.index] = cell;
+                    m_AssetPathToBricks[path].Add(regId);
+
+                    dataLocation.Cleanup();
+
+                    loadedCount++;
+
+                    Debug.Log("Index in asset " + sortInfo.indexInAsset);
+                }
+            }
+
+            m_CellsToBeLoaded.Clear();
+        }
+
         /// <summary>
         /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
         /// </summary>
@@ -475,6 +504,7 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
+            LoadPendingCells();
         }
 
         /// <summary>
