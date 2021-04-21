@@ -446,6 +446,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+                if ((indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z) == 0)
+                {
+                    // Give a momentarily dummy size to allow the system to function with no asset assigned.
+                    indexDimensions = new Vector3Int(1, 1, 1);
+                }
                 m_Index = new ProbeBrickIndex(indexDimensions);
 
                 m_TmpBricks[0] = new List<Brick>();
