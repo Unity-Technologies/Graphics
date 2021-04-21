@@ -114,7 +114,7 @@ public class Editmode_ParametricReflectionProbeTests
 		Assert.That(result, Is.True);
 		
 		// Get Test settings.
-		var graphicsTestSettingsCustom = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
+		var graphicsTestSettingsCustom = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
 		Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
 
         // Load reference image.
