@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -50,40 +51,6 @@ publish_core_project_dry:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-publish_lwrp_project:
-    name: Publish Lightweight [project context]
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
-    artifacts:
-        packages:
-            paths:
-              -  "upm-ci~/packages/**/*"
-publish_lwrp_project_dry:
-    name: Publish Lightweight [project context] [dry run]
-    agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
-    dependencies:
-      -  .yamato/_projectcontext.yml#pack_all_project
-      -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
-      -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
-    commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
     artifacts:
         packages:
             paths:
@@ -404,7 +371,6 @@ publish_all_project:
     name: Publish all packages [project context][recurrent]
     dependencies:
       -  .yamato/_projectcontext.yml#publish_core_project
-      -  .yamato/_projectcontext.yml#publish_lwrp_project
       -  .yamato/_projectcontext.yml#publish_shadergraph_project
       -  .yamato/_projectcontext.yml#publish_hdrp_project
       -  .yamato/_projectcontext.yml#publish_universal_project
@@ -418,7 +384,6 @@ publish_all_project_tag:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#publish_core_project
-      -  .yamato/_projectcontext.yml#publish_lwrp_project
       -  .yamato/_projectcontext.yml#publish_shadergraph_project
       -  .yamato/_projectcontext.yml#publish_hdrp_project
       -  .yamato/_projectcontext.yml#publish_universal_project

@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
         {
-            var currentDiffusionProfiles = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList;
+            var currentDiffusionProfiles = m_GlobalSettings.diffusionProfileSettingsList;
             var diffusionProfileOverride = hdCamera.volumeStack.GetComponent<DiffusionProfileOverride>();
 
             // If there is a diffusion profile volume override, we merge diffusion profiles that are overwritten
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
         {
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
                 enableMSAA = msaa,
-                clearBuffer = NeedClearGBuffer(),
+                clearBuffer = NeedClearGBuffer(hdCamera),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
 #if UNITY_2020_2_OR_NEWER

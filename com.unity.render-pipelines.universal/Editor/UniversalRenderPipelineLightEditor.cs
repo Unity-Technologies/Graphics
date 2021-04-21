@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent ShadowNormalBias = EditorGUIUtility.TrTextContent("Normal", "Controls the distance shadow caster vertices are offset along their normals when rendering shadow maps. Currently ignored for Point Lights.");
 
             // Resolution (default or custom)
-            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage. Rounded to the next power of two, and clamped to be at least 128.");
+            public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", $"Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
             public static readonly int[] ShadowResolutionDefaultValues =
             {
                 UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierCustom,
@@ -376,7 +376,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 // show the custom value field GUI.
                 var newResolution = EditorGUI.IntField(fieldRect, settings.shadowsResolution.intValue);
-                settings.shadowsResolution.intValue = Mathf.Max(128, Mathf.NextPowerOfTwo(newResolution));
+                settings.shadowsResolution.intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(newResolution));
 
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
