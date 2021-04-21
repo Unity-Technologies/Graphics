@@ -149,11 +149,13 @@ namespace UnityEngine.Experimental.Rendering
                 // Find the local max from all overlapping probe volumes:
                 float localMaxSubdiv = 0;
                 float localMinSubdiv = 0;
+                bool overlap = false;
                 foreach (ProbeReferenceVolume.Volume v in probeVolumes)
                 {
                     ProbeReferenceVolume.Volume vol = v;
                     if (ProbeVolumePositioning.OBBIntersect(ref vol, ref brickVolume))
                     {
+                        overlap = true;
                         localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
                         // Do we use max for min subdiv too?
                         localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
@@ -164,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering
                 bool belowMinSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
 
                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                if (belowMinSubdiv || (belowMaxSubdiv && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume)))
+                if ((belowMinSubdiv && overlap) || (belowMaxSubdiv && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume)))
                 {
                     f.subdivide = true;
 
