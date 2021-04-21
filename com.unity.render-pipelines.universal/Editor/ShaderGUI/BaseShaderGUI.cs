@@ -436,6 +436,12 @@ namespace UnityEditor
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+        }
+
+        // this is the function used by Lit.shader, Unlit.shader GUIs
+        public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
+        {
+            UpdateMaterialSurfaceOptions(material);
 
             // Setup double sided GI based on Cull state
             if (material.HasProperty(Property.CullMode))
@@ -444,12 +450,6 @@ namespace UnityEditor
                 if (doubleSidedGI != material.doubleSidedGI)
                     material.doubleSidedGI = doubleSidedGI;
             }
-        }
-
-        // this is the function used by Lit.shader, Unlit.shader GUIs
-        public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
-        {
-            UpdateMaterialSurfaceOptions(material);
 
             // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
             if (material.HasProperty("_MainTex"))
