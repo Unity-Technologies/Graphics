@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -164,7 +163,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public static class SupportedUpgradeParams
+    public static class SupportedUpgradeParams
     {
         static public UpgradeParams diffuseOpaque = new UpgradeParams()
         {
@@ -257,7 +256,7 @@ namespace UnityEditor.Rendering.Universal
         };
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class StandardUpgrader : MaterialUpgrader
+    public class StandardUpgrader : MaterialUpgrader
     {
         enum LegacyRenderingMode
         {
@@ -419,7 +418,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class TerrainUpgrader : MaterialUpgrader
+    public class TerrainUpgrader : MaterialUpgrader
     {
         public TerrainUpgrader(string oldShaderName)
         {
@@ -449,7 +448,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ParticleUpgrader : MaterialUpgrader
+    public class ParticleUpgrader : MaterialUpgrader
     {
         public ParticleUpgrader(string oldShaderName)
         {
@@ -523,7 +522,7 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {

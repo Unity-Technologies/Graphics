@@ -699,10 +699,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
-        public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()
+        public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
         {
-            displayName = "Lightmap",
+            displayName = "Static Lightmap",
             referenceName = "LIGHTMAP_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
+        {
+            displayName = "Dynamic Lightmap",
+            referenceName = "DYNAMICLIGHTMAP_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
