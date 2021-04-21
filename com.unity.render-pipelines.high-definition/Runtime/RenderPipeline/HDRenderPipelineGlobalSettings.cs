@@ -113,7 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void Reset()
         {
             UpdateRenderingLayerNames();
-            Debug.Log("Reset called");
         }
 
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
@@ -209,7 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
             AssetDatabase.CreateAsset(assetCreated, path);
             Debug.Assert(assetCreated);
-            assetCreated.Reset(); //TODO: check if not already called.
             assetCreated.name = Path.GetFileName(path);
 
             // copy data from provided source
