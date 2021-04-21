@@ -439,21 +439,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
             bool requiresRayTracingResources = false;
-            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
+            // Make sure to include ray-tracing resources if at least one of the quality levels needs it
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
             {
-                requiresRayTracingResources = true;
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
             }
-            // Also make sure to include ray-tracing resources if at least one of the quality levels needs it
-            else if (rayTracingSupportedBySystem)
-            {
-                int qualityLevelCount = QualitySettings.names.Length;
-                for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
-                {
-                    var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
-                    if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                        requiresRayTracingResources = true;
-                }
-            }
+
             // If ray tracing is not enabled we do not want to have ray tracing resources referenced
             if (requiresRayTracingResources)
                 m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
