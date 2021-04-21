@@ -16,7 +16,16 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
-        bool IMigratableAsset.Migrate() { return false; } // must call migration once there will be migration step availables after the MigratedFromHDRPAssetOrCreated
+        static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.MigratedFromHDRPAssetOrCreated, (HDRenderPipelineGlobalSettings data) =>
+            {
+                // if possible we need to finish migration of hdrpAsset in order to grab value from it
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
+                    (hdrpAsset as IMigratableAsset).Migrate();
+            })
+        );
+        bool IMigratableAsset.Migrate()
+            => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
             => m_Version == MigrationDescription.LastVersion<Version>();
