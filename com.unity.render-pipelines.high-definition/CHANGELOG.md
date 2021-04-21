@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the camera controller in the template with the old input system (case 1326816).
 - Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 - Fixed global Settings ignore the path set via Fix All in HDRP wizard (case 1327978)
+- Fixed issue with an assert getting triggered with OnDemand shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -217,6 +218,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Film grain does not affect the alpha channel.
 - Disable TAA sharpening on alpha channel.
+- Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
 - Default black texture XR is now opaque (alpha = 1).
 
 ## [11.0.0] - 2020-10-21
