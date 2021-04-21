@@ -1,5 +1,7 @@
+#if UNITY_EDITOR
 using UnityEditorInternal;
 using System.IO;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
