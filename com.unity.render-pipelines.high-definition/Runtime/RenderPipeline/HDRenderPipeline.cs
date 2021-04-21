@@ -612,18 +612,35 @@ namespace UnityEngine.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(asset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            // We always allocate raytracing resources as there is no way currently to know if they will be used or not.
-            // When we have multiple RP Asset, some could have the raytracing enabled, the other not.
-            // To do thing properly we should strip the resources inside the stripper based on the platform and all the
-            // Render pipeline available there.
-            if (asset.renderPipelineRayTracingResources == null)
-                asset.renderPipelineRayTracingResources
-                    = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
+            bool requiresRayTracingResources = false;
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            if (defaultAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                requiresRayTracingResources = true;
+
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
+            {
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
+            }
+
+            if (requiresRayTracingResources)
+            {
+                if (asset.renderPipelineRayTracingResources == null)
+                    asset.renderPipelineRayTracingResources
+                        = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
 #if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
-            ResourceReloader.TryReloadAllNullIn(asset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+                ResourceReloader.TryReloadAllNullIn(asset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
 #else
-            ResourceReloader.ReloadAllNullIn(asset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+                ResourceReloader.ReloadAllNullIn(asset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
 #endif
+            }
+            else
+            {
+                // If ray tracing is not enabled we do not want to have ray tracing resources referenced
+                asset.renderPipelineRayTracingResources = null;
+            }
 
             var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
             if (asset.renderPipelineEditorResources == null)
