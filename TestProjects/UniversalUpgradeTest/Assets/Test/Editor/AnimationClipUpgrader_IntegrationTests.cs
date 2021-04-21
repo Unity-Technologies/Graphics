@@ -641,75 +641,77 @@ namespace UnityEngine.Rendering.Tests
 
         [TestCase(
             nameof(TestResources.Prefab_Animation_WithMaterialProperties_NoRenderer),
-            new [] { nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName = "Animation, no renderer"
+            nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animation, no renderer = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Animation_WithMaterialProperties_NoMaterials),
-            new [] { nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName = "Animation, no materials"
+            nameof(TestResources.Clip_Animation_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animation, no materials = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Animator_WithMaterialProperties_NoRenderer),
-            new [] { nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName = "Animator, no renderer"
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animator, no renderer = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Animator_WithMaterialProperties_NoMaterials),
-            new [] { nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName = "Animator, no materials"
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName = "Animator, no materials = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Timeline_WithMaterialProperties_NoRenderer),
-            new [] { nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName ="Timeline, no renderer"
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName ="Timeline, no renderer = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Timeline_WithMaterialProperties_NoMaterials),
-            new [] { nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable) },
-            new [] { SerializedShaderPropertyUsage.Unknown },
-            TestName ="Timeline, no materials"
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_PotentiallyUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.Unknown,
+            TestName ="Timeline, no materials = Unknown"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Animator_WithMaterialProperties_Upgradable),
-            new [] { nameof(TestResources.Clip_Animator_WithMaterialProperties_OnlyUsedByUpgradable) },
-            new [] { SerializedShaderPropertyUsage.UsedByNonUpgraded },
-            TestName = "Animator, with materials"
+            nameof(TestResources.Clip_Animator_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Animator, with materials = UsedByNonUpgraded"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Animation_WithMaterialProperties_Upgradable),
-            new [] { nameof(TestResources.Clip_Animation_WithMaterialProperties_OnlyUsedByUpgradable) },
-            new [] { SerializedShaderPropertyUsage.UsedByNonUpgraded },
-            TestName = "Animation, with materials"
+            nameof(TestResources.Clip_Animation_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Animation, with materials = UsedByNonUpgraded"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Timeline_WithMaterialProperties_Upgradable),
-            new [] { nameof(TestResources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable) },
-            new [] { SerializedShaderPropertyUsage.UsedByNonUpgraded },
-            TestName = "Timeline with materials using nested clip"
+            nameof(TestResources.Clip_Timeline_WithMaterialProperties_OnlyUsedByUpgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Timeline with materials using nested clip = UsedByNonUpgraded"
         )]
         [TestCase(
             nameof(TestResources.Prefab_Timeline_Standalone_WithMaterialProperties_Upgradable),
-            new [] { nameof(TestResources.Clip_Timeline_Standalone_WithMaterialProperties_Upgradable) },
-            new [] { SerializedShaderPropertyUsage.UsedByNonUpgraded },
-            TestName = "Timeline with materials using standalone clip"
+            nameof(TestResources.Clip_Timeline_Standalone_WithMaterialProperties_Upgradable),
+            ExpectedResult = SerializedShaderPropertyUsage.UsedByNonUpgraded,
+            TestName = "Timeline with materials using standalone clip = UsedByNonUpgraded"
         )]
-        public void GatherClipsUsageInDependentPrefabs_Returns_ExpectedClips(
+        public SerializedShaderPropertyUsage GatherClipsUsageInDependentPrefabs_WhenUsingSpecifiedClipProvider_ReturnsExpectedUsage(
             string prefabName,
-            string[] clipNames,
-            SerializedShaderPropertyUsage[] expectedUsage)
+            string clipName
+        )
         {
-            var clipPaths = clipNames.Select(clipName => (ClipPath) (typeof(TestResources).GetField(clipName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(m_Resources) as AnimationClip));
-            Assume.That(clipPaths.Select(clipPath => clipPath.Path), Does.Not.Contain(string.Empty).Or.Contain(null));
+            var clipPath =
+                (ClipPath)(typeof(TestResources).GetField(clipName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(m_Resources) as AnimationClip);
+            Assume.That(clipPath.Path, Is.Not.Null.And.Not.Empty);
 
             var prefabPath =
                 (PrefabPath)(typeof(TestResources).GetField(prefabName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(m_Resources) as GameObject);
             Assume.That(prefabPath.Path, Is.Not.Null.And.Not.Empty);
+            var clipPaths = new[] { clipPath };
             AnimationClipUpgrader.GetClipDependencyMappings(clipPaths, new[] { prefabPath }, out var clipDependents, out var prefabDependencies);
             var materialUpgrader = new MaterialUpgrader();
             materialUpgrader.RenameShader(
@@ -732,7 +734,7 @@ namespace UnityEngine.Rendering.Tests
                 upgradePathsUsedByMaterials: null
             );
 
-            Assert.That(clipData.Values.Select(data => data.Usage), Is.EquivalentTo(expectedUsage));
+            return clipData.Values.Single().Usage;
         }
     }
 }
