@@ -5,50 +5,50 @@ editor_version_names:
 editor_versions:
   2020_3_latest_internal:
     Android:
-      revision: 8095aa901b9b
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.5f1
+      revision: 338bb68529b2
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.6f1
     Linux:
-      revision: 8095aa901b9b
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.5f1
+      revision: 338bb68529b2
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.6f1
     OSX:
-      revision: 8095aa901b9b
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.5f1
+      revision: 338bb68529b2
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.6f1
     Win:
-      revision: 8095aa901b9b
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.5f1
+      revision: 338bb68529b2
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.6f1
     iPhone:
-      revision: 8095aa901b9b
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.5f1
+      revision: 338bb68529b2
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.6f1
   2020_3_latest_public:
     Android:
-      revision: 0abb6314276a
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.4f1
+      revision: 8095aa901b9b
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.5f1
     Linux:
-      revision: 0abb6314276a
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.4f1
+      revision: 8095aa901b9b
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.5f1
     OSX:
-      revision: 0abb6314276a
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.4f1
+      revision: 8095aa901b9b
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.5f1
     Win:
-      revision: 0abb6314276a
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.4f1
+      revision: 8095aa901b9b
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.5f1
     android:
       revision: c7b5465681fb
       updated_at: '2021-02-03 23:59:16.124934'
       version: 2020.3.0f1
     iPhone:
-      revision: 0abb6314276a
-      updated_at: '2021-04-13 23:47:21.343652'
-      version: 2020.3.4f1
+      revision: 8095aa901b9b
+      updated_at: '2021-04-22 00:01:26.916142'
+      version: 2020.3.5f1
   2020_3_staging:
     Android:
       revision: 338bb68529b2c3de81dbd2c868230506d7c30f10
