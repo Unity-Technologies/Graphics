@@ -234,7 +234,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = GetDropdownEntryName(dropdown.referenceName);
                 if (dropdown.ContainsEntry(name))
-                    arguments.Add(dropdown.IndexOf(name).ToString());
+                    arguments.Add(dropdown.IndexOfName(name).ToString());
                 else
                     arguments.Add(dropdown.value.ToString());
             }

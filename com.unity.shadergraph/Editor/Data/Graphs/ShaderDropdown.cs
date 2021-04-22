@@ -43,19 +43,24 @@ namespace UnityEditor.ShaderGraph
             get => entries[value].displayName;
         }
 
+        public int entryId
+        {
+            get => entries[value].id;
+        }
+
         public bool ContainsEntry(string entryName)
         {
             return entries.Any(x => x.displayName.Equals(entryName));
         }
 
-        public int IndexOf(string entryName)
+        public int IndexOfName(string entryName)
         {
-            for (var index = 0; index < entries.Count; ++index)
-            {
-                if (entries[index].displayName.Equals(entryName))
-                    return index;
-            }
-            return -1;
+            return entries.FindIndex((DropdownEntry entry) => entry.displayName.Equals(entryName));
+        }
+
+        public int IndexOfId(int entryId)
+        {
+            return entries.FindIndex((DropdownEntry entry) => entry.id.Equals(entryId));
         }
 
         public int count

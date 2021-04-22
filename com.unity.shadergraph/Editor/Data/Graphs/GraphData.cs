@@ -11,6 +11,7 @@ using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Drawing;
 using Edge = UnityEditor.Graphing.Edge;
 
 using UnityEngine.UIElements;
@@ -1970,7 +1971,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        AddGraphInput(keywordNode.keyword);
+                        owner.graphDataStore.Dispatch(new AddShaderInputAction() { shaderInputReference = keywordNode.keyword });
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
@@ -1988,7 +1989,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        AddGraphInput(dropdownNode.dropdown);
+                        owner.graphDataStore.Dispatch(new AddShaderInputAction() { shaderInputReference = dropdownNode.dropdown });
                     }
 
                     // Always update Dropdown nodes to handle any collisions resolved on the Keyword
