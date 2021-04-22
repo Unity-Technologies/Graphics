@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using System;
-
+using UnityEngine.Apple;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -138,6 +138,10 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class Texture2DAtlas
     {
+        private const int kGPUTexInvalid      = 0;
+        private const int kGPUTexValidMip0    = 1;
+        private const int kGPUTexValidMipAll  = 2;
+
         /// <summary>
         /// The texture for the atlas.
         /// </summary>
@@ -291,35 +295,27 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Blit 2D texture into the atlas.
+        /// Checks if single/multi/single channel format conversion is required.
         /// </summary>
-        /// <param name="cmd">Target command buffer for graphics commands.</param>
-        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
-        /// <param name="texture">Source Texture</param>
-        /// <param name="sourceScaleOffset">Source scale (.xy) and offset(.zw).</param>
-        /// <param name="blitMips">Blit mip maps.</param>
-        protected void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        /// <param name="source">Blit source texture</param>
+        /// <param name="destination">Blit destination texture</param>
+        /// <returns>true on single channel conversion false otherwise</returns>
+        protected bool IsSingleChannelBlit(Texture source, Texture destination)
         {
-            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
-
-            if (!blitMips)
-                mipCount = 1;
-
-            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
-            {
-                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
-            }
+            var srcCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
+            var dstCount = GraphicsFormatUtility.GetComponentCount(destination.graphicsFormat);
+            return srcCount != dstCount && (srcCount == 1) || (dstCount == 1);
         }
 
-        /// <summary>
-        /// Blit and project Cube texture into an octahedral 2D texture in the atlas.
-        /// </summary>
-        /// <param name="cmd">Target command buffer for graphics commands.</param>
-        /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
-        /// <param name="texture">Source Texture</param>
-        /// <param name="blitMips">Blit mip maps.</param>
-        protected void BlitCubeTexture2DOctahedral(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true)
+        private enum BlitType
+        {
+            Default,
+            CubeTo2DOctahedral,
+            SingleChannel,
+            CubeTo2DOctahedralSingleChannel,
+        }
+
+        private void Blit2DTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips, BlitType blitType)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
 
@@ -329,7 +325,12 @@ namespace UnityEngine.Rendering
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel);
+                switch (blitType)
+                {
+                    case BlitType.Default: Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true); break;
+                    case BlitType.CubeTo2DOctahedral: Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel); break;
+                    case BlitType.SingleChannel: Blitter.BlitQuadSingleChannel(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel); break;
+                }
             }
         }
 
@@ -340,14 +341,14 @@ namespace UnityEngine.Rendering
         /// <param name="mipAreValid">Texture has valid mip maps.</param>
         protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
         {
-            m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2 : 1;
+            m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? kGPUTexValidMipAll : kGPUTexValidMip0;
         }
 
         /// <summary>
         /// Mark texture invalid on the GPU.
         /// </summary>
         /// <param name="instanceId">Texture instance ID.</param>
-        protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
+        protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = kGPUTexInvalid;
 
         /// <summary>
         /// Blit 2D texture into the atlas.
@@ -362,11 +363,19 @@ namespace UnityEngine.Rendering
         {
             // This atlas only support 2D texture so we only blit 2D textures
             if (Is2D(texture))
-                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+            {
+                BlitType blitType = BlitType.Default;
+                if (IsSingleChannelBlit(texture, m_AtlasTexture.m_RT))
+                    blitType = BlitType.SingleChannel;
+
+                Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, blitType);
+                var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
+                MarkGPUTextureValid(instanceID, blitMips);
+            }
         }
 
         /// <summary>
-        /// Blit octahedral texture into the atlas with padding.
+        /// Blit octahedral texture into the atlas.
         /// </summary>
         /// <param name="cmd">Target command buffer for graphics commands.</param>
         /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
@@ -376,13 +385,13 @@ namespace UnityEngine.Rendering
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
         public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
-            // This atlas only support 2D texture so we only blit 2D textures
-            if (Is2D(texture))
-                BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+            // TODO: verify, what does pot2 padding for allocator do?
+            // Default implementation. No padding in Texture2DAtlas, no need to handle specially.
+            BlitTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, overrideInstanceID);
         }
 
         /// <summary>
-        /// Blit and project Cube texture into an octahedral 2D texture in the atlas.
+        /// Blit and project Cube texture into a 2D texture in the atlas.
         /// </summary>
         /// <param name="cmd">Target command buffer for graphics commands.</param>
         /// <param name="scaleOffset">Destination scale (.xy) and offset (.zw)</param>
@@ -395,7 +404,10 @@ namespace UnityEngine.Rendering
 
             // This atlas only support 2D texture so we map Cube into set of 2D textures
             if (texture.dimension == TextureDimension.Cube)
-                BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // by default to single octahedral 2D texture quad
+            {
+                // By default blit cube into a single octahedral 2D texture quad
+                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1, 1, 0, 0), blitMips, BlitType.CubeTo2DOctahedral);
+            }
         }
 
         /// <summary>
@@ -410,7 +422,8 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
-            bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
+            var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
+            bool allocated = AllocateTextureWithoutBlit(instanceID, width, height, ref scaleOffset);
 
             if (allocated)
             {
@@ -419,7 +432,9 @@ namespace UnityEngine.Rendering
                 else
                     BlitCubeTexture2D(cmd, scaleOffset, texture, true);
 
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
+                // texture is up to date
+                MarkGPUTextureValid(instanceID, true);
+                m_TextureHashes[instanceID] = CoreUtils.GetTextureHash(texture);
             }
 
             return allocated;
@@ -577,7 +592,7 @@ namespace UnityEngine.Rendering
             // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
             // are valid for the texture if we need them
             else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
-                return value == 0 || (needMips && value == 1);
+                return value == kGPUTexInvalid || (needMips && value == kGPUTexValidMip0);
 
             return false;
         }
@@ -633,7 +648,7 @@ namespace UnityEngine.Rendering
             // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
             // are valid for the texture if we need them
             else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
-                return value == 0 || (needMips && value == 1);
+                return value == kGPUTexInvalid || (needMips && value == kGPUTexValidMip0);
 
             return false;
         }
