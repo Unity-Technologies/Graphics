@@ -17,3 +17,9 @@ ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil ad
 ## HDRP Global Settings
 
 From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as the default Asset for HDRP. A new HDRP Global Settings Asset now exists to save settings unrelated to which HDRP Asset is active.
+
+## Materials
+
+### Transparent Surface Type
+
+From 2021.2, the range for **Sorting Priority** values has decreased from between -100 and 100 to between -50 and 50. If you used transparent materials (**Surface Type** set to **Transparent**) with a sorting priority lower than -50 or greater than 50, you must remap them to within the new range. HDRP does not clamp the Sorting Priority to the new range until you edit the Sorting Priority property.
