@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
                     UpdateCameraStereoMatrices(baseCameraData);
-                    
+
                     // Update volume manager to use baseCamera's settings for XR multipass rendering.
                     if (baseCameraData.xr.multipassId > 0)
                     {
