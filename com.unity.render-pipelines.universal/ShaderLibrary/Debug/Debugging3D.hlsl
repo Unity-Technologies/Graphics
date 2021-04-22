@@ -13,7 +13,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
-#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
 
 void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, uint mipCount)
 {
@@ -31,6 +31,10 @@ void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdf
 
 half3 GetLODDebugColor()
 {
+#ifdef SHADER_API_GLES
+    // No integer bit ops on GLES
+    return kPurpleColor.rgb;
+#else
     if (IsBitSet(unity_LODFade.z, 0))
         return GetDebugColor(0);
     else if (IsBitSet(unity_LODFade.z, 1))
@@ -49,6 +53,7 @@ half3 GetLODDebugColor()
         return GetDebugColor(7);
     else
         return GetDebugColor(8);
+#endif
 }
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
@@ -94,7 +99,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         const half3 normalTS = half3(0, 0, 1);
 
         #if defined(_NORMALMAP)
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
         #else
         inputData.normalWS = inputData.normalWS;
         #endif

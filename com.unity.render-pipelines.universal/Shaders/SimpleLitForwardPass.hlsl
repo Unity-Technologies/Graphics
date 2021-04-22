@@ -57,8 +57,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     #ifdef _NORMALMAP
         half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-        inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
         inputData.normalWS = input.normalWS;
@@ -78,10 +78,10 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        inputData.fogCoord = InitializeInputDataFog(float4(input.posWS, 1.0), input.fogFactorAndVertexLight.x);
+        inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), input.fogFactorAndVertexLight.x);
         inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     #else
-        inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
+        inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), input.fogFactor);
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 

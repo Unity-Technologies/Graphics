@@ -56,7 +56,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     #endif
 
     #if defined(_NORMALMAP)
-    inputData.tangentMatrixWS;
+    inputData.tangentToWorld;
     #endif
 
     #if defined(DEBUG_DISPLAY)

@@ -83,8 +83,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        input.tangentMatrixWS = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
-        input.normalWS = TransformTangentToWorld(normalTS, input.tangentMatrixWS);
+        input.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+        input.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
         half3 SH = SampleSH(input.normalWS.xyz);
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);

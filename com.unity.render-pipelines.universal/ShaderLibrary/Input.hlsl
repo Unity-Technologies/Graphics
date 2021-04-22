@@ -36,7 +36,7 @@ struct InputData
     float3  vertexSH;
     #endif
     #if defined(_NORMALMAP)
-    half3x3 tangentMatrixWS;
+    half3x3 tangentToWorld;
     #endif
 
     #if defined(DEBUG_DISPLAY)

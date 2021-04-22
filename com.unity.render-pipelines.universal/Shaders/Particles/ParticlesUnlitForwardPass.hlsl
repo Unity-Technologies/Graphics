@@ -12,8 +12,8 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentMatrixWS);
+    output.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
     output.normalWS = input.normalWS;

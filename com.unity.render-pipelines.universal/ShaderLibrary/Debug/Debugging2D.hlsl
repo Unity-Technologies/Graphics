@@ -8,7 +8,7 @@
 
 #if defined(DEBUG_DISPLAY)
 
-#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
+#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
 #define SETUP_DEBUG_DATA_2D(inputData, positionWS)                     SetupDebugData(inputData, positionWS)
 
 void SetupDebugData(inout InputData2D inputData, float3 positionWS)

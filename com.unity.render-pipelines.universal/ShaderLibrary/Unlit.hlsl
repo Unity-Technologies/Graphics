@@ -28,7 +28,7 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     return finalColor;
 }
 
-// TODO: Legacy code - is it safe to remove this?
+// Deprecated: Use the version which takes "SurfaceData" instead of passing all of these arguments.
 half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
 {
     SurfaceData surfaceData;

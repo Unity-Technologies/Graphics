@@ -10,10 +10,6 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             Tags {"LightMode" = "UniversalForward"}
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex vert
@@ -68,9 +64,9 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                 switch (_DebugVertexAttributeMode)
                 {
                     case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD0:
-                        return input.texcoord0;//half4(,0,1);
+                        return input.texcoord0;
                     case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD1:
-                        return input.texcoord1;//half4(input.texcoord1,0,1);
+                        return input.texcoord1;
                     case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD2:
                         return input.texcoord2;
                     case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD3:
