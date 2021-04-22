@@ -279,7 +279,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderBufferStoreAction finalStoreAction, bool requiresRTInit, List<Light2D> lights)
         {
             var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;  // Now encodes shadows into RGBA as well as seperate textures
-            var requiresRTInit = true;
 
             // This case should never happen, but if it does it may cause an infinite loop later.
             if (maxShadowLightCount < 1)
