@@ -225,6 +225,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_CustomEditorGUI = value;
         }
 
+        // generally used to know if we need to build a depth pass
+        public bool mayWriteDepth
+        {
+            get =>
+            {
+                if (allowMaterialOverride)
+                {
+                    // material may or may not choose to write depth... we should create the depth pass
+                    return true;
+                }
+                else
+                {
+                    switch (zWriteControl)
+                    {
+                        case ZWriteControl.Auto:
+                            return (surfaceType == SurfaceType.Opaque);
+                            break;
+                        case ZWriteControl.ForceDisabled:
+                            return false;
+                            break;
+                        default:
+                            return true;
+                            break;
+                    }
+                }
+            }
+        }
+
         public override bool IsActive()
         {
             bool isUniversalRenderPipeline = GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;

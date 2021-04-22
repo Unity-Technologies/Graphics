@@ -587,6 +587,13 @@ namespace UnityEditor
                         zwrite = false;
                 }
                 SetMaterialZWriteProperty(material, zwrite);
+                material.SetShaderPassEnabled("DepthOnly", zwrite);
+            }
+            else
+            {
+                // no surface type property -- must be hard-coded by the shadergraph,
+                // so ensure the pass is enabled at the material level
+                material.SetShaderPassEnabled("DepthOnly", true);
             }
 
             // must always apply queue offset, even if not set to material control

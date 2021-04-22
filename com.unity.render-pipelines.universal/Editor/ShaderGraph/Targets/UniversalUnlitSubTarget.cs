@@ -127,12 +127,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
-                    passes = new PassCollection
-                    {
-                        { UnlitPasses.Unlit(target) },
-                        { CorePasses.DepthOnly(target) },
-                    },
+                    passes = new PassCollection()
                 };
+
+                result.passes.Add(UnlitPasses.Unlit(target));
+
+                if (target.mayWriteDepth)
+                    result.passes.Add(CorePasses.DepthOnly(target));
 
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(CorePasses.ShadowCaster(target));
@@ -149,12 +150,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
-                    passes = new PassCollection
-                    {
-                        { PassVariant(UnlitPasses.Unlit(target), CorePragmas.DOTSForward) },
-                        { PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced) },
-                    },
+                    passes = new PassCollection()
                 };
+
+                result.passes.Add(PassVariant(UnlitPasses.Unlit(target), CorePragmas.DOTSForward));
+
+                if (target.mayWriteDepth)
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
 
                 if (target.castShadows || target.allowMaterialOverride)
                     result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
