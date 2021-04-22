@@ -210,6 +210,34 @@ namespace UnityEditor.ShaderGraph
                     if (m_Mode == GenerationMode.Preview)
                         activeFields.baseInstance.Add(Fields.IsPreview);
 
+                    bool containsVertMod = false;
+                    if(activeFields != null && activeFields.all.instances != null)
+                    {
+                        foreach (var field in activeFields.all.instances)
+                        {
+                            if (field != null && field.Contains(Fields.GraphVertex))
+                            {
+                                containsVertMod = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (pass != null
+                        && pass.descriptor.displayName != null
+                        && pass.descriptor.displayName.Equals("MotionVectors"))
+                    {
+                        if (containsVertMod)
+                        {
+                            Debug.Log("Contains vert mod");
+                        }
+                        else
+                        {
+                            Debug.Log("Does not contain vert mod");
+                            continue;
+                        }
+                    }
+
                     // Check masternode fields for valid passes
                     if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);

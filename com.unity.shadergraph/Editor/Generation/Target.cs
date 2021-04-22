@@ -27,7 +27,12 @@ namespace UnityEditor.ShaderGraph
             NeverAllowedByTargetAttribute never = NodeClassCache.GetAttributeOnNodeType<NeverAllowedByTargetAttribute>(nodeType);
             return never == null;
         }
-
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
+
+        public virtual void DisablePasses(FieldDescriptor feature)
+        {
+
+        }
+
     }
 }

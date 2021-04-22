@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -13,21 +13,21 @@ namespace kTools.Motion
         const string kObjectShader = "Hidden/kMotion/ObjectMotionVectors";
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kMotionVectorTexture = "_MotionVectorTexture";
-      //  const string kProfilingTag = "Motion Vectors";
 
         static readonly string[] s_ShaderTags = new string[]
         {
             "MotionVectors",
-            "MotionVectorsOnlyTransformMoved"
+            "MotionVectorsOnlyTransformMoved" //validate
         };
 
-        RenderTargetHandle m_MotionVectorHandle;
+        RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
         Material m_CameraMaterial;
         Material m_ObjectMaterial;
         MotionData m_MotionData;
-#endregion
+        private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVec);
+        #endregion
 
-#region Constructors
+        #region Constructors
         internal MotionVectorRenderPass()
         {
             // Set data
@@ -54,13 +54,12 @@ namespace kTools.Motion
             ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
             cmd.SetRenderTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
 
-            // TODO: Why do I have to clear here?
+            // TODO: Why do clear here?
             cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
         }
 #endregion
 
 #region Execution
-    //private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(kProfilingTag);
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -73,11 +72,12 @@ namespace kTools.Motion
 
             // Profiling command
             CommandBuffer cmd = CommandBufferPool.Get();
-           // using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 ExecuteCommand(context, cmd);
 
                 // Shader uniforms
+                // Need to set prev matrix array for XR
                 Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousGPUViewProjectionMatrix);
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -108,7 +108,7 @@ namespace kTools.Motion
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
-
+            
             // Material
             drawingSettings.fallbackMaterial = m_ObjectMaterial;
             return drawingSettings;

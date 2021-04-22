@@ -1,4 +1,4 @@
-﻿Shader "Hidden/kMotion/ObjectMotionVectors"
+Shader "Hidden/kMotion/ObjectMotionVectors"
 {
     SubShader
     {
@@ -12,6 +12,7 @@
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 			#pragma target 3.0
+            #pragma enable_d3d11_debug_symbols
 
             //--------------------------------------
             // GPU Instancing
@@ -23,18 +24,6 @@
             // -------------------------------------
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            // -------------------------------------
-            // Inputs
-
-            CBUFFER_START(UnityPerMaterial)
-            float4x4 unity_MatrixPreviousM;
-
-            //X : Use last frame positions (right now skinned meshes are the only objects that use this
-            //Y : Force No Motion
-            //Z : Z bias value
-            float4 unity_MotionVectorsParams;
-            CBUFFER_END
 
             // -------------------------------------
             // Structs
@@ -94,11 +83,12 @@
                 }
 
                 // Calculate positions
-                input.positionVP.xy = input.positionVP.xy / input.positionVP.w;
+                float4 posVP = input.positionVP;
+                posVP.xy = posVP.xy / posVP.w;
                 input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;
 
                 // Calculate velocity
-                float2 velocity = (input.positionVP.xy - input.previousPositionVP.xy);
+                float2 velocity = (posVP.xy - input.previousPositionVP.xy);
                 #if UNITY_UV_STARTS_AT_TOP
                     velocity.y = -velocity.y;
                 #endif
@@ -107,6 +97,8 @@
                 // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
                 // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
                 return float4(velocity.xy * 0.5, 0, 0);
+                return posVP;
+                return float4(posVP.w, posVP.w, posVP.w, 1);
             }
             ENDHLSL
         }

@@ -33,5 +33,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.cullFace,
             }
         };
+
+        public static StructDescriptor MotionVectorVaryings = new StructDescriptor()
+        {
+            name = "Varyings",
+            packFields = true,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.positionVP,
+                StructFields.Varyings.previousPositionVP,
+                StructFields.Varyings.instanceID,
+            }
+            //Todo: other behind defines?
+        };
     }
 }

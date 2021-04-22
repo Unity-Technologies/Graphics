@@ -191,9 +191,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
-                descs.Contains(BlockFields.VertexDescription.Normal) ||
-                descs.Contains(BlockFields.VertexDescription.Tangent));
+            bool usePos = descs.Contains(BlockFields.VertexDescription.Position);
+            bool useNrm = descs.Contains(BlockFields.VertexDescription.Normal);
+            bool useTan = descs.Contains(BlockFields.VertexDescription.Tangent);
+            if (usePos || useNrm || useTan)
+                context.AddField(Fields.GraphVertex);
+
+
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip, alphaClip);
             context.AddField(Fields.DoubleSided, twoSided);
@@ -221,6 +225,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -369,31 +374,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
-        public static readonly PassDescriptor MotionVectors = new PassDescriptor()
-        {
-            // Definition
-            displayName = "MotionVectors",
-            referenceName = "SHADERPASS_MOTIONVECTORS",
-            lightMode = "MotionVectors",
-            useInPreview = true,
-
-            // Template
-            passTemplatePath = UniversalTarget.kTemplatePath,
-            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-            // Port Mask
-            validVertexBlocks = CoreBlockMasks.Vertex,
-            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-            // Fields
-            structs = CoreStructCollections.Default,
-            fieldDependencies = CoreFieldDependencies.Default,
-
-            // Conditional State
-            renderStates = CoreRenderStates.DepthOnly,
-            pragmas = CorePragmas.Instanced,
-            includes = CoreIncludes.DepthOnly,
-        };
+//         public static readonly PassDescriptor MotionVectors = new PassDescriptor()
+//         {
+//             // Definition
+//             displayName = "MotionVectors",
+//             referenceName = "SHADERPASS_MOTIONVECTORS",
+//             lightMode = "MotionVectors",
+//             useInPreview = true,
+// 
+//             // Template
+//             passTemplatePath = UniversalTarget.kTemplatePath,
+//             sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+// 
+//             // Port Mask
+//             validVertexBlocks = CoreBlockMasks.Vertex,
+//             validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+// 
+//             // Fields
+//             structs = CoreStructCollections.MotionVectors,
+//             fieldDependencies = CoreFieldDependencies.Default,
+//             
+//             // Conditional State
+//             renderStates = CoreRenderStates.MotionVectorStates,
+//             pragmas = CorePragmas.Instanced,
+//             includes = CoreIncludes.MotionVectors,
+// 
+//         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
         {
@@ -449,6 +455,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
+
+        public static readonly BlockFieldDescriptor[] MotionVectorVertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+        };
+
+        public static readonly BlockFieldDescriptor[] MotionVectorFragment = new BlockFieldDescriptor[]
+        {
+        };
     }
     #endregion
 
@@ -462,6 +477,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Structs.SurfaceDescriptionInputs },
             { Structs.VertexDescriptionInputs },
         };
+
+        public static readonly StructCollection MotionVectors = new StructCollection
+        {
+            { Structs.Attributes },
+            { UniversalStructs.MotionVectorVaryings },
+            { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputsEmpty },
+        };
     }
     #endregion
 
@@ -472,6 +495,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             StructFields.Attributes.normalOS,
         };
+
+
+        public static readonly FieldCollection MotionVectors = new FieldCollection()
+        {
+            StructFields.Attributes.positionOS,
+            StructFields.Attributes.positionOld,
+        };
     }
     #endregion
 
@@ -481,6 +511,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly DependencyCollection Default = new DependencyCollection()
         {
             { FieldDependencies.Default },
+            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID),
+            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,     StructFields.Attributes.instanceID),
+        };
+        public static readonly DependencyCollection VaryingsOnly = new DependencyCollection()
+        {
+            { FieldDependencies.Varyings },
             new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID),
             new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,     StructFields.Attributes.instanceID),
         };
@@ -549,6 +585,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
+
+        public static readonly RenderStateCollection MotionVectorStates = new RenderStateCollection
+        {
+        };
     }
     #endregion
 
@@ -568,6 +608,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
+            { Pragma.D3Debug },
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
@@ -651,6 +692,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+        const string kMotionVectors = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/MotionVectorPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
@@ -704,6 +746,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection MotionVectors = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kMotionVectors, IncludeLocation.Postgraph },
         };
     }
     #endregion

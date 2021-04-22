@@ -75,7 +75,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // An alternative is to rely on shader branches and reduce variants/unique graph generations.
 
             SubShaderDescriptor[] subShaders = complexLit ? complexLitSubShaders : litSubShaders;
-
             for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
@@ -294,7 +293,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
                     { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.MotionVectors,   CorePragmas.DOTSInstanced) },
+                    //{ PassVariant(CorePasses.MotionVectors,  CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
@@ -314,7 +313,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit) },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.MotionVectors,   CorePragmas.DOTSInstanced) },
+                    //{ PassVariant(CorePasses.MotionVectors,  CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },

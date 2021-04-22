@@ -16,11 +16,28 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Attributes.uv1,
                 StructFields.Attributes.uv2,
                 StructFields.Attributes.uv3,
+                StructFields.Attributes.positionOld,
                 StructFields.Attributes.color,
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.weights,
                 StructFields.Attributes.indices,
                 StructFields.Attributes.vertexID,
+            }
+        };
+
+        public static StructDescriptor MotionVectorPassAttributes = new StructDescriptor()
+        {
+            name = "Attributes",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.uv0,
+                StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
+                StructFields.Attributes.uv3,
+                StructFields.Attributes.instanceID,
             }
         };
 
@@ -113,6 +130,34 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.BoneWeights,
                 StructFields.SurfaceDescriptionInputs.BoneIndices,
                 StructFields.SurfaceDescriptionInputs.VertexID,
+            }
+        };
+
+        public static StructDescriptor SurfaceDescriptionInputsEmpty = new StructDescriptor()
+        {
+            name = "SurfaceDescriptionInputs",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+            }
+        };
+
+        public static StructDescriptor VertexDescriptionInputsEmpty = new StructDescriptor()
+        {
+            name = "VertexDescriptionInputs",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.VertexDescriptionInputs.ObjectSpaceNormal,
+                StructFields.VertexDescriptionInputs.ViewSpaceNormal,
+                StructFields.VertexDescriptionInputs.WorldSpaceNormal,
+                StructFields.VertexDescriptionInputs.TangentSpaceNormal,
+
+                StructFields.VertexDescriptionInputs.ObjectSpacePosition,
+                StructFields.VertexDescriptionInputs.uv0,
+                StructFields.VertexDescriptionInputs.uv1,
+                StructFields.VertexDescriptionInputs.uv2,
+                StructFields.VertexDescriptionInputs.uv3,
             }
         };
     }

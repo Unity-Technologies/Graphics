@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -16,6 +16,7 @@ namespace kTools.Motion
 
         Material m_Material;
         MotionBlur m_MotionBlur;
+        private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionBlur);
 
         public MotionBlurRenderPass()
         {
@@ -27,8 +28,9 @@ namespace kTools.Motion
         {
             // Set data
             if(motionBlur.mode == MotionBlurMode.CameraAndObjects)
-                ConfigureInput(ScriptableRenderPassInput.Motion | ScriptableRenderPassInput.Depth);
-            else
+                ConfigureInput(ScriptableRenderPassInput.Motion |
+                                ScriptableRenderPassInput.Depth);
+            else if(motionBlur.mode == MotionBlurMode.CameraOnly)
                 ConfigureInput(ScriptableRenderPassInput.Depth);
 
             m_MotionBlur = motionBlur;
@@ -48,7 +50,7 @@ namespace kTools.Motion
 
             // Profiling command
             CommandBuffer cmd = CommandBufferPool.Get();
-            //using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 var material = m_Material;
 

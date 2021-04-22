@@ -52,5 +52,16 @@ namespace UnityEditor.ShaderGraph.Internal
             overrideReferenceName = "unity_ShadowMasks",
             precision = Precision.Single
         };
+
+        public static readonly Matrix4ShaderProperty kPRevMatrix = new Matrix4ShaderProperty()
+        {
+            displayName = "unity_MatrixPreviousM",
+            generatePropertyBlock = true,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+            hidden = true,
+            overrideReferenceName = "unity_MatrixPreviousM",
+            precision = Precision.Single
+        };
     }
 }

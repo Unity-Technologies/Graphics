@@ -133,6 +133,7 @@ CBUFFER_START(UnityPerDraw)
 
     // HDR environment map decode instructions
     half4 unity_SpecCube0_HDR;
+
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)

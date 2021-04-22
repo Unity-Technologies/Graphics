@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
                 "TEXCOORD2", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv3 = new FieldDescriptor(Attributes.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
                 "TEXCOORD3", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionOld = new FieldDescriptor(Attributes.name, "positionOld", "", ShaderValueType.Float3, "TEXCOORD4", preprocessor: "SHADERPASS == SHADERPASS_MOTIONVECTORS");
             public static FieldDescriptor weights = new FieldDescriptor(Attributes.name, "weights", "ATTRIBUTES_NEED_BLENDWEIGHTS", ShaderValueType.Float4,
                 "BLENDWEIGHTS", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor indices = new FieldDescriptor(Attributes.name, "indices", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
@@ -61,6 +62,8 @@ namespace UnityEditor.ShaderGraph
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
             public static FieldDescriptor vertexID = new FieldDescriptor(Varyings.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
                 "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionVP = new FieldDescriptor(Varyings.name, "positionVP", "", ShaderValueType.Float4);
+            public static FieldDescriptor previousPositionVP = new FieldDescriptor(Varyings.name, "previousPositionVP", "", ShaderValueType.Float4);
         }
 
         public struct VertexDescriptionInputs

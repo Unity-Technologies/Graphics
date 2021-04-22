@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ColorAdjustments m_ColorAdjustments;
         Tonemapping m_Tonemapping;
         FilmGrain m_FilmGrain;
+        MotionBlur m_MotionBlur;
 
         // Misc
         const int k_MaxPyramidSize = 16;
@@ -212,6 +213,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
             m_Tonemapping         = stack.GetComponent<Tonemapping>();
             m_FilmGrain           = stack.GetComponent<FilmGrain>();
+            m_MotionBlur          = stack.GetComponent<MotionBlur>();
+
             m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
@@ -376,7 +379,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Swap();
                 }
             }
+
             
+
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
             if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
@@ -401,6 +406,68 @@ namespace UnityEngine.Rendering.Universal.Internal
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
                         SetupBloom(cmd, GetSource(), m_Materials.uber);
                 }
+
+                //TODO: Investigate where to implement post process
+//                 if (m_MotionBlur.IsActive() && !isSceneViewCamera)
+//                 {
+//                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
+//                     {
+//                         int prevViewProjMIdx = 0; //For XR
+// 
+//                         var material = m_Materials.cameraMotionBlur;
+//                         var camera = cameraData.camera;
+// 
+//                         var proj = camera.nonJitteredProjectionMatrix;
+//                         var view = camera.worldToCameraMatrix;
+//                         var viewProj = proj * view;
+// 
+//                         material.SetMatrix("_ViewProjM", viewProj);
+// 
+//                         if (m_ResetHistory)
+//                             material.SetMatrix("_PrevViewProjM", viewProj);
+//                         else
+//                             material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+// 
+//                         m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+// 
+// 
+//                         material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+//                         material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+// 
+//                         if (m_MotionBlur.mode == MotionBlurMode.CameraOnly)
+//                             material.EnableKeyword("_CAMERA_ONLY");
+//                         else
+//                             material.DisableKeyword("_CAMERA_ONLY");
+// 
+//                         //PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+//                         //
+//                         //Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
+// 
+//                         //var data = MotionVectorRendering.instance.GetMotionDataForCamera(camera);
+//                         //
+//                         //material.SetMatrix("_ViewProjM", data.viewProjectionMatrix);
+//                         //material.SetMatrix("_PrevViewProjM", data.previousViewProjectionMatrix);
+//                         //
+//                         //material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+//                         //material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+//                         //
+//                         //if (m_MotionBlur.mode == MotionBlurMode.CameraOnly)
+//                         //    material.EnableKeyword("_CAMERA_ONLY");
+//                         //else
+//                         //    material.DisableKeyword("_CAMERA_ONLY");
+// 
+//                         // RenderTexture
+//                         var descriptor = new RenderTextureDescriptor(camera.scaledPixelWidth, camera.scaledPixelHeight, RenderTextureFormat.DefaultHDR, 16);
+//                         var renderTexture = RenderTexture.GetTemporary(descriptor);
+//                         var colorTextureIdentifier = new RenderTargetIdentifier("_CameraColorTexture");
+// 
+//                         // Blits
+//                         var passIndex = (int)m_MotionBlur.quality.value;
+//                         RenderingUtils.Blit(cmd, colorTextureIdentifier, renderTexture, material, passIndex);
+//                         cmd.Blit(renderTexture, colorTextureIdentifier);
+//                         RenderTexture.ReleaseTemporary(renderTexture);
+//                     }
+//                 }
 
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
@@ -789,6 +856,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
+
+        #endregion
+
+        #region Motion Blur
+// #if ENABLE_VR && ENABLE_XR_MODULE
+//         // Hold the stereo matrices to avoid allocating arrays every frame
+//         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
+// #endif
+//         void DoMotionBlur(CameraData cameraData, CommandBuffer cmd, int source, int destination)
+//         {
+//              var material = m_Materials.cameraMotionBlur;
+//  
+//              // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
+//              // relies on SetupCameraProperties instead of handling its own matrices.
+//              // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
+//              var proj = camera.nonJitteredProjectionMatrix;
+//              var view = camera.worldToCameraMatrix;
+//              var viewProj = proj * view;
+//  
+//                  material.SetMatrix("_ViewProjM", viewProj);
+//  
+//                  if (m_ResetHistory)
+//                      material.SetMatrix("_PrevViewProjM", viewProj);
+//                  else
+//                      material.SetMatrix("_PrevViewProjM", m_PrevViewProjM[prevViewProjMIdx]);
+//  
+//                  m_PrevViewProjM[prevViewProjMIdx] = viewProj;
+//              }
+//  
+//              material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+//              material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
+//  
+//              PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
+//  
+//              Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
+//     }
 
         #endregion
 
@@ -1198,6 +1301,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material gaussianDepthOfField;
             public readonly Material bokehDepthOfField;
             public readonly Material cameraMotionBlur;
+            //public readonly Material objectMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
             public readonly Material uber;
@@ -1209,7 +1313,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
                 gaussianDepthOfField = Load(data.shaders.gaussianDepthOfFieldPS);
                 bokehDepthOfField = Load(data.shaders.bokehDepthOfFieldPS);
-                cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
+                cameraMotionBlur = Load(Shader.Find("Hidden/Universal Render Pipeline/CameraMotionBlur"));
+                //objectMotionBlur = Load(data.shaders.objectMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
