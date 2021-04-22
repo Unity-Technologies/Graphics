@@ -1,13 +1,13 @@
 {
 	"name": "com.unity.testing.animation-upgrade",
-	"displayName":"URP Animation Upgrade Tests",
+	"displayName":"URP Upgrade Tests",
 	"version": "1.0.0",
 	"unity": "2019.3",
 	"unityRelease": "0b4",
-	"description": "Integration test suite for AnimationClip upgrade.",
-	"keywords": ["qa", "test", "testing", "tests", "graphics", "HDRP"],
+	"description": "Test suite for upgrade to universal render pipeline.",
+	"keywords": ["qa", "test", "testing", "tests", "graphics", "URP"],
 	"dependencies": {
 	"com.unity.testframework.graphics": "7.8.8-preview",
-	"com.unity.render-pipelines.universal": "file:./com.unity.render-pipelines.universal"
+	"com.unity.render-pipelines.universal": "12.0.0"
 	}
 }

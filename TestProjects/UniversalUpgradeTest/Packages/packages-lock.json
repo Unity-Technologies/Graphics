@@ -154,7 +154,7 @@
       "source": "local",
       "dependencies": {
         "com.unity.testframework.graphics": "7.8.8-preview",
-        "com.unity.render-pipelines.universal": "file:./com.unity.render-pipelines.universal"
+        "com.unity.render-pipelines.universal": "12.0.0"
       }
     },
     "com.unity.timeline": {
