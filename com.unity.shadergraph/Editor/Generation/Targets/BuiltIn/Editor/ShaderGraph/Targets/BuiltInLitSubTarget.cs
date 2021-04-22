@@ -204,6 +204,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
+                    { CorePasses.SceneSelection },
+                    { CorePasses.ScenePicking },
                 },
             };
         }

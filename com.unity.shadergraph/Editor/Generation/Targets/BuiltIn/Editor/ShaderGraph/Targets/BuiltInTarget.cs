@@ -472,6 +472,68 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Custom Interpolator Support
             customInterpolators = CoreCustomInterpDescriptors.Common
         };
+
+        public static readonly PassDescriptor SceneSelection = new PassDescriptor()
+        {
+            // Definition
+            displayName = "SceneSelectionPass",
+            referenceName = "SceneSelectionPass",
+            lightMode = "SceneSelectionPass",
+            useInPreview = true,
+
+            // Template
+            passTemplatePath = BuiltInTarget.kTemplatePath,
+            sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+
+            // Port Mask
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+            // Fields
+            structs = CoreStructCollections.Default,
+            fieldDependencies = CoreFieldDependencies.Default,
+
+            // Conditional State
+            renderStates = CoreRenderStates.SceneSelection,
+            pragmas = CorePragmas.Instanced,
+            defines = CoreDefines.SceneSelection,
+            keywords = CoreKeywords.Common,
+            includes = CoreIncludes.SceneSelection,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
+        };
+
+        public static readonly PassDescriptor ScenePicking = new PassDescriptor()
+        {
+            // Definition
+            displayName = "ScenePickingPass",
+            referenceName = "ScenePickingPass",
+            lightMode = "Picking",
+            useInPreview = true,
+
+            // Template
+            passTemplatePath = BuiltInTarget.kTemplatePath,
+            sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+
+            // Port Mask
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+            // Fields
+            structs = CoreStructCollections.Default,
+            fieldDependencies = CoreFieldDependencies.Default,
+
+            // Conditional State
+            renderStates = CoreRenderStates.ScenePicking,
+            pragmas = CorePragmas.Instanced,
+            defines = CoreDefines.ScenePicking,
+            keywords = CoreKeywords.Common,
+            includes = CoreIncludes.ScenePicking,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
+        };
     }
     #endregion
 
@@ -604,6 +666,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) },
+        };
+
+        public static readonly RenderStateCollection SceneSelection = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Off) },
+        };
+
+        public static readonly RenderStateCollection ScenePicking = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
         };
     }
     #endregion
@@ -746,6 +818,28 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
+
+        public static readonly IncludeCollection SceneSelection = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kDepthOnlyPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection ScenePicking = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kDepthOnlyPass, IncludeLocation.Postgraph },
+        };
     }
     #endregion
 
@@ -759,6 +853,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public static readonly DefineCollection BuiltInTargetAPI = new DefineCollection
         {
             { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
+        };
+        public static readonly DefineCollection SceneSelection = new DefineCollection
+        {
+            { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
+            { CoreKeywordDescriptors.SceneSelectionPass, 1 },
+        };
+        public static readonly DefineCollection ScenePicking = new DefineCollection
+        {
+            { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
         };
     }
     #endregion
@@ -977,18 +1081,37 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             referenceName = "BUILTIN_TARGET_API",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Selection Pass",
+            referenceName = "SCENESELECTIONPASS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
+            type = KeywordType.Boolean,
+        };
     }
     #endregion
 
     #region Keywords
     static class CoreKeywords
     {
-        public static readonly KeywordCollection ShadowCaster = new KeywordCollection
+        public static readonly KeywordCollection Common = new KeywordCollection
         {
-            { CoreKeywordDescriptors.CastingPunctualLightShadow },
             CoreKeywordDescriptors.AlphaClip,
             CoreKeywordDescriptors.AlphaTestOn,
             CoreKeywordDescriptors.SurfaceTypeTransparent,
+        };
+
+        public static readonly KeywordCollection ShadowCaster = new KeywordCollection
+        {
+            CoreKeywords.Common,
+            { CoreKeywordDescriptors.CastingPunctualLightShadow },
         };
     }
     #endregion
