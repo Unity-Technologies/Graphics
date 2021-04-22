@@ -612,7 +612,20 @@ namespace UnityEngine.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(asset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
+            bool requiresRayTracingResources = false;
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            if (defaultAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                requiresRayTracingResources = true;
+
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
+            {
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
+            }
+
+            if (requiresRayTracingResources)
             {
                 if (asset.renderPipelineRayTracingResources == null)
                     asset.renderPipelineRayTracingResources

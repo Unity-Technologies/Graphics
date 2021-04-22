@@ -298,6 +298,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material                    m_BlitShadowMaterial;
         MaterialPropertyBlock       m_BlitShadowPropertyBlock = new MaterialPropertyBlock();
 
+        ConstantBuffer<ShaderVariablesGlobal> m_GlobalShaderVariables;
+
         private static HDShadowManager s_Instance = new HDShadowManager();
 
         public static HDShadowManager instance { get { return s_Instance; } }
@@ -328,27 +330,63 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowRequests = new HDShadowRequest[initParams.maxShadowRequests];
             m_CachedDirectionalShadowData = new HDDirectionalShadowData[1]; // we only support directional light shadow
 
+            m_GlobalShaderVariables = new ConstantBuffer<ShaderVariablesGlobal>();
+
             for (int i = 0; i < initParams.maxShadowRequests; i++)
             {
                 m_ShadowResolutionRequests[i] = new HDShadowResolutionRequest();
             }
 
+            HDShadowAtlas.HDShadowAtlasInitParameters punctualAtlasInitParams = new HDShadowAtlas.HDShadowAtlasInitParameters(renderPipelineResources, initParams.punctualLightShadowAtlas.shadowAtlasResolution,
+            initParams.punctualLightShadowAtlas.shadowAtlasResolution, HDShaderIDs._ShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, m_GlobalShaderVariables);
+
+            punctualAtlasInitParams.name = "Shadow Map Atlas";
+
             // The cascade atlas will be allocated only if there is a directional light
-            m_Atlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.punctualLightShadowAtlas.shadowAtlasResolution, initParams.punctualLightShadowAtlas.shadowAtlasResolution,
-                                    HDShaderIDs._ShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Shadow Map Atlas");
+            m_Atlas = new HDDynamicShadowAtlas(punctualAtlasInitParams);
+
             // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
             HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
-            m_CascadeAtlas = new HDDynamicShadowAtlas(renderPipelineResources, 1, 1, HDShaderIDs._ShadowmapCascadeAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, cascadeBlur, depthBufferBits: initParams.directionalShadowsDepthBits, name: "Cascade Shadow Map Atlas");
+            HDShadowAtlas.HDShadowAtlasInitParameters dirAtlasInitParams = punctualAtlasInitParams;
+            dirAtlasInitParams.width = 1;
+            dirAtlasInitParams.height = 1;
+            dirAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapCascadeAtlas;
+            dirAtlasInitParams.blurAlgorithm = cascadeBlur;
+            dirAtlasInitParams.depthBufferBits = initParams.directionalShadowsDepthBits;
+            dirAtlasInitParams.name = "Cascade Shadow Map Atlas";
+
+            m_CascadeAtlas = new HDDynamicShadowAtlas(dirAtlasInitParams);
+
+            HDShadowAtlas.HDShadowAtlasInitParameters areaAtlasInitParams = punctualAtlasInitParams;
+            if (ShaderConfig.s_AreaLights == 1)
+            {
+                areaAtlasInitParams.width = initParams.areaLightShadowAtlas.shadowAtlasResolution;
+                areaAtlasInitParams.height = initParams.areaLightShadowAtlas.shadowAtlasResolution;
+                areaAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapAreaAtlas;
+                areaAtlasInitParams.blurAlgorithm = HDShadowAtlas.BlurAlgorithm.EVSM;
+                areaAtlasInitParams.depthBufferBits = initParams.areaLightShadowAtlas.shadowAtlasDepthBits;
+                areaAtlasInitParams.name = "Area Light Shadow Map Atlas";
+                m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(areaAtlasInitParams);
+            }
+
+            HDShadowAtlas.HDShadowAtlasInitParameters cachedPunctualAtlasInitParams = punctualAtlasInitParams;
+            cachedPunctualAtlasInitParams.width = initParams.cachedPunctualLightShadowAtlas;
+            cachedPunctualAtlasInitParams.height = initParams.cachedPunctualLightShadowAtlas;
+            cachedPunctualAtlasInitParams.atlasShaderID = HDShaderIDs._CachedShadowmapAtlas;
+            cachedPunctualAtlasInitParams.name = "Cached Shadow Map Atlas";
+
+            cachedShadowManager.InitPunctualShadowAtlas(cachedPunctualAtlasInitParams);
 
             if (ShaderConfig.s_AreaLights == 1)
-                m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
-                                                        HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
+            {
+                HDShadowAtlas.HDShadowAtlasInitParameters cachedAreaAtlasInitParams = areaAtlasInitParams;
+                areaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
+                areaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
+                areaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
+                areaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
 
-            cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
-                                            HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
-            if (ShaderConfig.s_AreaLights == 1)
-                cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
-                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
+                cachedShadowManager.InitAreaLightShadowAtlas(cachedAreaAtlasInitParams);
+            }
         }
 
         public void InitializeNonRenderGraphResources()
@@ -914,6 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ShadowDataBuffer.Dispose();
             m_DirectionalShadowDataBuffer.Dispose();
+            m_GlobalShaderVariables.Release();
 
             if (m_MaxShadowRequests == 0)
                 return;
