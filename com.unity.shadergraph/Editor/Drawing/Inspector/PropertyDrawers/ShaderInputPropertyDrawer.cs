@@ -1525,6 +1525,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (!(shaderInput is ShaderDropdown dropdown))
                 return;
 
+            // Draw Header
+            m_DropdownReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(displayRect, "Entry Name");
+            };
+
             // Draw Element
             m_DropdownReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {

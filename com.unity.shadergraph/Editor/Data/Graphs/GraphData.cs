@@ -2146,7 +2146,6 @@ namespace UnityEditor.ShaderGraph
                         keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
                     }
 
-                    // Do we even need to worry about this? It is possible that somebody way be using an old version, and later upgrade?
                     foreach (var serializedDropdown in graphData0.m_SerializedDropdowns)
                     {
                         var dropdown = DeserializeLegacy<ShaderDropdown>(serializedDropdown.typeInfo.fullName, serializedDropdown.JSONnodeData);
