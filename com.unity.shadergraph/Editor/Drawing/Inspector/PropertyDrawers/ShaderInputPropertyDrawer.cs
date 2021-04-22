@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         // Dropdown
         ReorderableList m_DropdownReorderableList;
+        ShaderDropdown m_Dropdown;
+        int m_DropdownId;
         int m_DropdownSelectedIndex;
 
         //Virtual Texture
@@ -1484,6 +1486,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 this._preChangeValueCallback("Change Dropdown Value");
                 dropdown.value = field.index;
+                m_DropdownId = dropdown.entryId;
                 this._postChangeValueCallback(false, ModificationScope.Graph);
             });
 
@@ -1513,6 +1516,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             // Create reorderable list from entries
             m_DropdownReorderableList = new ReorderableList(dropdown.entries, typeof(DropdownEntry), true, true, true, true);
+            m_Dropdown = dropdown;
+            m_DropdownId = dropdown.entryId;
         }
 
         void DropdownAddCallbacks()
@@ -1641,6 +1646,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void DropdownReorderEntries(ReorderableList list)
         {
+            var index = m_Dropdown.IndexOfId(m_DropdownId);
+            if (index != m_Dropdown.value)
+                m_Dropdown.value = index;
             this._postChangeValueCallback(true);
         }
 

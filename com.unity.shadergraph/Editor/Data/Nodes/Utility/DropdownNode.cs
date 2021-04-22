@@ -139,12 +139,26 @@ namespace UnityEditor.ShaderGraph
                     {
                         sb.AppendLine($"else if ({m_Dropdown.value.referenceName} == {i})");
                     }
-                    sb.AppendLine("{");
-                    sb.IncreaseIndent();
-                    var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderDropdown, int>(dropdown, i)), generationMode);
-                    sb.AppendLine(string.Format($"{GetVariableNameForSlot(OutputSlotId)} = {value};"));
-                    sb.DecreaseIndent();
-                    sb.AppendLine("}");
+
+                    {
+                        sb.AppendLine("{");
+                        sb.IncreaseIndent();
+                        var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderDropdown, int>(dropdown, i)), generationMode);
+                        sb.AppendLine(string.Format($"{GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                        sb.DecreaseIndent();
+                        sb.AppendLine("}");
+                    }
+
+                    if (i == dropdown.entries.Count - 1)
+                    {
+                        sb.AppendLine($"else");
+                        sb.AppendLine("{");
+                        sb.IncreaseIndent();
+                        var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderDropdown, int>(dropdown, 0)), generationMode);
+                        sb.AppendLine(string.Format($"{GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                        sb.DecreaseIndent();
+                        sb.AppendLine("}");
+                    }
                 }
             }
         }
