@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         RTHandle m_Source;
         Material m_BlitMaterial;
+        bool m_UseRTScaling;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -26,9 +27,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle, bool useRTScaling)
         {
             m_Source = colorHandle;
+            m_UseRTScaling = useRTScaling;
         }
 
         /// <inheritdoc/>
@@ -53,7 +55,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraData.requireSrgbConversion);
 
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
-                cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
+                if (m_UseRTScaling)
+                {
+                    cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
+                }
+                else
+                {
+                    cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, Vector4.one);
+                }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)

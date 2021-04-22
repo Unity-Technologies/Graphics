@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
 
 
             // 3) Final blit to the backbuffer
-            m_FinalBlitPass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraColor);
+            m_FinalBlitPass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraColor, false);
             EnqueuePass(m_FinalBlitPass);
         }
 
