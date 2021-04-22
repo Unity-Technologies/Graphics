@@ -422,8 +422,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="material">Material to upgrade.</param>
         /// <param name="upgraders">List of Material upgraders.</param>
-        /// <param name="flags">Material Upgrader flags.</param>
-        /// <param name="message">Reference to the message if the flags <see cref="UpgradeFlags.LogMessageWhenNoUpgraderFound"/> is used.</param>
+        /// <param name="flags">Material upgrader flags.</param>
+        /// <param name="message">Error message to be outputted when no material upgraders are suitable for given material if the flags <see cref="UpgradeFlags.LogMessageWhenNoUpgraderFound"/> is used.</param>
         /// <return>Returns true if the upgrader was found for the passed in material.</return>
         public static bool Upgrade(Material material, List<MaterialUpgrader> upgraders, UpgradeFlags flags, ref string message)
         {

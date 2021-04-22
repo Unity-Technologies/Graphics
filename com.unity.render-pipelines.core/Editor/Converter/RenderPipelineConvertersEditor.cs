@@ -413,8 +413,7 @@ namespace UnityEditor.Rendering
                 var index = activeConverterState.index;
                 var converterName = m_CoreConvertersList[index].name;
                 var itemCount = m_ItemsToConvert[index].Count;
-                string progressTitle =
-                    $"{converterName}             Converter : {currentCount}/{activeConvertersCount}";
+                string progressTitle = $"{converterName}           Converter : {currentCount}/{activeConvertersCount}";
                 for (var j = 0; j < itemCount; j++)
                 {
                     if (activeConverterState.items[j].isActive)
