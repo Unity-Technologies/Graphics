@@ -1,10 +1,33 @@
 {
   "dependencies": {
+    "com.unity.addressables": {
+      "version": "1.17.15",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.scriptablebuildpipeline": "1.17.0",
+        "com.unity.modules.assetbundle": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.external.test-protocol": {
+      "version": "1.0.0-preview",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
@@ -39,6 +62,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "2.0.0",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.render-pipelines.core": {
       "version": "file:../../../com.unity.render-pipelines.core",
       "depth": 0,
@@ -58,8 +88,15 @@
         "com.unity.shadergraph": "12.0.0"
       }
     },
+    "com.unity.scriptablebuildpipeline": {
+      "version": "1.17.0",
+      "depth": 3,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.searcher": {
-      "version": "4.3.1",
+      "version": "4.3.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -74,6 +111,15 @@
         "com.unity.searcher": "4.3.1"
       }
     },
+    "com.unity.subsystemregistration": {
+      "version": "1.1.0",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.subsystems": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.test-framework": {
       "version": "1.1.22",
       "depth": 0,
@@ -84,6 +130,32 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.testframework.graphics": {
+      "version": "7.8.8-preview",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.xr.management": "3.2.15",
+        "com.unity.external.test-protocol": "1.0.0-preview",
+        "com.unity.nuget.newtonsoft-json": "2.0.0-preview",
+        "com.unity.subsystemregistration": "1.0.6",
+        "com.unity.xr.legacyinputhelpers": "2.1.6",
+        "com.unity.modules.xr": "1.0.0",
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.addressables": "1.17.15",
+        "com.unity.modules.imageconversion": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.testing.animation-upgrade": {
+      "version": "file:../../../com.unity.testing.animation-upgrade",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.testframework.graphics": "7.8.8-preview",
+        "com.unity.render-pipelines.universal": "file:./com.unity.render-pipelines.universal"
+      }
     },
     "com.unity.timeline": {
       "version": "1.6.0-pre.3",
@@ -105,6 +177,29 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "com.unity.xr.legacyinputhelpers": {
+      "version": "2.1.7",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.modules.xr": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.xr.management": {
+      "version": "4.0.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.subsystems": "1.0.0",
+        "com.unity.modules.vr": "1.0.0",
+        "com.unity.modules.xr": "1.0.0",
+        "com.unity.xr.legacyinputhelpers": "2.1.7",
+        "com.unity.subsystemregistration": "1.0.6"
+      },
+      "url": "https://packages.unity.com"
     },
     "nuget.castle-core": {
       "version": "1.0.1",
