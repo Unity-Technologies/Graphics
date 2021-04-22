@@ -139,14 +139,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             normalsRenderTarget.Init("_NormalMap");
             shadowsRenderTarget.Init("_ShadowTex");
+
+            spriteSelfShadowMaterial = null;
+            spriteUnshadowMaterial = null;
+            projectedShadowMaterial = null;
+            stencilOnlyShadowMaterial = null;
         }
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
-        internal Material spriteSelfShadowMaterial { get; set; }
-        internal Material spriteUnshadowMaterial { get; set; }
-        internal Material projectedShadowMaterial { get; set; }
-        internal Material stencilOnlyShadowMaterial { get; set; }
+        internal Material[] spriteSelfShadowMaterial { get; set; }
+        internal Material[] spriteUnshadowMaterial { get; set; }
+        internal Material[] projectedShadowMaterial { get; set; }
+        internal Material[] stencilOnlyShadowMaterial { get; set; }
 
         internal bool isNormalsRenderTargetValid { get; set; }
         internal float normalsRenderTargetScale { get; set; }

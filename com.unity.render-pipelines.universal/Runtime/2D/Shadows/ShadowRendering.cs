@@ -49,54 +49,64 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData, int colorMask)
+
+        private static Material[] CreateMaterials(Shader shader, int pass = 0)
         {
-            //if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial.shader)
+            const int k_ColorChannels = 4;
+            Material[] materials = new Material[k_ColorChannels];
+
+            for (int i = 0; i < k_ColorChannels; i++)
             {
-                var material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
-                material.SetInt(k_ShadowColorMaskID, colorMask);
-                material.SetPass(0);
-                rendererData.projectedShadowMaterial = material;
+                materials[i] = CoreUtils.CreateEngineMaterial(shader);
+                materials[i].SetInt(k_ShadowColorMaskID, 1 << i);
+                materials[i].SetPass(pass);
             }
 
-            return rendererData.projectedShadowMaterial;
+            return materials;
         }
 
-        private static Material GetStencilOnlyShadowMaterial(this Renderer2DData rendererData, int colorMask)
+        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
-            //if (rendererData.stencilOnlyShadowMaterial == null || rendererData.projectedShadowShader != rendererData.stencilOnlyShadowMaterial.shader)
+            //rendererData.projectedShadowMaterial = null;
+            if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowMaterial.Length == 0 || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial[0].shader)
             {
-                var material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
-                material.SetInt(k_ShadowColorMaskID, colorMask);
-                material.SetPass(1);
-                rendererData.stencilOnlyShadowMaterial = material;
+                rendererData.projectedShadowMaterial = CreateMaterials(rendererData.projectedShadowShader);
             }
 
-            return rendererData.stencilOnlyShadowMaterial;
+            return rendererData.projectedShadowMaterial[colorIndex];
         }
 
-        private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData, int colorMask)
+        private static Material GetStencilOnlyShadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
-            //if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial.shader)
+            //rendererData.stencilOnlyShadowMaterial = null;
+            if (rendererData.stencilOnlyShadowMaterial == null || rendererData.stencilOnlyShadowMaterial.Length == 0 || rendererData.projectedShadowShader != rendererData.stencilOnlyShadowMaterial[0].shader)
             {
-                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
-                material.SetInt(k_ShadowColorMaskID, colorMask);
-                rendererData.spriteSelfShadowMaterial = material;
+                rendererData.stencilOnlyShadowMaterial = CreateMaterials(rendererData.projectedShadowShader, 1);
             }
 
-            return rendererData.spriteSelfShadowMaterial;
+            return rendererData.stencilOnlyShadowMaterial[colorIndex];
         }
 
-        private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData, int colorMask)
+        private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData, int colorIndex)
         {
-            //if (rendererData.spriteUnshadowMaterial == null || rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial.shader)
+            //rendererData.spriteSelfShadowMaterial = null;
+            if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteSelfShadowMaterial.Length == 0 ||  rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial[0].shader)
             {
-                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteUnshadowShader);
-                material.SetInt(k_ShadowColorMaskID, colorMask);
-                rendererData.spriteUnshadowMaterial = material;
+                rendererData.spriteSelfShadowMaterial = CreateMaterials(rendererData.spriteShadowShader);
             }
 
-            return rendererData.spriteUnshadowMaterial;
+            return rendererData.spriteSelfShadowMaterial[colorIndex];
+        }
+
+        private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData, int colorIndex)
+        {
+            //rendererData.spriteUnshadowMaterial = null;
+            if (rendererData.spriteUnshadowMaterial == null || rendererData.spriteUnshadowMaterial.Length == 0 ||  rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial[0].shader)
+            {
+                rendererData.spriteUnshadowMaterial = CreateMaterials(rendererData.spriteUnshadowShader);
+            }
+
+            return rendererData.spriteUnshadowMaterial[colorIndex];
         }
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
@@ -212,12 +222,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                             cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
 
-                            int colorMask = 1 << colorBit;
+
                             cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
-                            var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorMask);
-                            var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorMask);
-                            var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorMask);
-                            var setGlobalStencilMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorMask);
+                            var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorBit);
+                            var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorBit);
+                            var unshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorBit);
+                            var setGlobalStencilMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorBit);
 
                             for (var group = 0; group < shadowCasterGroups.Count; group++)
                             {
