@@ -1442,7 +1442,6 @@ namespace UnityEditor.ShaderGraph
                 copyProp.precision = sourceProp.precision;
                 copyProp.overrideHLSLDeclaration = sourceProp.overrideHLSLDeclaration;
                 copyProp.hlslDeclarationOverride = sourceProp.hlslDeclarationOverride;
-                copyProp.useCustomSlotLabel = sourceProp.useCustomSlotLabel;
             }
 
             // sanitize the display name (we let the .Copy() function actually copy the display name over)
