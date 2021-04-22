@@ -273,6 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), name);
                         field.RegisterValueChangedCallback(evt =>
                         {
+                            subGraphNode.owner.owner.RegisterCompleteObjectUndo("Change Dropdown Value");
                             subGraphNode.SetDropdownEntryName(dropdown.referenceName, field.value);
                             subGraphNode.Dirty(ModificationScope.Topological);
                         });

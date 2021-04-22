@@ -32,10 +32,15 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private int m_Value;
 
+        private int GetClampedValue(int value)
+        {
+            return count > 0 ? Mathf.Clamp(value, 0, count - 1) : 0;
+        }
+
         public int value
         {
-            get => m_Value;
-            set => m_Value = value;
+            get => GetClampedValue(m_Value);
+            set => m_Value = GetClampedValue(value);
         }
 
         public string entryName

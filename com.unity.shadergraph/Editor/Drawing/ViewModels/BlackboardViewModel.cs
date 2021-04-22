@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Dictionary<string, IGraphDataAction> propertyNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> defaultKeywordNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> builtInKeywordNameToAddActionMap { get; set; }
-        public Dictionary<string, IGraphDataAction> defaultDropdownNameToAddActionMap { get; set; }
+        public Tuple<string, IGraphDataAction> defaultDropdownNameToAdd { get; set; }
 
         public Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             propertyNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
             defaultKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
             builtInKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
-            defaultDropdownNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
+            defaultDropdownNameToAdd = null;
             categoryInfoList = new List<CategoryData>();
             disabledKeywordNameList = new List<string>();
             disabledDropdownNameList = new List<string>();
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             propertyNameToAddActionMap.Clear();
             defaultKeywordNameToAddActionMap.Clear();
             builtInKeywordNameToAddActionMap.Clear();
-            defaultDropdownNameToAddActionMap.Clear();
+            defaultDropdownNameToAdd = null;
             categoryInfoList.Clear();
             disabledKeywordNameList.Clear();
             disabledDropdownNameList.Clear();

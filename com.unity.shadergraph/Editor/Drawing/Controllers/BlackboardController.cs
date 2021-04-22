@@ -238,7 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             if (useDropdowns)
-                ViewModel.defaultDropdownNameToAddActionMap.Add("Dropdown", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+                ViewModel.defaultDropdownNameToAdd = new Tuple<string, IGraphDataAction>("Dropdown", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
 
             ViewModel.requestModelChangeAction = this.RequestModelChange;
 
@@ -402,7 +402,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                     return m_KeywordSectionController.InsertBlackboardRow(keyword);
                 case ShaderDropdown dropdown:
-                    return m_DropdownSectionController.InsertBlackboardRow(dropdown);
+                    if (Model.isSubGraph)
+                        return m_DropdownSectionController.InsertBlackboardRow(dropdown);
+                    break;
             }
 
             return null;
@@ -417,7 +419,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ShaderKeyword keyword:
                     return m_KeywordSectionController.InsertBlackboardRow(keyword, insertionIndex);
                 case ShaderDropdown dropdown:
-                    return m_DropdownSectionController.InsertBlackboardRow(dropdown, insertionIndex);
+                    if (Model.isSubGraph)
+                        return m_DropdownSectionController.InsertBlackboardRow(dropdown, insertionIndex);
+                    break;
             }
 
             return null;
@@ -434,7 +438,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_KeywordSectionController.RemoveBlackboardRow(keyword);
                     break;
                 case ShaderDropdown dropdown:
-                    m_DropdownSectionController.RemoveBlackboardRow(dropdown);
+                    if (Model.isSubGraph)
+                        m_DropdownSectionController.RemoveBlackboardRow(dropdown);
                     break;
             }
         }
