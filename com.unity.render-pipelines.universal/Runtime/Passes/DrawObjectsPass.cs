@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.renderer.useDepthPriming)
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque)
             {
                 m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
