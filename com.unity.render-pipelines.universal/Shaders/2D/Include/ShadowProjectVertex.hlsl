@@ -5,7 +5,6 @@ struct Attributes
 {
     float3 vertex : POSITION;
     float4 tangent: TANGENT;
-    float4 extrusion : COLOR;
 };
 
 struct Varyings
@@ -23,39 +22,32 @@ Varyings ProjectShadow(Attributes v)
 {
     Varyings o;
 
-    float3 vertexWS = TransformObjectToWorld(v.vertex);  // This should be in world space
-    float3 lightDir = _LightPos - vertexWS;
-    lightDir.z = 0;
+    // Scale really messes things up. _ShadowModelScale is used to bake the local scale into our local position. _ShadowModelMatrix, _ShadowModelInvMatrix are model matrices without lossy scale.
 
-    // Start of code to see if this point should be extruded
-    float3 lightDirection = normalize(lightDir);
+    // We should change 0 to a z value to shorten shadows. This will also require additional work for per-pixel distance as we have to overproject.
+    float3 vertexOS0 =  float3(v.vertex.x * _ShadowModelScale.x, v.vertex.y * _ShadowModelScale.y, 0);
+    float3 vertexOS1 =  float3(v.tangent.z * _ShadowModelScale.x, v.tangent.w * _ShadowModelScale.y, 0);  // the tangent has the adjacent point stored in zw
+    float3 lightPosOS = float3(mul(_ShadowModelInvMatrix, float4(_LightPos.x, _LightPos.y, _LightPos.z, 1)).xy, 0);  // Transform the light into local space
+                
+    float3 unnormalizedLightDir0 = vertexOS0 - lightPosOS;
+    float3 unnormalizedLightDir1 = vertexOS1 - lightPosOS;
 
-    float3 endpoint = vertexWS + (_ShadowRadius * -lightDirection);
+    float3 lightDir0   = normalize(unnormalizedLightDir0);
+    float3 lightDir1   = normalize(unnormalizedLightDir1);
+    float3 avgLightDir = normalize(lightDir0 + lightDir1);
 
-    float3 worldTangent = TransformObjectToWorldDir(v.tangent.xyz);
-    float sharedShadowTest = saturate(ceil(dot(lightDirection, worldTangent)));
-
-    // Start of code to calculate offset
-    float3 vertexWS0 = TransformObjectToWorld(float3(v.extrusion.xy, 0));
-    float3 vertexWS1 = TransformObjectToWorld(float3(v.extrusion.zw, 0));
-    float3 shadowDir0 = vertexWS0 - _LightPos;
-    shadowDir0.z = 0;
-    shadowDir0 = normalize(shadowDir0);
-
-    float3 shadowDir1 = vertexWS1 - _LightPos;
-    shadowDir1.z = 0;
-    shadowDir1 = normalize(shadowDir1);
-
-    float3 shadowDir = normalize(shadowDir0 + shadowDir1);
-
-
-    float3 sharedShadowOffset = sharedShadowTest * _ShadowRadius * shadowDir;
-
-    float3 position;
-    position = vertexWS + sharedShadowOffset;
-
-    o.vertex = TransformWorldToHClip(position);
-
+    float  shadowLength = _ShadowRadius / dot(lightDir0, avgLightDir);
+    float3 normalOS = float3(v.tangent.xy, 0); // the normal is stored in xy
+    
+    // Tests to make sure the light is between 0-90 degrees to the normal. Will be one if it is, zero if not.
+    float3 shadowDir = lightDir0;
+    float  shadowTest = ceil(dot(lightDir0, normalOS) < 0);
+    float3 shadowOffset = shadowLength * shadowDir;
+    
+    // If we are suppose to extrude this point, then 
+    float3 finalVertexOS = shadowTest * (lightPosOS + shadowOffset) + (1 - shadowTest) * vertexOS0;
+    
+    o.vertex = mul(GetWorldToHClipMatrix(), mul(_ShadowModelMatrix, float4(finalVertexOS, 1.0)));
     return o;
 }
 
