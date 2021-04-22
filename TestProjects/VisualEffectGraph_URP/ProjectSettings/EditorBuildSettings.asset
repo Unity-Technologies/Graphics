@@ -51,6 +51,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
     guid: 42a36d7781122534f9ce00fa769bdd5c
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/017_MaterialQueueOffset.unity
+    guid: cda518f246caf814c9de4d03ddee9a1e
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

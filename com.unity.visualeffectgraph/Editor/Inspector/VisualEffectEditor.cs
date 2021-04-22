@@ -783,7 +783,12 @@ namespace UnityEditor.VFX
                 DrawParameters(resource);
             }
             EditorGUI.indentLevel = 0;
-            serializedObject.ApplyModifiedProperties();
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                if (window != null)
+                    window.OnVisualEffectComponentChanged(targets.Cast<VisualEffect>());
+            }
         }
 
         Dictionary<string, Dictionary<string, SerializedProperty>> m_PropertyToProp = new Dictionary<string, Dictionary<string, SerializedProperty>>();
