@@ -175,15 +175,35 @@ namespace UnityEditor.Rendering.Universal
             upgraders.Add(new AutodeskInteractiveUpgrader("Autodesk Interactive"));
         }
 
+        bool IsMaterialPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
+        }
+
+        bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
+        {
+            if (material == null)
+                return false;
+
+            if (material.shader == null)
+                return false;
+
+            return !shaderNamesToIgnore.Contains(material.shader.name);
+        }
+
         public override void OnInitialize(InitializeConverterContext context)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
-                if (MaterialUpgrader.IsMaterialPath(path))
+                if (IsMaterialPath(path))
                 {
                     Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
 
-                    if (!MaterialUpgrader.ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
+                    if (!ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
                         continue;
 
                     GUID guid = AssetDatabase.GUIDFromAssetPath(path);
@@ -214,6 +234,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
     }
+
 
     public static class SupportedUpgradeParams
     {
