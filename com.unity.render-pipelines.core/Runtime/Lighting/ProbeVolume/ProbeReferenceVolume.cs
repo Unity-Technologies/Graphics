@@ -277,6 +277,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
+        private int m_NumberOfCellsLoadedPerFrame = 2;
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
         /// <summary>
@@ -295,6 +297,15 @@ namespace UnityEngine.Experimental.Rendering
             {
                 return _instance;
             }
+        }
+
+        /// <summary>
+        /// Set the number of cells that are loaded per frame when needed.
+        /// </summary>
+        /// <param name="numberOfCells"></param>
+        public void SetNumberOfCellsLoadedPerFrame(int numberOfCells)
+        {
+            m_NumberOfCellsLoadedPerFrame = Mathf.Max(1, numberOfCells);
         }
 
         /// <summary>
@@ -448,7 +459,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void LoadPendingCells()
         {
-            int count = Mathf.Min(1, m_CellsToBeLoaded.Count);
+            int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
             for (int i = 0; i < count; ++i)
             {
                 // Pop from queue.
@@ -523,14 +534,18 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Perform sorting of pending cells to be loaded.
         /// </summary>
+        /// <param name ="cameraPosition"> The position to sort against (closer to the position will be loaded first).</param>
         public void SortPendingCells(Vector3 cameraPosition)
         {
-            for (int i = 0; i < m_CellsToBeLoaded.Count; ++i)
+            if (m_CellsToBeLoaded.Count > 0)
             {
-                m_CellsToBeLoaded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeLoaded[i].position);
-            }
+                for (int i = 0; i < m_CellsToBeLoaded.Count; ++i)
+                {
+                    m_CellsToBeLoaded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeLoaded[i].position);
+                }
 
-            m_CellsToBeLoaded.Sort();
+                m_CellsToBeLoaded.Sort();
+            }
         }
 
         private ProbeReferenceVolume()
