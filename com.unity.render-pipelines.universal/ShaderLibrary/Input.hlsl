@@ -10,6 +10,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
+#define MAX_ZBIN_VEC4S 8192/4
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
@@ -17,6 +18,8 @@
 #else
     #define MAX_VISIBLE_LIGHTS 256
 #endif
+
+#define MAX_VISIBILITY_VEC4S (MAX_VISIBLE_LIGHTS/32/4 * 3840/16)
 
 struct InputData
 {
@@ -67,6 +70,33 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
+#endif
+
+#if USE_CLUSTERED_LIGHTING
+// TODO: Handle SHADER_API_GLES3
+
+// Directional lights would be in all clusters, so they don't go into the cluster structure.
+// Instead, they are stored first in the light buffer.
+int _AdditionalLightsDirectionalCount;
+// The number of Z-bins to skip based on near plane distance.
+int _AdditionalLightsZBinOffset;
+// Scale from view-space Z to Z-bin.
+float _AdditionalLightsZBinScale;
+// Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
+float2 _AdditionalLightsTileScale;
+
+CBUFFER_START(AdditionalLightsZBins)
+uint4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+CBUFFER_END
+
+CBUFFER_START(AdditionalLightsHorizontalVisibility)
+uint4 _AdditionalLightsHorizontalVisibility[MAX_VISIBILITY_VEC4S];
+CBUFFER_END
+
+CBUFFER_START(AdditionalLightsVerticalVisibility)
+uint4 _AdditionalLightsVerticalVisibility[MAX_VISIBILITY_VEC4S];
+CBUFFER_END
+
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

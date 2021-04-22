@@ -140,6 +140,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static int maxZBins => 8192;
+        internal static int maxVisibilityVec4s => (maxVisibleAdditionalLights * 3840) / (16 * 32 * 4);
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();

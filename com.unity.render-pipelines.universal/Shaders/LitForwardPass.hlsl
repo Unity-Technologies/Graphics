@@ -99,9 +99,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
 // Used in Standard (Physically Based) shader
 Varyings LitPassVertex(Attributes input)
 {
@@ -160,21 +157,6 @@ Varyings LitPassVertex(Attributes input)
     return output;
 }
 
-ByteAddressBuffer _ZBinBuffer;
-// ByteAddressBuffer _TileBuffer;
-ByteAddressBuffer _HorizontalBuffer;
-ByteAddressBuffer _VerticalBuffer;
-int _ZBinOffset;
-float _ZBinFactor;
-int _ZBinLightCount;
-float2 _InvNormalizedTileSize;
-float _TileXCount;
-float _TileYCount;
-float _TileCount;
-int _LightCount;
-int _WordsPerTile;
-float _TileSize;
-
 // Used in Standard (Physically Based) shader
 half4 LitPassFragment(Varyings input) : SV_Target
 {
@@ -196,45 +178,6 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
-
-    float z = dot(GetViewForwardDir(), input.positionWS - GetCameraPositionWS());
-    int zBin = (int)(sqrt(z) * _ZBinFactor) - _ZBinOffset;
-    uint data = _ZBinBuffer.Load(zBin * 4);
-    uint minIndex = (data & 0xFFFF);
-    uint maxIndex = ((data >> 16) & 0xFFFF);
-
-    uint count = data == 0xFFFFFFFF ? 0 : maxIndex + 1 - minIndex;
-    count = 0;
-
-    uint2 tileId = uint2(inputData.normalizedScreenSpaceUV * _InvNormalizedTileSize);
-    int2 pixCoord = (inputData.normalizedScreenSpaceUV * _ScreenParams.xy) % _TileSize;
-    uint tileIndex = tileId.y * _TileXCount + tileId.x;
-    uint tileOffset = tileIndex * _WordsPerTile;
-    uint horizontalOffset = tileId.y * _WordsPerTile;
-    uint verticalOffset = tileId.x * _WordsPerTile;
-    uint wordMin = minIndex / 32;
-    uint wordMax = maxIndex / 32;
-
-    for (uint i = wordMin; i <= wordMax; i++)
-    {
-        uint mask = _VerticalBuffer.Load((verticalOffset + i) * 4) & _HorizontalBuffer.Load((horizontalOffset + i) * 4);
-        if (i == wordMin) mask &= 0xFFFFFFFF << (minIndex & 0x1F);
-        if (i == wordMax) mask &= 0xFFFFFFFF >> (31 - (maxIndex & 0x1F));
-        while (mask != 0)
-        {
-            uint bitIndex = firstbitlow(mask);
-            count++;
-            mask ^= (1 << bitIndex);
-        }
-    }
-
-    // Comment out to compare against per-object
-    // count = GetAdditionalLightsCount();
-    uint digit1 = count % 10;
-    uint digit2 = (count / 10) % 10;
-
-    bool font = digit2 != 0 && SampleDebugFont(pixCoord - int2(3, 3), digit2) || SampleDebugFont(pixCoord - int2(9, 3), digit1);
-    return half4((inputData.normalWS * 0.5 + 0.5) * (count / (float)_ZBinLightCount) * !font, 1);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 

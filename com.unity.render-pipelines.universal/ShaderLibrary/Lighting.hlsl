@@ -62,7 +62,83 @@ struct Light
     #define _USE_WEBGL1_LIGHTS 0
 #endif
 
-#if !_USE_WEBGL1_LIGHTS
+#if USE_CLUSTERED_LIGHTING
+
+// TODO: Remove after erik's PR is merged
+// Select uint4 component by index.
+// Helper to improve codegen for 2d indexing (data[x][y])
+// Replace:
+// data[i / 4][i % 4];
+// with:
+// select4(data[i / 4], i % 4);
+uint Select4(uint4 v, uint i)
+{
+    // x = 0 = 00
+    // y = 1 = 01
+    // z = 2 = 10
+    // w = 3 = 11
+    uint mask0 = uint(int(i << 31) >> 31);
+    uint mask1 = uint(int(i << 30) >> 31);
+    return
+        (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
+        (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
+}
+
+uint2 LoadZBin(float viewZ)
+{
+    uint zBinIndex = (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset;
+    uint data = Select4(_AdditionalLightsZBins[zBinIndex / 4], zBinIndex % 4);
+    uint minIndex = (data & 0xFFFF);
+    uint maxIndex = ((data >> 16) & 0xFFFF);
+    return uint2(minIndex, maxIndex);
+}
+
+float CalculateViewZ(float3 positionWS)
+{
+    return dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
+}
+
+uint2 CalculateTileId(float2 normalizedScreenSpaceUV)
+{
+    return uint2(normalizedScreenSpaceUV * _AdditionalLightsTileScale);
+}
+
+uint LoadTileMask(uint2 tileId, uint wordIndex, uint2 zBin, uint wordMin, uint wordMax)
+{
+    uint indexV = (MAX_VISIBLE_LIGHTS / 32) * tileId.x + wordIndex;
+    uint indexH = (MAX_VISIBLE_LIGHTS / 32) * tileId.y + wordIndex;
+    uint maskV = Select4(_AdditionalLightsVerticalVisibility[indexV / 4], indexV % 4);
+    uint maskH = Select4(_AdditionalLightsHorizontalVisibility[indexH / 4], indexH % 4);
+    uint mask = maskV & maskH;
+    // The Z-bin might start/end in the middle of a word, so we mask out unneeded parts.
+    mask &= (0xFFFFFFFF << ((zBin.x & 0x1F) * (wordIndex == wordMin)));
+    mask &= 0xFFFFFFFF >> ((31 - (zBin.y & 0x1F)) * (wordIndex == wordMax));
+    return mask;
+}
+
+uint NextLightIndex(inout uint tileMask, uint wordIndex)
+{
+    uint bitIndex = firstbitlow(tileMask);
+    tileMask ^= (1 << bitIndex);
+    return wordIndex * 32 + bitIndex;
+}
+
+#define LIGHT_LOOP_BEGIN(lightCount) \
+    lightCount = 0; \
+    uint2 zBin = LoadZBin(CalculateViewZ(inputData.positionWS)); \
+    uint wordMin = zBin.x / 32; \
+    uint wordMax = zBin.y / 32; \
+    for (uint wordIndex = wordMin; wordIndex <= wordMax; wordIndex++) { \
+        uint tileMask = LoadTileMask(CalculateTileId(inputData.normalizedScreenSpaceUV), wordIndex, zBin, wordMin, wordMax); \
+        while (tileMask != 0) \
+        { \
+            lightCount++; \
+            uint lightIndex = NextLightIndex(tileMask, wordIndex);
+#define LIGHT_LOOP_END \
+        } \
+    }
+
+#elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
 
@@ -131,7 +207,11 @@ Light GetMainLight()
 {
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
+#if USE_CLUSTERED_LIGHTING
+    light.distanceAttenuation = 1.0;
+#else
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
+#endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -185,6 +265,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     return light;
 }
 
+#if !USE_CLUSTERED_LIGHTING
 uint GetPerObjectLightIndexOffset()
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -237,36 +318,50 @@ int GetPerObjectLightIndex(uint index)
     return int((i_rem < half(1.0)) ? lightIndex2.x : lightIndex2.y);
 #endif
 }
+#endif
 
 // Fills a light struct given a loop i index. This will convert the i
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-    int perObjectLightIndex = GetPerObjectLightIndex(i);
-    return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+#if USE_CLUSTERED_LIGHTING
+    int lightIndex = i;
+#else
+    int lightIndex = GetPerObjectLightIndex(i);
+#endif
+    return GetAdditionalPerObjectLight(lightIndex, positionWS);
 }
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-    int perObjectLightIndex = GetPerObjectLightIndex(i);
-    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+#if USE_CLUSTERED_LIGHTING
+    int lightIndex = i;
+#else
+    int lightIndex = GetPerObjectLightIndex(i);
+#endif
+    Light light = GetAdditionalPerObjectLight(lightIndex, positionWS);
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[lightIndex].occlusionProbeChannels;
 #else
-    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[lightIndex];
 #endif
-    light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
+    light.shadowAttenuation = AdditionalLightShadow(lightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
 
     return light;
 }
 
 int GetAdditionalLightsCount()
 {
+#if USE_CLUSTERED_LIGHTING
+    // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
+    return 0;
+#else
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
     return int(min(_AdditionalLightsCount.x, unity_LightData.y));
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -838,6 +933,12 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
     return vertexLightColor;
 }
 
+// #define DEBUG_LIGHT_COUNT 1
+
+#if defined(DEBUG_LIGHT_COUNT)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
@@ -906,6 +1007,17 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #endif
 
     color += surfaceData.emission;
+
+#ifdef _ADDITIONAL_LIGHTS
+#if defined(DEBUG_LIGHT_COUNT)
+    int2 pixCoord = (inputData.normalizedScreenSpaceUV * _ScreenParams.xy) % 16;
+    uint digit1 = pixelLightCount % 10;
+    uint digit2 = (pixelLightCount / 10) % 10;
+    bool font = digit2 != 0 && SampleDebugFont(pixCoord - int2(3, 3), digit2) || SampleDebugFont(pixCoord - int2(9, 3), digit1);
+    color = color * 0.25 + 0.75 * (float)pixelLightCount / 8.0;
+    color *= !font;
+#endif
+#endif
 
     return half4(color, surfaceData.alpha);
 }
