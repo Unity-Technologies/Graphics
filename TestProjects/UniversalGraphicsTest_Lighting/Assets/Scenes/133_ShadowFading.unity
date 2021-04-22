@@ -637,7 +637,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.005
     UseHDR: 0
-    UseBackBuffer: 0
+    UseBackBuffer: 1
     ImageResolution: 0
   WaitFrames: 0
   XRCompatible: 1
