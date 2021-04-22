@@ -6,11 +6,20 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class ScreenSpaceShadowsSettings
     {
+        public bool vxsm;
     }
 
     [DisallowMultipleRendererFeature]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [Reload("Shaders/Utils/ScreenSpaceShadows.compute")]
+            public ComputeShader screenSpaceShadowCS;
+        }
+        public ShaderResources shaderResources;
+
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
         [SerializeField] private ScreenSpaceShadowsSettings m_Settings = new ScreenSpaceShadowsSettings();
@@ -18,16 +27,25 @@ namespace UnityEngine.Rendering.Universal
         // Private Fields
         private Material m_Material;
         private ScreenSpaceShadowsPass m_SSShadowsPass = null;
+        private ScreenSpaceShadowComputePass m_ScreenSpaceShadowComputePass = null;
         private RestoreShadowKeywordsPass m_RestoreShadowKeywordsPass = null;
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
 
+
         /// <inheritdoc/>
         public override void Create()
         {
+#if UNITY_EDITOR
+            string packagePath = "Packages/com.unity.render-pipelines.universal";
+            ResourceReloader.ReloadAllNullIn(this, packagePath);
+#endif
             if (m_SSShadowsPass == null)
                 m_SSShadowsPass = new ScreenSpaceShadowsPass();
+            if (m_ScreenSpaceShadowComputePass == null)
+                m_ScreenSpaceShadowComputePass =
+                    new ScreenSpaceShadowComputePass(RenderPassEvent.AfterRenderingPrePasses, shaderResources.screenSpaceShadowCS);
             if (m_RestoreShadowKeywordsPass == null)
                 m_RestoreShadowKeywordsPass = new RestoreShadowKeywordsPass();
 
@@ -50,12 +68,26 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool allowMainLightShadows = renderingData.shadowData.supportsMainLightShadows && renderingData.lightData.mainLightIndex != -1;
-            bool shouldEnqueue = m_SSShadowsPass.Setup(m_Settings) && allowMainLightShadows;
 
-            if (shouldEnqueue)
+            if (m_Settings.vxsm)
             {
-                renderer.EnqueuePass(m_SSShadowsPass);
-                renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+                bool shouldEnqueue = m_ScreenSpaceShadowComputePass.Setup(m_Settings) && allowMainLightShadows;
+                bool computeShadowsInScreenSpace =
+                    ScreenSpaceShadowComputePass.ComputeShadowsInScreenSpace(renderingData.lightData);
+                if (shouldEnqueue && computeShadowsInScreenSpace)
+                {
+                    renderer.EnqueuePass(m_ScreenSpaceShadowComputePass);
+                    renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+                }
+            }
+            else
+            {
+                bool shouldEnqueue = m_SSShadowsPass.Setup(m_Settings) && allowMainLightShadows;
+                if (shouldEnqueue)
+                {
+                    renderer.EnqueuePass(m_SSShadowsPass);
+                    renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+                }
             }
         }
 

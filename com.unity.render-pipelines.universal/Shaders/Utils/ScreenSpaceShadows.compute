@@ -1,0 +1,297 @@
+#pragma kernel BlendCascadeShadowsNearest  CSKernel=BlendCascadeShadowsNearest  WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE NEAREST_SAMPLE
+#pragma kernel BlendCascadeShadowsHard     CSKernel=BlendCascadeShadowsHard     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE HARD_SHADOWS
+#pragma kernel BlendCascadeShadowsSoft     CSKernel=BlendCascadeShadowsSoft     WITH_DYNAMIC_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE SOFT_SHADOWS
+
+#pragma kernel BlendDynamicShadowsNearest  CSKernel=BlendDynamicShadowsNearest  WITH_DYNAMIC_SHADOWS NEAREST_SAMPLE
+#pragma kernel BlendDynamicShadowsHard     CSKernel=BlendDynamicShadowsHard     WITH_DYNAMIC_SHADOWS HARD_SHADOWS
+#pragma kernel BlendDynamicShadowsSoft     CSKernel=BlendDynamicShadowsSoft     WITH_DYNAMIC_SHADOWS SOFT_SHADOWS
+
+#pragma kernel NoBlendNearest              CSKernel=NoBlendNearest              NEAREST_SAMPLE
+#pragma kernel NoBlendHard                 CSKernel=NoBlendHard                 HARD_SHADOWS
+#pragma kernel NoBlendSoft                 CSKernel=NoBlendSoft                 SOFT_SHADOWS
+
+#define TILE_SIZE 8
+#define SHADER_STAGE_COMPUTE 1
+
+#ifdef SOFT_SHADOWS
+#define _SHADOWS_SOFT
+#endif
+
+#define VX_SHADOWS_OPT
+#define _SHADOWS_ENABLED
+
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.voxelized-shadows/ShaderLibrary/Common.hlsl"
+
+#ifdef UNITY_MATRIX_I_VP
+#undef UNITY_MATRIX_I_VP
+#endif
+
+
+#define UNITY_MATRIX_I_VP _InvViewProjMatrix
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
+#else
+TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
+
+SAMPLER(sampler_CameraDepthTexture);
+
+CBUFFER_START(_DirectionalVxShadowMap)
+    uint4 _VxShadowMapParameters; // x:begin offset, y:z-bias
+CBUFFER_END
+
+#define _BeginOffset _VxShadowMapParameters.x
+#define _VoxelZBias  _VxShadowMapParameters.y
+#define _VxsmOffset  _VxShadowMapParameters.x + OFFSET_DIR
+
+RW_TEXTURE2D(float, _ScreenSpaceShadowOutput);
+
+float PCF9x9VxShadowMap(uint begin, uint typeOffset, uint2 adjOffset, uint3 posQ, uint4 innerResults[2])
+{
+    uint vxsmOffset = begin + typeOffset;
+    uint4 nodeIndex4 = vxsmOffset + innerResults[0];
+
+    uint4 posQ_x = posQ.xxxx + adjOffset.xyxy;
+    uint4 posQ_y = posQ.yyyy + adjOffset.xxyy;
+
+    uint4 leaf4_x = posQ_x % 8;
+    uint4 leaf4_y = posQ_y % 8;
+    uint  leaf4_z = posQ.z % 8;
+
+    uint4 leafIndex = vxsmOffset + uint4(
+        _VxShadowMapsBuffer[nodeIndex4.x + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.y + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.z + leaf4_z],
+        _VxShadowMapsBuffer[nodeIndex4.w + leaf4_z]);
+
+    uint4 bitmask4_0 = (innerResults[1] & VX_SHADOWS_LIT) ? 0x00000000 : 0xFFFFFFFF;
+    uint4 bitmask4_1 = bitmask4_0;
+
+    if (innerResults[1].x == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.x = _VxShadowMapsBuffer[leafIndex.x    ];
+        bitmask4_1.x = _VxShadowMapsBuffer[leafIndex.x + 1];
+    }
+    if (innerResults[1].y == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.y = _VxShadowMapsBuffer[leafIndex.y    ];
+        bitmask4_1.y = _VxShadowMapsBuffer[leafIndex.y + 1];
+    }
+    if (innerResults[1].z == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.z = _VxShadowMapsBuffer[leafIndex.z    ];
+        bitmask4_1.z = _VxShadowMapsBuffer[leafIndex.z + 1];
+    }
+    if (innerResults[1].w == VX_SHADOWS_INTERSECTED)
+    {
+        bitmask4_0.w = _VxShadowMapsBuffer[leafIndex.w    ];
+        bitmask4_1.w = _VxShadowMapsBuffer[leafIndex.w + 1];
+    }
+
+    uint xshift0 = 8 - leaf4_x.x;
+    uint xshift1 = leaf4_x.y + 1;
+    uint yshift0 = leaf4_y.x;
+    uint yshift1 = leaf4_y.z;
+
+    uint maskx_0 = ( (0x0000FF00 >> xshift0)) & 0x000000FF;
+    uint maskx_1 = (~(0xFFFFFFFF << xshift1)) & 0x000000FF;
+
+    uint mask00_0 = 0;
+    uint mask00_1 = 0;
+    uint mask10_0 = 0;
+    uint mask10_1 = 0;
+    uint mask01_0 = 0;
+    uint mask01_1 = 0;
+    uint mask11_0 = 0;
+    uint mask11_1 = 0;
+
+    mask00_0 |= yshift0 <= 0 ? (maskx_0      ) : 0;
+    mask00_0 |= yshift0 <= 1 ? (maskx_0 <<  8) : 0;
+    mask00_0 |= yshift0 <= 2 ? (maskx_0 << 16) : 0;
+    mask00_0 |= yshift0 <= 3 ? (maskx_0 << 24) : 0;
+    mask00_1 |= yshift0 <= 4 ? (maskx_0      ) : 0;
+    mask00_1 |= yshift0 <= 5 ? (maskx_0 <<  8) : 0;
+    mask00_1 |= yshift0 <= 6 ? (maskx_0 << 16) : 0;
+    mask00_1 |= yshift0 <= 7 ? (maskx_0 << 24) : 0;
+
+    mask10_0 |= yshift0 <= 0 ? (maskx_1      ) : 0;
+    mask10_0 |= yshift0 <= 1 ? (maskx_1 <<  8) : 0;
+    mask10_0 |= yshift0 <= 2 ? (maskx_1 << 16) : 0;
+    mask10_0 |= yshift0 <= 3 ? (maskx_1 << 24) : 0;
+    mask10_1 |= yshift0 <= 4 ? (maskx_1      ) : 0;
+    mask10_1 |= yshift0 <= 5 ? (maskx_1 <<  8) : 0;
+    mask10_1 |= yshift0 <= 6 ? (maskx_1 << 16) : 0;
+    mask10_1 |= yshift0 <= 7 ? (maskx_1 << 24) : 0;
+
+    mask01_0 |= yshift1 >= 0 ? (maskx_0      ) : 0;
+    mask01_0 |= yshift1 >= 1 ? (maskx_0 <<  8) : 0;
+    mask01_0 |= yshift1 >= 2 ? (maskx_0 << 16) : 0;
+    mask01_0 |= yshift1 >= 3 ? (maskx_0 << 24) : 0;
+    mask01_1 |= yshift1 >= 4 ? (maskx_0      ) : 0;
+    mask01_1 |= yshift1 >= 5 ? (maskx_0 <<  8) : 0;
+    mask01_1 |= yshift1 >= 6 ? (maskx_0 << 16) : 0;
+    mask01_1 |= yshift1 >= 7 ? (maskx_0 << 24) : 0;
+
+    mask11_0 |= yshift1 >= 0 ? (maskx_1      ) : 0;
+    mask11_0 |= yshift1 >= 1 ? (maskx_1 <<  8) : 0;
+    mask11_0 |= yshift1 >= 2 ? (maskx_1 << 16) : 0;
+    mask11_0 |= yshift1 >= 3 ? (maskx_1 << 24) : 0;
+    mask11_1 |= yshift1 >= 4 ? (maskx_1      ) : 0;
+    mask11_1 |= yshift1 >= 5 ? (maskx_1 <<  8) : 0;
+    mask11_1 |= yshift1 >= 6 ? (maskx_1 << 16) : 0;
+    mask11_1 |= yshift1 >= 7 ? (maskx_1 << 24) : 0;
+
+    uint countMasks =
+        countbits(bitmask4_0.x & mask00_0) + countbits(bitmask4_1.x & mask00_1) +
+        countbits(bitmask4_0.y & mask10_0) + countbits(bitmask4_1.y & mask10_1) +
+        countbits(bitmask4_0.z & mask01_0) + countbits(bitmask4_1.z & mask01_1) +
+        countbits(bitmask4_0.w & mask11_0) + countbits(bitmask4_1.w & mask11_1);
+
+    return 1.0 - ((float)countMasks / 81.0);
+}
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void CSKernel(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // todo : need to consider XR slot
+
+    uint2 positionSS = dispatchThreadId.xy;
+    if (any(positionSS.xy >= _ScreenSize.xy))
+        return;
+
+    float deviceDepth = LOAD_TEXTURE2D(_CameraDepthTexture, positionSS).x;
+
+    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
+        return;
+    }
+
+#if !UNITY_REVERSED_Z
+    // reverse depth on OpenGL
+    deviceDepth = deviceDepth * 2.0 - 1.0;
+#endif
+
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
+
+    float attenuation = 1.0;
+
+#if WITH_DYNAMIC_SHADOWS
+    float4 shadowMapCoords = TransformWorldToShadowCoord(positionWS);
+    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    half4 shadowParams = GetMainLightShadowParams();
+
+    attenuation = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowMapCoords, shadowSamplingData, shadowParams, false);
+
+    if (attenuation == 0.0)
+    {
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+#endif
+
+    float volumeScale = GetVolumeScale(_BeginOffset);
+    uint dagScale = GetDagScale(_BeginOffset);
+    uint voxelResolution = 1 << dagScale;
+
+    float3 posP = ComputePosP(_BeginOffset, voxelResolution, positionWS);
+    float3 lerpWeight = frac(posP);
+
+    if (any(posP < 0.0) || any(posP >= float3(voxelResolution.xxx - 1)))
+    {
+        _ScreenSpaceShadowOutput[positionSS] = 1.0;
+        return;
+    }
+
+    uint3 posQ = (uint3)posP;
+    posP.z -= _VoxelZBias;
+
+#if NEAREST_SAMPLE
+    uint2 result;
+    TraverseVxShadowMapPosQ(_VxsmOffset, dagScale, posQ, result);
+
+    if (result.y != VX_SHADOWS_INTERSECTED)
+    {
+        attenuation = (result.y & 0x000000001) ? attenuation : 0.0;
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = NearestSampleVxShadowMap(_VxsmOffset, posQ, result);
+    attenuation = min(attenuation, attenuationVxsm);
+#elif HARD_SHADOWS
+
+#if 0 // Author's algorithm
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Stacktraced(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+#else
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+#endif
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+
+        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
+    attenuation = min(attenuation, attenuationVxsm);
+
+#elif SOFT_SHADOWS // todo : soft by PCF filtering
+
+#if 1 // hard shadows, not soft
+
+    uint4 results[2];
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, uint2(0, 1), posQ, results);
+
+    if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    {
+        float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+        attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+
+        attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+        _ScreenSpaceShadowOutput[positionSS] = attenuation;
+        return;
+    }
+
+    float attenuationVxsm = BilinearSampleVxShadowMap(_VxsmOffset, posQ, results, lerpWeight.xy);
+    attenuation = min(attenuation, attenuationVxsm);
+
+#else
+
+    uint2 adjOffset = uint2(-4, 4);
+    uint4 results[2];
+
+    TraverseVxShadowMapPosQ2x2Simultaneously(_VxsmOffset, dagScale, adjOffset, posQ, results);
+
+    //if (all(results[1] != VX_SHADOWS_INTERSECTED))
+    //{
+    //    float4 attenuation4 = results[1] & 0x000000001 ? attenuation : 0.0;
+    //    attenuation4.xy = lerp(attenuation4.xz, attenuation4.yw, lerpWeight.x);
+    //
+    //    attenuation = lerp(attenuation4.x, attenuation4.y, lerpWeight.y);
+    //    attenuation = LerpWhiteTo(attenuation, shadowStrength);
+    //    _ScreenSpaceShadowOutput[positionSS] = attenuation;
+    //    return;
+    //}
+
+    float attenuationVxsm = PCF9x9VxShadowMap(_VxsmOffset, adjOffset, posQ, results);
+    attenuation = min(attenuation, attenuationVxsm);
+#endif
+
+#endif
+
+    _ScreenSpaceShadowOutput[positionSS] = attenuation;
+}
