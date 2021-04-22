@@ -20,8 +20,8 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
         {
             float2 uvOffset = half2(uv.x - _DebugTextureDisplayRect.x, uv.y - _DebugTextureDisplayRect.y);
 
-            if((uvOffset.x >= 0) && (uvOffset.x < _DebugTextureDisplayRect.z) &&
-               (uvOffset.y >= 0) && (uvOffset.y < _DebugTextureDisplayRect.w))
+            if ((uvOffset.x >= 0) && (uvOffset.x < _DebugTextureDisplayRect.z) &&
+                (uvOffset.y >= 0) && (uvOffset.y < _DebugTextureDisplayRect.w))
             {
                 float2 debugTextureUv = float2(uvOffset.x / _DebugTextureDisplayRect.z, uvOffset.y / _DebugTextureDisplayRect.w);
 
@@ -48,15 +48,18 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
     {
         case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
         {
-            if (isnan(color.r) || isnan(color.g) || isnan(color.b) || isnan(color.a))
+#if !defined (SHADER_API_GLES)
+            if (AnyIsNaN(color))
             {
                 debugColor = half4(1, 0, 0, 1);
             }
-            else if (isinf(color.r) || isinf(color.g) || isinf(color.b) || isinf(color.a))
+            else if (AnyIsInf(color))
             {
                 debugColor = half4(0, 1, 0, 1);
             }
-            else if (color.r < 0 || color.g < 0 || color.b < 0 || color.a < 0)
+            else
+#endif
+            if (color.r < 0 || color.g < 0 || color.b < 0 || color.a < 0)
             {
                 debugColor = half4(0, 0, 1, 1);
             }

@@ -3,6 +3,7 @@
 #define URP_UNLIT_FORWARD_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 struct Attributes
 {
@@ -122,6 +123,12 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     half fogFactor = input.fogCoord;
     #endif
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
+
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+    finalColor.rgb *= aoFactor.directAmbientOcclusion;
+#endif
 
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 

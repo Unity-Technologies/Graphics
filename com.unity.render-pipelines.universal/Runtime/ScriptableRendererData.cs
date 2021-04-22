@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine.Scripting.APIUpdating;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -14,7 +13,6 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }

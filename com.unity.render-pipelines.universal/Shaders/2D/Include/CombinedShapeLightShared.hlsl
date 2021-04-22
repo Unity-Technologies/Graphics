@@ -13,7 +13,7 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
     #if defined(DEBUG_DISPLAY)
     half4 debugColor = 0;
 
-    if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
+    if (CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
     {
         return debugColor;
     }

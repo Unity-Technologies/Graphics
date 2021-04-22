@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 
-#ifdef LIGHTMAP_ON
+#if defined(LIGHTMAP_ON)
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
@@ -142,29 +142,29 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
     half3 lightingColor = 0;
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
     {
         lightingColor += lightingData.giColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
         lightingColor += lightingData.mainLightColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
         lightingColor += lightingData.additionalLightsColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING))
     {
         lightingColor += lightingData.vertexLightingColor;
     }
 
     lightingColor *= albedo;
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_EMISSION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_EMISSION))
     {
         lightingColor += lightingData.emissionColor;
     }
@@ -250,7 +250,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
     {
         return debugColor;
     }
@@ -260,20 +260,25 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
 
     // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
-    MixRealtimeAndBakedGI(mainLight, inputData);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                               inputData.bakedGI, aoFactor.indirectAmbientOcclusion,
                                               inputData.normalWS, inputData.viewDirectionWS);
-    lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                                          mainLight,
-                                                          inputData.normalWS, inputData.viewDirectionWS,
-                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                                              mainLight,
+                                                              inputData.normalWS, inputData.viewDirectionWS,
+                                                              surfaceData.clearCoatMask, specularHighlightsOff);
+    }
 
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
@@ -281,9 +286,12 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
-        lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
-                                                                      inputData.normalWS, inputData.viewDirectionWS,
-                                                                      surfaceData.clearCoatMask, specularHighlightsOff);
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
+                                                                          inputData.normalWS, inputData.viewDirectionWS,
+                                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+        }
     LIGHT_LOOP_END
     #endif
 
@@ -314,13 +322,6 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     return UniversalFragmentPBR(inputData, surfaceData);
 }
 
-//LWRP -> Universal Backwards Compatibility
-half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
-{
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Phong lighting...
 ////////////////////////////////////////////////////////////////////////////////
@@ -329,30 +330,36 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
     #endif
 
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
 
-    MixRealtimeAndBakedGI(mainLight, inputData, aoFactor);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, aoFactor);
 
     inputData.bakedGI *= surfaceData.albedo;
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
-    lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
+    }
 
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
-
-        lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
+        }
     LIGHT_LOOP_END
     #endif
 
@@ -382,12 +389,6 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     return UniversalFragmentBlinnPhong(inputData, surfaceData);
 }
 
-//LWRP -> Universal Backwards Compatibility
-half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
-{
-    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha, half3(0, 0, 1));
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Unlit
 ////////////////////////////////////////////////////////////////////////////////
@@ -400,7 +401,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -409,7 +410,7 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         lightingData.giColor *= aoFactor.indirectAmbientOcclusion;
     }

@@ -16,14 +16,15 @@ struct Attributes
 struct Varyings
 {
     float2  UV01            : TEXCOORD0; // UV0
-    float2  LightmapUV      : TEXCOORD1; // Lightmap UVs
+    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
     half4   Color           : TEXCOORD2; // Vertex Color
-    half4   LightingFog     : TEXCOORD3; // Vetex Lighting, Fog Factor
+    half4   LightingFog     : TEXCOORD3; // Vertex Lighting, Fog Factor
     #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
     #endif
+    half4   NormalWS        : TEXCOORD5;
     #if defined(DEBUG_DISPLAY)
-    float3 positionWS : TEXCOORD5;
+    float3 positionWS       : TEXCOORD6;
     #endif
     float4  PositionCS      : SV_POSITION; // Clip Position
 
@@ -44,18 +45,18 @@ void InitializeInputData(Varyings input, out InputData inputData)
     #endif
     inputData.fogCoord = input.LightingFog.a;
     inputData.vertexLighting = input.LightingFog.rgb;
-    inputData.bakedGI = SampleLightmap(input.LightmapUV, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
     #if defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.LightmapUV;
+    inputData.lightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = float3(1, 1, 1);
     #endif
 
     #if defined(_NORMALMAP)
-    inputData.tangentMatrixWS;
+    inputData.tangentToWorld;
     #endif
 
     #if defined(DEBUG_DISPLAY)
@@ -87,7 +88,7 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -100,7 +101,7 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
     #endif
     half4 color = half4(surfaceData.albedo, surfaceData.alpha);
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_GLOBAL_ILLUMINATION))
     {
         lighting += inputData.bakedGI;
     }
@@ -127,7 +128,7 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Vertex attributes
     output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-    output.LightmapUV = input.UV1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+    OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
     output.Color = input.Color;
     output.PositionCS = vertexInput.positionCS;
@@ -139,17 +140,18 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Vertex Lighting
     half3 NormalWS = input.NormalOS;
+    OUTPUT_SH(NormalWS, output.vertexSH);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);
 
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_MAIN_LIGHT))
     {
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
     }
 
     #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
-    if(IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
+    if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
         int pixelLightCount = GetAdditionalLightsCount();
         for (int i = 0; i < pixelLightCount; ++i)
@@ -165,6 +167,8 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Fog factor
     output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
+
+    output.NormalWS.xyz = NormalWS;
 
     #if defined(DEBUG_DISPLAY)
     output.positionWS = vertexInput.positionWS;

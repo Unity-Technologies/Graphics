@@ -89,9 +89,6 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Display depth buffer contents.</summary>
         Depth,
 
-        // TODO: Restore this once we have access to the screen-space shadow texture...
-        //MainLightShadowsOnly,
-
         /// <summary>Display the shadow map from additional lights.</summary>
         AdditionalLightsShadowMap,
         /// <summary>Display the main shadow map.</summary>

@@ -8,6 +8,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
+| 11.x                | 2021.1                    | 2021.1                    |
 | 10.x                | 2020.2                    | 2020.2                    |
 | 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
@@ -19,6 +20,7 @@ The Visual Effect Graph varies in compatibility between the High Definition Rend
 
 | **Package version** | **HDRP**       | **URP**       |
 | ------------------- | -------------- | ------------- |
+| 11.x                | Out of preview | In preview    |
 | 10.x                | Out of preview | In preview    |
 | 8.x / 9.x-preview   | Out of preview | In preview    |
 | 7.x                 | Out of preview | In preview    |
@@ -36,5 +38,9 @@ The Unity Player system requirements for the Visual Effect Graph depend on which
 
 - The Visual Effect Graph is out of preview for HDRP, which means it supports every platform that HDRP supports. For information on which platforms this includes, see HDRP's [system requirements](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/System-Requirements.html).
 - The Visual Effect Graph is not out of preview for URP, which means it only supports a subset of platforms that URP supports.
+- The Visual Effect Graph is not out of preview for mobile platforms.
+- For either render pipeline, the minimum hardware requirements are:
+  - Support for compute shaders. If a platform supports compute shaders, it returns `true` for [SystemInfo.supportsComputeShaders](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsComputeShaders.html).
+  - Support for Shader Storage Buffer Objects (SSBOs). If a platform supports SSBOs, it returns a value greater than 0 for [SystemInfo.maxComputeBufferInputsVertex](https://docs.unity3d.com/ScriptReference/SystemInfo-maxComputeBufferInputsVertex.html).<br/><br/>These requirements mean that OpenGL ES is not suitable for the VFX Graph and you should use Vulkan when targeting Android instead.
 
 For more information on general system requirements for the Unity Player, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).

@@ -72,7 +72,6 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_NormalsTexture;
-        RenderTargetHandle[] m_GBufferHandles;
         RenderTargetHandle m_OpaqueColor;
         // For tiled-deferred shading.
         RenderTargetHandle m_DepthInfoTexture;
@@ -103,6 +102,9 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
+            // TODO: should merge shaders with HDRP into core, XR dependency for now.
+            // TODO: replace/merge URP blit into core blitter.
+            Blitter.Initialize(data.shaders.coreBlitPS, data.shaders.coreBlitColorAndDepthPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
@@ -197,16 +199,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_NormalsTexture.Init("_CameraNormalsTexture");
-            if (this.renderingMode == RenderingMode.Deferred)
-            {
-                m_GBufferHandles = new RenderTargetHandle[(int)DeferredLights.GBufferHandles.Count];
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Init("_GBufferDepthAsColor");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Init("_GBuffer0");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Init("_GBuffer1");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Init("_GBuffer2");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = new RenderTargetHandle();
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Init("_GBuffer4");
-            }
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_DepthInfoTexture.Init("_DepthInfoTexture");
             m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
@@ -246,6 +238,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
+
+            Blitter.Cleanup();
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
@@ -270,10 +264,6 @@ namespace UnityEngine.Rendering.Universal
                             DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), normalizedRect);
                             break;
                         }
-                        // TODO: Restore this once we have access to the screen-space shadow texture...
-                        // case DebugFullScreenMode.MainLightShadowsOnly:
-                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
-                        //     break;
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
                         {
                             DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
@@ -458,17 +448,26 @@ namespace UnityEngine.Rendering.Universal
                 && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
-                mainLightShadows = false;
-                additionalLightShadows = false;
-
-                if (!isSceneViewCamera)
+                DebugHandler.TryGetFullscreenDebugMode(out var fullScreenMode, out int outputHeight);
+                if (fullScreenMode == DebugFullScreenMode.Depth)
                 {
-                    requiresDepthPrepass = false;
-                    generateColorGradingLUT = false;
-                    copyColorPass = false;
-                    requiresDepthCopyPass = false;
+                    requiresDepthPrepass = true;
+                }
+
+                if (!DebugHandler.IsLightingActive)
+                {
+                    mainLightShadows = false;
+                    additionalLightShadows = false;
+
+                    if (!isSceneViewCamera)
+                    {
+                        requiresDepthPrepass = false;
+                        generateColorGradingLUT = false;
+                        copyColorPass = false;
+                        requiresDepthCopyPass = false;
+                    }
                 }
             }
 
@@ -507,7 +506,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex]);
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -673,7 +672,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera && isGizmosEnabled)
+            if (isSceneViewCamera || isGizmosEnabled)
             {
                 // Scene view camera should always resolve target (not stacked)
                 Assertions.Assert.IsTrue(lastCameraInTheStack, "Editor camera must resolve target upon finish rendering.");
@@ -746,9 +745,6 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
-            // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraColorAttachment;
-
             m_DeferredLights.Setup(
                 ref renderingData,
                 applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null,
@@ -757,7 +753,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DepthTexture,
                 m_DepthInfoTexture,
                 m_TileDepthInfoTexture,
-                m_ActiveCameraDepthAttachment, m_GBufferHandles
+                m_ActiveCameraDepthAttachment,
+                m_ActiveCameraColorAttachment
             );
 
             EnqueuePass(m_GBufferPass);

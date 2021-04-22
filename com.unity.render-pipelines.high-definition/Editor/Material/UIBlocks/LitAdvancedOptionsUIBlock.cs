@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -41,9 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the advanced options in the advanced option foldout
         /// </summary>
-        protected override void DrawAdvancedOptionsGUI()
+        protected override void OnGUIOpen()
         {
-            base.DrawAdvancedOptionsGUI();
+            base.OnGUIOpen();
 
             if (forceForwardEmissive != null)
             {

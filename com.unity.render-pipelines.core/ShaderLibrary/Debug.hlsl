@@ -204,7 +204,7 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
 float3 GetDebugMipColor(float3 originalColor, float4 texelSize, float2 uv)
 {
     // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    float4 mipColor= GetMipLevelColor(uv, texelSize);
+    float4 mipColor = GetMipLevelColor(uv, texelSize);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 

@@ -139,11 +139,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 {
     half luminance = Luminance(albedo);
 
-    if(luminance < _DebugValidateAlbedoMinLuminance)
+    if (luminance < _DebugValidateAlbedoMinLuminance)
     {
         color = _DebugValidateBelowMinThresholdColor;
     }
-    else if(luminance > _DebugValidateAlbedoMaxLuminance)
+    else if (luminance > _DebugValidateAlbedoMaxLuminance)
     {
         color = _DebugValidateAboveMaxThresholdColor;
     }
@@ -175,7 +175,7 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 
 bool CalculateColorForDebugSceneOverride(out half4 color)
 {
-    if(_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE)
+    if (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE)
     {
         color = 0;
         return false;

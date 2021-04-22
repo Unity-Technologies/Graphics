@@ -235,7 +235,13 @@ namespace  UnityEditor.VFX.UI
                 graphView.OnFocus();
         }
 
-        public bool autoCompile {get; set; }
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)
+        {
+            if (graphView != null)
+                graphView.OnVisualEffectComponentChanged(componentChanged);
+        }
+
+        public bool autoCompile { get; set; }
 
         void Update()
         {

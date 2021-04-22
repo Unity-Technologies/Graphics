@@ -12,8 +12,8 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
-    output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentMatrixWS);
+    output.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentToWorld);
 #else
     half3 viewDirWS = input.viewDirWS;
     output.normalWS = input.normalWS;
@@ -141,6 +141,13 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+        finalColor.rgb *= aoFactor.directAmbientOcclusion;
+    #endif
+
     finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
 

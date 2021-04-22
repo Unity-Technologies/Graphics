@@ -5,6 +5,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
+    // InputData is only used for DebugDisplay purposes in Unlit, so these are not initialized.
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
@@ -56,6 +57,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(unpacked, inputData);
+    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
     //SETUP_DEBUG_TEXTURE_DATA(inputData, input.texCoord1, _MainTex);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
