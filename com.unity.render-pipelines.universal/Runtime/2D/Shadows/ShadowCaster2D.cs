@@ -207,9 +207,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Upgrade from no serialized version
             if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
-                // Regenerate the shadow mesh
-                m_Mesh = new Mesh();
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                ShadowUtility.ComputeBoundingSphere(m_ShapePath, out m_ProjectedBoundingSphere);
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }

@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 tangents.Add(Vector4.zero);
         }
 
-        static BoundingSphere ComputeBoudingSphere(Vector3[] shapePath)
+        static internal void ComputeBoundingSphere(Vector3[] shapePath, out BoundingSphere boundingSphere)
         {
             float minX = float.MaxValue;
             float maxX = float.MinValue;
@@ -153,9 +153,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             float deltaY = maxY - minY;
             float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
 
-            BoundingSphere retSphere = new BoundingSphere(origin, radius);
-
-            return retSphere;
+            boundingSphere.position = origin;
+            boundingSphere.radius = radius;
         }
 
         public static BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
@@ -209,7 +208,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.tangents = finalTangents;
             mesh.colors = finalExtrusion;
 
-            return ComputeBoudingSphere(shapePath);
+            BoundingSphere retSphere;
+            ComputeBoundingSphere(shapePath, out retSphere);
+
+            return retSphere;
         }
     }
 }
