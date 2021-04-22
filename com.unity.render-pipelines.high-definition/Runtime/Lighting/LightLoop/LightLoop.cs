@@ -950,8 +950,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to verify and flush any pending asset loading for probe volume.
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.SortPendingCells(hdCamera.camera.transform.position);
-                ProbeReferenceVolume.instance.PerformPendingOperations();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                {
+                    if (hdCamera.camera.cameraType != CameraType.Reflection &&
+                        hdCamera.camera.cameraType != CameraType.Preview)
+                    {
+                        ProbeReferenceVolume.instance.SortPendingCells(hdCamera.camera.transform.position);
+                    }
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                }
             }
         }
 

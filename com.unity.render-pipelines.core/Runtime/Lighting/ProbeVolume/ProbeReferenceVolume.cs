@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering
         public static int s_ProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
-        internal struct Cell
+        internal class Cell
         {
             public int index;
             public Vector3Int position;
@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering
         private class CellSortInfo : IComparable
         {
             internal string sourceAsset;
-            internal int indexInAsset;
+            internal Cell cell;
             internal float distanceToCamera = 0;
             internal Vector3 position;
 
@@ -67,9 +67,9 @@ namespace UnityEngine.Experimental.Rendering
                 CellSortInfo other = obj as CellSortInfo;
 
                 if (distanceToCamera < other.distanceToCamera)
-                    return -1;
-                else if (distanceToCamera > other.distanceToCamera)
                     return 1;
+                else if (distanceToCamera > other.distanceToCamera)
+                    return -1;
                 else
                     return 0;
             }
@@ -395,8 +395,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var cell = asset.cells[i];
                 CellSortInfo sortInfo = new CellSortInfo();
-                sortInfo.indexInAsset = i;
-                sortInfo.position = asset.cellLocations[i]; // TODO_FCC: Not needed?!
+                sortInfo.cell = cell;
+                sortInfo.position = ((Vector3)cell.position * MaxBrickSize() * 0.5f) + m_Transform.posWS;
                 sortInfo.sourceAsset = asset.GetSerializedFullPath();
                 m_CellsToBeLoaded.Add(sortInfo);
             }
@@ -448,40 +448,29 @@ namespace UnityEngine.Experimental.Rendering
 
         void LoadPendingCells()
         {
-            int loadedCount = 0;
-
-            for (int i = m_CellsToBeLoaded.Count - 1; i >= 0; i--)
+            int count = Mathf.Min(1, m_CellsToBeLoaded.Count);
+            for (int i = 0; i < count; ++i)
             {
-                var sortInfo = m_CellsToBeLoaded[i];
-
+                // Pop from queue.
+                var sortInfo = m_CellsToBeLoaded[0];
+                var cell = sortInfo.cell;
                 var path = sortInfo.sourceAsset;
-                ProbeVolumeAsset asset;
-                if (m_ActiveAssets.TryGetValue(path, out asset))
-                {
-                    var cell = asset.cells[sortInfo.indexInAsset];
 
-                    // Push data to HDRP
-                    bool compressed = false;
-                    var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
-                    ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                bool compressed = false;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
-                    // TODO register ID of brick list
-                    List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                    brickList.AddRange(cell.bricks);
-                    var regId = AddBricks(brickList, dataLocation);
+                // TODO register ID of brick list
+                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                brickList.AddRange(cell.bricks);
+                var regId = AddBricks(brickList, dataLocation);
 
-                    cells[cell.index] = cell;
-                    m_AssetPathToBricks[path].Add(regId);
+                cells[cell.index] = cell;
+                m_AssetPathToBricks[path].Add(regId);
 
-                    dataLocation.Cleanup();
-
-                    loadedCount++;
-
-                    Debug.Log("Index in asset " + sortInfo.indexInAsset);
-                }
+                dataLocation.Cleanup();
+                m_CellsToBeLoaded.RemoveAt(0);
             }
-
-            m_CellsToBeLoaded.Clear();
         }
 
         /// <summary>

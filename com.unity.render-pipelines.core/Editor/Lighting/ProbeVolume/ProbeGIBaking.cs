@@ -250,8 +250,6 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
-                        // TODO TODO_FCC NOT NEEDED!?
-                        asset.cellLocations.Add((cell.position * refVol.cellSize) + refVol.transform.position);
 
                         foreach (var p in cell.probePositions)
                         {

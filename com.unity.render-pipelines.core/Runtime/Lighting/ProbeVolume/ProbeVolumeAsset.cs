@@ -20,8 +20,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] public int Version { get => m_Version; }
 
-        [SerializeField] internal List<Vector3> cellLocations = new List<Vector3>();
-
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
         [SerializeField] internal Vector3Int maxCellIndex;
