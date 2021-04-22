@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering
                             Renderer childRenderer;
                             if (children.gameObject.TryGetComponent<Renderer>(out childRenderer))
                             {
-                                bool childContributeGI = ContributesToGI(childRenderer) && childRenderer.gameObject.activeInHierarchy;
+                                bool childContributeGI = ContributesToGI(childRenderer) && childRenderer.gameObject.activeInHierarchy && childRenderer.enabled;
 
                                 if (childContributeGI)
                                 {
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
 
                     foreach (Renderer renderer in renderers)
                     {
-                        bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy;
+                        bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
 
                         if (contributeGI)
                         {
