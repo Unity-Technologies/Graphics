@@ -21,6 +21,11 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty useAdditionalDataProp { get; }                     // Does light use shadow bias settings defined in UniversalRP asset file?
         public SerializedProperty additionalLightsShadowResolutionTierProp { get; }  // Index of the AdditionalLights ShadowResolution Tier
 
+        // Light layers related
+        public SerializedProperty lightLayerMask  { get; }
+        public SerializedProperty customShadowLayers { get; }
+        public SerializedProperty shadowLayerMask { get; }
+
         /// <summary>Method that updates the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>
         public void Update()
         {
@@ -55,6 +60,10 @@ namespace UnityEditor.Rendering.Universal
 
             useAdditionalDataProp = serializedAdditionalDataObject.FindProperty("m_UsePipelineSettings");
             additionalLightsShadowResolutionTierProp = serializedAdditionalDataObject.FindProperty("m_AdditionalLightsShadowResolutionTier");
+
+            lightLayerMask = serializedAdditionalDataObject.FindProperty("m_LightLayerMask");
+            customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");
+            shadowLayerMask = serializedAdditionalDataObject.FindProperty("m_ShadowLayerMask");
 
             settings.ApplyModifiedProperties();
         }
