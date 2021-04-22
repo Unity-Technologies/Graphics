@@ -46,6 +46,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
 
 
+        /// <summary>
+        /// The focus distance of the lens, used in Depth of Field Computations when the DoF volume is configured to read this value from the camera.
+        /// </summary>
         public float focusDistance
         {
             get => m_FocusDistance;

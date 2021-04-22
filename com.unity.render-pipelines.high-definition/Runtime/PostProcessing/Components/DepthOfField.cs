@@ -49,13 +49,21 @@ namespace UnityEngine.Rendering.HighDefinition
         Full = 1
     }
 
-    //TODO: doc
+    /// <summary>
+    /// The source of the focus distance used in the Depth of Field Computations
+    /// </summary>
     public enum FocusDistanceMode
     {
+        /// <summary>
+        /// The focus distance is set on the volume component
+        /// </summary>
         Volume,
+
+        /// <summary>
+        /// The focus distance is set on the physical camera properties
+        /// </summary>
         Camera
     }
-
 
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
