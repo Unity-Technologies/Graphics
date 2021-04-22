@@ -803,6 +803,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BloomThreshold                 = Shader.PropertyToID("_BloomThreshold");
 
         public static readonly int _LensFlareParams                = Shader.PropertyToID("_LensFlareParams");
+        public static readonly int _LensFlareTint                  = Shader.PropertyToID("_LensFlareTint");
 
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");

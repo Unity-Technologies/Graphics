@@ -44,6 +44,7 @@ CBUFFER_START(cb0)
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
     float4 _LensFlareParams;
+    float4 _LensFlareTint;
     float4 _DebugFlags;
     float4 _AlphaScaleBias;
 CBUFFER_END
@@ -76,6 +77,13 @@ CBUFFER_END
 #define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
+
+#define LensFlareEnabled        _LensFlareParams.x
+#define LensFlareThreshold      _LensFlareParams.y
+#define LensFlareIntensity      _LensFlareParams.z
+#define LensFlareScatter        _LensFlareParams.w
+
+#define LensFlareTint           _LensFlareTint
 
 #define OutputLogEnabled        _DebugFlags.x
 
@@ -154,6 +162,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     inputColor = color;
 #endif
 
+    float3 bloomThresholdedColor;
     // Bloom
     UNITY_BRANCH
     if (BloomEnabled)
@@ -164,8 +173,8 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _RTHandleScale.xy, _BloomBicubicParams, _RTHandleScale.xy, unity_StereoEyeIndex).xyz;
         #endif
 
-        float3 thresholdedColor = QuadraticThreshold(color.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
-        color.xyz = lerp(color.xyz, (color.xyz - thresholdedColor) + (bloom * BloomTint), BloomIntensity);
+        bloomThresholdedColor = QuadraticThreshold(color.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
+        color.xyz = lerp(color.xyz, (color.xyz - bloomThresholdedColor) + (bloom * BloomTint), BloomIntensity);
 
         UNITY_BRANCH
         if (DirtEnabled)
@@ -181,6 +190,26 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader
         inputColor.xyz = color.xyz;
 #endif
+    }
+
+    // Lens Flare
+    UNITY_BRANCH
+    if (LensFlareEnabled)
+    {
+        float2 localUV = 1.0f - uvDistorted * _RTHandleScale.xy;
+        float3 lensFlareColorSrc;
+        if (BloomEnabled)
+        {
+            lensFlareColorSrc = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), localUV + LensFlareScatter * 0.5f * (localUV), _BloomBicubicParams, _RTHandleScale.xy, unity_StereoEyeIndex).xyz;
+        }
+        else
+        {
+            lensFlareColorSrc = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, localUV + LensFlareScatter * 0.5f * localUV, 0.0);
+        }
+
+        float3 lensFlareColor = lensFlareColorSrc < LensFlareThreshold ? 0.0f : LensFlareIntensity * (LensFlareTint.rgb * lensFlareColorSrc);
+
+        color.rgb += lensFlareColor.rgb;
     }
 
     // Vignette

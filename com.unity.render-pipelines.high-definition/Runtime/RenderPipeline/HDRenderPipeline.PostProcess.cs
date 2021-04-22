@@ -3745,7 +3745,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareUberLensFlareParameters(UberPostPassData data, HDCamera camera)
         {
-            data.lensFlareParams = new Vector4();
+            data.lensFlareParams = new Vector4(m_LensFlare.IsActive() ? 1.0f : 0.0f, m_LensFlare.threshold.value, m_LensFlare.intensity.value, m_LensFlare.scatter.value );
+            data.lensFlareTint = (Vector4)m_LensFlare.tint.value;
         }
 
         void PrepareAlphaScaleParameters(UberPostPassData data, HDCamera camera)
@@ -3786,6 +3787,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 bloomThreshold;
 
             public Vector4 lensFlareParams;
+            public Vector4 lensFlareTint;
 
             public Vector4 alphaScaleBias;
 
@@ -3869,6 +3871,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Lens Flare
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LensFlareParams, data.lensFlareParams);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LensFlareTint, data.lensFlareTint);
 
                         // Alpha scale and bias (only used when alpha is enabled)
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);

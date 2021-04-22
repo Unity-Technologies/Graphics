@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Lens Flare")]
     [HDRPHelpURLAttribute("Post-Processing-Lens-Flare")]
-    public sealed class LensFlare : VolumeComponentWithQuality, IPostProcessComponent
+    public sealed class LensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
