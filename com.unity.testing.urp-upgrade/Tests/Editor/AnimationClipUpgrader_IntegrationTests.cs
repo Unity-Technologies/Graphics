@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine;
 using UnityObject = UnityEngine.Object;
-using IAnimationClip = UnityEditor.Rendering.AnimationClipUpgrader.IAnimationClip;
 using IAssetPath = UnityEditor.Rendering.AnimationClipUpgrader.IAssetPath;
 using ClipPath = UnityEditor.Rendering.AnimationClipUpgrader.ClipPath;
 using PrefabPath = UnityEditor.Rendering.AnimationClipUpgrader.PrefabPath;
 using ScenePath = UnityEditor.Rendering.AnimationClipUpgrader.ScenePath;
 
-namespace UnityEngine.Rendering.Tests
+namespace UnityEditor.Rendering.Tests
 {
     /// <summary>
     /// Configure relevant resources using default values on MonoScript importer for <see cref="TestResources"/>.
