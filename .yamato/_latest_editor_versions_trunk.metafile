@@ -5,12 +5,12 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     Android:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Linux:
-      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
-      updated_at: '2021-04-20 00:03:29.618902'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     OSX:
       revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
@@ -21,48 +21,48 @@ editor_versions:
       updated_at: '2021-04-21 17:54:47.571014'
       version: ''
     iPhone:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
   trunk_latest_public:
     Android:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Linux:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     OSX:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     iPhone:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
   trunk_staging:
     Android:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Linux:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     OSX:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Win:
       revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
       updated_at: '2021-04-21 17:54:47.571014'
       version: ''
     iPhone:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 00:02:27.871408'
       version: ''
