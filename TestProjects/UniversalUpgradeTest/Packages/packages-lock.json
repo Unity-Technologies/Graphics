@@ -148,8 +148,8 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.testing.animation-upgrade": {
-      "version": "file:../../../com.unity.testing.animation-upgrade",
+    "com.unity.testing.urp-upgrade": {
+      "version": "file:../../../com.unity.testing.urp-upgrade",
       "depth": 0,
       "source": "local",
       "dependencies": {
