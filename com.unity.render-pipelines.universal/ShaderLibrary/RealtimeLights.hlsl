@@ -6,6 +6,20 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
+///////////////////////////////////////////////////////////////////////////////
+//                             Light Layers                                   /
+///////////////////////////////////////////////////////////////////////////////
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{
+    #ifdef _LIGHT_LAYERS
+    return (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT;
+    #else
+    return DEFAULT_LIGHT_LAYERS;
+    #endif
+}
+
 // Abstraction over Light shading data.
 struct Light
 {
@@ -13,6 +27,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
+    uint    layerMask;
 };
 
 // WebGL1 does not support the variable conditioned for loops used for additional lights
@@ -96,6 +111,12 @@ Light GetMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
+#ifdef _LIGHT_LAYERS
+    light.layerMask = _MainLightLayerMask;
+#else
+    light.layerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
     return light;
 }
 
@@ -136,11 +157,23 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = _AdditionalLightsBuffer[perObjectLightIndex].layerMask;
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -156,6 +189,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = 1.0; // This value can later be overridden in GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     light.color = color;
+    light.layerMask = lightLayerMask;
 
     return light;
 }
