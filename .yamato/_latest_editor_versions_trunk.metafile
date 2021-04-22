@@ -25,8 +25,8 @@ editor_versions:
       updated_at: '2021-04-20 00:03:29.618902'
       version: ''
     XRQuest:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-18 23:32:58.196701'
       version: ''
   trunk_latest_public:
     Android:
@@ -50,8 +50,8 @@ editor_versions:
       updated_at: '2021-04-18 23:32:58.196701'
       version: ''
     XRQuest:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-18 23:32:58.196701'
       version: ''
   trunk_staging:
     Android:
@@ -75,6 +75,6 @@ editor_versions:
       updated_at: '2021-04-18 23:32:58.196701'
       version: ''
     XRQuest:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
+      updated_at: '2021-04-18 23:32:58.196701'
       version: ''
