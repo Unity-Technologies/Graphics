@@ -6,7 +6,7 @@ using UnityEditor.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Rendering.Universal
 {
 // Status for each row item to say in which state they are in.
 // This will make sure they are showing the correct icon
