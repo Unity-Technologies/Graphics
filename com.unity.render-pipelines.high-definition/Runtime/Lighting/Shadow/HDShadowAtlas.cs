@@ -236,7 +236,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public TextureHandle atlasTexture;
 
-            public ShaderVariablesGlobal globalCB;
+            public ShaderVariablesGlobal globalCBData;
+            public ConstantBuffer<ShaderVariablesGlobal> globalCB;
             public ShadowDrawingSettings shadowDrawSettings;
             public List<HDShadowRequest> shadowRequests;
             public Material clearMaterial;
@@ -244,11 +245,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
+        TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
         {
             using (var builder = renderGraph.AddRenderPass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
-                passData.globalCB = globalCB;
+                passData.globalCBData = globalCBData;
+                passData.globalCB = m_GlobalConstantBuffer;
                 passData.shadowRequests = m_ShadowRequests;
                 passData.clearMaterial = m_ClearMaterial;
                 passData.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
@@ -305,14 +307,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Setup matrices for shadow rendering:
                             Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                            data.globalCB._ViewMatrix = shadowRequest.view;
-                            data.globalCB._InvViewMatrix = shadowRequest.view.inverse;
-                            data.globalCB._ProjMatrix = shadowRequest.deviceProjectionYFlip;
-                            data.globalCB._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
-                            data.globalCB._ViewProjMatrix = viewProjection;
-                            data.globalCB._InvViewProjMatrix = viewProjection.inverse;
+                            data.globalCBData._ViewMatrix = shadowRequest.view;
+                            data.globalCBData._InvViewMatrix = shadowRequest.view.inverse;
+                            data.globalCBData._ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                            data.globalCBData._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                            data.globalCBData._ViewProjMatrix = viewProjection;
+                            data.globalCBData._InvViewProjMatrix = viewProjection.inverse;
 
-                            m_GlobalConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                            data.globalCB.PushGlobal(ctx.cmd, data.globalCBData, HDShaderIDs._ShaderVariablesGlobal);
 
                             ctx.cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
