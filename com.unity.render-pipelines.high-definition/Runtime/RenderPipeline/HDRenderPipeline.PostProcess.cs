@@ -1653,7 +1653,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.farFocusStart = m_DepthOfField.farFocusStart.value;
             parameters.farFocusEnd = m_DepthOfField.farFocusEnd.value;
 
-            if (m_DepthOfField.focusDistanceMode == FocusDistanceMode.Volume)
+            if (m_DepthOfField.focusDistanceMode.value == FocusDistanceMode.Volume)
                 parameters.focusDistance = m_DepthOfField.focusDistance.value;
             else
                 parameters.focusDistance = m_PhysicalCamera.focusDistance;

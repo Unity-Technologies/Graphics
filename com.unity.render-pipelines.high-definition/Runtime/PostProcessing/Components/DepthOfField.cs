@@ -76,13 +76,13 @@ namespace UnityEngine.Rendering.HighDefinition
         //
 
         /// <summary>
-        /// Sets the distance to the focus point from the Camera.
+        /// Sets the distance to the focus plane from the Camera.
         /// </summary>
         [Tooltip("Sets the distance to the focus plane from the Camera.")]
         public MinFloatParameter focusDistance = new MinFloatParameter(10f, 0.1f);
 
         /// <summary>
-        /// Sets the distance to the focus point from the Camera.
+        /// Controls whether the focus distance is read from the physical camera or the volume itself
         /// </summary>
         [Tooltip("Controls whether the focus distance is read from the physical camera or the volume itself.")]
         public FocusDistanceModeParameter focusDistanceMode = new FocusDistanceModeParameter(FocusDistanceMode.Volume);
