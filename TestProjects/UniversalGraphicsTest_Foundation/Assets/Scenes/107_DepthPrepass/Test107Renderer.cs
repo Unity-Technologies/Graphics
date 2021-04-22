@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_RenderOpaqueForwardPass); // will render to renderingData.cameraData.camera
 
             // 3) Final blit to the backbuffer
-            m_FinalBlitPass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraColor);
+            m_FinalBlitPass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraColor, true);
             EnqueuePass(m_FinalBlitPass);
         }
 

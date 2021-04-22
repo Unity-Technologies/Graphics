@@ -241,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             else if (lastCameraInStack && colorTargetHandle.nameID != BuiltinRenderTextureType.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle, false);
                 EnqueuePass(m_FinalBlitPass);
             }
         }
