@@ -435,10 +435,12 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            m_PendingAssetsToBeLoaded.Clear();
+
+            LoadPendingCells();
+
             // Mark the loading as done.
             m_NeedLoadAsset = false;
-
-            m_PendingAssetsToBeLoaded.Clear();
         }
 
         private void PerformPendingDeletion()
@@ -492,7 +494,6 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingDeletion();
             PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
-            LoadPendingCells();
         }
 
         /// <summary>
