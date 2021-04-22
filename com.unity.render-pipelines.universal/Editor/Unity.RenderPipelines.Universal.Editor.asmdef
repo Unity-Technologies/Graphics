@@ -9,7 +9,8 @@
         "GUID:be0903cd8e1546f498710afdc59db5eb",
         "GUID:b75d3cd3037d383a8d1e2f9a26d73d8a",
         "GUID:329b4ccd385744985bf3f83cfd77dfe7",
-        "GUID:9604b18aafdbc9346bceb5e19ac9c746"
+        "GUID:9604b18aafdbc9346bceb5e19ac9c746",
+        "GUID:116a4d4dbf5c04973bbf517077a062a1"
     ],
     "includePlatforms": [
         "Editor"
@@ -26,10 +27,15 @@
             "expression": "2.0.0-preview.7",
             "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
         },
-		{
+        {
             "name": "com.unity.modules.xr",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.visualeffectgraph",
+            "expression": "1.0.0",
+            "define": "HAS_VFX_GRAPH"
         }
     ],
     "noEngineReferences": false
