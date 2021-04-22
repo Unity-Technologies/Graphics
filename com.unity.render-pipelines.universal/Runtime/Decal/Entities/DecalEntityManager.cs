@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
                     using (new ProfilingScope(null, m_ResizeChunks))
                     {
                         int newCapacity = entityChunks[chunkIndex].capacity + entityChunks[chunkIndex].capacity;
-                        newCapacity = math.max(250, newCapacity);
+                        newCapacity = math.max(128, newCapacity);
 
                         entityChunk.SetCapacity(newCapacity);
                         cachedChunk.SetCapacity(newCapacity);
