@@ -23,7 +23,7 @@ public class LensDistortionConverter : PostProcessEffectSettingsConverter
             scale: 0.01f,
             enabledState: oldLensDistortion.enabled);
         oldLensDistortion.intensityX.Convert(newVolumeComponent.xMultiplier);
-        oldLensDistortion.intensity.Convert(newVolumeComponent.yMultiplier);
+        oldLensDistortion.intensityY.Convert(newVolumeComponent.yMultiplier);
         oldLensDistortion.scale.Convert(newVolumeComponent.scale);
 
         newVolumeComponent.center.overrideState =
