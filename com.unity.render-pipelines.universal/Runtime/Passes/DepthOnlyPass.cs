@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
-        private RenderTargetHandle depthAttachmentHandleMSAA { get; set; }
         internal RenderTextureDescriptor descriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
@@ -39,11 +38,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandleMSAA = new RenderTargetHandle())
+            RenderTargetHandle depthAttachmentHandle)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
-            this.depthAttachmentHandleMSAA = depthAttachmentHandleMSAA;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
 
@@ -64,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
             if (renderingData.cameraData.renderer.useDepthPriming)
             {
-                ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandleMSAA.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
+                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             }
             // When not using depth priming the camera target should be set to our non MSAA depth target.
             else

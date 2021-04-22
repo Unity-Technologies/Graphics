@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
 
         private RenderTargetHandle depthHandle { get; set; }
-        private RenderTargetHandle cameraDepthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
 
@@ -34,7 +33,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, RenderTargetHandle cameraDepthHandle = new RenderTargetHandle(), bool useDepthPriming = false)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, bool useDepthPriming = false)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -68,7 +67,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.allocateDepth = true;
             this.allocateNormal = true;
             this.shaderTagId = k_ShaderTagId;
-            this.cameraDepthHandle = cameraDepthHandle;
         }
 
         /// <inheritdoc/>
@@ -83,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 ConfigureTarget(
                     new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(cameraDepthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                    new RenderTargetIdentifier(renderingData.cameraData.renderer.cameraDepthTarget, 0, CubemapFace.Unknown, -1)
                 );
             }
             else

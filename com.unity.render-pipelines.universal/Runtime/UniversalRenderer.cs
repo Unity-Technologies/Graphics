@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness], m_CameraDepthAttachment, false);
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness], false);
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -488,7 +488,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture, m_ActiveCameraDepthAttachment, useDepthPriming);
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture, useDepthPriming);
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);
@@ -498,7 +498,7 @@ namespace UnityEngine.Rendering.Universal
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
                     if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_ActiveCameraDepthAttachment);
+                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
