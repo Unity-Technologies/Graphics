@@ -99,7 +99,9 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
 {
     float3 outColor = originalColor;
-    uint mipCount = GetMipCount(tex);
+
+    // TEXTURE2D_ARGS macro required for gles2 compatibility (URP), sampler is not used.
+    uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, s_point_clamp_sampler));
 
     switch (paramId)
     {
