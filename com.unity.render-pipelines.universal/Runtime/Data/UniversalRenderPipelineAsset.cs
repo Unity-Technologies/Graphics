@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
                     return CreateInstance<UniversalRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
-                    return CreateInstance<Renderer2DData>();
+                    return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
                 // Universal Renderer is the fallback renderer that works on all platforms
                 default:
                     return CreateInstance<UniversalRendererData>();
