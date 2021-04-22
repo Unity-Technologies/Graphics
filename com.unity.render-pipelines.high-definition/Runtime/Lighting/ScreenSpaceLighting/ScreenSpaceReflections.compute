@@ -730,7 +730,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float speed = saturate(speedDiff);
 
-    const float usedSpeedRejection = max(1e-3f, _SsrPBRSpeedRejection);
+    const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
 
 #define SMOOTH_REJECT
 
