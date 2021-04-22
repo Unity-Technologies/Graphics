@@ -13,20 +13,20 @@ editor_versions:
       updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     OSX:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
     iPhone:
       revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
       updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     XRQuest:
-      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
-      updated_at: '2021-04-18 23:32:58.196701'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
   trunk_latest_public:
     Android:
@@ -50,8 +50,8 @@ editor_versions:
       updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     XRQuest:
-      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
-      updated_at: '2021-04-18 23:32:58.196701'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
   trunk_staging:
     Android:
@@ -67,14 +67,14 @@ editor_versions:
       updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
     iPhone:
       revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
       updated_at: '2021-04-22 00:02:27.871408'
       version: ''
     XRQuest:
-      revision: af5e3dc5f881b280e7d10f087ed1ba843d269eb5
-      updated_at: '2021-04-18 23:32:58.196701'
+      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
+      updated_at: '2021-04-22 23:50:04.592922'
       version: ''
