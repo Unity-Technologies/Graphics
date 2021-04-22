@@ -1,15 +1,16 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
     public class ShadowCaster2D : ShadowCasterGroup2D
     {
         [SerializeField] bool m_HasRenderer = false;
