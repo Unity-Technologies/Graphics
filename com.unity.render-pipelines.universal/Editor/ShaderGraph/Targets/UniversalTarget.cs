@@ -555,6 +555,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -591,6 +592,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -602,6 +604,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -815,6 +818,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Shadows Shadowmask",
             referenceName = "SHADOWS_SHADOWMASK",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor LightLayers = new KeywordDescriptor()
+        {
+            displayName = "Light Layers",
+            referenceName = "_LIGHT_LAYERS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
