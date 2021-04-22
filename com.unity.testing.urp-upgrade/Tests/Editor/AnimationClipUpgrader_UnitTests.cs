@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Tests
         internal static List<IMaterial> CreateMockMaterials(IEnumerable<(string ID, string ShaderName)> materials)
         {
             var result = new List<IMaterial>();
-            foreach (var (id, shaderName) in materials)
+            foreach (var(id, shaderName) in materials)
             {
                 var m = new Mock<IMaterial>();
                 m.SetupGet(m => m.ID).Returns(id);
@@ -64,16 +64,16 @@ namespace UnityEditor.Rendering.Tests
         static readonly TestCaseData[] k_ContainsAnimatedMaterialsTestData =
         {
             new TestCaseData(
-                    new EditorCurveBinding { type = typeof(MeshRenderer), propertyName = "material._MainTex_ST.x" }
-                ).Returns(true)
+                new EditorCurveBinding { type = typeof(MeshRenderer), propertyName = "material._MainTex_ST.x" }
+            ).Returns(true)
                 .SetName("MeshRenderer with animated material returns true"),
             new TestCaseData(
-                    new EditorCurveBinding { type = typeof(MeshRenderer), propertyName = "m_Enabled" }
-                ).Returns(false)
+                new EditorCurveBinding { type = typeof(MeshRenderer), propertyName = "m_Enabled" }
+            ).Returns(false)
                 .SetName("MeshRenderer non-material property returns false"),
             new TestCaseData(
-                    new EditorCurveBinding { type = typeof(MeshFilter), propertyName = "m_Mesh" }
-                ).Returns(false)
+                new EditorCurveBinding { type = typeof(MeshFilter), propertyName = "m_Mesh" }
+            ).Returns(false)
                 .SetName("Non-MeshRenderer returns false")
         };
 
@@ -83,8 +83,8 @@ namespace UnityEditor.Rendering.Tests
 
         [Test]
         public void IsMaterialBinding_WhenBindingHasInvalidValues_DoesNotThrow(
-            [Values("", null)]string propertyName,
-            [Values(typeof(MeshRenderer), null)]Type type
+            [Values("", null)] string propertyName,
+            [Values(typeof(MeshRenderer), null)] Type type
         )
         {
             var binding = new EditorCurveBinding { propertyName = propertyName, type = type };
@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GatherClipUsage_WhenNoMaterialPropertyBindings_DoesNotModifyUsage(
             // TODO: use Values[] when SerializedShaderPropertyUsage is public
-            [ValueSource(nameof(k_AllUsages))]object expectedUsage
+            [ValueSource(nameof(k_AllUsages))] object expectedUsage
         )
         {
             var clip = new Mock<IAnimationClip>().Object;
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.Tests
         [Test]
         public void GatherClipUsage_WhenMaterialPropertyBindings_ButNoMatchingRenderer_DoesNotModifyUsage(
             // TODO: use Values[] when SerializedShaderPropertyUsage is public
-            [ValueSource(nameof(k_AllUsages))]object expectedUsage
+            [ValueSource(nameof(k_AllUsages))] object expectedUsage
         )
         {
             var clip = new Mock<IAnimationClip>().Object;
@@ -250,87 +250,87 @@ namespace UnityEditor.Rendering.Tests
         static readonly TestCaseData[] k_UnknownUpgradePathTestCases =
         {
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, upgraded, color property"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
-                    SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
+                SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, upgraded, float property"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor1") },
-                    new[]
-                    {
-                        ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-                        ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor1") },
+                new[]
+                {
+                    ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, color property"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
-                    SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1") },
-                    new[]
-                    {
-                        ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)RenameType.Float) }),
-                        ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)RenameType.Float) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
+                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1") },
+                new[]
+                {
+                    ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)RenameType.Float) }),
+                    ("OldShader2", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST2", Type: (int)RenameType.Float) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, float property"),
             new TestCaseData(
-                    new[] { ("ID1", "OldShader") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_Color", To: "_Color") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "OldShader") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_Color", To: "_Color") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByNonUpgraded)
                 .SetName("Single target material, not upgraded, color property"),
             new TestCaseData(
-                    new[] { ("ID1", "OldShader") }, "material._MainTex_ST.x",
-                    SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_MainTex_ST", To: "_MainTex_ST") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
-                    }
-                )
+                new[] { ("ID1", "OldShader") }, "material._MainTex_ST.x",
+                SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_MainTex_ST", To: "_MainTex_ST") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByNonUpgraded)
                 .SetName("Single target material, not upgraded, float property"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) }),
-                        ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
+                new[]
+                {
+                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) }),
+                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Two target materials, upgraded, same inference"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
-                        ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
+                new[]
+                {
+                    ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
+                    ("OldShader", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Two target materials, upgraded, different inferences")
         };
@@ -372,23 +372,23 @@ namespace UnityEditor.Rendering.Tests
         static readonly TestCaseData[] k_KnownUpgradePathTestCases =
         {
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_Color", To: "_BaseColor") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, color property"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
-                    SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST") },
-                    new[]
-                    {
-                        ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)RenameType.Float) })
-                    }
-                )
+                new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
+                SerializedShaderPropertyUsage.UsedByUpgraded, new[] { (From: "_MainTex_ST", To: "_BaseMap_ST") },
+                new[]
+                {
+                    ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)RenameType.Float) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded)
                 .SetName("Single target material, float property")
         };
@@ -435,37 +435,37 @@ namespace UnityEditor.Rendering.Tests
             ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
             ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
         };
-        static readonly (string OldShader, string NewShader, (string From, string To, int Type)[]) k_KnownUpgrade =
-            ("OldShader1", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) });
+        static readonly (string OldShader, string NewShader, (string From, string To, int Type)[])k_KnownUpgrade =
+            ("OldShader1", "NewShader1", new[] { (From : "_Color", To : "_BaseColor1", Type : (int)RenameType.Color) });
 
         static readonly TestCaseData[] k_OneKnownUpgradePathTestCases =
         {
             new TestCaseData(
-                    new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
-                    k_AllUpgrades,
-                    new[]
-                    {
-                        k_KnownUpgrade,
-                        ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
-                    }
-                )
+                new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
+                k_AllUpgrades,
+                new[]
+                {
+                    k_KnownUpgrade,
+                    ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Two target materials, second is different known upgrade"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader1"), ("ID2", "OldShader1") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_Color", To: "_Color") },
-                    k_AllUpgrades,
-                    new[] { k_KnownUpgrade }
-                )
+                new[] { ("ID1", "NewShader1"), ("ID2", "OldShader1") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded, new[] { (From: "_Color", To: "_Color") },
+                k_AllUpgrades,
+                new[] { k_KnownUpgrade }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded)
                 .SetName("Two target materials, second is non-upgraded material"),
             new TestCaseData(
-                    new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                    SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
-                    k_AllUpgrades,
-                    new[] { k_KnownUpgrade }
-                )
+                new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
+                SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded, new[] { (From: "_Color", To: "_BaseColor2") },
+                k_AllUpgrades,
+                new[] { k_KnownUpgrade }
+            )
                 .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Two target materials, second is inferred upgrade")
         };
@@ -625,7 +625,7 @@ namespace UnityEditor.Rendering.Tests
             };
             upgradedClip.Setup(c => c.GetCurveBindings()).Returns(Array.Empty<EditorCurveBinding>());
             upgradedClip.Setup(c => c.ReplaceBindings(It.IsAny<EditorCurveBinding[]>(), It.IsAny<EditorCurveBinding[]>()))
-                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => { });
+                .Callback((EditorCurveBinding[] b1, EditorCurveBinding[] b2) => {});
             var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
             var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
 

@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering
                     // narrow possible upgraders to those which specify a rename for the bound property
                     possibleUpgraders = possibleUpgraders.Where(
                         u => u.GetRename(renameType).ContainsKey(shaderPropertyName)
-                    ).ToList();
+                        ).ToList();
 
                     // if there are any, assume the material has been upgraded
                     if (possibleUpgraders.Any())

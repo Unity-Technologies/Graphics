@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering
                 materials.AddRange(m.Select(mm => (MaterialProxy)mm).Cast<IMaterial>());
                 ListPool<Material>.Release(m);
             }
+
             public static implicit operator Renderer(RendererProxy proxy) => proxy.m_Renderer;
             public static implicit operator RendererProxy(Renderer renderer) => new RendererProxy { m_Renderer = renderer };
             public override string ToString() => m_Renderer.ToString();
@@ -75,7 +76,7 @@ namespace UnityEditor.Rendering
             string Path { get; }
         }
 
-        internal struct ClipPath: IAssetPath
+        internal struct ClipPath : IAssetPath
         {
             public string Path { get; set; }
             public static implicit operator string(ClipPath clip) => clip.Path;
@@ -84,7 +85,7 @@ namespace UnityEditor.Rendering
             public override string ToString() => Path;
         }
 
-        internal struct PrefabPath: IAssetPath
+        internal struct PrefabPath : IAssetPath
         {
             public string Path { get; set; }
             public static implicit operator string(PrefabPath prefab) => prefab.Path;
@@ -93,7 +94,7 @@ namespace UnityEditor.Rendering
             public override string ToString() => Path;
         }
 
-        internal struct ScenePath: IAssetPath
+        internal struct ScenePath : IAssetPath
         {
             public string Path { get; set; }
             public static implicit operator string(ScenePath scene) => scene.Path;
