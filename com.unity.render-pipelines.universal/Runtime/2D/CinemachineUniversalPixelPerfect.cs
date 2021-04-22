@@ -1,6 +1,4 @@
-using UnityEngine.Scripting.APIUpdating;
-
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     /// <summary>
     /// (Deprecated) An add-on module for Cinemachine Virtual Camera that tweaks the orthographic size
@@ -9,7 +7,6 @@ namespace UnityEngine.Rendering.Universal
     /// sprites would appear pixel perfect when the virtual camera becomes live.
     /// </summary>
     [AddComponentMenu("")] // Hide in menu
-    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public class CinemachineUniversalPixelPerfect : MonoBehaviour
     {
         void OnEnable()
