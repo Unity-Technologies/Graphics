@@ -905,7 +905,7 @@ namespace UnityEngine.Rendering.Universal
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
-            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
+            renderingData.perObjectData = GetPerObjectLightFlags(ref renderingData.lightData);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
         }
 
@@ -1019,17 +1019,18 @@ namespace UnityEngine.Rendering.Universal
             }
 
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
+            lightData.useClusteredLighting = settings.additionalLightsRenderingMode == LightRenderingMode.Clustered;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
         }
 
-        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
+        static PerObjectData GetPerObjectLightFlags(ref LightData lightData)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
 
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
-            if (additionalLightsCount > 0)
+            if (lightData.additionalLightsCount > 0 && !lightData.useClusteredLighting)
             {
                 configuration |= PerObjectData.LightData;
 

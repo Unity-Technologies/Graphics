@@ -79,10 +79,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // TODO FP: Add menu options instead of hardcoding
-            var useClusteredLighting = true;
-
-            if (useClusteredLighting)
+            if (renderingData.lightData.useClusteredLighting)
             {
                 mainThreadMarker.Begin();
 
@@ -231,6 +228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
+            var useClusteredLighting = renderingData.lightData.useClusteredLighting;
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, m_ProfilingSampler))
             {

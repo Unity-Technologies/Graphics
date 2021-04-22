@@ -326,12 +326,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_AdditionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
                 EditorGUI.indentLevel++;
 
-                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled || m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Clustered;
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= (m_AdditionalLightsPerObjectLimitProp.intValue == 0 || m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled || m_AdditionalLightsPerObjectLimitProp.intValue == 0 ||
+                    (m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel && m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.Clustered);
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
                 EditorGUI.EndDisabledGroup();
