@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                     // This avoids another call to SetActiveBlocks on each TargetImplementation
                     if(!block.isActive)
                         continue;
-                    
+
                     NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include);
                 }
             }
@@ -124,10 +124,10 @@ namespace UnityEditor.ShaderGraph
             foreach(var target in m_Targets)
             {
                 // TODO: Setup is required to ensure all Targets are initialized
-                // TODO: Find a way to only require this once 
+                // TODO: Find a way to only require this once
                 TargetSetupContext context = new TargetSetupContext();
                 target.Setup(ref context);
-                
+
                 target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         GenerateSubShader(i, subShader);
                     }
-                    
+
                     var customEditor = context.defaultShaderGUI;
                     if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
                     {
@@ -243,7 +243,7 @@ namespace UnityEditor.ShaderGraph
                         // TODO: Can we merge these?
                         if(!activeBlockContext.activeBlocks.Contains(blockFieldDescriptor))
                             continue;
-                        
+
                         // Attempt to get BlockNode from the stack
                         var block = contextData.blocks.FirstOrDefault(x => x.value.descriptor == blockFieldDescriptor).value;
 
@@ -677,21 +677,6 @@ namespace UnityEditor.ShaderGraph
 
             using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
             {
-                // Hybrid Renderer V1 requires some magic defines to work, which we enable
-                // if the shader graph has a nonzero amount of DOTS instanced properties.
-                // This can be removed once Hybrid V1 is removed.
-                #if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsProperties)
-                {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_HYBRID_V1_INSTANCING_ENABLED");
-                    dotsInstancingOptionsBuilder.AppendLine("#endif");
-                }
-                #endif
-
                 if(dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
                 spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
