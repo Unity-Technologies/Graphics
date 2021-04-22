@@ -238,8 +238,8 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
     half3 base = surfaceData.albedo;
     half4 overlay = half4(OverlayHeatMap(pixelCoord, tileSize, numLights, maxLights, opacity));
 
-    int2 tileCoord = (float2)pixelCoord / tileSize;
-    int2 offsetInTile = pixelCoord - tileCoord * tileSize;
+    uint2 tileCoord = (float2)pixelCoord / tileSize;
+    uint2 offsetInTile = pixelCoord - tileCoord * tileSize;
     bool border = any(offsetInTile == 0 || offsetInTile == tileSize.x - 1);
     if (border)
         overlay = half4(1, 1, 1, 0.4f);
