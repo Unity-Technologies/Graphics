@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             string label = new string(' ', indentLevel * 4);
             var labelVisualElement = new Label(label + text);
             labelVisualElement.style.unityFontStyleAndWeight = fontStyle;
+            labelVisualElement.name = "header";
             return labelVisualElement;
         }
 

@@ -7,8 +7,9 @@ namespace  UnityEngine.Rendering.HighDefinition
 {
     class VTBufferManager
     {
-        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
+        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -19,7 +20,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
 #if UNITY_2020_2_OR_NEWER
                     ,
                     fastMemoryDesc = colorFastMemDesc
@@ -67,12 +68,19 @@ namespace  UnityEngine.Rendering.HighDefinition
             {
                 int width = hdCamera.actualWidth;
                 int height = hdCamera.actualHeight;
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                bool msaa = hdCamera.msaaEnabled;
                 GetResolveDimensions(ref width, ref height);
+
                 if (msaa)
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_ResolverMsaa);
                     m_ResolverMsaa.UpdateSize(width, height);
+                }
                 else
+                {
+                    CalculateResolverDimensions(ref width, ref height, m_Resolver);
                     m_Resolver.UpdateSize(width, height);
+                }
             }
         }
 
@@ -97,7 +105,7 @@ namespace  UnityEngine.Rendering.HighDefinition
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
 
-                    bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                    bool msaa = hdCamera.msaaEnabled;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.lowresWidth = passData.width;
@@ -144,6 +152,21 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             w = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.x * w), 1);
             h = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.y * h), 1);
+        }
+
+        void CalculateResolverDimensions(ref int w, ref int h, VirtualTexturing.Resolver resolver)
+        {
+            //RT handles don't downscale in the editor but render with subrects.
+#if UNITY_EDITOR
+            int currentWidth = resolver.CurrentWidth;
+            int currentHeight = resolver.CurrentHeight;
+
+            if (currentWidth < w || currentHeight < h)
+            {
+                w = currentWidth < w ? w : currentWidth;
+                h = currentHeight < h ? h : currentHeight;
+            }
+#endif
         }
     }
 }

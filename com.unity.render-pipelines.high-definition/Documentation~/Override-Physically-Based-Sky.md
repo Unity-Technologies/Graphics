@@ -20,8 +20,8 @@ You can use Physically Based Sky to simulate the sky during both daytime and nig
 Physically Based Sky uses the [Volume](Volumes.md) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.md) in your Scene. To add **Physically Based Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-
 2. In the Inspector, go to **Add Override > Sky** and select **Physically Based Sky**.
+3. If the Scene does not contain a Directional [Light](Light-Component.md), create one (menu: **GameObject > Light > Directional Light**). For physically correct results, set the Light's intensity to 130,000 lux.
 
 Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Physically Based Sky**. HDRP now renders a **Physically Based Sky** for any Camera this Volume affects.
 

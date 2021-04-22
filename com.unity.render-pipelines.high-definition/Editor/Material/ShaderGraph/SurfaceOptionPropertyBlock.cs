@@ -116,6 +116,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(enableGeometricSpecularAAText, () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
             }
             AddProperty(depthOffsetEnableText, () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);
+            if (builtinData.depthOffset)
+            {
+                context.globalIndentLevel++;
+                AddProperty(conservativeDepthOffsetEnableText, () => builtinData.conservativeDepthOffset, (newValue) => builtinData.conservativeDepthOffset = newValue);
+                context.globalIndentLevel--;
+            }
         }
     }
 }

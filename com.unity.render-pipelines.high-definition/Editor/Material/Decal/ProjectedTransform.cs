@@ -194,17 +194,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     verts[1] = sliderFaceProjected + (-Vector3.right + Vector3.up) * size2D;
                     verts[2] = sliderFaceProjected + (-Vector3.right - Vector3.up) * size2D;
                     verts[3] = sliderFaceProjected + (Vector3.right - Vector3.up) * size2D;
+                    int id = GUIUtility.GetControlID(ids.xy, FocusType.Passive);
                     float faceOpacity = 0.8f;
-                    if (GUIUtility.hotControl == ids.xy)
+                    if (GUIUtility.hotControl == id)
                         Handles.color = Handles.selectedColor;
-                    else if (IsHovering(ids.xy, Event.current))
+                    else if (IsHovering(id, Event.current))
                         faceOpacity = 0.4f;
                     else
                         faceOpacity = 0.1f;
                     Color faceColor = new Color(Handles.zAxisColor.r, Handles.zAxisColor.g, Handles.zAxisColor.b, Handles.zAxisColor.a * faceOpacity);
                     Handles.DrawSolidRectangleWithOutline(verts, faceColor, Color.clear);
                     EditorGUI.BeginChangeCheck();
-                    sliderFaceProjected = Handles.Slider2D(ids.xy, sliderFaceProjected, Vector3.forward, Vector3.right, Vector3.up, size2D, Handles.RectangleHandleCap, s_IsGridSnappingActive() ? Vector2.zero : new Vector2(EditorSnapSettings.move[0], EditorSnapSettings.move[1]), false);
+                    sliderFaceProjected = Handles.Slider2D(id, sliderFaceProjected, Vector3.forward, Vector3.right, Vector3.up, size2D, Handles.RectangleHandleCap, s_IsGridSnappingActive() ? Vector2.zero : new Vector2(EditorSnapSettings.move[0], EditorSnapSettings.move[1]), false);
                     if (EditorGUI.EndChangeCheck())
                     {
                         sliderRotatedWorldPos.x = sliderFaceProjected.x;

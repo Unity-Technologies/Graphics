@@ -9,13 +9,13 @@
 // bsdfWeight2  Spec GGX BRDF
 // bsdfWeight3  Spec GGX BTDF
 
-void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, inout BSDFData bsdfData)
+void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData, MaterialData mtlData, inout BSDFData bsdfData)
 {
     // Adjust roughness to reduce fireflies
     bsdfData.roughnessT = max(pathIntersection.maxRoughness, bsdfData.roughnessT);
     bsdfData.roughnessB = max(pathIntersection.maxRoughness, bsdfData.roughnessB);
 
-    float NdotV = abs(dot(bsdfData.normalWS, WorldRayDirection()));
+    float NdotV = abs(dot(GetSpecularNormal(mtlData), mtlData.V));
 
     // Modify fresnel0 value to take iridescence into account (code adapted from Lit.hlsl to produce identical results)
     if (bsdfData.iridescenceMask > 0.0)
@@ -46,41 +46,38 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
-    mtlData.bsdfData = bsdfData;
-    ProcessBSDFData(pathIntersection, builtinData, mtlData.bsdfData);
-
     mtlData.V = -WorldRayDirection();
+    mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
+    mtlData.bsdfData = bsdfData;
+    ProcessBSDFData(pathIntersection, builtinData, mtlData, mtlData.bsdfData);
+
+    mtlData.bsdfWeight = 0.0;
+    mtlData.ior = mtlData.bsdfData.ior;
 
     // Assume no coating by default
     float coatingTransmission = 1.0;
 
     // First determine if our incoming direction V is above (exterior) or below (interior) the surface
-    if (IsAbove(mtlData.bsdfData.geomNormalWS, mtlData.V))
+    if (IsAbove(mtlData))
     {
-        float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
+        float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
 
-        // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
-        bool consistentNormal = (NdotV > 0.001);
-        mtlData.bsdfWeight[1] = consistentNormal ? Fcoat : 0.0;
+        mtlData.bsdfWeight[1] = Fcoat;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
-        mtlData.bsdfWeight[2] = consistentNormal ? coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion) : 0.0;
-        mtlData.bsdfWeight[3] = consistentNormal ? (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask : 0.0;
+        mtlData.bsdfWeight[2] = coatingTransmission * lerp(Fspec, 0.5, 0.5 * (mtlData.bsdfData.roughnessT + mtlData.bsdfData.roughnessB)) * (1.0 + Fspec * mtlData.bsdfData.specularOcclusion);
+        mtlData.bsdfWeight[3] = (coatingTransmission - mtlData.bsdfWeight[2]) * mtlData.bsdfData.transmittanceMask;
         mtlData.bsdfWeight[0] = coatingTransmission * (1.0 - mtlData.bsdfData.transmittanceMask) * Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
     }
 #ifdef _SURFACE_TYPE_TRANSPARENT
     else // Below
     {
-        float NdotV = -dot(mtlData.bsdfData.normalWS, mtlData.V);
-        float F = F_FresnelDielectric(1.0 / mtlData.bsdfData.ior, NdotV);
+        float NdotV = -dot(GetSpecularNormal(mtlData), mtlData.V);
+        float F = F_FresnelDielectric(1.0 / mtlData.ior, NdotV);
 
-        // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
-        bool consistentNormal = (NdotV > 0.001);
-        mtlData.bsdfWeight[0] = 0.0;
-        mtlData.bsdfWeight[1] = 0.0;
-        mtlData.bsdfWeight[2] = consistentNormal ? F : 0.0;
-        mtlData.bsdfWeight[3] = consistentNormal ? (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.transmittanceMask : 0.0;
+        mtlData.bsdfWeight[2] = F;
+        mtlData.bsdfWeight[3] = (1.0 - mtlData.bsdfWeight[1]) * mtlData.bsdfData.transmittanceMask;
     }
 #endif
 
@@ -105,7 +102,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         SSS::Result subsurfaceResult;
         float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-        if (!SSS::RandomWalk(shadingPosition, mtlData.bsdfData.normalWS, mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
+        if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
             return false;
 
         shadingPosition = subsurfaceResult.exitPosition;
@@ -157,7 +154,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
     {
         float3 value;
         float  pdf;
-        float  fresnelSpec, fresnelClearCoat = 0.0;
+        float  fresnelClearCoat = 0.0;
 
         if (inputSample.z < mtlData.bsdfWeight[0]) // Diffuse BRDF
         {
@@ -178,7 +175,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
-                BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf, fresnelSpec);
+                BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
                 result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
@@ -201,14 +198,14 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
-                BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf, fresnelSpec);
+                BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
                 result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
                 result.specPdf += mtlData.bsdfWeight[2] * pdf;
             }
         }
         else if (inputSample.z < mtlData.bsdfWeight[0] + mtlData.bsdfWeight[1] + mtlData.bsdfWeight[2]) // Specular BRDF
         {
-            if (!BRDF::SampleAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf, fresnelSpec))
+            if (!BRDF::SampleAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, inputSample, sampleDir, result.specValue, result.specPdf))
                 return false;
 
             result.specValue *= GetSpecularCompensation(mtlData.bsdfData);
@@ -236,7 +233,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
                 return false;
 
     #ifdef _REFRACTION_THIN
-            sampleDir = refract(sampleDir, mtlData.bsdfData.normalWS, mtlData.bsdfData.ior);
+            sampleDir = refract(sampleDir, GetSpecularNormal(mtlData), mtlData.ior);
             if (!any(sampleDir))
                 return false;
     #endif
@@ -304,7 +301,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
     {
         float3 value;
         float pdf;
-        float fresnelSpec, fresnelClearCoat = 0.0;
+        float fresnelClearCoat = 0.0;
 
         if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
         {
@@ -323,7 +320,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 
         if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
         {
-            BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf, fresnelSpec);
+            BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, value, pdf);
             result.specValue += value * (1.0 - fresnelClearCoat) * GetSpecularCompensation(mtlData.bsdfData);
             result.specPdf += mtlData.bsdfWeight[2] * pdf;
         }
@@ -343,13 +340,13 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
 #ifdef _SURFACE_TYPE_TRANSPARENT
     // When transmitting with an IOR close to 1.0, roughness is barely noticeable -> take that into account for path roughness adjustment
     if (IsBelow(mtlData) != isSampleBelow)
-        adjustedPathRoughness = lerp(pathRoughness, adjustedPathRoughness, smoothstep(1.0, 1.3, mtlData.bsdfData.ior));
+        adjustedPathRoughness = lerp(pathRoughness, adjustedPathRoughness, smoothstep(1.0, 1.3, mtlData.ior));
 #endif
 
     return adjustedPathRoughness;
 }
 
-float3 ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, float3 value)
+float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist, bool isSampleBelow, float3 value)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
     // Apply absorption on rays below the interface, using Beer-Lambert's law
@@ -358,7 +355,8 @@ float3 ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, flo
     #ifdef _REFRACTION_THIN
         value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
     #else
-        value *= exp(-mtlData.bsdfData.absorptionCoefficient * dist);
+        // We allow a reasonable max distance of 10 times the "atDistance" (so that objects do not end up appearing black)
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, surfaceData.atDistance * 10.0));
     #endif
     }
 #endif

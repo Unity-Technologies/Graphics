@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugExposure;
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
-        Material m_DebugDensityVolumeMaterial;
+        Material m_DebugLocalVolumetricFogMaterial;
         Material m_DebugBlitMaterial;
 #if ENABLE_VIRTUALTEXTURES
         Material m_VTDebugBlit;
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
-            m_DebugDensityVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDensityVolumeAtlasPS);
+            m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugLocalVolumetricFogAtlasPS);
             m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
 #if ENABLE_VIRTUALTEXTURES
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugExposure);
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
-            CoreUtils.Destroy(m_DebugDensityVolumeMaterial);
+            CoreUtils.Destroy(m_DebugLocalVolumetricFogMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
 #if ENABLE_VIRTUALTEXTURES
             CoreUtils.Destroy(m_VTDebugBlit);
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return fullScreenDebugEnabled || lightingDebugEnabled;
         }
 
-        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
+        unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
         {
             // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
             // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
@@ -161,6 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
                 cb._DebugMipMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode();
+                cb._DebugIsLitShaderModeDeferred = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? 1 : 0;
                 cb._DebugMipMapModeTerrainTexture = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture();
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
@@ -186,6 +187,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._MouseClickPixelCoord = HDUtils.GetMouseClickCoordinates(hdCamera);
 
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
+
+                cb._DebugAOVOutput = aovOutput ? 1 : 0;
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
@@ -497,32 +500,32 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class RenderDensityVolumeAtlasDebugOverlayPassData
+        class RenderLocalVolumetricFogAtlasDebugOverlayPassData
             : DebugOverlayPassData
         {
             public float slice;
             public Texture3DAtlas atlas;
-            public Material debugDensityVolumeMaterial;
+            public Material debugLocalVolumetricFogMaterial;
             public bool useSelection;
         }
 
-        void RenderDensityVolumeAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        void RenderLocalVolumetricFogAtlasDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayDensityVolumeAtlas)
+            if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderDensityVolumeAtlasDebugOverlayPassData>("RenderDensityVolumeAtlasOverlay" , out var passData, ProfilingSampler.Get(HDProfileId.DisplayDensityVolumeAtlas)))
+            using (var builder = renderGraph.AddRenderPass<RenderLocalVolumetricFogAtlasDebugOverlayPassData>("RenderLocalVolumetricFogAtlasOverlay" , out var passData, ProfilingSampler.Get(HDProfileId.DisplayLocalVolumetricFogAtlas)))
             {
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.debugDensityVolumeMaterial = m_DebugDensityVolumeMaterial;
-                passData.slice = (float)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.densityVolumeAtlasSlice;
-                passData.atlas = DensityVolumeManager.manager.volumeAtlas;
-                passData.useSelection = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.densityVolumeUseSelection;
+                passData.debugLocalVolumetricFogMaterial = m_DebugLocalVolumetricFogMaterial;
+                passData.slice = (float)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogAtlasSlice;
+                passData.atlas = LocalVolumetricFogManager.manager.volumeAtlas;
+                passData.useSelection = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogUseSelection;
 
                 builder.SetRenderFunc(
-                    (RenderDensityVolumeAtlasDebugOverlayPassData data, RenderGraphContext ctx) =>
+                    (RenderLocalVolumetricFogAtlasDebugOverlayPassData data, RenderGraphContext ctx) =>
                     {
                         var atlasTexture = data.atlas.GetAtlas();
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -536,9 +539,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var obj = UnityEditor.Selection.activeGameObject;
 
-                            if (obj != null && obj.TryGetComponent<DensityVolume>(out var densityVolume))
+                            if (obj != null && obj.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
                             {
-                                var texture = densityVolume.parameters.volumeMask;
+                                var texture = localVolumetricFog.parameters.volumeMask;
 
                                 if (texture != null)
                                 {
@@ -550,10 +553,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 #endif
                         data.debugOverlay.SetViewport(ctx.cmd);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugDensityVolumeMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLocalVolumetricFogMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                         data.debugOverlay.SetViewport(ctx.cmd);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugDensityVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLocalVolumetricFogMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                     });
             }
@@ -645,7 +648,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (!bUseClustered && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                            if (!bUseClustered && data.hdCamera.msaaEnabled)
                                 data.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
                             else
                                 data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
@@ -796,7 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
                 RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.planarReflectionProbeMipLevel, applyExposure: true, "RenderPlanarProbeAtlasOverlay", HDProfileId.DisplayPlanarReflectionProbeAtlas);
 
-            RenderDensityVolumeAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
+            RenderLocalVolumetricFogAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
             RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
@@ -1037,15 +1040,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
+            public GBufferOutput gbuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
         {
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
 
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
@@ -1053,7 +1057,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
-                    enableMSAA = msaa,
+                    msaaSamples = hdCamera.msaaSamples,
                     clearBuffer = true,
                     clearColor = Color.clear,
                     name = msaa ? "CameraColorMSAA" : "CameraColor"
@@ -1065,10 +1069,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
+                    passData.gbuffer = ReadGBuffer(gbuffer, builder);
 
                     builder.SetRenderFunc(
                         (DebugViewMaterialData data, RenderGraphContext context) =>
                         {
+                            var gbufferHandles = data.gbuffer;
+                            for (int i = 0; i < gbufferHandles.gBufferCount; ++i)
+                            {
+                                data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
+                            }
+
                             HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
                         });
                 }
@@ -1079,7 +1090,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.frameSettings = hdCamera.frameSettings;
                     passData.outputColor = builder.UseColorBuffer(output, 0);
-                    passData.outputDepth = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), DepthAccess.ReadWrite);
+                    passData.outputDepth = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples), DepthAccess.ReadWrite);
 
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.

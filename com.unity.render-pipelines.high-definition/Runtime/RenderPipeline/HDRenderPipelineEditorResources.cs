@@ -3,7 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("HDRP-Asset")]
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
         [Reload(new[]
@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
+            [Reload("Editor/RenderPipelineResources/Shaders/ProbeVolumeGizmo.shader")]
+            public Shader probeVolumeGizmoShader;
         }
 
         [Serializable, ReloadGroup]
@@ -58,6 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader autodeskInteractiveMasked;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.shadergraph")]
             public Shader autodeskInteractiveTransparent;
+            [Reload("Runtime/Material/Nature/SpeedTree8.shadergraph")]
+            public Shader defaultSpeedTree8Shader;
         }
 
         [Serializable, ReloadGroup]

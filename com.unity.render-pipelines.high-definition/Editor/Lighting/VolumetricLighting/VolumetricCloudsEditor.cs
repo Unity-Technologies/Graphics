@@ -166,6 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);
             PropertyField(m_CloudControl);
             VolumetricClouds.CloudControl controlMode = (VolumetricClouds.CloudControl)m_CloudControl.value.enumValueIndex;
+            bool hasCloudMap = true;
             using (new HDEditorUtils.IndentScope())
             {
                 bool needsIntendation = false;
@@ -191,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
+                    hasCloudMap = false;
                     needsIntendation = true;
                     PropertyField(m_CloudPreset);
                 }
@@ -218,7 +220,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new HDEditorUtils.IndentScope())
             {
                 PropertyField(m_Orientation);
-                PropertyField(m_CloudMapSpeedMultiplier);
+                if (hasCloudMap)
+                    PropertyField(m_CloudMapSpeedMultiplier);
                 PropertyField(m_ShapeSpeedMultiplier);
                 PropertyField(m_ErosionSpeedMultiplier);
             }

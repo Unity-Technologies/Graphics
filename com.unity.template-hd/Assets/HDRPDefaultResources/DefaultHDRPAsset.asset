@@ -16,7 +16,7 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668, type: 2}
   m_LensAttenuation: 0
-  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02, type: 2}
+  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254320a857a30444da2c99496a186368, type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621263709
@@ -71,6 +71,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
+    supportVolumetricClouds: 0
     supportLightLayers: 1
     lightLayerName0: Light LayerDefault
     lightLayerName1: InteriorOnly
@@ -237,6 +238,8 @@ MonoBehaviour:
       AODirectionCount: 010000000200000002000000
       ContactShadowSampleCount: 04000000080000000c000000
       SSRMaxRaySteps: 0c0000001800000030000000
+      SSGIRaySteps: 200000004000000080000000
+      SSGIFilterRadius: 100000000e0000000c000000
       RTAORayLength:
       - 0.5
       - 3

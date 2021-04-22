@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
-                cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
+                cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
         }
 
         // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
@@ -1267,6 +1267,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns true if any Scene view is using the Scene filtering.
+        /// </summary>
+        /// <returns>True if any Scene view is using the Scene filtering.</returns>
+        public static bool IsSceneFilteringEnabled()
+        {
+#if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
+            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+            {
+                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                if (sv.isUsingSceneFiltering) return true;
+            }
+#endif
+            return false;
+        }
+
+        /// <summary>
         /// Draw a renderer list.
         /// </summary>
         /// <param name="renderContext">Current Scriptable Render Context.</param>
@@ -1289,5 +1305,59 @@ namespace UnityEngine.Rendering
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
         }
+
+        /// <summary>
+        /// Compute a hash of texture properties.
+        /// </summary>
+        /// <param name="texture"> Source texture.</param>
+        /// <returns>Returns hash of texture properties.</returns>
+        public static int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+#if UNITY_EDITOR
+                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
+                hash = 23 * hash + texture.wrapMode.GetHashCode();
+                hash = 23 * hash + texture.width.GetHashCode();
+                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + texture.filterMode.GetHashCode();
+                hash = 23 * hash + texture.anisoLevel.GetHashCode();
+                hash = 23 * hash + texture.mipmapCount.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        // Hacker’s Delight, Second Edition page 66
+        /// <summary>
+        /// Branchless previous power of two.
+        /// </summary>
+        /// <param name="size">Starting size or number.</param>
+        /// <returns>Previous power of two.</returns>
+        public static int PreviousPowerOfTwo(int size)
+        {
+            if (size <= 0)
+                return 0;
+
+            size |= (size >> 1);
+            size |= (size >> 2);
+            size |= (size >> 4);
+            size |= (size >> 8);
+            size |= (size >> 16);
+            return size - (size >> 1);
+        }
+
+        /// <summary>
+        /// Get the last declared value from an enum Type
+        /// </summary>
+        /// <typeparam name="T">Type of the enum</typeparam>
+        /// <returns>Last value of the enum</returns>
+        public static T GetLastEnumValue<T>() where T : Enum
+            => typeof(T).GetEnumValues().Cast<T>().Last();
     }
 }

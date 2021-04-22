@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 8
-  k_AssetPreviousVersion: 8
+  k_AssetVersion: 9
+  k_AssetPreviousVersion: 9
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -28,7 +28,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 49c4dd4fd60354b50bf12ea3c22e233e, type: 2}
   - {fileID: 11400000, guid: a1279a4e92c2a4dd3b60baa458c01606, type: 2}
   - {fileID: 11400000, guid: 01247c41aba2d4bc0ad94a11af8bdb11, type: 2}
-  m_DefaultRendererIndex: 0
+  - {fileID: 11400000, guid: 04618ff2d33c0432a81d00fdee3fae55, type: 2}
+  m_DefaultRendererIndex: 2
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
@@ -43,9 +44,9 @@ MonoBehaviour:
   m_AdditionalLightsPerObjectLimit: 8
   m_AdditionalLightShadowsSupported: 1
   m_AdditionalLightsShadowmapResolution: 512
-  m_AdditionalLightsShadowResolutionTierLow: 256
-  m_AdditionalLightsShadowResolutionTierMedium: 512
-  m_AdditionalLightsShadowResolutionTierHigh: 1024
+  m_AdditionalLightsShadowResolutionTierLow: 128
+  m_AdditionalLightsShadowResolutionTierMedium: 256
+  m_AdditionalLightsShadowResolutionTierHigh: 512
   m_ShadowDistance: 56
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
