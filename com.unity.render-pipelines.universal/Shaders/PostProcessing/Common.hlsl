@@ -2,6 +2,7 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ClusterDisplay.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Common shader data used in most post-processing passes
@@ -83,8 +84,9 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
 #if defined(UNITY_SINGLE_PASS_STEREO)
     dist.x /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
 #endif
+    dist.x *= lerp(1.0, CLUSTER_SCREEN_SIZE.x / CLUSTER_SCREEN_SIZE.y, roundness);
 
-    dist.x *= roundness;
+    // dist.x *= roundness;
     float vfactor = pow(saturate(1.0 - dot(dist, dist)), smoothness);
     return input * lerp(color, (1.0).xxx, vfactor);
 }
