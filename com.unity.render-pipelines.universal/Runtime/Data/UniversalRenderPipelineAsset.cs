@@ -502,6 +502,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
         {
+            // TODO: gamma vs. linear
             /* 8-bit      */ new GraphicsFormat[] {GraphicsFormat.R8_SRGB, GraphicsFormat.R8_UNorm},
             /* 16-bit     */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
             /* 32-bit     */ new GraphicsFormat[] {GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},

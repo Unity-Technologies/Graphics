@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class LightCookieManager : IDisposable
+    public partial class LightCookieManager : IDisposable
     {
         static class ShaderProperty
         {
@@ -34,6 +34,14 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _AdditionalLightsCookieUVScaleOffsets = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsets"); // TODO: only for directional light
             public static readonly int _AdditionalLightsCookieUVWrapModes    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModes"); // TODO: only for directional light
         }
+
+        private enum LightCookieShaderFormat
+        {
+            RGB = 0,
+            Alpha = 1,
+            Red = 2
+        }
+
         public struct Settings
         {
             public struct AtlasSettings
@@ -58,11 +66,11 @@ namespace UnityEngine.Rendering.Universal
                 s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
                 s.atlas.useMips       = false; // TODO: set to true, make sure they work proper first! Disable them for now...
                 s.maxAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                // (Scale * WH) / (6 * WH)
+                // (Scale * W * Scale * H) / (6 * WH) == (Scale^2 / 6)
                 // 1: 1/6 = 16%, 2: 4/6 = 66%, 4: 16/6 == 266% of cube pixels
-                // 100% cube pixels == sqrt(6) ~= 2.45f;
-                s.cubeOctahedralSizeScale = s.atlas.isPow2 ? 2.0f : 2.45f;
-                s.useStructuredBuffer = RenderingUtils.useStructuredBuffer;
+                // 100% cube pixels == sqrt(6) ~= 2.45f --> 2.5;
+                s.cubeOctahedralSizeScale = s.atlas.useMips && s.atlas.isPow2 ? 2.0f : 2.5f;
+                s.useStructuredBuffer     = RenderingUtils.useStructuredBuffer;
                 return s;
             }
         }
@@ -92,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
 
         private class LightCookieShaderData : IDisposable
         {
-            int m_Size = 0;
+            int  m_Size = 0;
             bool m_useStructuredBuffer;
 
             Matrix4x4[] m_WorldToLightCpuData;
@@ -107,11 +115,11 @@ namespace UnityEngine.Rendering.Universal
             ComputeBuffer  m_UVScaleOffsetBuffer;
             ComputeBuffer  m_UVWrapModeBuffer;
 
-            public Matrix4x4[] worldToLights => m_WorldToLightCpuData;
-            public Vector4[]   atlasUVRects  => m_AtlasUVRectCpuData;
-            public float[]     lightTypes => m_LightTypeCpuData;
-            public Vector4[]   uvScaleOffsets  => m_UVScaleOffsetCpuData;
-            public float[]     uvWrapModes  => m_UVWrapModeCpuData;
+            public Matrix4x4[] worldToLights  => m_WorldToLightCpuData;
+            public Vector4[]   atlasUVRects   => m_AtlasUVRectCpuData;
+            public float[]     lightTypes     => m_LightTypeCpuData;
+            public Vector4[]   uvScaleOffsets => m_UVScaleOffsetCpuData;
+            public float[]     uvWrapModes    => m_UVWrapModeCpuData;
 
             public LightCookieShaderData(int size, bool useStructuredBuffer)
             {
@@ -197,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Settings.atlas.useMips && m_Settings.atlas.isPow2)
             {
-                // TOOD: MipMaps still have sampling artifacts. FIX fIX
+                // TODO: MipMaps still have sampling artifacts. FIX FIX
 
                 // Supports mip padding for correct filtering at the edges.
                 m_AdditionalLightsCookieAtlas = new PowerOfTwoTextureAtlas(
@@ -266,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 cookieMatrix = visibleMainLight.localToWorldMatrix.inverse;
                 Vector2 cookieUVScale  = Vector2.one;
                 Vector2 cookieUVOffset = Vector2.zero;
-                float cookieFormat     = GetCookieFormat((cookieTexture as Texture2D).format);
+                float cookieFormat     = (float)GetLightCookieShaderFormat(cookieTexture.graphicsFormat);
 
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
@@ -284,18 +292,31 @@ namespace UnityEngine.Rendering.Universal
             return isMainLightCookieEnabled;
         }
 
-        private int GetCookieFormat(TextureFormat cookieFormat)
+        private LightCookieShaderFormat GetLightCookieShaderFormat(GraphicsFormat cookieFormat)
         {
             // RGB 0, A 1, R 2, (G 3), (B 4)
             switch (cookieFormat)
             {
                 default:
-                    return 0;
-                case TextureFormat.Alpha8:
-                    return 1;
-                case TextureFormat.R8:
-                case TextureFormat.R16:
-                    return 2;
+                    return LightCookieShaderFormat.RGB;
+                case (GraphicsFormat)53:    // L8_Unorm TODO: GraphicsFormat does not expose yet.
+                case (GraphicsFormat)54:    // A8_Unorm TODO: GraphicsFormat does not expose yet.
+                case (GraphicsFormat)55:    // A16_Unorm TODO: GraphicsFormat does not expose yet.
+                    return LightCookieShaderFormat.Alpha;
+                case GraphicsFormat.R8_SRGB:
+                case GraphicsFormat.R8_UNorm:
+                case GraphicsFormat.R8_UInt:
+                case GraphicsFormat.R8_SNorm:
+                case GraphicsFormat.R8_SInt:
+                case GraphicsFormat.R16_UNorm:
+                case GraphicsFormat.R16_UInt:
+                case GraphicsFormat.R16_SNorm:
+                case GraphicsFormat.R16_SInt:
+                case GraphicsFormat.R16_SFloat:
+                case GraphicsFormat.R32_UInt:
+                case GraphicsFormat.R32_SInt:
+                case GraphicsFormat.R32_SFloat:
+                    return LightCookieShaderFormat.Red;
             }
         }
 
@@ -312,7 +333,6 @@ namespace UnityEngine.Rendering.Universal
 
         bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
         {
-            // TODO: better to use growing arrays instead of native arrays, List<T> at interface
             // TODO: how fast is temp alloc???
             var validLights = new NativeArray<LightCookieData>(lightData.additionalLightsCount , Allocator.Temp);
             int validLightCount = PrepareAndValidateAdditionalLights(ref lightData, ref validLights);
@@ -435,8 +455,6 @@ namespace UnityEngine.Rendering.Universal
                 Light light = lightData.visibleLights[lcd.visibleLightIndex].light;
                 Texture cookie = light.cookie;
 
-                // TODO: blit point light into octahedraQuad or 2d slices.
-                // TODO: blit format convert into A8 or into sRGB
                 Vector4 uvScaleOffset = Vector4.zero;
                 if (cookie.dimension == TextureDimension.Cube)
                 {
@@ -452,10 +470,6 @@ namespace UnityEngine.Rendering.Universal
                 bool isCached = uvScaleOffset != Vector4.zero;
                 if (!isCached)
                 {
-                    // Update data
-                    //if (m_CookieAtlas.NeedsUpdate(cookie, false))
-                    //    m_CookieAtlas.BlitTexture(cmd, scaleBias, cookie, new Vector4(1, 1, 0, 0), blitMips: false);
-
                     if (atlasResetBefore)
                     {
                         // TODO: better messages
@@ -485,26 +499,25 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(cookie.dimension == TextureDimension.Tex2D);
 
             Vector4 uvScaleOffset = Vector4.zero;
-            m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, cookie);
             m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset, cookie);
             if (m_Settings.atlas.useMips)
                 uvScaleOffset = (m_AdditionalLightsCookieAtlas as PowerOfTwoTextureAtlas).GetPaddedScaleOffset(cookie, uvScaleOffset);
+            else
+            {
+                // Shrink by 0.5px to clamp sampling atlas neighbors (no padding)
+                var size = new Vector2(cookie.width, cookie.height);
+                var shrinkOffset = Vector2.one * 0.5f / size;
+                var shrinkScale = (size - Vector2.one) / size;
+                uvScaleOffset.z += uvScaleOffset.x * shrinkOffset.x;
+                uvScaleOffset.w += uvScaleOffset.y * shrinkOffset.y;
+                uvScaleOffset.x *= shrinkScale.x;
+                uvScaleOffset.y *= shrinkScale.y;
+            }
 
             return uvScaleOffset;
         }
 
-        int ComputeOctahedralCookieSize(Texture cookie)
-        {
-            // Map 6*WxH pixels into 2W*2H pixels, so 4/6 ratio or 66% of cube pixels.
-            int octCookieSize = Math.Max(cookie.width, cookie.height);
-            if (m_Settings.atlas.isPow2)
-                octCookieSize = octCookieSize * Mathf.NextPowerOfTwo((int)m_Settings.cubeOctahedralSizeScale);
-            else
-                octCookieSize = (int)(octCookieSize * m_Settings.cubeOctahedralSizeScale + 0.5f);
-            return octCookieSize;
-        }
-
-        public Vector4 FetchCube(CommandBuffer cmd, Texture cookie)
+        Vector4 FetchCube(CommandBuffer cmd, Texture cookie)
         {
             Debug.Assert(cookie != null);
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
@@ -531,6 +544,17 @@ namespace UnityEngine.Rendering.Universal
                 return uvScaleOffset;
 
             return Vector4.zero;
+        }
+
+        int ComputeOctahedralCookieSize(Texture cookie)
+        {
+            // Map 6*WxH pixels into 2W*2H pixels, so 4/6 ratio or 66% of cube pixels.
+            int octCookieSize = Math.Max(cookie.width, cookie.height);
+            if (m_Settings.atlas.isPow2)
+                octCookieSize = octCookieSize * Mathf.NextPowerOfTwo((int)m_Settings.cubeOctahedralSizeScale);
+            else
+                octCookieSize = (int)(octCookieSize * m_Settings.cubeOctahedralSizeScale + 0.5f);
+            return octCookieSize;
         }
 
         // TODO: remove
@@ -591,9 +615,8 @@ namespace UnityEngine.Rendering.Universal
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
             Debug.Assert(m_AdditionalLightsCookieShaderData != null);
 
-            float cookieAtlasFormat = (GraphicsFormatUtility.GetTextureFormat(m_AdditionalLightsCookieAtlas.AtlasTexture.rt.graphicsFormat) == TextureFormat.Alpha8) ? 1.0f : 0.0f;
             cmd.SetGlobalTexture(ShaderProperty._AdditionalLightsCookieAtlasTexture, m_AdditionalLightsCookieAtlas.AtlasTexture);
-            cmd.SetGlobalFloat(ShaderProperty._AdditionalLightsCookieAtlasFormat, cookieAtlasFormat);
+            cmd.SetGlobalFloat(ShaderProperty._AdditionalLightsCookieAtlasFormat, (float)GetLightCookieShaderFormat(m_AdditionalLightsCookieAtlas.AtlasTexture.rt.graphicsFormat));
 
             m_AdditionalLightsCookieShaderData.Resize(m_Settings.maxAdditionalLights);
 

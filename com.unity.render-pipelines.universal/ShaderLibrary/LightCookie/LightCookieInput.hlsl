@@ -1,7 +1,7 @@
 #ifndef UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 #define UNIVERSAL_LIGHT_COOKIE_INPUT_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityTypes.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieTypes.hlsl"
 
 // TODO : _URP_LightCookie_MainLightTexture???
 // TODO : _URP_LightCookie_AdditionalLightsAtlasTexture???
@@ -13,8 +13,7 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 SAMPLER(sampler_MainLightCookieTexture);
 SAMPLER(sampler_AdditionalLightsCookieAtlasTexture);
 
-// Params
-//
+// Buffers
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef SHADER_API_GLES3
 CBUFFER_START(MainLightCookie)
@@ -101,22 +100,22 @@ int URP_LightCookie_GetCookieUVWrapMode(int lightIndex)
 
 bool URP_LightCookie_MainLightTextureIsRGBFormat()
 {
-    return _MainLightCookieFormat == 0;
-}
-
-bool URP_LightCookie_AdditionalLightsTextureIsRGBFormat()
-{
-    return _AdditionalLightsCookieAtlasFormat == 0;
+    return _MainLightCookieFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
 }
 
 bool URP_LightCookie_MainLightTextureIsAlphaFormat()
 {
-    return _MainLightCookieFormat == 1;
+    return _MainLightCookieFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
+}
+
+bool URP_LightCookie_AdditionalLightsTextureIsRGBFormat()
+{
+    return _AdditionalLightsCookieAtlasFormat == URP_LIGHT_COOKIE_FORMAT_RGB;
 }
 
 bool URP_LightCookie_AdditionalLightsTextureIsAlphaFormat()
 {
-    return _AdditionalLightsCookieAtlasFormat == 1;
+    return _AdditionalLightsCookieAtlasFormat == URP_LIGHT_COOKIE_FORMAT_ALPHA;
 }
 
 // Sampling
