@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with the color space of AOVs (case 1324759)
 - Fixed issue with history buffers when using multiple AOVs (case 1323684).
 - Fixed camera preview with multi selection (case 1324126).
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
@@ -49,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Default black texture XR is now opaque (alpha = 1).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
  
 ## [10.4.0] - 2021-03-11
 
