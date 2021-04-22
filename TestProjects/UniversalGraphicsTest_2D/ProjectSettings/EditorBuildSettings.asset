@@ -6,6 +6,45 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Horizontal.unity
+    guid: 24a1d843260e50e47a977dc5b85f2a1c
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Vertical.unity
+    guid: 8b440042f7e18e54091ec0018f0be114
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Horizontal.unity
+    guid: ac09da777fb4f2941aec9e41024e77f3
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Vertical.unity
+    guid: 8588594b594f43c488b566650e2a619c
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Pillarbox_Horizontal.unity
+    guid: 7d579c3d1dc998f488237ef1937f0d30
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Pillarbox_Vertical.unity
+    guid: d9f6f1c7b403eab4ea9471f5430e4983
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Stretch_Fill_Horizontal.unity
+    guid: 068270467c3d4b74dbf02fcd3f4e7874
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Stretch_Fill_Vertical.unity
+    guid: 1071a050545e7114f9b60aca728069f2
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Windowbox_Horizontal.unity
+    guid: 0f6e91656b4296249a0930b3285089c4
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Windowbox_Vertical.unity
+    guid: 8e1e5847d88a22b41820e186638b67ab
+  - enabled: 1
+    path: Assets/Scenes/002_PixelPerfect_Snap_PixelSnap.unity
+    guid: b39c936f0eee11d4babf26af4aa38caf
+  - enabled: 1
+    path: Assets/Scenes/002_PixelPerfect_Snap_UpscaleRenderTexture.unity
+    guid: 7448296ffbf688748a22e203bc2ed8b2
+  - enabled: 0
+    path: Assets/Scenes/003_PixelPerfect_PostProcessing.unity
+    guid: 9f750aafa54d07a43b7601615bb2c7ea
+  - enabled: 1
     path: Assets/Scenes/011_UnlitSprites.unity
     guid: c1aed1727cd63dd42882f4c9ebb99cf4
   - enabled: 1
@@ -17,9 +56,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/056_2D_Lights-Shadows.unity
     guid: 4f7a50da47cfeca46b45fe14be17081d
-  - enabled: 1
-    path: Assets/Scenes/059_2D_PixelPerfect_PostProcessing.unity
-    guid: 9f750aafa54d07a43b7601615bb2c7ea
   - enabled: 1
     path: Assets/Scenes/060_2D_Renderer_Feature.unity
     guid: 685e926d45059124dbe53d3d229ea876
