@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -224,6 +225,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable TAA sharpening on alpha channel.
 - Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
 - Default black texture XR is now opaque (alpha = 1).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [11.0.0] - 2020-10-21
