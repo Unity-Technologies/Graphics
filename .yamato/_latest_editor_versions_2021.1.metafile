@@ -26,29 +26,29 @@ editor_versions:
       version: 2021.1.5f1
   2021_1_latest_public:
     Android:
-      revision: 4bef613afd59
-      updated_at: '2021-04-13 23:47:43.197087'
-      version: 2021.1.3f1
+      revision: 4cd64a618c1b
+      updated_at: '2021-04-22 23:51:06.774839'
+      version: 2021.1.4f1
     Linux:
-      revision: 4bef613afd59
-      updated_at: '2021-04-13 23:47:43.197087'
-      version: 2021.1.3f1
+      revision: 4cd64a618c1b
+      updated_at: '2021-04-22 23:51:06.774839'
+      version: 2021.1.4f1
     OSX:
-      revision: 4bef613afd59
-      updated_at: '2021-04-13 23:47:43.197087'
-      version: 2021.1.3f1
+      revision: 4cd64a618c1b
+      updated_at: '2021-04-22 23:51:06.774839'
+      version: 2021.1.4f1
     Win:
-      revision: 4bef613afd59
-      updated_at: '2021-04-13 23:47:43.197087'
-      version: 2021.1.3f1
+      revision: 4cd64a618c1b
+      updated_at: '2021-04-22 23:51:06.774839'
+      version: 2021.1.4f1
     iPhone:
-      revision: 4bef613afd59
-      updated_at: '2021-04-13 23:47:43.197087'
-      version: 2021.1.3f1
+      revision: 4cd64a618c1b
+      updated_at: '2021-04-22 23:51:06.774839'
+      version: 2021.1.4f1
   2021_1_staging:
     Android:
-      revision: 3737af19df533512acf10d825493d20f4cc2bb2a
-      updated_at: '2021-04-22 00:02:28.990754'
+      revision: b7d0f49ddffa41a0d4aab2983a74b762931c5824
+      updated_at: '2021-04-22 23:51:06.774839'
       version: ''
     Linux:
       revision: 3737af19df533512acf10d825493d20f4cc2bb2a
@@ -59,10 +59,10 @@ editor_versions:
       updated_at: '2021-04-22 00:02:28.990754'
       version: ''
     Win:
-      revision: 3737af19df533512acf10d825493d20f4cc2bb2a
-      updated_at: '2021-04-22 00:02:28.990754'
+      revision: b7d0f49ddffa41a0d4aab2983a74b762931c5824
+      updated_at: '2021-04-22 23:51:06.774839'
       version: ''
     iPhone:
-      revision: 3737af19df533512acf10d825493d20f4cc2bb2a
-      updated_at: '2021-04-22 00:02:28.990754'
+      revision: b7d0f49ddffa41a0d4aab2983a74b762931c5824
+      updated_at: '2021-04-22 23:51:06.774839'
       version: ''
