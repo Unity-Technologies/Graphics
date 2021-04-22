@@ -66,6 +66,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
@@ -153,6 +154,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
+
+                #ifdef _DBUFFER
+                    ApplyDecalToBaseColorAndNormal(input.vertex, color, normalWS);
+                #endif
+
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);

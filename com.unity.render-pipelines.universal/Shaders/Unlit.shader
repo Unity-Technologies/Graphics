@@ -46,6 +46,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -120,6 +121,10 @@ Shader "Universal Render Pipeline/Unlit"
             #else
                 fogFactor = input.fogCoord;
             #endif
+
+                #ifdef _DBUFFER
+                    ApplyDecalToBaseColor(input.vertex, color);
+                #endif
 
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);

@@ -10,6 +10,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU

@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
 
 
-#if defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)
+#if (defined(_DBUFFER_MRT1) || defined(_DBUFFER_MRT2) || defined(_DBUFFER_MRT3)) && !defined(_SURFACE_TYPE_TRANSPARENT)
 #define _DBUFFER
 #endif
 
@@ -117,19 +117,6 @@ void DecodeFromDBuffer(
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
-void ApplyDecalToBaseColor(float4 positionCS, inout half3 baseColor)
-{
-    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(positionCS.xy));
-
-    DecalSurfaceData decalSurfaceData;
-    DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
-
-    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
-
-    // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
-    baseColor.xyz = baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
-}
-
 void ApplyDecal(float4 positionCS,
     inout half3 baseColor,
     inout half3 specularColor,
@@ -171,6 +158,34 @@ void ApplyDecal(float4 positionCS,
 
     smoothness = smoothness * decalSurfaceData.MAOSAlpha + decalSurfaceData.smoothness;
 #endif
+}
+
+void ApplyDecalToBaseColor(float4 positionCS, inout half3 baseColor)
+{
+    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(positionCS.xy));
+
+    DecalSurfaceData decalSurfaceData;
+    DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+
+    // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html, mean weight of 1 is neutral
+
+    // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
+    baseColor.xyz = baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+}
+
+void ApplyDecalToBaseColorAndNormal(float4 positionCS, inout half3 baseColor, inout half3 normalWS)
+{
+    half3 specular = 0;
+    half metallic = 0;
+    half occlusion = 0;
+    half smoothness = 0;
+    ApplyDecal(positionCS,
+        baseColor,
+        specular,
+        normalWS,
+        metallic,
+        occlusion,
+        smoothness);
 }
 
 void ApplyDecalToSurfaceData(float4 positionCS, inout SurfaceData surfaceData, inout InputData inputData)

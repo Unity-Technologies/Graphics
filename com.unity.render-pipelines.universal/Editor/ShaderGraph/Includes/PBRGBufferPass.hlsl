@@ -70,7 +70,7 @@ FragmentOutput frag(PackedVaryings packedInput)
         float metallic = surfaceDescription.Metallic;
     #endif
 
-#if defined(_DBUFFER)
+#ifdef _DBUFFER
     ApplyDecal(unpacked.positionCS,
         surfaceDescription.BaseColor,
         specular,
@@ -78,7 +78,6 @@ FragmentOutput frag(PackedVaryings packedInput)
         metallic,
         surfaceDescription.Occlusion,
         surfaceDescription.Smoothness);
-
 #endif
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR

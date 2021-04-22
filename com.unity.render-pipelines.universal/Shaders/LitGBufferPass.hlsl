@@ -179,7 +179,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-#if defined(_DBUFFER)
+#ifdef _DBUFFER
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
 

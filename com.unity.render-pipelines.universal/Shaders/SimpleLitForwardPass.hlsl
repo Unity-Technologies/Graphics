@@ -157,6 +157,18 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
+#ifdef _DBUFFER
+    half occlusion = 0;
+    half metallic = 0;
+    ApplyDecal(input.positionCS,
+        diffuse,
+        specular.rgb,
+        inputData.normalWS,
+        metallic,
+        occlusion,
+        smoothness);
+#endif
+
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
