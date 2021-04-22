@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
+using System.Linq;
 
 namespace UnityEditor
 {
@@ -57,7 +58,10 @@ namespace UnityEditor
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
             public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl));
-            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode));
+
+            // need to skip the first entry for ztest (ZTestMode.Disabled is not a valid value)
+            public static readonly int[] ztestValues = ((int[])Enum.GetValues(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode))).Skip(1).ToArray();
+            public static readonly string[] ztestNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode)).Skip(1).ToArray();
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
@@ -288,7 +292,9 @@ namespace UnityEditor
 
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
             DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
-            DoPopup(Styles.ztestText, ztestProp, Styles.ztestNames);
+
+            if (ztestProp != null)
+                materialEditor.IntPopupShaderProperty(ztestProp, Styles.ztestText.text, Styles.ztestNames, Styles.ztestValues);
 
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
 

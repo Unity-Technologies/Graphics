@@ -337,6 +337,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
+        // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
+        enum ZTestModeForUI
+        {
+            Never = 1,
+            Less = 2,
+            Equal = 3,
+            LEqual = 4,     // default for most rendering
+            Greater = 5,
+            NotEqual = 6,
+            GEqual = 7,
+            Always = 8,
+        };
+
         public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows)
         {
             // At some point we may want to convert this to be a per-property control
@@ -391,7 +404,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Depth Test", new EnumField(ZTestMode.LEqual) { value = zTestMode }, (evt) =>
+            context.AddProperty("Depth Test", new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)zTestMode }, (evt) =>
             {
                 if (Equals(zTestMode, evt.newValue))
                     return;
