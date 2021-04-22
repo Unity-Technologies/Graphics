@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-// If lightmap is not defined than we evaluate GI (ambient + probes) from SH
+// If lightmap is not defined then we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
 // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
@@ -25,7 +25,7 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
-#ifdef LIGHTMAP_ON
+#if defined(LIGHTMAP_ON)
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
     #define OUTPUT_SH(normalWS, OUT)
@@ -40,6 +40,20 @@
     #define _MIXED_LIGHTING_SUBTRACTIVE
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+//                             Light Layers                                   /
+///////////////////////////////////////////////////////////////////////////////
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{
+#ifdef _LIGHT_LAYERS
+    return (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT;
+#else
+    return DEFAULT_LIGHT_LAYERS;
+#endif
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -52,6 +66,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
+    uint    layerMask;
 };
 
 // WebGL1 does not support the variable conditioned for loops used for additional lights
@@ -135,6 +150,12 @@ Light GetMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
+#ifdef _LIGHT_LAYERS
+    light.layerMask = _MainLightLayerMask;
+#else
+    light.layerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
     return light;
 }
 
@@ -161,11 +182,23 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = _AdditionalLightsBuffer[perObjectLightIndex].layerMask;
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -181,6 +214,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = 1.0; // This value can later be overridden in GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     light.color = color;
+    light.layerMask = lightLayerMask;
 
     return light;
 }
@@ -587,17 +621,16 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #define LIGHTMAP_NAME unity_Lightmaps
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV, unity_LightmapIndex.x
 #else
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
-#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV
 #endif
 
-// Sample baked lightmap. Non-Direction and Directional if available.
-// Realtime GI is not supported.
-half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
+// Sample baked and/or realtime lightmap. Non-Direction and Directional if available.
+half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 normalWS)
 {
 #ifdef UNITY_LIGHTMAP_FULL_HDR
     bool encodedLightmap = false;
@@ -612,24 +645,48 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
+    float3 diffuseLighting = 0;
+
 #if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
-    return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+    diffuseLighting = SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
         TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
         LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
-#else
-    return half3(0.0, 0.0, 0.0);
+    diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
 #endif
+
+#if defined(DYNAMICLIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+    diffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+        TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+        dynamicLightmapUV, transformCoords, normalWS, false, decodeInstructions);
+#elif defined(DYNAMICLIGHTMAP_ON)
+    diffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+        dynamicLightmapUV, transformCoords, false, decodeInstructions);
+#endif
+
+    return diffuseLighting;
+}
+
+// Legacy version of SampleLightmap where Realtime GI is not supported.
+half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
+{
+    float2 dummyDynamicLightmapUV = float2(0,0);
+    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS);
+    return result;
 }
 
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#if defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#if defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
+#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, dynamicLmName, normalWSName)
+#elif defined(DYNAMICLIGHTMAP_ON)
+#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(0, dynamicLmName, normalWSName)
+#elif defined(LIGHTMAP_ON)
+#define SAMPLE_GI(staticLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
 #else
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(staticLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
@@ -1043,6 +1100,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
 
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -1055,22 +1114,30 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                      inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                     mainLight,
-                                     inputData.normalWS, inputData.viewDirectionWS,
-                                     surfaceData.clearCoatMask, specularHighlightsOff);
+
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                         mainLight,
+                                         inputData.normalWS, inputData.viewDirectionWS,
+                                         surfaceData.clearCoatMask, specularHighlightsOff);
+    }
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
-        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            light.color *= aoFactor.directAmbientOcclusion;
-        #endif
-        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         light,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                light.color *= aoFactor.directAmbientOcclusion;
+            #endif
+            color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                             light,
+                                             inputData.normalWS, inputData.viewDirectionWS,
+                                             surfaceData.clearCoatMask, specularHighlightsOff);
+        }
     LIGHT_LOOP_END
 #endif
 
@@ -1110,6 +1177,8 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
 
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -1120,20 +1189,29 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
-    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
-    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+    half3 diffuseColor = inputData.bakedGI;
+    half3 specularColor = half3(0, 0, 0);
+
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
+        diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+    }
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
-        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            light.color *= aoFactor.directAmbientOcclusion;
-        #endif
-        half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
-        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                light.color *= aoFactor.directAmbientOcclusion;
+            #endif
+            half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+            diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+        }
     LIGHT_LOOP_END
 #endif
 
@@ -1150,15 +1228,4 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     return half4(finalColor, alpha);
 }
 
-//LWRP -> Universal Backwards Compatibility
-half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
-{
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
-}
-
-half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
-{
-    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha);
-}
 #endif
