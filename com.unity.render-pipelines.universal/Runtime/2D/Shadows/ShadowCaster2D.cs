@@ -90,10 +90,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-            float lightRadiusSq = light.boundingSphere.radius * light.boundingSphere.radius;
-            float projectedRadiusSq = m_ProjectedBoundingSphere.radius * m_ProjectedBoundingSphere.radius;
-
-            return distanceSq <= (lightRadiusSq + projectedRadiusSq);
+            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            return distanceSq <= (radiiLength * radiiLength);
         }
 
         internal bool IsShadowedLayer(int layer)
