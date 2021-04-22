@@ -65,16 +65,21 @@ namespace UnityEditor
                     MaterialChanged((Material)obj);
             }
             base.DrawSurfaceOptions(material);
-
-            // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
-            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
-            materialEditor.DoubleSidedGIField();
         }
 
         // material main surface inputs
         public override void DrawSurfaceInputs(Material material)
         {
             DrawShaderGraphProperties(material, properties);
+        }
+
+        public override void DrawAdvancedOptions(Material material)
+        {
+            base.DrawAdvancedOptions(material);
+
+            // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
+            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
+            materialEditor.DoubleSidedGIField();
         }
     }
 } // namespace UnityEditor

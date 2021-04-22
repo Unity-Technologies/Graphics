@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // generally used to know if we need to build a depth pass
         public bool mayWriteDepth
         {
-            get =>
+            get
             {
                 if (allowMaterialOverride)
                 {
