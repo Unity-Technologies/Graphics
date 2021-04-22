@@ -690,7 +690,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(hitSS, hitNormalData);
     float3 hitN = hitNormalData.normalWS;
 
-    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
+    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
     float2 motionVectorNDC;
@@ -700,11 +700,22 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
 
-#define USE_WORLD_DIFF 1
+#define USE_WORLD_DIFF
 
-#if USE_WORLD_DIFF
-    float4 dstMotion = float4(motionVectorCenterNDC.xy, LoadCameraDepth(COORD_TEXTURE2D_X(hitSS)), 1.0f);
-    float4 srcMotion = float4(motionVectorNDC.xy, LoadCameraDepth(COORD_TEXTURE2D_X(positionSS)), 1.0f);
+#ifdef USE_WORLD_DIFF
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+#else
+    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+#endif
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  deviceDepthDst = LOAD_TEXTURE2D_X(_DepthTexture, hitSS).r;
+#else
+    float  deviceDepthDst = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitSS).r;
+#endif
+
+    float4 srcMotion = float4(motionVectorCenterNDC.xy, deviceDepthSrc, 0.0f);
+    float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
 
     float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     float4 worldSrcMotion = mul(srcMotion, UNITY_MATRIX_I_VP);
@@ -715,9 +726,16 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-    float speed = saturate(speedDiff * _SsrPBRSpeedRejection);
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
+    const float prec = 8.0f;
+
+    float speed = saturate(speedDiff);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, -prec)));
     float4 result = lerp(previous, original, coefExpAvg);
+
+    //if (speedDiff > pow(_SsrPBRSpeedRejection, prec))
+    //    result.rgb = float3(1, 0, 0);
+    //else
+    //    result.rgb = float3(0, 1, 0);
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
