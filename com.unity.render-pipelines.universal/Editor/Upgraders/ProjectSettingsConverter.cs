@@ -8,6 +8,7 @@ using UnityEditor.Build.Player;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -34,56 +35,14 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
     public override void OnInitialize(InitializeConverterContext context)
     {
         // find all cameras and thier info
-        GatherCameras(context);
+        GatherCameras(ref context);
 
-        //checking if deferred or forward
+        // checking if deferred or forward
         // check graphics tiers
         GatherGraphicsTiers();
 
-        var id = 0;
-        foreach (var levelName in QualitySettings.names)
-        {
-            var projectSettings = new ProjectSettingItem();
-            var setting = QualitySettings.GetRenderPipelineAssetAt(id);
-            var item = new ConverterItemDescriptor();
-            projectSettings.levelName = levelName;
-            item.name = $"Quality Level {id}:{levelName}";
-
-            var text = "";
-            if (setting != null)
-            {
-                if (setting.GetType().ToString().Contains("Universal.UniversalRenderPipelineAsset"))
-                {
-                    text = "Contains URP Asset, will override existing asset.";
-                }
-                else
-                {
-                    text = "Contains SRP Asset, will override existing asset with URP asset.";
-                }
-            }
-            else
-            {
-                text = "Will Generate Pipeline Asset, ";
-                if (needsForward && needsDeferred)
-                {
-                    text += "Forward & Deferred Renderer Assets.";
-                }
-                else if (needsForward)
-                {
-                    text += "Forward Renderer Asset.";
-                }
-                else if (needsDeferred)
-                {
-                    text += "Deferred Renderer Asset.";
-                }
-            }
-
-            item.info = text;
-            projectSettings.index = id;
-            settingsItems.Add(projectSettings);
-            context.AddAssetToConvert(item);
-            id++;
-        }
+        // check quality levels
+        GatherQualityLevels(ref context);
     }
 
     public override void OnRun(ref RunItemContext context)
@@ -194,12 +153,74 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         }
     }
 
-    internal void GatherCameras(InitializeConverterContext context)
+    internal void GatherCameras(ref InitializeConverterContext context)
     {
-        var cameras = Object.FindObjectsOfType<Camera>();
-        // TODO remove in final
-        Thread.Sleep(100);
+        using var searchForwardContext = SearchService.CreateContext("asset", "p:t=camera (renderingpath=forward or renderingpath=legacyvertexlit)");
+        using var forwardRequest = SearchService.Request(searchForwardContext);
+        {
+            // we're going to do this step twice in order to get them ordered, but it should be fast
+            var orderedRequest = forwardRequest.OrderBy(req =>
+                {
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                })
+                .ToList();
 
+            foreach (var r in orderedRequest)
+            {
+                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                {
+                    continue;
+                }
+
+                var label = r.provider.fetchLabel(r, r.context);
+                var description = r.provider.fetchDescription(r, r.context);
+
+                var item = new ConverterItemDescriptor()
+                {
+                    name = $"{label} : {description}",
+                    info = "Needs Forward Renderer",
+                };
+
+                context.AddAssetToConvert(item);
+                needsForward = true;
+            }
+        }
+
+        using var searchDeferredContext = SearchService.CreateContext("asset", "p:t=camera (renderingpath=deferred or renderingpath=legacydeferred(lightprepass))");
+        using var deferredRequest = SearchService.Request(searchDeferredContext);
+        {
+            // we're going to do this step twice in order to get them ordered, but it should be fast
+            var orderedRequest = deferredRequest.OrderBy(req =>
+                {
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                })
+                .ToList();
+
+            foreach (var r in orderedRequest)
+            {
+                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                {
+                    continue;
+                }
+
+                var label = r.provider.fetchLabel(r, r.context);
+                var description = r.provider.fetchDescription(r, r.context);
+
+                var item = new ConverterItemDescriptor()
+                {
+                    name = $"{label} : {description}",
+                    info = "Needs Deferred Renderer",
+                };
+
+                context.AddAssetToConvert(item);
+                needsDeferred = true;
+            }
+        }
+
+
+        /*
         foreach (var camera in cameras)
         {
             CameraSettings camSettings = null;
@@ -245,6 +266,55 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
             context.AddAssetToConvert(info);
             // TODO remove in final
             Thread.Sleep(100);
+        }
+        */
+    }
+
+    internal void GatherQualityLevels(ref InitializeConverterContext context)
+    {
+        var id = 0;
+        foreach (var levelName in QualitySettings.names)
+        {
+            var projectSettings = new ProjectSettingItem();
+            var setting = QualitySettings.GetRenderPipelineAssetAt(id);
+            var item = new ConverterItemDescriptor();
+            projectSettings.levelName = levelName;
+            item.name = $"Quality Level {id}:{levelName}";
+
+            var text = "";
+            if (setting != null)
+            {
+                if (setting.GetType().ToString().Contains("Universal.UniversalRenderPipelineAsset"))
+                {
+                    text = "Contains URP Asset, will override existing asset.";
+                }
+                else
+                {
+                    text = "Contains SRP Asset, will override existing asset with URP asset.";
+                }
+            }
+            else
+            {
+                text = "Will Generate Pipeline Asset, ";
+                if (needsForward && needsDeferred)
+                {
+                    text += "Forward & Deferred Renderer Assets.";
+                }
+                else if (needsForward)
+                {
+                    text += "Forward Renderer Asset.";
+                }
+                else if (needsDeferred)
+                {
+                    text += "Deferred Renderer Asset.";
+                }
+            }
+
+            item.info = text;
+            projectSettings.index = id;
+            settingsItems.Add(projectSettings);
+            context.AddAssetToConvert(item);
+            id++;
         }
     }
 
