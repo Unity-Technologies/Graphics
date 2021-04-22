@@ -14,7 +14,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-public class ProjectSettingsConverter : RenderPipelineConverter
+internal class ProjectSettingsConverter : RenderPipelineConverter
 {
     public override string name => "Quality and Graphics Settings";
 
