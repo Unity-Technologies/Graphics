@@ -348,8 +348,13 @@ namespace UnityEngine.Rendering.Universal
             // Resulting in following pattern:
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
+            // Until then, we can't use nested profiling scopes with XR multipass
+            CommandBuffer cmdScope = cameraData.xr.enabled ? null : cmd;
+
             ProfilingSampler sampler = Profiling.TryGetOrAddCameraSampler(camera);
-            using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
+            using (new ProfilingScope(cmdScope, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
 
@@ -475,6 +480,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
+            // Update volumeframework before initializing additional camera data
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -505,7 +512,6 @@ namespace UnityEngine.Rendering.Universal
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
             VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
-            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref baseCameraData);
@@ -654,6 +660,27 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            ///////////////////////////////////////////////////////////////////
+            // Descriptor settings                                            /
+            ///////////////////////////////////////////////////////////////////
+
+            var renderer = additionalCameraData?.scriptableRenderer;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+
+            int msaaSamples = 1;
+            if (camera.allowMSAA && asset.msaaSampleCount > 1 && rendererSupportsMSAA)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
+            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
+            if (cameraData.xrRendering && rendererSupportsMSAA)
+                msaaSamples = XRSystem.GetMSAALevel();
+#endif
+
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>
@@ -716,19 +743,6 @@ namespace UnityEngine.Rendering.Universal
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
 
-            var renderer = baseAdditionalCameraData?.scriptableRenderer;
-            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
-
-            int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
-                msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
-            // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering && rendererSupportsMSAA)
-                msaaSamples = XRSystem.GetMSAALevel();
-#endif
-
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
@@ -758,10 +772,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
-
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
-                cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         /// <summary>
@@ -781,6 +791,14 @@ namespace UnityEngine.Rendering.Universal
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
+
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)

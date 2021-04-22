@@ -1,8 +1,10 @@
 # Screen Space Global Illumination
 
-The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
+The **Screen Space Global Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
-HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) (RTGI) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+
+SSGI and RTGI completely replace all [lightmap](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) data. If you enable this override and the Volume affects the Camera, Light Probes, and the ambient probe, stop contributing to lighting for GameObjects.
 
 ![](Images/HDRPFeatures-SSGI.png)
 
@@ -20,6 +22,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Global Illumination**.
    HDRP now calculates SSGI for any Camera this Volume affects.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 
@@ -43,7 +47,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | **Full Resolution**  | Toggles whether HDRP calculates SSGI at full resolution.     |
 | **Ray Steps**        | The number of ray steps to use to calculate SSGI. If you set this to a higher value, the quality of the effect improves, however it is more resource intensive to process. |
 | **Filter Radius**    | The size of the filter use to smooth the effect after raymarching. Higher value mean blurrier result and is more resource intensive. |
-| **Object Thickness** | Use the slider to control the thickness of the GameObjects on screen. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
+| **Depth Tolerance**  | Use the slider to control the tolerance when comparing the depth of the GameObjects on screen and the depth buffer. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
 
 ### Ray-traced
 

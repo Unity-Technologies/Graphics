@@ -11,6 +11,8 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Indirect Lighting Controller**. You can now use the **Indirect Lighting Controller** to control baked or precomputed indirect lighting.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-IndirectLightingController1.png)

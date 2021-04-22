@@ -211,15 +211,19 @@ namespace UnityEditor.VFX.UI
 
             public void OnVFXChange()
             {
-                if ((m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive) && m_DebugUI.m_VFX != null)
+                if (m_DebugUI.m_VFX != null)
                 {
-                    m_VFXCurves.Clear();
-                    m_TimeBarsOffsets.Clear();
-                    for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                    m_Pause = m_Stopped = m_DebugUI.m_VFX.pause;
+                    if (m_DebugUI.m_CurrentMode == Modes.Efficiency || m_DebugUI.m_CurrentMode == Modes.Alive)
                     {
-                        var toggle = m_DebugUI.m_SystemInfos[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
-                        var switchableCurve = new SwitchableCurve(m_DebugUI.m_GpuSystems[i], m_MaxPoints, toggle);
-                        m_VFXCurves.Add(switchableCurve);
+                        m_VFXCurves.Clear();
+                        m_TimeBarsOffsets.Clear();
+                        for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
+                        {
+                            var toggle = m_DebugUI.m_SystemInfos[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
+                            var switchableCurve = new SwitchableCurve(m_DebugUI.m_GpuSystems[i], m_MaxPoints, toggle);
+                            m_VFXCurves.Add(switchableCurve);
+                        }
                     }
                 }
             }
@@ -238,6 +242,8 @@ namespace UnityEditor.VFX.UI
                         m_Stopped = false;
                         break;
                     case Events.VFXReset:
+                        m_Stopped = false;
+                        m_Pause = false;
                         foreach (var curve in m_VFXCurves)
                             curve.ResetCurve();
                         m_TimeBarsOffsets.Clear();
@@ -454,6 +460,11 @@ namespace UnityEditor.VFX.UI
             m_CurrentMode = Modes.None;
         }
 
+        public Modes GetDebugMode()
+        {
+            return m_CurrentMode;
+        }
+
         public void SetDebugMode(Modes mode, VFXComponentBoard componentBoard, bool force = false)
         {
             if (mode == m_CurrentMode && !force)
@@ -486,7 +497,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UpdateDebugMode()
+        private void UpdateDebugMode()
         {
             switch (m_CurrentMode)
             {
@@ -505,7 +516,15 @@ namespace UnityEditor.VFX.UI
 
         private void UpdateDebugMode(VFXGraph graph)
         {
+            //Update now...
             UpdateDebugMode();
+
+            //.. but in some case, the onRuntimeDataChanged is called too soon, need to update twice
+            //because VFXUIDebug relies on VisualEffect : See m_VFX.GetParticleSystemNames
+            m_View.schedule.Execute(() =>
+            {
+                UpdateDebugMode();
+            }).ExecuteLater(0 /* next frame */);
         }
 
         void ClearDebugMode()
@@ -819,7 +838,7 @@ namespace UnityEditor.VFX.UI
                 var maxAliveButton = new Button();
                 maxAliveButton.name = "debug-system-stat-entry";
                 maxAliveButton.text = "0";
-                maxAliveButton.SetEnabled(AssetDatabase.IsOpenForEdit(m_Graph.visualEffectResource.asset, StatusQueryOptions.UseCachedIfPossible));
+                maxAliveButton.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveButton.clickable.clickedWithEventInfo += setCapacity;
                 maxAlive = maxAliveButton;
             }
@@ -918,6 +937,9 @@ namespace UnityEditor.VFX.UI
                     isSystemInSubGraph = true;
                     return (e) =>
                     {
+                        if (m_Graph.visualEffectResource != null && !m_Graph.visualEffectResource.IsAssetEditable())
+                            return; //The button should be disabled but state update can have a delay
+
                         var button = e.currentTarget as Button;
                         if (button != null)
                             system.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
@@ -934,7 +956,10 @@ namespace UnityEditor.VFX.UI
             if (statUI[3] is TextElement alive)
                 alive.text = stat.aliveCount.ToString();
             if (statUI[4] is TextElement maxAliveText)
+            {
+                maxAliveText.SetEnabled(m_Graph.visualEffectResource != null && m_Graph.visualEffectResource.IsAssetEditable());
                 maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.aliveCount).ToString();
+            }
             if (statUI[5] is TextElement efficiency)
             {
                 var eff = (int)((float)stat.aliveCount * 100.0f / (float)stat.capacity);

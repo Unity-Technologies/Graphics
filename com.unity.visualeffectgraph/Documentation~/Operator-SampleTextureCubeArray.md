@@ -2,9 +2,11 @@
 
 Menu Path : **Operator > Sampling > Sample TextureCubeArray**
 
-The **Sample TextureCubeArray** Operator allows you to sample a TextureCubeArray for a specified slice, direction, and Mip level. The Operator uses the same **Filter Mode** and **Wrap Mode** modes as the [texture’s import settings](https://docs.unity3d.com/Manual/class-TextureImporter.html).
+The **Sample TextureCubeArray** Operator allows you to sample a TextureCubeArray for a specified slice, direction, and Mip level. The Operator uses the same **Filter Mode** and **Wrap Mode** modes as the [import settings](https://docs.unity3d.com/Manual/class-TextureImporter.html).
 
-This translates to a Sample call on the texture in High-Level Shading Language (HLSL).
+This translates to a Sample() call on the texture in High-Level Shading Language (HLSL). For information on the differences between loading and sampling, see [Loading and sampling](#loading-and-sampling).
+
+[!include[](Snippets/Operator-LoadingAndSampling.md)]
 
 ## Operator properties
 

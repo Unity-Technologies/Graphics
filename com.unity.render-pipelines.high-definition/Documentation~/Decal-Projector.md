@@ -1,6 +1,6 @@
 # Decal Projector
 
-The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
+The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
 
 The Decal Projector also supports [Decal Layers](Decal.md) which means you can control which Materials receive decals on a Layer by Layer basis.
 
@@ -14,16 +14,19 @@ The Decal Projector includes a Scene view representation of its bounds and proje
 
 * A box that describes the 3D size of the projector; the projector draws its decal on every Material inside the box.
 
-* An arrow that indicates the direction the projector faces.
+* An arrow that indicates the direction the projector faces. The base of this arrow is on the pivot point.
 
 ![](Images/DecalProjector2.png)
 
-The decal Projector also includes two gizmos that add handles on every face for you to click and drag to alter the size of the projector's bounds.
+The decal Projector also includes three gizmos. The first two add handles on every face for you to click and drag to alter the size of the projector's bounds.
 
 |**Button**|**Gizmo**|**Description**|
 |-----|-----|-----|
-|![](Images/DecalProjector3.png)|**Scale**|Scales the decal with the projector box. This changes the UVs of the Material to match the size of the projector box. This stretches the decal.|
-|![](Images/DecalProjector4.png)|**Crop**|Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal.|
+|![](Images/DecalProjector3.png)|**Scale**|Scales the decal with the projector box. This changes the UVs of the Material to match the size of the projector box. This stretches the decal. The Pivot remains still.|
+|![](Images/DecalProjector4.png)|**Crop**|Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal. The Pivot remains still.|
+|![](Images/DecalProjector5.png)|**Pivot / UV**|Moves the decal's pivot point without moving the projection box. This changes the transform position.<br/>Note this also sets the UV used on the projected texture.|
+
+The color of the gizmos can be set up in the Preference window inside Color panel.
 
 ## Using the Inspector
 
@@ -31,12 +34,13 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Properties
 
-![](Images/DecalProjector5.png)
+![](Images/DecalProjector6.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | **Size**                | The size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along the local x-axis) and **Height** (along the local y-axis) components of the **Size**. |
 | **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local z-axis. |
+| **Pivot**               | The offset position of the transform regarding the projection box. To  rotate the projected texture around a specific position, adjust the **X** and **Y** values. To set a depth offset for the projected texture, adjust the **Z** value. |
 | **Material**            | The decal Material to project. The decal Material must use a HDRP/Decal Shader. |
 | **Decal Layer**         | The layer that specifies the Materials to project the decal onto. Any Mesh Renderers or Terrain that uses a matching Decal Layer receives the decal. |
 | **Draw Distance**       | The distance from the Camera to the Decal at which this projector stops projecting the decal and HDRP no longer renders the decal. |
@@ -50,7 +54,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
-- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
+- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
 - Decal Emissive isn't supported on Transparent Material.
 - The **Receive Decals** property of Materials in HDRP does not affect emissive decals. HDRP always renders emissive decals unless you use Decal Layers, which can disable emissive decals on a Layer by Layer basis.
 - If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.

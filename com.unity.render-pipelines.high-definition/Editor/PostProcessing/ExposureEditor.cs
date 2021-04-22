@@ -39,9 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static LightUnitSliderUIDrawer k_LightUnitSlider;
 
+        int m_RepaintsAfterChange = 0;
+        int m_SettingsForDoubleRefreshHash = 0;
         static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
-
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -200,6 +200,30 @@ namespace UnityEditor.Rendering.HighDefinition
                                 m_TargetMidGray.value.intValue, s_MidGrayNames);
                         }
                     }
+                }
+            }
+
+            // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if
+            // some of the changes that will lead to different results are changed.
+            int automaticCurrSettingHash = m_LimitMin.value.floatValue.GetHashCode() +
+                17 * m_LimitMax.value.floatValue.GetHashCode() +
+                17 * m_Compensation.value.floatValue.GetHashCode();
+
+            if (mode == (int)ExposureMode.Automatic || mode == (int)ExposureMode.AutomaticHistogram)
+            {
+                if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
+                {
+                    m_RepaintsAfterChange = 2;
+                }
+                else
+                {
+                    m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
+                }
+                m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
+
+                if (m_RepaintsAfterChange > 0)
+                {
+                    SceneView.RepaintAll();
                 }
             }
         }

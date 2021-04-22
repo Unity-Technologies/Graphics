@@ -634,6 +634,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 4333940904281232215, guid: abe0244723e2c2146ac5c73750a1a5f2,
     type: 3}
   MeshCount: 1

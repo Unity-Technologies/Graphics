@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -156,6 +157,12 @@ namespace UnityEngine.Rendering.HighDefinition
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
 
+            // We disregard the ray traced shadows option when in Path Tracing
+            rayTracedShadow &= !pathTracingEnabled;
+
+            // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
+            pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
+
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
                 // Initially we consider the potential mesh as invalid
@@ -258,26 +265,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (reflEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Screen Space Reflection if needed
+                // Raise the Screen Space Reflection flag if needed
                 instanceFlag |= ((reflLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
             }
 
             if (giEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Global Illumination flag if needed
                 instanceFlag |= ((giLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
             }
 
             if (recursiveEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Recursive Rendering flag if needed
                 instanceFlag |= ((rrLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
             }
 
             if (pathTracingEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
-                instanceFlag |= ((ptLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.PathTracing) : 0x00;
+                // Raise the Path Tracing flag if needed
+                instanceFlag |= (uint)(RayTracingRendererFlag.PathTracing);
             }
 
             // If the object was not referenced
@@ -523,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
@@ -648,7 +655,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null)
+            if (m_TemporalFilter == null && m_RayTracingSupported)
             {
                 m_TemporalFilter = new HDTemporalFilter();
                 m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
@@ -724,6 +731,22 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal float GetPixelSpreadAngle(float fov, int width, int height)
         {
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
+
+        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
+        {
+            // Grab the temporal filter
+            HDTemporalFilter temporalFilter = GetTemporalFilter();
+
+            // If the temporal filter is valid use it, otherwise return a white texture
+            if (temporalFilter != null)
+            {
+                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
+                return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
+            }
+            else
+                return renderGraph.defaultResources.whiteTexture;
         }
     }
 }

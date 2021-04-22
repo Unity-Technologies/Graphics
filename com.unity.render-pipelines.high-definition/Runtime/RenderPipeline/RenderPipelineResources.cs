@@ -301,8 +301,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
             public ComputeShader dofGatherCS;
-            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
-            public ComputeShader DoFCoCPyramidCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCMinMax.compute")]
+            public ComputeShader dofCoCMinMaxCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
+            public ComputeShader dofMinMaxDilateCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
@@ -419,7 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.FBX")]
+            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
         }
 

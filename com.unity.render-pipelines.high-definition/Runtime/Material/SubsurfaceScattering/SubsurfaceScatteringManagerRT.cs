@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle DenoiseRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedSSS, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+        TextureHandle DenoiseRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedSSS, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationTexture)
         {
             // Evaluate the history's validity
             float historyValidity = HDRenderPipeline.EvaluateHistoryValidity(hdCamera);
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
             TextureHandle historyBuffer = renderGraph.ImportTexture(RequestRayTracedSSSHistoryTexture(hdCamera));
-            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer);
+            return temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
         }
 
         class ComposeRTSSSPassData
@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderSubsurfaceScatteringRT(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle colorBuffer,
-            TextureHandle sssColor, TextureHandle diffuseBuffer, TextureHandle motionVectorsBuffer, TextureHandle ssgiBuffer)
+            TextureHandle sssColor, TextureHandle diffuseBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidationTexture, TextureHandle ssgiBuffer)
         {
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.RaytracingSSS)))
             {
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle rtsssResult = TraceRTSSS(renderGraph, hdCamera, depthStencilBuffer, normalBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
 
                 // Denoise the result
-                rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer);
+                rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture);
 
                 // Compose it
                 rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);

@@ -11,31 +11,31 @@ PR_URP_Performance_LostCrypt_2021.1:
     name: URP_Performance_LostCrypt PR Job - 2021.1
     dependencies:
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-vulkan.yml#URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-vulkan.yml#URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -45,7 +45,7 @@ Nightly_URP_Performance_LostCrypt_2021.1:
     name: Nightly URP_Performance_LostCrypt - 2021.1
     dependencies:
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -55,31 +55,31 @@ PR_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx11.yml#URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-vulkan.yml#URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-vulkan.yml#URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -90,7 +90,7 @@ Nightly_URP_Performance_LostCrypt_CUSTOM-REVISION:
     name: Nightly URP_Performance_LostCrypt - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

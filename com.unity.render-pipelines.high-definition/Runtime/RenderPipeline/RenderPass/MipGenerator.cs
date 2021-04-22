@@ -109,6 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(source.dimension == destination.dimension, "MipGenerator source texture does not match dimension of destination!");
             }
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempColorTargets[rtIndex] != null && m_TempColorTargets[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempColorTargets[rtIndex]);
+                m_TempColorTargets[rtIndex] = null;
+            }
+
             // Only create the temporary target on-demand in case the game doesn't actually need it
             if (m_TempColorTargets[rtIndex] == null)
             {
@@ -133,6 +140,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int tempTargetWidth = srcMipWidth >> 1;
             int tempTargetHeight = srcMipHeight >> 1;
+
+            // Check if format has changed since last time we generated mips
+            if (m_TempDownsamplePyramid[rtIndex] != null && m_TempDownsamplePyramid[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempDownsamplePyramid[rtIndex]);
+                m_TempDownsamplePyramid[rtIndex] = null;
+            }
 
             if (m_TempDownsamplePyramid[rtIndex] == null)
             {

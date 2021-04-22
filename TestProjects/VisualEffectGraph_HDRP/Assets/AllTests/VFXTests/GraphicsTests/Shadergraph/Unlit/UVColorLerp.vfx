@@ -89,6 +89,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: c55bbaaf41bf5ce4c9c44a9e93f84bca,
     type: 3}
   primitiveType: 1

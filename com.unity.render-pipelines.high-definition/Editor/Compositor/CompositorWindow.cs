@@ -114,13 +114,13 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
                 Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
             }
-            else if (compositor)
+            else if (compositor && (compositor.enabled != enableCompositor))
             {
                 string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
                 Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
-            else
+            else if (!compositor)
             {
                 return;
             }
@@ -178,6 +178,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 if (m_Editor)
                 {
                     m_Editor.OnInspectorGUI();
+
+                    // Remember which layer was selected / drawn in the last draw call
+                    s_SelectionIndex = m_Editor.selectionIndex;
                 }
             }
             GUILayout.EndScrollView();
@@ -214,7 +217,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             m_Editor.CacheSerializedObjects();
             m_RequiresRedraw = true;
-            s_SelectionIndex = m_Editor.selectionIndex;
+
+            // After undo, set the selection index to the last shown layer, because the Unity Editor resets the value to the last layer in the list
+            m_Editor.defaultSelection = s_SelectionIndex;
+            m_Editor.selectionIndex = s_SelectionIndex;
+
 
             CompositionManager compositor = CompositionManager.GetInstance();
             // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
@@ -223,6 +230,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);
                 EditorUtility.SetDirty(compositor.profile);
+
+                // Clean-up existing cameras after undo, we will re-allocate the layer resources
+                CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans(compositor.layers);
+                compositor.DeleteLayerRTs();
                 compositor.UpdateLayerSetup();
             }
         }

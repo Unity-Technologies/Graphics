@@ -109,7 +109,7 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     }
 
     // Fetch the lighting and compute the weight
-    float3 lighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, targetCoord);
+    float3 lighting = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, targetCoord).rgb;
     float weight = ComputeWeightValue(perceptualSmoothness);
 
     // Output the result to the half resolution part of the texture

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         enum ShadowmaskMode
         {
-            ShadowMask,
+            Shadowmask,
             DistanceShadowmask
         }
 
@@ -221,8 +221,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
-            //Draw the mode
-            serialized.settings.DrawLightmapping();
+            // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
+            using (new EditorGUI.DisabledScope(serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc))
+                serialized.settings.DrawLightmapping();
 
             if (updatedLightType == HDLightType.Area)
             {
@@ -249,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, s_Styles.lightLayer);
 
                     // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-                    if (serialized.linkLightLayers.boolValue && change.changed)
+                    if (serialized.linkLightLayers.boolValue && change.changed && !serialized.lightlayersMask.hasMultipleDifferentValues)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
             }
@@ -599,11 +600,18 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
 
+            // Expand to reach both lines of the intensity field.
+            var interlineOffset = EditorGUIUtility.singleLineHeight + 2f;
+            labelRect.height += interlineOffset;
+
             //handling of prefab overrides in a parent label
             GUIContent parentLabel =  s_Styles.lightIntensity;
-            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
+            parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             {
+                // Restore the original rect for actually drawing the label.
+                labelRect.height -= interlineOffset;
+
                 EditorGUI.LabelField(labelRect, parentLabel);
             }
             EditorGUI.EndProperty();
@@ -1035,8 +1043,8 @@ namespace UnityEditor.Rendering.HighDefinition
 #if UNITY_2021_1_OR_NEWER
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
 #endif
-                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
                 }
+                EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
 
                 HDLightType lightType = serialized.type;
 
@@ -1073,14 +1081,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.BeginProperty(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, serialized.nonLightmappedOnly);
                         {
                             EditorGUI.BeginChangeCheck();
-                            ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
+                            ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.Shadowmask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUI.EnumPopup(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 Undo.RecordObjects(owner.targets, "Light Update Shadowmask Mode");
-                                serialized.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
+                                serialized.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.Shadowmask;
                                 foreach (Light target in owner.targets)
-                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.Shadowmask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
                         }
                         EditorGUI.EndProperty();
@@ -1102,7 +1110,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
                                 && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
-                                EditorGUILayout.HelpBox("Ray traced area light shadows are only available in deferred mode.", MessageType.Warning);
+                                EditorGUILayout.HelpBox("Ray traced area light shadows are approximated for the Lit shader when not in deferred mode.", MessageType.Warning);
 
                             EditorGUI.indentLevel++;
 
@@ -1207,7 +1215,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (change.changed)
                             Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
                     }
-                    if (!serialized.linkLightLayers.hasMultipleDifferentValues)
+                    if (!serialized.linkLightLayers.hasMultipleDifferentValues && !serialized.lightlayersMask.hasMultipleDifferentValues)
                     {
                         using (new EditorGUI.DisabledGroupScope(serialized.linkLightLayers.boolValue))
                         {

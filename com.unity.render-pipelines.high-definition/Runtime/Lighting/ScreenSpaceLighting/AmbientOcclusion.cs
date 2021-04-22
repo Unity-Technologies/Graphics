@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
         private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
         // Temporal only parameter
+        [AdditionalProperty]
         [SerializeField, FormerlySerializedAs("bilateralUpsample")]
         private BoolParameter m_BilateralUpsample = new BoolParameter(true);
         // Non-temporal only parameters
@@ -242,6 +243,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 
+        internal float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
+        {
+            AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
+            if (enableRTAO)
+                return m_RaytracingAmbientOcclusion.EvaluateRTSpecularOcclusionFlag(hdCamera, ssoSettings);
+            else
+                return 1.0f;
+        }
+
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
         struct RenderAOParameters
@@ -271,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesAmbientOcclusion cb;
         }
 
-        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
+        RenderAOParameters PrepareRenderAOParameters(HDCamera camera, Vector2 historySize, in HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var parameters = new RenderAOParameters();
 
@@ -294,6 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float invHalfTanFOV = -camera.mainViewConstants.projMatrix[1, 1];
             float aspectRatio = parameters.runningRes.y / parameters.runningRes.x;
+            uint frameCount = camera.GetCameraFrameCount();
 
             cb._AOParams0 = new Vector4(
                 parameters.fullResolution ? 0.0f : 1.0f,

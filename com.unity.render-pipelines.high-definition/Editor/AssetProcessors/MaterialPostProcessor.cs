@@ -116,6 +116,14 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        void OnPostprocessMaterial(Material material)
+        {
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
@@ -157,6 +165,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         //due to FB 1175514, this not work. It is being fixed though.
                         //delayed call of the following work in some case and cause infinite loop in other cases.
                         AssetDatabase.AddObjectToAsset(assetVersion, asset);
+
+                        // Init material in case it's used before an inspector window is opened
+                        HDShaderUtils.ResetMaterialKeywords(material);
                     }
                     else
                     {

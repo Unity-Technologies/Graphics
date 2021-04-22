@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
 
             return descriptor;
         }
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(CoatMask,                             descs.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(CoatMask,                             descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
             context.AddField(ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
             context.AddField(RayTracing,                           litData.rayTracing);
 
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);

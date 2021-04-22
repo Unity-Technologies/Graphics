@@ -47,11 +47,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupCommonDecalMaterialKeywordsAndPass(Material material)
         {
+            bool affectsMaskmap = false;
+            affectsMaskmap |= material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
+            affectsMaskmap |= material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
+            affectsMaskmap |= material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f;
+
             CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_ALBEDO", material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f);
             CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_NORMAL", material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f);
+            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", affectsMaskmap);
 
             // Albedo : RT0 RGB, A - sRGB
             // Normal : RT1 RGB, A

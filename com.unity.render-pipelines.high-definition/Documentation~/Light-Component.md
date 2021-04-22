@@ -31,7 +31,7 @@ HDRP includes multiple types of Light. Although HDRP Lights share many propertie
 
 For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf) expert guide. For general guidance on light intensities, see [Physical light units](Physical-Light-Units.md#light-intensities).
 
-### Properties
+## Properties
 
 The properties available for Lights are in separate sections. Each section contains some properties that all Lights share, and also properties that customize the behavior of the specific type of Light. These sections also contain [more options](More-Options.md) that you can expose if you want to fine-tune your light's behavior. The sections are:
 
@@ -63,9 +63,13 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | **Type**        | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Spot**        | Emits light from a specified location and range over which the light diminishes. A Spot Light constrains the light it emits to an angle, which results in a cone-shaped region of illumination. The center of the cone points in the forward direction (z-axis) of the Light GameObject. Light also diminishes at the edges of the Spot Light’s cone. Increase the **Spot Angle** to increase the width of the cone. |
-| **Directional** | Creates effects that are similar to sunlight in your Scene. Like sunlight, Directional Lights are distant light sources that HDRP treats as though they are infinitely far away. A Directional Light does not have any identifiable source position, and you can place the Light GameObject anywhere in the Scene. A **Directional Light** illuminates all GameObjects in the Scene as if the Light rays are parallel and always from the same direction. The Light disregards the distance between the Light itself and the target GameObject, so the Light does not diminish with distance. |
-| **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
+| **Directional** | Creates effects that are similar to sunlight in your Scene. Like sunlight, Directional Lights are distant light sources that HDRP treats as though they are infinitely far away. A Directional Light does not have any identifiable source position, and you can place the Light GameObject anywhere in the Scene. <br/>A **Directional Light** illuminates all GameObjects in the Scene as if the Light rays are parallel and always from the same direction. The Light disregards the distance between the Light itself and the target GameObject, so the Light does not diminish with distance |
+| **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. <br/>Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
 | **Area**        | Projects light from a surface. Light shines in all directions uniformly from the surface of the rectangle. |
+
+##### Limitations
+
+[!include[](snippets/area-light-material-support-disclaimer.md)]
 
 <a name="ShapeProperties"></a>
 

@@ -99,7 +99,7 @@ Shader "HDRP/Unlit"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -156,7 +156,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -198,21 +198,14 @@ Shader "HDRP/Unlit"
 
             ZWrite On
 
-            // Caution: When using MSAA we have normal and depth buffer bind.
-            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-            // - When MSAA: disable target 1 (normal buffer)
-            // - When no MSAA: disable target 0 (normal buffer) and 1 (unused)
-            ColorMask [_ColorMaskNormal]
-            ColorMask 0 1
-
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
+            // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
             // Note we don't need to define WRITE_DECAL_BUFFER
@@ -251,21 +244,14 @@ Shader "HDRP/Unlit"
 
             ZWrite On
 
-            // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-            // Unlit objects need to NOT write in normal buffer (or write 0) - Disable color mask for this RT
-            // Note: ShaderLab doesn't allow to have a variable on the second parameter of ColorMask
-            // - When MSAA: disable target 2 (normal buffer)
-            // - When no MSAA: disable target 1 (normal buffer) and 2 (unused)
-            ColorMask [_ColorMaskNormal] 1
-            ColorMask 0 2
-
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
+            // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             // Note we don't need to define WRITE_NORMAL_BUFFER
             // Note we don't need to define WRITE_DECAL_BUFFER
@@ -308,7 +294,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -344,7 +330,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -382,7 +368,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -421,7 +407,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -452,7 +438,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 

@@ -102,16 +102,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
+            // Override EditorGUI (replaces the HDRP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
+
             // Setup the active SubTarget
             ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -602,7 +600,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
@@ -823,6 +820,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection DepthForwardOnlyUnlit = new DefineCollection
         {
+            // When using Shadow matte, we need to output a normal buffer even for unlit so it is compatible with ambient occlusion
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
+        };
+
+        public static DefineCollection MotionVectorUnlit = new DefineCollection
+        {
+            // When using Shadow matte, we need to output a normal buffer even for unlit so it is compatible with ambient occlusion
             { CoreKeywordDescriptors.WriteNormalBuffer, 1, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true)},
         };
 
@@ -1323,6 +1327,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
+        {
+            displayName = "Multi Bounce Indirect",
+            referenceName = "MULTI_BOUNCE_INDIRECT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
     #endregion

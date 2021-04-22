@@ -499,4 +499,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
     }
+
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

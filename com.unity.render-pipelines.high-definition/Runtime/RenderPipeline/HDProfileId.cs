@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGITrace,
         SSGIDenoise,
         SSGIUpscale,
+        SSGIConvert,
 
         ForwardEmissive,
         ForwardOpaque,
@@ -126,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
+        HistoryValidity,
         TemporalFilter,
         DiffuseFilter,
 

@@ -10,134 +10,158 @@
 all_project_ci_2021.1:
     name: _ABV for SRP repository (all PR jobs) - 2021.1
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_2021.1
-         rerun: on-new-revision
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_2021.1
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#PR_HDRP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
     triggers:
-        expression: pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+        expression: pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 all_project_ci_nightly_2021.1:
     name: _Nightly ABV against 2021.1
     dependencies:
-      -  path: .yamato/all-universal.yml#Nightly_Universal_2021.1
-         rerun: on-new-revision
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_2021.1
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
     triggers:
         recurring:
           -  branch: 2021.1/staging
              frequency: 1 * * ?
-all_project_ci_weekly_2021.1:
-    name: _Weekly ABV against 2021.1
-    dependencies: []
 trunk_verification_2021.1:
     name: Trunk verification - 2021.1
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_2021.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_2021.1
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
-         rerun: always
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 all_project_ci_nightly_CUSTOM-REVISION:
     name: _Nightly ABV against CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-universal.yml#Nightly_Universal_CUSTOM-REVISION
-         rerun: always
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
-         rerun: always
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_weekly_CUSTOM-REVISION:
-    name: _Weekly ABV against CUSTOM-REVISION
-    dependencies: []
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set

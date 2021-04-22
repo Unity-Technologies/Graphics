@@ -172,10 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
-                    //settings.splitData = m_CascadeSlices[cascadeIndex].splitData; // NOTE: currently DrawShadows culls more casters if no ShadowSplitData.cullingPlanes are set (version cds 8652678b), so it is currently better to not pass the m_CascadeSlices[cascadeIndex].splitData object returned by CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives (change introduced in 8bf71cf). Culling is only based on the ShadowSplitData.cullingSphere distances.
-                    var splitData = settings.splitData;
-                    splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
-                    settings.splitData = splitData;
+                    settings.splitData = m_CascadeSlices[cascadeIndex].splitData;
 
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);

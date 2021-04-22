@@ -2700,6 +2700,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 1
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   tilingMode: 0
   swapUV: 0

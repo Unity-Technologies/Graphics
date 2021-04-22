@@ -99,8 +99,8 @@ void Frag(  PackedVaryingsToPS packedInput,
     // we discard during decal projection, or we get artifacts along the
     // edges of the projection(any partial quads get bad partial derivatives
     //regardless of whether they are computed implicitly or explicitly).
-    if (clipValue > 0.0)
-    {
+    ZERO_INITIALIZE(DecalSurfaceData, surfaceData); // Require to quiet compiler warning with Metal
+    // Note we can't used dynamic branching here to avoid to pay the cost of texture fetch otherwise we need to calculate derivatives ourselves.
 #endif
     input.texCoord0.xy = positionDS.xz;
     input.texCoord1.xy = positionDS.xz;
@@ -144,8 +144,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     GetSurfaceData(input, V, posInput, angleFadeFactor, surfaceData);
 
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
-    } // if (clipValue > 0.0)
-
     clip(clipValue);
 #endif
 

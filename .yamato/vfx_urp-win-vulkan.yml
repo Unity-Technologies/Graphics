@@ -33,7 +33,7 @@ VFX_URP_Win_Vulkan_Standalone_mono_Linear_2021.1:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-win-vulkan.yml#Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_2021.1:
     name: Build VFX_URP on Win_Vulkan_mono_Linear_Standalone_build_Player on version 2021.1
     agent:
@@ -143,7 +143,7 @@ VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_2021.1:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-win-vulkan.yml#Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_2021.1
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_2021.1:
     name: Build VFX_URP on Win_Vulkan_mono_Linear_Standalone_cache_build_Player on version 2021.1
     agent:
@@ -200,9 +200,9 @@ VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-vulkan.yml#Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_URP on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -235,7 +235,7 @@ Build_VFX_URP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -266,7 +266,7 @@ VFX_URP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Win_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -297,7 +297,7 @@ VFX_URP_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on Win_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -325,9 +325,9 @@ VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-vulkan.yml#Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_URP on Win_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -360,4 +360,4 @@ Build_VFX_URP_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters tfParameters, TextureHandle noisyBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle outputBuffer)
+        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters tfParameters, TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Fetch all the resources
                 passData.parameters = tfParameters;
-                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });

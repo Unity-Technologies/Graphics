@@ -15,11 +15,16 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_EXPOSURE_WEIGHT || VFX_FEATURE_MOTION_VECTORS_FORWARD
 		nointerpolation float3 builtInInterpolants : TEXCOORD0;
 		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
 		float3 posWS : TEXCOORD1;
+		#endif
+
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosPrevious : TEXCOORD2;
+		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosNonJiterred : TEXCOORD3;
 		#endif
 
 		float pointSize : PSIZE;
@@ -30,6 +35,9 @@ Pass
 	struct ps_output
 	{
 		float4 color : SV_Target0;
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		float4 motionVector : SV_Target1;
+		#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -43,6 +51,10 @@ Pass
 #endif
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.z
+#endif
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
+#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
 	${VFXPassForwardDefine}
@@ -60,6 +72,11 @@ Pass
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
 		o.color = VFXTransformFinalColor(o.color);
+		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		${VFXComputeOutputMotionVector}
+		o.motionVector = encodedMotionVector;
+		o.motionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
+		#endif
 		return o;
 	}
 	ENDHLSL

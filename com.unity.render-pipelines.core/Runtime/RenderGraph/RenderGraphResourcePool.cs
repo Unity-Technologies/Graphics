@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
 
         protected static int s_CurrentFrameIndex;
+        const int kStaleResourceLifetime = 10;
 
         // Release the GPU resource itself
         protected abstract void ReleaseInternalResource(Type res);
@@ -120,8 +121,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             allocationList.Sort((a, b) => a.size < b.size ? 1 : -1);
             int index = 0;
+            float total = 0;
             foreach (var element in allocationList)
-                logger.LogLine("[{0}]\t[{1:#.##} MB]\t{2}", index++, element.size / 1024.0f, element.name);
+            {
+                float size = element.size / (1024.0f * 1024.0f);
+                total += size;
+                logger.LogLine($"[{index++:D2}]\t[{size:0.00} MB]\t{element.name}");
+            }
+
+            logger.LogLine($"\nTotal Size [{total:0.00}]");
+        }
+
+        static protected bool ShouldReleaseResource(int lastUsedFrameIndex, int currentFrameIndex)
+        {
+            // We need to have a delay of a few frames before releasing resources for good.
+            // Indeed, when having multiple off-screen cameras, they are rendered in a separate SRP render call and thus with a different frame index than main camera
+            // This causes texture to be deallocated/reallocated every frame if the two cameras don't need the same buffers.
+            return (lastUsedFrameIndex + kStaleResourceLifetime) < currentFrameIndex;
         }
     }
 }

@@ -84,7 +84,6 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RaytracingIncludeSky = 1;
-            deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
 

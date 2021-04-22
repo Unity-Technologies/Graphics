@@ -13,6 +13,8 @@ The Motion Blur effect uses velocities from HDRP's velocity buffer. This means t
 
 Motion Blur includes [more options](More-Options.md) that you must manually expose.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingMotionBlur1.png)
