@@ -294,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If the mesh was not valid, exclude it (without affecting sidedness)
                 if (!validMesh)
+                {
                     subMeshFlagArray[meshIdx] = false;
                     subMeshCutoffArray[meshIdx] = false;
                 }
