@@ -729,13 +729,26 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     const float prec = 8.0f;
 
     float speed = saturate(speedDiff);
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, -prec)));
+
+    const float usedSpeedRejection = max(1e-3f, _SsrPBRSpeedRejection);
+
+#define SMOOTH_REJECT
+
+#ifdef SMOOTH_REJECT
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(usedSpeedRejection, -prec)));
+#else
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed > pow(usedSpeedRejection, prec) ? 1.0f : 0.0f);
+#endif
     float4 result = lerp(previous, original, coefExpAvg);
 
-    //if (speedDiff > pow(_SsrPBRSpeedRejection, prec))
-    //    result.rgb = float3(1, 0, 0);
-    //else
-    //    result.rgb = float3(0, 1, 0);
+//#define REJECT_DEBUG_COLOR
+
+#ifdef REJECT_DEBUG_COLOR
+    if (speedDiff > pow(usedSpeedRejection, prec))
+        result.rgb = float3(1, 0, 0);
+    else
+        result.rgb = float3(0, 1, 0);
+#endif
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
