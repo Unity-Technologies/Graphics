@@ -85,6 +85,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
             // -------------------------------------
             // Unity defined keywords
@@ -344,6 +346,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
 
             // -------------------------------------
