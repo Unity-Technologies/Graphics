@@ -42,11 +42,12 @@ namespace UnityEditor.ShaderGraph
             if (slot.isConnected)
             {
                 var property = GetSlotProperty(0);
-                if (!property.isConnectionTestable)
+                if (property == null || !property.isConnectionTestable)
                 {
                     var edges = owner.GetEdges(GetSlotReference(0));
                     owner.RemoveElements(new AbstractMaterialNode[] {}, edges.ToArray(), new GroupData[] {}, new StickyNoteData[] {});
-                    owner.AddValidationError(objectId, String.Format("Connected property {0} is not connection testable and was disconnected from the Input port", property.displayName), ShaderCompilerMessageSeverity.Warning);
+                    if (property != null)
+                        owner.AddValidationError(objectId, String.Format("Connected property {0} is not connection testable and was disconnected from the Input port", property.displayName), ShaderCompilerMessageSeverity.Warning);
                 }
             }
         }
