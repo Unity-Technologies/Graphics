@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> visibleLights;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
+        public bool supportsLightLayers;
     }
 
     public struct CameraData
@@ -249,8 +250,9 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 color;
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
-        public int lightIndex;
+        public int flags;
         public Vector4 occlusionProbeInfo;
+        public uint layerMask;
     }
 
     internal static class ShaderPropertyId
@@ -325,6 +327,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+        public static readonly string LightLayers = "_LIGHT_LAYERS";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
