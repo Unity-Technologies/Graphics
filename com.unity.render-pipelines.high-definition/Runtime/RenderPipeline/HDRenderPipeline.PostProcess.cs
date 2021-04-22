@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Lens Flare
             m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareDataDrivenPS);
+            m_LensFlareDataDrivenShader.SetOverrideTag("RenderType", "Transparent");
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -191,7 +192,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 wrapMode = TextureWrapMode.Clamp
             };
             m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
-
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
         }
