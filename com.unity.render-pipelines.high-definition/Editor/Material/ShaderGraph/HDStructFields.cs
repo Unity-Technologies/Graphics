@@ -57,13 +57,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Note: we don't generate cullFace here as it is always present in VertMesh.hlsl
 
             // VFX
-            public static FieldDescriptor worldToElement0 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement0", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
-            public static FieldDescriptor worldToElement1 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement1", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
-            public static FieldDescriptor worldToElement2 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement2", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement0 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement0", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement1 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement1", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor worldToElement2 = new FieldDescriptor(VaryingsMeshToPS.name, "worldToElement2", "VARYINGS_NEED_WORLD_TO_ELEMENT", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
 
-            public static FieldDescriptor elementToWorld0 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld0", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
-            public static FieldDescriptor elementToWorld1 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld1", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
-            public static FieldDescriptor elementToWorld2 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld2", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld0 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld0", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld1 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld1", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
+            public static FieldDescriptor elementToWorld2 = new FieldDescriptor(VaryingsMeshToPS.name, "elementToWorld2", "VARYINGS_NEED_ELEMENT_TO_WORLD", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional, interpolation: "nointerpolation");
         }
 
         public struct VaryingsMeshToDS
