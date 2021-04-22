@@ -1,0 +1,7 @@
+{
+	SubShader
+	{
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXIncludeRP("Templates/Mesh/PassForward.template")}
+	}
+}
