@@ -43,6 +43,7 @@ CBUFFER_START(cb0)
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
+    float4 _LensFlareParams;
     float4 _DebugFlags;
     float4 _AlphaScaleBias;
 CBUFFER_END

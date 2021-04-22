@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
+        LensFlare m_LensFlare;
         ChromaticAberration m_ChromaticAberration;
         LensDistortion m_LensDistortion;
         Vignette m_Vignette;
@@ -88,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_MotionBlurFS;
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
+        bool m_LensFlareFS;
         bool m_ChromaticAberrationFS;
         bool m_LensDistortionFS;
         bool m_VignetteFS;
@@ -243,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionBlur = stack.GetComponent<MotionBlur>();
             m_PaniniProjection = stack.GetComponent<PaniniProjection>();
             m_Bloom = stack.GetComponent<Bloom>();
+            m_LensFlare = stack.GetComponent<LensFlare>();
             m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
             m_LensDistortion = stack.GetComponent<LensDistortion>();
             m_Vignette = stack.GetComponent<Vignette>();
@@ -265,6 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
             m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
             m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_LensFlareFS = frameSettings.IsEnabled(FrameSettingsField.LensFlare);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
             m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
@@ -3739,6 +3743,11 @@ namespace UnityEngine.Rendering.HighDefinition
             data.bloomBicubicParams = m_BloomBicubicParams;
         }
 
+        void PrepareUberLensFlareParameters(UberPostPassData data, HDCamera camera)
+        {
+            data.lensFlareParams = new Vector4();
+        }
+
         void PrepareAlphaScaleParameters(UberPostPassData data, HDCamera camera)
         {
             if (m_EnableAlpha)
@@ -3775,6 +3784,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 bloomBicubicParams;
             public Vector4 bloomDirtTileOffset;
             public Vector4 bloomThreshold;
+
+            public Vector4 lensFlareParams;
 
             public Vector4 alphaScaleBias;
 
@@ -3818,6 +3829,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareChromaticAberrationParameters(passData, featureFlags);
                 PrepareVignetteParameters(passData, featureFlags);
                 PrepareUberBloomParameters(passData, hdCamera);
+                PrepareUberLensFlareParameters(passData, hdCamera);
                 PrepareAlphaScaleParameters(passData, hdCamera);
 
                 passData.source = builder.ReadTexture(source);
@@ -3854,6 +3866,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomBicubicParams, data.bloomBicubicParams);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomDirtScaleOffset, data.bloomDirtTileOffset);
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomThreshold, data.bloomThreshold);
+
+                        // Lens Flare
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LensFlareParams, data.lensFlareParams);
 
                         // Alpha scale and bias (only used when alpha is enabled)
                         ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);
