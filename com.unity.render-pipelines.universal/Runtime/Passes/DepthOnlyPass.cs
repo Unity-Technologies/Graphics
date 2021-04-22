@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
-        internal bool useDepthPriming { get; set; } = false;
 
         FilteringSettings m_FilteringSettings;
 
@@ -41,8 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle depthAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandleMSAA = new RenderTargetHandle(),
-            bool useDepthPriming = false)
+            RenderTargetHandle depthAttachmentHandleMSAA = new RenderTargetHandle())
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             this.depthAttachmentHandleMSAA = depthAttachmentHandleMSAA;
@@ -55,7 +53,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.allocateDepth = true;
             this.shaderTagId = k_ShaderTagId;
-            this.useDepthPriming = useDepthPriming;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -65,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
-            if (this.useDepthPriming)
+            if (renderingData.cameraData.renderer.useDepthPriming)
             {
                 ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandleMSAA.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             }

@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
 
-            if (this.renderingMode == RenderingMode.Forward && this.depthPrimingMode == DepthPrimingMode.Auto)
+            if (this.renderingMode == RenderingMode.Forward && this.depthPrimingMode != DepthPrimingMode.Disabled)
             {
                 m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
             }
@@ -438,10 +438,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            if (m_RenderingMode == RenderingMode.Forward)
-            {
-                m_RenderOpaqueForwardPass.SetUseDepthPriming(useDepthPriming);
-            }
+            cameraData.renderer.useDepthPriming = useDepthPriming;
 
             // Assign camera targets (color and depth)
             {
@@ -501,7 +498,7 @@ namespace UnityEngine.Rendering.Universal
                     // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
                     if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_ActiveCameraDepthAttachment, useDepthPriming);
+                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_ActiveCameraDepthAttachment);
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
