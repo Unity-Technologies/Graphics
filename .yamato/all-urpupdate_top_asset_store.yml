@@ -19,7 +19,7 @@ PR_URPUpdate_Top_Asset_Store_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_Top_Asset_Store_trunk:
     name: Nightly URPUpdate_Top_Asset_Store - trunk
     dependencies:
@@ -29,7 +29,7 @@ Nightly_URPUpdate_Top_Asset_Store_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store PR Job - CUSTOM-REVISION
     dependencies:
@@ -42,7 +42,7 @@ PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: Nightly URPUpdate_Top_Asset_Store - CUSTOM-REVISION
     dependencies:
@@ -53,4 +53,4 @@ Nightly_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e

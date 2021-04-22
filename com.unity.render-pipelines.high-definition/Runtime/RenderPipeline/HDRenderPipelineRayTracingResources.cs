@@ -1,9 +1,9 @@
-using System;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial class HDRenderPipelineRayTracingResources : ScriptableObject
+    [HDRPHelpURL("Default-Settings-Window")]
+    partial class HDRenderPipelineRayTracingResources : HDRenderPipelineResources
     {
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
@@ -86,26 +86,5 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
-
-#if UNITY_EDITOR
-        [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]
-        class RenderPipelineRayTracingResourcesEditor : UnityEditor.Editor
-        {
-            public override void OnInspectorGUI()
-            {
-                DrawDefaultInspector();
-
-                // Add a "Reload All" button in inspector when we are in developer's mode
-                if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
-                    && GUILayout.Button("Reload All"))
-                {
-                    foreach (var field in typeof(HDRenderPipelineRayTracingResources).GetFields())
-                        field.SetValue(target, null);
-
-                    ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
-                }
-            }
-        }
-    #endif
     }
 }
