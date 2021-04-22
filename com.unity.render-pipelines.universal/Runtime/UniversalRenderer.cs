@@ -17,25 +17,16 @@ namespace UnityEngine.Rendering.Universal
     };
 
     /// <summary>
-    /// When the Universal Renderer should use a depth prepass in Forward mode.
-    /// </summary>
-    public enum DepthPrepassMode
-    {
-        /// <summary>A depth prepass will only be used if needed.</summary>
-        Auto,
-        /// <summary>A depth prepass will always be used.</summary>
-        Forced
-    };
-
-    /// <summary>
-    /// When the Universal Renderer should use a depth prepass in Forward mode.
+    /// When the Universal Renderer should use Depth Priming in Forward mode.
     /// </summary>
     public enum DepthPrimingMode
     {
-        /// <summary>A depth prepass will only be used if the rendering mode is set to forward and there is a depth prepass used.</summary>
+        /// <summary>Depth Priming will never be used.</summary>
+        Disabled,
+        /// <summary>Depth Priming will only be used if there is a depth prepass needed by any of the render passes.</summary>
         Auto,
-        /// <summary>A depth prepass will never be used.</summary>
-        Disabled
+        /// <summary>A depth prepass will be explicitly requested so Depth Priming can be used.</summary>
+        Forced,
     }
 
     /// <summary>
@@ -60,7 +51,6 @@ namespace UnityEngine.Rendering.Universal
         internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
         internal bool usesRenderPass;
-        internal DepthPrepassMode depthPrepassMode { get { return m_DepthPrepassMode; } }
         internal DepthPrimingMode depthPrimingMode { get { return m_DepthPrimingMode; } }
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
@@ -105,7 +95,6 @@ namespace UnityEngine.Rendering.Universal
         ForwardLights m_ForwardLights;
         DeferredLights m_DeferredLights;
         RenderingMode m_RenderingMode;
-        DepthPrepassMode m_DepthPrepassMode;
         DepthPrimingMode m_DepthPrimingMode;
         bool m_CanUseDepthPriming;
         StencilState m_DefaultStencilState;
@@ -152,7 +141,6 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
-            this.m_DepthPrepassMode = data.depthPrepassMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.usesRenderPass = data.useNativeRenderPass;
 
@@ -351,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred || m_DepthPrepassMode == DepthPrepassMode.Forced;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred || m_DepthPrimingMode == DepthPrimingMode.Forced;
 
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
@@ -383,7 +371,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
                 requiresDepthPrepass = false;
 
-            requiresDepthPrepass |= m_DepthPrepassMode == DepthPrepassMode.Forced;
+            requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -401,7 +389,9 @@ namespace UnityEngine.Rendering.Universal
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= this.actualRenderingMode == RenderingMode.Deferred;
-            createDepthTexture |= m_DepthPrepassMode == DepthPrepassMode.Forced;
+            // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
+            createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
@@ -420,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
+            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode != DepthPrimingMode.Disabled && requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (usesRenderPass || useDepthPriming)
             {

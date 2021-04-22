@@ -18,9 +18,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent RenderingLabel = new GUIContent("Rendering", "Settings related to rendering and lighting paths.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
-            public static readonly GUIContent DepthPrepassModeLabel = new GUIContent("Depth Prepass Mode", "How this renderer should decide to execute a depth prepass. Auto means a depth prepass will be executed if needed by a later pass. Forced will always execute a depth prepass.");
-            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "How this renderer should decide to use depth priming. Auto means depth priming will be enabled if there is a depth prepass in use. Disabled will never use depth priming. Note that Depth Priming might be disabled at runtime on certain hardware (Tile Based Deferred Rendering) regardless of this setting.");
-            public static readonly GUIContent DepthPrepassModeWarning = new GUIContent("Depth Prepass is Forced while Depth Priming is Disabled. This is a potential waste of a depth prepass. Set Prepass Mode to Auto to let URP decide if a prepass is needed. Set Depth Priming Mode to Auto to use the depth prepass for depth priming.");
+            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "How this renderer should decide to use depth priming. Disabled will never use depth priming. Auto means depth priming will be enabled if there is a depth prepass being executed for another pass. Forced will request a depth prepass so depth priming can definitely be used. Note that Depth Priming will be disabled at runtime on certain hardware (Tile Based Deferred Rendering) regardless of this setting.");
             public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
@@ -32,7 +30,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_OpaqueLayerMask;
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_RenderingMode;
-        SerializedProperty m_DepthPrepassMode;
         SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
@@ -49,7 +46,6 @@ namespace UnityEditor.Rendering.Universal
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
-            m_DepthPrepassMode = serializedObject.FindProperty("m_DepthPrepassMode");
             m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
@@ -90,12 +86,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_RenderingMode.intValue == (int)RenderingMode.Forward)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_DepthPrepassMode, Styles.DepthPrepassModeLabel);
                 EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
-                if (m_DepthPrepassMode.intValue == (int)DepthPrepassMode.Forced && m_DepthPrimingMode.intValue == (int)DepthPrimingMode.Disabled)
-                {
-                    EditorGUILayout.HelpBox(Styles.DepthPrepassModeWarning.text, MessageType.Warning);
-                }
                 EditorGUI.indentLevel--;
             }
 
