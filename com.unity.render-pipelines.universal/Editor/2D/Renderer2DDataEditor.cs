@@ -1,7 +1,9 @@
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
     internal class Renderer2DDataEditor : ScriptableRendererDataEditor
