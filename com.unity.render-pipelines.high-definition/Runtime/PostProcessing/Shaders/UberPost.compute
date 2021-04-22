@@ -4,13 +4,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ClusterDisplay.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma enable_d3d11_debug_symbols
-#pragma skip_optimizations d3d11
-#pragma multi_compile _ USING_CLUSTER_DISPLAY
+// #pragma enable_d3d11_debug_symbols
+// #pragma skip_optimizations d3d11
 
 #pragma kernel KMain_Variant0 MAIN=KMain_Variant0 VARIANT=0
 #pragma kernel KMain_Variant1 MAIN=KMain_Variant1 VARIANT=1
@@ -30,6 +28,9 @@
 #pragma kernel KMain_Variant14 MAIN=KMain_Variant14 ENABLE_ALPHA VARIANT=14
 #pragma kernel KMain_Variant15 MAIN=KMain_Variant15 ENABLE_ALPHA VARIANT=15
 
+#pragma multi_compile _ USING_CLUSTER_DISPLAY
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ClusterDisplay.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 TEXTURE2D_X(_InputTexture);
