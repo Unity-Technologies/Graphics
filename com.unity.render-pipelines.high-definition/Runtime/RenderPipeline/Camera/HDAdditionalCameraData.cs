@@ -37,12 +37,20 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lens
         // Note: focalLength is already defined in the regular camera component
         [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField][Min(0f)] float m_FocusDistance = 10f;
 
         // Aperture shape
         [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
         [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
         [SerializeField][Range(0f, 1f)] float m_BarrelClipping = 0.25f;
         [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
+
+
+        public float focusDistance
+        {
+            get => m_FocusDistance;
+            set => m_FocusDistance = Mathf.Max(value, 0);
+        }
 
         /// <summary>
         /// The sensor sensitivity (ISO).

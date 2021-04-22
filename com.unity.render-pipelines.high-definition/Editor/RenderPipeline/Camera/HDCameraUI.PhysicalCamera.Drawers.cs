@@ -30,8 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.Group(
                         GroupOption.Indent,
                         Drawer_PhysicalCamera_Lens_FocalLength,
-                        Drawer_PhysicalCamera_Lens_Shift,
-                        Drawer_PhysicalCamera_Lens_Aperture
+                        Drawer_PhysicalCamera_Lens_Aperture,
+                        Drawer_PhysicalCamera_FocusDistance,
+                        Drawer_PhysicalCamera_Lens_Shift
                     )
                     ),
                 CED.Group(
@@ -133,6 +134,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (checkScope.changed || focalLengthIsDirty)
                         cam.focalLength.floatValue = focalLengthVal;
                 }
+            }
+
+            static void Drawer_PhysicalCamera_FocusDistance(SerializedHDCamera p, Editor owner)
+            {
+                EditorGUILayout.PropertyField(p.focusDistance, Styles.focusDistance);
             }
 
             static void Drawer_PhysicalCamera_Lens_Shift(SerializedHDCamera p, Editor owner)
