@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader invCDFCS = hdrp.renderPipelineResources.shaders.inverseCDF1DCS;
 
             GraphicsFormat format;

@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width  = input.rt.width;
             int height = input.rt.height;
 
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader scanCS = hdrp.renderPipelineResources.shaders.gpuScanCS;
 
             bool isFullPrecision;
