@@ -4,8 +4,9 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
@@ -14,18 +15,13 @@ namespace UnityEditor.Rendering
         SerializedProbeVolume m_SerializedProbeVolume;
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
 
-        static Dictionary<ProbeVolume, HierarchicalBox> shapeBoxes = new Dictionary<ProbeVolume, HierarchicalBox>();
+        static HierarchicalBox s_ShapeBox;
 
         protected void OnEnable()
         {
             m_SerializedProbeVolume = new SerializedProbeVolume(serializedObject);
 
-            shapeBoxes.Clear();
-            for (int i = 0; i < targets.Length; ++i)
-            {
-                var shapeBox = shapeBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
-                shapeBox.monoHandle = false;
-            }
+            s_ShapeBox = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
         }
 
         public override void OnInspectorGUI()
@@ -51,10 +47,9 @@ namespace UnityEditor.Rendering
             using (new Handles.DrawingScope(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, Vector3.one)))
             {
                 // Bounding box.
-                if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
-                shapeBox.center = Vector3.zero;
-                shapeBox.size = probeVolume.parameters.size;
-                shapeBox.DrawHull(EditMode.editMode == k_EditShape);
+                s_ShapeBox.center = Vector3.zero;
+                s_ShapeBox.size = probeVolume.parameters.size;
+                s_ShapeBox.DrawHull(EditMode.editMode == k_EditShape);
             }
         }
 
@@ -62,29 +57,25 @@ namespace UnityEditor.Rendering
         {
             ProbeVolume probeVolume = target as ProbeVolume;
 
-            if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
-
+            //important: if the origin of the handle's space move along the handle,
+            //handles displacement will appears as moving two time faster.
+            using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, probeVolume.transform.rotation, Vector3.one)))
             {
-                //important: if the origin of the handle's space move along the handle,
-                //handles displacement will appears as moving two time faster.
-                using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, probeVolume.transform.rotation, Vector3.one)))
+                //contained must be initialized in all case
+                s_ShapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
+                s_ShapeBox.size = probeVolume.parameters.size;
+
+                s_ShapeBox.monoHandle = false;
+                EditorGUI.BeginChangeCheck();
+                s_ShapeBox.DrawHandle();
+                if (EditorGUI.EndChangeCheck())
                 {
-                    //contained must be initialized in all case
-                    shapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
-                    shapeBox.size = probeVolume.parameters.size;
+                    Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
 
-                    shapeBox.monoHandle = false;
-                    EditorGUI.BeginChangeCheck();
-                    shapeBox.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
+                    probeVolume.parameters.size = s_ShapeBox.size;
 
-                        probeVolume.parameters.size = shapeBox.size;
-
-                        Vector3 delta = probeVolume.transform.rotation * shapeBox.center - probeVolume.transform.position;
-                        probeVolume.transform.position += delta;;
-                    }
+                    Vector3 delta = probeVolume.transform.rotation * s_ShapeBox.center - probeVolume.transform.position;
+                    probeVolume.transform.position += delta;;
                 }
             }
         }
