@@ -362,6 +362,11 @@ namespace UnityEditor.VFX
             {
                 foreach (var kvp in base.additionalReplacements)
                     yield return kvp;
+
+                // URP Forward specific defines
+                var forwardDefines = new VFXShaderWriter();
+                forwardDefines.WriteLine("#define _ADDITIONAL_LIGHTS");
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
             }
         }
     }
