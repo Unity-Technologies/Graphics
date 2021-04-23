@@ -4231,7 +4231,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         }
 
         lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
-        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC, bsdfData.coatMask);
+        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
     }
     else
     {
