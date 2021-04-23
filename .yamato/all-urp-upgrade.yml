@@ -11,10 +11,8 @@
 PR_urp-upgrade_trunk:
     name: urp-upgrade PR Job - trunk
     dependencies:
-      -  path: .yamato/urp-upgrade-win-dx11.yml#urp-upgrade_Win_DX11_editmode_mono_Linear_trunk
+      -  path: .yamato/urp-upgrade-win-dx12.yml#urp-upgrade_Win_DX12_urp-upgrade-editor_mono_Linear_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -23,13 +21,19 @@ Nightly_urp-upgrade_trunk:
     dependencies:
       -  path: .yamato/all-urp-upgrade.yml#PR_urp-upgrade_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-win-dx12.yml#urp-upgrade_Win_DX12_urp-upgrade-editor_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-linux-vulkan.yml#urp-upgrade_Linux_Vulkan_urp-upgrade-editor_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-osx-vulkan.yml#urp-upgrade_OSX_Vulkan_urp-upgrade-editor_mono_Linear_trunk
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_urp-upgrade_CUSTOM-REVISION:
     name: urp-upgrade PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp-upgrade-win-dx11.yml#urp-upgrade_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp-upgrade-win-dx12.yml#urp-upgrade_Win_DX12_urp-upgrade-editor_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
@@ -39,6 +43,12 @@ Nightly_urp-upgrade_CUSTOM-REVISION:
     name: Nightly urp-upgrade - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-urp-upgrade.yml#PR_urp-upgrade_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-win-dx12.yml#urp-upgrade_Win_DX12_urp-upgrade-editor_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-linux-vulkan.yml#urp-upgrade_Linux_Vulkan_urp-upgrade-editor_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp-upgrade-osx-vulkan.yml#urp-upgrade_OSX_Vulkan_urp-upgrade-editor_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
