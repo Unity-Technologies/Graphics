@@ -49,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-
         private static Material[] CreateMaterials(Shader shader, int pass = 0)
         {
             const int k_ColorChannels = 4;
