@@ -23,10 +23,6 @@ ParallaxOcclusionMapping
 #endif
 (real lod, real lodThreshold, int numSteps, real3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out real outHeight POM_USER_DATA_PARAMETERS)
 {
-    // Avoid crashes when numSteps gets too big.
-    // This should compile out when numSteps is a static value
-    numSteps = min(numSteps, 256);
-
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     real stepSize = 1.0 / (real)numSteps;
 

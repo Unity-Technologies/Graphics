@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where users can't create multiple Boolean or Enum keywords on the blackboard. [1329021](https://issuetracker.unity3d.com/issues/shadergraph-cant-create-multiple-boolean-or-enum-keywords)
 - Fixed an issue where generated property reference names could conflict with Shader Graph reserved keywords [1328762] (https://issuetracker.unity3d.com/product/unity/issues/guid/1328762/)
 - Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
-
+- Fixed ParallaxOcclusionMapping node to clamp very large step counts that could crash GPUs (max set to 256). [1329025] (https://issuetracker.unity3d.com/issues/shadergraph-typing-infinity-into-the-steps-input-for-the-parallax-occlusion-mapping-node-crashes-unity)
 
 
 ## [11.0.0] - 2020-10-21
