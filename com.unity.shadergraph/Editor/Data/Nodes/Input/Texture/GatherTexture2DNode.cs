@@ -88,10 +88,10 @@ namespace UnityEditor.ShaderGraph
                 // Gather offsets defined in this order:
                 // (-,+),(+,+),(+,-),(-,-)
 
-                var uvR = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(-0.5, 0.5)) + int2({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
-                var uvG = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(0.5, 0.5)) + int2({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
-                var uvB = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(0.5, -0.5)) + int2({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
-                var uvA = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(-0.5, -0.5)) + int2({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
+                var uvR = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(-0.5, 0.5)) + trunc({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
+                var uvG = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(0.5, 0.5)) + trunc({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
+                var uvB = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(0.5, -0.5)) + trunc({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
+                var uvA = string.Format("(floor({0} * {1}.texelSize.zw + $precision2(-0.5, -0.5)) + trunc({2}) + $precision2(0.5, 0.5)) * {1}.texelSize.xy", uvName, id, offset);
 
                 sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {3}, 0).r;", GetVariableNameForSlot(OutputSlotRId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id, uvR));
                 sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {3}, 0).r;", GetVariableNameForSlot(OutputSlotGId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id, uvG));
