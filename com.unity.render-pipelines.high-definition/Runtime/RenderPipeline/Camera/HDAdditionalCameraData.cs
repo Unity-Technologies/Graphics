@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lens
         // Note: focalLength is already defined in the regular camera component
         [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
-        [SerializeField][Min(0f)] float m_FocusDistance = 10f;
+        [SerializeField][Min(0.1f)] float m_FocusDistance = 10f;
 
         // Aperture shape
         [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>
-        /// The focus distance of the lens, used in Depth of Field Computations when the DoF volume is configured to read this value from the camera.
+        /// The focus distance of the lens, used in Depth of Field computations when the DoF volume is configured to read this value from the camera.
         /// </summary>
         public float focusDistance
         {
