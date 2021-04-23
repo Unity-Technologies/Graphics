@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering.Universal
 {
     class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
     {
+        static bool firstTimeUpgrade = true;
         static int editedAssetsCount = 0;
         static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6"); //ForwardRendererData.cs
         static Object fwdRendererScriptObj;
@@ -42,23 +43,43 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        static void IterateSubAssets(string assetPath)
+        {
+            //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
+            Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath);
+            for (int j = 0; j < subAssets.Length; j++)
+            {
+                //Upgrade subAssets
+                UpgradeAsset(subAssets[j], assetPath);
+            }
+
+            //Upgrade the main Asset
+            Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
+            UpgradeAsset(rendererData, assetPath);
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
+            //For the first time get all the ForwardRendererData Assets in project
+            //This will make sure opening projects with Library will still have the ForwardRendererData upgraded
+            if(firstTimeUpgrade)
+            {
+                string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
+                for (int i = 0; i < allRenderers.Length; i++)
+                {
+                    string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
+                    IterateSubAssets(rendererDataPath);
+                }
+
+                firstTimeUpgrade = false;
+            }
+
+            //Iterate any changed assets
             for(int i=0; i<importedAssets.Length; i++)
             {
                 if(importedAssets[i].EndsWith(".asset"))
                 {
-                    //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
-                    Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(importedAssets[i]);
-                    for (int j = 0; j < subAssets.Length; j++)
-                    {
-                        //Upgrade subAssets
-                        UpgradeAsset(subAssets[j], importedAssets[i]);
-                    }
-
-                    //Upgrade the main Asset
-                    Object rendererData = AssetDatabase.LoadAssetAtPath(importedAssets[i], typeof(Object));
-                    UpgradeAsset(rendererData, importedAssets[i]);
+                    IterateSubAssets(importedAssets[i]);
                 }
             }
 
