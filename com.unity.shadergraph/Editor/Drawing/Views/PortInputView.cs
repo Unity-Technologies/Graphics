@@ -101,6 +101,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateControl()
         {
+            // Specially designated properties (Use Custom Binding) are shown as a label on the slot when the slot is disconnected, with no ability to set an explicit default.
+            // If the port for this property is connected to, it will use the regular slot control.
             m_Control = (!slot.isConnected && slot.IsConnectionTestable()) ? slot.InstantiateCustomControl() : slot.InstantiateControl();
             if (m_Control != null)
             {
