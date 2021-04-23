@@ -422,6 +422,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useRenderPassEnabled = false;
         static RTHandle[] m_ActiveColorAttachments = new RTHandle[] {null, null, null, null, null, null, null, null };
+        static RenderTargetIdentifier[] m_ActiveColorAttachmentIdentifiers = new RenderTargetIdentifier[] {-1, -1, -1, -1, -1, -1, -1, -1 };
         static RTHandle m_ActiveDepthAttachment;
 
         static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
@@ -1295,13 +1296,22 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[colorAttachments.Length];
-            for (uint i = 0; i < colorAttachments.Length; ++i)
+            if (m_ActiveColorAttachmentIdentifiers.Length != colorAttachments.Length)
             {
-                colorAttachmentIdentifiers[i] = colorAttachments[i];
+                m_ActiveColorAttachmentIdentifiers = new RenderTargetIdentifier[colorAttachments.Length];
             }
 
-            CoreUtils.SetRenderTarget(cmd, colorAttachmentIdentifiers, depthAttachment, clearFlag, clearColor);
+            for (int i = 0; i < colorAttachments.Length; ++i)
+            {
+                m_ActiveColorAttachmentIdentifiers[i] = colorAttachments[i];
+            }
+
+            CoreUtils.SetRenderTarget(cmd, m_ActiveColorAttachmentIdentifiers, depthAttachment, clearFlag, clearColor);
+            foreach (var attachment in colorAttachments)
+            {
+                CoreUtils.SetViewport(cmd, attachment);
+            }
+            CoreUtils.SetViewport(cmd, depthAttachment);
         }
 
         [Conditional("UNITY_EDITOR")]

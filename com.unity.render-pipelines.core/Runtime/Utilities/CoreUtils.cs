@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering
         /// <param name="depthBuffer">Depth Buffer RTHandle.</param>
         /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
         /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
-        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
+        public static void SetRenderTarget(CommandBuffer cmd, ref RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
             SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
