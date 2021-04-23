@@ -18,10 +18,8 @@ namespace UnityEditor.Rendering.Universal
         {
             if (rendererData == null) return;
             
-            //Gets the ForwardRendererData.cs file
+            //Gets the script file objects
             if(!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
-
-            //Gets the UniversalRendererData.cs file
             if(!stdRendererScriptObj) stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
 
             //Double check to see if it's using ForwardRendererData
@@ -61,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             //For the first time get all the ForwardRendererData Assets in project
-            //This will make sure opening projects with Library will still have the ForwardRendererData upgraded
+            //This will make sure opening projects with Library will still have the ForwardRendererData Assets upgraded
             if(firstTimeUpgrade)
             {
                 string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
@@ -75,6 +73,9 @@ namespace UnityEditor.Rendering.Universal
             }
 
             //Iterate any changed assets
+            //Opening some projects with Library folder will not trigger this part, 
+            //and some projects without Library are not able to scan the ForwardRendererData Assets in above for-loop
+            //So both the above and this for-loop will make sure upgrader works on all situation
             for(int i=0; i<importedAssets.Length; i++)
             {
                 if(importedAssets[i].EndsWith(".asset"))
