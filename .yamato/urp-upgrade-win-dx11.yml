@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -19,7 +20,7 @@ urp-upgrade_Win_DX11_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci project pack --project-path com.unity.testing.urp-upgrade
+      -  upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
       -  upm-ci package test -u trunk --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
     artifacts:
         logs:
@@ -39,7 +40,7 @@ urp-upgrade_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci project pack --project-path com.unity.testing.urp-upgrade
+      -  upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
       -  upm-ci package test -u trunk --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
     artifacts:
         logs:

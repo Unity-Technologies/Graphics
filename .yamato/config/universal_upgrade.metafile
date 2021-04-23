@@ -5,7 +5,8 @@ test_platforms:
   - type: editmode
     commands:
       - [all]: npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      - [all]: upm-ci project pack --project-path com.unity.testing.urp-upgrade
+      # - [all]: upm-ci package pack --package-path com.unity.testing.urp-upgrade
+      - [all]: upm-ci project pack --project-path TestProjects/UniversalUpgradeTest
       - [all]: upm-ci package test -u trunk --package-path com.unity.testing.urp-upgrade --type package-tests --extra-create-project-arg=-upmNoDefaultPackages
 platforms:
   - name: Win
