@@ -18,7 +18,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
             public static readonly GUIContent RenderingLabel = new GUIContent("Rendering", "Settings related to rendering and lighting.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
-            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "This property defines whether the Renderer performs depth priming or not. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming. NOTE: depth priming is disabled at runtime on certain hardware (Tile Based Deferred Rendering) regardless of this setting.");
+            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "This property defines whether the Renderer performs depth priming or not. Depth priming means using a depth buffer generated in a prepass to determine whether a fragment should be shaded or skipped during the base camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
+            public static readonly GUIContent DepthPrimingModeInfo = new GUIContent("Depth priming is disabled at runtime on certain hardware (Tile Based Deferred Rendering) regardless of the Depth Priming Mode setting.");
             public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
@@ -87,6 +88,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
+                if (m_DepthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
+                {
+                    EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
+                }
                 EditorGUI.indentLevel--;
             }
 
