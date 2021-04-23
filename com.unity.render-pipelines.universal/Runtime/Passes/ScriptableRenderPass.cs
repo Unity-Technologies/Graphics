@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        public bool useNativeRenderPass { get; set; }
+        internal bool useNativeRenderPass { get; set; }
 
         internal int renderTargetWidth { get; set; }
         internal int renderTargetHeight { get; set; }

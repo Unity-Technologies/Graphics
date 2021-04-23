@@ -96,13 +96,13 @@ namespace UnityEngine.Rendering.Universal
                     renderPass.isLastPass = false;
                     renderPass.renderPassQueueIndex = i;
 
-                    Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
-
-                    m_PassIndexToPassHash[i] = hash;
-
                     bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
                     if (!RPEnabled)
                         continue;
+
+                    Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
+
+                    m_PassIndexToPassHash[i] = hash;
 
                     if (!m_MergeableRenderPassesMap.ContainsKey(hash))
                     {
@@ -489,12 +489,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)
         {
-            return new Hash128((uint)width * 10000 + (uint)height, (uint)depthID, (uint)sample, hashIndex);
+            return new Hash128((uint)(width << 4) + (uint)height, (uint)depthID, (uint)sample, hashIndex);
         }
 
         internal static Hash128 CreateRenderPassHash(RenderPassDescriptor desc, uint hashIndex)
         {
-            return new Hash128((uint)desc.w * 10000 + (uint)desc.h, (uint)desc.depthID, (uint)desc.samples, hashIndex);
+            return CreateRenderPassHash(desc.w, desc.h, desc.depthID, desc.samples, hashIndex);
         }
 
         private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
