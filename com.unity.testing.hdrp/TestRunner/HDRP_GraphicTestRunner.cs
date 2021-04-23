@@ -39,6 +39,10 @@ public class HDRP_GraphicTestRunner
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
         bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
+
+        if (useBackBuffer)
+            GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
+
         Time.captureFramerate = settings.captureFramerate;
 
         int waitFrames = settings.waitFrames;
@@ -71,9 +75,6 @@ public class HDRP_GraphicTestRunner
 
         if (settings.waitForFrameCountMultiple)
         {
-            // Get HDRP instance
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-
             // When we capture from the back buffer, there is no requirement of compensation frames
             // Else, given that we will render two frames, we need to compensate for them in the waiting
             var frameCountOffset = useBackBuffer ? 0 : 2;
