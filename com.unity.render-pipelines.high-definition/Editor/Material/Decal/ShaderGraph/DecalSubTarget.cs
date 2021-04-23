@@ -488,9 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CorePragmas.Basic },
                 { Pragma.MultiCompileInstancing },
-#if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
-#endif
             };
         }
         #endregion

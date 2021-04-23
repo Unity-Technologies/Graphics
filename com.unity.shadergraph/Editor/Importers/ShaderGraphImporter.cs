@@ -19,12 +19,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    // Bump the version number when Hybrid Renderer V2 is enabled, to make
-    // sure that all shader graphs get re-imported. Re-importing is required,
-    // because the shader graph codegen is different for V2.
-    // This ifdef can be removed once V2 is the only option.
     [ScriptedImporter(109, Extension, -902)]
-
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
