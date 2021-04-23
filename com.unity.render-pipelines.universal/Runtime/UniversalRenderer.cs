@@ -236,6 +236,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+            m_ForwardLights.Dispose();
             m_PostProcessPasses.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
