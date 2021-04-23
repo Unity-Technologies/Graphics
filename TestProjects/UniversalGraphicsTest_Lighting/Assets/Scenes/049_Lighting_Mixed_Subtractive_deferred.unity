@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18268347, g: 0.2256766, b: 0.2913267, a: 1}
+  m_IndirectSpecularColor: {r: 0.18268318, g: 0.22567657, b: 0.29132587, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -175,8 +175,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 512
-    TargetHeight: 512
+    TargetWidth: 640
+    TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
@@ -184,7 +184,7 @@ MonoBehaviour:
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 1
-    ImageResolution: 0
+    ImageResolution: 4
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0

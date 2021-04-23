@@ -189,6 +189,10 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1102861101, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
+      propertyPath: ImageComparisonSettings.ImageResolution
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1102861101, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
       value: 0.0011
       objectReference: {fileID: 0}

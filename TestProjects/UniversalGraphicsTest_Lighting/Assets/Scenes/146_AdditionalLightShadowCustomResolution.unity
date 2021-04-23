@@ -972,7 +972,7 @@ MonoBehaviour:
     IncorrectPixelsThreshold: 0.000003814697
     UseHDR: 0
     UseBackBuffer: 1
-    ImageResolution: 0
+    ImageResolution: 4
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
