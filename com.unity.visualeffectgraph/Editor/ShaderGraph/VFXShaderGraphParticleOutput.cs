@@ -48,7 +48,12 @@ namespace UnityEditor.VFX
         void UpdateMaterialEditor()
         {
             var material = ((VFXShaderGraphParticleOutput)target).transientMaterial;
-            m_MaterialEditor = (MaterialEditor)CreateEditor(material);
+
+            if (material != null)
+            {
+                m_MaterialEditor = (MaterialEditor)CreateEditor(material);
+                m_MaterialEditor.firstInspectedEditor = true;
+            }
         }
 
         public override void OnInspectorGUI()
