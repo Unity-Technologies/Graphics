@@ -9,6 +9,7 @@ using UnityEditor;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
+using UnityEditor.SceneManagement;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -43,6 +44,9 @@ namespace UnityEngine.Experimental.Rendering
         private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         private static List<BakingCell> bakingCells = new List<BakingCell>();
         private static ProbeReferenceVolumeAuthoring bakingReferenceVolumeAuthoring = null;
+
+        private static Bounds globalBounds = new Bounds();
+        private static bool hasFoundBounds = false;
 
         static ProbeGIBaking()
         {
@@ -86,6 +90,45 @@ namespace UnityEngine.Experimental.Rendering
             bakingCells.Clear();
         }
 
+        public static void FindWorldBounds()
+        {
+            var prevScenes = new List<string>();
+            for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
+            {
+                prevScenes.Add(EditorSceneManager.GetSceneAt(i).path);
+            }
+
+            hasFoundBounds = false;
+
+            foreach (var buildScene in EditorBuildSettings.scenes)
+            {
+                var scene = EditorSceneManager.OpenScene(buildScene.path);
+                var probeVolumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+                foreach (var probeVolume in probeVolumes)
+                {
+                    var extent = probeVolume.GetExtents();
+                    var pos = probeVolume.gameObject.transform.position;
+                    Bounds localBounds = new Bounds(pos, extent);
+
+                    if (!hasFoundBounds)
+                    {
+                        hasFoundBounds = true;
+                        globalBounds = localBounds;
+                    }
+                    else
+                    {
+                        globalBounds.Encapsulate(localBounds);
+                    }
+                }
+            }
+
+            for (int i = 0; i < prevScenes.Count; ++i)
+            {
+                var scene = prevScenes[i];
+                EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+            }
+        }
+
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
@@ -125,6 +168,9 @@ namespace UnityEngine.Experimental.Rendering
 
         private static void OnBakeStarted()
         {
+            if (!hasFoundBounds)
+                FindWorldBounds();
+
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
                 return;
@@ -251,14 +297,47 @@ namespace UnityEngine.Experimental.Rendering
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
 
-                        foreach (var p in cell.probePositions)
+                        if (hasFoundBounds)
                         {
-                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
-                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
-                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
-                            asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
-                            asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
-                            asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
+                            asset.maxCellIndex = new Vector3Int(Mathf.CeilToInt(globalBounds.size.x),
+                                Mathf.CeilToInt(globalBounds.size.y), Mathf.CeilToInt(globalBounds.size.z));
+
+                            Vector3 center = refVol.transform.position; //globalBounds.center; // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
+
+                            Vector3Int minInBricks = new Vector3Int(Mathf.CeilToInt(Mathf.Abs(globalBounds.min.x - center.x) / refVol.profile.brickSize),
+                                Mathf.CeilToInt(Mathf.Abs(globalBounds.min.y - center.y) / refVol.profile.brickSize),
+                                Mathf.CeilToInt(Mathf.Abs(globalBounds.min.z - center.z) / refVol.profile.brickSize));
+
+                            Vector3Int maxInBricks = new Vector3Int(Mathf.CeilToInt(Mathf.Abs(globalBounds.max.x - center.x) / refVol.profile.brickSize),
+                                Mathf.CeilToInt(Mathf.Abs(globalBounds.max.y - center.y) / refVol.profile.brickSize),
+                                Mathf.CeilToInt(Mathf.Abs(globalBounds.max.z - center.z) / refVol.profile.brickSize));
+
+                            int cellSizeInBricks = (int)refVol.profile.cellSizeInBricks;
+                            int cellsInX = (minInBricks.x / cellSizeInBricks) + ((minInBricks.x % cellSizeInBricks) != 0 ? 1 : 0) +
+                                (maxInBricks.x / cellSizeInBricks) + ((maxInBricks.x % cellSizeInBricks) != 0 ? 1 : 0);
+                            int cellsInY = (minInBricks.y / cellSizeInBricks) + ((minInBricks.y % cellSizeInBricks) != 0 ? 1 : 0) +
+                                (maxInBricks.y / cellSizeInBricks) + ((maxInBricks.y % cellSizeInBricks) != 0 ? 1 : 0);
+                            int cellsInZ = (minInBricks.z / cellSizeInBricks) + ((minInBricks.z % cellSizeInBricks) != 0 ? 1 : 0) +
+                                (maxInBricks.z / cellSizeInBricks) + ((maxInBricks.z % cellSizeInBricks) != 0 ? 1 : 0);
+
+                            // Round to cell size and divide by brick size.
+                            asset.maxCellIndex.x = cellsInX * cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInY * cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInZ * cellSizeInBricks;
+
+                            Debug.Log(asset.maxCellIndex);
+                        }
+                        else
+                        {
+                            foreach (var p in cell.probePositions)
+                            {
+                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
+                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
+                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
+                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
+                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
+                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
+                            }
                         }
                     }
                 }
