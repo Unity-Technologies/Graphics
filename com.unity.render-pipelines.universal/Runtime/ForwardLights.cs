@@ -41,6 +41,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseStructuredBuffer;
 
+        int m_TileWidth;
+        int2 m_TileResolution;
+        float m_ZBinFactor;
+        int m_ZBinOffset;
+
+        JobHandle m_CullingHandle;
+        NativeArray<ZBin> m_ZBins;
+        NativeArray<uint> m_HorizontalLightMasks;
+        NativeArray<uint> m_VerticalLightMasks;
+
+        ComputeBuffer m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+        ComputeBuffer m_HorizontalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+        ComputeBuffer m_VerticalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
+
         public ForwardLights()
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
@@ -72,41 +86,34 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        ProfilerMarker mainThreadMarker = new ProfilerMarker("Forward+");
-        ComputeBuffer m_ZBinBuffer = new ComputeBuffer(UniversalRenderPipeline.maxZBins / 4, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-        ComputeBuffer m_HorizontalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-        ComputeBuffer m_VerticalBuffer = new ComputeBuffer(UniversalRenderPipeline.maxVisibilityVec4s, UnsafeUtility.SizeOf<float4>(), ComputeBufferType.Constant);
-
-        public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        public void ProcessLights(ref RenderingData renderingData)
         {
             if (renderingData.lightData.useClusteredLighting)
             {
-                mainThreadMarker.Begin();
-
                 var camera = renderingData.cameraData.camera;
 
-                // var tilingLevels = 3;
-                var tile0Width = 16;
+                m_TileWidth = 16;
                 var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
 
                 var lightCount = renderingData.lightData.visibleLights.Length;
-                var lightsPerTile = UniversalRenderPipeline.maxVisibleAdditionalLights; // ((lightCount + 31) / 32) * 32;
+                var lightsPerTile = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 Assert.IsTrue(lightsPerTile % 32 == 0);
 
-                var sectionCount = (screenResolution + tile0Width - 1) / tile0Width;
+                m_TileResolution = (screenResolution + m_TileWidth - 1) / m_TileWidth;
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
                 var fovHalfWidth = fovHalfHeight * (float)camera.pixelWidth / (float)camera.pixelHeight;
 
-                var zFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
-                var binOffset = (int)(math.sqrt(camera.nearClipPlane) * zFactor);
-                var binCount = (int)(math.sqrt(camera.farClipPlane) * zFactor) - binOffset;
+                m_ZBinFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
+                m_ZBinOffset = (int)(math.sqrt(camera.nearClipPlane) * m_ZBinFactor);
+                var binCount = (int)(math.sqrt(camera.farClipPlane) * m_ZBinFactor) - m_ZBinOffset;
                 // Must be a multiple of 4 to be able to alias to vec4
                 binCount = ((binCount + 3) / 4) * 4;
-                var zBins = new NativeArray<ZBin>(binCount, Allocator.TempJob);
+                m_ZBins = new NativeArray<ZBin>(binCount, Allocator.TempJob);
+                Assert.AreEqual(UnsafeUtility.SizeOf<uint>(), UnsafeUtility.SizeOf<ZBin>());
 
-                var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
-                var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
+                using var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
+                using var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
 
                 Matrix4x4 worldToViewMatrix = renderingData.cameraData.GetViewMatrix();
                 var minMaxZJob = new MinMaxZJob
@@ -118,7 +125,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
                 var minMaxZHandle = minMaxZJob.ScheduleParallel(lightCount, 32, new JobHandle());
 
-                var indices = new NativeArray<int>(lightCount * 2, Allocator.TempJob);
+                using var indices = new NativeArray<int>(lightCount * 2, Allocator.TempJob);
                 var radixSortJob = new RadixSortJob
                 {
                     // Floats can be sorted bitwise with no special handling if positive floats only
@@ -135,13 +142,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var reorderMinMaxZsJob = new ReorderJob<LightMinMaxZ> { indices = indices, input = minMaxZs, output = reorderedMinMaxZs };
                 var reorderMinMaxZsHandle = reorderMinMaxZsJob.ScheduleParallel(lightCount, 32, zSortHandle);
-                minMaxZs.Dispose(reorderMinMaxZsHandle);
-                minMaxZs = reorderedMinMaxZs;
 
                 var reorderHandle = JobHandle.CombineDependencies(
                     reorderLightsHandle,
                     reorderMinMaxZsHandle
                 );
+
+                JobHandle.ScheduleBatchedJobs();
 
                 LightExtractionJob lightExtractionJob;
                 lightExtractionJob.lights = reorderedLights;
@@ -154,22 +161,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var zBinningJob = new ZBinningJob
                 {
-                    bins = zBins,
-                    minMaxZs = minMaxZs,
-                    binOffset = binOffset,
-                    zFactor = zFactor
+                    bins = m_ZBins,
+                    minMaxZs = reorderedMinMaxZs,
+                    binOffset = m_ZBinOffset,
+                    zFactor = m_ZBinFactor
                 };
                 var zBinningHandle = zBinningJob.ScheduleParallel((binCount + ZBinningJob.batchCount - 1) / ZBinningJob.batchCount, 1, reorderHandle);
+                reorderedMinMaxZs.Dispose(zBinningHandle);
 
                 // Must be a multiple of 4 to be able to alias to vec4
-                var lightMasksLength = ((lightsPerTile / 32 * sectionCount + 3) / 4) * 4;
-                var horizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
-                var verticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
+                var lightMasksLength = ((lightsPerTile / 32 * m_TileResolution + 3) / 4) * 4;
+                m_HorizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
+                m_VerticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
 
                 // Vertical slices along the x-axis
                 var verticalJob = new SliceCullingJob
                 {
-                    scale = (float)tile0Width / (float)screenResolution.x,
+                    scale = (float)m_TileWidth / (float)screenResolution.x,
                     viewOrigin = camera.transform.position,
                     viewForward = camera.transform.forward.normalized,
                     viewRight = camera.transform.right.normalized * fovHalfWidth,
@@ -180,58 +188,62 @@ namespace UnityEngine.Rendering.Universal.Internal
                     positions = positions,
                     coneRadiuses = coneRadiuses,
                     lightsPerTile = lightsPerTile,
-                    sliceLightMasks = verticalLightMasks
+                    sliceLightMasks = m_VerticalLightMasks
                 };
-                var verticalHandle = verticalJob.ScheduleParallel(sectionCount.x, 1, lightExtractionHandle);
+                var verticalHandle = verticalJob.ScheduleParallel(m_TileResolution.x, 1, lightExtractionHandle);
 
                 // Horizontal slices along the y-axis
                 var horizontalJob = verticalJob;
-                horizontalJob.scale = (float)tile0Width / (float)screenResolution.y;
+                horizontalJob.scale = (float)m_TileWidth / (float)screenResolution.y;
                 horizontalJob.viewRight = camera.transform.up.normalized * fovHalfHeight;
                 horizontalJob.viewUp = -camera.transform.right.normalized * fovHalfWidth;
-                horizontalJob.sliceLightMasks = horizontalLightMasks;
-                var horizontalHandle = horizontalJob.ScheduleParallel(sectionCount.y, 1, lightExtractionHandle);
+                horizontalJob.sliceLightMasks = m_HorizontalLightMasks;
+                var horizontalHandle = horizontalJob.ScheduleParallel(m_TileResolution.y, 1, lightExtractionHandle);
 
-                var tilingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle);
+                m_CullingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle, zBinningHandle);
 
-                JobHandle.CompleteAll(ref zBinningHandle, ref tilingHandle);
+                reorderHandle.Complete();
                 renderingData.lightData.visibleLights.CopyFrom(reorderedLights);
 
-                var tileResolution = sectionCount;
-                var tileCount = tileResolution.x * tileResolution.y;
-                m_ZBinBuffer.SetData(zBins.Reinterpret<uint4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, zBins.Length / 4);
-                Shader.SetGlobalConstantBuffer("AdditionalLightsZBins", m_ZBinBuffer, 0, UniversalRenderPipeline.maxZBins);
-                m_HorizontalBuffer.SetData(horizontalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, horizontalLightMasks.Length / 4);
-                Shader.SetGlobalConstantBuffer("AdditionalLightsHorizontalVisibility", m_HorizontalBuffer, 0, UniversalRenderPipeline.maxVisibilityVec4s);
-                m_VerticalBuffer.SetData(verticalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, verticalLightMasks.Length / 4);
-                Shader.SetGlobalConstantBuffer("AdditionalLightsVerticalVisibility", m_VerticalBuffer, 0, UniversalRenderPipeline.maxVisibilityVec4s);
-                // m_TileBuffer.SetData(tiles, 0, 0, tiles.Length);
-                Shader.SetGlobalInteger("_AdditionalLightsZBinOffset", binOffset);
-                Shader.SetGlobalFloat("_AdditionalLightsZBinScale", zFactor);
-                Shader.SetGlobalVector("_AdditionalLightsTileScale", (Vector2)(((float2)screenResolution / (float)tile0Width)));
-
-                minMaxZs.Dispose();
-                meanZs.Dispose();
-                indices.Dispose();
-                reorderedLights.Dispose();
-                zBins.Dispose();
-                horizontalLightMasks.Dispose();
-                verticalLightMasks.Dispose();
-                lightTypes.Dispose();
-                radiuses.Dispose();
-                directions.Dispose();
-                positions.Dispose();
-                coneRadiuses.Dispose();
-
-                mainThreadMarker.End();
+                lightTypes.Dispose(m_CullingHandle);
+                radiuses.Dispose(m_CullingHandle);
+                directions.Dispose(m_CullingHandle);
+                positions.Dispose(m_CullingHandle);
+                coneRadiuses.Dispose(m_CullingHandle);
+                reorderedLights.Dispose(m_CullingHandle);
+                JobHandle.ScheduleBatchedJobs();
             }
+        }
 
+        public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             var useClusteredLighting = renderingData.lightData.useClusteredLighting;
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(null, m_ProfilingSampler))
             {
+                if (useClusteredLighting)
+                {
+                    m_CullingHandle.Complete();
+
+                    var tileCount = m_TileResolution.x * m_TileResolution.y;
+                    m_ZBinBuffer.SetData(m_ZBins.Reinterpret<uint4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, m_ZBins.Length / 4);
+                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins);
+                    m_HorizontalBuffer.SetData(m_HorizontalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_HorizontalLightMasks.Length / 4);
+                    cmd.SetGlobalConstantBuffer(m_HorizontalBuffer, "AdditionalLightsHorizontalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
+                    m_VerticalBuffer.SetData(m_VerticalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_VerticalLightMasks.Length / 4);
+                    cmd.SetGlobalConstantBuffer(m_VerticalBuffer, "AdditionalLightsVerticalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
+                    // TODO: Use cmd, but figure out solution for lack of cmd.SetGlobalInteger
+                    Shader.SetGlobalInteger("_AdditionalLightsZBinOffset", m_ZBinOffset);
+                    cmd.SetGlobalFloat("_AdditionalLightsZBinScale", m_ZBinFactor);
+                    cmd.SetGlobalVector("_AdditionalLightsTileScale", renderingData.cameraData.pixelRect.size / (float)m_TileWidth);
+
+                    m_ZBins.Dispose();
+                    m_HorizontalLightMasks.Dispose();
+                    m_VerticalLightMasks.Dispose();
+                }
+
                 SetupShaderLightConstants(cmd, ref renderingData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,

@@ -1008,7 +1008,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     color += surfaceData.emission;
 
-#ifdef _ADDITIONAL_LIGHTS
+#ifdef _ADDITIONAL_LIGHTS_CLUSTERED
 #if defined(DEBUG_LIGHT_COUNT)
     int2 pixCoord = (inputData.normalizedScreenSpaceUV * _ScreenParams.xy) % 16;
     uint digit1 = pixelLightCount % 10;
