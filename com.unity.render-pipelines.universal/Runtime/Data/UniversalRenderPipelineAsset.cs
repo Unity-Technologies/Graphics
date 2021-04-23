@@ -39,9 +39,10 @@ namespace UnityEngine.Rendering.Universal
 
     public enum LightCookieFormat
     {
-        _8Bit,
-        _16Bit,
-        _32Bit,
+        _8BitGrayscale,
+        _16BitGrayscale,
+        _16BitColor,
+        _32BitColor,
         _32BitHDR,
     }
 
@@ -165,7 +166,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
-        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat._32Bit;
+        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat._32BitColor;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -503,10 +504,11 @@ namespace UnityEngine.Rendering.Universal
         private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
         {
             // TODO: gamma vs. linear
-            /* 8-bit      */ new GraphicsFormat[] {GraphicsFormat.R8_SRGB, GraphicsFormat.R8_UNorm},
-            /* 16-bit     */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
-            /* 32-bit     */ new GraphicsFormat[] {GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
-            /* 32-bit-HDR */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
+            /* 8-bit-Grayscale */ new GraphicsFormat[] {GraphicsFormat.R8_UNorm},
+            /* 16-bit-Grayscale*/ new GraphicsFormat[] {GraphicsFormat.R16_UNorm},
+            /* 16-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
+            /* 32-bit-Color    */ new GraphicsFormat[] {GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
+            /* 32-bit-HDR      */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
         };
 
         internal GraphicsFormat additionalLightsCookieFormat
@@ -523,10 +525,13 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                    result = GraphicsFormatUtility.GetLinearFormat(result);
+
                 // Fallback
                 if (result == GraphicsFormat.None)
                 {
-                    result = GraphicsFormat.R8G8B8A8_UNorm;
+                    result = SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_SRGB, FormatUsage.Render) ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
                     Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
                 }
 
