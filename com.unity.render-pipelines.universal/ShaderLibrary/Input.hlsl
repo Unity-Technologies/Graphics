@@ -77,9 +77,9 @@ CBUFFER_END
 
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
-int _AdditionalLightsDirectionalCount;
+uint _AdditionalLightsDirectionalCount;
 // The number of Z-bins to skip based on near plane distance.
-int _AdditionalLightsZBinOffset;
+uint _AdditionalLightsZBinOffset;
 // Scale from view-space Z to Z-bin.
 float _AdditionalLightsZBinScale;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].

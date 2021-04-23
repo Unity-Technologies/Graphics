@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_UseStructuredBuffer;
 
         int m_TileWidth;
-        int2 m_TileResolution;
         float m_ZBinFactor;
         int m_ZBinOffset;
 
@@ -99,7 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var lightsPerTile = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 Assert.IsTrue(lightsPerTile % 32 == 0);
 
-                m_TileResolution = (screenResolution + m_TileWidth - 1) / m_TileWidth;
+                var tileResolution = (screenResolution + m_TileWidth - 1) / m_TileWidth;
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
                 var fovHalfWidth = fovHalfHeight * (float)camera.pixelWidth / (float)camera.pixelHeight;
@@ -170,7 +169,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderedMinMaxZs.Dispose(zBinningHandle);
 
                 // Must be a multiple of 4 to be able to alias to vec4
-                var lightMasksLength = ((lightsPerTile / 32 * m_TileResolution + 3) / 4) * 4;
+                var lightMasksLength = ((lightsPerTile / 32 * tileResolution + 3) / 4) * 4;
                 m_HorizontalLightMasks = new NativeArray<uint>(lightMasksLength.y, Allocator.TempJob);
                 m_VerticalLightMasks = new NativeArray<uint>(lightMasksLength.x, Allocator.TempJob);
 
@@ -190,7 +189,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightsPerTile = lightsPerTile,
                     sliceLightMasks = m_VerticalLightMasks
                 };
-                var verticalHandle = verticalJob.ScheduleParallel(m_TileResolution.x, 1, lightExtractionHandle);
+                var verticalHandle = verticalJob.ScheduleParallel(tileResolution.x, 1, lightExtractionHandle);
 
                 // Horizontal slices along the y-axis
                 var horizontalJob = verticalJob;
@@ -198,7 +197,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 horizontalJob.viewRight = camera.transform.up.normalized * fovHalfHeight;
                 horizontalJob.viewUp = -camera.transform.right.normalized * fovHalfWidth;
                 horizontalJob.sliceLightMasks = m_HorizontalLightMasks;
-                var horizontalHandle = horizontalJob.ScheduleParallel(m_TileResolution.y, 1, lightExtractionHandle);
+                var horizontalHandle = horizontalJob.ScheduleParallel(tileResolution.y, 1, lightExtractionHandle);
 
                 m_CullingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle, zBinningHandle);
 
@@ -227,17 +226,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_CullingHandle.Complete();
 
-                    var tileCount = m_TileResolution.x * m_TileResolution.y;
                     m_ZBinBuffer.SetData(m_ZBins.Reinterpret<uint4>(UnsafeUtility.SizeOf<ZBin>()), 0, 0, m_ZBins.Length / 4);
-                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins);
                     m_HorizontalBuffer.SetData(m_HorizontalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_HorizontalLightMasks.Length / 4);
-                    cmd.SetGlobalConstantBuffer(m_HorizontalBuffer, "AdditionalLightsHorizontalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
                     m_VerticalBuffer.SetData(m_VerticalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_VerticalLightMasks.Length / 4);
-                    cmd.SetGlobalConstantBuffer(m_VerticalBuffer, "AdditionalLightsVerticalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
-                    // TODO: Use cmd, but figure out solution for lack of cmd.SetGlobalInteger
-                    Shader.SetGlobalInteger("_AdditionalLightsZBinOffset", m_ZBinOffset);
+
+                    cmd.SetGlobalInt("_AdditionalLightsZBinOffset", m_ZBinOffset);
                     cmd.SetGlobalFloat("_AdditionalLightsZBinScale", m_ZBinFactor);
                     cmd.SetGlobalVector("_AdditionalLightsTileScale", renderingData.cameraData.pixelRect.size / (float)m_TileWidth);
+
+                    cmd.SetGlobalConstantBuffer(m_ZBinBuffer, "AdditionalLightsZBins", 0, UniversalRenderPipeline.maxZBins);
+                    cmd.SetGlobalConstantBuffer(m_HorizontalBuffer, "AdditionalLightsHorizontalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
+                    cmd.SetGlobalConstantBuffer(m_VerticalBuffer, "AdditionalLightsVerticalVisibility", 0, UniversalRenderPipeline.maxVisibilityVec4s);
 
                     m_ZBins.Dispose();
                     m_HorizontalLightMasks.Dispose();
