@@ -437,7 +437,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.enablePostprocess, frameSettingsData.IsEnabled(FrameSettingsField.Postprocess));
                 Assert.AreEqual(legacyFrameSettingsData.enableOpaqueObjects, frameSettingsData.IsEnabled(FrameSettingsField.OpaqueObjects));
                 Assert.AreEqual(legacyFrameSettingsData.enableTransparentObjects, frameSettingsData.IsEnabled(FrameSettingsField.TransparentObjects));
-                Assert.AreEqual(legacyFrameSettingsData.enableMSAA, frameSettingsData.IsEnabled(FrameSettingsField.MSAA));
                 Assert.AreEqual(legacyFrameSettingsData.enableAsyncCompute, frameSettingsData.IsEnabled(FrameSettingsField.AsyncCompute));
                 Assert.AreEqual(legacyFrameSettingsData.runLightListAsync, frameSettingsData.IsEnabled(FrameSettingsField.LightListAsync));
                 Assert.AreEqual(legacyFrameSettingsData.runSSRAsync, frameSettingsData.IsEnabled(FrameSettingsField.SSRAsync));
@@ -476,7 +475,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Postprocess) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Postprocess]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.OpaqueObjects) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.OpaqueObjects]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.TransparentObjects) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.TransparentObjects]);
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.MSAA) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.MSAA]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.AsyncCompute) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.AsyncCompute]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.LightListAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.LightListAsync]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.SSRAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.SSRAsync]);
