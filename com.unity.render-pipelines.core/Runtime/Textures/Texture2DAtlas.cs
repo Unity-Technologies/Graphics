@@ -138,9 +138,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class Texture2DAtlas
     {
-        private const int kGPUTexInvalid      = 0;
-        private const int kGPUTexValidMip0    = 1;
-        private const int kGPUTexValidMipAll  = 2;
+        protected const int kGPUTexInvalid      = 0;
+        protected const int kGPUTexValidMip0    = 1;
+        protected const int kGPUTexValidMipAll  = 2;
 
         /// <summary>
         /// The texture for the atlas.
@@ -304,7 +304,20 @@ namespace UnityEngine.Rendering
         {
             var srcCount = GraphicsFormatUtility.GetComponentCount(source.graphicsFormat);
             var dstCount = GraphicsFormatUtility.GetComponentCount(destination.graphicsFormat);
-            return srcCount != dstCount && (srcCount == 1) || (dstCount == 1);
+            if (srcCount == 1 || dstCount == 1)
+            {
+                // One to many, many to one
+                if (srcCount != dstCount)
+                    return true;
+                // Single channel swizzle
+                var srcSwizzle = GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat);
+                var dstSwizzle = GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat);
+                if (srcCount == dstCount &&
+                    srcSwizzle != dstSwizzle)
+                    return true;
+            }
+
+            return false;
         }
 
         private enum BlitType
@@ -330,6 +343,7 @@ namespace UnityEngine.Rendering
                     case BlitType.Default: Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true); break;
                     case BlitType.CubeTo2DOctahedral: Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel); break;
                     case BlitType.SingleChannel: Blitter.BlitQuadSingleChannel(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel); break;
+                    case BlitType.CubeTo2DOctahedralSingleChannel: Blitter.BlitCubeToOctahedral2DQuadSingleChannel(cmd, texture, scaleOffset, mipLevel); break;
                 }
             }
         }
@@ -371,6 +385,7 @@ namespace UnityEngine.Rendering
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips, blitType);
                 var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
                 MarkGPUTextureValid(instanceID, blitMips);
+                m_TextureHashes[instanceID] = CoreUtils.GetTextureHash(texture);
             }
         }
 
@@ -405,8 +420,16 @@ namespace UnityEngine.Rendering
             // This atlas only support 2D texture so we map Cube into set of 2D textures
             if (texture.dimension == TextureDimension.Cube)
             {
+                BlitType blitType = BlitType.CubeTo2DOctahedral;
+                if (IsSingleChannelBlit(texture, m_AtlasTexture.m_RT))
+                    blitType = BlitType.CubeTo2DOctahedralSingleChannel;
+
                 // By default blit cube into a single octahedral 2D texture quad
-                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1, 1, 0, 0), blitMips, BlitType.CubeTo2DOctahedral);
+                Blit2DTexture(cmd, scaleOffset, texture, new Vector4(1, 1, 0, 0), blitMips, blitType);
+
+                var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
+                MarkGPUTextureValid(instanceID, blitMips);
+                m_TextureHashes[instanceID] = CoreUtils.GetTextureHash(texture);
             }
         }
 
