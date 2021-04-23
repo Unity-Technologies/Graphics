@@ -5,7 +5,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
         Pass
         {
             // Lightmode tag required setup motion vector parameters by C++ (legacy Unity)
-            Tags{ "LightMode" = "MotionVectorsOnlyTransformMoved" }
+            Tags{ "LightMode" = "MotionVectors" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

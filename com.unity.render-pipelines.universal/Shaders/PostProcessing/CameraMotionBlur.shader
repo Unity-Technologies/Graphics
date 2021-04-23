@@ -27,7 +27,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         half _Intensity;
         half _Clamp;
         half4 _SourceSize;
-        float4 _SourceTex_TexelSize;
 
         struct VaryingsCMB
         {
@@ -61,9 +60,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             return (len > 0.0) ? min(len, maxVelocity) * (velocity * rcp(len)) : 0.0;
         }
 
+        half2 GetVelocity(float4 uv)
         #if _CAMERA_ONLY
         // Per-pixel camera velocity
-        half2 GetCameraVelocity(float4 uv)
         {
             float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
 
@@ -86,7 +85,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             return ClampVelocity(prevPosCS - curPosCS, _Clamp);
         }
         #else
-        float2 GetVelocity(float4 uv)
         {
            return SAMPLE_TEXTURE2D(_MotionVectorTexture, sampler_MotionVectorTexture, uv).rg;
         }
@@ -104,7 +102,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
-            half2 velocity = GetCameraVelocity(float4(uv, input.uv.zw)) * _Intensity;
+            half2 velocity = GetVelocity(float4(uv, input.uv.zw)) * _Intensity;
             half randomVal = InterleavedGradientNoise(uv * _SourceSize.xy, 0);
             half invSampleCount = rcp(iterations * 2.0);
 

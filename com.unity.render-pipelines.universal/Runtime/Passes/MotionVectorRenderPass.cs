@@ -17,7 +17,6 @@ namespace kTools.Motion
         static readonly string[] s_ShaderTags = new string[]
         {
             "MotionVectors",
-            "MotionVectorsOnlyTransformMoved" //validate
         };
 
         RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?

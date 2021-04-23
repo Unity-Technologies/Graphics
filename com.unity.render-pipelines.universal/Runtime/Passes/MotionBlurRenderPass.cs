@@ -30,7 +30,7 @@ namespace kTools.Motion
             if(motionBlur.mode == MotionBlurMode.CameraAndObjects)
                 ConfigureInput(ScriptableRenderPassInput.Motion |
                                 ScriptableRenderPassInput.Depth);
-            else if(motionBlur.mode == MotionBlurMode.CameraOnly)
+            else
                 ConfigureInput(ScriptableRenderPassInput.Depth);
 
             m_MotionBlur = motionBlur;

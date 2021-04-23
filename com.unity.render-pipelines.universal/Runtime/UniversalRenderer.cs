@@ -1,6 +1,7 @@
 using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
+using kTools.Motion;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -39,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
+        MotionVectorRenderPass m_MotionVectorPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -135,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_MotionVectorPass = new MotionVectorRenderPass();
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -497,6 +500,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderPassInputs.requiresMotionVectors)
             {
+                //SupportedRenderingFeatures.active.motionVectors = true; // Todo : not set this here
                 var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
                 m_MotionVectorPass.Setup(data);
                 EnqueuePass(m_MotionVectorPass);
@@ -725,6 +729,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
+            internal bool requiresMotionVectors;
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
@@ -736,12 +741,14 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+                bool needsMotion  = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
+                inputSummary.requiresMotionVectors  |= needsMotion;
             }
 
             return inputSummary;

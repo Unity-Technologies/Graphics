@@ -6,7 +6,6 @@ namespace UnityEditor.Rendering.Universal
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;
-        //SerializedDataParameter m_Mode;
         SerializedDataParameter m_Quality;
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Clamp;
@@ -23,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            //PropertyField(m_Mode);
+            PropertyField(m_Mode);
 
             //if (m_Mode.value.intValue == (int)MotionBlurMode.CameraOnly)
             //{
