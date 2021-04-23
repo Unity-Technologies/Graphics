@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: a2b36900a27565a4c941f95b51da801d, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,17 +28,22 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Explore the Sky setup
       Text:
         m_Untranslated: "Let\u2019s take a look at how the Sky is set up for this
-          sample Scene.\r\n\r\n1) In the <i>Hierarchy</i>, select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global</b>.\r\n\r\n2) In the Inspector, check
+          sample Scene.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2) In the Inspector, check
           that both Visual Environment and HDRI sky are listed as overrides.\r\n\r\n3)
           Disable the Visual Environment override. The sky turns gray as a result,
-          because no sky at all is defined.\r\n\r\n<b>Visual Environment</b>: Defines
-          the type of sky to use\r\n\r\n<b>HDRI Sky</b>: Customizes specific sky
+          because no sky at all is defined.\r\n\r\n<b>Visual Environment:</b> Defines
+          the type of sky to use\r\n\r\n<b>HDRI Sky:</b> Customizes specific sky
           properties such as texture and exposure. A clear daylight sky exposure
           is roughly between 12 and 14 EV, or 15.000 and 25.000 lux.\r\n\r\n4) Undo
           your previous change, and set the exposure in the HDRI Sky override to
@@ -54,14 +52,7 @@ MonoBehaviour:
           Go to <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b>
           tab. Notice the same volume profile and sky type are applied, they will
           be used to generate the lightmaps for this scene.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -70,6 +61,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

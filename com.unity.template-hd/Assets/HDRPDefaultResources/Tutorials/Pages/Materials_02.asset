@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 34bb5adf9e55aa544bb92e1fc8c8cce5, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,13 +28,18 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Mask map
       Text:
         m_Untranslated: "The materials in HDRP use an RGBA Mask Map to define different
           texture properties, such as metalness (R), smoothness (G), ambient occlusion
-          (B), and detail mask (A).\r\n\r\n1) In the <i>Hierarchy</i>, expand the
+          (B), and detail mask (A).\r\n\r\n1) In the <i>Hierarchy,</i> expand the
           <b>Props</b> > <b>Room3</b> > <b>Ball_PF (1)</b> GameObject.\r\n\r\n2)
           Select the <b>Ball</b> GameObject.\r\n\r\n3) Go to the <i>Inspector</i>
           and expand the <i>Brass_Mat</i> Material.\r\n\r\n4) Remove the <b>Mask
@@ -49,14 +47,7 @@ MonoBehaviour:
           as the smoothness variations from the Mask Map texture are removed.\r\n\r\n5)
           Undo your change.\r\n\r\nThis step shows how the smoothness parameters
           of a material are controlled with a Mask Map. \r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -65,6 +56,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

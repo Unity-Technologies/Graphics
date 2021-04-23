@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: a62b9f596f0ca7e4d9b58f8aa075d6b9, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,28 +28,26 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: HDRP Default settings
-      Text:
-        m_Untranslated: "Settings for post-processing, Fog or Sky can be applied
-          to any scenes by default, by using a <b>Default Volume Profile Asset</b>.
-          Any scene in this project will automatically use such settings by default.\r\n\r\n1)
-          Go to <b>Edit</b> > <b>Project Settings</b> > <b>HDRP Default Settings</b>
-          and review the <b>Default Volume Profile Asset</b> assigned to the project.\r\n\r\n2)
-          Disable HDRI Sky. The Sky in the scene will disappear.\r\n\r\n3) Undo your
-          changes.\r\n\r\nFor convenience and quick access, we also added an instance
-          of these settings in the Scene. You can use the search bar in the <i>Hierarchy</i>
-          to find the <b>Lighting</b> > <b>Volumes</b> > <b>Volume Global</b> GameObject.
-          \r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: HDRP Default settings
+      Text:
+        m_Untranslated: "Settings for post-processing, Fog or Sky can be applied
+          to any scenes by default, by using a <b>Default Volume Profile Asset.</b>
+          Any scene in this project will automatically use such settings by default.\r\n\r\n1)
+          Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
+          Default Settings</b> and review the <b>Default Volume Profile Asset</b>
+          assigned to the project.\r\n\r\n2) Disable HDRI Sky. The Sky in the scene
+          will disappear.\r\n\r\n3) Undo your changes.\r\n\r\nFor convenience and
+          quick access, we also added an instance of these settings in the Scene.
+          You can use the search bar in the <i>Hierarchy</i> to find the <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global</b> GameObject. \r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -65,6 +56,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

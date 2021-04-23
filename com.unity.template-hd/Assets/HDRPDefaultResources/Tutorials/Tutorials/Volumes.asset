@@ -36,13 +36,11 @@ MonoBehaviour:
     m_Enabled: 0
   m_ExitBehavior: 1
   m_SkipTutorialBehavior: 0
-  m_AssetSelectedOnExit: {fileID: 0}
-  m_WelcomePage: {fileID: 0}
-  m_CompletedPage: {fileID: 0}
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:
     - {fileID: 11400000, guid: 6fd6550405cc0334fb3b7cc08d055134, type: 2}
     - {fileID: 11400000, guid: 23652802bc2e14a43a0bed51e2ea96ad, type: 2}
     - {fileID: 11400000, guid: 0f98f4ed80b5fd646b0c68d104f13dfd, type: 2}
+    - {fileID: 11400000, guid: 2980d9528ca277247aaba7951f74089a, type: 2}
     - {fileID: 11400000, guid: 03224d52a10da254d8874fab51b52e6f, type: 2}

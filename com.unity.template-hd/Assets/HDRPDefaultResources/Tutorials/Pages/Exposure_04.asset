@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 91a97b7a700f12d4fa809475c385bceb, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,14 +28,19 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Explore the global settings
       Text:
         m_Untranslated: "Explore the different settings of the Exposure Override
           in the <b>Volume Global</b> GameObject. \r\n\r\n1) Delete your Global Volume
-          in the <i>Hierarchy</i>.  It isn't needed for the rest of the tutorials.\n\r\n2)
-          In the <i>Hierarchy</i>, select the <b>Lighting</b> > <b>Volumes</b> >
+          in the <i>Hierarchy.</i> It isn\u2019t needed for the rest of the tutorials.\r\n\r\n2)
+          In the <i>Hierarchy,</i> select the <b>Lighting</b> > <b>Volumes</b> >
           <b>Volume Global</b> GameObject.\r\n\r\n3) Look at the <i>Inspector</i>
           to see how the Global Volume exposure is set up.\r\n\r\n4) Select the other
           Volumes for each room, and study how each of them has specific <b>Limit
@@ -52,14 +50,7 @@ MonoBehaviour:
           <b>Limit Min</b> and <b>Limit Max</b> to understand their impact on the
           perceived brightness of the image, especially when looking at very dark
           or very bright areas of the Scene.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -68,6 +59,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

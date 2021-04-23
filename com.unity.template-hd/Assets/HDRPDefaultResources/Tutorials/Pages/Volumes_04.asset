@@ -19,15 +19,8 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
-      m_Image: {fileID: 2800000, guid: 87c9e64be0ef6e04c93ace37734e5bb9, type: 3}
+      m_Image: {fileID: 2800000, guid: 32e996e62ec9f404f8c0020d0156e947, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -35,23 +28,27 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Congratulations!
-      Text:
-        m_Untranslated: "In this tutorial, you learned how volumes work and how to
-          set them up to override HDRP settings.\r\n\r\nHere is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=771\">video</a>
-          tutorial on the subject.\r\nFor more details, check out the <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html\">Volumes
-          documentation</a>.\r\n\r\n<b>Note:</b> You do not need to save your changes
-          in order to follow other tutorials.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Explore the Local Volume
+      Text:
+        m_Untranslated: "Now to take a look at the effects of the volume inside Room
+          3:\r\n\r\n1) Take a look at the overrides in <b>Volume Room 3:</b> Exposure,
+          White Balance and Fog.\r\n\r\n2) Disable the Exposure override. Notice
+          that the Scene gets darker.\r\n\r\n3) Undo your change.\r\n\r\nWhen the
+          Exposure override for Room 3 is disabled, this area of the Scene inherits
+          its Exposure settings directly from the <b>Global</b> volume. \r\n\r\nHowever,
+          these particular settings might not be acceptable for a relatively dark
+          room, such as Room 3. Therefore, a <b>Local</b> volume for Room 3 has been
+          created, with dedicated exposure settings, among others.\r\n\r\nWhen you
+          move the camera outside of <b>Volume Room 3,</b> the settings that were
+          applied to this room will no longer be applied to the camera.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -60,13 +57,18 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 9.263008
+    m_Pivot: {x: 71.25276, y: 1.1054962, z: -4.123274}
+    m_Rotation: {x: 0.042145528, y: 0.8184069, z: -0.060518686, w: 0.56999886}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -75,7 +77,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

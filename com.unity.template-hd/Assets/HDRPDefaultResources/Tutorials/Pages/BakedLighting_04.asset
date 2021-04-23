@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: f4dda8247624aec428e207baa1664bf6, type: 3}
       m_Video: {fileID: 32900000, guid: 99f677dcf1744aa4d9ff3b0f37bf3888, type: 3}
       m_CriteriaCompletion: 0
@@ -35,6 +28,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Using the provided presets
@@ -44,21 +42,14 @@ MonoBehaviour:
           generating the lighting with the different Lighting Settings assets to
           explore the variance in quality. \r\n\r\nThese steps are optional and recommended
           on powerful machines. \r\n\r\n1) Open the Lighting tab. Go to <b>Window</b>
-          > <b>Rendering</b> > <b>Lighting</b>.\r\n\r\n2) In the Scene tab, assign
+          > <b>Rendering</b> > <b>Lighting.</b>\r\n\r\n2) In the Scene tab, assign
           one of the Lighting Settings assets to the <b>Lighting Settings</b> field.
-          For example, <b>LightingSettings1Draft</b>.\r\n\r\n3) In the bottom right
-          corner of the Lighting tab, click <b>Generate Lighting</b>.\r\n\r\nNotice
+          For example, <b>LightingSettings1Draft.</b>\r\n\r\n3) In the bottom right
+          corner of the Lighting tab, click <b>Generate Lighting.</b>\r\n\r\nNotice
           how with the Draft Lighting Settings asset, the quality of the lightmaps
           is now much lower, with apparent blotches of light in certain areas. Experiment
-          with other Lighting Settings assets and compare the results.\r\n"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
+          with other Lighting Settings assets and compare the results.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -67,6 +58,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

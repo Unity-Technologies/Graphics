@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 097f7a12a79ceb04e8f5d3d4f68a3f8f, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,24 +28,22 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Density Volume
       Text:
         m_Untranslated: "Disable and re-enable the existing density volume and notice
           how the Sunlight interacts with the Fog. \r\n\r\nIn the <i>Hierarchy</i>
-          under <b>Lighting</b>, disable and re-enable the <b>Density Volumes</b>.
+          under <b>Lighting,</b> disable and re-enable the <b>Density Volumes.</b>
           \r\n\r\nNotice how disabling the <b>Density Volumes</b> reduces the local
           fog density, and how enabling it again increases the density and how it
-          reacts to the sunlight. \r\n"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
+          reacts to the sunlight. \r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -61,6 +52,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

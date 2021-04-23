@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: d5c81b3130406664d9f5fc6c9d728a3f, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,35 +28,23 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: What is white balance?
-      Text:
-        m_Untranslated: 'In real life, cameras and the human brain attempt to compensate
-          for strong color casts. This principle is called <b>white balancing</b>.
-
-          
-
-          It
-          is especially important to balance Scenes with warm artificial lighting,
-          because the corresponding lamps have a strong red color cast that might
-          be unwanted depending on color accuracy or style requirements.
-
-          
-
-          In
-          addition, white balancing allows you to adjust the overall temperature
-          of the Scene to feel colder or warmer.
-
-'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: What is white balance?
+      Text:
+        m_Untranslated: "In real life, cameras and the human brain attempt to compensate
+          for strong color casts. This principle is called <b>white balancing.</b>\r\n\r\nIt
+          is especially important to balance Scenes with warm artificial lighting,
+          because the corresponding lamps have a strong red color cast that might
+          be unwanted depending on color accuracy or style requirements.\r\n\r\nIn
+          addition, white balancing allows you to adjust the overall temperature
+          of the Scene to feel colder or warmer.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -72,6 +53,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

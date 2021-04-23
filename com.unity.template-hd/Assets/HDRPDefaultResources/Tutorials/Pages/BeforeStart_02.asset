@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 90984edcbec88ef4eb57621c3b8a00b0, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,6 +28,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Quality and Performance
@@ -43,18 +41,11 @@ MonoBehaviour:
           the Scene on your own, it\u2019s a good idea to adjust your Quality Settings.\r\n\r\nLook
           around the Scene: does the framerate feel too low or choppy? Or maybe it
           runs well and you want to use the highest possible quality?\r\n\r\nThe
-          default quality is set to <b>Medium</b>, which will be enough for the tutorial.
+          default quality is set to <b>Medium,</b> which will be enough for the tutorial.
           You can go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> and
           try Low or High.\r\n\r\nTo complete the Fog tutorial, you will need to
           use at least the <b>Medium</b> quality level. \r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -63,6 +54,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

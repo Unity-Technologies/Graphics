@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 8cbe590286f326b45ade0a84e9b1dc93, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,31 +28,29 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
         m_Untranslated: Fixed Exposure
       Text:
         m_Untranslated: "Exposure is easiest to understand when it\u2019s not set
           up properly. In this example, let's override the exposure globally.\r\n\r\n1)
-          Right click in the <i>Hierarchy</i>, <b>Volume</b> > <b>Global Volume</b>.\r\n\r\n2)
-          In the <i>Inspector</i>, click the <b>New</b> button.\r\n\r\n3) Set the
+          Right click in the <i>Hierarchy,</i> <b>Volume</b> > <b>Global Volume.</b>\r\n\r\n2)
+          In the <i>Inspector,</i> click the <b>New</b> button.\r\n\r\n3) Set the
           <b>Priority</b> to 10 to ignore all existing exposure settings in the Scene
-          set by other volumes using lower priorities.\r\n\r\n4) Add Override <b>Exposure</b>.\r\n\r\n5)
-          Set the <b>Mode</b> to <b>Fixed</b>.\r\n\r\n6) Set the Fixed Exposure value
+          set by other volumes using lower priorities.\r\n\r\n4) Add Override <b>Exposure.</b>\r\n\r\n5)
+          Set the <b>Mode</b> to <b>Fixed.</b>\r\n\r\n6) Set the Fixed Exposure value
           to 0. Notice that everything is suddenly very bright. Look around the Scene:
           other rooms appear almost solid white.\r\n\r\n7) Using the slider, increase
           the Exposure to 3. The room should look more correct now, but the others
           are still overexposed.\r\n\r\nThis is the downside of the fixed exposure:
           it works well in an evenly lit environment but would require additional
           work to set up the other rooms.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -68,6 +59,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

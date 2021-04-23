@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 92d3148533b717f46b146738f7d714ed, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,57 +28,28 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Explore the scene
-      Text:
-        m_Untranslated: 'Explore the scene to see how white balancing is utilized
-          in this template.
-
-          
-
-          1) In the <i>Hierarchy</i>,
-          select <b>Lighting</b> > <b>Volumes</b> > <b>Volume Room 3 Sitting</b>.
-
-          
-
-          2)
-          Disable the White balance volume override and notice how it impacts the
-          strip light on the curved wall, the white floor tiles, and the colors overall.
-
-          
-
-          3)
-          Undo this change.
-
-          
-
-          The white balance here applies
-          a cool color filter to the image, to counterbalance the strong orange color
-          cast from the lamps above the chairs.
-
-          
-
-          Artificial
-          lighting often falls on the warm side of the color temperature range, and
-          white balance is a way to adjust the perception of white color in a Scene.
-
-          
-
-          The
-          opposite effect can be applied to an outdoor Scene with a blue Sky, which
-          tends to have a bluer color cast, and therefore requires warmer white balance
-          settings.
-
-'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Explore the scene
+      Text:
+        m_Untranslated: "Explore the scene to see how white balancing is utilized
+          in this template.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Room 3 Sitting.</b>\r\n\r\n2) Disable the
+          White balance volume override and notice how it impacts the strip light
+          on the curved wall, the white floor tiles, and the colors overall.\r\n\r\n3)
+          Undo this change.\r\n\r\nThe white balance here applies a cool color filter
+          to the image, to counterbalance the strong orange color cast from the lamps
+          above the chairs.\r\n\r\nArtificial lighting often falls on the warm side
+          of the color temperature range, and white balance is a way to adjust the
+          perception of white color in a Scene.\r\n\r\nThe opposite effect can be
+          applied to an outdoor Scene with a blue Sky, which tends to have a bluer
+          color cast, and therefore requires warmer white balance settings.\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -94,6 +58,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0

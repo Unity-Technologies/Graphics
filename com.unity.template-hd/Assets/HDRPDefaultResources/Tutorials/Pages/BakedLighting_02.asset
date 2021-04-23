@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: 1f5f29c8af8aba44b949c032409694ec, type: 3}
       m_Video: {fileID: 32900000, guid: 99f677dcf1744aa4d9ff3b0f37bf3888, type: 3}
       m_CriteriaCompletion: 0
@@ -35,31 +28,23 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Lighting Modes
-      Text:
-        m_Untranslated: 'Open the Lighting tab by going to <b>Window</b> > <b>Rendering</b>
-          > <b>Lighting</b> > <b>Scene</b>.
-
-
-          Notice that the Lighting
-          Mode is set to <b>Baked Indirect</b>, to only capture the indirect lighting
-          produced by the sky and the artificial lights placed in the scene. HDRP
-          also supports a Shadowmask mode for a mixed approach between real-time
-          and baked shadows.
-
-
-          Learn more about <a href="https://docs.unity3d.com/2020.2/Documentation/Manual/lighting-mode.html">Light
-          Modes</a>.'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Lighting Modes
+      Text:
+        m_Untranslated: "Open the Lighting tab by going to <b>Window</b> > <b>Rendering</b>
+          > <b>Lighting</b> > <b>Scene.</b>\r\n\r\nNotice that the Lighting Mode
+          is set to <b>Baked Indirect,</b> to only capture the indirect lighting
+          produced by the sky and the artificial lights placed in the scene. HDRP
+          also supports a Shadowmask mode for a mixed approach between real-time
+          and baked shadows.\r\n\r\nLearn more about <a href=\"https://docs.unity3d.com/2020.2/Documentation/Manual/lighting-mode.html\">Light
+          Modes.</a>\r"
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -68,6 +53,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0
