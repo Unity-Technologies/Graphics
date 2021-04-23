@@ -705,58 +705,59 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 #ifdef USE_WORLD_DIFF
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
-#else
-    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
-#endif
-#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepthDst = LOAD_TEXTURE2D_X(_DepthTexture, hitSS).r;
 #else
+    float  deviceDepthSrc = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
     float  deviceDepthDst = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitSS).r;
 #endif
 
     float4 srcMotion = float4(motionVectorCenterNDC.xy, deviceDepthSrc, 0.0f);
     float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
 
-    float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     float4 worldSrcMotion = mul(srcMotion, UNITY_MATRIX_I_VP);
-    worldDstMotion /= worldDstMotion.w;
+    float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     worldSrcMotion /= worldSrcMotion.w;
-    float speedDiff = length(worldDstMotion.xyz - worldSrcMotion.xyz);
+    worldDstMotion /= worldDstMotion.w;
+    float speedDiff = length(worldSrcMotion.xyz - worldDstMotion.xyz);
 #else
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-    float speed = saturate(speedDiff);
+    float speed = speedDiff;
+
+#define MIN_SPEED 0.0f
+#define MAX_SPEED 1.0f
+
+    float usedSpeed = saturate((speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED));
 
 #define SMOOTH_REJECT
 
 #ifdef SMOOTH_REJECT
-    const float prec = 2.5f;
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, prec)));
+    const float prec = 0.5f;
+    //float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, prec)));
+    //float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(_SsrPBRSpeedRejection * pow(speed, prec)));
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, _SsrPBRSpeedRejection * saturate(pow(usedSpeed, prec)));
 #else
     const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
 
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed >= _SsrPBRSpeedRejection ? 1.0f : 0.0f);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed > _SsrPBRSpeedRejection ? 1.0f : 0.0f);
 #endif
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-#define REJECT_DEBUG_COLOR
+//#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-#ifdef SMOOTH_REJECT
-
-    float debugVal = saturate(speed * pow(_SsrPBRSpeedRejection, prec));
-    //if (speedDiff > _SsrPBRSpeedRejection)
-        result.rgb = debugVal.xxx;
-    //else
-    //    result.rgb = float3(0, 1, 0);
-#else
-    if (speedDiff >= _SsrPBRSpeedRejection)
-        result.rgb = float3(1, 0, 0);
-    else
-        result.rgb = float3(0, 1, 0);
-#endif
+    result.rgb = float3(speed, 0.0f, 0.0f);
+//#ifdef SMOOTH_REJECT
+//    float debugVal = saturate(pow(speed, prec));
+//    result.rgb = (1.0f - debugVal).xxx;
+//#else
+//    if (speedDiff > _SsrPBRSpeedRejection)
+//        result.rgb = float3(1, 0, 0);
+//    else
+//        result.rgb = float3(0, 1, 0);
+//#endif
 #endif
 
     uint3 intCol = asuint(result.rgb);
