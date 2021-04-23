@@ -310,8 +310,14 @@ namespace UnityEngine.Rendering
                 if (srcCount != dstCount)
                     return true;
                 // Single channel swizzle
-                var srcSwizzle = GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat);
-                var dstSwizzle = GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat);
+                var srcSwizzle = ((1 << (int)GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat)) << 24) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleG(source.graphicsFormat)) << 16) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleB(source.graphicsFormat)) << 8) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleA(source.graphicsFormat)));
+                var dstSwizzle = ((1 << (int)GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat)) << 24) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleG(destination.graphicsFormat)) << 16) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleB(destination.graphicsFormat)) << 8) |
+                    ((1 << (int)GraphicsFormatUtility.GetSwizzleA(destination.graphicsFormat)));
                 if (srcCount == dstCount &&
                     srcSwizzle != dstSwizzle)
                     return true;
