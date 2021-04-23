@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
 - Fixed a NaN generating in Area light code.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed undo of some properties on light editor.
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
