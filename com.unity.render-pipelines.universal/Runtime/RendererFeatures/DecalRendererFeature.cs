@@ -248,10 +248,10 @@ namespace UnityEngine.Rendering.Universal
             switch (m_Settings.technique)
             {
                 case DecalTechniqueOption.Automatic:
-                    if (IsHandheld())
-                        technique = DecalTechnique.ScreenSpace;
-                    else
+                    if (IsAutomaticDBuffer())
                         technique = DecalTechnique.DBuffer;
+                    else
+                        technique = DecalTechnique.ScreenSpace;
                     break;
                 case DecalTechniqueOption.ScreenSpace:
                     bool isDeferred = universalRenderer.actualRenderingMode == RenderingMode.Deferred;
@@ -281,18 +281,22 @@ namespace UnityEngine.Rendering.Universal
             return technique;
         }
 
-        private bool IsHandheld()
+        private bool IsAutomaticDBuffer()
         {
 #if UNITY_EDITOR
             var selectedBuildTargetGroup = UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Android)
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Standalone)
                 return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.iOS)
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.GameCoreXboxOne)
                 return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Switch)
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.GameCoreXboxSeries)
+                return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS4)
+                return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS5)
                 return true;
 #endif
-            return SystemInfo.deviceType == DeviceType.Handheld;
+            return SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console;
         }
 
         private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)

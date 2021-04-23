@@ -160,7 +160,12 @@ void Frag(PackedVaryings packedInput,
     half angleFadeFactor = 1.0;
 
 #if defined(DECAL_PROJECTOR)
+#if UNITY_REVERSED_Z
     float depth = LoadSceneDepth(input.positionCS.xy);
+#else
+    // Adjust z to match NDC for OpenGL
+    float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, LoadSceneDepth(input.positionCS.xy));
+#endif
 #endif
 
 #if defined(DECAL_RECONSTRUCT_NORMAL)
@@ -176,7 +181,20 @@ void Frag(PackedVaryings packedInput,
 #endif
 
 #ifdef DECAL_PROJECTOR
+    //float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
+    //float3 positionWS = ComputeWorldSpacePosition(positionNDC, depth, UNITY_MATRIX_I_VP);
     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+/*#if UNITY_REVERSED_Z
+    float depth2 = depth;
+#else
+    // Adjust z to match NDC for OpenGL
+    float depth2 = lerp(UNITY_NEAR_CLIP_VALUE, 1, depth);
+#endif
+
+    float2 positionNDC = input.positionCS.xy * _ScreenSize.zw;
+
+    posInput.positionWS = ComputeWorldSpacePosition(positionNDC, depth2, UNITY_MATRIX_I_VP);*/
 
 #ifdef VARYINGS_NEED_POSITION_WS
     input.positionWS = posInput.positionWS;
@@ -254,6 +272,7 @@ void Frag(PackedVaryings packedInput,
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
     outColor = color;
+    //outColor = float4(posInput.positionWS, 1);
 #elif defined(DECAL_GBUFFER)
 
     InputData inputData = (InputData)0;
