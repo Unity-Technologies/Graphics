@@ -270,6 +270,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+- Added Package Samples: 2 Camera Stacking, 2 Renderer Features
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 - Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
 - Added support for a user defined default material to 2DRendererData.
