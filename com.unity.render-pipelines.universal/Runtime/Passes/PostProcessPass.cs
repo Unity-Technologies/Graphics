@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                cmd.Blit(source, destination, material, passIndex);
+                cmd.Blit(source.nameID, destination.nameID, material, passIndex);
             }
         }
 
