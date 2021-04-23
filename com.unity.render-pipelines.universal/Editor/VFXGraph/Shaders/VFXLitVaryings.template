@@ -1,4 +1,3 @@
-//TODOPAUL : There are some feature to filters out like translucant
 
 #define URP_NEEDS_UVS (URP_USE_BASE_COLOR_MAP || URP_USE_MASK_MAP || USE_NORMAL_MAP || URP_USE_EMISSIVE_MAP)
 #define URP_USE_EMISSIVE (URP_USE_EMISSIVE_MAP || URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR)
@@ -9,8 +8,7 @@ ${VFXBegin:VFXURPLitVaryingsMacros}
 #define VFX_VARYING_ALPHA color.a
 #endif
 
-//TODOPAUL : Nothing defined in URP lit for now, start with smoothness
-//#define VFX_VARYING_SMOOTHNESS materialProperties.x
+#define VFX_VARYING_SMOOTHNESS materialProperties.x
 
 #if URP_MATERIAL_TYPE_STANDARD
 #define VFX_VARYING_METALLIC materialProperties.y

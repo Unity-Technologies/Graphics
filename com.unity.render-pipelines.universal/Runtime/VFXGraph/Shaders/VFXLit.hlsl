@@ -132,35 +132,26 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     #endif
 
     #if URP_MATERIAL_TYPE_STANDARD
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
     #ifdef VFX_VARYING_METALLIC
     surfaceData.metallic = i.VFX_VARYING_METALLIC;
     #endif
     #elif URP_MATERIAL_TYPE_SPECULAR
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
     #ifdef VFX_VARYING_SPECULAR
-    surfaceData.specularColor = saturate(i.VFX_VARYING_SPECULAR);
+    surfaceData.specular = saturate(i.VFX_VARYING_SPECULAR);
     #endif
-    #elif URP_MATERIAL_TYPE_TRANSLUCENT
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
-    #ifdef VFX_VARYING_THICKNESS
-    surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
-    #endif
-    surfaceData.diffusionProfileHash = diffusionProfileHash;
-    surfaceData.subsurfaceMask = 1.0f;
     #endif
 
     surfaceData.normalTS = normalWS; //TODOPAUL : Handle TS ?
     #ifdef VFX_VARYING_SMOOTHNESS
-    surfaceData.perceptualSmoothness = i.VFX_VARYING_SMOOTHNESS;
+    surfaceData.smoothness = i.VFX_VARYING_SMOOTHNESS;
     #endif
     surfaceData.occlusion = 1.0f;
 
     #if URP_USE_MASK_MAP
     float4 mask = SampleTexture(VFX_SAMPLER(maskMap),uvData);
     surfaceData.metallic *= mask.r;
-    surfaceData.ambientOcclusion *= mask.g;
-    surfaceData.perceptualSmoothness *= mask.a;
+    surfaceData.occlusion *= mask.g;
+    surfaceData.smoothness *= mask.a;
     #endif
 
     return surfaceData;
