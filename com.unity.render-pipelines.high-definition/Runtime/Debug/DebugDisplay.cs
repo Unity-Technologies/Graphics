@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -14,6 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
         public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.kMaxSubdivisionLevels
+        public fixed float _DebugAPVSubdivColors[7 * 4];
 
         public int _DebugLightingMode; // Match enum DebugLightingMode
         public int _DebugLightLayersMask;
@@ -1953,7 +1956,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
                 GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.RefractionLighting
+                GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
+                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision
             );
         }
 
@@ -1962,7 +1966,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
-                debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade || debugLighting == DebugLightingMode.ProbeVolumeSampledSubdivision) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
