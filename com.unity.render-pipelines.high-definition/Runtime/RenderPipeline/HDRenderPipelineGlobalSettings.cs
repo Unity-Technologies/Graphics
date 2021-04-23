@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
-using System.Linq;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AssetDatabase.CreateFolder("Assets", folderPath);
                         assetCreated = Create(path);
 
-                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                        Debug.LogWarning("No HDRP Global Settings Asset is assigned. One has been created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                     }
                     else
                     {
@@ -474,12 +474,60 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region Resource Common
+#if UNITY_EDITOR
+        void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, Func<HDRenderPipelineGlobalSettings, bool> checker)
+            where T : HDRenderPipelineResources
+        {
+            T resourceChecked = null;
+
+            if (checker(this))
+            {
+                if (!EditorUtility.IsPersistent(resources)) // if not loaded from the Asset database
+                {
+                    // try to load from AssetDatabase if it is ready
+                    resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+                    if (resourceChecked && !resourceChecked.Equals(null))
+                        resources = resourceChecked;
+                }
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+                return;
+            }
+
+            resourceChecked = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+            if (resourceChecked != null && !resourceChecked.Equals(null))
+            {
+                resources = resourceChecked;
+                if (forceReload)
+                    ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
+            }
+            else // Asset database may not be ready
+            {
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
+                resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
+                if (forceReload)
+                {
+                    if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
+                    {
+                        InternalEditorUtility.SaveToSerializedFileAndForget(
+                            new Object[] { resources },
+                            resourcePath,
+                            true);
+                    }
+                }
+            }
+            Debug.Assert(checker(this), $"Could not load {typeof(T).Name}.");
+        }
+
+#endif
+        #endregion //Resource Common
+
         #region Runtime Resources
-
         [SerializeField]
-        RenderPipelineResources m_RenderPipelineResources;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get
             {
@@ -492,54 +540,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        string runtimeResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+        // be sure to cach result for not using GC in a frame after first one.
+        static readonly string runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRuntimeResources.asset";
 
         internal void EnsureRuntimeResources(bool forceReload)
-        {
-            RenderPipelineResources resources = null;
-            if (AreResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineResources))
-                {
-                    resources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
-                    if (resources && !resources.Equals(null))
-                        m_RenderPipelineResources = resources;
-                }
-                return;
-            }
+            => EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal);
 
-            resources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineResources = resources;
-            }
-            else
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
-                m_RenderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: HDRenderPipelineGlobalSettings.AreRuntimeResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
+        static Func<HDRenderPipelineGlobalSettings, bool> AreRuntimeResourcesCreated_Internal = global
+            => global.m_RenderPipelineResources != null && !global.m_RenderPipelineResources.Equals(null);
 
-                if (forceReload)
-                {
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new UnityEngine.Object[] { m_RenderPipelineResources },
-                            runtimeResourcesPath,
-                            true);
-                    }
-                }
-            }
-            Debug.Assert(AreResourcesCreated(), "Could not load Runtime Resources for HDRP.");
-        }
+        internal bool AreRuntimeResourcesCreated() => AreRuntimeResourcesCreated_Internal(this);
 
-#endif
-
-        internal bool AreResourcesCreated()
-        {
-            return (m_RenderPipelineResources != null && !m_RenderPipelineResources.Equals(null));
-        }
-
-#if UNITY_EDITOR
         internal void EnsureShadersCompiled()
         {
             // We iterate over all compute shader to verify if they are all compiled, if it's not the case
@@ -582,52 +597,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        string editorResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+        // be sure to cach result for not using GC in a frame after first one.
+        static readonly string editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
 
         internal void EnsureEditorResources(bool forceReload)
-        {
-            HDRenderPipelineEditorResources resources = null;
+            => EnsureResources(forceReload, ref m_RenderPipelineEditorResources, editorResourcesPath, AreEditorResourcesCreated_Internal);
 
-            if (AreEditorResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineEditorResources)) // if not loaded from the Asset database
-                {
-                    // try to load from AssetDatabase if it is ready
-                    resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
-                    if (resources && !resources.Equals(null))
-                    {
-                        m_RenderPipelineEditorResources = resources;
-                    }
-                }
-                return;
-            }
-            resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineEditorResources = resources;
-            }
-            else // Asset database may not be ready
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
-                m_RenderPipelineEditorResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineEditorResources : null;
-                if (forceReload)
-                {
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new Object[] { m_RenderPipelineEditorResources },
-                            editorResourcesPath,
-                            true);
-                    }
-                }
-            }
-            Debug.Assert(AreEditorResourcesCreated(), "Could not load Editor Resources.");
-        }
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: HDRenderPipelineGlobalSettings.AreEditorResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
+        static Func<HDRenderPipelineGlobalSettings, bool> AreEditorResourcesCreated_Internal = global
+            => global.m_RenderPipelineEditorResources != null && !global.m_RenderPipelineEditorResources.Equals(null);
 
-        internal bool AreEditorResourcesCreated()
-        {
-            return (m_RenderPipelineEditorResources != null && !m_RenderPipelineEditorResources.Equals(null));
-        }
+        internal bool AreEditorResourcesCreated() => AreEditorResourcesCreated_Internal(this);
 
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>
@@ -652,61 +635,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        string raytracingResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
+        // be sure to cach result for not using GC in a frame after first one.
+        static readonly string raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
 
         internal void EnsureRayTracingResources(bool forceReload)
-        {
-            HDRenderPipelineRayTracingResources resources = null;
-
-            if (AreRayTracingResourcesCreated())
-            {
-                if (!EditorUtility.IsPersistent(m_RenderPipelineRayTracingResources))
-                {
-                    resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(raytracingResourcesPath);
-                    if (resources && !resources.Equals(null))
-                    {
-                        m_RenderPipelineRayTracingResources = resources;
-                    }
-                }
-                return;
-            }
-            resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(raytracingResourcesPath);
-            if (resources && !resources.Equals(null))
-            {
-                m_RenderPipelineRayTracingResources = resources;
-            }
-            else
-            {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(raytracingResourcesPath);
-                m_RenderPipelineRayTracingResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineRayTracingResources : null;
-                if (forceReload)
-                {
-#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
-                    ResourceReloader.TryReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
-#else
-                    if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath()))
-                    {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new Object[] { m_RenderPipelineRayTracingResources },
-                            raytracingResourcesPath,
-                            true);
-                    }
-#endif
-                    Debug.Assert(AreRayTracingResourcesCreated(), $"Could not load Ray Tracing Resources from {raytracingResourcesPath}.");
-                }
-            }
-        }
+            => EnsureResources(forceReload, ref m_RenderPipelineRayTracingResources, raytracingResourcesPath, AreRayTracingResourcesCreated_Internal);
 
         internal void ClearRayTracingResources()
-        {
-            m_RenderPipelineRayTracingResources = null;
-        }
+            => m_RenderPipelineRayTracingResources = null;
 
-        internal bool AreRayTracingResourcesCreated()
-        {
-            return (m_RenderPipelineRayTracingResources != null && !m_RenderPipelineRayTracingResources.Equals(null));
-        }
+        // Passing method in a Func argument create a functor that create GC
+        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
+        // So create it once and store it here.
+        // Expected usage: HDRenderPipelineGlobalSettings.AreRayTracingResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
+        static Func<HDRenderPipelineGlobalSettings, bool> AreRayTracingResourcesCreated_Internal = global
+            => global.m_RenderPipelineRayTracingResources != null && !global.m_RenderPipelineRayTracingResources.Equals(null);
 
+        internal bool AreRayTracingResourcesCreated() => AreRayTracingResourcesCreated_Internal(this);
 #endif
 
         #endregion //Ray Tracing Resources

@@ -96,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int                  actualHeight { get; private set; }
         /// <summary>Number of MSAA samples used for this frame.</summary>
         public MSAASamples          msaaSamples { get; private set; }
+        /// <summary>Returns true if MSAA is enabled for this camera (equivalent to msaaSamples != MSAASamples.None).</summary>
+        public bool                 msaaEnabled { get { return msaaSamples != MSAASamples.None; } }
         /// <summary>Frame settings for this camera.</summary>
         public FrameSettings        frameSettings { get; private set; }
         /// <summary>RTHandle properties for the camera history buffers.</summary>
@@ -659,7 +661,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass, bool allocateHistoryBuffers = true)
+        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, XRPass xrPass, bool allocateHistoryBuffers = true)
         {
             // Inherit animation settings from the parent camera.
             Camera aniCam = (parentCamera != null) ? parentCamera : camera;
@@ -818,7 +820,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var screenWidth = actualWidth;
             var screenHeight = actualHeight;
 
-            msaaSamples = newMSAASamples;
+            msaaSamples = frameSettings.GetResolvedMSAAMode(hdrp.asset);
 
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
@@ -838,13 +840,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
         internal void SetReferenceSize()
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
-            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            RTHandles.SetReferenceSize(actualWidth, actualHeight);
+            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
 
             foreach (var aovHistory in m_AOVHistoryRTSystem)
             {
                 var historySystem = aovHistory.Value;
-                historySystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+                historySystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
             }
         }
 
