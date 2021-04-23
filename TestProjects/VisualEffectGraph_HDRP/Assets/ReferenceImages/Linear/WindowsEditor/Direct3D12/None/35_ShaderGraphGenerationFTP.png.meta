@@ -6,7 +6,11 @@ TextureImporter:
   serializedVersion: 11
   mipmaps:
     mipMapMode: 0
+<<<<<<< HEAD
     enableMipMap: 0
+=======
+    enableMipMap: 1
+>>>>>>> 8a20d46ea1d26dee99c8292d0d16d43d83f7b5e3
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -20,7 +24,11 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+<<<<<<< HEAD
   isReadable: 1
+=======
+  isReadable: 0
+>>>>>>> 8a20d46ea1d26dee99c8292d0d16d43d83f7b5e3
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -38,7 +46,11 @@ TextureImporter:
     wrapU: 0
     wrapV: 0
     wrapW: 0
+<<<<<<< HEAD
   nPOTScale: 0
+=======
+  nPOTScale: 1
+>>>>>>> 8a20d46ea1d26dee99c8292d0d16d43d83f7b5e3
   lightmap: 0
   compressionQuality: 50
   spriteMode: 0
@@ -68,7 +80,11 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
+<<<<<<< HEAD
     textureCompression: 0
+=======
+    textureCompression: 1
+>>>>>>> 8a20d46ea1d26dee99c8292d0d16d43d83f7b5e3
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
