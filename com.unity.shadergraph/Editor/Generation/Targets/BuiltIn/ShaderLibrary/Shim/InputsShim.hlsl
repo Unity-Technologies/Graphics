@@ -16,6 +16,7 @@
 // scaleBias.w = unused
 //uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
+float4 _TimeParameters;
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
