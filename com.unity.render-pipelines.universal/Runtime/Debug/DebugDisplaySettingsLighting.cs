@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) || (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
-        public bool IsPostProcessingAllowed => true;
+        public bool IsPostProcessingAllowed => (DebugLightingMode != DebugLightingMode.Reflections && DebugLightingMode != DebugLightingMode.ReflectionsWithSmoothness);
 
         public bool IsLightingActive => true;
 
