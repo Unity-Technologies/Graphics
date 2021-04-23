@@ -1,9 +1,10 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using UnityEditor.Rendering;
+using UnityEditorInternal;
 
 // TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -69,23 +70,6 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
-
-            var rect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);
-            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
-
-            // Round min and max subdiv
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
-            float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
-            float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
-
-            EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
-            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
-            serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
-            EditorGUI.EndProperty();
-            EditorGUI.EndProperty();
-
-            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;

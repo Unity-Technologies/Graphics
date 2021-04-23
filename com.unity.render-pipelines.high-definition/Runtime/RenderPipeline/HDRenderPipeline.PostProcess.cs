@@ -3019,9 +3019,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
 
-                    if (m_EnableAlpha)
-                        passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
-
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                     passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
 
@@ -3905,10 +3902,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
-
-                    passData.fxaaCS.shaderKeywords = null;
-                    if (m_EnableAlpha)
-                        passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
 
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>

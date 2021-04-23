@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Global Constant Buffers - b registers. Unity supports a maximum of 16 global constant buffers.
@@ -10,7 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRSky = 2,
         RayTracing = 3,
         RayTracingLightLoop = 4,
-        APV = APVConstantBufferRegister.GlobalRegister,
     }
 
     // We need to keep the number of different constant buffers low.

@@ -42,13 +42,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
+            #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
             #pragma shader_feature_local EFFECT_BUMP
@@ -140,10 +139,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
+            #pragma instancing_options assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
             #pragma shader_feature_local EFFECT_BUMP

@@ -62,8 +62,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
 
-                // Normal buffer may have already been created if there was a depthNormal prepass before.
-                // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
                 if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                     continue;
 
@@ -76,7 +74,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
-            // ScriptableRenderer will implicitely force a clear the first time the camera color/depth targets are bound.
+            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    public enum RenderQueueType
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public enum RenderQueueType
     {
         Opaque,
         Transparent,
     }
 
     [ExcludeFromPreset]
-    public class RenderObjects : ScriptableRendererFeature
+    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public class RenderObjects : ScriptableRendererFeature
     {
         [System.Serializable]
         public class RenderObjectsSettings

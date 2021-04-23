@@ -92,7 +92,6 @@ namespace UnityEngine.Rendering
         /// <returns>The default magenta texture.</returns>
         public static RTHandle GetMagentaTexture() { return useTexArray ? m_MagentaTexture2DArrayRTH : m_MagentaTextureRTH; }
 
-        static Texture2D        m_BlackTexture;
         static Texture3D        m_BlackTexture3D;
         static Texture2DArray   m_BlackTexture2DArray;
         static RTHandle         m_BlackTexture2DArrayRTH;
@@ -162,12 +161,9 @@ namespace UnityEngine.Rendering
 
                 // Black
                 RTHandles.Release(m_BlackTextureRTH);
-                m_BlackTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Black Texture" };
-                m_BlackTexture.SetPixel(0, 0, Color.black);
-                m_BlackTexture.Apply();
-                m_BlackTextureRTH = RTHandles.Alloc(m_BlackTexture);
+                m_BlackTextureRTH = RTHandles.Alloc(Texture2D.blackTexture);
                 RTHandles.Release(m_BlackTexture2DArrayRTH);
-                m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(m_BlackTexture, "Black Texture2DArray");
+                m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
                 m_BlackTexture2DArrayRTH = RTHandles.Alloc(m_BlackTexture2DArray);
                 RTHandles.Release(m_BlackTexture3DRTH);
                 m_BlackTexture3D = CreateBlackTexture3D("Black Texture3D");

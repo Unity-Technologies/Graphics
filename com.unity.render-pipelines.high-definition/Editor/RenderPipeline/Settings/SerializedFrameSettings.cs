@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumLODLevelMode;
         public SerializedProperty maximumLODLevelQualityLevel;
         public SerializedProperty materialQuality;
-        public SerializedProperty msaaMode;
 
         public SerializedObject serializedObject => m_RootData.serializedObject;
 
@@ -93,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevelMode         = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
             materialQuality             = rootData.Find((FrameSettings s) => s.materialQuality);
-            msaaMode                    = rootData.FindPropertyRelative("msaaMode");
         }
 
         public struct TitleDrawingScope : IDisposable

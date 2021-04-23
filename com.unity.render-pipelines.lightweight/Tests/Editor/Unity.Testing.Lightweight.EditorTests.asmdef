@@ -1,0 +1,18 @@
+{
+    "name": "Unity.Testing.Lightweight.EditorTests",
+    "references": [
+        "Unity.Testing.Lightweight.Editor",
+        "Unity.Testing.Lightweight",
+		"Unity.Lightweight.Editor"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+	"defineConstraints": [
+		"UNITY_INCLUDE_TESTS"
+		]	
+}

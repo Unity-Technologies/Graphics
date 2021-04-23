@@ -1,8 +1,18 @@
 using System;
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Rendering.LWRP
+{
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipelineEditorResources", true)]
+    public class LightweightRenderPipelineEditorResources
+    {
+    }
+}
+
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class UniversalRenderPipelineEditorResources : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalRenderPipelineEditorResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources

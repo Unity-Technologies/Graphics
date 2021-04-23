@@ -56,9 +56,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DownsampleDepthMaterial);
         }
 
-        bool NeedClearGBuffer(HDCamera hdCamera)
+        bool NeedClearGBuffer()
         {
-            return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.ClearGBuffers);
+            // TODO: Add an option to force clear
+            return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
         }
 
         HDUtils.PackedMipChainInfo GetDepthBufferMipChainInfo()
@@ -97,9 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle  coarseStencilBuffer;
         }
 
-        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
+        TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
         {
-            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
-                depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, msaaSamples = msaaSamples, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+                depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -118,9 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(depthDesc);
         }
 
-        TextureHandle CreateNormalBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
+        TextureHandle CreateNormalBuffer(RenderGraph renderGraph, bool msaa)
         {
-            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
@@ -130,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(hdCamera), clearColor = Color.black, bindTextureMS = msaa, msaaSamples = msaaSamples, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -139,31 +138,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(normalDesc);
         }
 
-        TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, bool msaa)
         {
-            bool msaa = msaaSamples != MSAASamples.None;
             TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, msaaSamples = msaaSamples, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
+            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
             return renderGraph.CreateTexture(decalDesc);
         }
 
-        TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = msaaSamples, name = "DepthAsColorMSAA" });
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" });
         }
 
-        TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
+        TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
-            bool msaa = msaaSamples != MSAASamples.None;
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
-            { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, msaaSamples = msaaSamples, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
+            { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
         void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, TextureHandle decalBuffer, HDCamera hdCamera)
         {
-            bool msaa = hdCamera.msaaSamples != MSAASamples.None;
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool decalLayerEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
 
             int index = 0;
@@ -191,13 +188,13 @@ namespace UnityEngine.Rendering.HighDefinition
             result.gbuffer = m_GBufferOutput;
             result.dbuffer = m_DBufferOutput;
 
-            bool msaa = hdCamera.msaaEnabled;
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
             bool motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
-            result.motionVectorsBuffer = motionVectors ? CreateMotionVectorBuffer(renderGraph, msaa, hdCamera.msaaSamples) : renderGraph.defaultResources.blackTextureXR;
-            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, hdCamera.msaaSamples);
+            result.motionVectorsBuffer = motionVectors ? CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors) : renderGraph.defaultResources.blackTextureXR;
+            result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.stencilBuffer = result.depthBuffer;
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
@@ -222,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
-                bool needCameraMVBeforeResolve = msaa;
+                bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (needCameraMVBeforeResolve)
                 {
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
@@ -404,13 +401,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 decalBuffer = renderGraph.defaultResources.blackTextureXR;
-                output.depthAsColor = CreateDepthAsColorBuffer(renderGraph, hdCamera.msaaSamples);
-                output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera, hdCamera.msaaSamples);
-
+                output.depthAsColor = CreateDepthAsColorBuffer(renderGraph);
+                output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
                 return false;
             }
 
-            bool msaa = hdCamera.msaaEnabled;
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool decalLayersEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
             bool decalsEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
             bool fullDeferredPrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering);
@@ -421,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Needs to be created ahead because it's used in both pre-passes.
             if (decalLayersEnabled)
-                decalBuffer = CreateDecalPrepassBuffer(renderGraph, hdCamera.msaaSamples);
+                decalBuffer = CreateDecalPrepassBuffer(renderGraph, msaa);
             else
                 decalBuffer = renderGraph.defaultResources.blackTextureXR;
 
@@ -463,9 +459,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 int mrtIndex = 0;
                 if (msaa)
-                    output.depthAsColor = builder.UseColorBuffer(CreateDepthAsColorBuffer(renderGraph, hdCamera.msaaSamples), mrtIndex++);
-                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, hdCamera, hdCamera.msaaSamples), mrtIndex++);
-
+                    output.depthAsColor = builder.UseColorBuffer(CreateDepthAsColorBuffer(renderGraph), mrtIndex++);
+                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, msaa), mrtIndex++);
                 if (decalLayersEnabled)
                     decalBuffer = builder.UseColorBuffer(decalBuffer, mrtIndex++);
 
@@ -569,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
         {
-            bool clearGBuffer = NeedClearGBuffer(hdCamera);
+            bool clearGBuffer = NeedClearGBuffer();
             bool lightLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
@@ -684,7 +679,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResolvePrepassBuffers(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
-            if (hdCamera.msaaSamples == MSAASamples.None)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 output.resolvedNormalBuffer = output.normalBuffer;
                 output.resolvedDepthBuffer = output.depthBuffer;
@@ -702,14 +697,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.needMotionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
-                passData.depthResolvePassIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
+                passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
-                output.resolvedDepthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, MSAASamples.None), DepthAccess.Write);
+                output.resolvedDepthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, false), DepthAccess.Write);
                 output.depthValuesMSAA = builder.UseColorBuffer(depthValuesBuffer, 0);
-                output.resolvedNormalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, hdCamera, MSAASamples.None), 1);
-
+                output.resolvedNormalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
                 if (passData.needMotionVectors)
-                    output.resolvedMotionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, MSAASamples.None), 2);
+                    output.resolvedMotionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
                 else
                     output.resolvedMotionVectorsBuffer = TextureHandle.nullHandle;
 
@@ -802,8 +796,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<ResolveStencilPassData>("Resolve Stencil", out var passData, ProfilingSampler.Get(HDProfileId.BuildCoarseStencilAndResolveIfNeeded)))
             {
-                bool MSAAEnabled = hdCamera.msaaEnabled;
-                int kernel = SampleCountToPassIndex(hdCamera.msaaSamples);
+                bool MSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                int kernel = SampleCountToPassIndex(MSAAEnabled ? hdCamera.msaaSamples : MSAASamples.None);
 
                 passData.hdCamera = hdCamera;
                 passData.resolveOnly = resolveOnly;
@@ -841,7 +835,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.DispatchCompute(cs, data.resolveKernel, coarseStencilWidth, coarseStencilHeight, data.hdCamera.viewCount);
                     });
 
-                if (MSAAEnabled)
+                bool isMSAAEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                if (isMSAAEnabled)
                     output.stencilBuffer = passData.resolvedStencil;
                 output.coarseStencilBuffer = passData.coarseStencilBuffer;
             }
@@ -977,8 +972,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
-                hdCamera.msaaSamples == MSAASamples.None && // MSAA not supported
-                hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) &&
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects)) // MSAA not supported
             {
                 using (var builder = renderGraph.AddRenderPass<DBufferNormalPatchData>("DBuffer Normal (forward)", out var passData, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
                 {

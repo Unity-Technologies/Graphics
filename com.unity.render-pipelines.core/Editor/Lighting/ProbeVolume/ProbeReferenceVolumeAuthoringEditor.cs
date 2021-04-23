@@ -1,12 +1,12 @@
 #if UNITY_EDITOR
 
 using UnityEditor;
+using UnityEditor.Rendering;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
@@ -96,34 +96,21 @@ namespace UnityEngine.Experimental.Rendering
                 serializedObject.Update();
 
                 var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-                bool mismatchedProfile = false;
-                bool mismatchedTransform = false;
+                bool foundInconsistency = false;
                 if (probeReferenceVolumes.Length > 1)
                 {
                     foreach (var o1 in probeReferenceVolumes)
                     {
                         foreach (var o2 in probeReferenceVolumes)
                         {
-                            if (!o1.profile.IsEquivalent(o2.profile))
+                            if (!o1.profile.IsEquivalent(o2.profile) && !foundInconsistency)
                             {
-                                mismatchedProfile = true;
+                                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
+                                    + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
+                                foundInconsistency = true;
                             }
-                            if (o1.transform.worldToLocalMatrix != o2.transform.worldToLocalMatrix)
-                            {
-                                mismatchedTransform = true;
-                            }
+                            if (foundInconsistency) break;
                         }
-                    }
-
-                    if (mismatchedProfile)
-                    {
-                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different profiles. "
-                            + "This is unsupported, please make sure all loaded Probe Reference Volume have the same profile or profiles with equal values.", MessageType.Error, wide: true);
-                    }
-                    if (mismatchedTransform)
-                    {
-                        EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are loaded, but they have different transforms. "
-                            + "This is currently unsupported, please make sure all loaded Probe Reference Volume have the same transform.", MessageType.Error, wide: true);
                     }
                 }
 
@@ -276,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
 
-                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
+                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].size;
 
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
@@ -291,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering
                     for (int i = 0; i < cell.probePositions.Length; i++)
                     {
                         // Skip probes which aren't of current brick size
-                        if (cell.bricks[i / 64].subdivisionLevel == brickSize)
+                        if (cell.bricks[i / 64].size == brickSize)
                         {
                             probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                             probeMap.Add(i);

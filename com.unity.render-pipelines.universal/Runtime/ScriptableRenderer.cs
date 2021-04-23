@@ -820,7 +820,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
         }
 
         internal void Clear(CameraRenderType cameraType)

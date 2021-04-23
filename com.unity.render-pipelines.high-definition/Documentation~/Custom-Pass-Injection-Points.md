@@ -25,4 +25,4 @@ Unity triggers the following injection points in a frame, in order from top to b
 
 The following diagram describes where Unity injects Custom Passes into an HDRP frame:
 
-[![](Images/HDRP-frame-graph-diagram.png)](Images/HDRP-frame-graph-diagram.png)
+![](images/HDRP-frame-graph-diagram.png)

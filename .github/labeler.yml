@@ -12,6 +12,7 @@ HDRP:
 
 Universal:
   - com.unity.render-pipelines.universal/**/*
+  - com.unity.render-pipelines.lightweight/**/*
   - TestProjects/Universal*/**/*
 
 Shader Graph:

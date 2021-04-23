@@ -35,7 +35,6 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
     mtlData.bsdfWeight = 0.0;
     mtlData.V = -WorldRayDirection();
-    mtlData.Nv = ComputeConsistentShadingNormal(mtlData.V, bsdfData.geomNormalWS, bsdfData.normalWS);
 
     if (!IsAbove(mtlData))
         return false;
@@ -43,7 +42,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
     mtlData.bsdfWeight[0] = Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
 
     // If N.V < 0 (can happen with normal mapping, or smooth normals on coarsely tesselated objects) we want to avoid spec sampling
-    float NdotV = dot(GetSpecularNormal(mtlData), mtlData.V);
+    float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
     if (NdotV > 0.001)
     {
         // For the cotton/wool material, diffuse and sheen BRDFs share the same cosine-weighted sampling, so we only give the upper hemisphere
@@ -77,7 +76,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
             SSS::Result subsurfaceResult;
             float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
+            if (!SSS::RandomWalk(shadingPosition, mtlData.bsdfData.normalWS, mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
                 return false;
 
             shadingPosition = subsurfaceResult.exitPosition;
@@ -216,36 +215,44 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
 
     if (IsAbove(mtlData))
     {
-        if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
+        if (IsAbove(mtlData.bsdfData.normalWS, sampleDir)) // BRDFs
         {
-            if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
+            if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
             {
-                BRDF::EvaluateLambert(mtlData, sampleDir, result.diffValue, result.diffPdf);
-                result.diffPdf *= mtlData.bsdfWeight[0];
+                if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
+                {
+                    BRDF::EvaluateLambert(mtlData, sampleDir, result.diffValue, result.diffPdf);
+                    result.diffPdf *= mtlData.bsdfWeight[0];
+                }
+
+                if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
+                {
+                    BRDF::EvaluateSheen(mtlData, sampleDir, result.specValue, result.specPdf);
+                    result.specPdf *= mtlData.bsdfWeight[1];
+                }
+            }
+            else // MATERIALFEATUREFLAGS_FABRIC_SILK
+            {
+                if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
+                {
+                    BRDF::EvaluateBurley(mtlData, sampleDir, result.diffValue, result.diffPdf);
+                    result.diffPdf *= mtlData.bsdfWeight[0];
+                }
+
+                if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
+                {
+                    BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, result.specValue, result.specPdf);
+                    result.specPdf *= mtlData.bsdfWeight[1];
+                }
             }
 
-            if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
+            if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
             {
-                BRDF::EvaluateSheen(mtlData, sampleDir, result.specValue, result.specPdf);
-                result.specPdf *= mtlData.bsdfWeight[1];
+                // We compensate for the fact that there is no spec when computing SSS
+                result.specValue /= mtlData.subsurfaceWeightFactor;
             }
         }
-        else // MATERIALFEATUREFLAGS_FABRIC_SILK
-        {
-            if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
-            {
-                BRDF::EvaluateBurley(mtlData, sampleDir, result.diffValue, result.diffPdf);
-                result.diffPdf *= mtlData.bsdfWeight[0];
-            }
-
-            if (mtlData.bsdfWeight[1] > BSDF_WEIGHT_EPSILON)
-            {
-                BRDF::EvaluateAnisoGGX(mtlData, mtlData.bsdfData.fresnel0, sampleDir, result.specValue, result.specPdf);
-                result.specPdf *= mtlData.bsdfWeight[1];
-            }
-        }
-
-        if (IsBelow(GetDiffuseNormal(mtlData), sampleDir) && mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
+        else if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON) // Diffuse BTDF
         {
             BTDF::EvaluateLambert(mtlData, sampleDir, result.diffValue, result.diffPdf);
             result.diffValue *= mtlData.bsdfData.transmittance;
@@ -256,12 +263,6 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
                 // We compensate for the fact that there is no transmission when computing SSS
                 result.diffValue /= mtlData.subsurfaceWeightFactor;
             }
-        }
-
-        if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
-        {
-            // We compensate for the fact that there is no spec when computing SSS
-            result.specValue /= mtlData.subsurfaceWeightFactor;
         }
     }
 }

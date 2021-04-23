@@ -91,10 +91,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 half3 NormalWS = input.NormalOS;
                 OUTPUT_SH(NormalWS, output.vertexSH);
                 Light mainLight = GetMainLight();
-                half3 diffuseColor = 0.0;
-
                 half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-                diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
+                half3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
 
                 #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
                     int pixelLightCount = GetAdditionalLightsCount();
@@ -121,14 +119,11 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
-                half3 lighting = bakedGI;
-
-                half realtimeShadows = 1.0;
                 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                    realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
+                    half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                #else
+                    half3 lighting = input.LightingFog.rgb + bakedGI;
                 #endif
-
-                lighting += input.LightingFog.rgb * realtimeShadows;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;

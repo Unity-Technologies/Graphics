@@ -1,10 +1,11 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class BakedLitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class BakedLitGUI
     {
         public struct BakedLitProperties
         {

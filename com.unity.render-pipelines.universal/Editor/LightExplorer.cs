@@ -6,7 +6,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace UnityEditor
 {
     [LightingExplorerExtensionAttribute(typeof(UniversalRenderPipelineAsset))]
-    public class LightExplorer : DefaultLightingExplorerExtension
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class LightExplorer : DefaultLightingExplorerExtension
     {
         private static class Styles
         {

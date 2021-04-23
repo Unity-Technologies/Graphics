@@ -306,7 +306,7 @@ Managing LOD in this way has two consequences:
 
 | **Feature**                  | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------------ | ------------------------ | ------------------------------- |
-| **Speed Tree**           | Yes                      | SpeedTree 8 only.               |
+| **Speed Tree**           | Yes                      | In research                     |
 | **Paint Trees**          | Yes                      | Yes                             |
 | **Detail**               | Yes                      | Not supported                   |
 | **Wind Zone**            | Yes                      | Not supported                   |

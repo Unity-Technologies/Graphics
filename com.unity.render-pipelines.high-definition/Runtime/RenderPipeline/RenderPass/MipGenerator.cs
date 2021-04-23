@@ -127,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
+                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
@@ -157,6 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: false,
                     useMipMap: false,
+                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temporary Downsampled Pyramid"
                 );

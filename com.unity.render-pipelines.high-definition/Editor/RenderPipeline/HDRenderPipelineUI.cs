@@ -1186,7 +1186,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serialized.renderPipelineSettings.MSAASampleCount.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.MSAASampleCountContent.text);
-            else
+            else if (serialized.renderPipelineSettings.supportMSAA)
             {
                 // NO MSAA in deferred
                 if (serialized.renderPipelineSettings.supportedLitShaderMode.intValue != (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)

@@ -13,7 +13,6 @@ struct LightData
     float4 attenuation;
     float4 spotDirection;
     float4 occlusionProbeChannels;
-    uint layerMask;
 };
 
 

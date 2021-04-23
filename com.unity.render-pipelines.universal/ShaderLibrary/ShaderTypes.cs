@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.Universal
             public Vector4 attenuation;
             public Vector4 spotDirection;
             public Vector4 occlusionProbeChannels;
-            public uint layerMask;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static string unlitShaderMessage = "HDRP Unlit shaders will force the shader passes to \"ForwardOnly\"";
             public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a Custom Pass";
             public static string opaqueObjectWithDeferred = "Your HDRP settings do not support ForwardOnly, some objects might not render.";
-            public static string objectRendererTwiceWithMSAA = "If MSAA is enabled, re-rendering the same object twice will cause depth test artifacts in Before/After Post Process injection points";
+            public static string objectRendererTwiceWithMSAA = "MSAA is enabled, re-rendering the same object twice will cause depth test artifacts in Before/After Post Process injection points";
         }
 
         //Headers and layout
@@ -190,6 +190,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Tell if we need to show the MSAA message info
         bool ShowMsaaObjectInfo()
         {
+            if (HDRenderPipeline.currentAsset == null || !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                return false;
+
             if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)
                 return false;
 
