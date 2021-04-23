@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
         {
-            cmdBuffer.ReleaseTemporaryRT(Shader.PropertyToID($"ShadowTex_{shadowIndex}"));
+            cmdBuffer.ReleaseTemporaryRT(Shader.PropertyToID(m_RenderTargets[shadowIndex].name));
         }
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
