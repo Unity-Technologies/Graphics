@@ -28,6 +28,7 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed undo of some properties on light editor.
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
