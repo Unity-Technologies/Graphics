@@ -164,6 +164,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            var universalTarget = (target as UniversalTarget);
+            universalTarget.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
+
             context.AddProperty("Workflow Mode", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
             {
                 if (Equals(workflowMode, evt.newValue))
@@ -174,9 +177,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            // show the target default surface properties UI
-            var universalTarget = (target as UniversalTarget);
-            universalTarget.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: true);
+            universalTarget.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: true);
 
             context.AddProperty("Fragment Normal Space", new EnumField(NormalDropOffSpace.Tangent) { value = normalDropOffSpace }, (evt) =>
             {

@@ -90,9 +90,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            // show the target default surface properties
             var universalTarget = (target as UniversalTarget);
-            universalTarget.GetDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: false);
+            universalTarget.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
+            universalTarget.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: false);
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)

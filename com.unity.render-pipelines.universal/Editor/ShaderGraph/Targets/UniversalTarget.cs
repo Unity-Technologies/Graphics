@@ -378,7 +378,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             Always = 8,
         };
 
-        public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows)
+        public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             // At some point we may want to convert this to be a per-property control
             // or Unify the UX with the upcoming "lock" feature of the Material Variant properties
@@ -391,7 +391,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 allowMaterialOverride = evt.newValue;
                 onChange();
             });
+        }
 
+        public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows)
+        {
             context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
             {
                 if (Equals(surfaceType, evt.newValue))
