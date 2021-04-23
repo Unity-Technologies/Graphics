@@ -182,6 +182,8 @@ publish_hdrp_template_trunk:
       -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
       -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+      -  .yamato/_templates.yml#test_hdrp_template_Win_trunk_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk_dependencies
     artifacts:
         packages:
             paths:
@@ -207,6 +209,8 @@ promote_hdrp_template_trunk:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 promote_hdrp_template_trunk_dry_run:
     name: Promote HDRP Template trunk Dry Run
     agent:
@@ -227,6 +231,8 @@ promote_hdrp_template_trunk_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 pre_pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pre-Pack HDRP Template Win CUSTOM-REVISION
     agent:
@@ -237,6 +243,8 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
         primed:
             paths:
@@ -319,6 +327,8 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
         primed:
             paths:
@@ -405,6 +415,8 @@ publish_hdrp_template_CUSTOM-REVISION:
       -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
       -  .yamato/_templates.yml#pack_hdrp_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION_dependencies
     artifacts:
         packages:
             paths:
@@ -430,6 +442,8 @@ promote_hdrp_template_CUSTOM-REVISION:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 promote_hdrp_template_CUSTOM-REVISION_dry_run:
     name: Promote HDRP Template CUSTOM-REVISION Dry Run
     agent:
@@ -450,6 +464,8 @@ promote_hdrp_template_CUSTOM-REVISION_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 pre_pack_universal_template_Win_trunk:
     name: Pre-Pack Universal Template Win trunk
     agent:
@@ -616,6 +632,8 @@ publish_universal_template_trunk:
       -  .yamato/_templates.yml#test_universal_template_OSX_trunk
       -  .yamato/_templates.yml#pack_universal_template_Win_trunk
       -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
+      -  .yamato/_templates.yml#test_universal_template_Win_trunk_dependencies
+      -  .yamato/_templates.yml#test_universal_template_OSX_trunk_dependencies
     artifacts:
         packages:
             paths:
@@ -641,6 +659,8 @@ promote_universal_template_trunk:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 promote_universal_template_trunk_dry_run:
     name: Promote Universal Template trunk Dry Run
     agent:
@@ -661,6 +681,8 @@ promote_universal_template_trunk_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 pre_pack_universal_template_Win_CUSTOM-REVISION:
     name: Pre-Pack Universal Template Win CUSTOM-REVISION
     agent:
@@ -671,6 +693,8 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
         primed:
             paths:
@@ -749,6 +773,8 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
         primed:
             paths:
@@ -831,6 +857,8 @@ publish_universal_template_CUSTOM-REVISION:
       -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
       -  .yamato/_templates.yml#pack_universal_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION_dependencies
+      -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION_dependencies
     artifacts:
         packages:
             paths:
@@ -856,6 +884,8 @@ promote_universal_template_CUSTOM-REVISION:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 promote_universal_template_CUSTOM-REVISION_dry_run:
     name: Promote Universal Template CUSTOM-REVISION Dry Run
     agent:
@@ -876,6 +906,8 @@ promote_universal_template_CUSTOM-REVISION_dry_run:
             paths:
               -  "upm-ci~/packages/**/*"
               -  "upm-ci~/templates/**/*"
+    variables:
+        UPMCI_PROMOTION: 1
 all_template_ci_trunk:
     name: Pack and test all templates - trunk
     agent:
