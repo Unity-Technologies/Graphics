@@ -258,9 +258,6 @@
             "m_Id": "4700338116c44a85bff15bb374054167"
         },
         {
-            "m_Id": "bacf0acc21f348e18cd60c49f5943271"
-        },
-        {
             "m_Id": "4412f1dc4aa7492f86114fbffca3cf80"
         },
         {
@@ -877,20 +874,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "bacf0acc21f348e18cd60c49f5943271"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "4412f1dc4aa7492f86114fbffca3cf80"
-                },
-                "m_SlotId": -84633316
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "bae0ebd9222a4d1c9ef454ecbeea558c"
                 },
                 "m_SlotId": 0
@@ -1202,8 +1185,8 @@
     "m_ObjectId": "003b4ef77bba4db8a2543888cf83d33c",
     "m_Title": "Normals",
     "m_Position": {
-        "x": -1671.33349609375,
-        "y": 422.6667785644531
+        "x": -1671.0,
+        "y": 423.0
     }
 }
 
@@ -2840,9 +2823,6 @@
             "m_Id": "c15eee43ef6243649ab3cbce74e91955"
         },
         {
-            "m_Id": "cb16feec1a7845b5b04a9bbbd30eacda"
-        },
-        {
             "m_Id": "732101b9dd9b4691912c590ad2aef916"
         },
         {
@@ -3819,31 +3799,6 @@
     "m_ClearCoat": false,
     "m_EmissionOverriden": false,
     "m_ForceForwardEmissive": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "65bc48f8b72848f18c290f9f8c3154ee",
-    "m_Id": 0,
-    "m_DisplayName": "DoubleSidedConstants",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "DoubleSidedConstants",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_Labels": []
 }
 
 {
@@ -6065,42 +6020,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
-    "m_ObjectId": "bacf0acc21f348e18cd60c49f5943271",
-    "m_Group": {
-        "m_Id": "003b4ef77bba4db8a2543888cf83d33c"
-    },
-    "m_Name": "GetDoubleSidedConstants (Custom Function)",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -1646.0001220703125,
-            "y": 813.3333740234375,
-            "width": 311.3334045410156,
-            "height": 94.00000762939453
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "65bc48f8b72848f18c290f9f8c3154ee"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SourceType": 1,
-    "m_FunctionName": "GetDoubleSidedConstants",
-    "m_FunctionSource": "",
-    "m_FunctionBody": "DoubleSidedConstants = _DoubleSidedConstants;"
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "bae0ebd9222a4d1c9ef454ecbeea558c",
@@ -6669,31 +6588,6 @@
         "x": 0.0,
         "y": 0.0,
         "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
-    "m_ObjectId": "cb16feec1a7845b5b04a9bbbd30eacda",
-    "m_Id": -84633316,
-    "m_DisplayName": "Backside Normal Transform (TS)",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
     },
     "m_Labels": []
 }
