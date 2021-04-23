@@ -295,8 +295,10 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS5)
                 return true;
-#endif
+            return false;
+#else
             return SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console;
+#endif
         }
 
         private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)
