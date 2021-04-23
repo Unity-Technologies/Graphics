@@ -40,6 +40,20 @@
     #define _MIXED_LIGHTING_SUBTRACTIVE
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+//                             Light Layers                                   /
+///////////////////////////////////////////////////////////////////////////////
+
+// Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active if save in a buffer
+uint GetMeshRenderingLightLayer()
+{
+#ifdef _LIGHT_LAYERS
+    return (asuint(unity_RenderingLayer.x) & RENDERING_LIGHT_LAYERS_MASK) >> RENDERING_LIGHT_LAYERS_MASK_SHIFT;
+#else
+    return DEFAULT_LIGHT_LAYERS;
+#endif
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -52,6 +66,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
+    uint    layerMask;
 };
 
 // WebGL1 does not support the variable conditioned for loops used for additional lights
@@ -135,6 +150,12 @@ Light GetMainLight()
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
+#ifdef _LIGHT_LAYERS
+    light.layerMask = _MainLightLayerMask;
+#else
+    light.layerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
     return light;
 }
 
@@ -161,11 +182,23 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = _AdditionalLightsBuffer[perObjectLightIndex].layerMask;
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
+#ifdef _LIGHT_LAYERS
+    uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
+#else
+    uint lightLayerMask = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -181,6 +214,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = 1.0; // This value can later be overridden in GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     light.color = color;
+    light.layerMask = lightLayerMask;
 
     return light;
 }
@@ -894,6 +928,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
 
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -906,22 +942,30 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                     mainLight,
-                                     inputData.normalWS, inputData.viewDirectionWS,
-                                     surfaceData.clearCoatMask, specularHighlightsOff);
+
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                         mainLight,
+                                         inputData.normalWS, inputData.viewDirectionWS,
+                                         surfaceData.clearCoatMask, specularHighlightsOff);
+    }
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
-        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            light.color *= aoFactor.directAmbientOcclusion;
-        #endif
-        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         light,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                light.color *= aoFactor.directAmbientOcclusion;
+            #endif
+            color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                             light,
+                                             inputData.normalWS, inputData.viewDirectionWS,
+                                             surfaceData.clearCoatMask, specularHighlightsOff);
+        }
     LIGHT_LOOP_END
 #endif
 
@@ -961,6 +1005,8 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
 
+    uint meshRenderingLayers = GetMeshRenderingLightLayer();
+
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -971,20 +1017,29 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
-    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
-    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+    half3 diffuseColor = inputData.bakedGI;
+    half3 specularColor = half3(0, 0, 0);
+
+    if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
+    {
+        half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
+        diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+    }
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
-        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            light.color *= aoFactor.directAmbientOcclusion;
-        #endif
-        half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
-        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+        if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
+        {
+            #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                light.color *= aoFactor.directAmbientOcclusion;
+            #endif
+            half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+            diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+        }
     LIGHT_LOOP_END
 #endif
 
