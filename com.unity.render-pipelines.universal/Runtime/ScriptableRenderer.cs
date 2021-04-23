@@ -1031,7 +1031,7 @@ namespace UnityEngine.Rendering.Universal
                             m_ActiveColorAttachmentDescriptors[i].ConfigureClear(Color.black, 1.0f, 0);
                     }
 
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, !needCustomCameraDepthClear, !isLastPassToBB);
                     if (needCustomCameraDepthClear)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
@@ -1175,7 +1175,7 @@ namespace UnityEngine.Rendering.Universal
                     bool isLastPassToBB = isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
                     m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
 
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0 , !isLastPassToBB);
 
                     if (finalClearFlag != ClearFlag.None)
