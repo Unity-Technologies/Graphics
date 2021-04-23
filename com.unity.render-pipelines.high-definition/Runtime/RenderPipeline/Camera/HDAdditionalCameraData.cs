@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float focusDistance
         {
             get => m_FocusDistance;
-            set => m_FocusDistance = Mathf.Max(value, 0);
+            set => m_FocusDistance = Mathf.Max(value, 0.1f);
         }
 
         /// <summary>
