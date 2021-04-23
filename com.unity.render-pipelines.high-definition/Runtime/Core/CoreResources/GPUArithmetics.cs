@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width  = input.rt.width;
             int height = input.rt.height;
 
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader arithmeticsCS = hdrp.renderPipelineResources.shaders.gpuArithmeticsCS;
 
             switch (operation)
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width  = input.rt.width;
             int height = input.rt.height;
 
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader arithmeticsCS = hdrp.renderPipelineResources.shaders.gpuArithmeticsCS;
 
             switch (operation)

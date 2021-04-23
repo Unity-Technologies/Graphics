@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         enableRandomWrite: true);
                     RTHandlesDeleter.ScheduleRelease(latLongMap);
 
-                    var hdrp = HDRenderPipeline.defaultAsset;
+                    var hdrp = HDRenderPipelineGlobalSettings.instance;
                     Material usedMat;
                     if (value.buildHemisphere)
                         usedMat = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToHemiPanoPS);

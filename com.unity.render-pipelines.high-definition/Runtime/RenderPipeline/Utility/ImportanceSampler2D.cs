@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="single">Single, true if the minMax is a 1x1 texture</param>
         private static void Rescale01(RTHandle tex, RTHandle minMax, GPUScan.Direction direction, CommandBuffer cmd, bool single = false)
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.rescale01CS;
 
             rescale01.EnableKeyword("READ_WRITE");
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public static RTHandle GenerateSamples(uint samplesCount, RTHandle marginal, RTHandle conditionalMarginal, GPUScan.Direction direction, CommandBuffer cmd, bool hemiSphere = false)
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             ComputeShader importanceSample2D = hdrp.renderPipelineResources.shaders.importanceSample2DCS;
 
             string addon = "";
