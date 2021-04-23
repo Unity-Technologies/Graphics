@@ -886,8 +886,9 @@ namespace UnityEngine.Rendering.Universal
             bool supportsDepthTarget = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
             bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
 
-            // TODO: replace hasHiddenSurfaceRemovalOnGPU to hasTiledGPU if it ever gets exposed.
-            bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0 && !SystemInfo.hasHiddenSurfaceRemovalOnGPU;
+            // TODO: replace hasHiddenSurfaceRemovalOnGPU to hasTiledGPU if it ever gets exposed. Then we can uncomment this and guarantee there's no regression on tiled GPUs.
+            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0 && !SystemInfo.hasHiddenSurfaceRemovalOnGPU;
+            bool msaaDepthResolve = false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }
