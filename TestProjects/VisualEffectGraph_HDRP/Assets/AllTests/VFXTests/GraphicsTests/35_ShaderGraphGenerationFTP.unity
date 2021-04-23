@@ -688,7 +688,7 @@ VisualEffect:
         m_Overridden: 1
     m_Bool:
       m_Array:
-      - m_Value: 1
+      - m_Value: 0
         m_Name: DoRotate
         m_Overridden: 1
 --- !u!4 &281727114
@@ -1757,7 +1757,10 @@ VisualEffect:
         m_Name: Normal
         m_Overridden: 1
     m_Bool:
-      m_Array: []
+      m_Array:
+      - m_Value: 0
+        m_Name: DoRotate
+        m_Overridden: 1
 --- !u!4 &682661651
 Transform:
   m_ObjectHideFlags: 0
@@ -2080,7 +2083,10 @@ VisualEffect:
         m_Name: Normal
         m_Overridden: 1
     m_Bool:
-      m_Array: []
+      m_Array:
+      - m_Value: 0
+        m_Name: DoRotate
+        m_Overridden: 1
 --- !u!4 &904616588
 Transform:
   m_ObjectHideFlags: 0
@@ -3751,7 +3757,7 @@ VisualEffect:
         m_Overridden: 1
     m_Bool:
       m_Array:
-      - m_Value: 1
+      - m_Value: 0
         m_Name: DoRotate
         m_Overridden: 1
 --- !u!4 &1689535056
