@@ -792,7 +792,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture;
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture;
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture;
-            this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            if (this.GbufferFormats?.Length != this.GbufferAttachments.Length)
+            {
+                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
 
