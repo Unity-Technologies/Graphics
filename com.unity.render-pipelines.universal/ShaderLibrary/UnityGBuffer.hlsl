@@ -11,8 +11,22 @@
 #define OUTPUT_SHADOWMASK 1 // subtractive
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUTPUT_SHADOWMASK 2 // shadow mask
+#elif defined(_DEFERRED_MIXED_LIGHTING)
+#define OUTPUT_SHADOWMASK 3 // we don't know if it's subtractive or just shadowMap (from deferred lighting shader, LIGHTMAP_ON does not need to be defined)
 #else
-#define OUTPUT_SHADOWMASK 0
+#endif
+
+#if OUTPUT_SHADOWMASK && defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+    #define GBUFFER_LIGHT_LAYERS GBuffer4
+    #define GBUFFER_SHADOWMASK GBuffer5
+#elif OUTPUT_SHADOWMASK
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_SHADOWMASK GBuffer4
+#elif defined(_LIGHT_LAYERS)
+    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+    #define GBUFFER_LIGHT_LAYERS GBuffer4
 #endif
 
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
@@ -37,8 +51,11 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
-    #if OUTPUT_SHADOWMASK
+    #ifdef GBUFFER_OPTIONAL_SLOT_1
     half4 GBuffer4 : SV_Target4;
+    #endif
+    #ifdef GBUFFER_OPTIONAL_SLOT_2
+    half4 GBuffer5 : SV_Target5;
     #endif
 };
 
@@ -131,7 +148,12 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
     #if OUTPUT_SHADOWMASK
-    output.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #endif
+    #ifdef _LIGHT_LAYERS
+    uint renderingLayers = GetMeshRenderingLightLayer();
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -198,7 +220,12 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal    encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI                GI              GI              [optional: see OutputAlpha()] (lighting buffer)
     #if OUTPUT_SHADOWMASK
-    output.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #endif
+    #ifdef _LIGHT_LAYERS
+    uint renderingLayers = GetMeshRenderingLightLayer();
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
