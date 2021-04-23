@@ -471,7 +471,7 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
             var volumeScale = bakingReferenceVolumeAuthoring.transform.localScale;
-            var CellSize = bakingReferenceVolumeAuthoring.cellSize;
+            var CellSize = bakingReferenceVolumeAuthoring.cellSizeInMeter;
             var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
             var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
             var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
@@ -503,10 +503,10 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Calculate the cell volume:
                 ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-                cellVolume.corner = new Vector3(cellPos.x * bakingReferenceVolumeAuthoring.cellSize, cellPos.y * bakingReferenceVolumeAuthoring.cellSize, cellPos.z * bakingReferenceVolumeAuthoring.cellSize);
-                cellVolume.X = new Vector3(bakingReferenceVolumeAuthoring.cellSize, 0, 0);
-                cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSize, 0);
-                cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.corner = new Vector3(cellPos.x * bakingReferenceVolumeAuthoring.cellSizeInMeter, cellPos.y * bakingReferenceVolumeAuthoring.cellSizeInMeter, cellPos.z * bakingReferenceVolumeAuthoring.cellSizeInMeter);
+                cellVolume.X = new Vector3(bakingReferenceVolumeAuthoring.cellSizeInMeter, 0, 0);
+                cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSizeInMeter, 0);
+                cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSizeInMeter);
                 cellVolume.Transform(cellTrans);
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
