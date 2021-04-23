@@ -878,6 +878,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor MainLightLightCookie = new KeywordDescriptor()
+        {
+            displayName = "Main Light Light Cookie",
+            referenceName = "_MAIN_LIGHT_COOKIE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor AdditionalLightLightCookies = new KeywordDescriptor()
+        {
+            displayName = "Additional Lights Light Cookies",
+            referenceName = "_ADDITIONAL_LIGHT_COOKIES",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
     }
     #endregion
 

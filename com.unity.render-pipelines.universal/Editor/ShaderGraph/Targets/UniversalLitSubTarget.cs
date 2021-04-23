@@ -701,6 +701,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.MainLightLightCookie },
+                { CoreKeywordDescriptors.AdditionalLightLightCookies },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
