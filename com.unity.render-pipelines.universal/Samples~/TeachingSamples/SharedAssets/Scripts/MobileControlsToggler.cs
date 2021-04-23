@@ -6,7 +6,7 @@ public class MobileControlsToggler : MonoBehaviour
     private GameObject m_MovementControls;
     [SerializeField]
     private GameObject m_AimControls;
-    
+
     void Start()
     {
         if (SystemInfo.deviceType == DeviceType.Handheld)

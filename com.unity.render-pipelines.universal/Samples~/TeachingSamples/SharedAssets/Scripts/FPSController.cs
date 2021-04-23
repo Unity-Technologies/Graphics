@@ -25,14 +25,14 @@ public class FPSController : MonoBehaviour
         if (SystemInfo.deviceType == DeviceType.Handheld)
         {
             m_MoveWithMouse = false;
-        } 
-        
+        }
+
         if (m_MoveWithMouse)
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
-        
+
         m_RigidBody = GetComponent<Rigidbody>();
 
         m_MovementFlags = 0;
@@ -65,9 +65,9 @@ public class FPSController : MonoBehaviour
         Vector3 right = transform.right;
         right.y = 0;
         right = right.normalized;
-        
+
         Vector3 direction = MovementMaskToWalkDirection();
-        
+
 #if ENABLE_LEGACY_INPUT_MANAGER
         if (Input.GetKey(KeyCode.W))
         {
@@ -117,7 +117,7 @@ public class FPSController : MonoBehaviour
         direction += ((m_MovementFlags & 32) >> 5) * Vector3.right; //down
         direction += ((m_MovementFlags & 64) >> 6) * -Vector3.up; //left
         direction += ((m_MovementFlags & 128) >> 7) * Vector3.up; //right
-        
+
         return direction;
     }
 

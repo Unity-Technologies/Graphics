@@ -4,7 +4,7 @@ using UnityEngine;
 public class PreserveRectTransformAspectRatio : MonoBehaviour
 {
     private RectTransform m_RectTransform;
-    
+
     void Start()
     {
         m_RectTransform = GetComponent<RectTransform>();
