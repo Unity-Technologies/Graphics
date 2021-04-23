@@ -309,15 +309,18 @@ namespace UnityEngine.Rendering
                 // One to many, many to one
                 if (srcCount != dstCount)
                     return true;
+
                 // Single channel swizzle
-                var srcSwizzle = ((1 << (int)GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat)) << 24) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleG(source.graphicsFormat)) << 16) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleB(source.graphicsFormat)) << 8) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleA(source.graphicsFormat)));
-                var dstSwizzle = ((1 << (int)GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat)) << 24) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleG(destination.graphicsFormat)) << 16) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleB(destination.graphicsFormat)) << 8) |
-                    ((1 << (int)GraphicsFormatUtility.GetSwizzleA(destination.graphicsFormat)));
+                var srcSwizzle =
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleA(source.graphicsFormat) & 0x7)) << 24) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleB(source.graphicsFormat) & 0x7)) << 16) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleG(source.graphicsFormat) & 0x7)) << 8) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleR(source.graphicsFormat) & 0x7)));
+                var dstSwizzle =
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleA(destination.graphicsFormat) & 0x7)) << 24) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleB(destination.graphicsFormat) & 0x7)) << 16) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleG(destination.graphicsFormat) & 0x7)) << 8) |
+                    ((1 << ((int)GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat) & 0x7)));
                 if (srcCount == dstCount &&
                     srcSwizzle != dstSwizzle)
                     return true;

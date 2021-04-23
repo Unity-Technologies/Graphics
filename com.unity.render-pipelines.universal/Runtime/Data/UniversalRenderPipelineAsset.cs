@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
                 // Fallback
                 if (result == GraphicsFormat.None)
                 {
-                    result = SystemInfo.IsFormatSupported(GraphicsFormat.R8G8B8A8_SRGB, FormatUsage.Render) ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
+                    result = GraphicsFormat.R8G8B8A8_UNorm;
                     Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
                 }
 
