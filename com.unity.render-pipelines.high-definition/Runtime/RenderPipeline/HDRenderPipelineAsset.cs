@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
             set { globalSettings.renderPipelineResources = value; }
@@ -166,6 +166,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain detail grass billboard shader.</summary>
         public override Shader terrainDetailGrassBillboardShader
             => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
+
+        public override Shader defaultSpeedTree8Shader
+            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
 
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>
