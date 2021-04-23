@@ -1,6 +1,26 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
+// UX-verified colorblind-optimized debug colors, listed in order of increasing perceived "hotness"
+#define DEBUG_COLORS_COUNT 12
+#define kDebugColorBlack        float4(0.0   / 255.0, 0.0   / 255.0, 0.0   / 255.0, 1.0) // #000000
+#define kDebugColorLightPurple  float4(166.0 / 255.0, 70.0  / 255.0, 242.0 / 255.0, 1.0) // #A646F2
+#define kDebugColorDeepBlue     float4(0.0   / 255.0, 26.0  / 255.0, 221.0 / 255.0, 1.0) // #001ADD
+#define kDebugColorSkyBlue      float4(65.0  / 255.0, 152.0 / 255.0, 224.0 / 255.0, 1.0) // #4198E0
+#define kDebugColorLightBlue    float4(158.0 / 255.0, 228.0 / 255.0, 251.0 / 255.0, 1.0) // #1A1D21
+#define kDebugColorTeal         float4(56.0  / 255.0, 243.0 / 255.0, 176.0 / 255.0, 1.0) // #38F3B0
+#define kDebugColorBrightGreen  float4(168.0 / 255.0, 238.0 / 255.0, 46.0  / 255.0, 1.0) // #A8EE2E
+#define kDebugColorBrightYellow float4(255.0 / 255.0, 253.0 / 255.0, 76.0  / 255.0, 1.0) // #FFFD4C
+#define kDebugColorDarkYellow   float4(255.0 / 255.0, 214.0 / 255.0, 0.0   / 255.0, 1.0) // #FFD600
+#define kDebugColorOrange       float4(253.0 / 255.0, 152.0 / 255.0, 0.0   / 255.0, 1.0) // #FD9800
+#define kDebugColorBrightRed    float4(255.0 / 255.0, 67.0  / 255.0, 51.0  / 255.0, 1.0) // #FF4333
+#define kDebugColorDarkRed      float4(132.0 / 255.0, 10.0  / 255.0, 54.0  / 255.0, 1.0) // #840A36
+
+// UX-verified colorblind-optimized "heat color gradient"
+static const float4 kDebugColorGradient[DEBUG_COLORS_COUNT] = { kDebugColorBlack, kDebugColorLightPurple, kDebugColorDeepBlue,
+    kDebugColorSkyBlue, kDebugColorLightBlue, kDebugColorTeal, kDebugColorBrightGreen, kDebugColorBrightYellow,
+    kDebugColorDarkYellow, kDebugColorOrange, kDebugColorBrightRed, kDebugColorDarkRed };
+
 #define TRANSPARENCY_OVERDRAW_COST 1.0
 #define TRANSPARENCY_OVERDRAW_A 1.0
 
@@ -88,25 +108,9 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
 // where values at or above maxN receive strong red background color.
 float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
 {
-    const float4 kRadarColors[12] =
-    {
-        float4(0.0, 0.0, 0.0, 0.0),   // 0 black
-        float4(0.0, 0.0, 0.6, 0.5),   // 1 dark blue
-        float4(0.0, 0.0, 0.9, 0.5),   // 2 blue
-        float4(0.0, 0.6, 0.9, 0.5),   // 3 light blue
-        float4(0.0, 0.9, 0.9, 0.5),   // 4 cyan
-        float4(0.0, 0.9, 0.6, 0.5),   // 5 blueish green
-        float4(0.0, 0.9, 0.0, 0.5),   // 6 green
-        float4(0.6, 0.9, 0.0, 0.5),   // 7 yellowish green
-        float4(0.9, 0.9, 0.0, 0.5),   // 8 yellow
-        float4(0.9, 0.6, 0.0, 0.5),   // 9 orange
-        float4(0.9, 0.0, 0.0, 0.5),   // 10 dark red
-        float4(1.0, 0.0, 0.0, 0.9)    // 11 strong red
-    };
-
     int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
-    colorIndex = clamp(colorIndex, 0, 11);
-    float4 col = kRadarColors[colorIndex];
+    colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
+    float4 col = kDebugColorGradient[colorIndex];
 
     int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
 

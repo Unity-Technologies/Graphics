@@ -221,8 +221,14 @@ half3 CalculateDebugShadowCascadeColor(in InputData inputData)
 {
     float3 positionWS = inputData.positionWS;
     half cascadeIndex = ComputeCascadeIndex(positionWS);
-
-    return GetDebugColor(cascadeIndex).rgb;
+    switch (uint(cascadeIndex))
+    {
+        case 0: return kDebugColorBrightRed.rgb;
+        case 1: return kDebugColorDarkYellow.rgb;
+        case 2: return kDebugColorSkyBlue.rgb;
+        case 3: return kDebugColorBrightGreen.rgb;
+        default: return kDebugColorBlack.rgb;
+    }
 }
 
 half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)

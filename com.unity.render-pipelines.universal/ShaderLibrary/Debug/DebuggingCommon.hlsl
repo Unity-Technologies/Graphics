@@ -4,15 +4,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebugViewEnums.cs.hlsl"
 
-// Set of colors that should still provide contrast for the Color-blind
-#define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF
-#define kRedColor float4(203.0 / 255.0, 48.0 / 255.0, 34.0 / 255.0, 1.0) // #CB3022
-#define kGreenColor float4(8.0 / 255.0, 215.0 / 255.0, 139.0 / 255.0, 1.0) // #08D78B
-#define kYellowGreenColor float4(151.0 / 255.0, 209.0 / 255.0, 61.0 / 255.0, 1.0) // #97D13D
-#define kBlueColor float4(75.0 / 255.0, 146.0 / 255.0, 243.0 / 255.0, 1.0) // #4B92F3
-#define kOrangeBrownColor float4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
-#define kGrayColor float4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
-
 #if defined(DEBUG_DISPLAY)
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -50,23 +41,8 @@ sampler2D _DebugNumberTexture;
 
 half3 GetDebugColor(uint index)
 {
-    // TODO: Make these colors colorblind friendly...
-    const uint maxColors = 10;
-    float4 lut[maxColors] = {
-        kPurpleColor,
-        kRedColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kBlueColor,
-        kOrangeBrownColor,
-        kGrayColor,
-        float4(1, 1, 1, 0),
-        float4(0.8, 0.3, 0.7, 0),
-        float4(0.8, 0.7, 0.3, 0),
-    };
-    uint clammpedIndex = clamp(index, 0, maxColors - 1);
-
-    return lut[clammpedIndex].rgb;
+    uint clampedIndex = clamp(index, 0, DEBUG_COLORS_COUNT-1);
+    return kDebugColorGradient[clampedIndex].rgb;
 }
 
 bool TryGetDebugColorInvalidMode(out half4 debugColor)
