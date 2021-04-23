@@ -618,7 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))
             {
                 m_ShadowsPendingRendering.Remove(shadowIdx);
-                m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
+                if (!m_ShadowsWithValidData.ContainsKey(shadowIdx))
+                    m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
             }
         }
 

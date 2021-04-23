@@ -38,7 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
 
-        public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;
