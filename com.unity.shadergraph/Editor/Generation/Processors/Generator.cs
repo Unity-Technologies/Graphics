@@ -53,7 +53,23 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OutputNode == null)
             {
-                m_Targets = m_GraphData.activeTargets.ToArray();
+                var targets = m_GraphData.activeTargets.ToList();
+                // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
+                targets.Sort(delegate(Target target0, Target target1)
+                {
+                    var result = target0.displayName.CompareTo(target1.displayName);
+                    // If only one value is built-in, then sort it last
+                    if (result != 0)
+                    {
+                        if (target0.displayName == "Built-In")
+                            result = 1;
+                        if (target1.displayName == "Built-In")
+                            result = -1;
+                    }
+
+                    return result;
+                });
+                m_Targets = targets.ToArray();
             }
             else
             {
