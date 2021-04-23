@@ -726,28 +726,37 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-    const float prec = 8.0f;
-
     float speed = saturate(speedDiff);
-
-    const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
 
 #define SMOOTH_REJECT
 
 #ifdef SMOOTH_REJECT
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(usedSpeedRejection, -prec)));
+    const float prec = 2.5f;
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, prec)));
 #else
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed > pow(usedSpeedRejection, prec) ? 1.0f : 0.0f);
+    const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
+
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed >= _SsrPBRSpeedRejection ? 1.0f : 0.0f);
 #endif
+
     float4 result = lerp(previous, original, coefExpAvg);
 
-//#define REJECT_DEBUG_COLOR
+#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-    if (speedDiff > pow(usedSpeedRejection, prec))
+#ifdef SMOOTH_REJECT
+
+    float debugVal = saturate(speed * pow(_SsrPBRSpeedRejection, prec));
+    //if (speedDiff > _SsrPBRSpeedRejection)
+        result.rgb = debugVal.xxx;
+    //else
+    //    result.rgb = float3(0, 1, 0);
+#else
+    if (speedDiff >= _SsrPBRSpeedRejection)
         result.rgb = float3(1, 0, 0);
     else
         result.rgb = float3(0, 1, 0);
+#endif
 #endif
 
     uint3 intCol = asuint(result.rgb);
