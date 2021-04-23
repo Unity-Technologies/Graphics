@@ -18,12 +18,25 @@ float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
     return VFXGetPositionRWS(posWS);
 }
 
-InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, const SurfaceData surfaceData, const VFXUVData uvData, float opacity)
+InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, const SurfaceData surfaceData, const VFXUVData uvData, float3 normalWS, float opacity)
 {
     InputData inputData = (InputData)0;
 
     inputData.positionWS = posInputs.positionWS.xyz;
-    inputData.normalWS = i.VFX_VARYING_NORMAL; //TODOPAUL this is directly computed with VFXComputeNormalWS, here, it's ignored
+    inputData.normalWS = normalWS;
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    inputData.shadowCoord = inputData.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.VFX_VARYING_POSCS);
+    //TODOPAUL : Check & Remove
+    //inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
     #if URP_USE_EMISSIVE
     inputData.emission = float3(1,1,1);
@@ -45,7 +58,7 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 
     /*
 
-//TODOPAUL : Check what's needed here
+//TODOPAUL : Check what's needed here & clean
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
@@ -141,7 +154,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     #endif
     #endif
 
-    surfaceData.normalTS = normalWS; //TODOPAUL : Handle TS ?
+    surfaceData.normalTS = float3(1.0f, 0.0f, 0.0f); //NormalWS is directly modified in VFX
     #ifdef VFX_VARYING_SMOOTHNESS
     surfaceData.smoothness = i.VFX_VARYING_SMOOTHNESS;
     #endif

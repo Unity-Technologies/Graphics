@@ -10,7 +10,7 @@ void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_
 	
 	float alpha;
 	surfaceData = VFXGetSurfaceData(i, normalWS, uvData, alpha);	    
-	inputData = VFXGetInputData(i, posInput, surfaceData, uvData, alpha);
+	inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, alpha);
 }
 
 void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
