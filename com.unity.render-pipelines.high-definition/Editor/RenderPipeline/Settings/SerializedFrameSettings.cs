@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maximumLODLevelMode;
         public SerializedProperty maximumLODLevelQualityLevel;
         public SerializedProperty materialQuality;
+        public SerializedProperty msaaMode;
 
         public SerializedObject serializedObject => m_RootData.serializedObject;
 
@@ -46,30 +47,21 @@ namespace UnityEditor.Rendering.HighDefinition
             => m_BitDatas.HasBitMultipleDifferentValue((uint)field);
 
         public bool GetOverrides(FrameSettingsField field)
-            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.GetBitAt((uint)field) ?? false; //rootOverride can be null in case of hdrp global settings
         public void SetOverrides(FrameSettingsField field, bool value)
-            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrpAsset defaults
+            => m_BitOverrides?.SetBitAt((uint)field, value); //rootOverride can be null in case of hdrp global settings
         public bool HaveMultipleOverride(FrameSettingsField field)
             => m_BitOverrides?.HasBitMultipleDifferentValue((uint)field) ?? false;
 
         ref FrameSettings GetData(Object obj)
         {
-            if (obj is HDAdditionalCameraData)
-                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
-            if (obj is HDProbe)
-                return ref (obj as HDProbe).frameSettings;
-            if (obj is HDRenderPipelineAsset)
-                switch (HDRenderPipelineUI.selectedFrameSettings)
-                {
-                    case HDRenderPipelineUI.SelectedFrameSettings.Camera:
-                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-                    case HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection:
-                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
-                    case HDRenderPipelineUI.SelectedFrameSettings.RealtimeReflection:
-                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
-                    default:
-                        throw new System.ArgumentException("Unknown kind of HDRenderPipelineUI.SelectedFrameSettings");
-                }
+            switch (obj)
+            {
+                case HDAdditionalCameraData data:
+                    return ref data.renderingPathCustomFrameSettings;
+                case HDProbe probe:
+                    return ref probe.frameSettings;
+            }
             throw new System.ArgumentException("Unknown kind of object");
         }
 
@@ -79,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
-            if (obj is HDRenderPipelineAsset)
+            if (obj is HDRenderPipelineGlobalSettings)
                 return null;
             throw new System.ArgumentException("Unknown kind of object");
         }
@@ -101,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maximumLODLevelMode         = rootData.FindPropertyRelative("maximumLODLevelMode");
             maximumLODLevelQualityLevel = rootData.FindPropertyRelative("maximumLODLevelQualityLevel");
             materialQuality             = rootData.Find((FrameSettings s) => s.materialQuality);
+            msaaMode                    = rootData.FindPropertyRelative("msaaMode");
         }
 
         public struct TitleDrawingScope : IDisposable

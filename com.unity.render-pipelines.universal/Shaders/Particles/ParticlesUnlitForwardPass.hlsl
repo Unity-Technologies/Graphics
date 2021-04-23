@@ -27,7 +27,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.viewDirectionWS = viewDirWS;
 
-    output.fogCoord = (half)input.positionWS.w;
+    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     output.vertexLighting = half3(0.0, 0.0, 0.0);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -49,9 +49,14 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
+
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = fogFactor;
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
@@ -94,18 +99,25 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
     half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
-#if defined (_DISTORTION_ON)
-    albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
-#endif
+    #if defined (_DISTORTION_ON)
+        albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
+    #endif
 
-#if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-#else
-    half3 emission = half3(0, 0, 0);
-#endif
+    #if defined(_EMISSION)
+        half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
+    #else
+        half3 emission = half3(0, 0, 0);
+    #endif
 
     half3 result = albedo.rgb + emission;
-    half fogFactor = half(input.positionWS.w);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(normalizedScreenSpaceUV);
+        result *= aoFactor.directAmbientOcclusion;
+    #endif
+
+    half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);
 

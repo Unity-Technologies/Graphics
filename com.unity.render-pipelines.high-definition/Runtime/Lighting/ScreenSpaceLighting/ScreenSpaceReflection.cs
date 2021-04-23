@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Screen-Space-Reflection" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
@@ -117,6 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// Defines the LOD Bias for sampling all the textures.
+        /// </summary>
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(1, 0, 7);
 
         /// <summary>
         /// Controls the length of reflection rays.
@@ -222,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Number of bounces for reflection rays.
         /// </summary>
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.

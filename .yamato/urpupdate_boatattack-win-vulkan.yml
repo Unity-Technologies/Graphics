@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -109,7 +110,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -146,4 +147,4 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

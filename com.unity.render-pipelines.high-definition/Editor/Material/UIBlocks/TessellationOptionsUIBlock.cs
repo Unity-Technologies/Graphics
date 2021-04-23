@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public const string header = "Tessellation Options";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Tessellation Options");
 
             public static string tessellationModeStr = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
@@ -47,15 +47,13 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         MaterialProperty doubleSidedEnable = null;
 
-        ExpandableBit m_ExpandableBit;
-
         /// <summary>
         /// Constructs a TessellationOptionsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit used to store the foldout state</param>
         public TessellationOptionsUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
         }
 
         /// <summary>
@@ -76,27 +74,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Renders the properties in the block.
+        /// If the section should be shown
         /// </summary>
-        public override void OnGUI()
-        {
-            // If we don't have tesselation
-            if (tessellationMode == null)
-                return;
-
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                {
-                    DrawTesselationGUI();
-                }
-            }
-        }
+        protected override bool showSection => tessellationMode != null;
 
         /// <summary>
-        /// Draws the Tessellation Options GUI.
+        /// Renders the properties in the block.
         /// </summary>
-        protected void DrawTesselationGUI()
+        protected override void OnGUIOpen()
         {
             TessellationModePopup();
             materialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);

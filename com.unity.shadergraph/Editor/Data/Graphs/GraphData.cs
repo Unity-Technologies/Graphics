@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -70,6 +71,15 @@ namespace UnityEditor.ShaderGraph
         public bool movedContexts => m_MovedContexts;
 
         public string assetGuid { get; set; }
+
+        #endregion
+
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 
@@ -298,7 +308,7 @@ namespace UnityEditor.ShaderGraph
             {
                 // when in "Graph switchable" mode, we choose Half as the default concrete precision
                 // so you can visualize the worst-case
-                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+                return graphDefaultPrecision.ToConcrete(ConcretePrecision.Half);
             }
         }
 
@@ -1270,6 +1280,8 @@ namespace UnityEditor.ShaderGraph
                     else
                         m_Keywords.Insert(index, keyword);
 
+                    OnKeywordChangedNoValidate();
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -1349,7 +1361,7 @@ namespace UnityEditor.ShaderGraph
 
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
 
             switch (input)
             {
@@ -2491,11 +2503,11 @@ namespace UnityEditor.ShaderGraph
 
             int padding = nonCustomUsage + maxTargetUsage;
 
-            // TODO: Add editor settings to select warning/error thresholds.
-            int d3dSupport    = 32 * 4 - padding;   // 32 is standard expected for modern systems and D3D.
-            int chromeSupport = 15 * 4 - padding;   // 15 is for chrome's implementation of WebGL.
-            // int lowSupport = 10 * 4 - padding;   // 10 is some other limitation Unity recognizes.
-            // int minSupport =  8 * 4 - padding;   // If interpolators are supported, 8 is the bare minimum we can expect.
+            int errRange = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
+            int warnRange = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
+
+            int errorLevel = errRange * 4 - padding;
+            int warnLevel = warnRange * 4 - padding;
 
             int total = 0;
 
@@ -2504,13 +2516,13 @@ namespace UnityEditor.ShaderGraph
             {
                 ClearErrorsForNode(cib);
                 total += (int)cib.customWidth;
-                if (total > d3dSupport)
+                if (total > errorLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as Direct3D).");
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel error threshold: {errRange}. See ShaderGraph project settings.");
                 }
-                else if (total > chromeSupport)
+                else if (total > warnLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as Chrome's WebGL).", ShaderCompilerMessageSeverity.Warning);
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel warning threshold: {warnRange}. See ShaderGraph project settings.", ShaderCompilerMessageSeverity.Warning);
                 }
             }
         }

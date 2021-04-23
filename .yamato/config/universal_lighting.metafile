@@ -17,7 +17,7 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
     - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 
@@ -86,6 +86,28 @@ test_platforms:
         flags:
           - [all]: --timeout=3000
           - <reuse_blocks.cache_server>
+
+  - type: Standalone
+    name: Standalone_XR_cache
+    commands:
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --extra-editor-arg="-xr-reuse-tests"
+          - <reuse_blocks.cache_server>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
+    commands_build:
+      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --extra-editor-arg="-xr-reuse-tests"
+          - [all]: --timeout=3000
+          - <reuse_blocks.cache_server>
+
 expression_trigger:
   expression: ''
 platforms:
@@ -131,6 +153,7 @@ platforms:
           - name: playmode_XR_cache
           - name: Standalone
           - name: Standalone_cache
+          - name: Standalone_XR_cache
     build_configs:
       - name: mono
     color_spaces:
@@ -141,6 +164,7 @@ platforms:
         exclude_test_platforms:
           - name: Standalone
           - name: Standalone_cache
+          - name: Standalone_XR_cache
           - name: playmode_XR
           - name: playmode_XR_cache
       - name: Vulkan
@@ -157,6 +181,7 @@ platforms:
         exclude_test_platforms:
           - name: playmode
           - name: editmode
+          - name: Standalone_XR_cache
           - name: playmode_XR
           - name: playmode_XR_cache
           - name: playmode_cache
@@ -177,6 +202,7 @@ platforms:
         exclude_test_platforms:
           - name: playmode
           - name: editmode
+          - name: Standalone_XR_cache
           - name: playmode_XR
           - name: playmode_XR_cache
           - name: playmode_cache
@@ -192,6 +218,7 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+        - Standalone_XR_cache
         - playmode_XR_cache
         - editmode
     - platform: Win
@@ -200,6 +227,7 @@ pr:
       color_space: Linear
       test_platforms:
         - Standalone_cache
+        - Standalone_XR_cache
     - platform: Win
       api: Vulkan
       build_config: mono

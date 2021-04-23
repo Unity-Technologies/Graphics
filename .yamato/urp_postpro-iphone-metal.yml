@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -30,7 +31,7 @@ URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_postpro-iphone-metal.yml#Build_URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     name: Build URP_PostPro on iPhone_Metal_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -81,7 +82,7 @@ URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_postpro-iphone-metal.yml#Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     name: Build URP_PostPro on iPhone_Metal_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -100,7 +101,7 @@ Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
     artifacts:
         logs:
             paths:
@@ -133,9 +134,9 @@ URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_postpro-iphone-metal.yml#Build_URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_PostPro on iPhone_Metal_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -166,7 +167,7 @@ Build_URP_PostPro_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision
 URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_PostPro on iPhone_Metal_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -191,9 +192,9 @@ URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_postpro-iphone-metal.yml#Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_PostPro on iPhone_Metal_il2cpp_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -213,7 +214,7 @@ Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_PostPro/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_PostPro --timeout=3000
     artifacts:
         logs:
             paths:
@@ -224,4 +225,4 @@ Build_URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
-         rerun: always
+         rerun: on_new_revision

@@ -421,6 +421,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int min;
 
         /// <summary>
@@ -465,6 +466,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int min;
 
         /// <summary>
@@ -509,6 +511,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int max;
 
         /// <summary>
@@ -553,6 +556,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int max;
 
         /// <summary>
@@ -597,11 +601,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int max;
 
         /// <summary>
@@ -648,11 +654,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public int max;
 
         /// <summary>
@@ -759,6 +767,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
@@ -805,6 +814,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
@@ -850,6 +860,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -896,6 +907,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -942,11 +954,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -995,11 +1009,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -1048,11 +1064,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -1117,11 +1135,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The minimum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float min;
 
         /// <summary>
         /// The maximum value to clamp this parameter to.
         /// </summary>
+        [NonSerialized]
         public float max;
 
         /// <summary>
@@ -1165,16 +1185,19 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Is this color HDR?
         /// </summary>
+        [NonSerialized]
         public bool hdr = false;
 
         /// <summary>
         /// Should the alpha channel be editable in the editor?
         /// </summary>
+        [NonSerialized]
         public bool showAlpha = true;
 
         /// <summary>
         /// Should the eye dropper be visible in the editor?
         /// </summary>
+        [NonSerialized]
         public bool showEyeDropper = true;
 
         /// <summary>
@@ -1239,11 +1262,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Specifies whether you can edit the alpha channel in the Inspector or not.
         /// </summary>
+        [NonSerialized]
         public bool showAlpha = true;
 
         /// <summary>
         /// Specifies whether the eye dropper is visible in the editor or not.
         /// </summary>
+        [NonSerialized]
         public bool showEyeDropper = true;
 
         /// <summary>

@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -28,7 +29,7 @@ VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
     name: Build VFX_URP on OSX_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:
@@ -92,7 +93,7 @@ VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+      -  ./utr  --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -186,9 +187,9 @@ VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_URP on OSX_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version CUSTOM-REVISION
     agent:
@@ -217,7 +218,7 @@ Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVI
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -243,7 +244,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -261,7 +262,7 @@ VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+      -  ./utr  --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -269,7 +270,7 @@ VFX_URP_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -295,7 +296,7 @@ VFX_URP_OSX_OpenGLCore_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -321,7 +322,7 @@ VFX_URP_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -347,4 +348,4 @@ VFX_URP_OSX_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
