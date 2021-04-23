@@ -175,7 +175,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             );
             lightLoopOutput.specularLighting = float3(0, 0, 0);
             #endif
-            break ;
+            break;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

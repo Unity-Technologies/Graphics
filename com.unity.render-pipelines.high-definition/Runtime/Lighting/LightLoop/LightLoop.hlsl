@@ -543,7 +543,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 #ifdef DEBUG_DISPLAY
             // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER && _DebugLightingMode != DEBUGLIGHTINGMODE_PROBE_VOLUME_SAMPLED_SUBDIVISION)
 #endif
                 ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, apvBuiltinData);
 
@@ -572,7 +572,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 float3 uvw;
                 uint subdiv;
                 if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS, uvw, subdiv))
-                    builtinData.bakeDiffuseLighting *= _DebugAPVSubdivColors[subdiv].xyz;
+                    // Only mix 50% of the color to avoid getting black result with incompatible colors.
+                    builtinData.bakeDiffuseLighting = (0.5 + 0.5 * _DebugAPVSubdivColors[subdiv].xyz) * builtinData.bakeDiffuseLighting;
                 else
                     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
             }
