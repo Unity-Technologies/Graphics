@@ -4,11 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
 ### Added
-Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
- 
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added an info box for micro shadow editor (case 1322830).
+
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -28,6 +29,18 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed an error on Xbox / PS4 with SubsurfaceScattering not binding the right texture
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed undo of some properties on light editor.
 
 ### Changed
@@ -37,8 +50,13 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Assets going through the migration system are now dirtied.
-
-## [10.4.0] - 2020-01-26
+- Disable TAA sharpening on alpha channel.
+- Increased path tracing max samples from 4K to 16K (case 1327729).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Default black texture XR is now opaque (alpha = 1).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
+ 
+## [10.4.0] - 2021-03-11
 
 ### Added
 - Added support for XboxSeries platform.
@@ -95,7 +113,7 @@ Added a fallback for the ray traced directional shadow in case of a transmission
 - Display a warning help box when decal atlas is out of size.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

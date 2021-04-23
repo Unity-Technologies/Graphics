@@ -3053,6 +3053,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
             }
 
+            if (m_EnableAlpha)
+                parameters.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
             parameters.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
             parameters.paniniProjectionKernel = parameters.paniniProjectionCS.FindKernel("KMain");
 
@@ -3792,6 +3795,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FXAAParameters parameters = new FXAAParameters();
             parameters.fxaaCS = m_Resources.shaders.FXAACS;
+            parameters.fxaaCS.shaderKeywords = null;
+            CoreUtils.SetKeyword(parameters.fxaaCS, "ENABLE_ALPHA", m_EnableAlpha);
             parameters.fxaaKernel = parameters.fxaaCS.FindKernel("FXAA");
 
             parameters.width = camera.actualWidth;

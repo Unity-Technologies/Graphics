@@ -4,12 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] - 2020-03-15
+## [10.5.0] - 2021-04-19
 
 ### Fixed
+- Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 - Fixed errors when the Profiler is used with XR multipass. [case 1322918](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
 
-## [10.4.0] - 2020-01-26
+## [10.4.0] - 2021-03-11
 
 ### Changed
 - Opacity as Density blending feature for Terrain Lit Shader is now disabled when the Terrain has more than four Terrain Layers. This is now similar to the Height-blend feature for the Terrain Lit Shader.
@@ -26,7 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 - Fixed an issue where modified splat weights for Terrain were  zero in some areas and greater than one in others when using the Opacity as Density blending feature.
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

@@ -434,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isHdrEnabled, int msaaSamples, bool needsAlpha)
+            bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             RenderTextureDescriptor desc;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
@@ -482,6 +482,12 @@ namespace UnityEngine.Rendering.Universal
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
+            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
+            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
+            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+                desc.msaaSamples = 1;
 
             return desc;
         }
