@@ -130,9 +130,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
-#if URP_ENABLE_DEBUG_DISPLAY
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
-#endif
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -162,17 +160,13 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
-#if URP_ENABLE_DEBUG_DISPLAY
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
-#endif
         }
 
         protected override void Dispose(bool disposing)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.UnregisterDebug();
-#endif
 
             base.Dispose(disposing);
 

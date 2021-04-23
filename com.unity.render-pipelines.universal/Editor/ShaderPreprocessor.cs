@@ -109,11 +109,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-#if URP_ENABLE_DEBUG_DISPLAY
             bool stripDebugDisplayShaders = !Debug.isDebugBuild;
-#else
-            bool stripDebugDisplayShaders = true;
-#endif
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
             {
                 return true;
