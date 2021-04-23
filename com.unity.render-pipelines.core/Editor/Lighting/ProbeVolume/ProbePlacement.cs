@@ -237,6 +237,7 @@ namespace UnityEngine.Rendering
             enableRandomWrite = true,
             dimension = TextureDimension.Tex3D,
             graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+            msaaSamples = 1,
         };
 
         public static void SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes, List<Renderer> renderers, List<ProbeVolume> probeVolumes,

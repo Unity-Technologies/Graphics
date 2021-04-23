@@ -101,8 +101,8 @@ void JumpFlooding(uint3 id : SV_DispatchThreadID)
         float3 uv = id / _Size.x;
         if (Distance(uv - n1.xyz) < Distance(uv - nearest.xyz))
             nearest = n1;
-    }
 
+    }
     _Output[id] = nearest;
 }
 
@@ -135,7 +135,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     float3 positionWorldSpace = _VolumeOffset + position01 * _VolumeSize;
 
     // TODO: check the subdiv level of the probe volume min and max
-    uint3 sdfId = round(position01 * _SDFSize);
+    uint3 sdfId = floor(position01 * _SDFSize);
 
     float dist = _Input[sdfId].r;
 
