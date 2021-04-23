@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveDepthAttachment = depthAttachment;
         }
 
-        public bool useDepthPriming { get; set; } = false;
+        internal bool useDepthPriming { get; set; } = false;
 
         public ScriptableRenderer(ScriptableRendererData data)
         {

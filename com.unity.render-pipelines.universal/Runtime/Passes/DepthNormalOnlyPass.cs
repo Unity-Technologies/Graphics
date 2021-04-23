@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 RenderTextureDescriptor desc = normalDescriptor;
                 desc.msaaSamples = renderingData.cameraData.renderer.useDepthPriming ? m_RendererMSAASamples : 1;
-                cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(normalHandle.id, desc, FilterMode.Point);
             }
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
