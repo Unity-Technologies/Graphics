@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HDRPHelpURLAttribute("HDRP-Asset")]
-    partial class RenderPipelineResources : ScriptableObject
+    [HDRPHelpURL("Default-Settings-Window")]
+    partial class HDRenderPipelineRuntimeResources : HDRenderPipelineResources
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Volumetric Clouds
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
             public ComputeShader volumetricCloudsCS;
-            [Reload("Editor/Lighting/VolumetricLighting/CloudMapGenerator.compute")]
+            [Reload("Editor/Lighting/VolumetricClouds/CloudMapGenerator.compute")]
             public ComputeShader volumetricCloudMapGeneratorCS;
 
             // Material
@@ -355,6 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
+#if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()
@@ -367,6 +368,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         yield return computeShader;
                 }
             }
+
+#endif
         }
 
         [Serializable, ReloadGroup]
@@ -468,25 +471,4 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShaderGraphResources shaderGraphs;
         public AssetResources assets;
     }
-
-#if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(RenderPipelineResources))]
-    class RenderPipelineResourcesEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
-                && GUILayout.Button("Reload All"))
-            {
-                foreach (var field in typeof(RenderPipelineResources).GetFields())
-                    field.SetValue(target, null);
-
-                ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
-            }
-        }
-    }
-#endif
 }
