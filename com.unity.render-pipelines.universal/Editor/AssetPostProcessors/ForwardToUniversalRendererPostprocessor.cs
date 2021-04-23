@@ -7,29 +7,26 @@ namespace UnityEditor.Rendering.Universal
 {
     class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
     {
-        static bool firstTimeUpgrade = true;
         static int editedAssetsCount = 0;
-        static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6");
+        static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6"); //ForwardRendererData.cs
         static Object fwdRendererScriptObj;
-        static string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e");
+        static string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e"); //UniversalRendererData.cs
         static Object stdRendererScriptObj;
 
-        static void SetupScriptObjects()
+        static void UpgradeAsset(Object rendererData, string rendererDataPath)
         {
+            if (rendererData == null) return;
+            
             //Gets the ForwardRendererData.cs file
             if(!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
 
             //Gets the UniversalRendererData.cs file
             if(!stdRendererScriptObj) stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
-        }
-
-        static void UpgradeAsset(Object rendererData, string rendererDataPath, Object fwdRendererScriptObj, Object stdRendererScriptObj)
-        {
-            if (rendererData == null) return;
-            SerializedObject so = new SerializedObject(rendererData);
 
             //Double check to see if it's using ForwardRendererData
+            SerializedObject so = new SerializedObject(rendererData);
             SerializedProperty scriptProperty = so.FindProperty("m_Script");
+            if (scriptProperty == null) return;
             if (scriptProperty.objectReferenceValue == fwdRendererScriptObj)
             {
                 //Change the script to use UniversalRendererData
@@ -45,40 +42,26 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        static void IterateSubAssets(string rendererDataPath)
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            SetupScriptObjects();
-
-            //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
-            Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(rendererDataPath);
-            for (int j = 0; j < subAssets.Length; j++)
+            for(int i=0; i<importedAssets.Length; i++)
             {
-                //Upgrade subAssets
-                UpgradeAsset(subAssets[j], rendererDataPath, fwdRendererScriptObj, stdRendererScriptObj);
+                if(importedAssets[i].EndsWith(".asset"))
+                {
+                    //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
+                    Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(importedAssets[i]);
+                    for (int j = 0; j < subAssets.Length; j++)
+                    {
+                        //Upgrade subAssets
+                        UpgradeAsset(subAssets[j], importedAssets[i]);
+                    }
+
+                    //Upgrade the main Asset
+                    Object rendererData = AssetDatabase.LoadAssetAtPath(importedAssets[i], typeof(Object));
+                    UpgradeAsset(rendererData, importedAssets[i]);
+                }
             }
 
-            //Upgrade the main Asset
-            Object rendererData = AssetDatabase.LoadAssetAtPath(rendererDataPath, typeof(Object));
-            UpgradeAsset(rendererData, rendererDataPath, fwdRendererScriptObj, stdRendererScriptObj);
-        }
-
-        static void UpgradeAllAssets()
-        {
-            //Gets all the ForwardRendererData Assets in project
-            string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
-
-            //If there is no ForwardRendererData assets in project then skip the following
-            if (allRenderers.Length == 0) return;
-
-            for (int i = 0; i < allRenderers.Length; i++)
-            {
-                string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
-                IterateSubAssets(rendererDataPath);
-            }
-        }
-
-        static void RefreshPipelineAssets()
-        {
             //If there is no asset upgraded then we don't need to do the following
             if (editedAssetsCount == 0) return;
 
@@ -106,23 +89,6 @@ namespace UnityEditor.Rendering.Universal
 
             //Reset counter
             editedAssetsCount = 0;
-        }
-
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            if(firstTimeUpgrade)
-            {
-                UpgradeAllAssets();
-                firstTimeUpgrade = false;
-            }
-            else
-            {
-                for(int i=0; i<importedAssets.Length; i++)
-                {
-                    IterateSubAssets(importedAssets[i]);
-                }
-            }
-            RefreshPipelineAssets();
         }
     }
 }
