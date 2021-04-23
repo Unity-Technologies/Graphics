@@ -8,6 +8,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleURPLitOutput : VFXShaderGraphParticleOutput
     {
+        //TODOPAUL : Rename this to be sync with URP naming
         public enum MaterialType
         {
             Standard,
@@ -39,7 +40,7 @@ namespace UnityEditor.VFX
         };
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
-        protected MaterialType materialType = MaterialType.Standard;
+        protected MaterialType materialType = MaterialType.Standard; //TODOPAUL : The default material in URP is specular
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles in this output are not affected by any lights in the scene and only receive ambient and light probe lighting.")]
         protected bool onlyAmbientLighting = false;
@@ -70,6 +71,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
         protected bool preserveSpecularLighting = false;
+
+        //TODOPAUL : Check probably simple lit only features
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features"), Tooltip("When enabled, the particle will receive shadows.")]
         protected bool enableShadows = true;
