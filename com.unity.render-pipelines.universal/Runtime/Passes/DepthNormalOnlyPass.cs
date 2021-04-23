@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
+        private int m_RendererMSAASamples = 1;
 
         // Constants
         private const int k_DepthBufferBits = 32;
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, bool useDepthPriming = false)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -48,7 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.depthHandle = depthHandle;
 
-            int normalSamples = baseDescriptor.msaaSamples;
+            m_RendererMSAASamples = baseDescriptor.msaaSamples;
 
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
@@ -61,7 +62,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
-            baseDescriptor.msaaSamples = useDepthPriming ? normalSamples : 1;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
@@ -73,7 +73,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (this.allocateNormal)
+            {
+                RenderTextureDescriptor desc = normalDescriptor;
+                desc.msaaSamples = renderingData.cameraData.renderer.useDepthPriming ? m_RendererMSAASamples : 1;
                 cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
+            }
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
