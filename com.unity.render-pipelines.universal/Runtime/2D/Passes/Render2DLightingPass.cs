@@ -88,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 depthAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction);
             cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         private short GetCameraSortingLayerBoundsIndex()
