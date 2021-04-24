@@ -157,6 +157,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
 - Fixed a NaN generating in Area light code.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed ResourceReloader that was not call anymore at pipeline construction
+- Fixed undo of some properties on light editor.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

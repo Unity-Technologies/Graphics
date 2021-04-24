@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
 
-        internal RenderPipelineResources renderPipelineResources
+        internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
             set { globalSettings.renderPipelineResources = value; }
