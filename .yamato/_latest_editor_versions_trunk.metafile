@@ -13,8 +13,8 @@ editor_versions:
       updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     OSX:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 23:50:04.592922'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-25 00:01:39.149555'
       version: ''
     Win:
       revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
