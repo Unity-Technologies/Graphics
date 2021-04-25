@@ -158,6 +158,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a NaN generating in Area light code.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
+- Fixed undo of some properties on light editor.
 - Fixed normals provided in object space or world space, when using double sided materials.
 
 ### Changed

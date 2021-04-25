@@ -365,12 +365,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
             {
                 var unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
+                var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
 
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
-                    var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
-                    var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                     cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, storeAction, depthAttachment, RenderBufferLoadAction.Load, storeAction);
 
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
@@ -389,7 +389,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
+
                 Profiler.BeginSample("Render Sprites Unlit");
+                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                filterSettings.sortingLayerRange = new SortingLayerRange(short.MinValue, cameraSortingLayerBoundsIndex);
+                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+
+                CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
+
+                filterSettings.sortingLayerRange = new SortingLayerRange(cameraSortingLayerBoundsIndex, short.MaxValue);
                 context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
             }

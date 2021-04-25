@@ -1,71 +1,83 @@
 nightly_shadergraph_-_trunk:
-  updated_at: '2021-04-15 08:11:49.694708'
+  updated_at: '2021-04-25 07:17:41.327398'
   last_green_revisions:
     Android:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     Linux:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     OSX:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-25 00:01:39.149555'
       version: ''
     Win:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     iPhone:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-14 23:25:07.773558'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
+      version: ''
+    XRQuest:
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
 shadergraph_pr_job_-_trunk:
-  updated_at: '2021-04-15 08:11:49.694708'
+  updated_at: '2021-04-25 07:17:41.327398'
   last_green_revisions:
     Android:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     Linux:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     OSX:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-25 00:01:39.149555'
       version: ''
     Win:
-      revision: 9f66320aebcab8dfff2f09352f71117951b36bfe
-      updated_at: '2021-04-09 23:47:46.937857'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     iPhone:
-      revision: 462ae11b66db6167774e39fa34260d29dbc951ed
-      updated_at: '2021-04-14 23:25:07.773558'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
+      version: ''
+    XRQuest:
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2021-04-22 07:26:44.731388'
+  updated_at: '2021-04-25 07:17:41.327398'
   last_green_revisions:
     Android:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     Linux:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     OSX:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-25 00:01:39.149555'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
     iPhone:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
+      version: ''
+    XRQuest:
+      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
+      updated_at: '2021-04-24 00:02:10.768741'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
   updated_at: '2021-04-20 07:31:59.616263'
