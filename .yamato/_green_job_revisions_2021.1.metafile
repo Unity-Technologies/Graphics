@@ -137,50 +137,50 @@ nightly_vfx_hdrp_-_2021_1:
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
 nightly_vfx_hdrp_-_2021.1:
-  updated_at: '2021-04-20 07:30:55.590549'
+  updated_at: '2021-04-25 07:17:12.176255'
   last_green_revisions:
     Android:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     Linux:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     OSX:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     Win:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     iPhone:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
 vfx_hdrp_pr_job_-_2021.1:
-  updated_at: '2021-04-20 07:30:55.590549'
+  updated_at: '2021-04-25 07:17:12.176255'
   last_green_revisions:
     Android:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     Linux:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     OSX:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     Win:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     iPhone:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
 nightly_vfx_urp_-_2021.1:
   updated_at: '2021-04-20 07:30:55.590549'
@@ -321,48 +321,48 @@ universal_pr_job_-_2021.1:
       updated_at: '2021-02-26 00:03:57.005494'
       version: ''
 hdrp_pr_job_-_2021.1:
-  updated_at: '2021-04-20 07:30:55.590549'
+  updated_at: '2021-04-25 07:17:12.176255'
   last_green_revisions:
     Android:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     Linux:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     OSX:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     Win:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     iPhone:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
 nightly_hdrp_-_2021.1:
-  updated_at: '2021-04-20 07:30:55.590549'
+  updated_at: '2021-04-25 07:17:12.176255'
   last_green_revisions:
     Android:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     Linux:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     OSX:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
     Win:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 25c4fc26f3cf6a894f05708a5466aa57219689a2
+      updated_at: '2021-04-25 00:01:21.847607'
       version: ''
     iPhone:
-      revision: aa26fc1498fed093e9add9860f16b2e8d6dc6636
-      updated_at: '2021-04-17 00:40:40.898242'
+      revision: 2d4451e994698fc2bbbc1606784d5b57ab94461c
+      updated_at: '2021-04-24 00:01:57.921592'
       version: ''
