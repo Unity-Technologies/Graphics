@@ -9,7 +9,7 @@ LightmapParameters:
   m_Name: ShadowProxy
   serializedVersion: 3
   resolution: 0.05
-  clusterResolution: 1
+  clusterResolution: 0.1
   irradianceBudget: 32
   irradianceQuality: 512
   backFaceTolerance: 0.9

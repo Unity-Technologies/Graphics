@@ -27,11 +27,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4527241277545522584, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_ReceiveGI
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -4527241277545522584, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_CastShadows
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4527241277545522584, guid: d2564ebb3beeaca47b554810141df024, type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+    - target: {fileID: -4527241277545522584, guid: d2564ebb3beeaca47b554810141df024, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_RootOrder
@@ -77,10 +85,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1841011279648620640, guid: d2564ebb3beeaca47b554810141df024, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -1172089551164539538, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1172089551164539538, guid: d2564ebb3beeaca47b554810141df024, type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
     - target: {fileID: -927199367670048503, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_Name
       value: FR_SectionA_01
