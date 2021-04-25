@@ -27,15 +27,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 54
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.996
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalRotation.w
@@ -43,15 +43,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -100,6 +100,18 @@ PrefabInstance:
     - target: {fileID: 6692115596814866825, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6969242209664126372, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
+      propertyPath: m_PreserveUVs
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6969242209664126372, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+    - target: {fileID: 6969242209664126372, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6969242209664126372, guid: 1afb92d10ccf8d440ab494fb20332849, type: 3}
       propertyPath: m_Materials.Array.data[2]

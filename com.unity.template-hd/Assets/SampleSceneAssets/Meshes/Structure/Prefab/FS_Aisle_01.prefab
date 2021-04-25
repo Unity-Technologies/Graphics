@@ -1,19 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!64 &5697549641606608692
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 977186556522600085}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -676603121174162969, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
 --- !u!1001 &255781035302983346
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21,6 +7,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
+      propertyPath: m_PreserveUVs
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+    - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: -8650417849087264602, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
+      propertyPath: m_StaticShadowCaster
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -8191989422394810604, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 1
@@ -99,8 +101,3 @@ PrefabInstance:
     - {fileID: 4151414149521448088, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
     - {fileID: -4047947296569353041, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
---- !u!1 &977186556522600085 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -8213687751810940889, guid: 5991ec3b02565304692b00788ab59fa9, type: 3}
-  m_PrefabInstance: {fileID: 255781035302983346}
-  m_PrefabAsset: {fileID: 0}
