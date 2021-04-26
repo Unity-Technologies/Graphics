@@ -20,6 +20,8 @@ PR_URPUpdate_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        TEMPLATE_UPDATE_PROJECT_BRANCH: master
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_2021.1:
     name: Nightly URPUpdate - 2021.1
     dependencies:
@@ -28,6 +30,8 @@ Nightly_URPUpdate_2021.1:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        TEMPLATE_UPDATE_PROJECT_BRANCH: master
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:
@@ -41,6 +45,8 @@ PR_URPUpdate_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        TEMPLATE_UPDATE_PROJECT_BRANCH: master
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_CUSTOM-REVISION:
     name: Nightly URPUpdate - CUSTOM-REVISION
     dependencies:
@@ -50,3 +56,5 @@ Nightly_URPUpdate_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        TEMPLATE_UPDATE_PROJECT_BRANCH: master
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
