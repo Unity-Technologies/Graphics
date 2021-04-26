@@ -102,8 +102,9 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var buildScene in EditorBuildSettings.scenes)
             {
-                var scene = EditorSceneManager.OpenScene(buildScene.path);
+                var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
                 var probeVolumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+
                 foreach (var probeVolume in probeVolumes)
                 {
                     var extent = probeVolume.GetExtents();
@@ -127,6 +128,8 @@ namespace UnityEngine.Experimental.Rendering
                 var scene = prevScenes[i];
                 EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
             }
+
+            ProbeReferenceVolume.instance.Clear();
         }
 
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
@@ -168,8 +171,7 @@ namespace UnityEngine.Experimental.Rendering
 
         private static void OnBakeStarted()
         {
-            if (!hasFoundBounds)
-                FindWorldBounds();
+            FindWorldBounds();
 
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
