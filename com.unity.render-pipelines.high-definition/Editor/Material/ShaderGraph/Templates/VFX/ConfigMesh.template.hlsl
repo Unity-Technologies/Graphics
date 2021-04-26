@@ -2,7 +2,7 @@
 
 bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
 {
-    uint index = input.instanceID;
+    uint index = VFX_GET_INSTANCE_ID(input);;
 
     if (ShouldCullElement(index))
         return false;
