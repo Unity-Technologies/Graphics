@@ -49,7 +49,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | - **Max Ray Steps**           | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. |
 | **Accumulation Factor**       | The speed of the accumulation convergence. 0 means no accumulation. 1 means accumulation is very slow which is useful for fixed images. The more accumulation, the more accurate the result but the more ghosting occurs when moving. When using accumulation, it is important to find a balance between convergence quality and the ghosting artifact. Also note that rougher reflective surfaces require more accumulation to produce a converged image without noise.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
 | **Roughness Bias** | Controls the relative roughness offset. A low value means material roughness stays the same, a high value means smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
-| **Speed Rejection Factor**  | Controls the likelihood history will be rejected based on the previous frame motion vectors (both the 
+| **Speed Rejection Factor**  | Controls the likelihood history will be rejected based on the previous frame motion vectors (both the
 surface and the hit object).<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
 
 ### Ray-traced
