@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
@@ -15,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
     ///
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
+    /// The renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
@@ -75,6 +77,11 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             public bool msaa { get; set; } = true;
         }
+
+        /// <summary>
+        /// The class responsible for providing access to debug view settings to renderers and render passes.
+        /// </summary>
+        internal DebugHandler DebugHandler { get; }
 
         /// <summary>
         /// The renderer we are currently rendering with, for low-level render control only.
@@ -462,6 +469,9 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
+#if URP_ENABLE_DEBUG_DISPLAY
+            DebugHandler = new DebugHandler(data);
+#endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
@@ -585,12 +595,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = DebugDisplaySettings.Instance.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
+
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, profilingExecute))
+
+            // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
+            // Until then, we can't use nested profiling scopes with XR multipass
+            CommandBuffer cmdScope = renderingData.cameraData.xr.enabled ? null : cmd;
+
+            using (new ProfilingScope(cmdScope, profilingExecute))
             {
                 InternalStartRendering(context, ref renderingData);
 
@@ -696,7 +714,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Draw Gizmos...
-                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                if (drawGizmos)
+                {
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
@@ -708,7 +729,11 @@ namespace UnityEngine.Rendering.Universal
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
                 DrawWireOverlay(context, camera);
-                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+
+                if (drawGizmos)
+                {
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
             }
@@ -763,6 +788,11 @@ namespace UnityEngine.Rendering.Universal
             if (Application.isMobilePlatform)
                 return ClearFlag.All;
 
+            // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
+                return ClearFlag.All;
+
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.DepthStencil;
@@ -814,6 +844,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
         }
 
         internal void Clear(CameraRenderType cameraType)
@@ -941,7 +972,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
                 // and that the depth attachment is a REAL depth attachment too.
-
 
                 // Determine what attachments need to be cleared. ----------------
 
@@ -1120,6 +1150,20 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
+#if UNITY_EDITOR
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                {
+                    finalClearColor.a = 0;
+                    finalClearFlag &= ~ClearFlag.Depth;
+                }
+#endif
+
+                // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    DebugHandler.TryGetScreenClearColor(ref finalClearColor);
+                }
+
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
                     if (!renderPass.overrideCameraTarget)
@@ -1231,8 +1275,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
-                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 || ((uint)clearFlag & (uint)ClearFlag.Stencil) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
@@ -1241,8 +1284,7 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-        static void SetRenderTarget(
-            CommandBuffer cmd,
+        static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
@@ -1252,8 +1294,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        static void SetRenderTarget(
-            CommandBuffer cmd,
+        static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
@@ -1287,7 +1328,7 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
+            if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();

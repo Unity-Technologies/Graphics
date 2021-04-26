@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Tracing-Path-Tracing" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Defines the maximum number of paths cast within each pixel, over time (one per frame).
         /// </summary>
         [Tooltip("Defines the maximum number of paths cast within each pixel, over time (one per frame).")]
-        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 16384);
 
         /// <summary>
         /// Defines the minimum number of bounces for each path, in [1, 10].
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+                passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sunLight = GetCurrentSunLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
-                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, false));
+                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
 
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+            RayTracingShader pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation

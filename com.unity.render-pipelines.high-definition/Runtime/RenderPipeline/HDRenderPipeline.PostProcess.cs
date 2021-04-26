@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat m_PostProcessColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat = GraphicsFormat.R16_SFloat;
-        const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
+        internal const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
 
         Material m_FinalPassMaterial;
         Material m_ClearBlackMaterial;
@@ -83,7 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing m_PathTracing;
 
         // Prefetched frame settings (updated on every frame)
-        bool m_ExposureControlFS;
         bool m_StopNaNFS;
         bool m_DepthOfFieldFS;
         bool m_MotionBlurFS;
@@ -125,8 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         System.Random m_Random;
 
-        bool m_IsDoFHisotoryValid = false;
-
         void InitializePostProcess()
         {
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.finalPassPS);
@@ -162,12 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_KeepAlpha = false;
 
             // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = asset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
+            m_EnableAlpha = asset.currentPlatformRenderPipelineSettings.SupportsAlpha() && postProcessSettings.supportsAlpha;
 
             if (m_EnableAlpha == false)
             {
                 // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = asset.currentPlatformRenderPipelineSettings.supportsAlpha;
+                m_KeepAlpha = asset.currentPlatformRenderPipelineSettings.SupportsAlpha();
             }
 
             // Setup a default exposure textures and clear it to neutral values so that the exposure
@@ -263,7 +260,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_ExposureControlFS = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
             m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
             m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
             m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
@@ -286,18 +282,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CheckRenderTexturesValidity();
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
-            if (!m_ExposureControlFS)
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
-                cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, m_EmptyExposureTexture);
-            }
-            else
             {
                 // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
                 // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
                 // Texture current and previous are swapped at the beginning of the frame.
-                bool isFixedExposure = IsExposureFixed(camera);
-                if (isFixedExposure)
+                if (CanRunFixedExposurePass(camera))
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
@@ -305,14 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // Note: GetExposureTexture(camera) must be call AFTER the call of DoFixedExposure to be correctly taken into account
-                // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
-                // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
-                // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
-                // After that we re-use the pre-exposure system
-                RTHandle currentExposureTexture = (camera.resetPostProcessingHistory && !isFixedExposure) ? m_EmptyExposureTexture : GetExposureTexture(camera);
-
-                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
         }
@@ -375,7 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -390,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
@@ -409,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.ColorLog);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -584,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Exposure
-        static void SetExposureTextureToEmpty(RTHandle exposureTexture)
+        internal static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
@@ -600,21 +582,37 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         ;
 
+        //if exposure comes from the parent camera, it means we dont have to calculate / force it.
+        //Its already been done in the parent camera.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool CanRunFixedExposurePass(HDCamera camera) => IsExposureFixed(camera)
+        && camera.exposureControlFS && camera.currentExposureTextures.useCurrentCamera
+        && camera.currentExposureTextures.current != null;
+
         internal RTHandle GetExposureTexture(HDCamera camera)
         {
+            // Note: GetExposureTexture(camera) must be call AFTER the call of DoFixedExposure to be correctly taken into account
+            // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
+            // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
+            // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
+            // After that we re-use the pre-exposure system
+            if (m_Exposure != null && (camera.resetPostProcessingHistory && camera.currentExposureTextures.useCurrentCamera) && !IsExposureFixed(camera))
+                return m_EmptyExposureTexture;
+
             // 1x1 pixel, holds the current exposure multiplied in the red channel and EV100 value
             // in the green channel
-            // One frame delay + history RTs being flipped at the beginning of the frame means we
-            // have to grab the exposure marked as "previous"
-            var rt = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.Exposure);
+            return GetExposureTextureHandle(camera.currentExposureTextures.current);
+        }
+
+        public RTHandle GetExposureTextureHandle(RTHandle rt)
+        {
             return rt ?? m_EmptyExposureTexture;
         }
 
         RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
             // See GetExposureTexture
-            var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
-            return rt ?? m_EmptyExposureTexture;
+            return GetExposureTextureHandle(camera.currentExposureTextures.previous);
         }
 
         RTHandle GetExposureDebugData()
@@ -706,34 +704,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
             }
 
-            RTHandle prevExposure;
-            GrabExposureHistoryTextures(hdCamera, out prevExposure, out _);
-
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParams);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParams2);
 
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, hdCamera.currentExposureTextures.current);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-        }
-
-        static void GrabExposureHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
-        {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                // r: multiplier, g: EV100
-                var rt = rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                    enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
-                );
-                SetExposureTextureToEmpty(rt);
-                return rt;
-            }
-
-            // We rely on the RT history system that comes with HDCamera, but because it is swapped
-            // at the beginning of the frame and exposure is applied with a one-frame delay it means
-            // that 'current' and 'previous' are swapped
-            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Exposure, Allocator, 2);
-            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.Exposure);
         }
 
         void PrepareExposureCurveData(out float min, out float max)
@@ -875,7 +850,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GrabExposureRequiredTextures(HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure)
         {
-            GrabExposureHistoryTextures(camera, out prevExposure, out nextExposure);
+            prevExposure = camera.currentExposureTextures.current;
+            nextExposure = camera.currentExposureTextures.previous;
             if (camera.resetPostProcessingHistory)
             {
                 // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
@@ -1033,7 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
-            if (!IsExposureFixed(hdCamera) && m_ExposureControlFS)
+            if (!IsExposureFixed(hdCamera) && hdCamera.exposureControlFS)
             {
                 using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                 {
@@ -1110,7 +1086,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 TextureHandle source = colorBuffer;
-                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, defaultAsset.beforeTransparentCustomPostProcesses);
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTransparentCustomPostProcesses);
 
                 if (needBlitToColorBuffer)
                 {
@@ -1550,10 +1526,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // PB DoF shaders
             public ComputeShader dofCircleOfConfusionCS;
             public int dofCircleOfConfusionKernel;
-            public ComputeShader dofCoCPyramidCS;
-            public int dofCoCPyramidKernel;
+            public ComputeShader pbDoFCoCMinMaxCS;
+            public int pbDoFMinMaxKernel;
             public ComputeShader pbDoFGatherCS;
             public int pbDoFGatherKernel;
+            public ComputeShader pbDoFDilateCS;
+            public int pbDoFDilateKernel;
+            public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
 
@@ -1626,10 +1605,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofClearIndirectArgsKernel = parameters.dofClearIndirectArgsCS.FindKernel("KClear");
 
             parameters.dofCircleOfConfusionCS = defaultResources.shaders.dofCircleOfConfusion;
-            parameters.dofCoCPyramidCS = defaultResources.shaders.DoFCoCPyramidCS;
-            parameters.dofCoCPyramidKernel = parameters.dofCoCPyramidCS.FindKernel("KMainCoCPyramid");
+            parameters.pbDoFCoCMinMaxCS = defaultResources.shaders.dofCoCMinMaxCS;
+            parameters.pbDoFMinMaxKernel = parameters.pbDoFCoCMinMaxCS.FindKernel("KMainCoCMinMax");
+            parameters.pbDoFDilateCS = defaultResources.shaders.dofMinMaxDilateCS;
+            parameters.pbDoFDilateKernel = parameters.pbDoFDilateCS.FindKernel("KMain");
             parameters.pbDoFGatherCS = defaultResources.shaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = camera;
             parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
@@ -1641,7 +1623,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = m_DepthOfField.resolution;
 
-            float scale = 1f / (float)parameters.resolution;
+            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution; // Note: physical dof always runs at full resolution
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
@@ -2264,29 +2246,17 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void GetMipMapDimensions(RTHandle texture, int lod, out int width, out int height)
-        {
-            width = texture.rt.width;
-            height = texture.rt.height;
-
-            for (int level = 0; level < lod; ++level)
-            {
-                // Note: When the texture/mip size is an odd number, the size of the next level is rounded down.
-                // That's why we cannot find the actual size by doing (size >> lod).
-                width /= 2;
-                height /= 2;
-            }
-        }
-
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);
 
-            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
-            float maxRadius = Mathf.Max(dofParameters.farMaxBlur, dofParameters.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 64); //[1, 16] --> [1, 64]
+            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            Vector2 cocLimit = new Vector2(
+                Mathf.Max(4 * dofParameters.farMaxBlur, 0.01f),
+                Mathf.Max(4 * dofParameters.nearMaxBlur, 0.01f));
+            float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;
             int kernel;
@@ -2316,7 +2286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Scale and Bias factors for directly computing CoC size from post-rasterization depth with a single mad
                     float cocBias = maxFarCoC * (1f - P / dofParameters.camera.camera.farClipPlane);
                     float cocScale = maxFarCoC * P * (dofParameters.camera.camera.farClipPlane - dofParameters.camera.camera.nearClipPlane) / (dofParameters.camera.camera.farClipPlane * dofParameters.camera.camera.nearClipPlane);
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit, 0.0f, cocScale, cocBias));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit.x, cocLimit.y, cocScale, cocBias));
                 }
                 else
                 {
@@ -2325,7 +2295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float farStart = Mathf.Max(dofParameters.farFocusStart, nearEnd);
                     float farEnd = Mathf.Max(dofParameters.farFocusEnd, farStart + 1e-5f);
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farStart, nearEnd, 1.0f / (farEnd - farStart), 1.0f / (nearStart - nearEnd)));
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.nearMaxBlur, dofParameters.farMaxBlur, 0, 0));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(cocLimit.y, cocLimit.x, 0, 0));
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
@@ -2359,6 +2329,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
+            {
+                int tileSize = dofParameters.minMaxCoCTileSize;
+                int tx = ((dofParameters.camera.actualWidth / tileSize) + 7) / 8;
+                int ty = ((dofParameters.camera.actualHeight / tileSize) + 7) / 8;
+
+                // Min Max CoC tiles
+                {
+                    cs = dofParameters.pbDoFCoCMinMaxCS;
+                    kernel = dofParameters.pbDoFMinMaxKernel;
+
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 0);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPing, 0);
+                    cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                }
+
+                //  Min Max CoC tile dilation
+                {
+                    cs = dofParameters.pbDoFDilateCS;
+                    kernel = dofParameters.pbDoFDilateKernel;
+
+                    int iterations = (int)Mathf.Max(Mathf.Ceil(cocLimit.y / dofParameters.minMaxCoCTileSize), 1.0f);
+                    for (int pass = 0; pass < iterations; ++pass)
+                    {
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, minMaxCoCPing, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPong, 0);
+                        cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                        CoreUtils.Swap(ref minMaxCoCPing, ref minMaxCoCPong);
+                    }
+                }
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 cs = dofParameters.pbDoFGatherCS;
@@ -2366,13 +2368,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
-                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2));
-                GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, (float)dofParameters.resolution));
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
             }
@@ -2426,7 +2428,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -2559,35 +2561,40 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" }));
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = false, name = "Full res CoC" }));
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = m_PostProcessColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
+                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled);
                             });
 
                         source = passData.destination;
                         PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                 }
-            }
 
-            // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-            if (taaEnabled && m_DepthOfField.physicallyBased)
-            {
-                source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = true;
-                postDoFTAAEnabled = true;
-            }
-            else
-            {
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = false;
+                // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
+                if (taaEnabled && m_DepthOfField.physicallyBased)
+                {
+                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
+                    hdCamera.dofHistoryIsValid = true;
+                    postDoFTAAEnabled = true;
+                }
+                else
+                {
+                    hdCamera.dofHistoryIsValid = false;
+                }
             }
 
             if (!postDoFTAAEnabled)
@@ -3011,6 +3018,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.paniniProjectionCS.EnableKeyword("GENERIC");
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
+
+                    if (m_EnableAlpha)
+                        passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
 
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                     passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
@@ -3895,6 +3905,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
+
+                    passData.fxaaCS.shaderKeywords = null;
+                    if (m_EnableAlpha)
+                        passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
 
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>

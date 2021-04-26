@@ -1083,6 +1083,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
@@ -1112,6 +1115,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.texture = renderData.renderTexture;
 
                 m_PreviewsToDraw.Remove(renderData);
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             }
         }
 

@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -45,7 +46,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -98,7 +99,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -116,7 +117,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  ./utr  --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -124,7 +125,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on OSX_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -150,4 +151,4 @@ ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

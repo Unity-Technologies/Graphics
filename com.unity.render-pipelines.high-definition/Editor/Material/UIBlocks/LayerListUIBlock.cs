@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-using UnityEditor;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -17,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal class Styles
         {
-            public const string header = "Layer List";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Layering List");
             public static readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
             public static readonly GUIContent layerMaterialHeader = EditorGUIUtility.TrTextContent("Layer Material");
             public static readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also reset UV.");
@@ -26,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty layerCount = null;
 
-        ExpandableBit      m_ExpandableBit;
         bool[]          m_WithUV = new bool[kMaxLayerCount];
         Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
         AssetImporter   m_MaterialImporter;
@@ -38,8 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the state of the foldout</param>
         public LayerListUIBlock(ExpandableBit expandableBit)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
         }
 
         /// <summary>
@@ -62,18 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                {
-                    DrawLayerListGUI();
-                }
-            }
-        }
-
-        void DrawLayerListGUI()
+        protected override void OnGUIOpen()
         {
             bool    layersChanged = false;
             var     oldLabelWidth = EditorGUIUtility.labelWidth;

@@ -213,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float normalMapDistance => m_NormalMapDistance;
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
         internal int GetTopMostLitLayer()
         {
@@ -298,9 +299,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
-                m_NormalMapQuality = NormalMapQuality.Disabled;
-
             bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
             UpdateMesh(updateMesh);
             if (hasCachedMesh)
@@ -344,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
                 m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
                 m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
-
+                m_NormalMapQuality = !m_UseNormalMap ? NormalMapQuality.Disabled : m_NormalMapQuality;
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
