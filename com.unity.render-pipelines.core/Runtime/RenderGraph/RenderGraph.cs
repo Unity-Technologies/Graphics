@@ -1115,7 +1115,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             foreach (RendererListHandle handle in rendererLists)
             {
                 var rendererList = m_Resources.GetRendererList(handle);
-                if (m_RenderGraphContext.renderContext.QueryRendererList(rendererList) == RendererListResult.kRendererListPopulated)
+                if (m_RenderGraphContext.renderContext.QueryRendererListStatus(rendererList) == RendererListStatus.kRendererListPopulated)
                 {
                     return false;
                 }
