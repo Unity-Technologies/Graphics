@@ -88,15 +88,15 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines the policy used when setting store actions for the DrawObjects passes. It has a great impact on bandwidth on tile based GPUs.
+    /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
     /// </summary>
     public enum StoreActionsOptimization
     {
-        /// <summary> Behaves like the Discard option. If any injected passes are detected will then fall back to Store. </summary>
+        /// <summary>Unity uses the Discard option by default, and falls back to the Store option if it detects any injected Passes.</summary>
         Auto,
-        /// <summary> Targets of passes which are not re-used later in the frame will be discarded (optimal). </summary>
+        /// <summary>Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).</summary>
         Discard,
-        /// <summary> Store all the targets of each pass (non optimal). </summary>
+        /// <summary>Unity stores all render targets of each Pass (higher memory bandwidth).</summary>
         Store
     }
 
