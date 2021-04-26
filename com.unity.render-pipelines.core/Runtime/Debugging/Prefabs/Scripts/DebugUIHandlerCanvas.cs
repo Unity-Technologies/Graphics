@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.UI
                 go.name = panel.displayName;
                 var uiPanel = go.GetComponent<DebugUIHandlerPanel>();
                 uiPanel.SetPanel(panel);
+                uiPanel.Canvas = this;
                 m_UIPanels.Add(uiPanel);
                 var container = go.GetComponent<DebugUIHandlerContainer>();
                 Traverse(panel, container.contentHolder, null);
@@ -213,7 +214,7 @@ namespace UnityEngine.Rendering.UI
             }
         }
 
-        void SelectPreviousItem()
+        internal void SelectPreviousItem()
         {
             if (m_SelectedWidget == null)
                 return;
@@ -224,7 +225,25 @@ namespace UnityEngine.Rendering.UI
                 ChangeSelection(newSelection, false);
         }
 
-        void SelectNextItem()
+        internal void SelectNextPanel()
+        {
+            int index = m_SelectedPanel + 1;
+            if (index >= m_UIPanels.Count)
+                index = 0;
+            index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
+            ActivatePanel(index);
+        }
+
+        internal void SelectPreviousPanel()
+        {
+            int index = m_SelectedPanel - 1;
+            if (index < 0)
+                index = m_UIPanels.Count - 1;
+            index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
+            ActivatePanel(index);
+        }
+
+        internal void SelectNextItem()
         {
             if (m_SelectedWidget == null)
                 return;
@@ -260,20 +279,12 @@ namespace UnityEngine.Rendering.UI
         {
             if (DebugManager.instance.GetAction(DebugAction.PreviousDebugPanel) != 0f)
             {
-                int index = m_SelectedPanel - 1;
-                if (index < 0)
-                    index = m_UIPanels.Count - 1;
-                index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
-                ActivatePanel(index);
+                SelectPreviousPanel();
             }
 
             if (DebugManager.instance.GetAction(DebugAction.NextDebugPanel) != 0f)
             {
-                int index = m_SelectedPanel + 1;
-                if (index >= m_UIPanels.Count)
-                    index = 0;
-                index = Mathf.Clamp(index, 0, m_UIPanels.Count - 1);
-                ActivatePanel(index);
+                SelectNextPanel();
             }
 
             if (DebugManager.instance.GetAction(DebugAction.Action) != 0f)

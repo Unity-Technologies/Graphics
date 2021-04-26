@@ -70,7 +70,7 @@
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
-  * [Default Settings](Default-Settings-Window.md)
+  * [HDRP Global Settings](Default-Settings-Window.md)
   * [HDRP Config Package](HDRP-Config-Package.md)
   * [Scalability](Scalability-Manual.md)
 * Materials
@@ -169,7 +169,8 @@
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md)
     * [Ray-Traced Reflections](Ray-Traced-Reflections.md)
     * [Ray-Traced Shadows](Ray-Traced-Shadows.md)
-    * [Ray-Traced-Subsurface-Scattering](Ray-Traced-Subsurface-Scattering.md)
+    * [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md)
+    * [Ray Tracing Settings](Ray-Tracing-Settings.md)
     * [Light Cluster](Ray-Tracing-Light-Cluster.md)
     * [Path Tracing](Ray-Tracing-Path-Tracing.md)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering.md)
