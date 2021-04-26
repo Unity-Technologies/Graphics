@@ -109,12 +109,9 @@ ${VFXEnd}
         #ifdef VFX_SHADERGRAPH
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
-
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
 
-            BuiltinData builtin;
-            VFXSetupBuiltinForGBuffer(i, surface, builtinEmissiveColor, builtinOpacity, builtin);
-            ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+			VFXComputePixelOutputToGBufferShaderGraph(i, surface, normalWS, outGBuffer);
         #else
             VFXComputePixelOutputToGBuffer(i, normalWS, uvData, outGBuffer);
         #endif

@@ -52,6 +52,7 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, Surfac
 
 #else //SHADERPASS_GBUFFER
 
+#ifndef VFX_SHADERGRAPH
 void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 normalWS, const VFXUVData uvData, out FragmentOutput gBuffer)
 {
     SurfaceData surfaceData;
@@ -65,37 +66,24 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
     gBuffer = BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
-
-
-/*
-TODOPAUL : Use the same design for URP GBuffer
-
-void VFXSetupBuiltinForGBuffer(const VFX_VARYING_PS_INPUTS i, const SurfaceData surface, float3 emissiveColor, float opacity, out BuiltinData builtin)
+#else
+void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, const float3 normalWS, out FragmentOutput gBuffer)
 {
+    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
-    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS);
-    InitBuiltinData(posInput, opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
-    builtin.emissiveColor = emissiveColor;
-    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput, surface, builtin);
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+
+    VFXUVData uvData = (VFXUVData)0;
+    InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f);
+
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    gBuffer = BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
 
-#define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
-{ \
-    SurfaceData surfaceData; \
-    BuiltinData builtinData; \
-    VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
- \
-    ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS.xy, outGBuffer); \
-}
-
-#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
-{ \
-    SurfaceData surfaceData; \
-    BuiltinData builtinData; \
-    VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
- \
-    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer); \
-}
-*/
+#endif
 #endif
