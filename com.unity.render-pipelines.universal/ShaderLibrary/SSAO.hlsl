@@ -24,6 +24,7 @@ float4 _ProjectionParams2;
 float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
+float4 _RTHandleScale;
 
 // Hardcoded random UV values that improves performance.
 // The values were taken from this function:
@@ -305,7 +306,7 @@ void SampleDepthNormalView(float2 uv, out float depth, out half3 normal, out hal
 half4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
+    float2 uv = input.uv * _RTHandleScale;
 
     // Parameters used in coordinate conversion
     half3x3 camTransform = (half3x3)_CameraViewProjections[unity_eyeIndex]; // camera viewProjection matrix

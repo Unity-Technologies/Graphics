@@ -82,6 +82,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Initialize the RT Handle System (<see cref="RTHandleSystem.Initialize()"/>)
+        /// </summary>
+        /// <param name="msaaSamples"></param>
+        /// <param name="supportScaledMSAA"></param>
+        public void Initialize()
+        {
+            m_RTHandleSystem.Initialize(maxWidth, maxHeight);
+        }
+
+        /// <summary>
         /// Allocate RT handles for a buffer.
         /// </summary>
         /// <param name="bufferId">The buffer to allocate.</param>
@@ -130,6 +140,17 @@ namespace UnityEngine.Rendering
         public void SwapAndSetReferenceSize(int width, int height)
         {
             Swap();
+            m_RTHandleSystem.SetReferenceSize(width, height);
+        }
+
+        /// <summary>
+        /// Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int)"/>)
+        /// </summary>
+        /// /// <param name="width">The width of the RTs of this buffer.</param>
+        /// <param name="height">The height of the RTs of this buffer.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
+        public void SetReferenceSize(int width, int height)
+        {
             m_RTHandleSystem.SetReferenceSize(width, height);
         }
 

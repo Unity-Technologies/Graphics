@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
+            if (m_Source == cameraData.renderer.cameraColorFrontBuffer)
+            {
+                m_Source = renderingData.cameraData.renderer.cameraColorTarget;
+            }
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))

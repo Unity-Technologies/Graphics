@@ -220,8 +220,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,
-                    colorTargetHandle,
-                    postProcessDestHandle,
                     depthTargetHandle,
                     colorGradingLutHandle,
                     requireFinalPostProcessPass,
@@ -236,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(colorTargetHandle, true);
                 EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && colorTargetHandle.nameID != BuiltinRenderTextureType.CameraTarget)
@@ -253,7 +251,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.shadowDistance = 0.0f;
             m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
-
         public override void FinishRendering(CommandBuffer cmd)
         {
             if (m_CreateColorTexture)
@@ -261,6 +258,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (m_CreateDepthTexture)
                 cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DepthTextureHandle.name));
+        }
+
+        internal override void SwapColorBuffer()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

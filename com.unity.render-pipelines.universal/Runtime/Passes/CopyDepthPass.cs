@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RTHandle source)
         {
             this.source = source;
-            this.destination = null;
+            this.destination = k_CameraTarget;
             this.MssaSamples = -1;
         }
 

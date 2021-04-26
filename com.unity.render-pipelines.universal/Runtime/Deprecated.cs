@@ -46,6 +46,11 @@ namespace UnityEngine.Rendering.Universal
         {
             throw new NotSupportedException(k_ErrorMessage);
         }
+
+        internal override void SwapColorBuffer()
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
     }
 
     namespace Internal

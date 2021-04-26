@@ -337,6 +337,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        //TODO: Verify this get
+        internal RTHandle cameraColorFrontBuffer
+        {
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraColorFrontBuffer inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                }
+                return m_ColorFrontBuffer;
+            }
+        }
+
         /// <summary>
         /// Returns the camera depth target for this renderer.
         /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
@@ -408,6 +421,7 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RTHandle m_CameraColorTarget;
+        RTHandle m_ColorFrontBuffer;
         RTHandle m_CameraDepthTarget;
         RTHandle m_CameraResolveTarget;
 
@@ -520,6 +534,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+        internal void ConfigureCameraTarget(RTHandle colorBackBuffer, RTHandle depthTarget, RTHandle colorFrontBuffer)
+        {
+            m_CameraColorTarget = colorBackBuffer;
+            m_CameraDepthTarget = depthTarget;
+            m_ColorFrontBuffer = colorFrontBuffer;
+        }
 
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
@@ -1313,6 +1333,8 @@ namespace UnityEngine.Rendering.Universal
             }
             CoreUtils.SetViewport(cmd, depthAttachment);
         }
+
+        internal abstract void SwapColorBuffer();
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)

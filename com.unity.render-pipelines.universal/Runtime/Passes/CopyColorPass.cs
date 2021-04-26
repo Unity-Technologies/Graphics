@@ -62,6 +62,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
+            //It is possible that the given color target is now the frontbuffer
+            if(source == renderingData.cameraData.renderer.cameraColorFrontBuffer)
+            {
+                source = renderingData.cameraData.renderer.cameraColorTarget;
+            }
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {

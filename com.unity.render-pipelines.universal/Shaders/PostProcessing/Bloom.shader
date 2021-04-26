@@ -53,7 +53,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
         #if _BLOOM_HQ
             float texelSize = _SourceTex_TexelSize.x;
@@ -103,7 +103,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _SourceTex_TexelSize.x * 2.0;
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // 9-tap gaussian blur on the downsampled source
             half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 4.0, 0.0)));
@@ -127,7 +127,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _SourceTex_TexelSize.y;
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
             half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 3.23076923)));
@@ -159,7 +159,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         half4 FragUpsample(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            half3 color = Upsample(UnityStereoTransformScreenSpaceTex(input.uv * _RTHandleScale.xy));
+            half3 color = Upsample(UnityStereoTransformScreenSpaceTex(input.uv));
             return EncodeHDR(color);
         }
 
