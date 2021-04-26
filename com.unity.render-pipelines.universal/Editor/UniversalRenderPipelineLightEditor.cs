@@ -120,10 +120,22 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
-            CheckLightmappingConsistency();
-            if (areaOptionsValue && light.type != LightType.Disc)
+            if (typeIsSame)
             {
-                serializedLight.settings.DrawLightmapping();
+                if (serializedLight.settings.isAreaLightType)
+                {
+                    //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
+                    if (serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
+                    {
+                        serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
+                        serializedLight.Apply();
+                    }
+                }
+                else
+                {
+                    // Draw the Mode property field
+                    serializedLight.settings.DrawLightmapping();
+                }
             }
 
             serializedLight.settings.DrawIntensity();
@@ -162,29 +174,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             serializedLight.Apply();
-        }
-
-        void CheckLightmappingConsistency()
-        {
-            //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
-            if (serializedLight.settings.isAreaLightType && serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
-            {
-                serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
-                serializedObject.ApplyModifiedProperties();
-            }
-        }
-
-        void SetOptions(AnimBool animBool, bool initialize, bool targetValue)
-        {
-            if (initialize)
-            {
-                animBool.value = targetValue;
-                animBool.valueChanged.AddListener(Repaint);
-            }
-            else
-            {
-                animBool.target = targetValue;
-            }
         }
 
         void DrawSpotAngle()
