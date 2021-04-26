@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Utility", "SplitTextureTransform")]
+    [Title("Input", "Texture", "Split Texture Transform")]
     class SplitTextureTransformNode : CodeFunctionNode
     {
-        public override bool hasPreview { get { return true; } }
+        public override bool hasPreview { get { return false; } }
         public SplitTextureTransformNode()
         {
             name = "SplitTextureTransform";
