@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 bool belowMaxSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
-                bool belowMinSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
+                bool belowMinSubdiv = subdivisionLevel < ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
 
                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
                 if ((belowMinSubdiv && overlap) || (belowMaxSubdiv && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume)))

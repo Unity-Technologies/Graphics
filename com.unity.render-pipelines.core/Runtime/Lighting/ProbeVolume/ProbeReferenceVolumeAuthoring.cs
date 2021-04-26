@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
         internal float brickSize { get { return m_Profile.brickSize; } }
-        internal float cellSizeInMeter { get { return m_Profile.cellSizeInMeter; } }
+        internal float cellSizeInMeter { get { return m_Profile.cellSizeInMeters; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
 
@@ -181,12 +181,12 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Profile == null)
                 return true;
 
-            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeter + originWS + Vector3.one * (m_Profile.cellSizeInMeter / 2.0f);
+            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
             if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeter * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
@@ -245,9 +245,9 @@ namespace UnityEngine.Experimental.Rendering
                         continue;
 
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                    var center = positionF * m_Profile.cellSizeInMeter + m_Profile.cellSizeInMeter * 0.5f * Vector3.one;
-                    Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSizeInMeter);
-                    cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeter, new Color(0, 1, 0.5f, 1));
+                    var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
+                    Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSizeInMeters);
+                    cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
