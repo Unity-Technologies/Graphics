@@ -4,6 +4,14 @@ ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
 ${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile_fog${VFXEnd}
 
+${VFXBegin:VFXPassDepthDefine}#define SHADERPASS SHADERPASS_DEPTH_ONLY${VFXEnd}
+${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
+${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
+
+${VFXBegin:VFXPassDepthAdditionalPragma}${VFXEnd}
+${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile_fog${VFXEnd}
+${VFXBegin:VFXPassVelocityAdditionalPragma}${VFXEnd}
+
 ${VFXBegin:VFXShaderGraphFunctionsInclude}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -11,4 +19,82 @@ ${VFXBegin:VFXShaderGraphFunctionsInclude}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
+${VFXEnd}
+
+
+${VFXBegin:VFXPassDepthCommonFragmentURPLit}
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+${VFXPassVelocityDefine}
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+${VFXPassShadowDefine}
+#else
+${VFXPassDepthDefine}
+#endif
+${VFXIncludeRP("VFXLit.template")}
+			
+${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
+#pragma fragment frag
+void frag(ps_input i
+#if USE_DOUBLE_SIDED
+	, bool frontFace : SV_IsFrontFace
+#endif
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+	#if defined(WRITE_NORMAL_BUFFER)
+	, out float4 outNormalBuffer : SV_Target0
+	#endif
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+    , out float4 outColor : SV_Target0
+#endif
+)
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+	
+	#ifdef VFX_SHADERGRAPH
+        ${VFXAdditionalInterpolantsPreparation}
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+		#else
+		
+		float alpha = VFXGetFragmentColor(i).a;
+		#if HDRP_USE_BASE_COLOR_MAP_ALPHA
+			alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
+		#endif
+    #endif
+	
+	VFXClipFragmentColor(alpha,i);
+	
+	#if defined(WRITE_NORMAL_BUFFER)
+		//TODOPAUL : _GBUFFER_NORMALS_OCT
+        #ifndef VFX_SHADERGRAPH
+            VFXComputePixelOutputToNormalBuffer(i, normalWS, uvData, outNormalBuffer);
+        #else
+           #if HAS_SHADERGRAPH_PARAM_NORMAL
+               float3 n =  OUTSG.Normal_8;
+               normalWS = mul(n,tbn);
+           #endif
+           SurfaceData surface = (SurfaceData)0;
+           surface.normalWS = normalWS;
+           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), outNormalBuffer);
+        #endif
+	#endif
+
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+		//void
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+		//void
+	#else
+		#error VFX_PASSDEPTH undefined
+	#endif
+}
 ${VFXEnd}

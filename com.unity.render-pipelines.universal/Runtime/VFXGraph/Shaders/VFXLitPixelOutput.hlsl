@@ -31,7 +31,6 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
 #else
 
-//TODOPAUL : SG case
 float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, float3 normalWS)
 {
     uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
