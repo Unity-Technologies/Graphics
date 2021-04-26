@@ -18,6 +18,7 @@ float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
     return VFXGetPositionRWS(posWS);
 }
 
+//TODOPAUL : Remove surfaceData & opacity (and probably VFXUVData)
 InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, const SurfaceData surfaceData, const VFXUVData uvData, float3 normalWS, float opacity)
 {
     InputData inputData = (InputData)0;

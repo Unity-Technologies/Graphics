@@ -11,12 +11,13 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const InputData 
     return outColor;
 }
 
-uint GetTileSize()
+uint GetTileSize() //TODOPAUL : Clean this
 {
     return 1u;
 }
 
 #ifndef VFX_SHADERGRAPH
+
 float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
 {
     SurfaceData surfaceData;
@@ -31,30 +32,22 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 #else
 
 //TODOPAUL : SG case
-float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, const SurfaceData surfaceData, float3 emissiveColor, float opacity)
+float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, float3 normalWS)
 {
     uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 
-    PreLightData preLightData = (PreLightData)0;
-    BSDFData bsdfData = (BSDFData)0;
-    bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
+    VFXUVData uvData = (VFXUVData)0;
+    InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f /* remove opacity */);
 
-    preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-    preLightData.diffuseFGD = 1.0f;
-
-    BuiltinData builtinData;
-    InitBuiltinData(posInput, opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
-    builtinData.emissiveColor = emissiveColor;
-    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
-
-    return VFXCalcPixelOutputForward(surfaceData, builtinData, preLightData, bsdfData, posInput, posRWS);
+    return VFXCalcPixelOutputForward(surfaceData, inputData);
 }
 #endif
-#else
 
+#else
 
 /*
 TODOPAUL : Use the same design for URP GBuffer
