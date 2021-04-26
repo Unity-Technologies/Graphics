@@ -37,8 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
 
-        Vector4[] m_DebugAPVSubdivColors = new Vector4[7];
-
         void InitializeDebug()
         {
             m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
@@ -55,15 +53,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
 #endif
-
-            // Hard-coded colors for now.
-            m_DebugAPVSubdivColors[0] = new Vector4(1.0f, 0.0f, 0.0f);
-            m_DebugAPVSubdivColors[1] = new Vector4(0.0f, 1.0f, 0.0f);
-            m_DebugAPVSubdivColors[2] = new Vector4(0.0f, 0.0f, 1.0f);
-            m_DebugAPVSubdivColors[3] = new Vector4(1.0f, 1.0f, 0.0f);
-            m_DebugAPVSubdivColors[4] = new Vector4(1.0f, 0.0f, 1.0f);
-            m_DebugAPVSubdivColors[5] = new Vector4(0.0f, 1.0f, 1.0f);
-            m_DebugAPVSubdivColors[6] = new Vector4(0.5f, 0.5f, 0.5f);
         }
 
         void CleanupDebug()
@@ -167,10 +156,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < 4; ++j)
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
-                for (int i = 0; i < 7; ++i)
+
+                if (asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
                 {
-                    for (int j = 0; j < 4; ++j)
-                        cb._DebugAPVSubdivColors[i * 4 + j] = m_DebugAPVSubdivColors[i][j];
+                    var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        for (int j = 0; j < 4; ++j)
+                            cb._DebugAPVSubdivColors[i * 4 + j] = subdivColors[i][j];
+                    }
                 }
 
                 cb._DebugLightingMode = (int)debugLightingMode;
