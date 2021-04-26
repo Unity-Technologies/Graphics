@@ -79,7 +79,7 @@ The **Shadows** section has the following properties.
 | ---------------- | ----------- |
 | __Max Distance__ | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance.<br/>__Note:__ This property is in metric units regardless of the value in the __Working Unit__ property. |
 | __Working Unit__ | The unit in which Unity measures the shadow cascade distances. |
-| __Cascade Count__ | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. |
+| __Cascade Count__ | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;1 | The distance where cascade 1 ends and cascade 2 starts. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;2 | The distance where cascade 2 ends and cascade 3 starts. |
 | &nbsp;&nbsp;&nbsp;&nbsp;Split&nbsp;3 | The distance where cascade 3 ends and cascade 4 starts. |
