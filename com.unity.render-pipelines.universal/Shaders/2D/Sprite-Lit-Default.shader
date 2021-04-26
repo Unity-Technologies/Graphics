@@ -93,7 +93,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.lightingUV = ComputeNormalizedDeviceCoordinates(o.positionCS.xyz / o.positionCS.w);
+                o.lightingUV = ComputeScreenPos(o.positionCS);
+
                 o.color = v.color;
                 return o;
             }

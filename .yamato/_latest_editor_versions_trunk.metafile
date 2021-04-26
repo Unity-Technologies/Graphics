@@ -5,64 +5,76 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     Android:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Linux:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 18:08:03.332305'
       version: ''
     OSX:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 18:08:03.332305'
       version: ''
     iPhone:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
+      version: ''
+    XRQuest:
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
   trunk_latest_public:
     Android:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Linux:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     OSX:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Win:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     iPhone:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
+      version: ''
+    XRQuest:
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
   trunk_staging:
     Android:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Linux:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     OSX:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Win:
-      revision: 37767e16dc735e98f8fda35f9c62e82f55b5f232
-      updated_at: '2021-04-21 17:54:47.571014'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     iPhone:
-      revision: 19b7d6603397db934b2aa31742e7e2414d0839c8
-      updated_at: '2021-04-22 00:02:27.871408'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
+      version: ''
+    XRQuest:
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 13:33:54.600865'
       version: ''
