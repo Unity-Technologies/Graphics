@@ -9,16 +9,16 @@ editor_versions:
       updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Linux:
-      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
-      updated_at: '2021-04-24 00:02:10.768741'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 18:08:03.332305'
       version: ''
     OSX:
       revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
       updated_at: '2021-04-25 13:33:54.600865'
       version: ''
     Win:
-      revision: 42ac2131a946afe2e2f2f90b10bfd4263d95ad6d
-      updated_at: '2021-04-24 00:02:10.768741'
+      revision: b5c81da9dae099c1577789936e19e2a6c3fb961e
+      updated_at: '2021-04-25 18:08:03.332305'
       version: ''
     iPhone:
       revision: b5c81da9dae099c1577789936e19e2a6c3fb961e

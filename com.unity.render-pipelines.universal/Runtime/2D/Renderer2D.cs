@@ -49,6 +49,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
+            // Hook in the debug-render where appropriate...
+            m_Render2DLightingPass.DebugHandler = DebugHandler;
+            m_FinalBlitPass.DebugHandler = DebugHandler;
+
+            if (m_PostProcessPasses.finalPostProcessPass != null)
+            {
+                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+            }
+
+            if (m_PostProcessPasses.postProcessPass != null)
+            {
+                m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
+            }
+
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
@@ -141,6 +155,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             PixelPerfectCamera ppc = null;
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
+
+            if (DebugHandler != null)
+            {
+                if (DebugHandler.AreAnySettingsActive)
+                {
+                    stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
+                }
+
+                if (DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    DebugHandler.Setup(context);
+                }
+            }
 
 #if UNITY_EDITOR
             // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
