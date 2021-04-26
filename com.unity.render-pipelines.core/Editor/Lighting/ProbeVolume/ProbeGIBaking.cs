@@ -95,7 +95,9 @@ namespace UnityEngine.Experimental.Rendering
             var prevScenes = new List<string>();
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
-                prevScenes.Add(EditorSceneManager.GetSceneAt(i).path);
+                var scene = EditorSceneManager.GetSceneAt(i);
+                EditorSceneManager.SaveScene(scene);
+                prevScenes.Add(scene.path);
             }
 
             hasFoundBounds = false;
@@ -128,8 +130,6 @@ namespace UnityEngine.Experimental.Rendering
                 var scene = prevScenes[i];
                 EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
             }
-
-            ProbeReferenceVolume.instance.Clear();
         }
 
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
@@ -301,33 +301,21 @@ namespace UnityEngine.Experimental.Rendering
 
                         if (hasFoundBounds)
                         {
-                            asset.maxCellIndex = new Vector3Int(Mathf.CeilToInt(globalBounds.size.x),
-                                Mathf.CeilToInt(globalBounds.size.y), Mathf.CeilToInt(globalBounds.size.z));
+                            // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
+                            Vector3 center = refVol.transform.position; //globalBounds.center;
 
-                            Vector3 center = refVol.transform.position; //globalBounds.center; // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
+                            float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
 
-                            Vector3Int minInBricks = new Vector3Int(Mathf.CeilToInt(Mathf.Abs(globalBounds.min.x - center.x) / refVol.profile.brickSize),
-                                Mathf.CeilToInt(Mathf.Abs(globalBounds.min.y - center.y) / refVol.profile.brickSize),
-                                Mathf.CeilToInt(Mathf.Abs(globalBounds.min.z - center.z) / refVol.profile.brickSize));
+                            var centeredMin = globalBounds.min - center;
+                            var centeredMax = globalBounds.max - center;
 
-                            Vector3Int maxInBricks = new Vector3Int(Mathf.CeilToInt(Mathf.Abs(globalBounds.max.x - center.x) / refVol.profile.brickSize),
-                                Mathf.CeilToInt(Mathf.Abs(globalBounds.max.y - center.y) / refVol.profile.brickSize),
-                                Mathf.CeilToInt(Mathf.Abs(globalBounds.max.z - center.z) / refVol.profile.brickSize));
+                            int cellsInX = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
+                            int cellsInY = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
+                            int cellsInZ = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
 
-                            int cellSizeInBricks = (int)refVol.profile.cellSizeInBricks;
-                            int cellsInX = (minInBricks.x / cellSizeInBricks) + ((minInBricks.x % cellSizeInBricks) != 0 ? 1 : 0) +
-                                (maxInBricks.x / cellSizeInBricks) + ((maxInBricks.x % cellSizeInBricks) != 0 ? 1 : 0);
-                            int cellsInY = (minInBricks.y / cellSizeInBricks) + ((minInBricks.y % cellSizeInBricks) != 0 ? 1 : 0) +
-                                (maxInBricks.y / cellSizeInBricks) + ((maxInBricks.y % cellSizeInBricks) != 0 ? 1 : 0);
-                            int cellsInZ = (minInBricks.z / cellSizeInBricks) + ((minInBricks.z % cellSizeInBricks) != 0 ? 1 : 0) +
-                                (maxInBricks.z / cellSizeInBricks) + ((maxInBricks.z % cellSizeInBricks) != 0 ? 1 : 0);
-
-                            // Round to cell size and divide by brick size.
-                            asset.maxCellIndex.x = cellsInX * cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInY * cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInZ * cellSizeInBricks;
-
-                            Debug.Log(asset.maxCellIndex);
+                            asset.maxCellIndex.x = cellsInX * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.y = cellsInY * (int)refVol.profile.cellSizeInBricks;
+                            asset.maxCellIndex.z = cellsInZ * (int)refVol.profile.cellSizeInBricks;
                         }
                         else
                         {

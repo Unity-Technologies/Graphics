@@ -527,6 +527,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Clear();
                 cells.Clear();
             }
+            m_PendingAssetsToBeLoaded.Clear();
+            m_ActiveAssets.Clear();
         }
 
 #if UNITY_EDITOR
