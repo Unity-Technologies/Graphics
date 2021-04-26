@@ -50,17 +50,17 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// The source of the focus distance used in the Depth of Field Computations
+    /// Options for the source of the focus distance HDRP uses in the depth of field calculations.
     /// </summary>
     public enum FocusDistanceMode
     {
         /// <summary>
-        /// The focus distance is set on the volume component
+        /// Uses the focus distance from the Volume component.
         /// </summary>
         Volume,
 
         /// <summary>
-        /// The focus distance is set on the physical camera properties
+        /// Uses the focus distance from the physical camera.
         /// </summary>
         Camera
     }
@@ -84,15 +84,15 @@ namespace UnityEngine.Rendering.HighDefinition
         //
 
         /// <summary>
-        /// Sets the distance to the focus plane from the Camera.
+        /// The distance to the focus plane from the Camera.
         /// </summary>
-        [Tooltip("Sets the distance to the focus plane from the Camera.")]
+        [Tooltip("The distance to the focus plane from the Camera.")]
         public MinFloatParameter focusDistance = new MinFloatParameter(10f, 0.1f);
 
         /// <summary>
-        /// Controls whether the focus distance is read from the physical camera or the volume itself
+        /// Specifies where to read the focus distance from.
         /// </summary>
-        [Tooltip("Controls whether the focus distance is read from the physical camera or the volume itself.")]
+        [Tooltip("Specifies where to read the focus distance from..")]
         public FocusDistanceModeParameter focusDistanceMode = new FocusDistanceModeParameter(FocusDistanceMode.Volume);
 
         // -------------------------------------------

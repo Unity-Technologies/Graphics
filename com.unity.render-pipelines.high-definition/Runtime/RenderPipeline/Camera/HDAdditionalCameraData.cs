@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>
-        /// The focus distance of the lens, used in Depth of Field computations when the DoF volume is configured to read this value from the camera.
+        /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
         /// </summary>
         public float focusDistance
         {
