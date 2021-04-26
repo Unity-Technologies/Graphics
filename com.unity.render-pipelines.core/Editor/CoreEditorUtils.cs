@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+        public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "")
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering
 
             // Context menu
             var menuIcon = CoreEditorStyles.paneOptionsIcon;
-            var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, menuIcon.width, menuIcon.height);
+            var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, 16, 16);
 
             // Add context menu for "Additional Properties"
             Action<Vector2> contextAction = null;
@@ -284,6 +284,9 @@ namespace UnityEditor.Rendering
                 if (GUI.Button(menuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
                     contextAction(new Vector2(menuRect.x, menuRect.yMax));
             }
+
+            // Documentation button
+            ShowHelpButton(menuRect, documentationURL, title);
 
             var e = Event.current;
 
@@ -489,19 +492,7 @@ namespace UnityEditor.Rendering
             }
 
             // Documentation button
-            if (!String.IsNullOrEmpty(documentationURL))
-            {
-                var documentationRect = contextMenuRect;
-                documentationRect.x -= 16 + 5;
-                documentationRect.y -= 1;
-
-                var documentationTooltip = $"Open Reference for {title.text}.";
-                var documentationIcon = new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, documentationTooltip);
-                var documentationStyle = new GUIStyle("IconButton");
-
-                if (GUI.Button(documentationRect, documentationIcon, documentationStyle))
-                    System.Diagnostics.Process.Start(documentationURL);
-            }
+            ShowHelpButton(contextMenuRect, documentationURL, title);
 
             // Handle events
             var e = Event.current;
@@ -522,6 +513,21 @@ namespace UnityEditor.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
+        {
+            if (string.IsNullOrEmpty(documentationURL))
+                return;
+
+            var documentationRect = contextMenuRect;
+            documentationRect.x -= 16 + 5;
+            documentationRect.y -= 1;
+
+            var documentationIcon = new GUIContent(CoreEditorStyles.iconHelp, $"Open Reference for {title.text}.");
+
+            if (GUI.Button(documentationRect, documentationIcon, CoreEditorStyles.iconHelpStyle))
+                Help.BrowseURL(documentationURL);
         }
 
         static void OnContextClick(Vector2 position, Func<bool> hasMoreOptions, Action toggleMoreOptions)
