@@ -123,7 +123,7 @@ public class Editmode_ParametricReflectionProbeTests
 			UseGraphicsTestCasesAttribute.Platform,
 			UseGraphicsTestCasesAttribute.GraphicsDevice,
 			UseGraphicsTestCasesAttribute.LoadedXRDevice,
-			"RefProbeAPI(" + settings + "," + bakeAPI.ToString() + ").png"));
+			"RefProbeAPI_" + settings + "-" + bakeAPI.ToString() + "_.png"));
 
         Debug.Log("referenceImagePath " + referenceImagePath);
 		var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
