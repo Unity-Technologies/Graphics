@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AmbientOcclusion.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookie.hlsl"
 
 ///////////////////////////////////////////////////////////////////////////////
 //                             Light Layers                                   /
@@ -131,6 +132,12 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
 {
     Light light = GetMainLight();
     light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+
+    #ifdef _MAIN_LIGHT_COOKIE
+        half3 cookieColor = URP_LightCookie_SampleMainLightCookie(positionWS);
+        light.color *= cookieColor;
+    #endif
+
     return light;
 }
 
@@ -266,6 +273,10 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
     light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
+#ifdef _ADDITIONAL_LIGHT_COOKIES
+    half3 cookieColor = URP_LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS /*, TODO: light type*/);
+    light.color *= cookieColor;
+#endif
 
     return light;
 }
