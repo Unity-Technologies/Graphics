@@ -78,11 +78,13 @@ struct Varyings
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 {
     input = (InputData)0;
+
     input.positionWS = IN.positionWS;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+        input.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+        input.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
         half3 SH = SampleSH(input.normalWS.xyz);
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
@@ -122,6 +124,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 #endif
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
+
+    #if defined(LIGHTMAP_ON)
+    input.lightmapUV = IN.uvMainAndLM.zw;
+    #else
+    input.vertexSH = SH;
+    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -413,6 +421,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
 
 #ifdef TERRAIN_GBUFFER
 

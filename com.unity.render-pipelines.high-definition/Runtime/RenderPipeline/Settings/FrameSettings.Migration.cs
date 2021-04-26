@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial struct FrameSettings
     {
 #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 612
         internal static void MigrateFromClassVersion(ref ObsoleteFrameSettings oldFrameSettingsFormat, ref FrameSettings newFrameSettingsFormat, ref FrameSettingsOverrideMask newFrameSettingsOverrideMask)
         {
             if (oldFrameSettingsFormat == null)
@@ -345,7 +346,19 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 
+        internal static void MigrateMSAA(ref FrameSettings cameraFrameSettings, ref FrameSettingsOverrideMask newFrameSettingsOverrideMask)
+        {
+            if (cameraFrameSettings.IsEnabled(FrameSettingsField.MSAA))
+                cameraFrameSettings.msaaMode = MSAAMode.FromHDRPAsset;
+            else
+                cameraFrameSettings.msaaMode = MSAAMode.None;
+
+            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAAMode] = newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA];
+            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA] = false;
+        }
+
 #pragma warning restore 618 // Type or member is obsolete
+#pragma warning restore 612
 
         internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
         {
