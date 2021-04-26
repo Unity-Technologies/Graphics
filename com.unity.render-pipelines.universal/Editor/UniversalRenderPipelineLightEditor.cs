@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.Universal
                     serializedLight.settings.DrawRange(false);
 #endif
                 }
-                
+
                 // Spot angle
                 if (lightType == LightType.Spot)
                     DrawSpotAngle();
