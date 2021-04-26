@@ -704,6 +704,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.LightLayers },
+                { CoreKeywordDescriptors.DebugDisplay },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -718,6 +719,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { CoreKeywordDescriptors.LightLayers },
+                { CoreKeywordDescriptors.DebugDisplay },
                 { GBufferNormalsOct },
             };
 
