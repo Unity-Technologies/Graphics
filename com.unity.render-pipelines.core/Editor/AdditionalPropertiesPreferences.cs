@@ -6,6 +6,9 @@ using UnityEditorInternal;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Callback method that will be called when the Global Preferences for Additional Properties is changed
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     public sealed class SetAdditionalPropertiesVisibilityAttribute : Attribute
     {
