@@ -99,6 +99,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex vertParticleUnlit
@@ -109,6 +110,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Depth Only pass.
         Pass
@@ -241,6 +243,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
