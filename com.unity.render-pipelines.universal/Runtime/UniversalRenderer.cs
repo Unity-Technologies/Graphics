@@ -563,17 +563,17 @@ namespace UnityEngine.Rendering.Universal
                     m_OpaqueColor.rt?.graphicsFormat != renderingData.cameraData.cameraTargetDescriptor.graphicsFormat ||
                     downsamplingMethod != m_CopyColorPass.m_DownsamplingMethod)
                 {
+                    var size = new Vector2(cameraData.pixelWidth, cameraData.pixelHeight);
                     m_OpaqueColor?.Release();
                     m_OpaqueColor = RTHandles.Alloc(size =>
                         {
-                            var scaleFactor = Vector2.one;
+                            var scaleFactor = size;
                             if (UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._2xBilinear)
                                 scaleFactor /= 2;
                             else if (UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._4xBox ||
                                      UniversalRenderPipeline.asset.opaqueDownsampling == Downsampling._4xBilinear)
                                 scaleFactor /= 4;
-                            return new Vector2Int(Mathf.Max(Mathf.RoundToInt(scaleFactor.x * RTHandles.maxWidth), 1),
-                                Mathf.Max(Mathf.RoundToInt(scaleFactor.y * RTHandles.maxHeight), 1));
+                            return new Vector2Int(Mathf.Max(Mathf.RoundToInt(scaleFactor.x), 1), Mathf.Max(Mathf.RoundToInt(scaleFactor.y), 1));
                         },
                         depthBufferBits: DepthBits.None,
                         colorFormat: renderingData.cameraData.cameraTargetDescriptor.graphicsFormat,

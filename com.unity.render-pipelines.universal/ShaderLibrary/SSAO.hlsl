@@ -305,7 +305,7 @@ void SampleDepthNormalView(float2 uv, out float depth, out half3 normal, out hal
 half4 SSAO(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
+    float2 uv = input.uv * _RTHandleScale.xy;
 
     // Parameters used in coordinate conversion
     half3x3 camTransform = (half3x3)_CameraViewProjections[unity_eyeIndex]; // camera viewProjection matrix
@@ -340,6 +340,8 @@ half4 SSAO(Varyings input) : SV_Target
             float zdist = -dot(UNITY_MATRIX_V[2].xyz, vpos_s1);
             float2 uv_s1_01 = clamp((spos_s1.xy * rcp(zdist) + float(1.0)) * float(0.5), float(0.0), float(1.0));
         #endif
+
+        uv_s1_01 /= _RTHandleScale.xy;
 
         // Depth at the sample point
         float depth_s1 = SampleAndGetLinearEyeDepth(uv_s1_01);

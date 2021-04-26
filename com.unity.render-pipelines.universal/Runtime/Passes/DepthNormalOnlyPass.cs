@@ -73,8 +73,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     filterMode: FilterMode.Point,
                     wrapMode: TextureWrapMode.Clamp,
                     name: "_CameraDepthTexture");
-                cmd.SetGlobalTexture(depth.name, depth);
             }
+            cmd.SetGlobalTexture(depth.name, depth);
 
             if (normal == null || normal.rt.graphicsFormat != normalsFormat)
             {
@@ -91,8 +91,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     filterMode: FilterMode.Point,
                     wrapMode: TextureWrapMode.Clamp,
                     name: "_CameraNormalsTexture");
-                cmd.SetGlobalTexture(normal.name, normal);
             }
+            cmd.SetGlobalTexture(normal.name, normal);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -118,6 +118,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                CoreUtils.SetViewport(cmd, normal);
+
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(this.shaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
@@ -125,6 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
 
+                cmd.SetGlobalVector(ShaderPropertyId.rtHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);

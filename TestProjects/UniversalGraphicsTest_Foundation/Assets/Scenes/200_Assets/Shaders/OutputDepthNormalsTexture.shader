@@ -20,6 +20,8 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
+            float4 _RTHandleScale;
+
             struct Attributes
             {
                 float4 positionOS : POSITION;
@@ -46,7 +48,7 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                float2 uv = input.positionCS.xy;
+                float2 uv = input.positionCS.xy * _RTHandleScale.xy;
                 float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(uv);
 
                 float3 normals = SampleSceneNormals(normalizedScreenSpaceUV);
