@@ -211,7 +211,6 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
 {
-
     uint unusedSubdiv;
     return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, uvw, unusedSubdiv);
 }
