@@ -42,6 +42,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION

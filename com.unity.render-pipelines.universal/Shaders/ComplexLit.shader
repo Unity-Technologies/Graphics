@@ -119,6 +119,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
@@ -127,10 +128,12 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertex
@@ -311,6 +314,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -384,6 +388,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
@@ -392,10 +397,12 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
@@ -527,6 +534,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
