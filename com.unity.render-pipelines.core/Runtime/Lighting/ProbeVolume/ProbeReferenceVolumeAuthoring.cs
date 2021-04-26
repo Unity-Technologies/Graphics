@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
         internal float brickSize { get { return m_Profile.brickSize; } }
-        internal float cellSizeInMeter { get { return m_Profile.cellSizeInMeters; } }
+        internal float cellSizeInMeters { get { return m_Profile.cellSizeInMeters; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
 
