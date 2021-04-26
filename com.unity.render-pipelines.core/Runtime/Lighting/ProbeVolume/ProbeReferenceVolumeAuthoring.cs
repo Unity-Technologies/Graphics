@@ -1,6 +1,7 @@
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.IO;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -78,7 +79,6 @@ namespace UnityEngine.Experimental.Rendering
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
-        internal bool realtimeSubdivision => m_RealtimeSubdivision;
 
 #if UNITY_EDITOR
         // Dilation
@@ -92,15 +92,17 @@ namespace UnityEngine.Experimental.Rendering
         private float m_DilationValidityThreshold = 0.25f;
         [SerializeField]
         private bool m_GreedyDilation = false;
-        [SerializeField]
-        private bool m_RealtimeSubdivision;
 
-        Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
+        // Field used for the realtime subdivision preview
+        [NonSerialized]
+        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
+
+        MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
 
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
-        [System.NonSerialized]
+        [NonSerialized]
         private ProbeVolumeAsset m_PrevAsset = null;
 #endif
         public ProbeVolumeAsset volumeAsset = null;
@@ -123,17 +125,13 @@ namespace UnityEngine.Experimental.Rendering
             if (volumeAsset == null)
                 return;
 
-            foreach (var meshGizmo in brickGizmos.Values)
-                meshGizmo.Dispose();
-            brickGizmos.Clear();
             cellGizmo?.Dispose();
-            cellGizmo = null;
 
 #if UNITY_EDITOR
-            foreach (var meshGizmo in brickGizmos.Values)
-                meshGizmo.Dispose();
-            brickGizmos.Clear();
+            brickGizmos?.Dispose();
+            brickGizmos = null;
             cellGizmo?.Dispose();
+            cellGizmo = null;
 
             m_PrevAsset = null;
 #endif
@@ -212,34 +210,48 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugDisplay.drawBricks)
             {
-                Debug.Log(ProbeReferenceVolume.instance.cells.Values.Count);
-                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                IEnumerable<ProbeBrickIndex.Brick> GetVisibleBricks()
                 {
-                    if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
-                        continue;
-
-                    if (cell.bricks == null)
-                        continue;
-
-                    if (!brickGizmos.TryGetValue(cell, out var meshGizmo))
-                        meshGizmo = AddBrickGizmo(cell);
-
-                    meshGizmo.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
-
-                    MeshGizmo AddBrickGizmo(ProbeReferenceVolume.Cell cell)
+                    if (debugDisplay.realtimeSubdivision)
                     {
-                        var meshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
-                        meshGizmo.Clear();
-                        foreach (var brick in cell.bricks)
+                        foreach (var kp in realtimeSubdivisionInfo)
                         {
-                            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
-                            Vector3 scaledPos = brick.position + scaledSize / 2;
-                            meshGizmo.AddWireCube(scaledPos, scaledSize, Color.blue);
+                            var cellVolume = kp.Key;
+                            
+                            foreach (var brick in kp.Value)
+                            {
+                                yield return brick;
+                            }
                         }
-                        brickGizmos[cell] = meshGizmo;
-                        return meshGizmo;
+                    }
+                    else
+                    {
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        {
+                            if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                                continue;
+                            
+                            if (cell.bricks == null)
+                                continue;
+                            
+                            foreach (var brick in cell.bricks)
+                                yield return brick;
+                        }
                     }
                 }
+
+                if (brickGizmos == null)
+                    brickGizmos = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
+
+                brickGizmos.Clear();
+                foreach (var brick in GetVisibleBricks())
+                {
+                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
+                    Vector3 scaledPos = brick.position + scaledSize / 2;
+                    brickGizmos.AddWireCube(scaledPos, scaledSize, Color.blue);
+                }
+
+                brickGizmos.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
             }
 
             if (debugDisplay.drawCells)

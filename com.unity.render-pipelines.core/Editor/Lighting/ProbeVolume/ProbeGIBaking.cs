@@ -475,11 +475,16 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void RunPlacement()
         {
-
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
+            // Clear baked data
             Clear();
-            var result = BakeBricks(PrepareProbeSubdivisionContext(bakingReferenceVolumeAuthoring));
+
+            // Subdivide the scene and place the bricks
+            var ctx = PrepareProbeSubdivisionContext(bakingReferenceVolumeAuthoring);
+            var result = BakeBricks(ctx);
+
+            // Compute probe positions and send them to the Lightmapper
             ApplySubdivisionResults(result);
         }
 
@@ -506,6 +511,12 @@ namespace UnityEngine.Experimental.Rendering
             var result = new ProbeSubdivisionResult();
             var refVol = ProbeReferenceVolume.instance;
             var sceneRefs = new Dictionary<Scene, int>();
+
+            bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
+            if (realtimeSubdivision)
+                ctx.refVolume.realtimeSubdivisionInfo.Clear();
+            
+            Debug.Log("Bake!");
 
             // subdivide all the cells and generate brick positions 
             foreach (var cell in ctx.cells)
@@ -549,12 +560,16 @@ namespace UnityEngine.Experimental.Rendering
                     continue;
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
-                ProbeReferenceVolume.Volume cellVolume = cell.volume;
-                cellVolume.maxSubdivisionMultiplier = 0;
+                // ProbeReferenceVolume.Volume cellVolume = cell.volume;
+                // cellVolume.maxSubdivisionMultiplier = 0;
 
-                // TODO: get rid of this and compute directly sceneRefs with the first overlapping probe volume in the cell
                 // List<ProbeReferenceVolume.Volume> influenceVolumes;
                 // ProbePlacement.CreateInfluenceVolumes(ref cellVolume, validRenderers, overlappingProbeVolumes, out influenceVolumes, out sceneRefs);
+
+                List<Brick> bricks = null;
+
+                // TODO: return bricks list directly and rename
+                ProbePlacement.SubdivideWithSDF(cell.volume, refVol, validRenderers, overlappingProbeVolumes, ref bricks);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
@@ -562,14 +577,16 @@ namespace UnityEngine.Experimental.Rendering
                 foreach (var item in sceneRefs)
                     sortedRefs[-item.Value] = item.Key;
 
-                List<Brick> bricks = null;
-
-                // TODO: return bricks list directly and rename
-                ProbePlacement.SubdivideWithSDF(cellVolume, refVol, validRenderers, overlappingProbeVolumes, ref bricks);
-
                 result.cellPositions.Add(cell.position);
                 result.bricksPerCells[cell.position] = bricks;
                 result.sortedRefs = sortedRefs;
+
+                // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
+                if (realtimeSubdivision)
+                {
+                    foreach (var cellPos in result.cellPositions)
+                        ctx.refVolume.realtimeSubdivisionInfo.Add(cell.volume, bricks);
+                }
             }
 
             return result;

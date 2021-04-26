@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering
         private SerializedProperty m_DilationValidityThreshold;
         private SerializedProperty m_GreedyDilation;
         private SerializedProperty m_VolumeAsset;
-        private SerializedProperty m_RealtimeSubdivision;
 
         private SerializedProperty m_Profile;
 
@@ -40,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_GreedyDilation = serializedObject.FindProperty("m_GreedyDilation");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
-            m_RealtimeSubdivision = serializedObject.FindProperty("m_RealtimeSubdivision");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
         }
@@ -132,8 +130,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
-                EditorGUILayout.PropertyField(m_RealtimeSubdivision, new GUIContent("Realtime Subdivision"));
-
                 if (EditorGUI.EndChangeCheck())
                 {
                     Constrain();
@@ -143,6 +139,15 @@ namespace UnityEngine.Experimental.Rendering
             else
             {
                 EditorGUILayout.HelpBox("Probe Volume is not a supported feature by this SRP.", MessageType.Error, wide: true);
+            }
+        }
+
+        void OnSceneGUI()
+        {
+            if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+            {
+                var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(actualTarget);
+                ProbeGIBaking.BakeBricks(ctx);
             }
         }
 

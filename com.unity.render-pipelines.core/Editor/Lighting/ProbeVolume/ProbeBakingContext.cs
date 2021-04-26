@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes = new List<(ProbeVolume, ProbeReferenceVolume.Volume)>();
         public List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers = new List<(Renderer, ProbeReferenceVolume.Volume)>();
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
-        ProbeReferenceVolumeAuthoring refVolume;
+        public ProbeReferenceVolumeAuthoring refVolume;
 
         public void Initialize(ProbeReferenceVolumeAuthoring refVolume)
         {
