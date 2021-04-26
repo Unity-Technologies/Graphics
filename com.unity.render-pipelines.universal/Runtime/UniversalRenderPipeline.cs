@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
@@ -130,6 +131,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
+#if URP_ENABLE_DEBUG_DISPLAY
+        private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
+#endif
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -158,10 +162,18 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+#if URP_ENABLE_DEBUG_DISPLAY
+            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
+#endif
         }
 
         protected override void Dispose(bool disposing)
         {
+#if URP_ENABLE_DEBUG_DISPLAY
+            m_DebugDisplaySettingsUI.UnregisterDebug();
+#endif
+
             base.Dispose(disposing);
 
             Shader.globalRenderPipeline = "";
@@ -906,6 +918,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
+
+            CheckAndApplyDebugSettings(ref renderingData);
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -1103,6 +1117,34 @@ namespace UnityEngine.Rendering.Universal
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
+        }
+
+        static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
+        {
+            DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
+            {
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+
+                if (!renderingSettings.enableMsaa)
+                    msaaSamples = 1;
+
+                if (!renderingSettings.enableHDR)
+                    cameraData.isHdrEnabled = false;
+
+                if (!debugDisplaySettings.IsPostProcessingAllowed)
+                    cameraData.postProcessEnabled = false;
+
+                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
+                    cameraData.renderScale,
+                    cameraData.isHdrEnabled,
+                    msaaSamples,
+                    true,
+                    cameraData.requiresOpaqueTexture);
+            }
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
