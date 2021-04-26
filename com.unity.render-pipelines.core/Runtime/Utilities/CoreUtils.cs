@@ -1347,5 +1347,13 @@ namespace UnityEngine.Rendering
             size |= (size >> 16);
             return size - (size >> 1);
         }
+
+        /// <summary>
+        /// Get the last declared value from an enum Type
+        /// </summary>
+        /// <typeparam name="T">Type of the enum</typeparam>
+        /// <returns>Last value of the enum</returns>
+        public static T GetLastEnumValue<T>() where T : Enum
+            => typeof(T).GetEnumValues().Cast<T>().Last();
     }
 }

@@ -3,7 +3,7 @@ project:
   folder: Viking-Village-Perf
   variables:
     VV_BUILTIN_BRANCH: built-in
-    VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
+    VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
 
 reuse_blocks:
   unity_config:

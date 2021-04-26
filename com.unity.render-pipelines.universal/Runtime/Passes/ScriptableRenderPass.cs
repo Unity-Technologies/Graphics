@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
+    public enum RenderPassEvent
     {
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering any other passes in the pipeline.
@@ -131,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract partial class ScriptableRenderPass
+    public abstract partial class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -195,6 +196,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+
+        internal DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
         {
