@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 
 ### Fixed
+- Camera Inspector Stack list edition fixes.
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
@@ -92,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where transparent objects sampled SSAO.
 - Fixed an issue where Depth Prepass was not run when SSAO was set to Depth Mode.
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
+- Fixed depth of field pass usage on unsupported devices. [case 1327076](https://issuetracker.unity3d.com/issues/adreno-3xx-nothing-is-rendered-when-post-processing-is-enabled)
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
@@ -270,6 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+- Added Package Samples: 2 Camera Stacking, 2 Renderer Features
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 - Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
 - Added support for a user defined default material to 2DRendererData.
