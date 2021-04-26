@@ -63,6 +63,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
         ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);
+        ShaderKeyword m_DebugDisplay = new ShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -108,6 +109,16 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
+#if URP_ENABLE_DEBUG_DISPLAY
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild;
+#else
+            bool stripDebugDisplayShaders = true;
+#endif
+            if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            {
+                return true;
+            }
+
             // strip main light shadows, cascade and screen variants
             if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows))
             {

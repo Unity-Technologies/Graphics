@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_Clamp)
                 {
                     sb.AppendLine("#if defined(MIP_COUNT_SUPPORTED)");
-                    sb.AppendLine(string.Format("{0} = min({0}, GetMipCount({1}.tex)-1);", GetVariableNameForSlot(OutputSlotLODId), id));
+                    sb.AppendLine(string.Format("{0} = min({0}, GetMipCount(TEXTURE2D_ARGS({1}.tex, {2}.samplerstate))-1);", GetVariableNameForSlot(OutputSlotLODId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id));
                     sb.AppendLine("#endif");
                 }
             }

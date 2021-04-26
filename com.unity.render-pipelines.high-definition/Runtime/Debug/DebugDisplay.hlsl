@@ -103,19 +103,19 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
     switch (paramId)
     {
     case DEBUGMIPMAPMODE_MIP_RATIO:
-        outColor = GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+        outColor = GetDebugMipColorIncludingMipReduction(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler), texelSize, uv, mipInfo);
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT:
-        outColor = GetDebugMipCountColor(originalColor, tex);
+        outColor = GetDebugMipCountColor(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler));
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
-        outColor = GetDebugMipReductionColor(tex, mipInfo);
+        outColor = GetDebugMipReductionColor(TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
-        outColor = GetDebugStreamingMipColor(tex, mipInfo);
+        outColor = GetDebugStreamingMipColor(TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP:
-        outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        outColor = GetDebugStreamingMipColorBlended(originalColor, TEXTURE2D_ARGS(tex, s_point_clamp_sampler), mipInfo);
         break;
     }
 
