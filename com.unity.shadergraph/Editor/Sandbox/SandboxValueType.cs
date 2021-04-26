@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -40,14 +41,14 @@ public abstract class SandboxValueTypeDefinition : JsonObject
 {
     public abstract string GetTypeName();
     public abstract SandboxValueType.Flags GetTypeFlags();
-    public abstract void AddHLSLVariableDeclarationString(ShaderBuilder sb, string id);
-    public abstract bool AddHLSLTypeDeclarationString(ShaderBuilder sb);
+    internal abstract void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id);
+    internal abstract bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb);
     public abstract bool ValueEquals(SandboxValueTypeDefinition other);
 }
 
 
 [Serializable]
-public sealed class SandboxValueType // : JsonObject
+public sealed class SandboxValueType // : JsonObject          // TODO: public
 {
     // public override int currentVersion => 1;
 
@@ -127,7 +128,7 @@ public sealed class SandboxValueType // : JsonObject
 
     public delegate bool Filter(SandboxValueType type);
 
-    public void AddHLSLVariableDeclarationString(ShaderBuilder sb, string id)
+    internal void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
     {
         if (definition.value != null)
             definition.value.AddHLSLVariableDeclarationString(sb, id);
@@ -135,7 +136,7 @@ public sealed class SandboxValueType // : JsonObject
             sb.Add(name, " ", id);
     }
 
-    public bool AddHLSLTypeDeclarationString(ShaderBuilder sb)
+    internal bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
         if (definition.value != null)
             return definition.value.AddHLSLTypeDeclarationString(sb);
@@ -194,13 +195,13 @@ public class UnityTexture2DTypeDefinition : SandboxValueTypeDefinition
 {
     public override int latestVersion => 1;
 
-    public override bool AddHLSLTypeDeclarationString(ShaderBuilder sb)
+    internal override bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
         // defined in the include file -- TODO
         return false;
     }
 
-    public override void AddHLSLVariableDeclarationString(ShaderBuilder sb, string id)
+    internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
     {
         sb.Add(GetTypeName(), " ", id);
     }

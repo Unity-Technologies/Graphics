@@ -10,6 +10,38 @@ using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
+    // temp -- until we have a better way to declare external inputs as default values to function
+    internal enum Binding
+    {
+        None,
+        ObjectSpaceNormal,
+        ObjectSpaceTangent,
+        ObjectSpaceBitangent,
+        ObjectSpacePosition,
+        ViewSpaceNormal,
+        ViewSpaceTangent,
+        ViewSpaceBitangent,
+        ViewSpacePosition,
+        WorldSpaceNormal,
+        WorldSpaceTangent,
+        WorldSpaceBitangent,
+        WorldSpacePosition,
+        TangentSpaceNormal,
+        TangentSpaceTangent,
+        TangentSpaceBitangent,
+        TangentSpacePosition,
+        MeshUV0,
+        MeshUV1,
+        MeshUV2,
+        MeshUV3,
+        ScreenPosition,
+        ObjectSpaceViewDirection,
+        ViewSpaceViewDirection,
+        WorldSpaceViewDirection,
+        TangentSpaceViewDirection,
+        VertexColor,
+    }
+
     interface ISandboxNodeDefinition
     {
         void BuildRuntime(ISandboxNodeBuildContext context);
@@ -30,10 +62,11 @@ namespace UnityEditor.ShaderGraph
         where DEF : JsonObject, ISandboxNodeDefinition, new()
     {
         [SerializeField]
-        JsonRef<DEF> m_Definition;
+        DEF m_Definition;
 
         // runtime data (not serialized)
         ShaderFunction mainFunction;
+        ShaderFunction previewFunction;
         List<MaterialSlot> definitionSlots = new List<MaterialSlot>();
 
         #region ISandboxNodeBuildContext
@@ -41,6 +74,11 @@ namespace UnityEditor.ShaderGraph
         {
             mainFunction = null;
             definitionSlots.Clear();
+        }
+
+        void ISandboxNodeBuildContext.SetName(string name)
+        {
+            this.name = name;
         }
 
         SandboxValueType ISandboxNodeBuildContext.AddType(SandboxValueTypeDefinition typeDef)
@@ -72,19 +110,47 @@ namespace UnityEditor.ShaderGraph
                         s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
                     else if (attribute.binding == Binding.None || par.IsOut)
 */
-                    s = MaterialSlot.CreateMaterialSlot(
-                        ConvertSandboxValueTypeToSlotValueType(p.Type),
-                        slotId,
-                        p.Name,
-                        p.Name,
-                        p.IsOutput ? SlotType.Output : SlotType.Input,
-                        (p.DefaultValue as Vector4 ? ) ?? Vector4.zero              // TODO: handle non vector4 defaults
-                        // shaderStageCapability: attribute.stageCapability,
-                        // hidden: attribute.hidden
-                    );
+                    // we assume strings are for external input bindings
+                    if (p.DefaultValue is Binding binding)
+                    {
+                        s = CreateBoundSlot(binding, slotId, p.Name, p.Name, ShaderStageCapability.All
+                            // attribute.stageCapability, attribute.hidden      // TODO
+                        );
+                    }
+                    else
+                    {
+                        // hack massage defaults into old system
+                        Vector4 defaultValue = Vector4.zero;
+                        switch (p.DefaultValue)
+                        {
+                            case float f:
+                                defaultValue = new Vector4(f, f, f, f);
+                                break;
+                            case Vector2 vec2:
+                                defaultValue = new Vector4(vec2.x, vec2.y, 0.0f, 0.0f);
+                                break;
+                            case Vector3 vec3:
+                                defaultValue = new Vector4(vec3.x, vec3.y, vec3.z, 0.0f);
+                                break;
+                            case Vector4 vec4:
+                                defaultValue = vec4;
+                                break;
+                        }
 
-                    /*                    else
-                                            s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.stageCapability, attribute.hidden);
+                        s = MaterialSlot.CreateMaterialSlot(
+                            ConvertSandboxValueTypeToSlotValueType(p.Type),
+                            slotId,
+                            p.Name,
+                            p.Name,
+                            p.IsOutput ? SlotType.Output : SlotType.Input,
+                            defaultValue
+                            // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
+                            // hidden: attribute.hidden                                 // TODO: what's this used for?
+                        );
+                    }
+
+                    /*                    else          // TODO: bound default slots
+
                     */
 
                     definitionSlots.Add(s);
@@ -92,7 +158,74 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        void ISandboxNodeBuildContext.SetPreviewFunction(ShaderFunction function)
+        {
+            previewFunction = function;
+        }
+
         // TODO: move to static utils?
+
+        private static MaterialSlot CreateBoundSlot(Binding binding, int slotId, string displayName, string shaderOutputName, ShaderStageCapability shaderStageCapability, bool hidden = false)
+        {
+            switch (binding)
+            {
+                case Binding.ObjectSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+                case Binding.ObjectSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+                case Binding.ObjectSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+                case Binding.ObjectSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+                case Binding.ViewSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+                case Binding.ViewSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+                case Binding.ViewSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+                case Binding.ViewSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+                case Binding.WorldSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.WorldSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.WorldSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.WorldSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.TangentSpaceNormal:
+                    return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+                case Binding.TangentSpaceTangent:
+                    return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+                case Binding.TangentSpaceBitangent:
+                    return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+                case Binding.TangentSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+                case Binding.MeshUV0:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV0, shaderStageCapability, hidden);
+                case Binding.MeshUV1:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV1, shaderStageCapability, hidden);
+                case Binding.MeshUV2:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV2, shaderStageCapability, hidden);
+                case Binding.MeshUV3:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3, shaderStageCapability, hidden);
+                case Binding.ScreenPosition:
+                    return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName, ScreenSpaceType.Default, shaderStageCapability, hidden);
+                case Binding.ObjectSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+                case Binding.ViewSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+                case Binding.WorldSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.TangentSpaceViewDirection:
+                    return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+                case Binding.VertexColor:
+                    return new VertexColorMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden);
+                default:
+                    throw new ArgumentOutOfRangeException("binding", binding, null);
+            }
+        }
+
         public static SlotValueType ConvertSandboxValueTypeToSlotValueType(SandboxValueType type)
         {
             if (type == Types._bool)
@@ -107,11 +240,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.Vector2;
             }
-            if (type == Types._float3)
+            if ((type == Types._float3) || (type == Types._half3) || (type == Types._precision3))
             {
                 return SlotValueType.Vector3;
             }
-            if (type == Types._float4)
+            if ((type == Types._float4) || (type == Types._half4) || (type == Types._precision4))
             {
                 return SlotValueType.Vector4;
             }
@@ -186,7 +319,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview
         {
-            get { return false; }
+            get { return (previewFunction != null); }
         }
 
         protected SandboxNode()
@@ -203,28 +336,23 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnBeforeSerialize()
         {
-            Debug.Log("OnBeforeSerialize: " + m_Definition.value);
-            // ensure all runtime data is not serialized by clearing it out
-            ClearRuntimeData();
             base.OnBeforeSerialize();
         }
 
         public override void OnBeforeDeserialize()
         {
-            Debug.Log("OnBeforeDeserialize: " + m_Definition.value);
             base.OnBeforeDeserialize();
         }
 
         public override void OnAfterDeserialize(string json)
         {
-            Debug.Log("OnAfterDeserialize: " + m_Definition.value);
             base.OnAfterDeserialize(json);
         }
 
         private void UpdateSlotsFromDefinition()
         {
             ClearRuntimeData();
-            m_Definition.value.BuildRuntime(this);
+            m_Definition.BuildRuntime(this);
 
             // update actual slots from the definition slots
             foreach (var s in definitionSlots)
@@ -236,44 +364,50 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("// Sandbox Node Code here!");
-//             using (var tempSlots = PooledList<MaterialSlot>.Get())
-//             {
-//                 GetOutputSlots(tempSlots);
-//                 foreach (var outSlot in tempSlots)
-//                 {
-//                     sb.AppendLine(outSlot.concreteValueType.ToShaderString(PrecisionUtil.Token) + " " + GetVariableNameForSlot(outSlot.id) + ";");
-//                 }
-//
-//                 string call = GetFunctionName() + "(";
-//                 bool first = true;
-//                 tempSlots.Clear();
-//                 GetSlots(tempSlots);
-//                 tempSlots.Sort((slot1, slot2) => slot1.id.CompareTo(slot2.id));
-//                 foreach (var slot in tempSlots)
-//                 {
-//                     if (!first)
-//                     {
-//                         call += ", ";
-//                     }
-//                     first = false;
-//
-//                     if (slot.isInputSlot)
-//                         call += GetSlotValue(slot.id, generationMode);
-//                     else
-//                         call += GetVariableNameForSlot(slot.id);
-//                 }
-//                 call += ");";
-//
-//                 sb.AppendLine(call);
-//             }
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                // declare output slot variables
+                GetOutputSlots(tempSlots);
+                foreach (var outSlot in tempSlots)
+                {
+                    sb.AppendIndentation();
+                    sb.Add(outSlot.concreteValueType.ToShaderString(PrecisionUtil.Token), " ", GetVariableNameForSlot(outSlot.id), ";");
+                    sb.NewLine();
+                }
+
+                // call node function
+                sb.AppendIndentation();
+                sb.Add(mainFunction.Name, "(");
+
+                tempSlots.Clear();
+
+                // get all slots
+                GetSlots(tempSlots);
+                bool firstParam = true;
+                for (int pIndex = 0; pIndex < mainFunction.Parameters.Count; pIndex++)
+                {
+                    var p = mainFunction.Parameters[pIndex];
+                    if (!firstParam)
+                        sb.Add(", ");
+                    firstParam = false;
+
+                    // find slot -- ids are parameter index
+                    var slot = tempSlots.Find(s => s.id == pIndex);
+                    if (p.IsInput)
+                        sb.Add(GetSlotValue(slot.id, generationMode));
+                    else
+                        sb.Add(GetVariableNameForSlot(slot.id));
+                }
+                sb.Add(");");
+                sb.NewLine();
+            }
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction("myFunction", sb =>
+            registry.ProvideFunction(mainFunction.Name, sb =>
             {
-                sb.AppendLine("// myFunction declaration goes here");
+                mainFunction.AppendHLSLDeclarationString(sb);
             });
         }
 

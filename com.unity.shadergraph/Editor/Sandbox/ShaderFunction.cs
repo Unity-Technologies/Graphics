@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -526,14 +527,16 @@ public class ShaderFunction : ShaderFunctionSignature
         return name.GetHashCode();
     }
 
+    /*
     internal string GetHLSLDeclarationString(string nameOverride = null)
     {
-        ShaderBuilder sb = new ShaderBuilder();
+        ShaderStringBuilder sb = new ShaderStringBuilder();
         AppendHLSLDeclarationString(sb, nameOverride);
-        return sb.ConvertToString();
+        return sb.ToCodeBlock();
     }
+    */
 
-    internal void AppendHLSLDeclarationString(ShaderBuilder sb, string nameOverride = null, string precision = "float")
+    internal void AppendHLSLDeclarationString(ShaderStringBuilder sb, string nameOverride = null, string precision = "float")
     {
         var funcName = name;
         if (nameOverride != null)

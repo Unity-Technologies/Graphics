@@ -8,33 +8,28 @@ namespace UnityEditor.ShaderGraph
     [Title("Procedural", "CheckerboardSandbox")]
     class CheckerboardSandboxNode : SandboxNode<CheckerboardNodeDefinition>
     {
-        public CheckerboardSandboxNode()
-        {
-            name = "CheckerboardSandbox";
-        }
     }
 
     [Serializable]
     class CheckerboardNodeDefinition : JsonObject, ISandboxNodeDefinition
     {
-        // just to have something to serialize...
-        [SerializeField]
-        public int dummy;
-
         public void BuildRuntime(ISandboxNodeBuildContext context)
         {
+            context.SetName("CheckerboardSandbox");
+
             if (shaderFunc == null)
                 shaderFunc = BuildFunction();
 
             context.SetMainFunction(shaderFunc, declareStaticPins: true);
+            context.SetPreviewFunction(shaderFunc);
         }
 
         // statically cached function definition
         static ShaderFunction shaderFunc = null;
         static ShaderFunction BuildFunction()
         {
-            var func = new ShaderFunction.Builder("Unity_CheckerboardSandbox");
-            func.AddInput(Types._float2,        "UV",          "UV0");                             // TODO: ExternalInput type?
+            var func = new ShaderFunction.Builder("Unity_CheckerboardSandbox_$precision");
+            func.AddInput(Types._float2,        "UV",          Binding.MeshUV0);                             // TODO: ExternalInput type?
             func.AddInput(Types._precision3,    "ColorA",      new Vector3(0.2f, 0.2f, 0.2f));     // TODO: serializable defaults?
             func.AddInput(Types._precision3,    "ColorB",      new Vector3(0.7f, 0.7f, 0.7f));
             func.AddInput(Types._precision2,    "Frequency",   new Vector2(1.0f, 1.0f));

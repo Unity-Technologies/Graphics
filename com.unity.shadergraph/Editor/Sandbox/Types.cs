@@ -115,9 +115,9 @@ public class Types
     public static SandboxValueType _half4 = Default.GetShaderType("half4");
 
     public static SandboxValueType _precision = Default.GetShaderType("$precision");
-    public static SandboxValueType _precision2 = Default.GetShaderType("$precision");
-    public static SandboxValueType _precision3 = Default.GetShaderType("$precision");
-    public static SandboxValueType _precision4 = Default.GetShaderType("$precision");
+    public static SandboxValueType _precision2 = Default.GetShaderType("$precision2");
+    public static SandboxValueType _precision3 = Default.GetShaderType("$precision3");
+    public static SandboxValueType _precision4 = Default.GetShaderType("$precision4");
 
     public static SandboxValueType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
 

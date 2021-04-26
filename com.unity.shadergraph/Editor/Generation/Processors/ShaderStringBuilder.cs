@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         public int count { get; set; }
     }
 
-    class ShaderStringBuilder : IDisposable
+    internal class ShaderStringBuilder : IDisposable
     {
         enum ScopeType
         {
@@ -100,6 +100,28 @@ namespace UnityEditor.ShaderGraph
                 lineCount--;
             for (var i = 0; i < lineCount; i++)
                 AppendLine(splitLines[i].Trim('\r'));
+        }
+
+        // new shorter-named functions
+        public void Add(string l0)
+        {
+            m_StringBuilder.Append(l0);
+        }
+
+        public void Add(string l0, string l1) { Add(l0); Add(l1); }
+        public void Add(string l0, string l1, string l2) { Add(l0); Add(l1); Add(l2); }
+        public void Add(string l0, string l1, string l2, string l3) { Add(l0); Add(l1); Add(l2); Add(l3); }
+        public void Add(string l0, string l1, string l2, string l3, string l4) { Add(l0); Add(l1); Add(l2); Add(l3); Add(l4); }
+        public void Add(string l0, string l1, string l2, string l3, string l4, string l5) { Add(l0); Add(l1); Add(l2); Add(l3); Add(l4); Add(l5); }
+        public void AddLine(string l0)
+        {
+            Add(l0);
+            NewLine();
+        }
+
+        public void NewLine()
+        {
+            m_StringBuilder.Append(k_NewLineString);
         }
 
         public void Append(string value)

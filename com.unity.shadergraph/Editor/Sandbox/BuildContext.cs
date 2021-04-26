@@ -5,13 +5,14 @@ using UnityEngine;
 
 interface ISandboxNodeBuildContext
 {
+    void SetName(string name);
     SandboxValueType AddType(SandboxValueTypeDefinition typeDef);
     SandboxValueType GetInputType(string pinName);
     // public System.Object GetInputStaticValue(string inputPin);       // TODO
     // InputPin AddInputPin(string pinName, SandboxValueType concreteType, SandboxValueType.Filter dynamicTypeFilter = null);
     // OutputPin AddOutputPin(string pinName, SandboxValueType concreteType);
     void SetMainFunction(ShaderFunction function, bool declareStaticPins = false);
-    // void SetPreviewFunction(ShaderFunction function, PreviewType previewType);
+    void SetPreviewFunction(ShaderFunction function); // , PreviewType previewType);
     // void AddFunction(ShaderFunction function); // may not need this, if Functions have to declare dependent functions...
     void Error(string message);
 }
