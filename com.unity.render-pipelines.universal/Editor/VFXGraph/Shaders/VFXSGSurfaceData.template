@@ -20,8 +20,8 @@ surface.occlusion = 1.0f;
     surface.albedo = OUTSG.${SHADERGRAPH_PARAM_BASECOLOR};
 #endif
 
-#if HAS_SHADERGRAPH_PARAM_NORMALTS
     surface.normalTS = float3(0, 0, 1);
+#if HAS_SHADERGRAPH_PARAM_NORMALTS
     float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMALTS};
     normalWS = mul(n,tbn);
 #endif

@@ -6,6 +6,7 @@ Pass
 		
 	HLSLPROGRAM
 	#pragma target 4.5	
+	${VFXPassGBufferAdditionalPragma}
 	
 	${VFXIncludeRP("VFXLitVaryings.template")}	
 	

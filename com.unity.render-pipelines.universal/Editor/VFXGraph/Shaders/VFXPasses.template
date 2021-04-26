@@ -2,15 +2,14 @@ ${VFXBegin:VFXPassForward}"UniversalForwardOnly"${VFXEnd}
 ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
-${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile_fog${VFXEnd}
 
 ${VFXBegin:VFXPassDepthDefine}#define SHADERPASS SHADERPASS_DEPTH_ONLY${VFXEnd}
 ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
 
-${VFXBegin:VFXPassDepthAdditionalPragma}${VFXEnd}
 ${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile_fog${VFXEnd}
-${VFXBegin:VFXPassVelocityAdditionalPragma}${VFXEnd}
+${VFXBegin:VFXPassDepthAdditionalPragma}#pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT${VFXEnd}
+${VFXBegin:VFXPassGBufferAdditionalPragma}#pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT${VFXEnd}
 
 ${VFXBegin:VFXShaderGraphFunctionsInclude}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -72,7 +71,6 @@ void frag(ps_input i
 	VFXClipFragmentColor(alpha,i);
 	
 	#if defined(WRITE_NORMAL_BUFFER)
-		//TODOPAUL : _GBUFFER_NORMALS_OCT
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i, normalWS, uvData, outNormalBuffer);
         #else
