@@ -383,6 +383,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region LensFlareDataDriven
+
+        [SerializeField]
+        private LensFlareDataSRP m_DefaultLensFlareDataDriven;
+
+        internal LensFlareDataSRP lensFlareDataDriven
+        {
+            get => m_DefaultLensFlareDataDriven;
+            set => m_DefaultLensFlareDataDriven = value;
+        }
+
+        #endregion
+
         #region VolumeProfile
 
         [SerializeField, FormerlySerializedAs("m_VolumeProfileDefault")]

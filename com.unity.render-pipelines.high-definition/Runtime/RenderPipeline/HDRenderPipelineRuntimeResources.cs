@@ -449,6 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveCylinderMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
+            [Reload("Runtime/RenderPipelineResources/LensFlare/DefaultLensFlareSRP.asset")]
+            public LensFlareDataSRP defaultLensFlareSRP;
         }
 
         public ShaderResources shaders;

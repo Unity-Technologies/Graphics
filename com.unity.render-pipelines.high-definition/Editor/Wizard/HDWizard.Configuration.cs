@@ -171,6 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLensFlare, IsDefaultLensFlareCorrect, FixDefaultLensFlare),
 
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
@@ -501,6 +502,25 @@ namespace UnityEditor.Rendering.HighDefinition
             return defaultSettingsVolumeProfile;
         }
 
+        LensFlareDataSRP CreateDefaultLensFlareIfNeeded(LensFlareDataSRP defaultLensFlareInPackage)
+        {
+            string defaultLensFlareSRPPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultLensFlareInPackage.name + ".asset";
+
+            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+
+            //try load one if one already exist
+            LensFlareDataSRP defaultLensFlareDataSRP = AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>(defaultLensFlareSRPPath);
+            if (defaultLensFlareDataSRP == null || defaultLensFlareDataSRP.Equals(null))
+            {
+                //else create it
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultLensFlareInPackage), defaultLensFlareSRPPath);
+                defaultLensFlareDataSRP = AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>(defaultLensFlareSRPPath);
+            }
+
+            return defaultLensFlareDataSRP;
+        }
+
         bool IsDefaultVolumeProfileCorrect()
             => IsHdrpGlobalSettingsUsedCorrect() && !HDRenderPipelineGlobalSettings.instance.IsVolumeProfileFromResources();
 
@@ -515,6 +535,21 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
             hdrpSettings.volumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile);
 
+            EditorUtility.SetDirty(hdrpSettings);
+        }
+
+        bool IsDefaultLensFlareCorrect()
+        {
+            var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
+            string defaultLensFlareSRPPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + hdrpSettings.renderPipelineResources.assets.defaultLensFlareSRP.name + ".asset";
+
+            return IsHdrpGlobalSettingsUsedCorrect() && AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>(defaultLensFlareSRPPath) != null;
+        }
+
+        void FixDefaultLensFlare(bool fromAsyncUnused)
+        {
+            var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
+            hdrpSettings.lensFlareDataDriven = CreateDefaultLensFlareIfNeeded(hdrpSettings.renderPipelineResources.assets.defaultLensFlareSRP);
             EditorUtility.SetDirty(hdrpSettings);
         }
 

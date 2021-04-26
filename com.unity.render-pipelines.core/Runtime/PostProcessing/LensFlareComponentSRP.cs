@@ -14,6 +14,16 @@ namespace UnityEngine
         [SerializeField]
         private LensFlareDataSRP m_LensFlareData = null;
 
+        LensFlareComponentSRP()
+        {
+            //LensFlareDataSRP data =
+            //    //AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>("Assets/" + UnityEditor.Rendering.HighDefinition.HDProjectSettings.projectSettingsFolderPath + "/DefaultLensFlareSRP.asset");
+            //m_LensFlareData = data;
+
+            //var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
+            //m_LensFlareData = hdrpSettings.lensFlareDataDriven;
+        }
+
         /// <summary>
         /// Lens flare asset used on this component
         /// </summary>

@@ -111,6 +111,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
                 error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Settings! Also, for it to be editable, it should be outside of package."));
+            public static readonly ConfigStyle hdrpLensFlare = new ConfigStyle(
+                label: L10n.Tr("Default Lens Flare"),
+                error: L10n.Tr("Default Lens Flare, must be create in the HDRP folder! Also, for it to be editable, it should be outside of package."));
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: L10n.Tr("Legacy VR System"),
