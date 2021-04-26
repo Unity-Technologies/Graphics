@@ -180,28 +180,17 @@ void Frag(PackedVaryings packedInput,
     half3 normalWS = half3(LoadSceneNormals(input.positionCS.xy));
 #endif
 
+    float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
+
 #ifdef DECAL_PROJECTOR
-    //float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
-    //float3 positionWS = ComputeWorldSpacePosition(positionNDC, depth, UNITY_MATRIX_I_VP);
-    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
-/*#if UNITY_REVERSED_Z
-    float depth2 = depth;
-#else
-    // Adjust z to match NDC for OpenGL
-    float depth2 = lerp(UNITY_NEAR_CLIP_VALUE, 1, depth);
-#endif
-
-    float2 positionNDC = input.positionCS.xy * _ScreenSize.zw;
-
-    posInput.positionWS = ComputeWorldSpacePosition(positionNDC, depth2, UNITY_MATRIX_I_VP);*/
+    float3 positionWS = ComputeWorldSpacePosition(positionSS, depth, UNITY_MATRIX_I_VP);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    input.positionWS = posInput.positionWS;
+    input.positionWS = positionWS;
 #endif
 
     // Transform from relative world space to decal space (DS) to clip the decal
-    float3 positionDS = TransformWorldToObject(posInput.positionWS);
+    float3 positionDS = TransformWorldToObject(positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0);
 
     // call clip as early as possible
@@ -238,8 +227,7 @@ void Frag(PackedVaryings packedInput,
 
 
 #else // Decal mesh
-    // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, input.positionCS.z, input.positionCS.w, input.positionWS.xyz, uint2(0, 0));
+    float3 positionWS = input.positionWS.xyz;
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
@@ -250,7 +238,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     DecalSurfaceData surfaceData;
-    GetSurfaceData(input, viewDirectionWS, posInput.positionSS, angleFadeFactor, surfaceData);
+    GetSurfaceData(input, viewDirectionWS, (uint2)positionSS, angleFadeFactor, surfaceData);
 
 #if defined(DECAL_DBUFFER)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
@@ -262,7 +250,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     InputData inputData = (InputData)0;
-    InitializeInputData(input, posInput.positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
+    InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
@@ -272,11 +260,10 @@ void Frag(PackedVaryings packedInput,
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
     outColor = color;
-    //outColor = float4(posInput.positionWS, 1);
 #elif defined(DECAL_GBUFFER)
 
     InputData inputData = (InputData)0;
-    InitializeInputData(input, posInput.positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
+    InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);

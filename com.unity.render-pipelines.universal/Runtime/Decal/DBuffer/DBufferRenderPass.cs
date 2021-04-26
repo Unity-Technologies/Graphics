@@ -126,14 +126,9 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
 
-                // for alpha compositing, color is cleared to 0, alpha to 1
-                // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                 // TODO: This should be replace with mrt clear once we support it
                 // Clear render targets
-                var clearSampleName = "Clear";
-                cmd.BeginSample(clearSampleName);
-                cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
-                cmd.EndSample(clearSampleName);
+                ClearDBuffers(cmd, renderingData.cameraData);
 
                 // Split here allows clear to be executed before DrawRenderers
                 context.ExecuteCommandBuffer(cmd);
@@ -145,6 +140,18 @@ namespace UnityEngine.Rendering.Universal
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private void ClearDBuffers(CommandBuffer cmd, in CameraData cameraData)
+        {
+            // for alpha compositing, color is cleared to 0, alpha to 1
+            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            var clearSampleName = "Clear";
+            cmd.BeginSample(clearSampleName);
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
+            RenderingUtils.DrawFullscreenMesh(cmd, m_DBufferClear, 0, cameraData.xr.enabled);
+            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+            cmd.EndSample(clearSampleName);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
