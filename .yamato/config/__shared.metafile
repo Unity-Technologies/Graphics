@@ -76,7 +76,7 @@ test_platforms:
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal
+      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP%
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, OSX_Apple_Silicon_Metal, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
