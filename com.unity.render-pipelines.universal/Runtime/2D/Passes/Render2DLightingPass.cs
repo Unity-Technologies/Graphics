@@ -419,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
-                
+
                 Profiler.BeginSample("Render Sprites Unlit");
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
                 {
