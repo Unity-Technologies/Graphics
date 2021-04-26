@@ -45,12 +45,3 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: fe73f67a2bc4933468c714f164c6596d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: IOS out of memory. Too many shader variants. @svens
