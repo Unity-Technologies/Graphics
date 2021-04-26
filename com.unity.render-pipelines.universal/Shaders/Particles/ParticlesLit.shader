@@ -70,7 +70,15 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit"}
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "IgnoreProjector" = "True"
+            "PreviewType" = "Plane"
+            "PerformanceChecks" = "False"
+            "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "Lit"
+        }
 
 
         // ------------------------------------------------------------------
@@ -80,7 +88,10 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Universal Render Pipeline
             Name "ForwardLit"
-            Tags {"LightMode" = "UniversalForward"}
+            Tags
+            {
+                "LightMode" = "UniversalForward"
+            }
 
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
@@ -120,6 +131,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex
@@ -129,6 +141,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
@@ -182,6 +195,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGbufferPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Depth Only pass.
         Pass
@@ -279,6 +293,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
@@ -313,6 +328,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
