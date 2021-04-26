@@ -107,24 +107,19 @@ namespace UnityEditor.ShaderGraph
                         "Set as Main Color",
                         e =>
                         {
-                            foreach (var input in graphData.properties)
+                            ColorShaderProperty col = graphData.GetMainColor();
+                            if (col != null)
                             {
-                                if (input is ColorShaderProperty col && col != colorProp)
-                                {
-                                    if (col.isMainColor)
-                                    {
-                                        if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
-                                        {
-                                            graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
-                                            col.isMainColor = false;
-                                            colorProp.isMainColor = true;
-                                            inspectorUpdateAction();
-                                        }
-                                        return;
-                                    }
-                                }
+                                  if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                  {
+                                      graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                      col.isMainColor = false;
+                                      colorProp.isMainColor = true;
+                                      inspectorUpdateAction();
+                                  }
+                                  return;
                             }
-
+                            
                             graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
                             colorProp.isMainColor = true;
                             inspectorUpdateAction();
@@ -154,24 +149,19 @@ namespace UnityEditor.ShaderGraph
                         "Set as Main Texture",
                         e =>
                         {
-                            foreach (var input in graphData.properties)
+                            Texture2DShaderProperty tex = graphData.GetMainTexture();
+                            if (tex.isMainTexture)
                             {
-                                if (input is Texture2DShaderProperty tex && tex != texProp)
+                                if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
                                 {
-                                    if (tex.isMainTexture)
-                                    {
-                                        if (EditorUtility.DisplayDialog("Change Main Texture Action", $"Are you sure you want to change the Main Texture from {tex.displayName} to {texProp.displayName}?", "Yes", "Cancel"))
-                                        {
-                                            graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
-                                            tex.isMainTexture = false;
-                                            texProp.isMainTexture = true;
-                                            inspectorUpdateAction();
-                                        }
-                                        return;
-                                    }
+                                    graphData.owner.RegisterCompleteObjectUndo("Change Main Texture");
+                                    tex.isMainTexture = false;
+                                    texProp.isMainTexture = true;
+                                    inspectorUpdateAction();
                                 }
+                                return;
                             }
-
+                                
                             graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
                             texProp.isMainTexture = true;
                             inspectorUpdateAction();

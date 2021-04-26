@@ -1160,6 +1160,37 @@ namespace UnityEditor.ShaderGraph
             return node as T;
         }
 
+        internal Texture2DShaderProperty GetMainTexture()
+        {
+            foreach(var prop in properties)
+            {
+                if(prop is Texture2DShaderProperty tex)
+                {
+                    if(tex.isMainTexture)
+                    {
+                        return tex;
+                    }
+                }
+            }
+            return null;
+        }
+
+        internal ColorShaderProperty GetMainColor()
+        {
+            foreach (var prop in properties)
+            {
+                if (prop is ColorShaderProperty col)
+                {
+                    if (col.isMainColor)
+                    {
+                        return col;
+                    }
+                }
+            }
+            return null;
+        }
+
+
         public bool ContainsNode(AbstractMaterialNode node)
         {
             if (node == null)
@@ -1423,6 +1454,7 @@ namespace UnityEditor.ShaderGraph
                 copy.SetReferenceNameAndSanitizeForGraph(this, source.referenceName);
             }
 
+            copy.OnBeforePasteIntoGraph(this);
             AddGraphInputNoSanitization(copy, insertIndex);
 
             return copy;

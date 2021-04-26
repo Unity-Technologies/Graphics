@@ -103,6 +103,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 value = value,
                 colorMode = colorMode,
+                isMainColor = isMainColor
             };
         }
 
@@ -116,5 +117,19 @@ namespace UnityEditor.ShaderGraph.Internal
                 ChangeVersion((sgVersion == 0) ? 2 : 3);
             }
         }
+
+        internal override void OnBeforePasteIntoGraph(GraphData graph)
+        {
+            if (isMainColor)
+            {
+                ColorShaderProperty existingMain = graph.GetMainColor();
+                if (existingMain != null && existingMain != this)
+                {
+                    isMainColor = false;
+                }
+            }
+            base.OnBeforePasteIntoGraph(graph);
+        }
+
     }
 }

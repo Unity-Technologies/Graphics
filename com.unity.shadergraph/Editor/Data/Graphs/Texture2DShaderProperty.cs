@@ -106,7 +106,21 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 value = value,
                 defaultType = defaultType,
+                isMainTexture = isMainTexture
             };
+        }
+
+        internal override void OnBeforePasteIntoGraph(GraphData graph)
+        {
+            if (isMainTexture)
+            {
+                Texture2DShaderProperty existingMain = graph.GetMainTexture();
+                if (existingMain != null && existingMain != this)
+                {
+                    isMainTexture = false;
+                }
+            }
+            base.OnBeforePasteIntoGraph(graph);
         }
     }
 }

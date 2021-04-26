@@ -222,5 +222,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract bool isRenamable { get; }
 
         internal abstract ShaderInput Copy();
+
+        internal virtual void OnBeforePasteIntoGraph(GraphData graph) { }
     }
 }
