@@ -795,7 +795,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     // OpenGL only supports textureSize for width, height, depth
     // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
     // tex.GetDimensions converted to textureQueryLevels
-#define MIP_COUNT_SUPPORTED 1
+    #define MIP_COUNT_SUPPORTED 1
 #endif
     // Metal doesn't support high enough OpenGL version
 
