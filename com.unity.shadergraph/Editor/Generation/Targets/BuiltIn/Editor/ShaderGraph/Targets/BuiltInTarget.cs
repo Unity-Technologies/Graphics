@@ -265,6 +265,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
+        
+        public override object saveContext => m_ActiveSubTarget.value?.saveContext;
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
