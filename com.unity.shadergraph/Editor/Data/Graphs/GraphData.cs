@@ -1162,11 +1162,11 @@ namespace UnityEditor.ShaderGraph
 
         internal Texture2DShaderProperty GetMainTexture()
         {
-            foreach(var prop in properties)
+            foreach (var prop in properties)
             {
-                if(prop is Texture2DShaderProperty tex)
+                if (prop is Texture2DShaderProperty tex)
                 {
-                    if(tex.isMainTexture)
+                    if (tex.isMainTexture)
                     {
                         return tex;
                     }
@@ -1189,7 +1189,6 @@ namespace UnityEditor.ShaderGraph
             }
             return null;
         }
-
 
         public bool ContainsNode(AbstractMaterialNode node)
         {

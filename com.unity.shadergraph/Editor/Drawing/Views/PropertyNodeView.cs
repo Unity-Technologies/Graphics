@@ -110,16 +110,16 @@ namespace UnityEditor.ShaderGraph
                             ColorShaderProperty col = graphData.GetMainColor();
                             if (col != null)
                             {
-                                  if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
-                                  {
-                                      graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
-                                      col.isMainColor = false;
-                                      colorProp.isMainColor = true;
-                                      inspectorUpdateAction();
-                                  }
-                                  return;
+                                if (EditorUtility.DisplayDialog("Change Main Color Action", $"Are you sure you want to change the Main Color from {col.displayName} to {colorProp.displayName}?", "Yes", "Cancel"))
+                                {
+                                    graphData.owner.RegisterCompleteObjectUndo("Change Main Color");
+                                    col.isMainColor = false;
+                                    colorProp.isMainColor = true;
+                                    inspectorUpdateAction();
+                                }
+                                return;
                             }
-                            
+
                             graphData.owner.RegisterCompleteObjectUndo("Set Main Color");
                             colorProp.isMainColor = true;
                             inspectorUpdateAction();
@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph
                                 }
                                 return;
                             }
-                                
+
                             graphData.owner.RegisterCompleteObjectUndo("Set Main Texture");
                             texProp.isMainTexture = true;
                             inspectorUpdateAction();

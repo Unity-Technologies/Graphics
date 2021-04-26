@@ -130,6 +130,5 @@ namespace UnityEditor.ShaderGraph.Internal
             }
             base.OnBeforePasteIntoGraph(graph);
         }
-
     }
 }

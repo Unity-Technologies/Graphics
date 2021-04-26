@@ -223,6 +223,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract ShaderInput Copy();
 
-        internal virtual void OnBeforePasteIntoGraph(GraphData graph) { }
+        internal virtual void OnBeforePasteIntoGraph(GraphData graph) {}
     }
 }
