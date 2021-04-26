@@ -159,6 +159,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
