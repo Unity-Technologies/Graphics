@@ -890,6 +890,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
         };
+
+        public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
+        {
+            displayName = "Debug Display",
+            referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
     }
     #endregion
 
