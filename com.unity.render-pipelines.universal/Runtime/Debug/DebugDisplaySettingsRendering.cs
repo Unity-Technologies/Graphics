@@ -279,8 +279,8 @@ namespace UnityEngine.Rendering.Universal
         (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
         (debugMipInfoMode != DebugMipInfoMode.None) ||
         (validationMode != DebugValidationMode.None) ||
-        enableMsaa ||
-        enableHDR;
+        !enableMsaa ||
+        !enableHDR;
 
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
         (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&

@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     class DebugHandler : IDebugDisplaySettingsQuery
     {
         #region Property Id Constants
+
         static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
         static readonly int k_DebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
 
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly int k_ValidationChannelsId = Shader.PropertyToID("_ValidationChannels");
         static readonly int k_RangeMinimumId = Shader.PropertyToID("_RangeMinimum");
         static readonly int k_RangeMaximumId = Shader.PropertyToID("_RangeMaximum");
+
         #endregion
 
         readonly Texture2D m_NumberFontTexture;
@@ -59,14 +61,19 @@ namespace UnityEngine.Rendering.Universal
         DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
 
         #region IDebugDisplaySettingsQuery
+
         public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;
         public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
         // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
         internal bool IsActiveModeUnsupportedForDeferred =>
+            m_DebugDisplaySettings.LightingSettings.DebugLightingMode != DebugLightingMode.None ||
+            m_DebugDisplaySettings.LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None ||
             m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw ||
-            m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None;
+            m_DebugDisplaySettings.MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None ||
+            m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None ||
+            m_DebugDisplaySettings.MaterialSettings.MaterialValidationMode != DebugMaterialValidationMode.None;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -155,6 +162,7 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
                         cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
                     }
+
                     break;
                 }
             }
@@ -263,6 +271,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region DebugRenderPasses
+
         private class DebugRenderPassEnumerable : IEnumerable<DebugRenderSetup>
         {
             private class Enumerator : IEnumerator<DebugRenderSetup>
@@ -290,6 +299,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 #region IEnumerator<DebugRenderSetup>
+
                 public bool MoveNext()
                 {
                     Current?.Dispose();
@@ -312,6 +322,7 @@ namespace UnityEngine.Rendering.Universal
                         Current.Dispose();
                         Current = null;
                     }
+
                     m_Index = -1;
                 }
 
@@ -335,6 +346,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             #region IEnumerable<DebugRenderSetup>
+
             public IEnumerator<DebugRenderSetup> GetEnumerator()
             {
                 return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer);
