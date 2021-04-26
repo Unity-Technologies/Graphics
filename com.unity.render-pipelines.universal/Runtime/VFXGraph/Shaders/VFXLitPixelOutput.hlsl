@@ -2,6 +2,15 @@
 #error SHADERPASS must be defined
 #endif
 
+#ifndef UNIVERSAL_SHADERPASS_INCLUDED
+#error ShaderPass has to be included
+#endif
+
+uint GetTileSize() //TODOPAUL : Clean this
+{
+    return 1u;
+}
+
 #if (SHADERPASS == SHADERPASS_FORWARD)
 
 float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const InputData inputData)
@@ -9,11 +18,6 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const InputData 
     float4 outColor = UniversalFragmentPBR(inputData, surfaceData);
     //TODOPAUL : Check fog correctly applied afterwards
     return outColor;
-}
-
-uint GetTileSize() //TODOPAUL : Clean this
-{
-    return 1u;
 }
 
 #ifndef VFX_SHADERGRAPH
@@ -46,7 +50,22 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, Surfac
 }
 #endif
 
-#else
+#else //SHADERPASS_GBUFFER
+
+void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 normalWS, const VFXUVData uvData, out FragmentOutput gBuffer)
+{
+    SurfaceData surfaceData;
+    InputData inputData;
+    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, tileIndex);
+
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    gBuffer = BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+}
+
 
 /*
 TODOPAUL : Use the same design for URP GBuffer

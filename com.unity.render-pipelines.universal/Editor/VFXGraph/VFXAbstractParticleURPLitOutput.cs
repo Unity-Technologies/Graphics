@@ -260,7 +260,7 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                yield return "HDRP_LIT";
+                yield return "URP_LIT";
 
                 if (GetOrRefreshShaderGraphObject() == null)
                     switch (materialType)
@@ -309,7 +309,7 @@ namespace UnityEditor.VFX
                 if (onlyAmbientLighting && !isBlendModeOpaque)
                     yield return "USE_ONLY_AMBIENT_LIGHTING";
 
-                if (isBlendModeOpaque && GetOrRefreshShaderGraphObject() != null)
+                if (isBlendModeOpaque)
                     yield return "IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE";
             }
         }
