@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
@@ -9,14 +8,14 @@ using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
+    public enum MixedLightingSetup
     {
         None,
         ShadowMask,
         Subtractive,
     };
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderingData
+    public struct RenderingData
     {
         public CullingResults cullResults;
         public CameraData cameraData;
@@ -32,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessingEnabled;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
+    public struct LightData
     {
         public int mainLightIndex;
         public int additionalLightsCount;
@@ -40,9 +39,10 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> visibleLights;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
+        public bool supportsLightLayers;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
+    public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
         // We might change this API soon.
@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector3 worldSpaceCameraPos;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
+    public struct ShadowData
     {
         public bool supportsMainLightShadows;
         [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
@@ -250,8 +250,9 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 color;
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
-        public int lightIndex;
+        public int flags;
         public Vector4 occlusionProbeInfo;
+        public uint layerMask;
     }
 
     internal static class ShaderPropertyId
@@ -326,6 +327,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+        public static readonly string LightLayers = "_LIGHT_LAYERS";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
@@ -378,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
+        public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
