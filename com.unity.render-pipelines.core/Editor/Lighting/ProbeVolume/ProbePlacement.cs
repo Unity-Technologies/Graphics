@@ -9,7 +9,7 @@ using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
@@ -38,195 +38,103 @@ namespace UnityEngine.Rendering
             return v;
         }
 
-        static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
-        {
-            if (!sceneRefs.ContainsKey(origin))
-                sceneRefs[origin] = 0;
-            else
-                sceneRefs[origin] += 1;
-        }
+        // static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
+        // {
+        //     if (!sceneRefs.ContainsKey(origin))
+        //         sceneRefs[origin] = 0;
+        //     else
+        //         sceneRefs[origin] += 1;
+        // }
 
-        static protected int RenderersToVolumes(in List<Renderer> renderers, in ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
-        {
-            int num = 0;
+        // static protected int RenderersToVolumes(in List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, in ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
+        // {
+        //     int num = 0;
 
-            foreach (Renderer r in renderers)
-            {
-                var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
-                bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
+        //     foreach (var kp in renderers)
+        //     {
+        //         var r = kp.component;
+        //         var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
+        //         bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
 
-                if (!r.enabled || !r.gameObject.activeSelf || !contributeGI)
-                    continue;
+        //         if (!r.enabled || !r.gameObject.activeSelf || !contributeGI)
+        //             continue;
 
-                ProbeReferenceVolume.Volume v = ToVolume(r.bounds);
+        //         ProbeReferenceVolume.Volume v = ToVolume(r.bounds);
 
-                if (ProbeVolumePositioning.OBBIntersect(cellVolume, v))
-                {
-                    volumes.Add(v);
+        //         if (ProbeVolumePositioning.OBBIntersect(cellVolume, v))
+        //         {
+        //             volumes.Add(v);
 
-                    TrackSceneRefs(r.gameObject.scene, sceneRefs);
+        //             TrackSceneRefs(r.gameObject.scene, sceneRefs);
 
-                    num++;
-                }
-            }
+        //             num++;
+        //         }
+        //     }
 
-            return num;
-        }
+        //     return num;
+        // }
 
-        static protected int ProbeVolumesToVolumes(in List<ProbeVolume> probeVolumes, ref ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
-        {
-            int num = 0;
+        // static protected int ProbeVolumesToVolumes(in List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes, ref ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
+        // {
+        //     int num = 0;
 
-            foreach (ProbeVolume pv in probeVolumes)
-            {
-                if (!pv.isActiveAndEnabled)
-                    continue;
+        //     foreach (var kp in probeVolumes)
+        //     {
+        //         var pv = kp.component;
+        //         if (!pv.isActiveAndEnabled)
+        //             continue;
 
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
+        //         ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
 
-                if (ProbeVolumePositioning.OBBIntersect(cellVolume, indicatorVolume))
-                {
-                    cellVolume.maxSubdivisionMultiplier = Mathf.Max(cellVolume.maxSubdivisionMultiplier, pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
-                    volumes.Add(indicatorVolume);
-                    TrackSceneRefs(pv.gameObject.scene, sceneRefs);
-                    num++;
-                }
-            }
+        //         if (ProbeVolumePositioning.OBBIntersect(cellVolume, indicatorVolume))
+        //         {
+        //             cellVolume.maxSubdivisionMultiplier = Mathf.Max(cellVolume.maxSubdivisionMultiplier, pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
+        //             volumes.Add(indicatorVolume);
+        //             TrackSceneRefs(pv.gameObject.scene, sceneRefs);
+        //             num++;
+        //         }
+        //     }
 
-            return num;
-        }
+        //     return num;
+        // }
 
-        static protected void CullVolumes(in List<ProbeReferenceVolume.Volume> cullees, in List<ProbeReferenceVolume.Volume> cullers, List<ProbeReferenceVolume.Volume> result)
-        {
-            foreach (ProbeReferenceVolume.Volume v in cullers)
-            {
-                ProbeReferenceVolume.Volume lv = v;
+        // static protected void CullVolumes(in List<ProbeReferenceVolume.Volume> cullees, in List<ProbeReferenceVolume.Volume> cullers, List<ProbeReferenceVolume.Volume> result)
+        // {
+        //     foreach (ProbeReferenceVolume.Volume v in cullers)
+        //     {
+        //         ProbeReferenceVolume.Volume lv = v;
 
-                foreach (ProbeReferenceVolume.Volume c in cullees)
-                {
-                    if (result.Contains(c))
-                        continue;
+        //         foreach (ProbeReferenceVolume.Volume c in cullees)
+        //         {
+        //             if (result.Contains(c))
+        //                 continue;
 
-                    ProbeReferenceVolume.Volume lc = c;
+        //             ProbeReferenceVolume.Volume lc = c;
 
-                    if (ProbeVolumePositioning.OBBIntersect(lv, lc))
-                        result.Add(c);
-                }
-            }
-        }
+        //             if (ProbeVolumePositioning.OBBIntersect(lv, lc))
+        //                 result.Add(c);
+        //         }
+        //     }
+        // }
 
-        static public void CreateInfluenceVolumes(ref ProbeReferenceVolume.Volume cellVolume, List<Renderer> renderers, List<ProbeVolume> probeVolumes,
-            out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
-        {
-            // Keep track of volumes and which scene they originated from
-            sceneRefs = new Dictionary<Scene, int>();
+        // static public void CreateInfluenceVolumes(ref ProbeReferenceVolume.Volume cellVolume, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
+        //     out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
+        // {
+        //     // Keep track of volumes and which scene they originated from
+        //     sceneRefs = new Dictionary<Scene, int>();
 
-            // Extract all influencers inside the cell
-            List<ProbeReferenceVolume.Volume> influenceVolumes = new List<ProbeReferenceVolume.Volume>();
-            RenderersToVolumes(renderers, cellVolume, influenceVolumes, sceneRefs);
+        //     // Extract all influencers inside the cell
+        //     List<ProbeReferenceVolume.Volume> influenceVolumes = new List<ProbeReferenceVolume.Volume>();
+        //     RenderersToVolumes(renderers, cellVolume, influenceVolumes, sceneRefs);
 
-            // Extract all ProbeVolumes inside the cell
-            List<ProbeReferenceVolume.Volume> indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
-            ProbeVolumesToVolumes(probeVolumes, ref cellVolume, indicatorVolumes, sceneRefs);
+        //     // Extract all ProbeVolumes inside the cell
+        //     List<ProbeReferenceVolume.Volume> indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
+        //     ProbeVolumesToVolumes(probeVolumes, ref cellVolume, indicatorVolumes, sceneRefs);
 
-            // Cull all influencers against ProbeVolumes
-            culledVolumes = new List<ProbeReferenceVolume.Volume>();
-            CullVolumes(influenceVolumes, indicatorVolumes, culledVolumes);
-        }
-
-        public static void SubdivisionAlgorithm(ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> probeVolumes, List<ProbeReferenceVolume.Volume> influenceVolumes, RefTrans refTrans, List<Brick> inBricks, int subdivisionLevel, List<Flags> outFlags)
-        {
-            Flags f = new Flags();
-            for (int i = 0; i < inBricks.Count; i++)
-            {
-                ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(refTrans, inBricks[i]);
-
-                // Find the local max from all overlapping probe volumes:
-                float localMaxSubdiv = 0;
-                float localMinSubdiv = 0;
-                foreach (ProbeReferenceVolume.Volume v in probeVolumes)
-                {
-                    ProbeReferenceVolume.Volume vol = v;
-                    if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
-                    {
-                        localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
-                        // Do we use max for min subdiv too?
-                        localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
-                    }
-                }
-
-                bool belowMaxSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
-                bool belowMinSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv);
-
-                // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                if (belowMinSubdiv || (belowMaxSubdiv && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume)))
-                {
-                    f.subdivide = true;
-
-                    // Transform into refvol space
-                    brickVolume.Transform(refTrans.refSpaceToWS.inverse);
-                    ProbeReferenceVolume.Volume cellVolumeTrans = new ProbeReferenceVolume.Volume(cellVolume);
-                    cellVolumeTrans.Transform(refTrans.refSpaceToWS.inverse);
-                    cellVolumeTrans.maxSubdivisionMultiplier = localMaxSubdiv;
-
-                    // Discard parent brick if it extends outside of the cell, to prevent duplicates
-                    var brickVolumeMax = brickVolume.corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
-                    var cellVolumeMax = cellVolumeTrans.corner + cellVolumeTrans.X + cellVolumeTrans.Y + cellVolumeTrans.Z;
-
-                    f.discard = brickVolumeMax.x > cellVolumeMax.x ||
-                        brickVolumeMax.y > cellVolumeMax.y ||
-                        brickVolumeMax.z > cellVolumeMax.z ||
-                        brickVolume.corner.x < cellVolumeTrans.corner.x ||
-                        brickVolume.corner.y < cellVolumeTrans.corner.y ||
-                        brickVolume.corner.z < cellVolumeTrans.corner.z;
-                }
-                else
-                {
-                    f.discard = true;
-                    f.subdivide = false;
-                }
-                outFlags.Add(f);
-            }
-        }
-
-        internal static bool ShouldKeepBrick(List<ProbeReferenceVolume.Volume> volumes, ProbeReferenceVolume.Volume brick)
-        {
-            foreach (ProbeReferenceVolume.Volume v in volumes)
-            {
-                ProbeReferenceVolume.Volume vol = v;
-                if (ProbeVolumePositioning.OBBIntersect(vol, brick))
-                    return true;
-            }
-
-            return false;
-        }
-
-        public static void Subdivide(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes,
-            ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
-        {
-            // TODO move out
-            var indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
-            foreach (ProbeVolume pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
-            {
-                if (!pv.enabled)
-                    continue;
-
-                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier));
-            }
-
-            ProbeReferenceVolume.SubdivisionDel subdivDel =
-                (RefTrans refTrans, int subdivisionLevel, List<Brick> inBricks, List<Flags> outFlags) =>
-            { SubdivisionAlgorithm(cellVolume, indicatorVolumes, influencerVolumes, refTrans, inBricks, subdivisionLevel, outFlags); };
-
-            bricks = new List<ProbeBrickIndex.Brick>();
-
-            // get a list of bricks for this volume
-            int numProbes;
-            refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, influencerVolumes, subdivDel, bricks, out numProbes);
-
-            positions = new Vector3[numProbes];
-            refVol.ConvertBricksToPositions(bricks, positions);
-        }
+        //     // Cull all influencers against ProbeVolumes
+        //     culledVolumes = new List<ProbeReferenceVolume.Volume>();
+        //     CullVolumes(influenceVolumes, indicatorVolumes, culledVolumes);
+        // }
 
         // TODO: alloc this in the BakeCells function
         static RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
@@ -240,8 +148,8 @@ namespace UnityEngine.Rendering
             msaaSamples = 1,
         };
 
-        public static void SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes, List<Renderer> renderers, List<ProbeVolume> probeVolumes,
-            ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
+        public static void SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
+            ref List<ProbeBrickIndex.Brick> bricks)
         {
             RenderTexture sceneSDF = null;
             RenderTexture sceneSDF2 = null;
@@ -251,7 +159,7 @@ namespace UnityEngine.Rendering
             {
                 // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
                 int maxSubdivLevel = refVol.GetMaxSubdivision();
-                int startSubdivisionLevel = maxSubdivLevel - refVol.GetMaxSubdivision(probeVolumes.Max(p => p.maxSubdivisionMultiplier));
+                int startSubdivisionLevel = maxSubdivLevel - refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier));
 
                 // We assume that all the cells are cubes
                 int maxBrickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel);
@@ -278,14 +186,6 @@ namespace UnityEngine.Rendering
 
                 Graphics.ExecuteCommandBuffer(cmd);
 
-                var probeVolumesVolume = new List<ProbeReferenceVolume.Volume>();
-
-                foreach (ProbeVolume pv in probeVolumes)
-                {
-                    ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
-                    probeVolumesVolume.Add(vol);
-                }
-
                 // Brick index offset based on the cell position
                 var brickOffset = new Vector3Int((int)cellVolume.corner.x, (int)cellVolume.corner.y, (int)cellVolume.corner.z) / 3;
 
@@ -306,9 +206,6 @@ namespace UnityEngine.Rendering
                                 var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
                                 ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
 
-                                if (x == 0 && y == 0 && z == 0)
-                                    Debug.Log(brickVolume.CalculateAABB());
-
                                 // TODO: collider check on the probe volume:
                                 // var closestPoint = collider.ClosestPoint(triggerPos);
                                 // var d = (closestPoint - triggerPos).sqrMagnitude;
@@ -323,8 +220,9 @@ namespace UnityEngine.Rendering
                                 float localMaxSubdiv = 0;
                                 float localMinSubdiv = 0;
                                 bool overlapVolume = false;
-                                foreach (var vol in probeVolumesVolume)
+                                foreach (var kp in probeVolumes)
                                 {
+                                    var vol = kp.volume;
                                     if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
                                     {
                                         localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
@@ -390,13 +288,6 @@ namespace UnityEngine.Rendering
                     return 0;
                 });
                 Profiler.EndSample();
-
-                // if (bricks.Count > 0)
-                // Debug.Log(bricks.Count + " | " + bricks[0].subdivisionLevel);
-
-                // Convert bricks to positions
-                positions = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                refVol.ConvertBricksToPositions(bricks, positions);
             }
             finally // Release resources in case a fatal error occurs
             {
@@ -409,7 +300,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget, int maxBrickCountPerAxis, List<Renderer> renderers)
+        static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget, int maxBrickCountPerAxis, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers)
         {
             // TODO: group renderers by loaded scene + fill the map?
             var cellAABB = cellVolume.CalculateAABB();
@@ -447,8 +338,14 @@ namespace UnityEngine.Rendering
             cmd.SetRenderTarget(dummyRenderTarget);
             cmd.SetViewport(new Rect(0, 0, dummyRenderTarget.width, dummyRenderTarget.height));
             var props = new MaterialPropertyBlock();
-            foreach (MeshRenderer renderer in renderers)
+            foreach (var kp in renderers)
             {
+                // Only mesh renderers are supported for the voxelization.
+                var renderer = kp.component as MeshRenderer;
+
+                if (renderer == null)
+                    continue;
+
                 if (cellAABB.Intersects(renderer.bounds))
                 {
                     if (renderer.TryGetComponent<MeshFilter>(out var meshFilter))

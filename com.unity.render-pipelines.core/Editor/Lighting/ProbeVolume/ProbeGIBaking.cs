@@ -6,10 +6,11 @@ using System;
 using System.Linq;
 using UnityEditor;
 
-using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
+using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     struct DilationProbe : IComparable<DilationProbe>
     {
@@ -73,20 +74,17 @@ namespace UnityEngine.Rendering
                 refVol.Clear();
                 refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
-                refVol.SetNormalBias(refVolAuthoring.normalBias);
             }
 
             ClearBakingCells();
         }
 
-        // TODO: cleanup this mess
-        static void ClearBakingCells(bool writeBakingData = true)
+        static void ClearBakingCells()
         {
             cellIndex2SceneReferences.Clear();
 
-            if (writeBakingData)
-                foreach (var bakingCell in bakingCells)
-                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(bakingCell.cell.index, null);
+            foreach (var bakingCell in bakingCells)
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(bakingCell.cell.index, null);
 
             bakingCells.Clear();
         }
@@ -191,7 +189,7 @@ namespace UnityEngine.Rendering
 
                         // TODO: We're working on irradiance instead of radiance coefficients
                         //       Add safety margin 2 to avoid out-of-bounds values
-                        float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+                        float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
                         float l2scale = 3.5777088f; // 4/sqrt(5) * 2
 
                         // L_1^m
@@ -206,9 +204,8 @@ namespace UnityEngine.Rendering
                         shv[rgb, 7] = sh[j][rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
                         shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
-                        // Assert coefficient range
-                        // for (int coeff = 1; coeff < 9; ++coeff)
-                        //     Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+                        for (int coeff = 1; coeff < 9; ++coeff)
+                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
                     }
 
                     SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
@@ -216,18 +213,13 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
                     SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(shv[0, 4], shv[1, 4], shv[2, 4]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(shv[0, 5], shv[1, 5], shv[2, 5]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
+
                     cell.validity[i] = validity[j];
-                }
-
-                for (int i = 0; i < numProbes; ++i)
-                {
-                    int j = bakingCells[c].probeIndices[i];
-
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(sh[j][0, 4], sh[j][1, 4], sh[j][2, 4]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(sh[j][0, 5], sh[j][1, 5], sh[j][2, 5]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(sh[j][0, 6], sh[j][1, 6], sh[j][2, 6]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
                 // Reset index
@@ -483,128 +475,86 @@ namespace UnityEngine.Rendering
 
         public static void RunPlacement()
         {
-            Clear();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
-            BakeCells(bakingReferenceVolumeAuthoring);
+            Clear();
+            var result = BakeBricks(PrepareProbeSubdivisionContext(bakingReferenceVolumeAuthoring));
+            ApplySubdivisionResults(result);
         }
 
-        // TODO: cleanup this mess
-        public static void BakeCells(ProbeReferenceVolumeAuthoring refVolume, bool writeBakingData = true)
+        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(ProbeReferenceVolumeAuthoring refVolume)
         {
-            ClearBakingCells(writeBakingData);
+            ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
 
+            // Prepare all the information in the scene for baking GI.
+            ctx.Initialize(refVolume);
+
+            return ctx;
+        }
+
+        static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
+        {
+            if (!sceneRefs.ContainsKey(origin))
+                sceneRefs[origin] = 0;
+            else
+                sceneRefs[origin] += 1;
+        }
+
+        public static ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx)
+        {
+            var result = new ProbeSubdivisionResult();
             var refVol = ProbeReferenceVolume.instance;
-            var volumeScale = refVolume.transform.localScale;
-            int index = 0;
+            var sceneRefs = new Dictionary<Scene, int>();
 
-            //BakeMesh[] bakeMeshes = GetEntityQuery(typeof(BakeMesh)).ToComponentDataArray<BakeMesh>();
-            List<Renderer> renderers = UnityEngine.Object.FindObjectsOfType<Renderer>()
-                .Where(r =>
-                {
-                    if (!r.enabled || !r.gameObject.activeSelf)
-                        return false;
-
-                    // TODO: do we need to filter out renderers that receives GI from Lightmaps?
-
-                    var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject);
-                    if ((flags & StaticEditorFlags.ContributeGI) == 0)
-                        return false;
-
-                    return true;
-                })
-                .ToList();
-            List<ProbeVolume> probeVolumes = UnityEngine.Object.FindObjectsOfType<ProbeVolume>()
-                .Where(p => p.isActiveAndEnabled)
-                .ToList();
-
-            // Generate all the cell positions from probe volumes:
-            HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
-            foreach (var probeVolume in probeVolumes)
+            // subdivide all the cells and generate brick positions 
+            foreach (var cell in ctx.cells)
             {
-                var halfSize = probeVolume.size / 2.0f;
-                var minCellPosition = (probeVolume.transform.position - halfSize) / refVolume.cellSize;
-                var maxCellPosition = (probeVolume.transform.position + halfSize) / refVolume.cellSize;
+                sceneRefs.Clear();
 
-                Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
-                Vector3Int max = new Vector3Int(Mathf.FloorToInt(maxCellPosition.x), Mathf.FloorToInt(maxCellPosition.y), Mathf.FloorToInt(maxCellPosition.z));
-
-                for (int x = min.x; x <= max.x; x++)
-                    for (int y = min.y; y <= max.y; y++)
-                        for (int z = min.z; z <= max.z; z++)
-                            cellPositions.Add(new Vector3Int(x, y, z));
-            }
-
-            // subdivide and create positions and add them to the bake queue
-            foreach (var cellPos in cellPositions)
-            {
-                var cell = new ProbeReferenceVolume.Cell();
-                cell.position = cellPos;
-                cell.index = index++;
-
-                var refVolTransform = refVol.GetTransform();
-                var cellTrans = Matrix4x4.TRS(refVolTransform.posWS, refVolTransform.rot, Vector3.one);
-
-                // Calculate the cell volume:
-                ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-                cellVolume.corner = new Vector3(cellPos.x * refVolume.cellSize, cellPos.y * refVolume.cellSize, cellPos.z * refVolume.cellSize);
-                cellVolume.X = new Vector3(refVolume.cellSize, 0, 0);
-                cellVolume.Y = new Vector3(0, refVolume.cellSize, 0);
-                cellVolume.Z = new Vector3(0, 0, refVolume.cellSize);
-                cellVolume.Transform(cellTrans);
-
-                // We are only interested in probe volumes that overlap the cell
-                // TODO: cache component and volume in a struct and pass it to other functions
-                var overlappingProbeVolumes = new List<ProbeVolume>();
-                foreach (var probeVolume in probeVolumes)
+                // Calculate overlaping probe volumes to avoid unnecessary work
+                var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
+                foreach (var probeVolume in ctx.probeVolumes)
                 {
-                    ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, probeVolume.GetExtents()), probeVolume.maxSubdivisionMultiplier, probeVolume.minSubdivisionMultiplier);
-
-                    // Debug.Log("PV: " + volume.CalculateAABB());
-
-                    if (ProbeVolumePositioning.OBBIntersect(volume, cellVolume))
+                    if (ProbeVolumePositioning.OBBIntersect(probeVolume.volume, cell.volume))
+                    {
                         overlappingProbeVolumes.Add(probeVolume);
+                        TrackSceneRefs(probeVolume.component.gameObject.scene, sceneRefs);
+                    }
                 }
 
-                // Calculate all the renderers we need in the cell (overlapping a probe volume and matching the layer)
-                var overlappingRenderers = new List<Renderer>();
-                foreach (var renderer in renderers)
+                // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
+                var validRenderers = new List<(Renderer component, ProbeReferenceVolume.Volume volume)>();
+                foreach (var renderer in ctx.renderers)
                 {
-                    var volume = ProbePlacement.ToVolume(renderer.bounds);
-
-                    int rendererLayerMask = 1 << renderer.gameObject.layer;
-                    // TODO: scene filtering (only one scene per cell is allowed)
+                    var go = renderer.component.gameObject;
+                    int rendererLayerMask = 1 << go.layer;
 
                     foreach (var probeVolume in overlappingProbeVolumes)
                     {
-                        // TODO: cache this
-                        ProbeReferenceVolume.Volume probeVolumeVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(probeVolume.transform.position, probeVolume.transform.rotation, probeVolume.GetExtents()), probeVolume.maxSubdivisionMultiplier, probeVolume.minSubdivisionMultiplier);
-
-                        if (ProbeVolumePositioning.OBBIntersect(volume, probeVolumeVolume))
+                        if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume))
                         {
                             // Check if the renderer has a matching layer with probe volume
-                            if ((probeVolume.objectLayerMask & rendererLayerMask) != 0)
-                                overlappingRenderers.Add(renderer);
+                            if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
+                            {
+                                validRenderers.Add(renderer);
+                                TrackSceneRefs(go.scene, sceneRefs);
+                            }
                         }
                     }
                 }
 
-                // Debug.Log("Cell " + cellVolume.CalculateAABB() + " | " + overlappingProbeVolumes.Count + " | " + overlappingRenderers.Count);
-
-                if (overlappingRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
-                {
-                    // Debug.Log("Nothing in cell " + cellVolume.CalculateAABB());
+                // Skip empty cells
+                if (validRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
                     continue;
-                }
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
+                ProbeReferenceVolume.Volume cellVolume = cell.volume;
                 cellVolume.maxSubdivisionMultiplier = 0;
 
-                // TODO: get rid of this and compute directly sceneRefs with the first overlapping probe volume scene
-                Dictionary<Scene, int> sceneRefs;
-                List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(ref cellVolume, overlappingRenderers, overlappingProbeVolumes, out influenceVolumes, out sceneRefs);
+                // TODO: get rid of this and compute directly sceneRefs with the first overlapping probe volume in the cell
+                // List<ProbeReferenceVolume.Volume> influenceVolumes;
+                // ProbePlacement.CreateInfluenceVolumes(ref cellVolume, validRenderers, overlappingProbeVolumes, out influenceVolumes, out sceneRefs);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
@@ -612,22 +562,41 @@ namespace UnityEngine.Rendering
                 foreach (var item in sceneRefs)
                     sortedRefs[-item.Value] = item.Key;
 
-                Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
-                if (refVolume.GPUSubdivision)
-                    ProbePlacement.SubdivideWithSDF(cellVolume, refVol, influenceVolumes, overlappingRenderers, overlappingProbeVolumes, ref probePositionsArr, ref bricks);
-                else
-                    ProbePlacement.Subdivide(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
+                // TODO: return bricks list directly and rename
+                ProbePlacement.SubdivideWithSDF(cellVolume, refVol, validRenderers, overlappingProbeVolumes, ref bricks);
 
-                if (probePositionsArr.Length > 0 && bricks.Count > 0)
+                result.cellPositions.Add(cell.position);
+                result.bricksPerCells[cell.position] = bricks;
+                result.sortedRefs = sortedRefs;
+            }
+
+            return result;
+        }
+
+        public static void ApplySubdivisionResults(ProbeSubdivisionResult results)
+        {
+            int index = 0;
+
+            foreach (var cellPos in results.cellPositions)
+            {
+                var bricks = results.bricksPerCells[cellPos];
+                var cell = new ProbeReferenceVolume.Cell();
+
+                cell.position = cellPos;
+                cell.index = index++;
+                if (bricks.Count > 0)
                 {
+                    // Convert bricks to positions
+                    var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                    ProbeReferenceVolume.instance.ConvertBricksToPositions(bricks, probePositionsArr);
+
                     int[] indices = null;
                     Vector3[] deduplicatedProbePositions = null;
                     DeduplicateProbePositions(in probePositionsArr, out deduplicatedProbePositions, out indices);
 
-                    if (writeBakingData)
-                        UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, deduplicatedProbePositions);
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, deduplicatedProbePositions);
                     cell.probePositions = probePositionsArr;
                     cell.bricks = bricks;
 
@@ -637,7 +606,7 @@ namespace UnityEngine.Rendering
                     bakingCell.numUniqueProbes = deduplicatedProbePositions.Length;
 
                     bakingCells.Add(bakingCell);
-                    cellIndex2SceneReferences[cell.index] = new List<Scene>(sortedRefs.Values);
+                    cellIndex2SceneReferences[cell.index] = new List<Scene>(results.sortedRefs.Values);
                 }
             }
         }

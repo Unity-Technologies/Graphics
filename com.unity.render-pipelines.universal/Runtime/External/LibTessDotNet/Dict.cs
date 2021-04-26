@@ -33,7 +33,7 @@
 
 using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     namespace LibTessDotNet
     {

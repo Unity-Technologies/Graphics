@@ -4,8 +4,9 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolume))]
@@ -72,7 +73,6 @@ namespace UnityEditor.Rendering
                     Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
 
                     probeVolume.size = s_ShapeBox.size;
-
                     Vector3 delta = probeVolume.transform.rotation * s_ShapeBox.center - probeVolume.transform.position;
                     probeVolume.transform.position += delta;;
                 }

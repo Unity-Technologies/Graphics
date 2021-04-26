@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Probe Reference Volume"/>.
@@ -30,6 +29,8 @@ namespace UnityEngine.Rendering
             CellSize243 = 243,
         }
 
+        // This field will be replaced by something else (probably a distance based setting in meter) when the artists decide
+        // what they want. So, we shouldn't rely on this information too much.
         /// <summary>
         /// The size of a Cell.
         /// </summary>
@@ -82,7 +83,6 @@ namespace UnityEngine.Rendering
     {
         private SerializedProperty m_CellSize;
         private SerializedProperty m_MinDistanceBetweenProbes;
-        private SerializedProperty m_NormalBias;
         private SerializedProperty m_IndexDimensions;
         ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
@@ -91,7 +91,6 @@ namespace UnityEngine.Rendering
             // TODO: Better tooltip are needed here.
             public readonly GUIContent cellSizeStyle = new GUIContent("Brick Count Per Cell", "Determine how much bricks there is in a streamable unit.");
             public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
-            public readonly GUIContent normalBias = new GUIContent("Normal Bias", "The normal bias used when sampling the volume. It can reduce leaking.");
             public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
 
@@ -101,7 +100,6 @@ namespace UnityEngine.Rendering
         {
             m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSizeInBricks));
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));
-            m_NormalBias = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.normalBias));
         }
 
         public override void OnInspectorGUI()
@@ -112,9 +110,6 @@ namespace UnityEngine.Rendering
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
             EditorGUILayout.HelpBox("Maximum subvision of the volume: " + profile.maxSubdivision, MessageType.Info);
-            EditorGUILayout.PropertyField(m_NormalBias, s_Styles.normalBias);
-
-            ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
 
             if (EditorGUI.EndChangeCheck())
             {
