@@ -55,62 +55,68 @@ namespace UnityEditor.Rendering.Universal
             Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
             UpgradeAsset(rendererData, assetPath);
         }
+		
+        [InitializeOnLoadMethod]
+        static void RegisterUpgraderReimport()
+        {
+            //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
+            EditorApplication.delayCall += () =>
+            {
+				//This helps to scan the RendererData Assets which are subAssets caused by case 1214779
+				if (firstTimeUpgrade)
+				{
+					string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
+					for (int i = 0; i < allRenderers.Length; i++)
+					{
+						string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
+						IterateSubAssets(rendererDataPath);
+					}
+
+					firstTimeUpgrade = false;
+				}
+
+                //If there is no asset upgraded then we don't need to do the following
+                if (editedAssetsCount == 0) return;
+
+                //Gets all the UniversalRenderPipeline Assets in project
+                string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
+                for (int i = 0; i < allURPassets.Length; i++)
+                {
+                    string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
+                    Object pipelineAsset = AssetDatabase.LoadAssetAtPath(pipelineAssetPath, typeof(Object));
+                    SerializedObject soAsset = new SerializedObject(pipelineAsset);
+
+                    //Make some changes on the Pipeline assets
+                    //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will complain about there is no Default Renderer asset
+                    SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
+                    soAsset.Update();
+                    if (scriptPropertyAsset != null)
+                    {
+                        bool tmp = scriptPropertyAsset.boolValue;
+                        scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
+                        soAsset.ApplyModifiedProperties();
+                        scriptPropertyAsset.boolValue = tmp; //revert the changes
+                        soAsset.ApplyModifiedProperties();
+                    }
+                }
+
+                //Reset counter
+                editedAssetsCount = 0;
+            };
+        }
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            //For the first time get all the ForwardRendererData Assets in project
-            //This will make sure opening projects with Library will still have the ForwardRendererData Assets upgraded
-            if (firstTimeUpgrade)
-            {
-                string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
-                for (int i = 0; i < allRenderers.Length; i++)
-                {
-                    string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
-                    IterateSubAssets(rendererDataPath);
-                }
-
-                firstTimeUpgrade = false;
-            }
-
-            //Iterate any changed assets
-            //Opening some projects with Library folder will not trigger this part,
-            //and some projects without Library are not able to scan the ForwardRendererData Assets in above for-loop
-            //So both the above and this for-loop will make sure upgrader works on all situation
+            //This makes sure the RendererData will be upgraded again if the uppgraded changes are discarded using source control
             for (int i = 0; i < importedAssets.Length; i++)
             {
-                if (importedAssets[i].EndsWith(".asset"))
+                var assetType = AssetDatabase.GetMainAssetTypeAtPath(importedAssets[i]);
+                if (assetType == null) continue;
+                if (assetType.ToString() == "UnityEngine.Rendering.Universal.ForwardRendererData")
                 {
                     IterateSubAssets(importedAssets[i]);
                 }
             }
-
-            //If there is no asset upgraded then we don't need to do the following
-            if (editedAssetsCount == 0) return;
-
-            //Gets all the UniversalRenderPipeline Assets in project
-            string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
-            for (int i = 0; i < allURPassets.Length; i++)
-            {
-                string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
-                Object pipelineAsset = AssetDatabase.LoadAssetAtPath(pipelineAssetPath, typeof(Object));
-                SerializedObject soAsset = new SerializedObject(pipelineAsset);
-
-                //Make some changes on the Pipeline assets
-                //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will complain about there is no Default Renderer asset
-                SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
-                soAsset.Update();
-                if (scriptPropertyAsset != null)
-                {
-                    bool tmp = scriptPropertyAsset.boolValue;
-                    scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
-                    soAsset.ApplyModifiedProperties();
-                    scriptPropertyAsset.boolValue = tmp; //revert the changes
-                    soAsset.ApplyModifiedProperties();
-                }
-            }
-
-            //Reset counter
-            editedAssetsCount = 0;
         }
     }
 }
