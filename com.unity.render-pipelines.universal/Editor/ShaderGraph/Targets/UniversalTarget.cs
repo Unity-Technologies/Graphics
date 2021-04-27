@@ -241,13 +241,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         case ZWriteControl.Auto:
                             return (surfaceType == SurfaceType.Opaque);
-                            break;
                         case ZWriteControl.ForceDisabled:
                             return false;
-                            break;
                         default:
                             return true;
-                            break;
                     }
                 }
             }
@@ -1153,14 +1150,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-
         public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
         {
             displayName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
             referenceName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
+            scope = KeywordScope.Global, // needs to match HDRP
             stages = KeywordShaderStage.Fragment,
         };
 
