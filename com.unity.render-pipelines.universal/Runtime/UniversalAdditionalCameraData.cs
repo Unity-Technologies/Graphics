@@ -451,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the selected mode for Volume Frame Updates
+        /// Returns the selected mode for Volume Frame Updates.
         /// </summary>
         internal VolumeFrameworkUpdateMode volumeFrameworkUpdateMode
         {
@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns true if this camera requires the volume framework to be updated
+        /// Returns true if this camera requires the volume framework to be updated.
         /// </summary>
         public bool requiresVolumeFrameworkUpdate
         {
@@ -477,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the current volume stack used by this camera
+        /// Returns the current volume stack used by this camera.
         /// </summary>
         VolumeStack m_VolumeStack = null;
         public VolumeStack volumeStack
