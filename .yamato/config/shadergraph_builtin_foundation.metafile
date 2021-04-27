@@ -75,27 +75,3 @@ nightly:
   dependencies:
     - project: ShaderGraph_BuiltIn_Foundation
       pr: true
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: OSX
-      api: OpenGLCore
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: Linux
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_cache
