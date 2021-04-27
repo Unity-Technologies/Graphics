@@ -382,7 +382,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return m_RenderPipelineResources;
             }
-            set { m_RenderPipelineResources = value; }
         }
 
 #if UNITY_EDITOR
@@ -441,7 +440,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 EnsureEditorResources(forceReload: false);
                 return m_RenderPipelineEditorResources;
             }
-            private set => m_RenderPipelineEditorResources = value;
         }
 
         // be sure to cach result for not using GC in a frame after first one.
@@ -477,8 +475,11 @@ namespace UnityEngine.Rendering.HighDefinition
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources;
         internal HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
         {
-            get { return m_RenderPipelineRayTracingResources; }
-            set { m_RenderPipelineRayTracingResources = value; }
+            get
+            {
+                // No ensure because it can be null if we do not use ray tracing
+                return m_RenderPipelineRayTracingResources;
+            }
         }
 
 #if UNITY_EDITOR

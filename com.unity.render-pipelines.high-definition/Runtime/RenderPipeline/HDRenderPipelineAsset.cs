@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDRenderPipelineRuntimeResources renderPipelineResources
         {
             get { return globalSettings.renderPipelineResources; }
-            set { globalSettings.renderPipelineResources = value; }
         }
 
         internal bool frameSettingsHistory { get; set; } = false;
