@@ -476,7 +476,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag that holds
             bool generalErrorFlag = false;
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
-			var lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
+            var lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
             List<Material> materialArray = new List<Material>(32);
             ReflectionProbe reflectionProbe = new ReflectionProbe();
 
