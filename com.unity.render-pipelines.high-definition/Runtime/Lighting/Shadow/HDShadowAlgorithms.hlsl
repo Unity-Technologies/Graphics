@@ -162,26 +162,30 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 //
 //  Area light shadows
 //
+
+void EvalShadow_Area_GetMinMaxCoords(HDShadowData sd, float2 texelSize, out float2 minCoord, out float2 maxCoord)
+{
+#if AREA_LIGHT_SHADOW_IS_EVSM
+    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f); // This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value.
+    maxCoord = (sd.shadowMapSize.xy - 0.5f * blurPassesScale) * texelSize + sd.atlasOffset;
+    minCoord = sd.atlasOffset + texelSize * blurPassesScale;
+#else
+    maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
+    minCoord = sd.atlasOffset;
+#endif
+}
+
 float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
     float2 texelSize = sd.isInCachedAtlas ? _CachedAreaShadowAtlasSize.zw : _AreaShadowAtlasSize.zw;
 
-    float3 posTC;
-
-    float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
-    float2 minCoord = sd.atlasOffset;
-
-#if AREA_LIGHT_SHADOW_IS_EVSM
     positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+    float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
 
-    posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
-    int blurPassesScale = (min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value.
-    maxCoord -= 0.5f * blurPassesScale * texelSize;
-    minCoord += texelSize * (1 + blurPassesScale);
-#else
-    // TODO
-    return 1.0f;
-#endif
+    float2 maxCoord;
+    float2 minCoord;
+    EvalShadow_Area_GetMinMaxCoords(sd, texelSize, minCoord, maxCoord);
+
     return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : AREA_FILTER_ALGORITHM(sd, positionSS, posTC, tex, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS);
 }
 
