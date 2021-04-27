@@ -151,8 +151,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(s_Styles.SunSourceWarning.text, MessageType.Warning);
             }
 
-            EditorGUILayout.Space();
-
             // When we are switching between two light types that don't show the range (directional and area lights)
             // we want the fade group to stay hidden.
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimDirOptions.faded))
@@ -175,8 +173,6 @@ namespace UnityEditor.Rendering.Universal
 
             settings.DrawColor();
 
-            EditorGUILayout.Space();
-
             CheckLightmappingConsistency();
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimAreaOptions.faded))
                 if (group.visible)
@@ -198,8 +194,6 @@ namespace UnityEditor.Rendering.Universal
 
             settings.DrawRenderMode();
             settings.DrawCullingMask();
-
-            EditorGUILayout.Space();
 
             if (SceneView.lastActiveSceneView != null)
             {
@@ -434,8 +428,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
-
-            EditorGUILayout.Space();
         }
 
         void LightCookieGUI()
@@ -474,8 +466,6 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
-
-            EditorGUILayout.Space();
         }
 
         protected override void OnSceneGUI()
