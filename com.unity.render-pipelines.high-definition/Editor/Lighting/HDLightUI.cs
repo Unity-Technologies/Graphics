@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DistanceShadowmask
         }
 
+        [HDRPHelpURL("Light-Component")]
         enum Expandable
         {
             General = 1 << 0,
@@ -208,8 +209,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
-            //Draw the mode
-            serialized.settings.DrawLightmapping();
+            // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
+            using (new EditorGUI.DisabledScope(serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc))
+                serialized.settings.DrawLightmapping();
 
             if (updatedLightType == HDLightType.Area)
             {
@@ -222,6 +224,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     case AreaLightShape.Disc:
                         if (!serialized.settings.isCompletelyBaked)
                             EditorGUILayout.HelpBox("Disc Area Lights are baked only.", MessageType.Error);
+                        // Disc lights are not supported in Enlighten
+                        if (!Lightmapping.bakedGI && Lightmapping.realtimeGI)
+                            EditorGUILayout.HelpBox("Disc Area Lights are not supported with realtime GI.", MessageType.Error);
                         break;
                 }
             }
@@ -234,9 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, s_Styles.lightLayer);
-
-                    // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-                    if (serialized.linkLightLayers.boolValue && change.changed && !serialized.lightlayersMask.hasMultipleDifferentValues)
+                    if (change.changed && serialized.linkShadowLayers.boolValue)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
             }
@@ -1214,20 +1217,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUILayout.PropertyField(serialized.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+                        Rect lineRect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(lineRect, s_Styles.unlinkLightAndShadowLayersText, serialized.linkShadowLayers);
+                        bool savedHasMultipleDifferentValue = EditorGUI.showMixedValue;
+                        EditorGUI.showMixedValue = serialized.linkShadowLayers.hasMultipleDifferentValues;
+                        bool newValue = !EditorGUI.Toggle(lineRect, s_Styles.unlinkLightAndShadowLayersText, !serialized.linkShadowLayers.boolValue);
+                        EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
+                        EditorGUI.EndProperty();
 
                         // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                         if (change.changed)
-                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
-                    }
-                    if (!serialized.linkLightLayers.hasMultipleDifferentValues && !serialized.lightlayersMask.hasMultipleDifferentValues)
-                    {
-                        using (new EditorGUI.DisabledGroupScope(serialized.linkLightLayers.boolValue))
                         {
-                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                            serialized.linkShadowLayers.boolValue = newValue;
+                            if (!newValue)
+                            {
+                                serialized.Apply(); //we need to push above modification the modification on object as it is used to sync
+                                SyncLightAndShadowLayers(serialized, owner);
+                            }
                         }
-                        if (serialized.linkLightLayers.boolValue)
-                            SyncLightAndShadowLayers(serialized, owner);
+                    }
+                    //
+                    if (serialized.linkShadowLayers.hasMultipleDifferentValues || !serialized.linkShadowLayers.boolValue)
+                    {
+                        using (new EditorGUI.DisabledGroupScope(serialized.linkShadowLayers.hasMultipleDifferentValues))
+                        {
+                            ++EditorGUI.indentLevel;
+                            HDEditorUtils.DrawLightLayerMaskFromInt(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                            --EditorGUI.indentLevel;
+                        }
                     }
                 }
             }
@@ -1235,10 +1253,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void SyncLightAndShadowLayers(SerializedHDLight serialized, Editor owner)
         {
-            // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-            foreach (Light target in owner.targets)
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
+            // In mixed state, it make sens to do it only on Light that links the mode.
+            HDLightEditor editor = owner as HDLightEditor;
+            for (int i = 0; i < owner.targets.Length; ++i)
+            {
+                HDAdditionalLightData additionalData = editor.GetAdditionalDataForTargetIndex(i);
+                if (!additionalData.linkShadowLayers)
+                    continue;
+
+                Light target = owner.targets[i] as Light;
                 if (target.renderingLayerMask != serialized.lightlayersMask.intValue)
                     target.renderingLayerMask = serialized.lightlayersMask.intValue;
+            }
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

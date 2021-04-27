@@ -1,4 +1,4 @@
-editor_priming_agent: package_ci_ubuntu_small 
+editor_priming_agent: package_ci_ubuntu_small
 editor_pin_agent: package_ci_ubuntu_small
 
 # EDITOR PINNING
@@ -36,6 +36,12 @@ platforms: # Components to have unity-downloader-cli to trigger.
       - editor
       - il2cpp
       - android
+  - name: XRQuest
+    os: windows
+    components:
+      - editor
+      - il2cpp
+      - android      
   - name: iPhone
     os: macos
     components:

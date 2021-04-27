@@ -8,17 +8,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   - Added ability to define custom vertex-to-fragment interpolators.
+  - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added View Vector Node doc
+  - Added custom interpolator thresholds on shadergraph project settings page.
+  - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
+  - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
 
 ### Changed
+- Updated/corrected View Direction doc
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
-
-### Added
-- Support for the XboxSeries platform has been added.
+- Limited max number of inspectable items in the Inspector View to 20 items
+- Added borders to inspector items styling, to better differentiate between separate items
+- Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 
 ### Fixed
+- Fixed an issue where fog node density was incorrectly calculated.
+- Fixed inspector property header styling
+- Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
+- Blackboard now properly handles selection persistence of items between undo and redos
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
 - Prevent users from setting enum keywords with duplicate reference names and invalid characters [1287335]
@@ -30,6 +40,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
 - Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
+- Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
+- Fixed issue where vertex generation was incorrect when only custom blocks were present [1320695].
+- Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where big input values to the SimpleNoise node caused precision issues, especially noticeable on Mali GPUs. [1322891] (https://issuetracker.unity3d.com/issues/urp-mali-missing-glitch-effect-on-mali-gpu-devices)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1323744]
+- Fixed a regression where custom function node file-included functions could not access shadergraph properties [1322467]
+- Fixed an issue where a requirement was placed on a fixed-function emission property [1319637]
+- Fixed default shadergraph precision so it matches what is displayed in the graph settings UI (single) [1325934]
+- Fixed an unhelpful error message when custom function nodes didn't have a valid file [1323493].
+- Fixed a bug where changing a Target setting would switch the inspector view to the Node Settings tab if any nodes were selected.
+- Fixed "Disconnect All" option being grayed out on stack blocks [1313201].
+- Fixed how shadergraph's prompt for "unsaved changes" was handled to fix double messages and incorrect window sizes [1319623].
+- Fixed an issue where users can't create multiple Boolean or Enum keywords on the blackboard. [1329021](https://issuetracker.unity3d.com/issues/shadergraph-cant-create-multiple-boolean-or-enum-keywords)
+- Fixed an issue where generated property reference names could conflict with Shader Graph reserved keywords [1328762] (https://issuetracker.unity3d.com/product/unity/issues/guid/1328762/)
+- Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
+
+- Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
 
 
 ## [11.0.0] - 2020-10-21

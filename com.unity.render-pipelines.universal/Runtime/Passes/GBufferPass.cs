@@ -54,29 +54,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
-            GraphicsFormat[] gbufferFormats = new GraphicsFormat[gbufferAttachments.Length];
 
             // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
-                gbufferFormats[i] = m_DeferredLights.GetGBufferFormat(i);
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
 
+                // Normal buffer may have already been created if there was a depthNormal prepass before.
+                // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
                 if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                     continue;
 
                 RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
                 gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
-                gbufferSlice.graphicsFormat = gbufferFormats[i];
+                gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
                 cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, gbufferFormats);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
-            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            // ScriptableRenderer will implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

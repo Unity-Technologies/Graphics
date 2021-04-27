@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _HistoryBufferSize;
 
         // MipOffset of the first depth mip
-        public Vector2 _DepthMipOffset;
+        public Vector2 _Padding;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
@@ -113,8 +113,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
 
-        // Padding
-        public float _Padding0;
-        public float _Padding1;
+        // World Camera Position used as the constant buffer has not been injected yet when this data is required
+        public Vector2 _WorldSpaceShadowCenter;
+
+        // View projection matrix (non oblique) for the planar reflection matrices
+        public Matrix4x4 _CameraViewProjection_NO;
+        public Matrix4x4 _CameraInverseViewProjection_NO;
+        public Matrix4x4 _CameraPrevViewProjection_NO;
     }
 }

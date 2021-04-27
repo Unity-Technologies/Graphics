@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     {
         private class AtlasNodePool
         {
-            public AtlasNode[] m_Nodes;
+            internal AtlasNode[] m_Nodes;
             Int16 m_Next;
             Int16 m_FreelistHead;
 
@@ -333,6 +333,11 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// A generic Atlas texture of 2D textures.
+    /// An atlas texture is a texture collection that collects multiple sub-textures into a single big texture.
+    /// Sub-texture allocation for Texture2DAtlasDynamic is dynamic.
+    /// </summary>
     class Texture2DAtlasDynamic
     {
         private RTHandle m_AtlasTexture = null;
@@ -343,6 +348,9 @@ namespace UnityEngine.Rendering
         private AtlasAllocatorDynamic m_AtlasAllocator = null;
         private Dictionary<int, Vector4> m_AllocationCache;
 
+        /// <summary>
+        /// Handle to the texture of the atlas.
+        /// </summary>
         public RTHandle AtlasTexture
         {
             get
@@ -351,6 +359,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Creates a new empty texture atlas.
+        /// </summary>
         public Texture2DAtlasDynamic(int width, int height, int capacity, GraphicsFormat format)
         {
             m_Width = width;
@@ -381,6 +392,9 @@ namespace UnityEngine.Rendering
             m_AllocationCache = new Dictionary<int, Vector4>(capacity);
         }
 
+        /// <summary>
+        /// Creates a new empty texture atlas. Use external atlas texture.
+        /// </summary>
         public Texture2DAtlasDynamic(int width, int height, int capacity, RTHandle atlasTexture)
         {
             m_Width = width;
@@ -393,34 +407,43 @@ namespace UnityEngine.Rendering
             m_AllocationCache = new Dictionary<int, Vector4>(capacity);
         }
 
+        /// <summary>
+        /// Release atlas resources.
+        /// </summary>
         public void Release()
         {
             ResetAllocator();
             if (isAtlasTextureOwner) { RTHandles.Release(m_AtlasTexture); }
         }
 
+        /// <summary>
+        /// Clear atlas sub-texture allocations.
+        /// </summary>
         public void ResetAllocator()
         {
             m_AtlasAllocator.Release();
             m_AllocationCache.Clear();
         }
 
-        public bool AddTexture(CommandBuffer cmd, out Vector4 scaleBias, Texture texture)
+        /// <summary>
+        /// Add a texture into the atlas.
+        /// </summary>
+        public bool AddTexture(CommandBuffer cmd, out Vector4 scaleOffset, Texture texture)
         {
             int key = texture.GetInstanceID();
-            if (!m_AllocationCache.TryGetValue(key, out scaleBias))
+            if (!m_AllocationCache.TryGetValue(key, out scaleOffset))
             {
                 int width = texture.width;
                 int height = texture.height;
-                if (m_AtlasAllocator.Allocate(out scaleBias, key, width, height))
+                if (m_AtlasAllocator.Allocate(out scaleOffset, key, width, height))
                 {
-                    scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+                    scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
                     for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
                     {
                         cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                        Blitter.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                        Blitter.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleOffset, mipLevel, false);
                     }
-                    m_AllocationCache.Add(key, scaleBias);
+                    m_AllocationCache.Add(key, scaleOffset);
                     return true;
                 }
                 else
@@ -431,35 +454,39 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        public bool TryGetScaleBias(out Vector4 scaleBias, int key)
+        /// <summary>
+        /// Check if the atlas contains the texture.
+        /// </summary>
+        public bool IsCached(out Vector4 scaleOffset, int key)
         {
-            return m_AllocationCache.TryGetValue(key, out scaleBias);
+            return m_AllocationCache.TryGetValue(key, out scaleOffset);
         }
 
-        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleBias, int key, int width, int height)
+        /// <summary>
+        /// Allocate space from the atlas.
+        /// </summary>
+        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleOffset, int key, int width, int height)
         {
             isUploadNeeded = false;
-            if (m_AllocationCache.TryGetValue(key, out scaleBias)) { return true; }
+            if (m_AllocationCache.TryGetValue(key, out scaleOffset)) { return true; }
 
             // Debug.Log("EnsureTextureSlot Before = " + m_AtlasAllocator.DebugStringFromRoot());
-            if (!m_AtlasAllocator.Allocate(out scaleBias, key, width, height)) { return false; }
+            if (!m_AtlasAllocator.Allocate(out scaleOffset, key, width, height)) { return false; }
             // Debug.Log("EnsureTextureSlot After = " + m_AtlasAllocator.DebugStringFromRoot());
 
             isUploadNeeded = true;
-            scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-            m_AllocationCache.Add(key, scaleBias);
+            scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+            m_AllocationCache.Add(key, scaleOffset);
             return true;
         }
 
+        /// <summary>
+        /// Release allocated space from the atlas.
+        /// </summary>
         public void ReleaseTextureSlot(int key)
         {
             m_AtlasAllocator.Release(key);
             m_AllocationCache.Remove(key);
-        }
-
-        public string DebugStringFromRoot(int depthMax = -1)
-        {
-            return m_AtlasAllocator.DebugStringFromRoot(depthMax);
         }
     }
 }

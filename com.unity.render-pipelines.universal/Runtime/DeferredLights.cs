@@ -170,6 +170,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightLayerMask = Shader.PropertyToID("_MainLightLayerMask"); // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
             public static int _SpotLightScale = Shader.PropertyToID("_SpotLightScale");
             public static int _SpotLightBias = Shader.PropertyToID("_SpotLightBias");
             public static int _SpotLightGuard = Shader.PropertyToID("_SpotLightGuard");
@@ -180,6 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightDirection = Shader.PropertyToID("_LightDirection");
             public static int _LightFlags = Shader.PropertyToID("_LightFlags");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
+            public static int _LightLayerMask = Shader.PropertyToID("_LightLayerMask");
         }
 
         // Disable Burst for now since there are issues on macos builds.
@@ -237,6 +239,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceCount;
         }
 
+        static readonly string[] k_GBufferNames = new string[]
+        {
+            "_GBuffer0",
+            "_GBuffer1",
+            "_GBuffer2",
+            "_GBuffer3",
+            "_GBuffer4",
+            "_GBuffer5",
+            "_GBuffer6"
+        };
+
         static readonly string[] k_TileDeferredPassNames = new string[]
         {
             "Tiled Deferred Punctual Light (Lit)",
@@ -273,18 +286,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             SSAOOnly
         };
 
-        // Used to initialize all RenderTargetHandles.
-        internal enum GBufferHandles
-        {
-            DepthAsColor = 0,
-            Albedo = 1,
-            SpecularMetallic = 2,
-            NormalSmoothness = 3,
-            Lighting = 4,
-            ShadowMask = 5,
-            Count = 6
-        }
-
         static readonly ushort k_InvalidLightOffset = 0xFFFF;
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
@@ -300,13 +301,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingTileDepthInfo = new ProfilingSampler(k_TileDepthInfo);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
-        internal int GbufferDepthIndex { get { return UseRenderPass ? 0 : -1; } }
-        internal int GBufferAlbedoIndex { get { return GbufferDepthIndex + 1; } }
-        internal int GBufferSpecularMetallicIndex { get { return GBufferAlbedoIndex + 1; } }
-        internal int GBufferNormalSmoothnessIndex { get { return GBufferSpecularMetallicIndex + 1; } }
-        internal int GBufferLightingIndex { get { return GBufferNormalSmoothnessIndex + 1; } }
-        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + 1 : -1; } }
-        internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0); } }
+        internal int GBufferAlbedoIndex { get { return 0; } }
+        internal int GBufferSpecularMetallicIndex { get { return 1; } }
+        internal int GBufferNormalSmoothnessIndex { get { return 2; } }
+        internal int GBufferLightingIndex { get { return 3; } }
+        internal int GbufferDepthIndex { get { return UseRenderPass ? GBufferLightingIndex + 1 : -1; } }
+        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
+        internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + 1 : -1; } }
+        // Color buffer count (not including dephStencil).
+        internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
         internal GraphicsFormat GetGBufferFormat(int index)
         {
@@ -322,12 +325,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return GraphicsFormat.R32_SFloat;
             else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.R8G8B8A8_UNorm;
+            else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputed when light layers are enabled (subset of rendering layers)
+                return GraphicsFormat.R8_UNorm;
             else
                 return GraphicsFormat.None;
         }
 
         // This may return different values depending on what lights are rendered for a given frame.
         internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
+        //
+        internal bool UseRenderingLayers { get { return UniversalRenderPipeline.asset.supportsLightLayers; } }
         //
         internal bool UseRenderPass { get; set; }
         //
@@ -366,6 +373,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTargetHandle TileDepthInfoTexture { get; set; }
 
         internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
+        internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
         internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
         internal RenderTargetIdentifier DepthInfoTextureIdentifier { get; set; }
@@ -693,7 +701,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.EndSample();
         }
 
-        public void ResolveMixedLightingMode(ref RenderingData renderingData)
+        internal void ResolveMixedLightingMode(ref RenderingData renderingData)
         {
             // Find the mixed lighting mode. This is the same logic as ForwardLights.
             this.MixedLightingSetup = MixedLightingSetup.None;
@@ -701,35 +709,43 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if !UNITY_EDITOR
             // This flag is used to strip mixed lighting shader variants when a player is built.
             // All shader variants are available in the editor.
-            if (!renderingData.lightData.supportsMixedLighting)
-                return;
+            if (renderingData.lightData.supportsMixedLighting)
 #endif
-
-            NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
-            for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
             {
-                Light light = visibleLights[lightIndex].light;
-
-                if (light != null
-                    && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-                    && light.shadows != LightShadows.None)
+                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
+                for (int lightIndex = 0; lightIndex < renderingData.lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
                 {
-                    switch (light.bakingOutput.mixedLightingMode)
+                    Light light = visibleLights[lightIndex].light;
+
+                    if (light != null
+                        && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+                        && light.shadows != LightShadows.None)
                     {
-                        case MixedLightingMode.Subtractive:
-                            this.MixedLightingSetup = MixedLightingSetup.Subtractive;
-                            break;
-                        case MixedLightingMode.Shadowmask:
-                            this.MixedLightingSetup = MixedLightingSetup.ShadowMask;
-                            break;
+                        switch (light.bakingOutput.mixedLightingMode)
+                        {
+                            case MixedLightingMode.Subtractive:
+                                this.MixedLightingSetup = MixedLightingSetup.Subtractive;
+                                break;
+                            case MixedLightingMode.Shadowmask:
+                                this.MixedLightingSetup = MixedLightingSetup.ShadowMask;
+                                break;
+                        }
                     }
                 }
             }
-            // Once the mixed lighting mode has been discovered, we know how  many MRTs we need for the gbuffer.
+            // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
             // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+
+            int gbufferSliceCount = this.GBufferSliceCount;
+            if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
+            {
+                this.GbufferAttachments = new RenderTargetHandle[gbufferSliceCount];
+                for (int i = 0; i < gbufferSliceCount; ++i)
+                    this.GbufferAttachments[i].Init(k_GBufferNames[i]);
+            }
         }
 
-        public bool IsRuntimeSupportedThisFrame()
+        internal bool IsRuntimeSupportedThisFrame()
         {
             // GBuffer slice count can change depending actual geometry/light being rendered.
             // For instance, we only bind shadowMask RT if the scene supports mix lighting and at least one visible light has subtractive mixed ligting mode.
@@ -744,7 +760,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
             RenderTargetHandle depthAttachment,
-            RenderTargetHandle[] gbufferHandles)
+            RenderTargetHandle colorAttachment)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
@@ -753,27 +769,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthCopyTexture = depthCopyTexture;
             this.DepthInfoTexture = depthInfoTexture;
             this.TileDepthInfoTexture = tileDepthInfoTexture;
-            // Depending on the scene rendered, adjust gbuffer MRT count.
-            // For instance, we do not need shadowMask output if no visible lights have mixed lighting subtractive mode.
-            if (this.GbufferAttachments == null || this.GbufferAttachments.Length != this.GBufferSliceCount)
-                this.GbufferAttachments = new RenderTargetHandle[this.GBufferSliceCount];
-            this.GbufferAttachments[this.GBufferAlbedoIndex] = gbufferHandles[(int)GBufferHandles.Albedo];
-            this.GbufferAttachments[this.GBufferSpecularMetallicIndex] = gbufferHandles[(int)GBufferHandles.SpecularMetallic];
-            this.GbufferAttachments[this.GBufferNormalSmoothnessIndex] = gbufferHandles[(int)GBufferHandles.NormalSmoothness];
-            this.GbufferAttachments[this.GBufferLightingIndex] = gbufferHandles[(int)GBufferHandles.Lighting];
-            if (this.GbufferDepthIndex >= 0)
-                this.GbufferAttachments[this.GbufferDepthIndex] = gbufferHandles[(int)GBufferHandles.DepthAsColor];
-            if (this.GBufferShadowMask >= 0)
-                this.GbufferAttachments[this.GBufferShadowMask] = gbufferHandles[(int)GBufferHandles.ShadowMask];
+
+            this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
             this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
+            {
                 this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
+                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+            {
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferFormats[i] = this.GetGBufferFormat(i);
+            }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1071,6 +1083,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Workaround for bug.
+            // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
+            // materials passed in have not finished initializing at that point if they have fallback shader defined. In particular deferred shaders only have 1 pass available,
+            // which prevents from resolving correct pass indices.
+            if (m_StencilDeferredPasses[0] < 0)
+                InitStencilDeferredMaterial();
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
@@ -1112,11 +1131,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         // adapted from ForwardLights.SetupShaderLightConstants
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
+            if (lightData.mainLightIndex < 0)
+                return;
+
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             UniversalRenderPipeline.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
+            UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(lightData.visibleLights[lightData.mainLightIndex].light);
+            uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
+
             cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
             cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
+            cmd.SetGlobalInt(ShaderConstants._MainLightLayerMask, (int)lightLayerMask);
         }
 
         void SetupMatrixConstants(CommandBuffer cmd, ref RenderingData renderingData)
@@ -1512,13 +1538,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            // Workaround for bug.
-            // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
-            // materials passed in have not finished initializing at that point if they have fallback shader defined. In particular deferred shaders only have 1 pass available,
-            // which prevents from resolving correct pass indices.
-            if (m_StencilDeferredPasses[0] < 0)
-                InitStencilDeferredMaterial();
-
             Profiler.BeginSample(k_DeferredStencilPass);
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
@@ -1562,6 +1581,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
+                UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
+
                 // Setup shadow paramters:
                 // - for the main light, they have already been setup globally, so nothing to do.
                 // - for other directional lights, it is actually not supported by URP, but the code would look like this.
@@ -1588,6 +1610,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor); // VisibleLight.finalColor already returns color in active color space
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
@@ -1627,6 +1650,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
+                UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
+
                 int lightFlags = 0;
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
@@ -1644,6 +1670,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1682,6 +1709,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
                 UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, visLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
+                UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(vl.light);
+                uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
+
                 int lightFlags = 0;
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
@@ -1703,6 +1733,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightOcclusionProbInfo, lightOcclusionChannel);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
+                cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1766,11 +1797,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             UniversalRenderPipeline.InitializeLightConstants_Common(visibleLights, index, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
-            punctualLightBuffer[storeIndex * 5 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
-            punctualLightBuffer[storeIndex * 5 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
-            punctualLightBuffer[storeIndex * 5 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            punctualLightBuffer[storeIndex * 5 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
-            punctualLightBuffer[storeIndex * 5 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
+            UniversalAdditionalLightData additionalLightData = ForwardLights.GetAdditionalLightData(visibleLights[index].light);
+            uint lightLayerMask = (uint)additionalLightData.lightLayerMask;
+
+            punctualLightBuffer[storeIndex * 6 + 0] = new uint4(FloatToUInt(lightPos.x), FloatToUInt(lightPos.y), FloatToUInt(lightPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            punctualLightBuffer[storeIndex * 6 + 1] = new uint4(FloatToUInt(lightColor.x), FloatToUInt(lightColor.y), FloatToUInt(lightColor.z), 0);
+            punctualLightBuffer[storeIndex * 6 + 2] = new uint4(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            punctualLightBuffer[storeIndex * 6 + 3] = new uint4(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), (uint)lightFlags);
+            punctualLightBuffer[storeIndex * 6 + 4] = new uint4(FloatToUInt(lightOcclusionChannel.x), FloatToUInt(lightOcclusionChannel.y), FloatToUInt(lightOcclusionChannel.z), FloatToUInt(lightOcclusionChannel.w));
+            punctualLightBuffer[storeIndex * 6 + 5] = new uint4(lightLayerMask, 0, 0, 0);
         }
 
         void StoreTileData(ref NativeArray<uint4> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)

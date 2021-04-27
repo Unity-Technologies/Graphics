@@ -9,7 +9,7 @@ A Visual Effect Graph Asset is a data container that the Visual Effect Graph use
 
 ## Creating Visual Effect Graph Assets
 
-To create a Visual Effect Graph Asset, select **Assets > Create > VFX > VFX Effect Graph**. Unity creates a new Visual Effect in the currently opened folder of your Project window.
+To create a Visual Effect Graph Asset, select **Assets > Create > Visual Effects > Visual Effect Graph**. Unity creates a new Visual Effect in the currently opened folder of your Project window.
 
 ## Using Visual Effect Graph Assets
 

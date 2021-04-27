@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Enabled", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
 
-            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layer Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayerTexture");
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
@@ -266,10 +266,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 m_PostProcessData.objectReferenceValue = postProcessIncluded ? UnityEngine.Rendering.Universal.PostProcessData.GetDefaultPostProcessData() : null;
             }
-            if (postProcessIncluded)
-            {
-                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-            }
+
+            // this field is no longer hidden by the checkbox. It is bad UX to begin with
+            // also, if the field is hidden, the user could still use Asset Selector to set the value, but it won't stick
+            // making it look like a bug(1307128)
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+
             EditorGUILayout.Space();
         }
     }

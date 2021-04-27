@@ -6,10 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
+### Changed
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+- The RTHandleSystem no longer requires a specific number of sample for MSAA textures. Number of samples can be chosen independently for all textures.
+
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
 - Fixed Right Align of additional properties on Volume Components Editors
+- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+- Fixed L2 for Probe Volumes.
+- Fixed assertion on compression of L1 coefficients for Probe Volume.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -21,6 +30,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added a blitter for the SRPs.
+- Added 2D texture atlases.
+- New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
+- Method to generate a Texture2D of 1x1 with a plain color
+- Red, Green, Blue Texture2D on CoreEditorStyles
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
+- Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
+- Adding documentation links to Light Sections
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
@@ -31,6 +48,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volume Gizmo alpha changed from 0.5 to 0.125
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+- Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
+- Improved load asset time for probe volumes.
 
 ### Added
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
@@ -126,6 +145,7 @@ The version number for this package has increased due to a version update of a r
 - Updated macros to be compatible with the new shader preprocessor.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
+- Deprecating VolumeComponentDeprecad, using HideInInspector or Obsolete instead
 
 ## [7.1.1] - 2019-09-05
 

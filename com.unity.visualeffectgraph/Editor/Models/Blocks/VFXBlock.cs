@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             set
             {
                 m_Disabled = !value;
-                Invalidate(InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kEnableChanged);
             }
         }
         public virtual bool isValid

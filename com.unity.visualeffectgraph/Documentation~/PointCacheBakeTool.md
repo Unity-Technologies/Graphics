@@ -10,7 +10,7 @@ The Point Cache Bake Tool is an Utility Window that enables generating [Point Ca
 
 The Point Cache Bake Tool Window is accessible through the menu :
 
-**Window > VFX > Utilities > Point Cache Bake Tool**
+**Window > Visual Effects > Utilities > Point Cache Bake Tool**
 
 ## Using the Tool
 

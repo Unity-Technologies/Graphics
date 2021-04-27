@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -11,49 +12,49 @@ PR_URPUpdate_trunk:
     name: URPUpdate PR Job - trunk
     dependencies:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_trunk:
     name: Nightly URPUpdate - trunk
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
 Nightly_URPUpdate_CUSTOM-REVISION:
     name: Nightly URPUpdate - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+        TEMPLATE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e

@@ -38,6 +38,16 @@
     height: initial;
 }
 
+#SGBlackboard > #subTitleTextField {
+    position: relative;
+    font-size: 11px;
+    margin-left: 0;
+    left: 5;
+    top: 5;
+    width: auto;
+    visibility: hidden;
+}
+
 #SGBlackboard.windowed > .resizer {
     display: none;
 }
@@ -108,7 +118,7 @@
     padding-left: 0;
     padding-top: 0;
     padding-right: 0;
-    padding-bottom: 6px;
+    padding-bottom: 15px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -172,6 +182,14 @@
     color: #606060;
 }
 
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+}
+
 .blackboardSection {
     padding-left: 0;
     padding-right: 0;
@@ -195,26 +213,26 @@
     min-height: 2px;
 }
 
-#BlackboardRow {
+#SGBlackboardRow {
     padding-left: 4px;
     padding-right: 8px;
 }
 
-#BlackboardRow  > .mainContainer > #root > #itemRow {
+#SGBlackboardRow  > .mainContainer > #root > #itemRow {
     flex-direction: row;
 }
 
-#BlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer {
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer {
     flex: 1 0 0;
     align-items: stretch;
 }
 
-#BlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer > #itemContainer {
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #itemRowContentContainer > #itemContainer {
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardRow > .mainContainer > #root > #itemRow > #expandButton {
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton {
     align-self: center;
     background-image: none;
     background-color: #2A2A2A;
@@ -233,53 +251,68 @@
     padding-bottom: 0;
 }
 
-#BlackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
     --unity-image : resource("GraphView/Nodes/NodeChevronRight.png");
     width: 12px;
     height: 12px;
 }
 
-#BlackboardRow.expanded > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
+#SGBlackboardRow.expanded > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
     --unity-image : resource("GraphView/Nodes/NodeChevronDown.png");
 }
 
-#BlackboardRow > .mainContainer > #root > #itemRow > #expandButton:hover > #buttonImage {
+#SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton:hover > #buttonImage {
     background-color: #212121;
     border-radius: 1px;
 }
 
-#BlackboardRow > .mainContainer > #root > #propertyViewContainer {
+#SGBlackboardRow > .mainContainer > #root > #propertyViewContainer {
 }
 
-#BlackboardField {
+#SGBlackboardRow.hovered #pill #selection-border
+{
+    background-color:rgba(68,192,255,0.4);
+    border-color: #44C0FF;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+#BlackboardPropertyView {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardField > .mainContainer {
+#BlackboardPropertyView > .mainContainer {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardField > .mainContainer > #contentItem {
+#BlackboardPropertyView > .mainContainer > #contentItem {
     flex: 1 0 0;
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardField > .mainContainer > #textField {
+#BlackboardPropertyView > .mainContainer > #textField {
     position: absolute;
     top:0;
     left:0;
     right:0;
     bottom:0;
     -unity-text-align:middle-left;
+    -unity-font-color: red;
     font-size: 11px;
 }
 
-#BlackboardField > .mainContainer > #contentItem > #typeLabel {
+#BlackboardPropertyView > .mainContainer > #contentItem > #typeLabel {
     flex: 1 0 0;
     -unity-text-align:middle-right;
     color: #808080;

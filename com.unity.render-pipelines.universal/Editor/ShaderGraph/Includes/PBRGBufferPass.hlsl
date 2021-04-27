@@ -1,13 +1,18 @@
-void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
-{
-    inputData.positionWS = input.positionWS;
-    #ifdef _NORMALMAP
 
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+{
+    inputData = (InputData)0;
+
+    inputData.positionWS = input.positionWS;
+
+    #ifdef _NORMALMAP
+        // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+        float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+        float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
         #if _NORMAL_DROPOFF_TS
-            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentToWorld);
         #elif _NORMAL_DROPOFF_OS
             inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
@@ -25,11 +30,21 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+#if defined(DYNAMICLIGHTMAP_ON)
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
+#else
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
+#endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV;
+    #else
+    inputData.vertexSH = input.sh;
+    #endif
 }
 
 PackedVaryings vert(Attributes input)
@@ -60,7 +75,9 @@ FragmentOutput frag(PackedVaryings packedInput)
     #endif
 
     InputData inputData;
-    BuildInputData(unpacked, surfaceDescription, inputData);
+    InitializeInputData(unpacked, surfaceDescription, inputData);
+    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
+    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.uv, _MainTex);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
