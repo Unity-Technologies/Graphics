@@ -100,6 +100,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
         half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            input.uv = input.uv / _RTHandleScale.xy;
 
             #if _GENERIC
             float2 proj_pos = Panini_Generic((2.0 * input.uv - 1.0) * _Params.xy * _Params.w, _Params.z);
@@ -109,8 +110,9 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
 
             float2 proj_ndc = proj_pos / _Params.xy;
             float2 coords = proj_ndc * 0.5 + 0.5;
+            coords = clamp(coords, float2(0, 0), float2(1, 1));
 
-            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, coords);
+            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, coords * _RTHandleScale.xy);
         }
 
     ENDHLSL
