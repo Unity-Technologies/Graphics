@@ -39,7 +39,6 @@ namespace UnityEditor.Rendering.Universal
         // Temporary saved bools for foldout header
         SavedBool m_CommonCameraSettingsFoldout;
         SavedBool m_EnvironmentSettingsFoldout;
-        SavedBool m_VolumesSettingsFoldout;
         SavedBool m_OutputSettingsFoldout;
         SavedBool m_RenderingSettingsFoldout;
         SavedBool m_StackSettingsFoldout;
@@ -83,7 +82,6 @@ namespace UnityEditor.Rendering.Universal
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
-            m_VolumesSettingsFoldout = new SavedBool($"{target.GetType()}.VolumesSettingsFoldout", false);
             m_OutputSettingsFoldout = new SavedBool($"{target.GetType()}.OutputSettingsFoldout", false);
             m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
             m_StackSettingsFoldout = new SavedBool($"{target.GetType()}.StackSettingsFoldout", false);
@@ -366,7 +364,6 @@ namespace UnityEditor.Rendering.Universal
             DrawCommonSettings();
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
-            DrawVolumeSettings();
 
             if (camType == CameraRenderType.Base)
             {
@@ -640,40 +637,7 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
-
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawVolumeSettings()
-        {
-            m_VolumesSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumesSettingsFoldout.value, Styles.volumesSettingsText);
-            if (m_VolumesSettingsFoldout.value)
-            {
-                // Display the Volume Update mode, LayerMask and Trigger
-                LayerMask selectedVolumeLayerMask = m_SerializedCamera.volumeLayerMask.intValue;
-                Transform selectedVolumeTrigger = (Transform)m_SerializedCamera.volumeTrigger.objectReferenceValue;
-
-                EditorGUI.BeginChangeCheck();
-
-                EditorGUILayout.PropertyField(m_SerializedCamera.volumeFrameworkUpdateMode, Styles.volumeUpdates);
-                DrawLayerMask(m_SerializedCamera.volumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
-                DrawObjectField(m_SerializedCamera.volumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    m_SerializedCamera.volumeLayerMask.intValue = selectedVolumeLayerMask;
-                    m_SerializedCamera.volumeTrigger.objectReferenceValue = selectedVolumeTrigger;
-                    m_SerializedCamera.Apply();
-
-                    Camera cam = (Camera)m_SerializedCamera.serializedObject.targetObject;
-                    if (cam != null)
-                    {
-                        cam.UpdateVolumeStack();
-                    }
-                }
+                DrawVolumes();
 
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -924,6 +888,40 @@ namespace UnityEditor.Rendering.Universal
                         MessageType.Warning, true);
                 }
             }
+        }
+
+        void DrawVolumes()
+        {
+            // Display the Volume Update mode, LayerMask and Trigger
+            LayerMask selectedVolumeLayerMask = m_SerializedCamera.volumeLayerMask.intValue;
+            Transform selectedVolumeTrigger = (Transform)m_SerializedCamera.volumeTrigger.objectReferenceValue;
+
+            EditorGUILayout.LabelField(Styles.volumesSettingsText, EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUI.BeginChangeCheck();
+
+                EditorGUILayout.PropertyField(m_SerializedCamera.volumeFrameworkUpdateMode, Styles.volumeUpdates);
+                DrawLayerMask(m_SerializedCamera.volumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
+                DrawObjectField(m_SerializedCamera.volumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_SerializedCamera.volumeLayerMask.intValue = selectedVolumeLayerMask;
+                    m_SerializedCamera.volumeTrigger.objectReferenceValue = selectedVolumeTrigger;
+                    m_SerializedCamera.Apply();
+
+                    Camera cam = (Camera)m_SerializedCamera.serializedObject.targetObject;
+                    if (cam != null)
+                    {
+                        cam.UpdateVolumeStack();
+                    }
+                }
+            }
+
+
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
         }
 
         void DrawRenderer(UniversalRenderPipelineAsset rpAsset)

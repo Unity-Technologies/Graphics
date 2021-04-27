@@ -148,10 +148,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.volumeStack = VolumeManager.instance.CreateStack();
             }
 
-            Transform trigger;
-            LayerMask layerMask;
-            camera.GetVolumeLayerMaskAndTrigger(cameraData, out layerMask, out trigger);
-
+            camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
         }
 
@@ -460,7 +457,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns true if this camera requires the volume framework to be updated.
+        /// Returns true if this camera requires the volume framework to be updated every frame.
         /// </summary>
         public bool requiresVolumeFrameworkUpdate
         {

@@ -610,9 +610,7 @@ namespace UnityEngine.Rendering.Universal
             #endif
 
             // Get the volume trigger and layer mask
-            Transform trigger;
-            LayerMask layerMask;
-            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out layerMask, out trigger);
+            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
 
             // We skip updating if the asset has volume updates disabled
             // When we have volume updates per-frame disabled...
