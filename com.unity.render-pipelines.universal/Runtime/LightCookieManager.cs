@@ -557,59 +557,6 @@ namespace UnityEngine.Rendering.Universal
             return octCookieSize;
         }
 
-        // TODO: remove
-        #region CookieDebug
-        void DrawDebugFrustum(Matrix4x4 m, float near = 1, float far = -1)
-        {
-            var src = new Vector4[]
-            {
-                new Vector4(-1, -1, near, 1),
-                new Vector4(1, -1, near , 1),
-                new Vector4(1, 1, near  , 1),
-                new Vector4(-1, 1, near , 1),
-
-                new Vector4(-1, -1, far , 1),
-                new Vector4(1, -1, far  , 1),
-                new Vector4(1, 1, far   , 1),
-                new Vector4(-1, 1, far  , 1),
-            };
-            var res = new Vector4[8];
-            for (int i = 0; i < src.Length; i++)
-                res[i] = m * src[i];
-
-            for (int i = 0; i < src.Length; i++)
-                res[i] = res[i].w != 0 ? res[i] / res[i].w : res[i];
-
-            Debug.DrawLine(res[0], res[1], Color.black);
-            Debug.DrawLine(res[1], res[2], Color.black);
-            Debug.DrawLine(res[2], res[3], Color.black);
-            Debug.DrawLine(res[3], res[0], Color.black);
-
-            Debug.DrawLine(res[4 + 0], res[4 + 1], Color.white);
-            Debug.DrawLine(res[4 + 1], res[4 + 2], Color.white);
-            Debug.DrawLine(res[4 + 2], res[4 + 3], Color.white);
-            Debug.DrawLine(res[4 + 3], res[4 + 0], Color.white);
-
-            Debug.DrawLine(res[0], res[4 + 0], Color.yellow);
-            Debug.DrawLine(res[1], res[4 + 1], Color.yellow);
-            Debug.DrawLine(res[2], res[4 + 2], Color.yellow);
-            Debug.DrawLine(res[3], res[4 + 3], Color.yellow);
-
-            var o = m * new Vector4(0, 0, 0, 1);
-            var x = m * new Vector4(1, 0, 0, 1);
-            var y = m * new Vector4(0, 1, 0, 1);
-            var z = m * new Vector4(0, 0, 1, 1);
-            o = o.w > 0 ? o / o.w : o;
-            x = x.w > 0 ? x / x.w : x;
-            y = y.w > 0 ? y / y.w : y;
-            z = z.w > 0 ? z / z.w : z;
-            Debug.DrawLine(o, x, Color.red);
-            Debug.DrawLine(o, y, Color.green);
-            Debug.DrawLine(o, z, Color.blue);
-        }
-
-        #endregion
-
         void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> validSortedLights, ref NativeArray<Vector4> validUvRects)
         {
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
