@@ -3,10 +3,6 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
-// Make VFX only sample probe volumes as SH0 for performance.
-//TODOPAUL : Check this implementation in URP
-//#define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
