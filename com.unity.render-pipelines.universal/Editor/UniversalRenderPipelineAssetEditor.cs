@@ -98,6 +98,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
+            public static string[] volumeFrameworkUpdateOptions = { "Every Frame", "Via Scripting" };
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
@@ -625,7 +626,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
                 EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
                 EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
-                EditorGUILayout.PropertyField(m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateMode);
+                CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

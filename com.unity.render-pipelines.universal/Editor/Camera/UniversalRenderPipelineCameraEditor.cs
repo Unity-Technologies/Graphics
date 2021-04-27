@@ -624,32 +624,27 @@ namespace UnityEditor.Rendering.Universal
             m_VolumesSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumesSettingsFoldout.value, Styles.volumesSettingsText);
             if (m_VolumesSettingsFoldout.value)
             {
-                // Display the Update settings for volumes
+                // Display the Volume Update mode, LayerMask and Trigger
+                LayerMask selectedVolumeLayerMask = m_SerializedCamera.volumeLayerMask.intValue;
+                Transform selectedVolumeTrigger = (Transform)m_SerializedCamera.volumeTrigger.objectReferenceValue;
+
+                EditorGUI.BeginChangeCheck();
+
                 EditorGUILayout.PropertyField(m_SerializedCamera.volumeFrameworkUpdateMode, Styles.volumeUpdates);
+                DrawLayerMask(m_SerializedCamera.volumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
+                DrawObjectField(m_SerializedCamera.volumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
 
-                // Display the Volume LayerMask and Trigger
-                bool hasChanged = false;
-                LayerMask selectedVolumeLayerMask;
-                Transform selectedVolumeTrigger;
-                if (m_SerializedCamera == null)
-                {
-                    selectedVolumeLayerMask = 1; // "Default"
-                    selectedVolumeTrigger = null;
-                }
-                else
-                {
-                    selectedVolumeLayerMask = m_SerializedCamera.volumeLayerMask.intValue;
-                    selectedVolumeTrigger = (Transform)m_SerializedCamera.volumeTrigger.objectReferenceValue;
-                }
-
-                hasChanged |= DrawLayerMask(m_SerializedCamera.volumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
-                hasChanged |= DrawObjectField(m_SerializedCamera.volumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
-
-                if (hasChanged)
+                if (EditorGUI.EndChangeCheck())
                 {
                     m_SerializedCamera.volumeLayerMask.intValue = selectedVolumeLayerMask;
                     m_SerializedCamera.volumeTrigger.objectReferenceValue = selectedVolumeTrigger;
                     m_SerializedCamera.Apply();
+
+                    Camera cam = (Camera)m_SerializedCamera.serializedObject.targetObject;
+                    if (cam != null)
+                    {
+                        cam.UpdateVolumeStack();
+                    }
                 }
 
                 EditorGUILayout.Space();

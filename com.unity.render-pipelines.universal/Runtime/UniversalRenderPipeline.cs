@@ -585,63 +585,35 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
-            // Default values when there's no additional camera data available
-            LayerMask layerMask = 1; // "Default"
-            Transform trigger = camera.transform;
+            // We update the volume framework for:
+            // * All cameras in the editor when not in playmode
+            // * scene cameras
+            // * cameras with update mode set to EveryFrame
+            // * cameras with update mode set to UsePipelineSettings and the URP Asset set to EveryFrame
+            bool shouldUpdate = camera.cameraType == CameraType.SceneView;
+            shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            bool shouldUpdate = false;
-            if (additionalCameraData != null)
-            {
-                layerMask = additionalCameraData.volumeLayerMask;
-                trigger = (additionalCameraData.volumeTrigger != null) ? additionalCameraData.volumeTrigger : trigger;
-                shouldUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
-            }
-            else if (camera.cameraType == CameraType.SceneView)
-            {
-                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
-                var mainCamera = Camera.main;
-                UniversalAdditionalCameraData mainAdditionalCameraData = null;
+            #if UNITY_EDITOR
+            shouldUpdate |= Application.isPlaying == false;
+            #endif
 
-                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
-                {
-                    layerMask = mainAdditionalCameraData.volumeLayerMask;
-                }
-
-                trigger = (mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null) ? mainAdditionalCameraData.volumeTrigger : trigger;
-            }
+            // Get the volume trigger and layer mask
+            Transform trigger;
+            LayerMask layerMask;
+            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out layerMask, out trigger);
 
             // We skip updating if the asset has volume updates disabled
-            if (additionalCameraData)
+            // When we have volume updates per-frame disabled...
+            if (!shouldUpdate && additionalCameraData)
             {
-                // Create stack for camera
+                // Create a local volume stack and cache the state if it's null
                 if (additionalCameraData.volumeStack == null)
                 {
-                    additionalCameraData.volumeStack = VolumeManager.instance.CreateStack();
-                    VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
+                    camera.UpdateVolumeStack(additionalCameraData);
                 }
 
-                // When we have volume updates per-frame disabled...
-                if (!shouldUpdate)
-                {
-                    VolumeManager.instance.stack = additionalCameraData.volumeStack;
-
-                    // If the update setting was enabled in the previous scene, we need to update...
-                    if (additionalCameraData.lastRequiresVolumeFrameworkUpdate)
-                    {
-                        VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
-                        additionalCameraData.lastRequiresVolumeFrameworkUpdate = false;
-                    }
-
-                    // We always want to update normally in the editor when not in playmode
-                    #if UNITY_EDITOR
-                    if (Application.isPlaying)
-                    #endif
-                    {
-                        return;
-                    }
-                }
-
-                additionalCameraData.lastRequiresVolumeFrameworkUpdate = shouldUpdate;
+                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                return;
             }
 
             // When we want to update the volumes every frame...
@@ -843,7 +815,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.requiresVolumeFrameworkUpdate = true;
                 cameraData.renderer = asset.scriptableRenderer;
             }
             else if (additionalCameraData != null)
@@ -854,7 +825,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
-                cameraData.requiresVolumeFrameworkUpdate = additionalCameraData.requiresVolumeFrameworkUpdate;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
             }
             else
@@ -864,7 +834,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.postProcessEnabled = false;
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.requiresVolumeFrameworkUpdate = settings.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
                 cameraData.renderer = asset.scriptableRenderer;
             }
 

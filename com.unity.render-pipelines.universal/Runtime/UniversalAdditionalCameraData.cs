@@ -64,16 +64,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Controls the update frequency for the Volume Framework
-    /// </summary>
-    public enum VolumeFrameworkUpdateModeOverrideOption
-    {
-        EveryFrame,
-        ViaScripting,
-        UsePipelineSettings,
-    }
-
-    /// <summary>
     /// Contains extension methods for Camera class.
     /// </summary>
     public static class CameraExtensions
@@ -83,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
         /// This method returns the additional data component for the given camera or create one if it doesn't exists yet.
         /// </summary>
         /// <param name="camera"></param>
-        /// <returns>The <c>UniversalAdditinalCameraData</c> for this camera.</returns>
+        /// <returns>The <c>UniversalAdditionalCameraData</c> for this camera.</returns>
         /// <see cref="UniversalAdditionalCameraData"/>
         public static UniversalAdditionalCameraData GetUniversalAdditionalCameraData(this Camera camera)
         {
@@ -93,6 +83,79 @@ namespace UnityEngine.Rendering.Universal
                 cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
 
             return cameraData;
+        }
+
+        public static VolumeFrameworkUpdateMode GetVolumeStackUpdateMode(this Camera camera)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            return cameraData.volumeFrameworkUpdateMode;
+        }
+
+        public static void SetVolumeStackUpdateMode(this Camera camera, VolumeFrameworkUpdateMode mode)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            cameraData.volumeFrameworkUpdateMode = mode;
+
+            // We only update the local volume stacks for cameras set to ViaScripting.
+            // Otherwise it will be updated in every frame.
+            if (!cameraData.requiresVolumeFrameworkUpdate)
+            {
+                camera.UpdateVolumeStack(cameraData);
+            }
+        }
+
+        public static void UpdateVolumeStack(this Camera camera)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            camera.UpdateVolumeStack(cameraData);
+        }
+
+        public static void UpdateVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
+        {
+            // We only update the local volume stacks for cameras set to ViaScripting.
+            // Otherwise it will be updated in the frame.
+            if (cameraData.requiresVolumeFrameworkUpdate)
+            {
+                return;
+            }
+
+            // Create stack for camera
+            if (cameraData.volumeStack == null)
+            {
+                cameraData.volumeStack = VolumeManager.instance.CreateStack();
+            }
+
+            Transform trigger;
+            LayerMask layerMask;
+            camera.GetVolumeLayerMaskAndTrigger(cameraData, out layerMask, out trigger);
+
+            VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
+        }
+
+        internal static void GetVolumeLayerMaskAndTrigger(this Camera camera, UniversalAdditionalCameraData additionalCameraData, out LayerMask layerMask, out Transform trigger)
+        {
+            // Default values when there's no additional camera data available
+            layerMask = 1; // "Default"
+            trigger = camera.transform;
+
+            if (additionalCameraData != null)
+            {
+                layerMask = additionalCameraData.volumeLayerMask;
+                trigger = (additionalCameraData.volumeTrigger != null) ? additionalCameraData.volumeTrigger : trigger;
+            }
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+                // Try to mirror the MainCamera volume layer mask for the scene view - do not mirror the target
+                var mainCamera = Camera.main;
+                UniversalAdditionalCameraData mainAdditionalCameraData = null;
+
+                if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                {
+                    layerMask = mainAdditionalCameraData.volumeLayerMask;
+                }
+
+                trigger = (mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null) ? mainAdditionalCameraData.volumeTrigger : trigger;
+            }
         }
     }
 
@@ -129,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
-        [SerializeField] VolumeFrameworkUpdateModeOverrideOption m_VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateModeOverrideOption.UsePipelineSettings;
+        [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateMode.UsePipelineSettings;
 
         [SerializeField] bool m_RenderPostProcessing = false;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
@@ -358,23 +421,29 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns true if this camera requires to color information in a texture.
-        /// If enabled, color texture is available to be bound and read from shaders as _CameraOpaqueTexture after rendering skybox.
+        /// Returns the selected mode for Volume Frame Updates
+        /// </summary>
+        internal VolumeFrameworkUpdateMode volumeFrameworkUpdateMode
+        {
+            get => m_VolumeFrameworkUpdateModeOption;
+            set => m_VolumeFrameworkUpdateModeOption = value;
+        }
+
+        /// <summary>
+        /// Returns true if this camera requires the volume framework to be updated
         /// </summary>
         public bool requiresVolumeFrameworkUpdate
         {
             get
             {
-                if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateModeOverrideOption.UsePipelineSettings)
+                if (m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.UsePipelineSettings)
                 {
-                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode == VolumeFrameworkUpdateMode.EveryFrame;
+                    return UniversalRenderPipeline.asset.volumeFrameworkUpdateMode != VolumeFrameworkUpdateMode.ViaScripting;
                 }
-                else
-                {
-                    return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateModeOverrideOption.EveryFrame;
-                }
+
+                return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.EveryFrame;
             }
-            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateModeOverrideOption.EveryFrame : VolumeFrameworkUpdateModeOverrideOption.ViaScripting;
+            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateMode.EveryFrame : VolumeFrameworkUpdateMode.ViaScripting;
         }
 
         /// <summary>
@@ -386,11 +455,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_VolumeStack;
             set => m_VolumeStack = value;
         }
-
-        // This variable is used to detect when volume framework updates
-        // are switched from being enabled to disabled. In those cases
-        // we want to update the stack to capture the last state.
-        internal bool lastRequiresVolumeFrameworkUpdate { get; set; }
 
         public List<Volume> volumeList { get; set; }
 

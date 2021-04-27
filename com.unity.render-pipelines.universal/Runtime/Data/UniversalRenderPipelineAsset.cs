@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.Universal
     {
         EveryFrame = 0,
         ViaScripting = 1,
+        UsePipelineSettings = 2,
     }
 
     [ExcludeFromPreset]
