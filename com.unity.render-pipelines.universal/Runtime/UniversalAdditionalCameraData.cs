@@ -85,13 +85,23 @@ namespace UnityEngine.Rendering.Universal
             return cameraData;
         }
 
-        public static VolumeFrameworkUpdateMode GetVolumeStackUpdateMode(this Camera camera)
+        /// <summary>
+        /// Returns the VolumeFrameworkUpdateMode set on the camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <returns></returns>
+        public static VolumeFrameworkUpdateMode GetVolumeFrameworkUpdateMode(this Camera camera)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
             return cameraData.volumeFrameworkUpdateMode;
         }
 
-        public static void SetVolumeStackUpdateMode(this Camera camera, VolumeFrameworkUpdateMode mode)
+        /// <summary>
+        /// Sets the VolumeFrameworkUpdateMode for the camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="mode"></param>
+        public static void SetVolumeFrameworkUpdateMode(this Camera camera, VolumeFrameworkUpdateMode mode)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
             cameraData.volumeFrameworkUpdateMode = mode;
@@ -104,12 +114,25 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Updates the volume stack for this camera.
+        /// This function will only update the stack when the camera has VolumeFrameworkUpdateMode set to ViaScripting
+        /// or when it set to UsePipelineSettings and the update mode on the Render Pipeline Asset is set to ViaScripting.
+        /// </summary>
+        /// <param name="camera"></param>
         public static void UpdateVolumeStack(this Camera camera)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
             camera.UpdateVolumeStack(cameraData);
         }
 
+        /// <summary>
+        /// Updates the volume stack for this camera.
+        /// This function will only update the stack when the camera has ViaScripting selected or if
+        /// the camera is set to UsePipelineSettings and the Render Pipeline Asset is set to ViaScripting.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="cameraData"></param>
         public static void UpdateVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
         {
             // We only update the local volume stacks for cameras set to ViaScripting.
@@ -132,6 +155,13 @@ namespace UnityEngine.Rendering.Universal
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
         }
 
+        /// <summary>
+        /// Returns the mask and trigger assigned for volumes on the camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="additionalCameraData"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="trigger"></param>
         internal static void GetVolumeLayerMaskAndTrigger(this Camera camera, UniversalAdditionalCameraData additionalCameraData, out LayerMask layerMask, out Transform trigger)
         {
             // Default values when there's no additional camera data available
