@@ -57,6 +57,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             });
         }
 
+        internal static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = defaultValue,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = declarationType,
+                displayName = referenceName,
+                overrideReferenceName = referenceName,
+            });
+        }
+
         // Overloads to do inline PassDescriptor modifications
         // NOTE: param order should match PassDescriptor field order for consistency
         #region PassVariant

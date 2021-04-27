@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector, ok to have incorrect values here
-                collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+                collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
