@@ -18,6 +18,7 @@ namespace Tests
                 yield return new TestCaseData(BuildTarget.iOS);
                 yield return new TestCaseData(BuildTarget.Lumin);
                 yield return new TestCaseData(BuildTarget.PS4);
+                yield return new TestCaseData(BuildTarget.PS5);
                 yield return new TestCaseData(BuildTarget.Stadia);
                 yield return new TestCaseData(BuildTarget.StandaloneLinux64);
                 yield return new TestCaseData(BuildTarget.StandaloneOSX);
@@ -43,6 +44,7 @@ namespace Tests
                 case BuildTarget.WebGL:
                     return false;
                 case BuildTarget.PS4:
+                case BuildTarget.PS5:
                 case BuildTarget.Stadia:
                 case BuildTarget.StandaloneLinux64:
                 case BuildTarget.StandaloneWindows:

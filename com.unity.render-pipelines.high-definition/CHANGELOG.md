@@ -4,10 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.4] - 2021-01-28
+## [7.6.0] - 2021-03-25
+
+### Added
+- Support for the PlayStation 5 platform has been added.
 
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
+- Fixed lights shadow frustum near and far planes.
+
+## Changed
+- Tidy up of platform abstraction code for shader optimization.
 
 ## [7.5.3] - 2021-01-11
 

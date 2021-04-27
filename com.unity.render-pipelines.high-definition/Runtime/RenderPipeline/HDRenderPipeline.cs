@@ -4457,7 +4457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // On PS4 we don't have working MRT clear, so need to clear buffers one by one
                             // https://fogbugz.unity3d.com/f/cases/1182018/
-                            if (Application.platform == RuntimePlatform.PS4)
+                            if (Application.platform == RuntimePlatform.PS4 || Application.platform == RuntimePlatform.PS5)
                             {
                                 var GBuffers = m_GbufferManager.GetBuffersRTI();
                                 foreach (var gbuffer in GBuffers)

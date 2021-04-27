@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
-                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+                "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch"
             },
             Includes = new List<string>()
             {
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
-                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch"
+                "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch"
             },
             Includes = new List<string>()
             {
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderStages = HDSubShaderUtilities.s_ShaderStagesRasterization,
             ExtraDefines = new List<string>()
             {
-                "#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                "#pragma only_renderers d3d11 playstation xboxone vulkan metal switch",
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
             },
@@ -494,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingGBuffer.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {

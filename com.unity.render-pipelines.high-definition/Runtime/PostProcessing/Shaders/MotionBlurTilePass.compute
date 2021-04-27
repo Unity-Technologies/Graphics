@@ -8,7 +8,7 @@
 #pragma kernel TileGenPass                        TILE_GEN_KERNEL_NAME=TileGenPass GEN_PASS
 #pragma kernel TileNeighbourhood                  TILE_NEIGHBOURHOOD_KERNEL_NAME=TileNeighbourhood NEIGHBOURHOOD_PASS
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #define USE_WAVE_INTRINSICS         defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
 
