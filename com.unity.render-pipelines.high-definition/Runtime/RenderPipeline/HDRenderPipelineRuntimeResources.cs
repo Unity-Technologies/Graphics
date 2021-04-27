@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugViewVirtualTexturingBlit;
             [Reload("Runtime/Debug/MaterialError.Shader")]
             public Shader materialError;
+            [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
+            public Shader probeVolumeDebugShader;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -447,6 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveCylinderMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
             public Mesh emissiveQuadMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
+            public Mesh sphereMesh;
         }
 
         public ShaderResources shaders;
