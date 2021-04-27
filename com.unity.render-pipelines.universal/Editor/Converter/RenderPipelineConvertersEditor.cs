@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -8,8 +9,8 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal
 {
-// Status for each row item to say in which state they are in.
-// This will make sure they are showing the correct icon
+    // Status for each row item to say in which state they are in.
+    // This will make sure they are showing the correct icon
     enum Status
     {
         Pending,
@@ -18,7 +19,7 @@ namespace UnityEditor.Rendering.Universal
         Success
     }
 
-// This is the serialized class that stores the state of each item in the list of items to convert
+    // This is the serialized class that stores the state of each item in the list of items to convert
     [Serializable]
     class ConverterItemState
     {
@@ -33,9 +34,9 @@ namespace UnityEditor.Rendering.Universal
         internal bool hasConverted = false;
     }
 
-// Each converter uses the active bool
-// Each converter has a list of active items/assets
-// We do this so that we can use the binding system of the UI Elements
+    // Each converter uses the active bool
+    // Each converter has a list of active items/assets
+    // We do this so that we can use the binding system of the UI Elements
     [Serializable]
     class ConverterState
     {
@@ -56,12 +57,6 @@ namespace UnityEditor.Rendering.Universal
     [EditorWindowTitle(title = "Render Pipeline Converters")]
     public class RenderPipelineConvertersEditor : EditorWindow
     {
-        Texture2D kImgWarn;
-        Texture2D kImgHelp;
-        Texture2D kImgFail;
-        Texture2D kImgSuccess;
-        Texture2D kImgPending;
-
         public VisualTreeAsset converterEditorAsset;
         public VisualTreeAsset converterListAsset;
         public VisualTreeAsset converterItem;
@@ -69,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
         ScrollView m_ScrollView;
         DropdownField m_ConversionsDropdownField;
 
-        List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
+        List<RenderPipelineConverter> m_CoreConvertersList;
 
         // This list needs to be as long as the amount of converters
         List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
@@ -81,7 +76,7 @@ namespace UnityEditor.Rendering.Universal
         // There is one for each Converter.
         [SerializeField] List<ConverterState> m_ConverterStates = new List<ConverterState>();
 
-        TypeCache.TypeCollection m_Conversions;
+        TypeCache.TypeCollection m_ConverterContainers;
 
 #if RENDER_PIPELINE_CONVERTER
         [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
@@ -90,26 +85,33 @@ namespace UnityEditor.Rendering.Universal
         public static void ShowWindow()
         {
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
+            DontSaveToLayout(wnd);
+
             wnd.Show();
+        }
+
+        internal static void DontSaveToLayout(EditorWindow wnd)
+        {
+            // Making sure that the window is not saved in layouts.
+            Assembly assembly = typeof(EditorWindow).Assembly;
+            var editorWindowType = typeof(EditorWindow);
+            var hostViewType = assembly.GetType("UnityEditor.HostView");
+            var containerWindowType = assembly.GetType("UnityEditor.ContainerWindow");
+            var parentViewField = editorWindowType.GetField("m_Parent", BindingFlags.Instance | BindingFlags.NonPublic);
+            var parentViewValue = parentViewField.GetValue(wnd);
+            // window should not be saved to layout
+            var containerWindowProperty = hostViewType.GetProperty("window", BindingFlags.Instance | BindingFlags.Public);
+            var parentContainerWindowValue = containerWindowProperty.GetValue(parentViewValue);
+            var dontSaveToLayoutField = containerWindowType.GetField("m_DontSaveToLayout", BindingFlags.Instance | BindingFlags.NonPublic);
+            dontSaveToLayoutField.SetValue(parentContainerWindowValue, true);
         }
 
         void OnEnable()
         {
-            kImgWarn = CoreEditorStyles.iconWarn;
-            kImgHelp = CoreEditorStyles.iconHelp;
-            kImgFail = CoreEditorStyles.iconFail;
-            kImgSuccess = CoreEditorStyles.iconSuccess;
-            kImgPending = CoreEditorStyles.iconPending;
+            m_CoreConvertersList = new List<RenderPipelineConverter>();
 
             // This is the drop down choices.
-            m_Conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
-            // for (int j = 0; j < m_Conversions.Count; j++)
-            // {
-            //     // Iterate over the conversions
-            //     RenderPipelineConverterContainer converterContainer =
-            //         (RenderPipelineConverterContainer) Activator.CreateInstance(m_Conversions[j]);
-            //     m_ConversionsChoices.Add(converterContainer.name);
-            // }
+            m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
 
             var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
             for (int i = 0; i < converters.Count; ++i)
@@ -141,14 +143,9 @@ namespace UnityEditor.Rendering.Universal
             m_SerializedObject = new SerializedObject(this);
             converterEditorAsset.CloneTree(rootVisualElement);
 
-            // Adding the different conversions
-            // Right now the .choices attribute is internal so we can not add it. This will be public in the future.
-            //m_ConversionsDropdownField = rootVisualElement.Q<DropdownField>("conversionDropDown");
-            //m_ConversionsDropdownField.choices = conversionsChoices;
-
             // This is temp now to get the information filled in
             RenderPipelineConverterContainer converterContainer =
-                (RenderPipelineConverterContainer)Activator.CreateInstance(m_Conversions[0]);
+                (RenderPipelineConverterContainer)Activator.CreateInstance(m_ConverterContainers[0]);
             rootVisualElement.Q<Label>("conversionName").text = converterContainer.name;
             rootVisualElement.Q<TextElement>("conversionInfo").text = converterContainer.info;
 
@@ -167,16 +164,16 @@ namespace UnityEditor.Rendering.Universal
                 item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;
 
                 // setup the images
-                item.Q<Image>("pendingImage").image = kImgPending;
+                item.Q<Image>("pendingImage").image = CoreEditorStyles.iconPending;
                 item.Q<Image>("pendingImage").tooltip = "Pending";
                 var pendingLabel = item.Q<Label>("pendingLabel");
-                item.Q<Image>("warningImage").image = kImgWarn;
+                item.Q<Image>("warningImage").image = CoreEditorStyles.iconWarn;
                 item.Q<Image>("warningImage").tooltip = "Warnings";
                 var warningLabel = item.Q<Label>("warningLabel");
-                item.Q<Image>("errorImage").image = kImgFail;
+                item.Q<Image>("errorImage").image = CoreEditorStyles.iconFail;
                 item.Q<Image>("errorImage").tooltip = "Failed";
                 var errorLabel = item.Q<Label>("errorLabel");
-                item.Q<Image>("successImage").image = kImgSuccess;
+                item.Q<Image>("successImage").image = CoreEditorStyles.iconSuccess;
                 item.Q<Image>("successImage").tooltip = "Success";
                 var successLabel = item.Q<Label>("successLabel");
 
@@ -188,7 +185,8 @@ namespace UnityEditor.Rendering.Universal
                     $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.pending)}";
                 warningLabel.bindingPath =
                     $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.warnings)}";
-                errorLabel.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.errors)}";
+                errorLabel.bindingPath =
+                    $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.errors)}";
                 successLabel.bindingPath =
                     $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.success)}";
 
@@ -310,7 +308,7 @@ namespace UnityEditor.Rendering.Universal
                         element.Q<Label>("converterItemName").text = convItemDesc.name;
                         element.Q<Label>("converterItemPath").text = convItemDesc.info;
 
-                        element.Q<Image>("converterItemHelpIcon").image = kImgHelp;
+                        element.Q<Image>("converterItemHelpIcon").image = CoreEditorStyles.iconHelp;
                         element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
 
                         // Changing the icon here depending on the status.
@@ -321,16 +319,16 @@ namespace UnityEditor.Rendering.Universal
                         switch (status)
                         {
                             case Status.Pending:
-                                icon = kImgPending;
+                                icon = CoreEditorStyles.iconPending;
                                 break;
                             case Status.Error:
-                                icon = kImgFail;
+                                icon = CoreEditorStyles.iconFail;
                                 break;
                             case Status.Warning:
-                                icon = kImgWarn;
+                                icon = CoreEditorStyles.iconWarn;
                                 break;
                             case Status.Success:
-                                icon = kImgSuccess;
+                                icon = CoreEditorStyles.iconSuccess;
                                 break;
                         }
 

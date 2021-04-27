@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
-        public virtual bool IsEnabled { get => m_IsEnabled; set => m_IsEnabled = value; }
+        public virtual bool IsEnabled => m_IsEnabled;
 
         /// <summary>
         /// This method getting triggered when clicking the listview item in the UI.
@@ -47,6 +47,5 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         /// <param name="context">The context that will be used when executing converter.</param>
         public abstract void OnRun(ref RunItemContext context);
-        //public abstract void OnRun(RunConverterContext context);
     }
 }
