@@ -43,12 +43,6 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Metallic;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles in this output are not affected by any lights in the scene and only receive ambient and light probe lighting.")]
-        protected bool onlyAmbientLighting = false;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the thickness of the particle is multiplied with its alpha value.")]
-        protected bool multiplyThicknessWithAlpha = false;
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
         protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
@@ -69,23 +63,6 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the normals of the particle are inverted when seen from behind, allowing quads with culling set to off to receive correct lighting information.")]
         protected bool doubleSided = false;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
-        protected bool preserveSpecularLighting = false;
-
-        //TODOPAUL : Check probably simple lit only features
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features"), Tooltip("When enabled, the particle will receive shadows.")]
-        protected bool enableShadows = true;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will receive specular highlights.")]
-        protected bool enableSpecular = true;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by light cookies.")]
-        protected bool enableCookie = true;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
-        protected bool enableEnvLight = true;
 
         protected VFXAbstractParticleURPLitOutput(bool strip = false) : base(strip) {}
 
@@ -307,9 +284,6 @@ namespace UnityEditor.VFX
                 if (doubleSided)
                     yield return "USE_DOUBLE_SIDED";
 
-                if (onlyAmbientLighting && !isBlendModeOpaque)
-                    yield return "USE_ONLY_AMBIENT_LIGHTING";
-
                 if (isBlendModeOpaque)
                     yield return "IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE";
             }
@@ -330,7 +304,6 @@ namespace UnityEditor.VFX
                     yield return nameof(useMaskMap);
                     yield return nameof(useNormalMap);
                     yield return nameof(useEmissiveMap);
-                    //yield return nameof(alphaMask); //TODOPAUL There isn't alphaMask
                 }
 
                 if (GetOrRefreshShaderGraphObject() != null)
@@ -342,12 +315,7 @@ namespace UnityEditor.VFX
                 else if ((colorMode & ColorMode.Emissive) != 0)
                     yield return nameof(useEmissive);
 
-                if (isBlendModeOpaque)
-                {
-                    yield return nameof(onlyAmbientLighting);
-                    yield return nameof(preserveSpecularLighting);
-                    yield return nameof(excludeFromTAA);
-                }
+                yield return nameof(excludeFromTAA);
             }
         }
 
