@@ -18,8 +18,10 @@ To fix the causes in these cases:
 
 ## History buffer scaling issues
 
-When writing a custom pass that uses or modify an history buffer, you can have scaling issues because they uses different scale properties than RTHandles (`_RTHandleScale.xy` above). Instead, you need to use `_RTHandleScaleHistory.xy` when sampling in an history buffer.
-If you bind another buffer instead of an history buffer, you also need to ensure the buffer is allocated using the correct size (and this size can be different for every camera). To get the correct size of render texture to use for an history buffer, you can use `HDCamera.historyRTHandleProperties.currentRenderTargetSize`.
+Scaling issues can happen when you write a custom pass that uses or modifies a history buffer. This is because history buffers use different scale properties from RTHandles (_RTHandleScale.xy). To avoid scaling issues, use _RTHandleScaleHistory.xy to sample a history buffer.
+
+If you bind another buffer instead of a history buffer, make sure you allocate the buffer using the correct render texture size. The render texture size can be different for every camera. To get the correct size of the render texture to use for a history buffer, use HDCamera.historyRTHandleProperties.currentRenderTargetSize.
+
 
 ## Opaque objects disappear in build
 
