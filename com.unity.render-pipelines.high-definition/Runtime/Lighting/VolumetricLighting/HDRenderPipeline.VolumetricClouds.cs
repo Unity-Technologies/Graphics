@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     combineCloudsPass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Composite the clouds into the MSAA target via hardware blending.
-                    HDUtils.DrawFullScreen(cmd, combineCloudsPass, colorBuffer, null, 0);
+                    HDUtils.DrawFullScreen(cmd, combineCloudsPass, colorBuffer);
                 }
                 else
                 {
