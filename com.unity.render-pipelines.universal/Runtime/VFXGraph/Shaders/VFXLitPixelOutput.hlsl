@@ -6,10 +6,6 @@
 #error ShaderPass has to be included
 #endif
 
-uint GetTileSize() //TODOPAUL : Clean this
-{
-    return 1u;
-}
 
 #if (SHADERPASS == SHADERPASS_FORWARD)
 
@@ -27,9 +23,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     SurfaceData surfaceData;
     InputData inputData;
 
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, tileIndex);
-
+    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, (uint2)0);
     return VFXCalcPixelOutputForward(surfaceData, inputData);
 }
 
@@ -37,11 +31,9 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
 float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, float3 normalWS)
 {
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
-    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
     InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f /* TODOPAUL remove opacity */);
@@ -71,8 +63,7 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
 {
     SurfaceData surfaceData;
     InputData inputData;
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, tileIndex);
+    VFXGetURPLitData(surfaceData, inputData, i, normalWS, uvData, (uint2)0);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
@@ -84,11 +75,9 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
 #else
 void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, const float3 normalWS, out FragmentOutput gBuffer)
 {
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
-    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
     InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f);
