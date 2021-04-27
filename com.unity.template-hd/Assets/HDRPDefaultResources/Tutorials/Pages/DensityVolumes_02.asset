@@ -37,12 +37,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Density Volume
       Text:
-        m_Untranslated: "Disable and re-enable the existing density volume and notice
-          how the Sunlight interacts with the Fog. \r\n\r\nIn the <i>Hierarchy</i>
-          under <b>Lighting,</b> disable and re-enable the <b>Density Volumes.</b>
-          \r\n\r\nNotice how disabling the <b>Density Volumes</b> reduces the local
-          fog density, and how enabling it again increases the density and how it
-          reacts to the sunlight. \r"
+        m_Untranslated: "In the <i>Hierarchy</i> under <b>Lighting,</b> disable and
+          re-enable the <b>Density Volume.</b> \r\n\r\nNotice how disabling the <b>Density
+          Volume</b> reduces the local fog density, and how enabling it again increases
+          the density and how it reacts to the sunlight. \r\n\r\nYou may experiment
+          with altering the <b>Single Scattering Albedo</b> color as well as the
+          <b>Fog Distance</b> in the <i>Inspector,</i> to change the look and feel
+          of the local fog within the boundaries of the <b>Density Volume.</b>\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

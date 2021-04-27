@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: c38468c65bf2c794996ce45041832cfc, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,25 +28,23 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Congratulations!
+        m_Untranslated: Next steps
       Text:
         m_Untranslated: "In this tutorial, you learned how projection textures can
           be applied to lights to improve visual fidelity. Light cookies can bring
           a huge boost of quality to your project\u2019s lighting. \r\n\r\nTo learn
           more about altering the shapes of lights, explore  href=\"https://blogs.unity3d.com/2019/02/05/create-high-quality-light-fixtures-in-unity/\"<a>how
           to create cookie textures</a> and how to use  href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html\"<a>IES
-          profiles</a>.\r\n\r\n<b>Note:</b> You do not need to save your changes
+          profiles.</a>\r\n\r\n<b>Note:</b> You do not need to save your changes
           in order to follow other tutorials.\r"
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -62,6 +53,11 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 0
     m_FocusMode: 0

@@ -38,9 +38,9 @@ MonoBehaviour:
         m_Untranslated: Mask map
       Text:
         m_Untranslated: "The materials in HDRP use an RGBA Mask Map to define different
-          texture properties, such as metalness (R), smoothness (G), ambient occlusion
-          (B), and detail mask (A).\r\n\r\n1) In the <i>Hierarchy,</i> expand the
-          <b>Props</b> > <b>Room3</b> > <b>Ball_PF (1)</b> GameObject.\r\n\r\n2)
+          texture properties, such as metalness (R), ambient occlusion (G), detail
+          mask (B), and smoothness (A).\r\n\r\n1) In the <i>Hierarchy,</i> expand
+          the <b>Props</b> > <b>Room3</b> > <b>Ball_PF (1)</b> GameObject.\r\n\r\n2)
           Select the <b>Ball</b> GameObject.\r\n\r\n3) Go to the <i>Inspector</i>
           and expand the <i>Brass_Mat</i> Material.\r\n\r\n4) Remove the <b>Mask
           Map</b> or set it to None, and see that the ball becomes uniformly smooth

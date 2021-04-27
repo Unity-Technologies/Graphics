@@ -39,12 +39,11 @@ MonoBehaviour:
       Text:
         m_Untranslated: "It\u2019s highly recommended to turn off unused features
           in your project to reduce the impact on performance, memory consumption
-          and build time..\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b>
-          > <b>Quality.</b>\r\n\r\n2) Double-click the asset assigned to the <b>Render
-          Pipeline Asset</b> field.\r\n\r\n3) In the <i>Inspector</i>, expand the
-          <b>Lighting</b> foldout and disable the <b>Screen Space Ambient Occlusion.</b>\r\n\r\n4)
-          Notice the darkening effect on the flower pot disappear.\r\n\r\n5) Re-enable
-          the feature.\r"
+          and build time.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b> >
+          <b>Quality</b>  > <b>HDRP.</b>\r\n\r\n2) Select the HDRPMediumQuality asset.
+          \r\n\r\n3) Scroll down to the <b>Lighting</b> foldout and disable the <b>Screen
+          Space Ambient Occlusion.</b>\r\n\r\n4) Notice the darkening effect on the
+          flower pot disappears.\r\n\r\n5) Re-enable the feature.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -37,14 +37,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Quality and Performance
       Text:
-        m_Untranslated: "If you plan to complete any of the tutorials or explore
-          the Scene on your own, it\u2019s a good idea to adjust your Quality Settings.\r\n\r\nLook
-          around the Scene: does the framerate feel too low or choppy? Or maybe it
-          runs well and you want to use the highest possible quality?\r\n\r\nThe
-          default quality is set to <b>Medium,</b> which will be enough for the tutorial.
-          You can go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> and
-          try Low or High.\r\n\r\nTo complete the Fog tutorial, you will need to
-          use at least the <b>Medium</b> quality level. \r"
+        m_Untranslated: 'Take a moment to adjust your Quality Settings for a smooth
+          tutorial experience,  under <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b>
+
+          
+
+          To
+          complete all sections of this tutorial, you need to use at least the <b>Medium
+          Quality</b> level. If the framerate in the Scene view is too low, you may
+          switch to <b>Low Quality,</b> however you will not be able to complete
+          the Fog tutorial.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
