@@ -63,6 +63,11 @@ public class ShaderFunctionSignature : JsonObject
                 input == p.input &&
                 output == p.output;
         }
+
+        internal Parameter ReplaceType(SandboxValueType newType)
+        {
+            return new Parameter(newType, name, input, output, defaultValue);
+        }
     }
 
     public class Builder
@@ -146,6 +151,9 @@ public class ShaderFunctionSignature : JsonObject
 public class ShaderFunction : ShaderFunctionSignature
 {
     public override int latestVersion => 1;
+
+    // public API
+    public string Body { get { return body; } }
 
     // state
     [SerializeField]

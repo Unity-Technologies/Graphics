@@ -352,6 +352,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public MaterialSlot GetSlotByShaderOutputName(string shaderOutputName)
+        {
+            foreach (var slot in m_Slots.SelectValue())
+            {
+                if (slot.shaderOutputName == shaderOutputName)
+                    return slot;
+            }
+            return null;
+        }
+
         public virtual void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
@@ -386,6 +396,22 @@ namespace UnityEditor.ShaderGraph
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        public MaterialSlot GetConnectedSlot(MaterialSlot slot)
+        {
+            if (slot == null)
+                return null;
+
+            var edges = owner.GetEdges(slot.slotReference);
+            if (edges.Any())
+            {
+                var fromSocketRef = (slot.isInputSlot ? edges.First().outputSlot : edges.First().inputSlot);
+                var fromNode = fromSocketRef.node;
+                return fromSocketRef.slot;
+            }
+
+            return null;
         }
 
         public AbstractShaderProperty GetSlotProperty(int inputSlotId)
@@ -470,7 +496,7 @@ namespace UnityEditor.ShaderGraph
                         return inputTypesDistinct.First();
                     break;
                 default:
-                    // find the 'minumum' channel width excluding 1 as it can promote
+                    // find the 'minimum' channel width excluding 1 as it can promote
                     inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
                     var ordered = inputTypesDistinct.OrderByDescending(x => x);
                     if (ordered.Any())

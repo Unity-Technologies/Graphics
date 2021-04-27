@@ -62,11 +62,14 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
     {
         Placeholder = 1,
         Scalar = 2,
-        Vector = 4,
-        Matrix = 8,
-        Struct = 16,
-        Object = 32,
-        Texture = 64
+        Vector2 = 4,
+        Vector3 = 8,
+        Vector4 = 16,
+        AnyVector = Scalar | Vector2 | Vector3 | Vector4,
+        Matrix = 32,
+        Struct = 64,
+        Object = 128,
+        Texture = 256
     }
 
     Flags flags;
@@ -78,11 +81,23 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
 
     public bool IsPlaceholder => (flags & Flags.Placeholder) != 0;
     public bool IsScalar => (flags & Flags.Scalar) != 0;
-    public bool IsVector => (flags & Flags.Vector) != 0;
+    public bool IsVector => (flags & Flags.AnyVector) != 0;
     public bool IsMatrix => (flags & Flags.Matrix) != 0;
     public bool IsStruct => (flags & Flags.Struct) != 0;
     public bool IsObject => (flags & Flags.Object) != 0;
     public bool IsTexture => (flags & Flags.Texture) != 0;
+
+    public int VectorSize
+    {
+        get
+        {
+            if ((flags & Flags.Vector4) != 0) return 4;
+            if ((flags & Flags.Vector3) != 0) return 3;
+            if ((flags & Flags.Vector2) != 0) return 2;
+            if ((flags & Flags.Scalar) != 0) return 1;
+            return 0;
+        }
+    }
 
     internal SandboxValueType(SandboxValueTypeDefinition definition)
     {

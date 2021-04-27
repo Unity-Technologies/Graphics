@@ -88,7 +88,56 @@ namespace UnityEditor.ShaderGraph
 
         SandboxValueType ISandboxNodeBuildContext.GetInputType(string pinName)
         {
-            throw new NotImplementedException();
+            // lookup type on the slots
+            MaterialSlot inputSlot = GetSlotByShaderOutputName(pinName);
+            if ((inputSlot == null) || (inputSlot.isOutputSlot))
+                return null;
+
+            // the input slot doesn't know the connected type, but the output slot does...
+            // so jump to the connected output slot
+            var outputSlot = GetConnectedSlot(inputSlot);
+            if ((outputSlot == null) || (outputSlot.isInputSlot))
+                return null;
+
+            // problem is.. the actual type is not really (easily) known here..  (old system is weird)
+            // it's actually a combination of the ConcreteSlotValueType and the node precision...
+            // but we can approximate the type (at least good enough for now) by looking at the ConcreteSlotValueType
+            ConcreteSlotValueType vtype = outputSlot.concreteValueType;
+            switch (vtype)
+            {
+                case ConcreteSlotValueType.SamplerState:
+                    //return Types._samplerState;
+                    break;
+                case ConcreteSlotValueType.Matrix4:
+                    break;
+                case ConcreteSlotValueType.Matrix3:
+                    break;
+                case ConcreteSlotValueType.Matrix2:
+                    break;
+                case ConcreteSlotValueType.Texture2D:
+                    return Types._UnityTexture2D;
+                case ConcreteSlotValueType.Texture2DArray:
+                    break;
+                case ConcreteSlotValueType.Texture3D:
+                    break;
+                case ConcreteSlotValueType.Cubemap:
+                    break;
+                case ConcreteSlotValueType.Gradient:
+                    break;
+                case ConcreteSlotValueType.Vector4:
+                    return Types._precision4;
+                case ConcreteSlotValueType.Vector3:
+                    return Types._precision3;
+                case ConcreteSlotValueType.Vector2:
+                    return Types._precision2;
+                case ConcreteSlotValueType.Vector1:
+                    return Types._precision;
+                case ConcreteSlotValueType.Boolean:
+                    return Types._bool;
+                case ConcreteSlotValueType.VirtualTexture:
+                    break;
+            }
+            return null;
         }
 
         void ISandboxNodeBuildContext.SetMainFunction(ShaderFunction function, bool declareStaticPins)
@@ -286,10 +335,12 @@ namespace UnityEditor.ShaderGraph
                         {
                             return SlotValueType.SamplerState;
                         }
-                        if (t == typeof(DynamicDimensionVector))
-                        {
-                            return SlotValueType.DynamicVector;
-                        }
+            */
+            if (type == Types._dynamicVector)
+            {
+                return SlotValueType.DynamicVector;
+            }
+            /*
                         if (type == Types._float4x4)
                         {
                             return SlotValueType.Matrix4;
@@ -331,7 +382,6 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            UpdateSlotsFromDefinition();
         }
 
         public override void OnBeforeSerialize()
@@ -347,6 +397,17 @@ namespace UnityEditor.ShaderGraph
         public override void OnAfterDeserialize(string json)
         {
             base.OnAfterDeserialize(json);
+        }
+
+        public override void Setup()
+        {
+            base.Setup();
+        }
+
+        public override void Concretize()
+        {
+            UpdateSlotsFromDefinition();
+            base.Concretize();
         }
 
         private void UpdateSlotsFromDefinition()

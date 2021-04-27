@@ -119,7 +119,23 @@ public class Types
     public static SandboxValueType _precision3 = Default.GetShaderType("$precision3");
     public static SandboxValueType _precision4 = Default.GetShaderType("$precision4");
 
+    public static SandboxValueType _dynamicVector = Default.GetShaderType("$dynamicVector");
+    public static SandboxValueType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix");
+
     public static SandboxValueType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
+
+    public static SandboxValueType Precision(int vectorSize)
+    {
+        if (vectorSize == 1)
+            return Types._precision;
+        if (vectorSize == 2)
+            return Types._precision2;
+        if (vectorSize == 3)
+            return Types._precision3;
+        if (vectorSize == 4)
+            return Types._precision4;
+        return null;
+    }
 
     static Types BuildDefaultTypeSystem()
     {
@@ -141,31 +157,34 @@ public class Types
             types.AddType(s);
 
             // TODO: could just copy flags from s, remove scalar, add vector.. ?
-            var vflags = (s.IsPlaceholder ? SandboxValueType.Flags.Placeholder : 0) | SandboxValueType.Flags.Vector;
-            var mflags = (s.IsPlaceholder ? SandboxValueType.Flags.Placeholder : 0) | SandboxValueType.Flags.Matrix;
+            var baseFlags = (s.IsPlaceholder ? SandboxValueType.Flags.Placeholder : 0);
 
             // vector variants
-            var vec2Type = new SandboxValueType(s.Name + "2", vflags);
+            var vec2Type = new SandboxValueType(s.Name + "2", baseFlags | SandboxValueType.Flags.Vector2);
             types.AddType(vec2Type);
-            var vec3Type = new SandboxValueType(s.Name + "3", vflags);
+            var vec3Type = new SandboxValueType(s.Name + "3", baseFlags | SandboxValueType.Flags.Vector3);
             types.AddType(vec3Type);
-            var vec4Type = new SandboxValueType(s.Name + "4", vflags);
+            var vec4Type = new SandboxValueType(s.Name + "4", baseFlags | SandboxValueType.Flags.Vector4);
             types.AddType(vec4Type);
 
             // matrix variants
             for (int rows = 1; rows < 4; rows++)
             {
                 string r = rows.ToString();
-                var mat1Type = new SandboxValueType(s.Name + r + "x1", mflags);
+                var mat1Type = new SandboxValueType(s.Name + r + "x1", baseFlags | SandboxValueType.Flags.Matrix);
                 types.AddType(mat1Type);
-                var mat2Type = new SandboxValueType(s.Name + r + "x2", mflags);
+                var mat2Type = new SandboxValueType(s.Name + r + "x2", baseFlags | SandboxValueType.Flags.Matrix);
                 types.AddType(mat2Type);
-                var mat3Type = new SandboxValueType(s.Name + r + "x3", mflags);
+                var mat3Type = new SandboxValueType(s.Name + r + "x3", baseFlags | SandboxValueType.Flags.Matrix);
                 types.AddType(mat3Type);
-                var mat4Type = new SandboxValueType(s.Name + r + "x4", mflags);
+                var mat4Type = new SandboxValueType(s.Name + r + "x4", baseFlags | SandboxValueType.Flags.Matrix);
                 types.AddType(mat4Type);
             }
         }
+
+        // dynamic placeholder type for scalar or vectors
+        types.AddType(new SandboxValueType("$dynamicVector", SandboxValueType.Flags.AnyVector | SandboxValueType.Flags.Placeholder));
+        types.AddType(new SandboxValueType("$dynamicMatrix", SandboxValueType.Flags.Matrix | SandboxValueType.Flags.Placeholder));
 
         // texture types
         List<SandboxValueType> textureTypes = new List<SandboxValueType>()
