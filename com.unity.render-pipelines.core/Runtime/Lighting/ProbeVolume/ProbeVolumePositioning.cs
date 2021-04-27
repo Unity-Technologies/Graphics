@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
@@ -17,14 +17,15 @@ namespace UnityEngine.Rendering
         // TODO: Take refvol translation and rotation into account
         public static ProbeReferenceVolume.Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
-            float scaledSize = Mathf.Pow(3, brick.size);
+            float scaledSize = Mathf.Pow(3, brick.subdivisionLevel);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
-            ProbeReferenceVolume.Volume bounds;
-            bounds.corner = scaledPos;
-            bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
-            bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
-            bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
+            var bounds = new ProbeReferenceVolume.Volume(
+                scaledPos,
+                refTrans.refSpaceToWS.GetColumn(0) * scaledSize,
+                refTrans.refSpaceToWS.GetColumn(1) * scaledSize,
+                refTrans.refSpaceToWS.GetColumn(2) * scaledSize
+            );
 
             return bounds;
         }
@@ -37,6 +38,15 @@ namespace UnityEngine.Rendering
 
         public static bool OBBIntersect(ref ProbeReferenceVolume.Volume a, ref ProbeReferenceVolume.Volume b)
         {
+            // First we test if the bounding spheres intersects, in which case we case do the more complex OBB test
+            a.CalculateCenterAndSize(out var aCenter, out var aSize);
+            b.CalculateCenterAndSize(out var bCenter, out var bSize);
+
+            var aRadius = aSize.sqrMagnitude / 2.0f;
+            var bRadius = bSize.sqrMagnitude / 2.0f;
+            if (Vector3.SqrMagnitude(aCenter - bCenter) > aRadius + bRadius)
+                return false;
+
             m_Axes[0] = a.X.normalized;
             m_Axes[1] = a.Y.normalized;
             m_Axes[2] = a.Z.normalized;
