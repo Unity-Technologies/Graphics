@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering
     public sealed class VolumeManager
     {
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
-        static VolumeStack s_DefaultStack = null;
 
         /// <summary>
         /// The current singleton instance of <see cref="VolumeManager"/>.
@@ -63,6 +62,11 @@ namespace UnityEngine.Rendering
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
+        // The default stack the volume manager uses.
+        // We cache this as users able to change the stack through code and
+        // we want to be able to switch to the default one through the ResetMainStack() function.
+        VolumeStack m_DefaultStack = null;
+
         VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
@@ -73,8 +77,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            s_DefaultStack = CreateStack();
-            stack = s_DefaultStack;
+            m_DefaultStack = CreateStack();
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void ResetMainStack()
         {
-            stack = s_DefaultStack;
+            stack = m_DefaultStack;
         }
 
         /// <summary>
