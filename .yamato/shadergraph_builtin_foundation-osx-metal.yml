@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -94,7 +95,7 @@ ShaderGraph_BuiltIn_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/BuiltInGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 ShaderGraph_BuiltIn_Foundation_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_BuiltIn_Foundation on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -126,4 +127,4 @@ ShaderGraph_BuiltIn_Foundation_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVIS
               -  "TestProjects/BuiltInGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
