@@ -369,7 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+                var pvr = ProbeReferenceVolume.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                {
+                    memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    probeDebugMesh = defaultResources.assets.sphereMesh,
+                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader
+                });
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -517,6 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -663,7 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
             CoreUtils.SafeRelease(m_EmptyIndexBuffer);
             m_EmptyIndexBuffer = null;
 
@@ -752,6 +758,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #endif
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
             }
 
             CleanupRenderGraph();
@@ -2182,6 +2193,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+            // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias

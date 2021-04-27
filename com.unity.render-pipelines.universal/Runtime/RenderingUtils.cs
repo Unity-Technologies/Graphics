@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
@@ -10,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class RenderingUtils
     {
-        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
