@@ -253,7 +253,6 @@ namespace UnityEditor.VFX
             }
         };
 
-        //TODOPAUL : this is copy/past from hdrpLitInfo
         protected static readonly RPInfo urpLitInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>()
