@@ -1434,7 +1434,6 @@ namespace UnityEditor.VFX.UI
             foreach (var graph in graphToSave)
             {
                 graph.GetResource().WriteAsset();
-                graph.OnSaved();
             }
         }
 
