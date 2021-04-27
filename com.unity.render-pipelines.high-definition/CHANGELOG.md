@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with RAS build fail when LOD was missing a renderer
 - Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
 - Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
