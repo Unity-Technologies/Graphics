@@ -120,7 +120,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
 
-    float4 _RTHandleScale;
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 

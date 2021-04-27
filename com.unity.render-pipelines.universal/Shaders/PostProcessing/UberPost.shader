@@ -108,7 +108,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             }
             #endif
 
-            return uv;
+            return clamp(uv, float2(0,0), float2(1,1));
         }
 
         half4 Frag(Varyings input) : SV_Target

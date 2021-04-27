@@ -23,7 +23,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
 
             TEXTURE2D_X(_SourceTex);
             SAMPLER(sampler_SourceTex);
-            float4 _RTHandleScale;
 
             half4 Fragment(Varyings input) : SV_Target
             {

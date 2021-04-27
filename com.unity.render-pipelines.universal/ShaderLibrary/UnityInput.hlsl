@@ -254,4 +254,5 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     return M;
 }
 
+float4 _RTHandleScale;
 #endif // UNIVERSAL_SHADER_VARIABLES_INCLUDED
