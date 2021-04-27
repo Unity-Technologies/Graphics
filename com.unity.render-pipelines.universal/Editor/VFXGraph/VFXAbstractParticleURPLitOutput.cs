@@ -1,4 +1,4 @@
-//TODOPAUL : missing define here
+#if HAS_VFX_GRAPH
 
 using System;
 using System.Collections.Generic;
@@ -373,3 +373,4 @@ namespace UnityEditor.VFX
         }
     }
 }
+#endif

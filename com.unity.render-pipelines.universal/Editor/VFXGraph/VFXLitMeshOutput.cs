@@ -1,9 +1,10 @@
+#if HAS_VFX_GRAPH
+
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.URP
 {
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleURPLitOutput, IVFXMultiMeshOutput
@@ -119,3 +120,4 @@ namespace UnityEditor.VFX
         }
     }
 }
+#endif
