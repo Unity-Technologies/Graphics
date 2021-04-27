@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Depth priming requires a manual resolve of MSAA depth right after the depth prepass.
-            if (useDepthPriming)
+            if (useDepthPriming && !SystemInfo.supportsMultisampleAutoResolve)
             {
                 m_PrimedDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 m_PrimedDepthCopyPass.AllocateRT = false;
@@ -809,8 +809,11 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.autoGenerateMips = false;
 #if ENABLE_VR && ENABLE_XR_MODULE
                     // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
-                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && (!SystemInfo.supportsMultisampleAutoResolve || primedDepth) && (SystemInfo.supportsMultisampledTextures != 0);
+                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 #endif
+
+                    depthDescriptor.bindMS |= depthDescriptor.msaaSamples > 1 && primedDepth && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
                     cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
