@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsCount;
         public int maxPerObjectAdditionalLightsCount;
         public NativeArray<VisibleLight> visibleLights;
+        public NativeArray<int> originalIndices;
         public bool shadeAdditionalLightsPerVertex;
         public bool useClusteredLighting;
         public bool supportsMixedLighting;

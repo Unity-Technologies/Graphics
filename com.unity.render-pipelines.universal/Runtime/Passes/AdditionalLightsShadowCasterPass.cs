@@ -648,7 +648,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     break;
                 }
 
-
+                var originalLightIndex = renderingData.lightData.originalIndices[visibleLightIndex];
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
                 bool isValidShadowCastingLight = false;
@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     int globalShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
-                    bool lightRangeContainsShadowCasters = renderingData.cullResults.GetShadowCasterBounds(visibleLightIndex, out var shadowCastersBounds);
+                    bool lightRangeContainsShadowCasters = renderingData.cullResults.GetShadowCasterBounds(originalLightIndex, out var shadowCastersBounds);
                     if (lightRangeContainsShadowCasters)
                     {
                         // We need to iterate the lights even though additional lights are disabled because
@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             {
                                 bool success = ShadowUtils.ExtractSpotLightMatrix(ref renderingData.cullResults,
                                     ref renderingData.shadowData,
-                                    visibleLightIndex,
+                                    originalLightIndex,
                                     out var shadowTransform,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].viewMatrix,
                                     out m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix,
@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                                 bool success = ShadowUtils.ExtractPointLightMatrix(ref renderingData.cullResults,
                                     ref renderingData.shadowData,
-                                    visibleLightIndex,
+                                    originalLightIndex,
                                     (CubemapFace)perLightShadowSlice,
                                     fovBias,
                                     out var shadowTransform,
@@ -855,12 +855,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
+                    var originalLightIndex = lightData.originalIndices[visibleLightIndex];
 
                     VisibleLight shadowLight = visibleLights[visibleLightIndex];
 
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
-                    var settings = new ShadowDrawingSettings(cullResults, visibleLightIndex);
+                    var settings = new ShadowDrawingSettings(cullResults, originalLightIndex);
                     settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);

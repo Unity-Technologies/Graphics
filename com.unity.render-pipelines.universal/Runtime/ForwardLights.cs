@@ -204,6 +204,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                 reorderHandle.Complete();
                 renderingData.lightData.visibleLights.CopyFrom(reorderedLights);
 
+                if (renderingData.lightData.mainLightIndex != -1)
+                {
+                    renderingData.lightData.mainLightIndex = indices[renderingData.lightData.mainLightIndex];
+                }
+
+                var tempBias = new NativeArray<Vector4>(lightCount, Allocator.Temp);
+                var tempResolution = new NativeArray<int>(lightCount, Allocator.Temp);
+                var tempIndices = new NativeArray<int>(lightCount, Allocator.TempJob);
+
+                for (var i = 0; i < lightCount; i++)
+                {
+                    tempBias[indices[i]] = renderingData.shadowData.bias[i];
+                    tempResolution[indices[i]] = renderingData.shadowData.resolution[i];
+                    tempIndices[indices[i]] = i;
+                }
+
+                for (var i = 0; i < lightCount; i++)
+                {
+                    renderingData.shadowData.bias[i] = tempBias[i];
+                    renderingData.shadowData.resolution[i] = tempResolution[i];
+                    renderingData.lightData.originalIndices[i] = tempIndices[i];
+                }
+
+                tempBias.Dispose();
+                tempResolution.Dispose();
+                tempIndices.Dispose();
+
                 lightTypes.Dispose(m_CullingHandle);
                 radiuses.Dispose(m_CullingHandle);
                 directions.Dispose(m_CullingHandle);

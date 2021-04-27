@@ -387,6 +387,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
+                CleanupLightData(ref renderingData.lightData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
@@ -880,7 +881,7 @@ namespace UnityEngine.Rendering.Universal
                     visibleLights[mainLightIndex].light.shadows != LightShadows.None);
 
                 // If additional lights are shaded per-pixel they cannot cast shadows
-                if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
+                if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || settings.additionalLightsRenderingMode == LightRenderingMode.Clustered)
                 {
                     for (int i = 0; i < visibleLights.Length; ++i)
                     {
@@ -1022,6 +1023,16 @@ namespace UnityEngine.Rendering.Universal
             lightData.useClusteredLighting = settings.additionalLightsRenderingMode == LightRenderingMode.Clustered;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
+            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.TempJob);
+            for (var i = 0; i < lightData.originalIndices.Length; i++)
+            {
+                lightData.originalIndices[i] = i;
+            }
+        }
+
+        static void CleanupLightData(ref LightData lightData)
+        {
+            lightData.originalIndices.Dispose();
         }
 
         static PerObjectData GetPerObjectLightFlags(ref LightData lightData)
