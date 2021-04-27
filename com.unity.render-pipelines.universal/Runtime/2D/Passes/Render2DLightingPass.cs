@@ -157,19 +157,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var activeDebugHandler = GetActiveDebugHandler(renderingData);
             if (activeDebugHandler != null)
             {
-                foreach (DebugRenderSetup debugRenderSetup in activeDebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
-                {
-                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
-
-                    if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                RenderStateBlock renderStateBlock = new RenderStateBlock();
+                activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock,
+                    (ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                     {
-                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings, ref renderStateBlock);
-                    }
-                    else
-                    {
-                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
-                    }
-                }
+                        context.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                    });
             }
             else
             {

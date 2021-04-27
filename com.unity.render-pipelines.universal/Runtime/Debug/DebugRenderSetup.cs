@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     break;
                 }
-            } // End of switch.
+            }
 
             m_DebugHandler.SetupShaderProperties(m_CommandBuffer, m_Index);
 
@@ -67,12 +67,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     break;
                 }
-
-                default:
-                {
-                    break;
-                }
-            } // End of switch.
+            }
         }
 
         internal DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
@@ -85,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        internal DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
+        internal DrawingSettings CreateDrawingSettings(DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
@@ -103,28 +98,21 @@ namespace UnityEngine.Rendering.Universal
             return drawingSettings;
         }
 
-        internal bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
+        internal RenderStateBlock GetRenderStateBlock(RenderStateBlock renderStateBlock)
         {
             DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
-            // Create an empty render-state block and only enable the parts we wish to override...
-            renderStateBlock = new RenderStateBlock();
-
+            // Potentially override parts of the RenderStateBlock
             switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
                     RenderTargetBlendState additiveBlend = new RenderTargetBlendState(sourceColorBlendMode: BlendMode.One, destinationColorBlendMode: BlendMode.One);
 
-                    // Additive-blend but leave z-write and culling as they are when we draw normally...
+                    // Additive-blend but leave z-write and culling as they are when we draw normally
                     renderStateBlock.blendState = new BlendState {blendState0 = additiveBlend};
                     renderStateBlock.mask = RenderStateMask.Blend;
-                    return true;
-                }
-
-                case DebugSceneOverrideMode.Wireframe:
-                {
-                    return true;
+                    break;
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
@@ -136,16 +124,11 @@ namespace UnityEngine.Rendering.Universal
                         renderStateBlock.rasterState = new RasterState(offsetUnits: -1, offsetFactor: -1);
                         renderStateBlock.mask = RenderStateMask.Raster;
                     }
-
-                    return true;
+                    break;
                 }
+            }
 
-                default:
-                {
-                    // We're not going to override anything...
-                    return false;
-                }
-            } // End of switch.
+            return renderStateBlock;
         }
 
         public void Dispose()

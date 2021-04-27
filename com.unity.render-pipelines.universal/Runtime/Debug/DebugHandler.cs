@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool IsActiveModeUnsupportedForDeferred =>
             m_DebugDisplaySettings.LightingSettings.DebugLightingMode != DebugLightingMode.None ||
             m_DebugDisplaySettings.LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw ||
+            m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None ||
             m_DebugDisplaySettings.MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None ||
             m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None ||
             m_DebugDisplaySettings.MaterialSettings.MaterialValidationMode != DebugMaterialValidationMode.None;
@@ -364,6 +364,29 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
+        }
+
+        internal delegate void DrawFunction(
+            ref RenderingData renderingData,
+            ref DrawingSettings drawingSettings,
+            ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock);
+
+        internal void DrawWithDebugRenderState(
+            ScriptableRenderContext context,
+            CommandBuffer cmd,
+            ref RenderingData renderingData,
+            ref DrawingSettings drawingSettings,
+            ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock,
+            DrawFunction func)
+        {
+            foreach (DebugRenderSetup debugRenderSetup in CreateDebugRenderSetupEnumerable(context, cmd))
+            {
+                DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
+                RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
+                func(ref renderingData, ref debugDrawingSettings, ref filteringSettings, ref debugRenderStateBlock);
+            }
         }
 
         #endregion
