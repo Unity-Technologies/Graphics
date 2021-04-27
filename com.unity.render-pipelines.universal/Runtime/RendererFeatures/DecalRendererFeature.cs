@@ -240,7 +240,13 @@ namespace UnityEngine.Rendering.Universal
             var universalRenderer = renderer as UniversalRenderer;
             if (universalRenderer == null)
             {
-                Debug.LogError("Only universal renderer supports decal renderer feature.");
+                Debug.LogError("Only universal renderer supports Decal renderer feature.");
+                return DecalTechnique.Invalid;
+            }
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
+            {
+                Debug.LogError("Decals are not supported with OpenGLES2.");
                 return DecalTechnique.Invalid;
             }
 

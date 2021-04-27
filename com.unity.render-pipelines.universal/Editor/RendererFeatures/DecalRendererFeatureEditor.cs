@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -44,6 +45,8 @@ namespace UnityEditor.Rendering.Universal
         {
             Init();
 
+            ValidateGraphicsApis();
+
             EditorGUILayout.PropertyField(m_Technique, Styles.Technique);
 
             DecalTechniqueOption technique = (DecalTechniqueOption)m_Technique.intValue;
@@ -64,6 +67,17 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.PropertyField(m_MaxDrawDistance, Styles.MaxDrawDistance);
+        }
+
+        private void ValidateGraphicsApis()
+        {
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            if (System.Array.FindIndex(graphicsAPIs, element => element == GraphicsDeviceType.OpenGLES2) >= 0)
+            {
+                EditorGUILayout.HelpBox("Decals are not supported with OpenGLES2.", MessageType.Warning);
+            }
         }
     }
 }
