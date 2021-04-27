@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview { get { return false; } }
         public SplitTextureTransformNode()
         {
-            name = "SplitTextureTransform";
+            name = "Split Texture Transform";
         }
 
         protected override MethodInfo GetFunctionToConvert()
