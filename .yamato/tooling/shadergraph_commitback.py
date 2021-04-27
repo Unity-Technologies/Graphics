@@ -13,6 +13,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     repo = Repo(".\\")
+
+    repo.git.config(['--global', 'user.name', 'Jessica Thomson'])
+    repo.git.config(['--global', 'user.email', 'jessica.thomson@unity3d.com'])
+
     branch_name = os.getenv("GIT_BRANCH")
     if branch_name is None:  # Local run, we can use the branch name
         branch_name = repo.active_branch
