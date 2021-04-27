@@ -198,8 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return a.m_DebugFullScreen == b.m_DebugFullScreen &&
                 a.m_LightFilterProperty == b.m_LightFilterProperty &&
                 a.m_LightingProperty == b.m_LightingProperty &&
-                a.m_MaterialProperty == b.m_MaterialProperty &&
-                a.m_OverrideRenderFormat == b.m_OverrideRenderFormat;
+                a.m_MaterialProperty == b.m_MaterialProperty;
         }
 
         /// <summary>
@@ -224,7 +223,6 @@ namespace UnityEngine.Rendering.HighDefinition
             hash = hash * 23 + (int)m_LightFilterProperty;
             hash = hash * 23 + (int)m_LightingProperty;
             hash = hash * 23 + (int)m_MaterialProperty;
-            hash = m_OverrideRenderFormat ? hash * 23 + 1 : hash;
 
             return hash;
         }
