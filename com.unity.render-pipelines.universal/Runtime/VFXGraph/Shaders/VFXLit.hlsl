@@ -128,7 +128,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     opacity = saturate(color.a);
     #endif
 
-    #if URP_MATERIAL_TYPE_STANDARD
+    #if URP_MATERIAL_TYPE_METALLIC
     #ifdef VFX_VARYING_METALLIC
     surfaceData.metallic = i.VFX_VARYING_METALLIC;
     #endif

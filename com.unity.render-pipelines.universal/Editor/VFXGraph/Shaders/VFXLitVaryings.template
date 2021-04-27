@@ -10,7 +10,7 @@ ${VFXBegin:VFXURPLitVaryingsMacros}
 
 #define VFX_VARYING_SMOOTHNESS materialProperties.x
 
-#if URP_MATERIAL_TYPE_STANDARD
+#if URP_MATERIAL_TYPE_METALLIC
 #define VFX_VARYING_METALLIC materialProperties.y
 #elif URP_MATERIAL_TYPE_SPECULAR
 #define VFX_VARYING_SPECULAR specularColor
@@ -60,7 +60,7 @@ ${VFXBegin:VFXURPLitFillVaryings}
 ${VFXLoadParameter:{smoothness}}
 o.VFX_VARYING_SMOOTHNESS = smoothness;
 #endif
-#if URP_MATERIAL_TYPE_STANDARD
+#if URP_MATERIAL_TYPE_METALLIC
 #ifdef VFX_VARYING_METALLIC
 ${VFXLoadParameter:{metallic}}
 o.VFX_VARYING_METALLIC = metallic;

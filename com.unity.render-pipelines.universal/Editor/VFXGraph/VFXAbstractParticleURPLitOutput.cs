@@ -10,11 +10,10 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleURPLitOutput : VFXShaderGraphParticleOutput
     {
-        //TODOPAUL : Rename this to be sync with URP naming
         public enum MaterialType
         {
-            Standard,
-            SpecularColor,
+            Metallic,
+            Specular,
         }
 
         [Flags]
@@ -42,7 +41,7 @@ namespace UnityEditor.VFX
         };
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
-        protected MaterialType materialType = MaterialType.Standard; //TODOPAUL : The default material in URP is specular
+        protected MaterialType materialType = MaterialType.Metallic;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles in this output are not affected by any lights in the scene and only receive ambient and light probe lighting.")]
         protected bool onlyAmbientLighting = false;
@@ -219,10 +218,10 @@ namespace UnityEditor.VFX
 
                 switch (materialType)
                 {
-                    case MaterialType.Standard:
+                    case MaterialType.Metallic:
                         yield return slotExpressions.First(o => o.name == nameof(StandardProperties.metallic));
                         break;
-                    case MaterialType.SpecularColor:
+                    case MaterialType.Specular:
                         yield return slotExpressions.First(o => o.name == nameof(SpecularColorProperties.specularColor));
                         break;
                     default:
@@ -267,11 +266,11 @@ namespace UnityEditor.VFX
                 if (GetOrRefreshShaderGraphObject() == null)
                     switch (materialType)
                     {
-                        case MaterialType.Standard:
-                            yield return "URP_MATERIAL_TYPE_STANDARD";
+                        case MaterialType.Metallic:
+                            yield return "URP_MATERIAL_TYPE_METALLIC";
                             break;
 
-                        case MaterialType.SpecularColor:
+                        case MaterialType.Specular:
                             yield return "URP_MATERIAL_TYPE_SPECULAR";
                             break;
                     }
