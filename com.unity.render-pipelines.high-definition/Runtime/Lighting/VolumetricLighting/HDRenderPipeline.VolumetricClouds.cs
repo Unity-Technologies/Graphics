@@ -595,15 +595,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (needsTemporaryBuffer)
                 {
+                    // Provide this second upscaling + combine strategy in case a temporary buffer is requested (ie MSAA).
+                    // In the case of an MSAA color target, we cannot use the in-place blending of the clouds with the color target.
                     cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Perform the upscale into an intermediate buffer.
                     cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, finalTX, finalTY, parameters.viewCount);
 
-                    combineClouds.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
+                    combineCloudsPass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Composite the clouds into the MSAA target via hardware blending.
-                    HDUtils.DrawFullScreen(cmd, combineClouds, colorBuffer, null, 0);
+                    HDUtils.DrawFullScreen(cmd, combineCloudsPass, colorBuffer, null, 0);
                 }
                 else
                 {
