@@ -15,11 +15,10 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public abstract string info { get; }
 
-        private bool m_IsEnabled = true;
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
-        public virtual bool IsEnabled => m_IsEnabled;
+        public virtual bool IsEnabled => true;
 
         /// <summary>
         /// This method getting triggered when clicking the listview item in the UI.
