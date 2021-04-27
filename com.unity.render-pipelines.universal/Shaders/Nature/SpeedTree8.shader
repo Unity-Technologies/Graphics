@@ -57,16 +57,18 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BILLBOARD
             #pragma shader_feature_local EFFECT_HUE_VARIATION
-            //#pragma shader_feature_local EFFECT_SUBSURFACE // GI dependent.
+            #pragma shader_feature_local EFFECT_SUBSURFACE
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_EXTRA_TEX
 
@@ -124,14 +126,15 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
             #pragma shader_feature_local EFFECT_BILLBOARD
             #pragma shader_feature_local EFFECT_HUE_VARIATION
-            //#pragma shader_feature_local EFFECT_SUBSURFACE // GI dependent.
+            #pragma shader_feature_local EFFECT_SUBSURFACE
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_EXTRA_TEX
 

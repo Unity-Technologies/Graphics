@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal interface IRenderPass2D
     {

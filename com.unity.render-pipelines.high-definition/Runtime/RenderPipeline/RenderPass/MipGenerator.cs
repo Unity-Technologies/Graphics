@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(RenderPipelineResources defaultResources)
+        public MipGenerator(HDRenderPipelineRuntimeResources defaultResources)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
@@ -127,7 +127,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: true,
                     useMipMap: false,
-                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
@@ -158,7 +157,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat: destination.graphicsFormat,
                     enableRandomWrite: false,
                     useMipMap: false,
-                    enableMSAA: false,
                     useDynamicScale: true,
                     name: "Temporary Downsampled Pyramid"
                 );
