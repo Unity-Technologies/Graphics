@@ -119,7 +119,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -146,7 +146,7 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
+              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-force-metal" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -170,7 +170,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -197,7 +197,7 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX_Apple_Silicon.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=3000
+              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-force-metal" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=3000
     artifacts:
         logs:
             paths:
@@ -334,7 +334,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -364,7 +364,7 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
+              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-force-metal" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -392,7 +392,7 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              ./utr --architecture=arm64 --device=arm64 --configuration=metal --device-ip=$BOKKEN_DEVICE_IP --extra-editor-arg="-force-metal" --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -422,7 +422,7 @@ Build_HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=3000
+              ./utr --artifacts_path=TestProjects/HDRP_RuntimeTests/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-force-metal" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_RuntimeTests --timeout=3000
     artifacts:
         logs:
             paths:

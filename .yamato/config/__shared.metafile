@@ -76,7 +76,7 @@ test_platforms:
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP%
+      - [OSX_Apple_Silicon_Metal]: --architecture=arm64 --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP% --extra-editor-arg="-force-metal"
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Apple_Silicon_Metal]: --player-connection-ip=auto
 
     utr_flags_build:
@@ -118,6 +118,7 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
