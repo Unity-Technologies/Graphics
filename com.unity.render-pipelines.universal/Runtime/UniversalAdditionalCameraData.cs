@@ -486,8 +486,6 @@ namespace UnityEngine.Rendering.Universal
             set => m_VolumeStack = value;
         }
 
-        public List<Volume> volumeList { get; set; }
-
         /// <summary>
         /// Returns true if this camera should render post-processing.
         /// </summary>
