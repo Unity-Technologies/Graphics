@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -367,7 +367,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Depth of Field
-            if (m_DepthOfField.IsActive() && !isSceneViewCamera)
+            // Adreno 3xx SystemInfo.graphicsShaderLevel is 35, but instancing support is disabled due to buggy drivers.
+            // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
+            var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
+            if (m_DepthOfField.IsActive() && !isSceneViewCamera && dofMaterial != null)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -485,6 +488,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_UseFastSRGBLinearConversion)
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                }
+
+                if (isSceneViewCamera)
+                {
+                    // Scene-view doesn't necessarily use the final-blit, so ensure we set the debug properties here (if necessary)...
+                    DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
                 }
 
                 // Done with Uber, blit it
@@ -1248,6 +1257,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+
+            DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
 
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 

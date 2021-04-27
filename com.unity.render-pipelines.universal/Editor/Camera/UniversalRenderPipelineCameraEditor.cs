@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.Universal
             base.OnEnable();
             settings.OnEnable();
 
-            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject, settings);
+            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject);
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -106,18 +106,30 @@ namespace UnityEditor.Rendering.Universal
                 drawHeaderCallback = rect => EditorGUI.LabelField(rect, Styles.cameras),
                 drawElementCallback = DrawElementCallback,
                 onSelectCallback = SelectElement,
-                onRemoveCallback = list =>
-                {
-                    m_SerializedCamera.cameras.DeleteArrayElementAtIndex(list.index);
-                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                    m_SerializedCamera.Apply();
-
-                    // Force update the list as removed camera could been there
-                    m_TypeErrorCameras.Clear();
-                    m_OutputWarningCameras.Clear();
-                },
+                onRemoveCallback = RemoveCamera,
+                onCanRemoveCallback = CanRemoveCamera,
                 onAddDropdownCallback = AddCameraToCameraList
             };
+        }
+
+        bool CanRemoveCamera(ReorderableList list) => m_SerializedCamera.numCameras > 0;
+
+        void RemoveCamera(ReorderableList list)
+        {
+            // As multi selection is disabled, selectedIndices will only return 1 element, remove that element from the list
+            if (list.selectedIndices.Any())
+            {
+                m_SerializedCamera.cameras.DeleteArrayElementAtIndex(list.selectedIndices.First());
+            }
+            else
+            {
+                // Nothing selected, remove the last item on the list
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            }
+
+            // Force update the list as removed camera could been there
+            m_TypeErrorCameras.Clear();
+            m_OutputWarningCameras.Clear();
         }
 
         void SelectElement(ReorderableList list)
@@ -137,9 +149,8 @@ namespace UnityEditor.Rendering.Universal
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += 1;
 
-            var element = m_SerializedCamera.cameras.GetArrayElementAtIndex(index);
-
-            var cam = element.objectReferenceValue as Camera;
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[index];
+            Camera cam = overlayCamera.camera;
             if (cam != null)
             {
                 bool typeError = false;
@@ -158,7 +169,7 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 bool outputWarning = false;
-                if (IsStackCameraOutputDirty(cam))
+                if (IsStackCameraOutputDirty(cam, overlayCamera.serializedCamera))
                 {
                     outputWarning = true;
                     if (!m_OutputWarningCameras.Contains(cam))
@@ -181,7 +192,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUIUtility.TrTextContent(type.GetName(), "Not a supported type", m_ErrorIcon) :
                     EditorGUIUtility.TrTextContent(type.GetName());
 
-                EditorGUI.BeginProperty(rect, GUIContent.none, element);
+                EditorGUI.BeginProperty(rect, GUIContent.none, m_SerializedCamera.cameras.GetArrayElementAtIndex(index));
                 var labelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth -= 20f;
 
@@ -292,13 +303,14 @@ namespace UnityEditor.Rendering.Universal
             if (!validCameras.Any())
                 return;
 
-            var length = m_SerializedCamera.cameras.arraySize;
-            ++m_SerializedCamera.cameras.arraySize;
-            m_SerializedCamera.Apply();
-            m_SerializedCamera.cameras.GetArrayElementAtIndex(length).objectReferenceValue = validCameras[selected];
-            m_SerializedCamera.Apply();
+            m_SerializedCamera.cameras.InsertArrayElementAtIndex(m_SerializedCamera.numCameras);
+            m_SerializedCamera.cameras.GetArrayElementAtIndex(m_SerializedCamera.numCameras - 1).objectReferenceValue = validCameras[selected];
+            m_SerializedCamera.serializedAdditionalDataObject.ApplyModifiedProperties();
 
-            UpdateStackCameraOutput(validCameras[selected]);
+            m_SerializedCamera.Refresh();
+
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[m_SerializedCamera.numCameras - 1];
+            UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
         }
 
         public new void OnDisable()
@@ -396,115 +408,131 @@ namespace UnityEditor.Rendering.Universal
             int cameraCount = m_SerializedCamera.cameras.arraySize;
             for (int i = 0; i < cameraCount; ++i)
             {
-                SerializedProperty cameraProperty = m_SerializedCamera.cameras.GetArrayElementAtIndex(i);
-                Camera overlayCamera = cameraProperty.objectReferenceValue as Camera;
-                if (overlayCamera != null)
-                    UpdateStackCameraOutput(overlayCamera);
+                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[i];
+                if (overlayCamera.camera != null)
+                    UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
             }
         }
 
-        private void UpdateStackCameraOutput(Camera camera)
+        private void UpdateStackCameraOutput(Camera cam, UniversalRenderPipelineSerializedCamera serializedCamera)
         {
+            if ((CameraRenderType)serializedCamera.cameraType.intValue == CameraRenderType.Base)
+                return;
+
+            serializedCamera.Update();
             Undo.RecordObject(camera, Styles.inspectorOverlayCameraText);
+
+            var serializedCameraSettings = serializedCamera.baseCameraSettings;
 
             bool isChanged = false;
 
             // Force same render texture
             RenderTexture targetTexture = settings.targetTexture.objectReferenceValue as RenderTexture;
-            if (camera.targetTexture != targetTexture)
+            if (cam.targetTexture != targetTexture)
             {
-                camera.targetTexture = targetTexture;
+                cam.targetTexture = targetTexture;
                 isChanged = true;
             }
 
             // Force same hdr
             bool allowHDR = settings.HDR.boolValue;
-            if (camera.allowHDR != allowHDR)
+            if (cam.allowHDR != allowHDR)
             {
-                camera.allowHDR = allowHDR;
+                cam.allowHDR = allowHDR;
                 isChanged = true;
             }
 
             // Force same mssa
             bool allowMSSA = settings.allowMSAA.boolValue;
-            if (camera.allowMSAA != allowMSSA)
+            if (cam.allowMSAA != allowMSSA)
             {
-                camera.allowMSAA = allowMSSA;
+                cam.allowMSAA = allowMSSA;
                 isChanged = true;
             }
 
             // Force same viewport rect
             Rect rect = settings.normalizedViewPortRect.rectValue;
-            if (camera.rect != rect)
+            if (cam.rect != rect)
             {
-                camera.rect = settings.normalizedViewPortRect.rectValue;
+                cam.rect = settings.normalizedViewPortRect.rectValue;
                 isChanged = true;
             }
 
             // Force same dynamic resolution
             bool allowDynamicResolution = settings.allowDynamicResolution.boolValue;
-            if (camera.allowDynamicResolution != allowDynamicResolution)
+            if (serializedCamera.allowDynamicResolution.boolValue != allowDynamicResolution)
             {
-                camera.allowDynamicResolution = allowDynamicResolution;
+                cam.allowDynamicResolution = allowDynamicResolution;
                 isChanged = true;
             }
 
             // Force same target display
             int targetDisplay = settings.targetDisplay.intValue;
-            if (camera.targetDisplay != targetDisplay)
+            if (cam.targetDisplay != targetDisplay)
             {
-                camera.targetDisplay = targetDisplay;
+                cam.targetDisplay = targetDisplay;
                 isChanged = true;
             }
 
-            // Force same target display todo
-            StereoTargetEyeMask stereoTargetEye = (StereoTargetEyeMask)settings.targetEye.intValue;
-            if (camera.stereoTargetEye != stereoTargetEye)
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Force same target display
+            int selectedValue = !m_SerializedCamera.allowXRRendering.boolValue ? 0 : 1;
+            int overlayCameraSelectedValue = !serializedCamera.allowXRRendering.boolValue ? 0 : 1;
+            if (overlayCameraSelectedValue != selectedValue)
             {
-                camera.stereoTargetEye = stereoTargetEye;
+                serializedCamera.allowXRRendering.boolValue = selectedValue == 1;
                 isChanged = true;
             }
+#endif
 
             if (isChanged)
-                EditorUtility.SetDirty(camera);
+            {
+                EditorUtility.SetDirty(cam);
+                serializedCamera.Apply();
+            }
         }
 
-        private bool IsStackCameraOutputDirty(Camera camera)
+        private bool IsStackCameraOutputDirty(Camera cam, UniversalRenderPipelineSerializedCamera serializedCamera)
         {
+            serializedCamera.Update();
+
             // Force same render texture
             RenderTexture targetTexture = settings.targetTexture.objectReferenceValue as RenderTexture;
-            if (camera.targetTexture != targetTexture)
+            if (cam.targetTexture != targetTexture)
                 return true;
 
             // Force same hdr
             bool allowHDR = settings.HDR.boolValue;
-            if (camera.allowHDR != allowHDR)
+            if (cam.allowHDR != allowHDR)
                 return true;
 
             // Force same mssa
             bool allowMSSA = settings.allowMSAA.boolValue;
-            if (camera.allowMSAA != allowMSSA)
+            if (cam.allowMSAA != allowMSSA)
                 return true;
 
             // Force same viewport rect
             Rect rect = settings.normalizedViewPortRect.rectValue;
-            if (camera.rect != rect)
+            if (cam.rect != rect)
                 return true;
 
             // Force same dynamic resolution
             bool allowDynamicResolution = settings.allowDynamicResolution.boolValue;
-            if (camera.allowDynamicResolution != allowDynamicResolution)
+            if (serializedCamera.allowDynamicResolution.boolValue != allowDynamicResolution)
                 return true;
 
             // Force same target display
             int targetDisplay = settings.targetDisplay.intValue;
-            if (camera.targetDisplay != targetDisplay)
+            if (cam.targetDisplay != targetDisplay)
                 return true;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
             // Force same target display
-            StereoTargetEyeMask stereoTargetEye = (StereoTargetEyeMask)settings.targetEye.intValue;
-            if (camera.stereoTargetEye != stereoTargetEye)
+            int selectedValue = !m_SerializedCamera.allowXRRendering.boolValue ? 0 : 1;
+            int overlayCameraSelectedValue = !serializedCamera.allowXRRendering.boolValue ? 0 : 1;
+            if (overlayCameraSelectedValue != selectedValue)
                 return true;
+#endif
 
             return false;
         }

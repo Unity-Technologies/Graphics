@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void InitData(RenderPipelineResources renderPipelineResources)
+        public void InitData(HDRenderPipelineRuntimeResources renderPipelineResources)
         {
             m_DebugLightVolumeMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.debugLightVolumePS);
             m_DebugLightVolumeCompute = renderPipelineResources.shaders.debugLightVolumeCS;

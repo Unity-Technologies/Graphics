@@ -1,9 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
@@ -128,8 +125,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
-                {
-                    { UnlitPasses.Unlit },
+                {                   
+                    { UnlitPasses.Forward },
                     //{ CorePasses.MotionVectors },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
@@ -140,7 +137,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 get
                 {
-                    var unlit = UnlitPasses.Unlit;
+                    var unlit = UnlitPasses.Forward;
                     var shadowCaster = CorePasses.ShadowCaster;
                    // var motionVectors = CorePasses.MotionVectors;
                     var depthOnly = CorePasses.DepthOnly;
@@ -171,10 +168,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pass
         static class UnlitPasses
         {
-            public static PassDescriptor Unlit = new PassDescriptor
+            public static PassDescriptor Forward = new PassDescriptor
             {
                 // Definition
-                displayName = "Pass",
+                displayName = "Universal Forward",
                 referenceName = "SHADERPASS_UNLIT",
                 useInPreview = true,
 
@@ -188,6 +185,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Fields
                 structs = CoreStructCollections.Default,
+                requiredFields = UnlitRequiredFields.Unlit,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -200,6 +198,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
+
+            #region RequiredFields
+            static class UnlitRequiredFields
+            {
+                public static readonly FieldCollection Unlit = new FieldCollection()
+                {
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    StructFields.Varyings.viewDirectionWS,
+                };
+            }
+            #endregion
         }
         #endregion
 
@@ -214,6 +224,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

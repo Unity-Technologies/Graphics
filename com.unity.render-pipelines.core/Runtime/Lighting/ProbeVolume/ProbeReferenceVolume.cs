@@ -9,6 +9,16 @@ using UnityEngine.SceneManagement;
 namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
+    /// Initialization parameters for the probe volume system.
+    /// </summary>
+    public struct ProbeVolumeSystemParameters
+    {
+        public ProbeVolumeTextureMemoryBudget memoryBudget;
+        public Mesh probeDebugMesh;
+        public Shader probeDebugShader;
+    }
+
+    /// <summary>
     /// Possible values for the probe volume memory budget (determines the size of the textures used).
     /// </summary>
     [Serializable]
@@ -37,12 +47,9 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
     /// </summary>
-    public class ProbeReferenceVolume
+    public partial class ProbeReferenceVolume
     {
-        /// <summary>
-        /// The size of each chunk of allocation in the data pool.
-        /// </summary>
-        public static int s_ProbeIndexPoolAllocationSize = 128;
+        const int kProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
         internal struct Cell
@@ -221,36 +228,36 @@ namespace UnityEngine.Experimental.Rendering
             public override int GetHashCode() => id;
         }
 
-        private int m_ID = 0;
-        private RefVolTransform m_Transform;
-        private int m_MaxSubdivision;
-        private ProbeBrickPool m_Pool;
-        private ProbeBrickIndex m_Index;
-        private List<Brick>[] m_TmpBricks = new List<Brick>[2];
-        private List<BrickFlags> m_TmpFlags = new List<BrickFlags>();
-        private List<Chunk> m_TmpSrcChunks = new List<Chunk>();
-        private List<Chunk> m_TmpDstChunks = new List<Chunk>();
-        private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
-        private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
+        bool                            m_IsInitialized = false;
+        int                             m_ID = 0;
+        RefVolTransform                 m_Transform;
+        int                             m_MaxSubdivision;
+        ProbeBrickPool                  m_Pool;
+        ProbeBrickIndex                 m_Index;
+        List<Brick>[]                   m_TmpBricks = new List<Brick>[2];
+        List<BrickFlags>                m_TmpFlags = new List<BrickFlags>();
+        List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
+        List<Chunk>                     m_TmpDstChunks = new List<Chunk>();
+        float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
-        private Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
 
-        private bool m_BricksLoaded = false;
-
+        bool m_BricksLoaded = false;
+        Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
         // Information of the probe volume asset that is being loaded (if one is pending)
-        private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
+        Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
-        private Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
+        Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information of the probe volume asset that is being loaded (if one is pending)
-        private Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
+        Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
-        private bool m_NeedLoadAsset = false;
-        private bool m_ProbeReferenceVolumeInit = false;
+        bool m_NeedLoadAsset = false;
+        bool m_ProbeReferenceVolumeInit = false;
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
-        private Vector3Int m_PendingIndexDimChange;
-        private bool m_NeedsIndexDimChange = false;
+        Vector3Int m_PendingIndexDimChange;
+        bool m_NeedsIndexDimChange = false;
 
         private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
@@ -261,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
 
-        static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
+        static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
@@ -275,17 +282,37 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
-        /// Set the memory budget for the Probe Volume System.
+        /// Initialize the Probe Volume system
         /// </summary>
-        /// <param name="budget"></param>
-        public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
+        /// <param name="parameters">Initialization parameters.</param>
+        public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
-            if (m_MemoryBudget != budget)
+            if (m_IsInitialized)
             {
-                m_MemoryBudget = budget;
-                Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                Debug.LogError("Probe Volume System has already been initialized.");
+                return;
             }
+
+            m_MemoryBudget = parameters.memoryBudget;
+            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+            m_IsInitialized = true;
+        }
+
+        /// <summary>
+        /// Cleanup the Probe Volume system.
+        /// </summary>
+        public void Cleanup()
+        {
+            if (!m_IsInitialized)
+            {
+                Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
+                return;
+            }
+
+            CleanupLoadedData();
+            CleanupDebug();
+            m_IsInitialized = false;
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -346,17 +373,17 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private void PerformPendingIndexDimensionChangeAndInit()
+        void PerformPendingIndexDimensionChangeAndInit()
         {
             if (m_NeedsIndexDimChange)
             {
-                Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                CleanupLoadedData();
+                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
             }
         }
 
-        private void LoadAsset(ProbeVolumeAsset asset)
+        void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
             m_AssetPathToBricks[path] = new List<RegId>();
@@ -380,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private void PerformPendingLoading()
+        void PerformPendingLoading()
         {
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
@@ -408,7 +435,7 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeLoaded.Clear();
         }
 
-        private void PerformPendingDeletion()
+        void PerformPendingDeletion()
         {
             if (!m_ProbeReferenceVolumeInit)
             {
@@ -440,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
-        public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
+        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
         {
             if (!m_ProbeReferenceVolumeInit)
             {
@@ -466,11 +493,13 @@ namespace UnityEngine.Experimental.Rendering
                 Profiler.EndSample();
 
                 m_ProbeReferenceVolumeInit = true;
+
+                ClearDebugData();
             }
             m_NeedLoadAsset = true;
         }
 
-        private ProbeReferenceVolume()
+        ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
@@ -597,7 +626,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // converts a volume into bricks, subdivides the bricks and culls subdivided volumes falling outside the original volume
-        private void ConvertVolume(Volume cellVolume, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks)
+        void ConvertVolume(Volume cellVolume, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks)
         {
             Profiler.BeginSample("ConvertVolume");
             m_TmpBricks[0].Clear();
@@ -686,7 +715,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        internal RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -739,7 +768,7 @@ namespace UnityEngine.Experimental.Rendering
             return id;
         }
 
-        internal void ReleaseBricks(RegId id)
+        void ReleaseBricks(RegId id)
         {
             List<Chunk> ch_list;
             if (!m_Registry.TryGetValue(id, out ch_list))
@@ -756,7 +785,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Registry.Remove(id);
         }
 
-        private void Transform(Volume inVolume, out Volume outVolume)
+        void Transform(Volume inVolume, out Volume outVolume)
         {
             Matrix4x4 m = GetRefSpaceToWS().inverse;
 
@@ -770,7 +799,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
-        private void Rasterize(Volume volume, List<Brick> outBricks)
+        void Rasterize(Volume volume, List<Brick> outBricks)
         {
             Profiler.BeginSample("Rasterize");
             // Calculate bounding box for volume in refvol space
@@ -826,7 +855,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Cleanup loaded data.
         /// </summary>
-        public void Cleanup()
+        void CleanupLoadedData()
         {
             m_BricksLoaded = false;
 
@@ -837,6 +866,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_ProbeReferenceVolumeInit = false;
+            ClearDebugData();
         }
     }
 }

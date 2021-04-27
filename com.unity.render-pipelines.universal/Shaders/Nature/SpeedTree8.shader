@@ -60,6 +60,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50

@@ -193,6 +193,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     // Stripped down version of UniversalFragmentPBR().
 

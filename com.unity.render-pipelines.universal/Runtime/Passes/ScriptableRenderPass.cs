@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
@@ -196,6 +197,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+
+        internal DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
         {

@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ScriptableRenderContext      renderContext;
         ///<summary>Command Buffer used for rendering.</summary>
         public CommandBuffer                cmd;
-        ///<summary>Render Graph pooll used for temporary data.</summary>
+        ///<summary>Render Graph pool used for temporary data.</summary>
         public RenderGraphObjectPool        renderGraphPool;
         ///<summary>Render Graph default resources.</summary>
         public RenderGraphDefaultResources  defaultResources;

@@ -75,7 +75,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #if defined(_NORMALMAP) || defined(_DETAIL)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+
+    #if defined(_NORMALMAP)
+    inputData.tangentToWorld = tangentToWorld;
+    #endif
+    inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
 #else
     inputData.normalWS = input.normalWS;
 #endif
@@ -105,6 +110,12 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+
+#if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV;
+#else
+    inputData.vertexSH = input.vertexSH;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -197,6 +208,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
