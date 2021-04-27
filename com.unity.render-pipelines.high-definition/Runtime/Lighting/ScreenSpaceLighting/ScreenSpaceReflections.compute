@@ -676,9 +676,11 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness0);
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
-    float4 data0 = _SSRAccumTexture[COORD_TEXTURE2D_X(int2(positionSS))];
+    float2 rescaleSS = _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy;
 
-    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS).xy;
+    float4 data0 = _SSRAccumTexture[COORD_TEXTURE2D_X(int2(positionSS * rescaleSS))];
+
+    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS * rescaleSS).xy;
 
     // Approximate the footprint based on the hit normal
     float2 hitSS = (hitPositionNDC.xy - (0.5 * _ColorPyramidUvScaleAndLimitPrevFrame.zw)) / _ColorPyramidUvScaleAndLimitPrevFrame.zw;
@@ -687,8 +689,8 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeFromNormalBuffer(hitSS, hitNormalData);
     float3 hitN = hitNormalData.normalWS;
 
-    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
-    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
+    float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS * rescaleSS)];
+    float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * rescaleSS)];
 
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
@@ -698,7 +700,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
-    float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
+    float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
 
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 
@@ -710,8 +712,8 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     result.rgb = isPosFin ? result.rgb : 0;
     result.w = isPosFin ? result.w : 0;
 
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
-    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS * rescaleSS)] = result;
+    _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS * rescaleSS)] = result;
 }
 
 #endif
