@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugProbeVolumeMode;
         public int _DebugAOVOutput;
         public int _DebugDisplayPad0;
-        public int _DebugDisplayPad1; 
+        public int _DebugDisplayPad1;
     }
 
     /// <summary>
