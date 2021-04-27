@@ -79,7 +79,7 @@ void frag(ps_input i
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;
-           surface.normalWS = normalWS;
+           surface.normalWS = normalWS; //TODOPAUL, this isn't in surfaceData
            EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), outNormalBuffer);
         #endif
 	#endif
