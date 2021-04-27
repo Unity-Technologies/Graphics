@@ -6,11 +6,11 @@ LightmapParameters:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Structure
+  m_Name: EmissiveWall
   serializedVersion: 3
-  resolution: 1
+  resolution: 1.5
   clusterResolution: 0.5
-  irradianceBudget: 128
+  irradianceBudget: 256
   irradianceQuality: 8192
   backFaceTolerance: 0.9
   isTransparent: 0

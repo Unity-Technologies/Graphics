@@ -6,10 +6,10 @@ LightmapParameters:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Structure
+  m_Name: Pillars
   serializedVersion: 3
   resolution: 1
-  clusterResolution: 0.5
+  clusterResolution: 1
   irradianceBudget: 128
   irradianceQuality: 8192
   backFaceTolerance: 0.9
