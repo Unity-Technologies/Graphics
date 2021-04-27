@@ -108,10 +108,8 @@ real3 URP_LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float
     }
     else if(isDirectional)
     {
-        float4 dirUVScaleOffset = URP_LightCookie_GetCookieUVScaleOffset(perObjectLightIndex);
-        int    dirUvWrapMode    = URP_LightCookie_GetCookieUVWrapMode(perObjectLightIndex);
         uv = URP_LightCookie_ComputeUVDirectional(worldToLight, samplePositionWS, uvRect,
-            dirUVScaleOffset.xy, dirUVScaleOffset.zw, dirUvWrapMode);
+            float2(1,1), float2(0,0), URP_TEXTURE_WRAP_MODE_REPEAT);
     }
     else
     {

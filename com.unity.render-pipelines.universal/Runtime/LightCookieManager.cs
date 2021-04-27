@@ -20,19 +20,13 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _AdditionalLightsCookieAtlasTexture = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
             public static readonly int _AdditionalLightsCookieAtlasFormat  = Shader.PropertyToID("_AdditionalLightsCookieAtlasFormat");
 
-
             public static readonly int _AdditionalLightsCookieAtlasUVRectBuffer   = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRectBuffer");
             public static readonly int _AdditionalLightsWorldToLightBuffer        = Shader.PropertyToID("_AdditionalLightsWorldToLightBuffer");    // TODO: really a light property
             public static readonly int _AdditionalLightsLightTypeBuffer           = Shader.PropertyToID("_AdditionalLightsLightTypeBuffer");        // TODO: really a light property
-            public static readonly int _AdditionalLightsCookieUVScaleOffsetBuffer = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsetBuffer"); // TODO: only for directional light
-            public static readonly int _AdditionalLightsCookieUVWrapModeBuffer    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModeBuffer"); // TODO: only for directional light
-
 
             public static readonly int _AdditionalLightsCookieAtlasUVRects   = Shader.PropertyToID("_AdditionalLightsCookieAtlasUVRects");
             public static readonly int _AdditionalLightsWorldToLights        = Shader.PropertyToID("_AdditionalLightsWorldToLights"); // TODO: really a light property
             public static readonly int _AdditionalLightsLightTypes           = Shader.PropertyToID("_AdditionalLightsLightTypes");    // TODO: really a light property
-            public static readonly int _AdditionalLightsCookieUVScaleOffsets = Shader.PropertyToID("_AdditionalLightsCookieUVScaleOffsets"); // TODO: only for directional light
-            public static readonly int _AdditionalLightsCookieUVWrapModes    = Shader.PropertyToID("_AdditionalLightsCookieUVWrapModes"); // TODO: only for directional light
         }
 
         private enum LightCookieShaderFormat
@@ -106,20 +100,14 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4[] m_WorldToLightCpuData;
             Vector4[]   m_AtlasUVRectCpuData;
             float[]     m_LightTypeCpuData;
-            Vector4[]   m_UVScaleOffsetCpuData;
-            float[]     m_UVWrapModeCpuData;
 
             ComputeBuffer  m_WorldToLightBuffer;    // TODO: WorldToLight matrices should be general property of lights!!
             ComputeBuffer  m_AtlasUVRectBuffer;
             ComputeBuffer  m_LightTypeBuffer;
-            ComputeBuffer  m_UVScaleOffsetBuffer;
-            ComputeBuffer  m_UVWrapModeBuffer;
 
             public Matrix4x4[] worldToLights  => m_WorldToLightCpuData;
             public Vector4[]   atlasUVRects   => m_AtlasUVRectCpuData;
             public float[]     lightTypes     => m_LightTypeCpuData;
-            public Vector4[]   uvScaleOffsets => m_UVScaleOffsetCpuData;
-            public float[]     uvWrapModes    => m_UVWrapModeCpuData;
 
             public LightCookieShaderData(int size, bool useStructuredBuffer)
             {
@@ -134,8 +122,6 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer?.Dispose();
                     m_AtlasUVRectBuffer?.Dispose();
                     m_LightTypeBuffer?.Dispose();
-                    m_UVScaleOffsetBuffer?.Dispose();
-                    m_UVWrapModeBuffer?.Dispose();
                 }
             }
 
@@ -152,15 +138,11 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer = new ComputeBuffer(size, Marshal.SizeOf<Matrix4x4>());
                     m_AtlasUVRectBuffer  = new ComputeBuffer(size, Marshal.SizeOf<Vector4>());
                     m_LightTypeBuffer    = new ComputeBuffer(size, Marshal.SizeOf<float>());
-                    m_UVScaleOffsetBuffer = new ComputeBuffer(size, Marshal.SizeOf<float4>());
-                    m_UVWrapModeBuffer   = new ComputeBuffer(size, Marshal.SizeOf<float>());
                 }
 
                 m_WorldToLightCpuData  = new Matrix4x4[size];
                 m_AtlasUVRectCpuData   = new Vector4[size];
                 m_LightTypeCpuData     = new float[size];
-                m_UVScaleOffsetCpuData = new Vector4[size];
-                m_UVWrapModeCpuData    = new float[size];
 
                 m_Size = size;
             }
@@ -172,22 +154,16 @@ namespace UnityEngine.Rendering.Universal
                     m_WorldToLightBuffer.SetData(m_WorldToLightCpuData);
                     m_AtlasUVRectBuffer.SetData(m_AtlasUVRectCpuData);
                     m_LightTypeBuffer.SetData(m_LightTypeCpuData);
-                    m_UVScaleOffsetBuffer.SetData(m_UVScaleOffsetCpuData);
-                    m_UVWrapModeBuffer.SetData(m_UVWrapModeCpuData);
 
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsWorldToLightBuffer, m_WorldToLightBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieAtlasUVRectBuffer, m_AtlasUVRectBuffer);
                     cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsLightTypeBuffer, m_LightTypeBuffer);
-                    cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieUVScaleOffsetBuffer, m_UVScaleOffsetBuffer);
-                    cmd.SetGlobalBuffer(ShaderProperty._AdditionalLightsCookieUVWrapModeBuffer, m_UVWrapModeBuffer);
                 }
                 else
                 {
                     cmd.SetGlobalMatrixArray(ShaderProperty._AdditionalLightsWorldToLights, m_WorldToLightCpuData);
                     cmd.SetGlobalVectorArray(ShaderProperty._AdditionalLightsCookieAtlasUVRects, m_AtlasUVRectCpuData);
                     cmd.SetGlobalFloatArray(ShaderProperty._AdditionalLightsLightTypes, m_LightTypeCpuData);
-                    cmd.SetGlobalVectorArray(ShaderProperty._AdditionalLightsCookieUVScaleOffsets, m_UVScaleOffsetCpuData);
-                    cmd.SetGlobalFloatArray(ShaderProperty._AdditionalLightsCookieUVWrapModes, m_UVWrapModeCpuData);
                 }
             }
         }
@@ -386,17 +362,32 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
+                // TODO: visibleLights[].light is a search, should cache these somewhere
                 Light light = lightData.visibleLights[i].light;
 
                 // Skip lights without a cookie texture
                 if (light.cookie == null)
                     continue;
 
+                // Only spot and point lights are supported.
+                // Directional lights basically work,
+                // but would require a lot of constants for the uv transform parameters
+                // and there are very few use cases multiple global cookies.
+                var lightType = lightData.visibleLights[i].lightType;
+                if (!(lightType == LightType.Spot ||
+                      lightType == LightType.Point))
+                {
+                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' has a light cookie which will not be visible.");
+                    continue;
+                }
+
                 // Skip vertex lights, no support
                 if (light.renderMode == LightRenderMode.ForceVertex)
+                {
+                    Debug.LogWarning($"Additional {lightType.ToString()} light called '{light.name}' is a vertex light and its light cookie will not be visible.");
                     continue;
+                }
 
-                //DrawDebugFrustum(lightData.visibleLights[i].localToWorldMatrix);
 
                 Debug.Assert(i < ushort.MaxValue);
 
@@ -416,8 +407,6 @@ namespace UnityEngine.Rendering.Universal
                 // Factors:
                 // 1. Light screen area
                 // 2. Light intensity
-                // 4. TODO: better criteria?? spot > point?
-                // TODO: Is screen rect accurate? If not then just use size
                 Rect  lightScreenUVRect = lightData.visibleLights[i].screenRect;
                 float lightScreenAreaUV = lightScreenUVRect.width * lightScreenUVRect.height;
                 float lightIntensity    = light.intensity;
@@ -570,8 +559,6 @@ namespace UnityEngine.Rendering.Universal
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
-            var uvScaleOffsets = m_AdditionalLightsCookieShaderData.uvScaleOffsets;
-            var uvWrapModes = m_AdditionalLightsCookieShaderData.uvWrapModes;
 
             // TODO: clear enable bits instead
             // Set all rects to Invalid (Vector4.zero).
@@ -601,21 +588,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // world -> light local -> light perspective
                     worldToLights[bufIndex] = perp * worldToLights[bufIndex];
-                }
-
-                if (lightData.visibleLights[visIndex].lightType == LightType.Directional)
-                {
-                    Vector2 uvScale = Vector2.one;
-                    Vector2 uvOffset = Vector2.zero;
-
-                    // TODO: should get this data somewhere higher up
-                    var light = lightData.visibleLights[visIndex].light;
-                    var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
-                    if (additionalLightData != null)
-                        GetLightUVScaleOffset(ref additionalLightData, out uvScale, out uvOffset);
-
-                    uvScaleOffsets[bufIndex] = new Vector4(uvScale.x, uvScale.y, uvOffset.x, uvOffset.y);
-                    uvWrapModes[bufIndex] = (float)light?.cookie.wrapMode;
                 }
             }
 

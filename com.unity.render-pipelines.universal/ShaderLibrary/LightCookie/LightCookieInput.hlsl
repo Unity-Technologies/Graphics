@@ -33,8 +33,6 @@ CBUFFER_END
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light! Move to Input.hlsl
     StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
-    StructuredBuffer<float4>   _AdditionalLightsCookieUVScaleOffsetBuffer; // UV scale and offset for repeated textures (xy: uv offset, zw: uv size)
-    StructuredBuffer<float>    _AdditionalLightsCookieUVWrapModeBuffer; // UV wrap mode for repeated textures (xy: uv offset, zw: uv size)
     StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light! Move to Input.hlsl
 #else
     #ifndef SHADER_API_GLES3
@@ -42,8 +40,6 @@ CBUFFER_END
     #endif
             float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];  // TODO: Should really be a property of the light !!!
             float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv offset, zw: uv size)
-            float4 _AdditionalLightsCookieUVScaleOffsets[MAX_VISIBLE_LIGHTS]; // UV scale and offset for repeated textures (xy: uv offset, zw: uv size) // !!! TODO !!!: waste for non-directional
-            float _AdditionalLightsCookieUVWrapModes[MAX_VISIBLE_LIGHTS]; // !!! TODO !!!: waste for non-directional
             float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS]; // TODO: Should really be a property of the light !!!
             float _AdditionalLightsCookieAtlasFormat;
     #ifndef SHADER_API_GLES3
@@ -77,24 +73,6 @@ int URP_LightCookie_GetLightType(int lightIndex)
         return _AdditionalLightsLightTypeBuffer[lightIndex];
     #else
         return _AdditionalLightsLightTypes[lightIndex];
-    #endif
-}
-
-float4 URP_LightCookie_GetCookieUVScaleOffset(int lightIndex)
-{
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        return _AdditionalLightsCookieUVScaleOffsets[lightIndex];
-    #else
-        return _AdditionalLightsCookieUVScaleOffsets[lightIndex];
-    #endif
-}
-
-int URP_LightCookie_GetCookieUVWrapMode(int lightIndex)
-{
-    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-        return int(_AdditionalLightsCookieUVWrapModes[lightIndex]);
-    #else
-        return int(_AdditionalLightsCookieUVWrapModes[lightIndex]);
     #endif
 }
 
