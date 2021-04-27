@@ -33,6 +33,8 @@ Nightly_VFX_URP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/vfx_urp-osx_apple_silicon-metal.yml#VFX_URP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -59,6 +61,8 @@ Nightly_VFX_URP_CUSTOM-REVISION:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-metal.yml#VFX_URP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-osx_apple_silicon-metal.yml#VFX_URP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set

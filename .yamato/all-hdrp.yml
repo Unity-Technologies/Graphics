@@ -61,6 +61,8 @@ Nightly_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/hdrp-osx_apple_silicon-metal.yml#HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -115,6 +117,8 @@ Nightly_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/hdrp-osx_apple_silicon-metal.yml#HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
