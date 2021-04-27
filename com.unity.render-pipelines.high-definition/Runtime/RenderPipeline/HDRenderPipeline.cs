@@ -525,6 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
                 , autoAmbientProbeBaking = false
                 , autoDefaultReflectionProbeBaking = false
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
