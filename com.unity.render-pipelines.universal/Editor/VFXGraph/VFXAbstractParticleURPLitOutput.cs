@@ -365,7 +365,12 @@ namespace UnityEditor.VFX
 
                 // URP Forward specific defines
                 var forwardDefines = new VFXShaderWriter();
+
+                //TODOPAUL : Should be multicompile actually -_-' (forward & gbuffer pass)
                 forwardDefines.WriteLine("#define _ADDITIONAL_LIGHTS");
+                forwardDefines.WriteLine("#define _MAIN_LIGHT_SHADOWS_CASCADE");
+                forwardDefines.WriteLine("#define _ADDITIONAL_LIGHT_SHADOWS");
+
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
             }
         }
