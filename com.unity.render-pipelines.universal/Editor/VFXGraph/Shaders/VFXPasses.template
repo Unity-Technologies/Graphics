@@ -3,7 +3,13 @@ ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
 
-${VFXBegin:VFXPassDepthDefine}#define SHADERPASS SHADERPASS_DEPTH_ONLY${VFXEnd}
+${VFXBegin:VFXPassDepthDefine}
+#if WRITE_NORMAL_BUFFER
+#define SHADERPASS SHADERPASS_DEPTHNORMALSONLY
+#else
+#define SHADERPASS SHADERPASS_DEPTHONLY
+#endif
+${VFXEnd}
 ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
 
@@ -71,17 +77,13 @@ void frag(ps_input i
 	VFXClipFragmentColor(alpha,i);
 	
 	#if defined(WRITE_NORMAL_BUFFER)
-        #ifndef VFX_SHADERGRAPH
-            VFXComputePixelOutputToNormalBuffer(i, normalWS, uvData, outNormalBuffer);
-        #else
+        #ifdef VFX_SHADERGRAPH
            #if HAS_SHADERGRAPH_PARAM_NORMAL
                float3 n =  OUTSG.Normal_8;
                normalWS = mul(n,tbn);
            #endif
-           SurfaceData surface = (SurfaceData)0;
-           surface.normalWS = normalWS; //TODOPAUL, this isn't in surfaceData
-           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), outNormalBuffer);
         #endif
+		VFXComputePixelOutputToNormalBuffer(normalWS,  outNormalBuffer);
 	#endif
 
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION

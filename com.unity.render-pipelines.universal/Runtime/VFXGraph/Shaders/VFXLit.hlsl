@@ -151,7 +151,6 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     surfaceData.smoothness *= mask.a;
     #endif
 
-
     #if URP_USE_EMISSIVE
     surfaceData.emission = float3(1, 1, 1);
     #if URP_USE_EMISSIVE_MAP
