@@ -2795,7 +2795,7 @@
     "m_Group": {
         "m_Id": "003b4ef77bba4db8a2543888cf83d33c"
     },
-    "m_Name": "SpeedTree8BacksideInterpolatedNormals",
+    "m_Name": "SpeedTree8InterpolatedNormals",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2823,6 +2823,12 @@
             "m_Id": "c15eee43ef6243649ab3cbce74e91955"
         },
         {
+            "m_Id": "c1ff2b46380d4d2b8bc7aa92ef78b42d"
+        },
+        {
+            "m_Id": "f31e649e6d3f46c5911669455eb56daa"
+        },
+        {
             "m_Id": "732101b9dd9b4691912c590ad2aef916"
         },
         {
@@ -2843,7 +2849,8 @@
         "443a8276-ebab-492f-8944-92c7d0176480",
         "1819fe46-eaf2-4a0a-8410-726a791cf9a4",
         "ed11de33-81e5-477a-9781-96cfb424ce55",
-        "f530f069-4b92-4c68-9e07-c51aba95e28f"
+        "f530f069-4b92-4c68-9e07-c51aba95e28f",
+        "b6c0e362-24b8-4762-a71b-e3406a96c645"
     ],
     "m_PropertyIds": [
         2064554629,
@@ -2851,7 +2858,8 @@
         1032965081,
         -2132036376,
         -84633316,
-        2074262670
+        2074262670,
+        1903731781
     ]
 }
 
@@ -6216,6 +6224,31 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "c1ff2b46380d4d2b8bc7aa92ef78b42d",
+    "m_Id": -84633316,
+    "m_DisplayName": "Backside Normal Transform (TS)",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Backside_Normal_Transform_TS",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": -1.0,
+        "w": 1.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "c21240b0713849008f8e756a8f555a1b",
     "m_Id": 0,
@@ -7490,6 +7523,20 @@
     "m_Labels": [
         "X"
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "f31e649e6d3f46c5911669455eb56daa",
+    "m_Id": 1903731781,
+    "m_DisplayName": "Transform Backside Normals",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Transform_Backside_Normals",
+    "m_StageCapability": 2,
+    "m_Value": false,
+    "m_DefaultValue": false
 }
 
 {
