@@ -433,14 +433,16 @@ namespace UnityEditor.Rendering
                 Rect splitterRect = new Rect(splitterPos - 3, 0, 6, Screen.height);
                 GUI.Box(splitterRect, "", s_SplitterLeft);
 
-                GUILayout.Space(2f);
+                const float topMargin = 2f;
+                GUILayout.Space(topMargin);
 
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
-                        GUILayout.Space(4f);
+                        const float leftMargin = 4f;
+                        GUILayout.Space(leftMargin);
                         var selectedPanel = panels[m_Settings.selectedPanel];
 
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
@@ -591,8 +593,7 @@ namespace UnityEditor.Rendering
                 {
                     if (w.GetType() == typeof(DebugUI.Foldout))
                     {
-                        m_WidgetStates.TryGetValue(w.queryPath, out DebugState state);
-                        if (state != null)
+                        if (m_WidgetStates.TryGetValue(w.queryPath, out DebugState state))
                         {
                             var foldout = (DebugUI.Foldout)w;
                             state.SetValue(value, foldout);

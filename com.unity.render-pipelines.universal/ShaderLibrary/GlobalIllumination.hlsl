@@ -1,6 +1,6 @@
 
-#ifndef GLOBAL_ILLUMINATION_INCLUDED
-#define GLOBAL_ILLUMINATION_INCLUDED
+#ifndef UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
+#define UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"

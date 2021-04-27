@@ -160,8 +160,8 @@ namespace UnityEngine.Rendering.UI
                 uiHandler.SetWidget(child);
 
                 var childContainer = go.GetComponent<DebugUIHandlerContainer>();
-                if (childContainer != null && child is DebugUI.IContainer)
-                    Traverse(child as DebugUI.IContainer, childContainer.contentHolder, uiHandler, ref selectedHandler);
+                if (childContainer != null && child is DebugUI.IContainer childAsContainer)
+                    Traverse(childAsContainer, childContainer.contentHolder, uiHandler, ref selectedHandler);
             }
         }
 

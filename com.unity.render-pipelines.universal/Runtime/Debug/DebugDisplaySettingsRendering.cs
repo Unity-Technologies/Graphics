@@ -41,25 +41,20 @@ namespace UnityEngine.Rendering.Universal
 
         void UpdateDebugSceneOverrideMode()
         {
-            if (wireframeMode == WireframeMode.Wireframe)
+            switch (wireframeMode)
             {
-                debugSceneOverrideMode = DebugSceneOverrideMode.Wireframe;
-            }
-            else if (wireframeMode == WireframeMode.SolidWireframe)
-            {
-                debugSceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
-            }
-            else if (wireframeMode == WireframeMode.ShadedWireframe)
-            {
-                debugSceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
-            }
-            else if (overdraw)
-            {
-                debugSceneOverrideMode = DebugSceneOverrideMode.Overdraw;
-            }
-            else
-            {
-                debugSceneOverrideMode = DebugSceneOverrideMode.None;
+                case WireframeMode.Wireframe:
+                    debugSceneOverrideMode = DebugSceneOverrideMode.Wireframe;
+                    break;
+                case WireframeMode.SolidWireframe:
+                    debugSceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
+                    break;
+                case WireframeMode.ShadedWireframe:
+                    debugSceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
+                    break;
+                default:
+                    debugSceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
+                    break;
             }
         }
 
