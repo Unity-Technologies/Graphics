@@ -80,7 +80,7 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
 
 half4 SampleSpecularSmoothness(float2 uv, float3 blendUv, half alpha, half4 specColor, TEXTURE2D_PARAM(specGlossMap, sampler_specGlossMap))
 {
-    half4 specularGloss = half4(0.0h, 0.0h, 0.0h, 1.0h);
+    half4 specularGloss = half4(0, 0, 0, 1);
 #ifdef _SPECGLOSSMAP
     specularGloss = BlendTexture(TEXTURE2D_ARGS(specGlossMap, sampler_specGlossMap), uv, blendUv);
 #elif defined(_SPECULAR_COLOR)
@@ -90,7 +90,6 @@ half4 SampleSpecularSmoothness(float2 uv, float3 blendUv, half alpha, half4 spec
 #ifdef _GLOSSINESS_FROM_BASE_ALPHA
     specularGloss.a = alpha;
 #endif
-    specularGloss.a = exp2(10 * specularGloss.a + 1);
 
     return specularGloss;
 }

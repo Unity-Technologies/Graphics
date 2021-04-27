@@ -410,7 +410,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.Ensure();
 
         bool IsRuntimeResourcesCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreResourcesCreated();
+            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreRuntimeResourcesCreated();
 
         void FixRuntimeResources(bool fromAsyncUnused)
         {
