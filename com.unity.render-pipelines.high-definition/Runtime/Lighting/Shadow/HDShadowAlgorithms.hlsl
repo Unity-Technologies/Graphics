@@ -167,21 +167,17 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     float2 texelSize = sd.isInCachedAtlas ? _CachedAreaShadowAtlasSize.zw : _AreaShadowAtlasSize.zw;
 
     float3 posTC;
-    float bias = 0;
 
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
     float2 minCoord = sd.atlasOffset;
 
 #if AREA_LIGHT_SHADOW_IS_EVSM
-
     positionWS = positionWS + sd.cacheTranslationDelta.xyz;
 
-    /* get shadowmap texcoords */
     posTC = EvalShadow_GetTexcoordsAtlas(sd, texelSize, positionWS, perspective);
-
     int blurPassesScale = (min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value.
     maxCoord -= 0.5f * blurPassesScale * texelSize;
-    minCoord += texelSize * blurPassesScale;
+    minCoord += texelSize * (1 + blurPassesScale);
 #else
     // TODO
     return 1.0f;
