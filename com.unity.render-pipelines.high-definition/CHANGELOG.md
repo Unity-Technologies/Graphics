@@ -162,6 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference exception in Raytracing SSS volume component.
 - Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 - Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
 - Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
 
 ### Changed
