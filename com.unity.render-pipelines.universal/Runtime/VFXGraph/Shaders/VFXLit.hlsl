@@ -37,26 +37,8 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.VFX_VARYING_POSCS);
-    //TODOPAUL : Check & Remove
+    //TODOPAUL : Check & Remove ?
     //inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
-
-    #if URP_USE_EMISSIVE
-    inputData.emission = float3(1,1,1);
-    #if URP_USE_EMISSIVE_MAP
-    float emissiveScale = 1.0f;
-    #ifdef VFX_VARYING_EMISSIVESCALE
-    emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
-    #endif
-    inputData.emission *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * emissiveScale;
-    #endif
-    #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
-    inputData.emission *= i.VFX_VARYING_EMISSIVE;
-    #endif
-    #ifdef VFX_VARYING_EXPOSUREWEIGHT
-    inputData.emission *= lerp(GetInverseCurrentExposureMultiplier(),1.0f,i.VFX_VARYING_EXPOSUREWEIGHT);
-    #endif
-    inputData.emission *= opacity; //TODOPAUL : Emission isn't in input data, move this code
-    #endif
 
     /*
 
@@ -167,6 +149,25 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     surfaceData.metallic *= mask.r;
     surfaceData.occlusion *= mask.g;
     surfaceData.smoothness *= mask.a;
+    #endif
+
+
+    #if URP_USE_EMISSIVE
+    surfaceData.emission = float3(1, 1, 1);
+    #if URP_USE_EMISSIVE_MAP
+    float emissiveScale = 1.0f;
+    #ifdef VFX_VARYING_EMISSIVESCALE
+    emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+    #endif
+    surfaceData.emission *= SampleTexture(VFX_SAMPLER(emissiveMap), uvData).rgb * emissiveScale;
+    #endif
+    #if defined(VFX_VARYING_EMISSIVE) && (URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR)
+    surfaceData.emission *= i.VFX_VARYING_EMISSIVE;
+    #endif
+    #ifdef VFX_VARYING_EXPOSUREWEIGHT
+    surfaceData.emission *= lerp(GetInverseCurrentExposureMultiplier(), 1.0f, i.VFX_VARYING_EXPOSUREWEIGHT);
+    #endif
+    surfaceData.emission *= opacity;
     #endif
 
     return surfaceData;
