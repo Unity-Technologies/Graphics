@@ -20,7 +20,7 @@ MonoBehaviour:
     x: -2453
     y: -123
     width: 3433
-    height: 1553
+    height: 1551
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1525,7 +1525,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614855}
   - {fileID: 8926484042661614640}
-  m_UIPosition: {x: 556, y: 983}
+  m_UIPosition: {x: 556, y: 981}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1561,7 +1561,7 @@ MonoBehaviour:
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
-  castShadows: 0
+  castShadows: 1
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
@@ -1788,7 +1788,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"276d9e395ae18fe40a9b4988549f2349","type":3}}'
+      m_SerializableObject: 
     m_Space: 2147483647
   m_Property:
     name: baseColorMap
@@ -5801,7 +5801,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Position, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"position":{"x":-2.740000009536743,"y":0.0,"z":0.0}}'
+      m_SerializableObject: '{"position":{"x":-2.740000009536743,"y":0.699999988079071,"z":0.0}}'
     m_Space: 0
   m_Property:
     name: Position
@@ -6243,7 +6243,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Position, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"position":{"x":4.480000019073486,"y":0.0,"z":1.7799999713897706}}'
+      m_SerializableObject: '{"position":{"x":4.480000019073486,"y":0.0,"z":2.180000066757202}}'
     m_Space: 1
   m_Property:
     name: Position
@@ -6731,7 +6731,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Position, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"position":{"x":5.869999885559082,"y":0.0,"z":1.7899999618530274}}'
+      m_SerializableObject: '{"position":{"x":5.869999885559082,"y":0.0,"z":2.0299999713897707}}'
     m_Space: 1
   m_Property:
     name: Position
