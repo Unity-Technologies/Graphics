@@ -18,10 +18,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static HDRenderPipelineGlobalSettings settings;
             static bool updateGraphicsSettings = false;
-            public static void Clone(HDRenderPipelineGlobalSettings src, bool activateAsset)
+            public static void Clone(HDRenderPipelineGlobalSettings src, bool assignToActiveAsset)
             {
                 settings = src;
-                updateGraphicsSettings = activateAsset;
+                updateGraphicsSettings = assignToActiveAsset;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
 
                 string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset";
@@ -29,10 +29,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
             }
 
-            public static void Create(bool useProjectSettingsFolder, bool activateAsset)
+            public static void Create(bool useProjectSettingsFolder, bool assignToActiveAsset)
             {
                 settings = null;
-                updateGraphicsSettings = activateAsset;
+                updateGraphicsSettings = assignToActiveAsset;
 
                 var path = "HDRenderPipelineGlobalSettings.asset";
                 if (useProjectSettingsFolder)
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         static void CreateHDRenderPipelineGlobalSettings()
         {
-            HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: false, activateAsset: false);
+            HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: false, assignToActiveAsset: false);
         }
     }
 }
