@@ -169,9 +169,9 @@ namespace UnityEditor.Rendering.Universal
                         if (shaderID.IsShaderGraph())
                         {
                             // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
-                            // so if we see a ShaderGraph material with no assetVersion, set it to 4 to ensure we apply all necessary versions.
+                            // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
                             assetVersion.version = 5;
-                            debug += $" shadergraph material assumed to be version 4 due to missing version.";
+                            debug += $" shadergraph material assumed to be version 5 due to missing version.";
                         }
                         else
                         {

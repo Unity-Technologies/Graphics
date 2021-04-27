@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Multiply,
     }
 
-    public enum RenderFace
+    internal enum RenderFace
     {
         Front = 2,      // = CullMode.Back -- render front face only
         Back = 1,       // = CullMode.Front -- render back face only

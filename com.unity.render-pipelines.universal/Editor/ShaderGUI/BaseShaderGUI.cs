@@ -254,7 +254,7 @@ namespace UnityEditor
         ////////////////////////////////////
         #region DrawingFunctions
 
-        public void DrawShaderGraphProperties(Material material, IEnumerable<MaterialProperty> properties)
+        internal void DrawShaderGraphProperties(Material material, IEnumerable<MaterialProperty> properties)
         {
             if (properties == null)
                 return;
@@ -271,7 +271,7 @@ namespace UnityEditor
             }
         }
 
-        public static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
+        internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
         {
             if (prop == null)
                 return;
@@ -485,7 +485,7 @@ namespace UnityEditor
             shaderFunc?.Invoke(material);
         }
 
-        public static void SetMaterialSrcDstBlendProperties(Material material, UnityEngine.Rendering.BlendMode srcBlend, UnityEngine.Rendering.BlendMode dstBlend)
+        internal static void SetMaterialSrcDstBlendProperties(Material material, UnityEngine.Rendering.BlendMode srcBlend, UnityEngine.Rendering.BlendMode dstBlend)
         {
             if (material.HasProperty(Property.SrcBlend))
                 material.SetFloat(Property.SrcBlend, (float)srcBlend);
@@ -494,7 +494,7 @@ namespace UnityEditor
                 material.SetFloat(Property.DstBlend, (float)dstBlend);
         }
 
-        public static void SetMaterialZWriteProperty(Material material, bool zwriteEnabled)
+        internal static void SetMaterialZWriteProperty(Material material, bool zwriteEnabled)
         {
             if (material.HasProperty(Property.ZWrite))
                 material.SetFloat(Property.ZWrite, zwriteEnabled ? 1.0f : 0.0f);
