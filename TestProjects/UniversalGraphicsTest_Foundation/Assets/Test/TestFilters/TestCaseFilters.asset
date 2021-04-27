@@ -153,3 +153,13 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 8
+    XrSdk: 
+    StereoModes: 0
+    Reason: Decals not supported
