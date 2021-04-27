@@ -115,7 +115,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv) * _RTHandleScale.xy;
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
             float2 uvDistorted = DistortUV(uv);
 
             half3 color = (0.0).xxx;
@@ -128,15 +128,15 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted                ).x;
-                half g = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
-                half b = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
+                half r = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted * _RTHandleScale.xy                ).x;
+                half g = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta + uv) * _RTHandleScale.xy      ).y;
+                half b = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv) * _RTHandleScale.xy).z;
 
                 color = half3(r, g, b);
             }
             #else
             {
-                color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).xyz;
+                color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted * _RTHandleScale.xy).xyz;
             }
             #endif
 
