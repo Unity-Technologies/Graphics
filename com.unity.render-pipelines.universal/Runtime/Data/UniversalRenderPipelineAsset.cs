@@ -875,7 +875,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
+        public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
