@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
@@ -130,7 +129,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(UnlitPasses.Unlit(target));
+                result.passes.Add(UnlitPasses.Forward(target));
 
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
@@ -153,7 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(PassVariant(UnlitPasses.Unlit(target), CorePragmas.DOTSForward));
+                result.passes.Add(PassVariant(UnlitPasses.Forward(target), CorePragmas.DOTSForward));
 
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
@@ -174,7 +173,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = "Pass",
+                    displayName = "Universal Forward",
                     referenceName = "SHADERPASS_UNLIT",
                     useInPreview = true,
 
@@ -188,6 +187,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Fields
                     structs = CoreStructCollections.Default,
+                    requiredFields = UnlitRequiredFields.Unlit,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -205,6 +205,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 return result;
             }
+
+            #region RequiredFields
+            static class UnlitRequiredFields
+            {
+                public static readonly FieldCollection Unlit = new FieldCollection()
+                {
+                    StructFields.Varyings.positionWS,
+                    StructFields.Varyings.normalWS,
+                    StructFields.Varyings.viewDirectionWS,
+                };
+            }
+            #endregion
         }
         #endregion
 
@@ -219,6 +231,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.SampleGI,
+                CoreKeywordDescriptors.DebugDisplay,
             };
         }
         #endregion
