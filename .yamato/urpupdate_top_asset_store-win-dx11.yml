@@ -17,7 +17,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -50,7 +50,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -84,7 +84,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -121,7 +121,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-        ASSETSTORE_UPDATE_PROJECT_REVISION: a69ec8d913e4953d91fd47763f35703d0ceb67ce
+        ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

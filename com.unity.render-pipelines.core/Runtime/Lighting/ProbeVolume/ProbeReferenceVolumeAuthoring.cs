@@ -66,12 +66,6 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #endif
-        public enum ProbeShadingMode
-        {
-            Size,
-            SH,
-            Validity
-        }
 
         [SerializeField]
         private ProbeReferenceVolumeProfile m_Profile = null;
@@ -86,21 +80,6 @@ namespace UnityEngine.Experimental.Rendering
         internal float normalBias { get { return m_Profile.normalBias; } }
 
 #if UNITY_EDITOR
-        [SerializeField]
-        private bool m_DrawProbes;
-        [SerializeField]
-        private bool m_DrawBricks;
-        [SerializeField]
-        private bool m_DrawCells;
-
-        // Debug shading
-        [SerializeField]
-        private ProbeShadingMode m_ProbeShading;
-        [SerializeField]
-        private float m_CullingDistance = 500;
-        [SerializeField]
-        private float m_Exposure;
-
         // Dilation
         [SerializeField]
         private bool m_Dilate = false;
@@ -132,7 +111,6 @@ namespace UnityEngine.Experimental.Rendering
             refVol.Clear();
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
-            refVol.SetNormalBias(m_Profile.normalBias);
 
             refVol.AddPendingAssetLoading(volumeAsset);
         }
@@ -204,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering
                 return true;
 
             Vector3 cellCenterWS = cellPosition * m_Profile.cellSize + originWS + Vector3.one * (m_Profile.cellSize / 2.0f);
-            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > m_CullingDistance)
+            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
@@ -213,12 +191,15 @@ namespace UnityEngine.Experimental.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
+        // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
         private void OnDrawGizmos()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            if (m_DrawBricks)
+            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+
+            if (debugDisplay.drawBricks)
             {
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
@@ -249,7 +230,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (m_DrawCells)
+            if (debugDisplay.drawCells)
             {
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.

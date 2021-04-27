@@ -1,8 +1,6 @@
 # Getting started with ray tracing
 
-The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
-
-While film production uses ray tracing extensively, its resource intensity has limited its use to offline rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
+The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
 
 This document covers:
 
@@ -161,7 +159,7 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 #### Frame Settings
 
-To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculate ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -188,6 +186,20 @@ To check whether it is possible to use ray tracing in a Scene, HDRP includes a m
 1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
 2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
 
+<a name="RayTracingMeshes"></a>
+
+# Ray tracing and Meshes
+
+HDRP changes how it handles Meshes in your scene when you integrate a ray traced effect into your project.
+
+When you enable ray tracing, HDRP automatically creates a ray tracing acceleration structure. This structure allows Unity to calculate ray tracing for Meshes in your scene efficiently in real time.
+
+As a result, ray tracing can change how some Meshes appear in your scene in the following ways:
+
+- If your Mesh has a Material assigned that does not have the HDRenderPipeline tag, HDRP does not add it to the acceleration structure and does not apply any ray traced effects to the mesh as a result.
+- If your Mesh has a Decal Material assigned, HDRP does not add it to the acceleration structure and the Mesh does not appear in your scene.
+- If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
+
 <a name="RayTracingEffectsOverview"></a>
 
 ## Ray tracing effects overview
@@ -209,7 +221,7 @@ HDRP includes two ray tracing modes that define how it evaluates certain ray-tra
 * **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
 * **Quality**: This mode targets technical demos and applications that want the best quality results.
 
-Depending on which ray tracing mode you select, HDRP may expose difference properties for some ray-traced effects.
+Depending on which ray tracing mode you select, HDRP may expose different properties for some ray-traced effects.
 
 You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
 
@@ -224,7 +236,7 @@ If you select **Both**, you can change the ray tracing mode for each ray-traced 
 
 ## Ray tracing project
 
-You can find a small ray tracing project that contains all the effects mention above here:
+You can find a small ray tracing project that contains all the effects mentioned above here:
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
@@ -238,7 +250,7 @@ There is no support for ray tracing on platforms other than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support vertex animation.
-- Does not supports decals.
+- Does not support decals.
 - Does not support tessellation.
 - Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
@@ -247,6 +259,7 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
+- HDRP does not support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.
 
 ### Unsupported shader graph nodes for ray tracing
 

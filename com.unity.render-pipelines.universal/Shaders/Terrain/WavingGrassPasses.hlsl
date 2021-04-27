@@ -40,6 +40,8 @@ struct GrassVertexOutput
 
 void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.posWSShininess.xyz;
 
     half3 viewDirWS = input.viewDir;
@@ -78,8 +80,13 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-}
 
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = input.vertexSH;
+    #endif
+}
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)
 {
@@ -183,7 +190,6 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     outSurfaceData.emission = 0.0;
 }
 
-
 // Used for StandardSimpleLighting shader
 #ifdef TERRAIN_GBUFFER
 FragmentOutput LitPassFragmentGrass(GrassVertexOutput input)
@@ -199,13 +205,13 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, inputData);
-
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _MainTex);
 
 #ifdef TERRAIN_GBUFFER
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 #else
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 #endif
