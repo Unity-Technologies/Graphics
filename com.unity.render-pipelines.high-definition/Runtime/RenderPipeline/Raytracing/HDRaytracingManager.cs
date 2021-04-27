@@ -492,7 +492,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
                     {
                         Renderer currentRenderer = currentLOD.renderers[rendererIdx];
-						if(currentRenderer == null) continue;
+                        if(currentRenderer == null) continue;
+						
                         // Add this fella to the renderer list
                         // Unfortunately, we need to check that this renderer was not already pushed into the list (happens if the user uses the same mesh renderer
                         // for two LODs)
