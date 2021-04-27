@@ -36,7 +36,7 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, Surfac
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
-    InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f /* TODOPAUL remove opacity */);
+    InputData inputData = VFXGetInputData(i, posInput, surfaceData, normalWS);
 
     return VFXCalcPixelOutputForward(surfaceData, inputData);
 }
@@ -80,7 +80,7 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, (uint2)0);
 
     VFXUVData uvData = (VFXUVData)0;
-    InputData inputData = VFXGetInputData(i, posInput, surfaceData, uvData, normalWS, 1.0f);
+    InputData inputData = VFXGetInputData(i, posInput, surfaceData, normalWS);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
