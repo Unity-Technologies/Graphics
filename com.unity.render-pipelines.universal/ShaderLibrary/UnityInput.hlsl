@@ -35,7 +35,7 @@
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
 // ----------------------------------------------------------------------------
-
+#ifndef WITH_SHADER_GRAPH
 // Time (t = time since current level load) values from Unity
 float4 _Time; // (t/20, t, t*2, t*3)
 float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
@@ -77,6 +77,8 @@ float4 _ZBufferParams;
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
 
+float4 unity_CameraWorldClipPlanes[6];
+#endif
 // scaleBias.x = flipSign
 // scaleBias.y = scale
 // scaleBias.z = bias
@@ -84,8 +86,7 @@ float4 unity_OrthoParams;
 uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
 
-float4 unity_CameraWorldClipPlanes[6];
-
+#ifndef WITH_SHADER_GRAPH
 #if !defined(USING_STEREO_MATRICES)
 // Projection matrices of the camera. Note that this might be different from projection matrix
 // that is set right now, e.g. while rendering shadows the matrices below are still the projection
@@ -95,7 +96,6 @@ float4x4 unity_CameraInvProjection;
 float4x4 unity_WorldToCamera;
 float4x4 unity_CameraToWorld;
 #endif
-
 // ----------------------------------------------------------------------------
 
 // Block Layout should be respected due to SRP Batcher
@@ -105,6 +105,7 @@ float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
 float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+#endif
 
 // Render Layer block feature
 // Only the first channel (x) contains valid data and the float must be reinterpreted using asuint() to extract the original 32 bits values.
@@ -115,11 +116,13 @@ float4 unity_RenderingLayer;
 half4 unity_LightData;
 half4 unity_LightIndices[2];
 
+#ifndef WITH_SHADER_GRAPH
 half4 unity_ProbesOcclusion;
 
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions
 real4 unity_SpecCube0_HDR;
+#endif
 real4 unity_SpecCube1_HDR;
 
 float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
@@ -129,6 +132,7 @@ float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
 float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 
+#ifndef WITH_SHADER_GRAPH
 // Lightmap block feature
 float4 unity_LightmapST;
 float4 unity_DynamicLightmapST;
@@ -142,6 +146,7 @@ real4 unity_SHBg;
 real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
+#endif
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)
@@ -180,8 +185,8 @@ int unity_StereoEyeIndex;
 CBUFFER_END
 #endif
 
+#ifndef WITH_SHADER_GRAPH
 float4x4 glstate_matrix_transpose_modelview0;
-
 // ----------------------------------------------------------------------------
 
 real4 glstate_lightmodel_ambient;
@@ -198,21 +203,25 @@ float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixInvP;
 float4x4 unity_MatrixVP;
+#endif
 float4x4 unity_MatrixInvVP;
+#ifndef WITH_SHADER_GRAPH
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif
-
+#endif
+#ifndef WITH_SHADER_GRAPH
 real4 unity_ShadowColor;
-
 // ----------------------------------------------------------------------------
 
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
 SAMPLER(samplerunity_SpecCube0);
+#endif
 TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube1);
 
+#ifndef WITH_SHADER_GRAPH
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -267,5 +276,6 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     M._12_42 = 0;
     return M;
 }
+#endif
 
 #endif // UNIVERSAL_SHADER_VARIABLES_INCLUDED

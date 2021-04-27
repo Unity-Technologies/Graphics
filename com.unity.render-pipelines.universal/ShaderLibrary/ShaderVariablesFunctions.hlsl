@@ -1,5 +1,5 @@
-#ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
-#define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
+#ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED_UNIVERSAL
+#define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED_UNIVERSAL
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
@@ -44,11 +44,13 @@ float4 GetScaledScreenParams()
     return _ScaledScreenParams;
 }
 
+#ifndef WITH_SHADER_GRAPH
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
     return (unity_OrthoParams.w == 0);
 }
+#endif
 
 float3 GetCameraPositionWS()
 {
@@ -65,6 +67,7 @@ float3 GetCameraPositionWS()
     //#endif
 }
 
+#ifndef WITH_SHADER_GRAPH
 // Could be e.g. the position of a primary camera or a shadow-casting light.
 float3 GetCurrentViewPosition()
 {
@@ -90,6 +93,7 @@ float3 GetViewForwardDir()
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
 }
+#endif
 
 // Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceViewDir(float3 positionWS)
@@ -106,6 +110,7 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
     }
 }
 
+#ifndef WITH_SHADER_GRAPH
 half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
     if (IsPerspectiveProjection())
@@ -132,6 +137,7 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix = UNITY_MATRIX_P;
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
+#endif
 
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
@@ -367,4 +373,4 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
     #define UnityStereoTransformScreenSpaceTex(uv) uv
 #endif // defined(UNITY_SINGLE_PASS_STEREO)
 
-#endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
+#endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED_UNIVERSAL
