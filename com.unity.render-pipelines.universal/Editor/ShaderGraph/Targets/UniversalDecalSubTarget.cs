@@ -623,7 +623,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.staticLightmapUV,
+                UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 // todo
@@ -634,7 +635,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.staticLightmapUV,
+                UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
                 // todo
                 //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
@@ -650,7 +652,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.staticLightmapUV,
+                UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 // todo
@@ -940,7 +943,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceMesh = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.StaticLightmap },
+                { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
@@ -954,7 +958,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.StaticLightmap },
+                { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
@@ -967,7 +972,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferMesh = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.StaticLightmap },
+                { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
@@ -980,7 +986,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.StaticLightmap },
+                { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },

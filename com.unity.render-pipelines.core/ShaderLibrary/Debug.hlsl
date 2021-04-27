@@ -164,35 +164,35 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
     return color;
 }
 
-float3 GetDebugMipColor(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv)
+float3 GetDebugMipColor(float3 originalColor, float4 texelSize, float2 uv)
 {
     // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    float4 mipColor= GetMipLevelColor(uv, texelSize);
+    float4 mipColor = GetMipLevelColor(uv, texelSize);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipCountColor(float3 originalColor, Texture2D tex)
+float3 GetDebugMipCountColor(float3 originalColor, TEXTURE2D_PARAM(tex, smp))
 {
-    uint mipCount = GetMipCount(tex);
+    uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, smp));
 
     float4 mipColor = GetSimpleMipCountColor(mipCount);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugStreamingMipColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColor(TEXTURE2D_PARAM(tex, smp), float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
+    uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, smp));
     return GetStreamingMipColor(mipCount, mipInfo).xyz;
 }
 
-float3 GetDebugStreamingMipColorBlended(float3 originalColor, Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColorBlended(float3 originalColor, TEXTURE2D_PARAM(tex, smp), float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
+    uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, smp));
     float4 mipColor = GetStreamingMipColor(mipCount, mipInfo);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv, float4 mipInfo)
+float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, TEXTURE2D_PARAM(tex, smp), float4 texelSize, float2 uv, float4 mipInfo)
 {
     uint originalTextureMipCount = uint(mipInfo.y);
     if (originalTextureMipCount != 0)
@@ -204,7 +204,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
         // w = 0
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
+        uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, smp));
         uint mipReductionLevel = originalTextureMipCount - mipCount;
         uint mipReductionFactor = 1 << mipReductionLevel;
         if (mipReductionFactor)
@@ -214,7 +214,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
             texelSize.zw *= oneOverMipReductionFactor;
         }
     }
-    return GetDebugMipColor(originalColor, tex, texelSize, uv);
+    return GetDebugMipColor(originalColor, texelSize, uv);
 }
 
 // mipInfo :
@@ -222,7 +222,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
 // y = original mip count for texture
 // z = desired on screen mip level
 // w = 0
-float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugMipReductionColor(TEXTURE2D_PARAM(tex, smp), float4 mipInfo)
 {
     float3 outColor = float3(1.0, 0.0, 1.0); // Can't calculate without original mip count - return magenta
 
@@ -230,7 +230,7 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
     if (originalTextureMipCount != 0)
     {
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
+        uint mipCount = GetMipCount(TEXTURE2D_ARGS(tex, smp));
         uint mipReductionLevel = originalTextureMipCount - mipCount;
 
         float mipCol = float(mipReductionLevel) / 14.0;
