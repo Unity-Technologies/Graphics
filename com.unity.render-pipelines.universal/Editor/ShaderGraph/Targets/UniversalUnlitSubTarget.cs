@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
@@ -168,7 +169,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pass
         static class UnlitPasses
         {
-            public static PassDescriptor Unlit(UniversalTarget target)
+            public static PassDescriptor Forward(UniversalTarget target)
             {
                 var result = new PassDescriptor
                 {
