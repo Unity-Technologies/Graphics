@@ -135,6 +135,45 @@ namespace UnityEngine.Rendering.Universal
         void Reset()
         {
             ResetLightLayerNames();
+            UpdateRenderingLayerNames();
+        }
+
+        [System.NonSerialized]
+        string[] m_RenderingLayerNames;
+        string[] renderingLayerNames
+        {
+            get
+            {
+                if (m_RenderingLayerNames == null)
+                {
+                    UpdateRenderingLayerNames();
+                }
+
+                return m_RenderingLayerNames;
+            }
+        }
+        public string[] renderingLayerMaskNames => renderingLayerNames;
+
+        void UpdateRenderingLayerNames()
+        {
+            if (m_RenderingLayerNames == null)
+                m_RenderingLayerNames = new string[32];
+
+            int index = 0;
+            m_RenderingLayerNames[index++] = lightLayerName0;
+            m_RenderingLayerNames[index++] = lightLayerName1;
+            m_RenderingLayerNames[index++] = lightLayerName2;
+            m_RenderingLayerNames[index++] = lightLayerName3;
+            m_RenderingLayerNames[index++] = lightLayerName4;
+            m_RenderingLayerNames[index++] = lightLayerName5;
+            m_RenderingLayerNames[index++] = lightLayerName6;
+            m_RenderingLayerNames[index++] = lightLayerName7;
+
+            // Unused
+            for (int i = index; i < m_RenderingLayerNames.Length; ++i)
+            {
+                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
         }
 
         #region Light Layer Names [3D]
