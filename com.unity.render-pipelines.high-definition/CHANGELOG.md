@@ -162,6 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference exception in Raytracing SSS volume component.
 - Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 - Fixed LightCluster debug view for ray tracing.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
