@@ -148,9 +148,20 @@ namespace UnityEngine.Rendering.Universal
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             var clearSampleName = "Clear";
             cmd.BeginSample(clearSampleName);
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
-            RenderingUtils.DrawFullscreenMesh(cmd, m_DBufferClear, 0, cameraData.xr.enabled);
-            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+
+            Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+            if (cameraData.xr.enabled)
+            {
+                cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_DBufferClear, 0, 0);
+                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+            }
+
             cmd.EndSample(clearSampleName);
         }
 

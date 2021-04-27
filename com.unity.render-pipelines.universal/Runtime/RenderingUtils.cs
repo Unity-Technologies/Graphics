@@ -230,20 +230,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex, bool useDrawProcedural = false)
-        {
-            Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-            if (useDrawProcedural)
-            {
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
-            }
-            else
-            {
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, passIndex);
-            }
-        }
-
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
