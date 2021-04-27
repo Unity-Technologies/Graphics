@@ -302,6 +302,15 @@ namespace UnityEngine.Rendering.HighDefinition
         void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, Func<HDRenderPipelineGlobalSettings, bool> checker)
             where T : HDRenderPipelineResources
         {
+            void Delay()
+            {
+                T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+                if (resourcesDelayed == null)
+                    EditorApplication.delayCall += Delay;
+                else
+                    ResourceReloader.ReloadAllNullIn(resourcesDelayed, HDUtils.GetHDRenderPipelinePath());
+            }
+
             T resourceChecked = null;
 
             if (checker(this))
@@ -325,18 +334,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (forceReload)
                     ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath());
             }
-            else // Asset database may not be ready
+            else
             {
+                // Asset database may not be ready
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 resources = (objs != null && objs.Length > 0) ? objs[0] as T : null;
                 if (forceReload)
                 {
-                    if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
+                    try
                     {
-                        InternalEditorUtility.SaveToSerializedFileAndForget(
-                            new Object[] { resources },
-                            resourcePath,
-                            true);
+                        if (ResourceReloader.ReloadAllNullIn(resources, HDUtils.GetHDRenderPipelinePath()))
+                        {
+                            InternalEditorUtility.SaveToSerializedFileAndForget(
+                                new Object[] { resources },
+                                resourcePath,
+                                true);
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        // This can be called at a time where AssetDatabase is not available for loading.
+                        // When this happens, the GUID can be get but the resource loaded will be null.
+                        // Using the ResourceReloader mechanism in CoreRP, it checks this and add InvalidImport data when this occurs.
+                        if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int dii && dii == 1))
+                            Debug.LogException(e);
+                        else
+                            EditorApplication.delayCall += Delay;
                     }
                 }
             }
