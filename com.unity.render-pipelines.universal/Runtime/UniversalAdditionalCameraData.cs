@@ -104,6 +104,11 @@ namespace UnityEngine.Rendering.Universal
         public static void SetVolumeFrameworkUpdateMode(this Camera camera, VolumeFrameworkUpdateMode mode)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            if (cameraData.volumeFrameworkUpdateMode == mode)
+            {
+                return;
+            }
+
             cameraData.volumeFrameworkUpdateMode = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
@@ -470,7 +475,6 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.EveryFrame;
             }
-            set => m_VolumeFrameworkUpdateModeOption = (value) ? VolumeFrameworkUpdateMode.EveryFrame : VolumeFrameworkUpdateMode.ViaScripting;
         }
 
         /// <summary>

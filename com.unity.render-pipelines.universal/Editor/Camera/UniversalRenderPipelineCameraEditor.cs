@@ -638,7 +638,6 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
                 DrawVolumes();
-
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
@@ -918,10 +917,6 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
             }
-
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
         }
 
         void DrawRenderer(UniversalRenderPipelineAsset rpAsset)
