@@ -119,7 +119,7 @@ def main(argv):
 
             print(f'INFO: Committing and pushing each revision ({len(last_revisions_nodes)}).')
             for revision_node in last_revisions_nodes:
-                update_revision_file(editor_versions_file, revision_node, args.track)
+                update_revision_file(editor_versions_file_path, revision_node, track_key, args.ono_branch)
                 git_cmd(['add','.'], cwd=root)
                 git_cmd(['commit', '-m', f'[CI] [{args.track}] Updated editor to {revision_node["id"]}'], cwd=root)
             git_cmd(['pull'], cwd=root)
