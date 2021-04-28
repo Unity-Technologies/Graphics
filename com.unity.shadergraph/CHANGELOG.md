@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where the right click menu doesn't work when a stack block node is selected [1320212].
 - Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
 - Fixed divide by zero warnings when using the Sample Gradient Node
+- Fixed an issue where an integer property would be exposed in the material inspector as a float [1330302](https://issuetracker.unity3d.com/product/unity/issues/guid/1330302/)
 
 ## [11.0.0] - 2020-10-21
 
