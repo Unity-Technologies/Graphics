@@ -7631,7 +7631,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.Position, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"position":{"x":-1.059999942779541,"y":0.0,"z":0.07000000029802323}}'
+      m_SerializableObject: '{"position":{"x":-1.0,"y":0.0,"z":0.07000000029802323}}'
     m_Space: 1
   m_Property:
     name: Position

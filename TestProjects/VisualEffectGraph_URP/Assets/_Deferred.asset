@@ -43,4 +43,4 @@ MonoBehaviour:
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 1
-  m_AccurateGbufferNormals: 0
+  m_AccurateGbufferNormals: 1
