@@ -56,25 +56,25 @@ namespace UnityEditor.Rendering.Universal
             Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
             UpgradeAsset(rendererData, assetPath);
         }
-		
+
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
             //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
             EditorApplication.delayCall += () =>
             {
-				//This helps to scan the RendererData Assets which are subAssets caused by case 1214779
-				if (firstTimeUpgrade)
-				{
-					string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
-					for (int i = 0; i < allRenderers.Length; i++)
-					{
-						string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
-						IterateSubAssets(rendererDataPath);
-					}
+                //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
+                if (firstTimeUpgrade)
+                {
+                    string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
+                    for (int i = 0; i < allRenderers.Length; i++)
+                    {
+                        string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
+                        IterateSubAssets(rendererDataPath);
+                    }
 
-					firstTimeUpgrade = false;
-				}
+                    firstTimeUpgrade = false;
+                }
 
                 //If there is no asset upgraded then we don't need to do the following
                 if (editedAssetsCount == 0) return;
@@ -124,11 +124,11 @@ namespace UnityEditor.Rendering.Universal
             //If there are assets being upgraded then we need to trigger an update on the Pipeline assets to avoid "no Default Renderer asset" error and making rendering fine again.
             //However at this moment the Pipeline assets are not yet updated, so the error might still happen in the case of discarded upgrade changes, but it won't harm rendering
             //This makes sure we re-register the delayCall only once
-            if(!registeredRendererUpdate && editedAssetsCount > 0)
+            if (!registeredRendererUpdate && editedAssetsCount > 0)
             {
                 RegisterUpgraderReimport();
                 registeredRendererUpdate = true;
-            }           
+            }
         }
     }
 }
