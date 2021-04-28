@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [FormerlySerializedAs("m_RenderPipelineResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal RenderPipelineResources m_ObsoleteRenderPipelineResources;
+        internal HDRenderPipelineRuntimeResources m_ObsoleteRenderPipelineResources;
         [SerializeField]
         [FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
