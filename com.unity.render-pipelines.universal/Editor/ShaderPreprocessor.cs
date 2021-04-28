@@ -29,14 +29,16 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceShadows = (1 << 12),
         UseFastSRGBLinearConversion = (1 << 13),
         LightLayers = (1 << 14),
-        DBufferMRT1 = (1 << 15),
-        DBufferMRT2 = (1 << 16),
-        DBufferMRT3 = (1 << 17),
-        DecalScreenSpace = (1 << 18),
-        DecalGBuffer = (1 << 19),
-        DecalNormalBlendLow = (1 << 20),
-        DecalNormalBlendMedium = (1 << 21),
-        DecalNormalBlendHigh = (1 << 22),
+        ReflectionProbeBlending = (1 << 15),
+        ReflectionProbeBoxProjection = (1 << 16),
+        DBufferMRT1 = (1 << 17),
+        DBufferMRT2 = (1 << 18),
+        DBufferMRT3 = (1 << 19),
+        DecalScreenSpace = (1 << 20),
+        DecalGBuffer = (1 << 21),
+        DecalNormalBlendLow = (1 << 22),
+        DecalNormalBlendMedium = (1 << 23),
+        DecalNormalBlendHigh = (1 << 24),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -57,6 +59,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+        ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
+        ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
         ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
@@ -194,6 +198,14 @@ namespace UnityEditor.Rendering.Universal
             // No additional light shadows
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
+                return true;
+
+            bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
+            if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBlending) && isReflectionProbeBlending)
+                return true;
+
+            bool isReflectionProbeBoxProjection = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBoxProjection);
+            if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBoxProjection) && isReflectionProbeBoxProjection)
                 return true;
 
             bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
@@ -582,6 +594,12 @@ namespace UnityEditor.Rendering.Universal
 
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
+
+            if (pipelineAsset.reflectionProbeBlending)
+                shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;
+
+            if (pipelineAsset.reflectionProbeBoxProjection)
+                shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
 
             return shaderFeatures;
         }
