@@ -35,7 +35,13 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     float fogFactor = ComputeFogFactor(i.VFX_VARYING_POSCS.z);
     inputData.fogCoord = InitializeInputDataFog(float4(inputData.positionWS, 1.0), fogFactor);
 
+    //SampleSH could partially be done on vertex using SampleSHVertex & SampleSHPixel
+    //For now, use directly the simpler per pixel fallback
+    inputData.bakedGI = SampleSH(normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.VFX_VARYING_POSCS);
+
+    //No static light map in VFX
+    //inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
     return inputData;
 }
 
