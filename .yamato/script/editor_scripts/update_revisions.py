@@ -89,7 +89,6 @@ def main(argv):
     # initialize files etc.
     args = parse_args(argv)
     root = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
-    working_dir = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
     config = load_yml(DEFAULT_CONFIG_FILE)
     shared = load_yml(DEFAULT_SHARED_FILE)
     editor_versions_file_path = os.path.join(root, config['editor_versions_file'].replace('TRACK',str(args.track)))
@@ -115,16 +114,16 @@ def main(argv):
 
         if args.commit_and_push:
             print(f'INFO: Pulling branch: {current_branch}).')
-            git_cmd(f'checkout {current_branch}', working_dir)
-            git_cmd(f'pull', working_dir)
+            git_cmd(f'checkout {current_branch}', root)
+            git_cmd(f'pull', root)
 
             print(f'INFO: Committing and pushing each revision ({len(last_revisions_nodes)}).')
             for revision_node in last_revisions_nodes:
                 update_revision_file(editor_versions_file, revision_node, args.track)
-                git_cmd(['add','.'], cwd=ROOT)
-                git_cmd(['commit', '-m', f'[CI] [{args.track}] Updated editor to {revision_node["id"]}'], cwd=ROOT)
-            git_cmd(['pull'], cwd=ROOT)
-            git_cmd(['push'], cwd=ROOT)
+                git_cmd(['add','.'], cwd=root)
+                git_cmd(['commit', '-m', f'[CI] [{args.track}] Updated editor to {revision_node["id"]}'], cwd=root)
+            git_cmd(['pull'], cwd=root)
+            git_cmd(['push'], cwd=root)
         else:
             print(f'INFO: Updating the file to most recent revision, but will not git add/commit/push. Use --commit-and-push to do so.')
             update_revision_file(editor_versions_file_path, last_revisions_nodes[-1], track_key, args.ono_branch)
