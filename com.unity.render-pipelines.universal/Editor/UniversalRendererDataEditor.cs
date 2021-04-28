@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
+            public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered", "Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -31,6 +32,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RenderingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
+        SerializedProperty m_ClusteredRendering;
+        SerializedProperty m_TileSize;
 #if ENABLE_RENDER_PASS_UI
         SerializedProperty m_UseNativeRenderPass;
 #endif
@@ -47,6 +50,8 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
+            m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
+            m_TileSize = serializedObject.FindProperty("m_TileSize");
 #if ENABLE_RENDER_PASS_UI
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
 #endif
@@ -77,6 +82,15 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
                 //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+                EditorGUI.indentLevel--;
+            }
+            else
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_ClusteredRendering, Styles.clusteredRenderingLabel);
+                EditorGUI.BeginDisabledGroup(!m_ClusteredRendering.boolValue);
+                EditorGUILayout.PropertyField(m_TileSize);
+                EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }
             EditorGUI.indentLevel--;

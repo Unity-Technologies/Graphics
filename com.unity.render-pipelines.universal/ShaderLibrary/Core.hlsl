@@ -5,7 +5,7 @@
 // node work by falling to regular texture sampling.
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 
-#if defined(_ADDITIONAL_LIGHTS_CLUSTERED)
+#if defined(_CLUSTERED_RENDERING_CPU)
 #define _ADDITIONAL_LIGHTS 1
 #define USE_CLUSTERED_LIGHTING 1
 #else

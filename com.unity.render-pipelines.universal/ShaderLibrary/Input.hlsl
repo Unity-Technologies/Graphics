@@ -10,7 +10,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
-#define MAX_ZBIN_VEC4S 8192/4
+#define MAX_ZBIN_VEC4S (8192/4)
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
@@ -19,7 +19,7 @@
     #define MAX_VISIBLE_LIGHTS 256
 #endif
 
-#define MAX_VISIBILITY_VEC4S (MAX_VISIBLE_LIGHTS/32/4 * 3840/16)
+#define MAX_VISIBILITY_VEC4S (MAX_VISIBLE_LIGHTS/32/4 * 3840/8)
 
 struct InputData
 {

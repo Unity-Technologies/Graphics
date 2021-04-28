@@ -86,7 +86,7 @@ uint Select4(uint4 v, uint i)
 
 uint2 LoadZBin(float viewZ)
 {
-    uint zBinIndex = (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset;
+    uint zBinIndex = min(4*MAX_ZBIN_VEC4S, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
     uint data = Select4(_AdditionalLightsZBins[zBinIndex / 4], zBinIndex % 4);
     uint minIndex = (data & 0xFFFF);
     uint maxIndex = ((data >> 16) & 0xFFFF);
@@ -935,10 +935,6 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 
 // #define DEBUG_LIGHT_COUNT 1
 
-#if defined(DEBUG_LIGHT_COUNT)
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
@@ -1021,14 +1017,14 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     color += surfaceData.emission;
 
-#ifdef _ADDITIONAL_LIGHTS_CLUSTERED
+#if USE_CLUSTERED_LIGHTING
 #if defined(DEBUG_LIGHT_COUNT)
-    int2 pixCoord = (inputData.normalizedScreenSpaceUV * _ScreenParams.xy) % 16;
-    uint digit1 = pixelLightCount % 10;
-    uint digit2 = (pixelLightCount / 10) % 10;
-    bool font = digit2 != 0 && SampleDebugFont(pixCoord - int2(3, 3), digit2) || SampleDebugFont(pixCoord - int2(9, 3), digit1);
+    // int2 pixCoord = (inputData.normalizedScreenSpaceUV * _ScreenParams.xy) % 16;
+    // uint digit1 = pixelLightCount % 10;
+    // uint digit2 = (pixelLightCount / 10) % 10;
+    // bool font = digit2 != 0 && SampleDebugFont(pixCoord - int2(3, 3), digit2) || SampleDebugFont(pixCoord - int2(9, 3), digit1);
     color = color * 0.25 + 0.75 * (float)pixelLightCount / 8.0;
-    color *= !font;
+    //color *= !font;
 #endif
 #endif
 

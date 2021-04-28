@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static int maxZBins => 8192;
-        internal static int maxVisibilityVec4s => (maxVisibleAdditionalLights * 3840) / (16 * 32 * 4);
+        internal static int maxVisibilityVec4s => (maxVisibleAdditionalLights * 3840) / (8 * 32 * 4);
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -881,7 +881,7 @@ namespace UnityEngine.Rendering.Universal
                     visibleLights[mainLightIndex].light.shadows != LightShadows.None);
 
                 // If additional lights are shaded per-pixel they cannot cast shadows
-                if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel || settings.additionalLightsRenderingMode == LightRenderingMode.Clustered)
+                if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
                 {
                     for (int i = 0; i < visibleLights.Length; ++i)
                     {
@@ -1020,7 +1020,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
-            lightData.useClusteredLighting = settings.additionalLightsRenderingMode == LightRenderingMode.Clustered;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.TempJob);
@@ -1041,7 +1040,8 @@ namespace UnityEngine.Rendering.Universal
 
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
-            if (lightData.additionalLightsCount > 0 && !lightData.useClusteredLighting)
+            // TODO: Allow renderer to have a say in this
+            if (lightData.additionalLightsCount > 0)
             {
                 configuration |= PerObjectData.LightData;
 

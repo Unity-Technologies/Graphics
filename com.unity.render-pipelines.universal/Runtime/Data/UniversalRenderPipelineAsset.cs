@@ -65,8 +65,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Disabled = 0,
         PerVertex = 2,
-        PerPixel = 1,
-        Clustered = 3
+        PerPixel = 1
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderVariantLogLevel
