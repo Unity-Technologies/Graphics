@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         {
             settings = src;
             updateGraphicsSettings = activateAsset;
-            var path = "Assets/" + src.name + ".asset";
+            var path = AssetDatabase.GetAssetPath(src);
 
             var assetCreator = ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);

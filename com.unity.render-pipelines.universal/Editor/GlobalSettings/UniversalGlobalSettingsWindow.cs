@@ -70,8 +70,6 @@ namespace UnityEditor.Rendering.Universal
         {
             Inspector = CED.Group(
                 LightLayerNamesSection
-                //,CED.Group((serialized,owner) => EditorGUILayout.Space())
-                //,AnotherSection
             );
         }
 

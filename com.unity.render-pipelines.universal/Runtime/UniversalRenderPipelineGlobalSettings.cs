@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        //Making sure there is at least one UniversalGlobalSettings instance in the project
+        //Making sure there is at least one UniversalRenderPipelineGlobalSettings instance in the project
         internal static UniversalRenderPipelineGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
         {
             if (UniversalRenderPipelineGlobalSettings.instance)
@@ -118,9 +118,6 @@ namespace UnityEngine.Rendering.Universal
                     assetCreated.lightLayerName5 = System.String.Copy(src.lightLayerName5);
                     assetCreated.lightLayerName6 = System.String.Copy(src.lightLayerName6);
                     assetCreated.lightLayerName7 = System.String.Copy(src.lightLayerName7);
-                }
-                else
-                {
                 }
 
                 AssetDatabase.SaveAssets();

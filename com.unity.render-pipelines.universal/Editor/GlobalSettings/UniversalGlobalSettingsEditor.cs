@@ -9,8 +9,6 @@ namespace UnityEditor.Rendering.Universal
     {
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
 
-        internal bool largeLabelWidth = true;
-
         void OnEnable()
         {
             m_SerializedGlobalSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
@@ -23,11 +21,7 @@ namespace UnityEditor.Rendering.Universal
             serialized.serializedObject.Update();
 
             // In the quality window use more space for the labels
-            if (!largeLabelWidth)
-                EditorGUIUtility.labelWidth *= 2;
             UniversalGlobalSettingsPanelIMGUI.Inspector.Draw(serialized, this);
-            if (!largeLabelWidth)
-                EditorGUIUtility.labelWidth *= 0.5f;
 
             serialized.serializedObject.ApplyModifiedProperties();
         }
