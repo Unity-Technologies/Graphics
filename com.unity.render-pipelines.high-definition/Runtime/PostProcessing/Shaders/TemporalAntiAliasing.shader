@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         #pragma multi_compile_local _ ORTHOGRAPHIC
         #pragma multi_compile_local _ REDUCED_HISTORY_CONTRIB
         #pragma multi_compile_local _ ENABLE_ALPHA
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -23,7 +23,12 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
-        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+
+        #if defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
+            RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
+        #else
+            RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+        #endif
 
         struct Attributes
         {

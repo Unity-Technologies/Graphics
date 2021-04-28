@@ -583,6 +583,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     graphicDevice == GraphicsDeviceType.PlayStation5 ||
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
+                    graphicDevice == GraphicsDeviceType.GameCoreXboxSeries ||
                     graphicDevice == GraphicsDeviceType.Metal ||
                     graphicDevice == GraphicsDeviceType.Vulkan
                     // Switch isn't supported currently (19.3)
@@ -623,6 +625,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                    buildTarget == UnityEditor.BuildTarget.GameCoreXboxOne ||
+                    buildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries  ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
                     buildTarget == UnityEditor.BuildTarget.PS5 ||
                     // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported

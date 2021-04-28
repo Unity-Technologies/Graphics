@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.7.0] - 2021-04-28
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed lights shadow frustum near and far planes.
 
 ## [7.6.0] - 2021-03-25
 
@@ -16,7 +19,6 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
-- Fixed lights shadow frustum near and far planes.
 
 ## Changed
 - Tidy up of platform abstraction code for shader optimization.
