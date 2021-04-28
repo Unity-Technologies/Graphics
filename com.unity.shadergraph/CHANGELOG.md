@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
 
 - Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
+- Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
 
 
 ## [11.0.0] - 2020-10-21
