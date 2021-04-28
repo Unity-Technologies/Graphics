@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void UpdateEnableState()
         {
             // some changes may change the exposed state
-            exposedToggle.SetValueWithoutNotify(shaderInput.isExposed);
+            exposedToggle?.SetValueWithoutNotify(shaderInput.isExposed);
             exposedToggle?.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             if (shaderInput is ShaderKeyword keyword)
             {

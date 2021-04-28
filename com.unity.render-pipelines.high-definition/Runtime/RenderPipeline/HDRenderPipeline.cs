@@ -1498,7 +1498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     //      render requests
                     var isViewDependent = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
 
-                    Camera parentCamera;
+                    HDCamera hdParentCamera;
 
                     if (isViewDependent)
                     {
@@ -1512,7 +1512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             var visibleInRenderRequest = renderRequests[visibleInIndex];
                             var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
 
-                            parentCamera = visibleInRenderRequest.hdCamera.camera;
+                            hdParentCamera = visibleInRenderRequest.hdCamera;
 
                             var renderDatas = ListPool<HDProbe.RenderData>.Get();
 
@@ -1521,7 +1521,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 viewerTransform,
                                 new List<(int index, float weight)> {visibility},
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
-                                parentCamera,
+                                hdParentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
                                 visibleInRenderRequest.hdCamera.camera.aspect,
                                 ref renderDatas
@@ -1538,7 +1538,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         // No single parent camera for view dependent probes.
-                        parentCamera = null;
+                        hdParentCamera = null;
 
                         bool visibleInOneViewer = false;
                         for (int i = 0; i < visibilities.Count && !visibleInOneViewer; ++i)
@@ -1549,7 +1549,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (visibleInOneViewer)
                         {
                             var renderDatas = ListPool<HDProbe.RenderData>.Get();
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, parentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas);
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas);
                             ListPool<HDProbe.RenderData>.Release(renderDatas);
                         }
                     }
@@ -1564,7 +1564,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     Transform viewerTransform,
                     List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
-                    Camera parentCamera,
+                    HDCamera hdParentCamera,
                     float referenceFieldOfView,
                     float referenceAspect,
                     ref List<HDProbe.RenderData> renderDatas
@@ -1678,15 +1678,31 @@ namespace UnityEngine.Rendering.HighDefinition
                             visibleProbe.ForceRenderingNextUpdate();
                         }
 
-                        hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
+                        hdCamera.SetParentCamera(hdParentCamera); // Used to inherit the properties of the view
 
-                        if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                        if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
                         {
-                            RTHandle exposureTexture = GetExposureTexture(hdCamera);
-                            visibleProbe.RequestProbeExposureValue(exposureTexture);
-                            // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
-                            // For the clear color, we need to do it manually here.
-                            additionalCameraData.backgroundColorHDR = additionalCameraData.backgroundColorHDR * visibleProbe.ProbeExposureValue();
+                            //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
+                            visibleProbe.ExposureControlEnabled = hdCamera.exposureControlFS;
+                            if (visibleProbe.ExposureControlEnabled)
+                            {
+                                RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
+                                hdParentCamera.RequestGpuExposureValue(exposureTexture);
+                                visibleProbe.SetProbeExposureValue(hdParentCamera.GpuExposureValue());
+                                additionalCameraData.deExposureMultiplier = 1.0f;
+
+                                // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
+                                // For the clear color, we need to do it manually here.
+                                additionalCameraData.backgroundColorHDR = additionalCameraData.backgroundColorHDR * visibleProbe.ProbeExposureValue();
+                            }
+                            else
+                            {
+                                //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
+                                //this will cause them to blow up, but will match the standard nomralized exposure.
+                                hdParentCamera.RequestGpuDeExposureValue(m_PostProcessSystem.GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
+                                visibleProbe.SetProbeExposureValue(1.0f);
+                                additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
+                            }
                         }
 
                         HDAdditionalCameraData hdCam;

@@ -23,13 +23,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); }
 
         /// <summary>
-        /// Cast to RTHandle
-        /// </summary>
-        /// <param name="texture">Input TextureHandle.</param>
-        /// <returns>Resource as a RTHandle.</returns>
-        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
-
-        /// <summary>
         /// Cast to RenderTargetIdentifier
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
@@ -37,11 +30,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : default(RenderTargetIdentifier);
 
         /// <summary>
+        /// Cast to Texture
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a Texture.</returns>
+        public static implicit operator Texture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
         /// Cast to RenderTexture
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
         /// <returns>Resource as a RenderTexture.</returns>
         public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
+        /// Cast to RTHandle
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RTHandle.</returns>
+        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
         /// Return true if the handle is valid.

@@ -51,3 +51,26 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 ![](Images/RayTracingPathTracing6.png)
 
 **Minimum Depth** set to 2, **Maximum Depth** set to 2: indirect lighting only (1 bounce)
+
+## Limitations
+
+This section contains information on the limitations of HDRP's path tracing implementation. Mainly, this is a list of features that HDRP supports in its rasterized render pipeline, but not in its path-traced render pipeline.
+
+### Unsupported features of path tracing
+
+There is no support for path tracing on platforms other than DX12 for now.
+
+HDRP path tracing in Unity 2020.2 has the following limitations:
+
+- Does not support 3D Text and TextMeshPro.
+- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
+- Does not support decals.
+- Does not support tessellation.
+- Does not support Tube and Disc shaped Area Light.
+- Does not support Translucent Opaque Materials.
+- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
+- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
+- Does not support MSAA.
+- For renderers that have [LODs](https://docs.unity3d.com/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
+- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
+- Does not support [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).

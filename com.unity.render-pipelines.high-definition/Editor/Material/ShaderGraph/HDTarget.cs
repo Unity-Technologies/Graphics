@@ -600,7 +600,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection

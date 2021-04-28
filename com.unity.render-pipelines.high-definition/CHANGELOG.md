@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -138,6 +139,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed missing Update in Wizard's DXR Documentation
 - Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
+- Fixed SSR Precision for 4K Screens
+- Fixed issue with gbuffer debug view when virtual texturing is enabled.
+- Fixed volumetric fog noise due to sun light leaking (case 1319005)
+- Fixed an issue with Decal normal blending producing NaNs.
+- Fixed issue in wizard when resource folder don't exist
+- Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -169,6 +185,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
+- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
+- Assets going through the migration system are now dirtied.
 
 ## [10.3.0] - 2020-12-01
 

@@ -188,7 +188,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
     #else
-        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
+        float3 lightNormal = mtlData.bsdfData.normalWS;
     #endif
 
 #if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)        

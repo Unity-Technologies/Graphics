@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
-            if (!IsExposureFixed(hdCamera) && m_ExposureControlFS)
+            if (!IsExposureFixed(hdCamera) && hdCamera.exposureControlFS)
             {
                 var exposureParameters = PrepareExposureParameters(hdCamera);
 
