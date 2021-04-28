@@ -2100,7 +2100,6 @@ namespace UnityEditor.ShaderGraph
                     var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
                     var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
                     var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
-                    var dropdownGuidMap = new Dictionary<string, ShaderDropdown>();
                     var groupGuidMap = new Dictionary<string, GroupData>();
                     var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                     var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2168,20 +2167,6 @@ namespace UnityEditor.ShaderGraph
                         keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
                     }
 
-                    foreach (var serializedDropdown in graphData0.m_SerializedDropdowns)
-                    {
-                        var dropdown = DeserializeLegacy<ShaderDropdown>(serializedDropdown.typeInfo.fullName, serializedDropdown.JSONnodeData);
-                        if (dropdown == null)
-                        {
-                            continue;
-                        }
-
-                        m_Dropdowns.Add(dropdown);
-
-                        var input0 = JsonUtility.FromJson<ShaderInput0>(serializedDropdown.JSONnodeData);
-                        dropdownGuidMap[input0.m_Guid.m_GuidSerialized] = dropdown;
-                    }
-
                     foreach (var serializedNode in graphData0.m_SerializableNodes)
                     {
                         var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
@@ -2204,11 +2189,6 @@ namespace UnityEditor.ShaderGraph
                         if (!string.IsNullOrEmpty(node0.m_KeywordGuidSerialized) && keywordGuidMap.TryGetValue(node0.m_KeywordGuidSerialized, out var keyword))
                         {
                             keywordField.SetValue(node, (JsonRef<ShaderKeyword>)keyword);
-                        }
-
-                        if (!string.IsNullOrEmpty(node0.m_DropdownGuidSerialized) && dropdownGuidMap.TryGetValue(node0.m_DropdownGuidSerialized, out var dropdown))
-                        {
-                            dropdownField.SetValue(node, (JsonRef<ShaderDropdown>)dropdown);
                         }
 
                         var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
