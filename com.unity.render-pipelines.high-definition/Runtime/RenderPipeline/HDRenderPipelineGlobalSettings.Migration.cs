@@ -8,27 +8,15 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             First,
-            MigratedFromHDRPAssetOrCreated,
             UpdateMSAA,
         }
 
-        // Sadly we cannot create asset at last version
-        // We must always check if they need to be created from HDRPAsset
-        // So we must always create them at first version and run the whole update process.
-        // Hopefully, creation of thoses asset are pretty rare.
-        // But this also means when adding a new feature that require a migration step, to be sure to comply with former patterns.
         [SerializeField]
-        Version m_Version = Version.First;
+        Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
         static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.MigratedFromHDRPAssetOrCreated, (HDRenderPipelineGlobalSettings data) =>
-            {
-                // if possible we need to finish migration of hdrpAsset in order to grab value from it
-                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
-                    (hdrpAsset as IMigratableAsset).Migrate();
-            }),
             MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
             {
                 FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
@@ -45,21 +33,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {
-            if (instance != null
-                && !instance.Equals(null)
-                && instance.m_Version != Version.First)
+            if (instance != null && !instance.Equals(null) && !(instance.m_Version == Version.First))
                 return;
 
-            //1. Create the instance or load current one if at first version
-            HDRenderPipelineGlobalSettings assetToUpgrade;
+            //1. Create the instance or load current one
+            HDRenderPipelineGlobalSettings assetToUpgrade = instance;
 
-            if (instance == null || instance.Equals(null))
+            if (assetToUpgrade == null || assetToUpgrade.Equals(null))
             {
                 assetToUpgrade = Create($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
                 UpdateGraphicsSettings(assetToUpgrade);
             }
-            else
-                assetToUpgrade = instance;
 
             Debug.Assert(assetToUpgrade);
 
@@ -107,9 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // we need to make sure the old diffusion profile had time to upgrade before moving it away
             if (oldAsset.diffusionProfileSettings != null)
-            {
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
-            }
 
             int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
             System.Array.Resize(ref assetToUpgrade.diffusionProfileSettingsList, oldSize);
@@ -118,7 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
 
             //3. Set version to next & Launch remaining of migration
-            assetToUpgrade.m_Version = Version.MigratedFromHDRPAssetOrCreated;
             (assetToUpgrade as IMigratableAsset).Migrate();
         }
 

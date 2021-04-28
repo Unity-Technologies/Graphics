@@ -56,36 +56,32 @@ namespace UnityEngine.Rendering.HighDefinition
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
-            if (instance != null && !instance.Equals(null))
+            if (instance == null || instance.Equals(null) || instance.m_Version == Version.First)
             {
-                //if there is an instance but at first version, check for migrating HDRPAsset data from GraphicSettings
-                if (instance.m_Version == Version.First
-                    && GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset
-                    && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
-                    (hdrpAsset as IMigratableAsset).Migrate(); //this will call MigrateFromHDRPAsset with this
-            }
-            else
-            {
-                //if there is no instance, check for migrating HDRPAsset data from GraphicSettings into a fresh one
-                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset
-                    && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
-                    (hdrpAsset as IMigratableAsset).Migrate(); //this will call MigrateFromHDRPAsset with this
-                else
+                // Try to migrate HDRPAsset in Graphics. It can produce a HDRenderPipelineGlobalSettings
+                // with data from former HDRPAsset if it is at a version allowing this.
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrpAsset && hdrpAsset.IsVersionBelowAddedHDRenderPipelineGlobalSettings())
                 {
-                    //try load at default path
-                    HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
-
-                    if (loaded == null)
-                    {
-                        //Use any available
-                        IEnumerator<HDRenderPipelineGlobalSettings> enumerator = CoreUtils.LoadAllAssets<HDRenderPipelineGlobalSettings>().GetEnumerator();
-                        if (enumerator.MoveNext())
-                            loaded = enumerator.Current;
-                    }
-
-                    if (loaded != null)
-                        UpdateGraphicsSettings(loaded);
+                    // if possible we need to finish migration of hdrpAsset in order to grab value from it
+                    (hdrpAsset as IMigratableAsset).Migrate();
                 }
+            }
+
+            if (instance == null || instance.Equals(null))
+            {
+                //try load at default path
+                HDRenderPipelineGlobalSettings loaded = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>($"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset");
+
+                if (loaded == null)
+                {
+                    //Use any available
+                    IEnumerator<HDRenderPipelineGlobalSettings> enumerator = CoreUtils.LoadAllAssets<HDRenderPipelineGlobalSettings>().GetEnumerator();
+                    if (enumerator.MoveNext())
+                        loaded = enumerator.Current;
+                }
+
+                if (loaded != null)
+                    UpdateGraphicsSettings(loaded);
 
                 // No migration available and no asset available? Create one if allowed
                 if (canCreateNewAsset && instance == null)
