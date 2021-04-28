@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed VFX with output mesh being always reimported [Case 1309753](https://issuetracker.unity3d.com/product/unity/issues/guid/1309753/)
 - Modified state in the VFX tab has now a correct state
+- Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
 
 ## [10.6.0] - 2021-04-29
 
