@@ -24,42 +24,6 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: a43874f539bb5494e86fdea5ac9df469, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: f62791cf7ace7534680a0f9c461be164, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: weird artifact
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -69,42 +33,6 @@ MonoBehaviour:
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: ac9787fadf0b4ed4391bee6ba1d8e213, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 21d198bbbf9143d40b227ad2fe71706f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk:
-    StereoModes: 0
-    Reason: 'linux: inconclusive / out of memory on yamato'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2fb467d07511ad0498c47a86eb170d71, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: b8090c44833d0a842bcd90e27dc43b6b, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -112,42 +40,6 @@ MonoBehaviour:
     XrSdk:
     StereoModes: 0
     Reason: With rendergraph - unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 359ded33a047fd540b5e19a98547f5e2, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: b03383077f153b7439af7708ebe1155a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 3b6ce72f472558240a2a8d61a932c6d0, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: e64d4cbd26924f44cb8ecf945d8f899a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: f1d648a459637e342b078667ecd64f74, type: 3}
