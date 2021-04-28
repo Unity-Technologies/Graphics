@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed VFX with output mesh being always reimported [Case 1309753](https://issuetracker.unity3d.com/product/unity/issues/guid/1309753/)
 - Modified state in the VFX tab has now a correct state
 - Motion Vector map sampling for flipbooks were not using correct mips
+- Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
