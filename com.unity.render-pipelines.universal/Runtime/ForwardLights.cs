@@ -1,7 +1,6 @@
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Assertions;
-using Unity.Profiling;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -41,6 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseStructuredBuffer;
 
+        int m_DirectionalLightCount;
         int m_TileWidth;
         float m_ZBinFactor;
         int m_ZBinOffset;
@@ -94,13 +94,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_TileWidth = 16;
                 var screenResolution = math.int2(renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
 
+
                 var lightCount = renderingData.lightData.visibleLights.Length;
+                var lightOffset = 0;
+                while (lightOffset < lightCount && renderingData.lightData.visibleLights[lightOffset].lightType == LightType.Directional)
+                {
+                    lightOffset++;
+                }
+                if (lightOffset == lightCount) lightOffset = 0;
+                lightCount -= lightOffset;
+
+                m_DirectionalLightCount = lightOffset;
+                if (renderingData.lightData.mainLightIndex != -1) m_DirectionalLightCount -= 1;
+
+                var visibleLights = renderingData.lightData.visibleLights.GetSubArray(lightOffset, lightCount);
                 var lightsPerTile = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 Assert.IsTrue(lightsPerTile % 32 == 0);
 
                 var tileResolution = (screenResolution + m_TileWidth - 1) / m_TileWidth;
 
                 var fovHalfHeight = math.tan(math.radians(camera.fieldOfView * 0.5f));
+                // TODO: Make this work with VR
                 var fovHalfWidth = fovHalfHeight * (float)camera.pixelWidth / (float)camera.pixelHeight;
 
                 m_ZBinFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
@@ -118,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var minMaxZJob = new MinMaxZJob
                 {
                     worldToViewMatrix = worldToViewMatrix,
-                    lights = renderingData.lightData.visibleLights,
+                    lights = visibleLights,
                     minMaxZs = minMaxZs,
                     meanZs = meanZs
                 };
@@ -136,7 +150,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var reorderedLights = new NativeArray<VisibleLight>(lightCount, Allocator.TempJob);
                 var reorderedMinMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
 
-                var reorderLightsJob = new ReorderJob<VisibleLight> { indices = indices, input = renderingData.lightData.visibleLights, output = reorderedLights };
+                var reorderLightsJob = new ReorderJob<VisibleLight> { indices = indices, input = visibleLights, output = reorderedLights };
                 var reorderLightsHandle = reorderLightsJob.ScheduleParallel(lightCount, 32, zSortHandle);
 
                 var reorderMinMaxZsJob = new ReorderJob<LightMinMaxZ> { indices = indices, input = minMaxZs, output = reorderedMinMaxZs };
@@ -202,29 +216,24 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CullingHandle = JobHandle.CombineDependencies(horizontalHandle, verticalHandle, zBinningHandle);
 
                 reorderHandle.Complete();
-                renderingData.lightData.visibleLights.CopyFrom(reorderedLights);
-
-                if (renderingData.lightData.mainLightIndex != -1)
-                {
-                    renderingData.lightData.mainLightIndex = indices[renderingData.lightData.mainLightIndex];
-                }
+                NativeArray<VisibleLight>.Copy(reorderedLights, 0, renderingData.lightData.visibleLights, lightOffset, lightCount);
 
                 var tempBias = new NativeArray<Vector4>(lightCount, Allocator.Temp);
                 var tempResolution = new NativeArray<int>(lightCount, Allocator.Temp);
-                var tempIndices = new NativeArray<int>(lightCount, Allocator.TempJob);
+                var tempIndices = new NativeArray<int>(lightCount, Allocator.Temp);
 
                 for (var i = 0; i < lightCount; i++)
                 {
-                    tempBias[indices[i]] = renderingData.shadowData.bias[i];
-                    tempResolution[indices[i]] = renderingData.shadowData.resolution[i];
-                    tempIndices[indices[i]] = i;
+                    tempBias[indices[i]] = renderingData.shadowData.bias[lightOffset + i];
+                    tempResolution[indices[i]] = renderingData.shadowData.resolution[lightOffset + i];
+                    tempIndices[indices[i]] = lightOffset + i;
                 }
 
                 for (var i = 0; i < lightCount; i++)
                 {
-                    renderingData.shadowData.bias[i] = tempBias[i];
-                    renderingData.shadowData.resolution[i] = tempResolution[i];
-                    renderingData.lightData.originalIndices[i] = tempIndices[i];
+                    renderingData.shadowData.bias[i + lightOffset] = tempBias[i];
+                    renderingData.shadowData.resolution[i + lightOffset] = tempResolution[i];
+                    renderingData.lightData.originalIndices[i + lightOffset] = tempIndices[i];
                 }
 
                 tempBias.Dispose();
@@ -257,7 +266,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_HorizontalBuffer.SetData(m_HorizontalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_HorizontalLightMasks.Length / 4);
                     m_VerticalBuffer.SetData(m_VerticalLightMasks.Reinterpret<uint4>(UnsafeUtility.SizeOf<uint>()), 0, 0, m_VerticalLightMasks.Length / 4);
 
-                    cmd.SetGlobalInt("_AdditionalLightsZBinOffset", m_ZBinOffset);
+                    cmd.SetGlobalInteger("_AdditionalLightsDirectionalCount", m_DirectionalLightCount);
+                    cmd.SetGlobalInteger("_AdditionalLightsZBinOffset", m_ZBinOffset);
                     cmd.SetGlobalFloat("_AdditionalLightsZBinScale", m_ZBinFactor);
                     cmd.SetGlobalVector("_AdditionalLightsTileScale", renderingData.cameraData.pixelRect.size / (float)m_TileWidth);
 

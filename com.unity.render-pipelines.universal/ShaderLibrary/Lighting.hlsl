@@ -133,7 +133,7 @@ uint NextLightIndex(inout uint tileMask, uint wordIndex)
         while (tileMask != 0) \
         { \
             lightCount++; \
-            uint lightIndex = NextLightIndex(tileMask, wordIndex);
+            uint lightIndex = _AdditionalLightsDirectionalCount + NextLightIndex(tileMask, wordIndex);
 #define LIGHT_LOOP_END \
         } \
     }
@@ -990,6 +990,19 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
+#if USE_CLUSTERED_LIGHTING
+    for (uint lightIndex = 0; lightIndex < _AdditionalLightsDirectionalCount; lightIndex++) {
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
+        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                         light,
+                                         inputData.normalWS, inputData.viewDirectionWS,
+                                         surfaceData.clearCoatMask, specularHighlightsOff);
+        pixelLightCount++;
+    }
+#endif
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -1065,6 +1078,18 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();
+#if USE_CLUSTERED_LIGHTING
+    for (uint lightIndex = 0; lightIndex < _AdditionalLightsDirectionalCount; lightIndex++) {
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
+        half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
+        pixelLightCount++;
+    }
+#endif
     LIGHT_LOOP_BEGIN(pixelLightCount)
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
         #if defined(_SCREEN_SPACE_OCCLUSION)
