@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -84,6 +85,8 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         }
     }
 
+    private const string k_ShaderName = "Hidden/Universal Render Pipeline/DrawNormals";
+
     [SerializeField]
     private Shader m_Shader;
 
@@ -93,12 +96,35 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
     /// <inheritdoc/>
     public override void Create()
     {
-        m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
         m_DrawNormalPass = new DrawNormalPass();
+
+        GetMaterial();
+    }
+
+    private bool GetMaterial()
+    {
+        if (m_Material != null)
+        {
+            return true;
+        }
+
+        if (m_Shader == null)
+        {
+            m_Shader = Shader.Find(k_ShaderName);
+            if (m_Shader == null)
+            {
+                return false;
+            }
+        }
+
+        m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
+
+        return m_Material != null;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        Assert.IsNotNull(m_Material);
         m_DrawNormalPass.Setup(m_Material);
         renderer.EnqueuePass(m_DrawNormalPass);
     }
