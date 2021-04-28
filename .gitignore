@@ -37,3 +37,6 @@ ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 node_modules
+
+.yamato/script/path.config
+manifest-updater.py
