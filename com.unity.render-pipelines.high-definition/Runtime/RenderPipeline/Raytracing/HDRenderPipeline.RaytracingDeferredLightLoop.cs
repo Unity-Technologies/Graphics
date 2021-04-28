@@ -70,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool diffuseLightingOnly;
             public bool halfResolution;
             public int rayCountType;
+            public float lodBias;
 
             // Camera data
             public int width;
@@ -176,6 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         // Inject the global parameters
+                        data.parameters.raytracingCB._RayTracingLodBias = data.parameters.lodBias;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.parameters.raytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Define the shader pass to use for the reflection pass

@@ -8,18 +8,19 @@ project:
 reuse_blocks:
   unity_config:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
 
 
     - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
     - [iPhone_Metal, OSX_Metal]: brew install unity-config
 
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install unity-config
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: choco install unity-config
 
+    - [Linux_Vulkan]: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
     - [Linux_Vulkan]: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
@@ -29,6 +30,8 @@ reuse_blocks:
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.management@4.0.1 --project-path .
+    - [XRQuest_Vulkan, XRQuest_OpenGLES3]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.xr.oculus@1.8.1 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
@@ -42,6 +45,8 @@ reuse_blocks:
     - [all]: cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
     - [all]: cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: cd TestProjects/BoatAttack && unity-config project set registry "https://artifactory.prd.it.unity3d.com/artifactory/api/npm/upm-candidates" --project-path .
+    - [XRQuest_OpenGLES3, XRQuest_Vulkan]: cd TestProjects/BoatAttack && unity-config project set setting ProjectSettings.asset AndroidMinSdkVersion 23 --project-path .
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
     - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -50,7 +55,7 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
     - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
-    - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+    - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
     - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
     - [all]: --category=URP
 
@@ -65,20 +70,20 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
+          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersLow
           - [OSX_Metal]: --testfilter=Low
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=BoatAttack
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
+          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
@@ -94,23 +99,25 @@ test_platforms:
       - <reuse_blocks.unity_config>
       - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
-      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3, XRQuest_Vulkan, XRQuest_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
+          - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, XRQuest_Vulkan, XRQuest_OpenGLES3]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
+          - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
       - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
@@ -203,7 +210,6 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
   - name: Android
     apis:
       - name: Vulkan
@@ -229,6 +235,31 @@ platforms:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
+  - name: XRQuest
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.xlarge
   - name: iPhone
     apis:
       - name: Metal
@@ -323,5 +354,17 @@ pr:
         - performance_build_editmode
 nightly:
   dependencies:
+    - platform: XRQuest
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+    - platform: XRQuest
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
     - project: URP_Performance_BoatAttack
       pr: true

@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // Custom post-processing pass that performs chroma keying
     // Shader adapted from: https://github.com/keijiro/ProcAmp
-    // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal use only)
-    [Serializable, VolumeComponentDeprecated]
+    // Use HideInInspector to hide the component from the volume menu (it's for internal use only)
+    [Serializable, HideInInspector]
     internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
@@ -27,9 +27,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public override void Setup()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset != null)
-                m_Material = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.chromaKeyingPS);
+            if (!HDRenderPipeline.isReady)
+                return;
+
+            m_Material = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.chromaKeyingPS);
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

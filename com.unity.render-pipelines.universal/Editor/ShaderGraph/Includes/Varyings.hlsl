@@ -113,13 +113,19 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
-    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
+#if defined(DYNAMICLIGHTMAP_ON)
+    output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
     OUTPUT_SH(normalWS, output.sh);
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    half fogFactor = 0;
+#if !defined(_FOG_FRAGMENT)
+        fogFactor = ComputeFogFactor(output.positionCS.z);
+#endif
     half3 vertexLight = VertexLighting(positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(output.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 

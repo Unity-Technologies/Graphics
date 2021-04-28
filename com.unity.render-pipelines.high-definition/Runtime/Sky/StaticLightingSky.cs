@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Class controlling which sky is used for static and baked lighting.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Static-Lighting-Sky" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Static-Lighting-Sky")]
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide this object from the Add Component menu
     public class StaticLightingSky : MonoBehaviour
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var newParameters = component.parameters;
             var profileParameters = componentFromProfile.parameters;
 
-            var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+            var defaultVolume = HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolume();
             T defaultComponent = null;
             if (defaultVolume.sharedProfile != null)     // This can happen with old projects.
                 defaultVolume.sharedProfile.TryGet(type, out defaultComponent);
@@ -219,6 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentStaticLightingSky()
         {
+            if ((RenderPipelineManager.currentPipeline is HDRenderPipeline) == false)
+                return;
+
             // First, grab the sky settings of the right type in the profile.
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;

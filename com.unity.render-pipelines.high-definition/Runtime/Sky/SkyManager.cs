@@ -302,10 +302,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
+        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
-
             m_Resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             m_IBLFilterArray = iblFilterBSDFArray;
 
@@ -315,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.opaqueAtmosphericScatteringPS);
             m_OpaqueAtmScatteringBlock = new MaterialPropertyBlock();
 
-            m_ComputeAmbientProbeCS = hdrp.renderPipelineResources.shaders.ambientProbeConvolutionCS;
+            m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolution");
 
             lightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
@@ -490,6 +488,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
+            {
+                return;
+            }
+            // For preview camera don't update the skybox material. This can inadvertently trigger GI baking. case 1314361/1314373.
+            if (hdCamera.camera.cameraType == CameraType.Preview)
             {
                 return;
             }
@@ -1146,13 +1149,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void OnBakeStarted()
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if (hdrp == null)
+            if (!HDRenderPipeline.isReady)
                 return;
 
             // Happens sometime in the tests.
             if (m_StandardSkyboxMaterial == null)
-                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.skyboxCubemapPS);
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyboxCubemapPS);
 
             // It is possible that HDRP hasn't rendered any frame when clicking the bake lighting button.
             // This can happen when baked lighting debug are used for example and no other window with HDRP is visible.

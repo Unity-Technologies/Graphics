@@ -47,13 +47,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void Initialize()
         {
-            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassUtils);
+            customPassUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassUtils);
             downSamplePassIndex = customPassUtilsMaterial.FindPass("Downsample");
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
 
-            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
+            customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
             depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
             normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
@@ -308,6 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
         /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        /// <param name="sorting">How the objects are sorted before being rendered.</param>
         public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque)
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
@@ -568,7 +569,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // viewport with RT handle scale and scale factor:
             Rect viewport = new Rect();
-            Vector2 destSize = viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            if (destination.useScaling)
+                viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            else
+                viewport.size = new Vector2Int(destination.rt.width, destination.rt.height);
+            Vector2 destSize = viewport.size;
             viewport.position = new Vector2(viewport.size.x * destScaleBias.z, viewport.size.y * destScaleBias.w);
             viewport.size *= new Vector2(destScaleBias.x, destScaleBias.y);
 

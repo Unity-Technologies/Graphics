@@ -3,6 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -37,7 +38,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-android-opengles3.yml#Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -59,7 +60,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
     artifacts:
         logs:
             paths:
@@ -98,7 +99,7 @@ URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-android-opengles3.yml#Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -120,7 +121,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
     artifacts:
         logs:
             paths:
@@ -160,9 +161,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-android-opengles3.yml#Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -185,7 +186,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
     artifacts:
         logs:
             paths:
@@ -196,7 +197,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
 URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Terrain on Android_OpenGLES3_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -228,9 +229,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-android-opengles3.yml#Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Terrain on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -253,7 +254,7 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISI
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
     artifacts:
         logs:
             paths:
@@ -264,4 +265,4 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_CUSTOM-REVISI
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision

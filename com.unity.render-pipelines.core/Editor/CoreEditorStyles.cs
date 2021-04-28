@@ -27,10 +27,25 @@ namespace UnityEditor.Rendering
         /// <summary><see cref="Texture2D"/> 1x1 pixel with blue color</summary>
         public static readonly Texture2D blueTexture;
 
-        /// <summary> PaneOption icon </summary>
+        /// <summary> PaneOption icon for dark skin</summary>
         static readonly Texture2D paneOptionsIconDark;
+
+        /// <summary> PaneOption icon for light skin</summary>
         static readonly Texture2D paneOptionsIconLight;
+
+        /// <summary> PaneOption icon </summary>
         public static Texture2D paneOptionsIcon => EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight;
+
+        /// <summary> Warning icon </summary>
+        public static readonly Texture2D iconWarn;
+        /// <summary> Help icon </summary>
+        public static readonly Texture2D iconHelp;
+        /// <summary> Fail icon </summary>
+        public static readonly Texture2D iconFail;
+        /// <summary> Success icon </summary>
+        public static readonly Texture2D iconSuccess;
+        /// <summary> Pending icon </summary>
+        public static readonly Texture2D iconPending;
 
         /// <summary>Context Menu button icon</summary>
         public static readonly GUIContent contextMenuIcon;
@@ -50,8 +65,11 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
-        public static GUIContent iconHelp { get; }
-        public static GUIStyle iconHelpStyle { get; }
+        /// <summary>Help icon style</summary>
+        public static GUIStyle iconHelpStyle => GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+
+        /// <summary>RenderPipeline Global Settings icon</summary>
+        public static readonly Texture2D globalSettingsIcon;
 
         static CoreEditorStyles()
         {
@@ -104,8 +122,13 @@ namespace UnityEditor.Rendering
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
-            iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
-            iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+            iconHelp = EditorGUIUtility.FindTexture("_Help");
+            iconWarn = EditorGUIUtility.FindTexture("console.warnicon");
+            iconFail = EditorGUIUtility.FindTexture("console.erroricon");
+            iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
+            iconPending = EditorGUIUtility.FindTexture("Toolbar Minus");
+
+            globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
 
             // Make sure that textures are unloaded on domain reloads.
             void OnBeforeAssemblyReload()

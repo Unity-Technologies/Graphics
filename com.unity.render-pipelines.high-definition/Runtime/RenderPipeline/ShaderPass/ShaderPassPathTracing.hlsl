@@ -101,7 +101,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
     #else
-        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
+        float3 lightNormal = GetLightNormal(mtlData);
     #endif
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
@@ -119,7 +119,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         // Light sampling
         if (computeDirect)
         {
-            if (SampleLights(lightList, inputSample.xyz, rayDescriptor.Origin, mtlData.bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+            if (SampleLights(lightList, inputSample.xyz, rayDescriptor.Origin, lightNormal, false, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
             {
                 EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
 
@@ -192,8 +192,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 }
 
                 // Apply material absorption
-                float dist = min(nextPathIntersection.t, surfaceData.atDistance * 10.0);
-                nextPathIntersection.value = ApplyAbsorption(mtlData, dist, isSampleBelow, nextPathIntersection.value);
+                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);
 
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }

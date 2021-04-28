@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -16,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D : MonoBehaviour, ISerializationCallbackReceiver
     {
         public enum DeprecatedLightType
         {
@@ -47,6 +48,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Additive,
             AlphaBlend
         }
+
+
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+
 
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
@@ -201,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float normalMapDistance => m_NormalMapDistance;
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
         internal int GetTopMostLitLayer()
         {
@@ -286,9 +299,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
-                m_NormalMapQuality = NormalMapQuality.Disabled;
-
             bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
             UpdateMesh(updateMesh);
             if (hasCachedMesh)
@@ -317,6 +327,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             UpdateMesh(true);
             UpdateBoundingSphere();
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
+                m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
+                m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
+                m_NormalMapQuality = !m_UseNormalMap ? NormalMapQuality.Disabled : m_NormalMapQuality;
+                m_ComponentVersion = ComponentVersions.Version_1;
+            }
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeVolumeAsset : ScriptableObject
     {
@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering
         [SerializeField] public int Version { get => m_Version; }
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
+
+        [SerializeField] internal Vector3Int maxCellIndex;
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 

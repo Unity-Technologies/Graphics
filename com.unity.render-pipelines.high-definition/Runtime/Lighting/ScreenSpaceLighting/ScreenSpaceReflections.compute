@@ -19,7 +19,7 @@
 #ifndef SSR_APPROX
     #define SAMPLES_VNDF
 #endif
-#define SSR_TRACE_EPS               0.00024414 // 2^-12, should be good up to 4K
+#define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
 #define MAX_GGX_ROUGHNESS           0.99999f
 

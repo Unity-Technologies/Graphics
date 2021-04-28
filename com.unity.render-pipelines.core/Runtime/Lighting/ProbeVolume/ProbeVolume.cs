@@ -4,16 +4,22 @@ using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
     internal struct ProbeVolumeArtistParameters
     {
-        public Vector3 size;
+        public Vector3  size;
+        [HideInInspector]
+        public float    maxSubdivisionMultiplier;
+        [HideInInspector]
+        public float    minSubdivisionMultiplier;
 
-        public ProbeVolumeArtistParameters(Color debugColor)
+        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1, float minSubdivision = 0)
         {
             this.size = Vector3.one;
+            this.maxSubdivisionMultiplier = maxSubdivision;
+            this.minSubdivisionMultiplier = minSubdivision;
         }
     } // class ProbeVolumeArtistParameters
 

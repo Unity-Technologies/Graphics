@@ -29,14 +29,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
         public SerializedProperty supportLightLayers;
-        public SerializedProperty lightLayerName0;
-        public SerializedProperty lightLayerName1;
-        public SerializedProperty lightLayerName2;
-        public SerializedProperty lightLayerName3;
-        public SerializedProperty lightLayerName4;
-        public SerializedProperty lightLayerName5;
-        public SerializedProperty lightLayerName6;
-        public SerializedProperty lightLayerName7;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
@@ -45,16 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
-        public SerializedProperty decalLayerName0;
-        public SerializedProperty decalLayerName1;
-        public SerializedProperty decalLayerName2;
-        public SerializedProperty decalLayerName3;
-        public SerializedProperty decalLayerName4;
-        public SerializedProperty decalLayerName5;
-        public SerializedProperty decalLayerName6;
-        public SerializedProperty decalLayerName7;
 
-        public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;
@@ -105,14 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             supportVolumetricClouds         = root.Find((RenderPipelineSettings s) => s.supportVolumetricClouds);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
-            lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
-            lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
-            lightLayerName2                 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
-            lightLayerName3                 = root.Find((RenderPipelineSettings s) => s.lightLayerName3);
-            lightLayerName4                 = root.Find((RenderPipelineSettings s) => s.lightLayerName4);
-            lightLayerName5                 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
-            lightLayerName6                 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
-            lightLayerName7                 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
@@ -121,14 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
-            decalLayerName0                 = root.Find((RenderPipelineSettings s) => s.decalLayerName0);
-            decalLayerName1                 = root.Find((RenderPipelineSettings s) => s.decalLayerName1);
-            decalLayerName2                 = root.Find((RenderPipelineSettings s) => s.decalLayerName2);
-            decalLayerName3                 = root.Find((RenderPipelineSettings s) => s.decalLayerName3);
-            decalLayerName4                 = root.Find((RenderPipelineSettings s) => s.decalLayerName4);
-            decalLayerName5                 = root.Find((RenderPipelineSettings s) => s.decalLayerName5);
-            decalLayerName6                 = root.Find((RenderPipelineSettings s) => s.decalLayerName6);
-            decalLayerName7                 = root.Find((RenderPipelineSettings s) => s.decalLayerName7);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
