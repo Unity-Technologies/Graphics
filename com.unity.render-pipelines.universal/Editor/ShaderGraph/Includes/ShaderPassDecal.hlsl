@@ -92,7 +92,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #endif
 
 #if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV) && defined(LIGHTMAP_ON)
-    inputData.lightmapUV = input.staticLightmapUV
+    inputData.lightmapUV = input.staticLightmapUV;
 #elif defined(VARYINGS_NEED_SH)
     inputData.vertexSH = half3(input.sh);
 #endif
