@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Depth and DepthNormals passes to particles shaders.
 - Added support for SSAO in Particle and Unlit shaders.
 - Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
+- Added blending and box projection for reflection probes.
+- Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused temporary depth buffers for Depth of Field and Panini Projection.
 - Optimized the Bokeh Depth of Field shader on mobile by using half precision floats.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
+- Made 2D shadow casting more efficient
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
 - Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
 - Advanced Options > Priority has been renamed to Sorting Priority

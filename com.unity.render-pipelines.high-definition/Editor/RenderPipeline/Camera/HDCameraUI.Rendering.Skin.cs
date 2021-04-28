@@ -8,14 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             class Styles
             {
-                public static readonly GUIContent header = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
-
                 public static readonly GUIContent antialiasing = EditorGUIUtility.TrTextContent("Post Anti-aliasing", "The postprocess anti-aliasing method to use.");
-
-                public static readonly GUIContent dithering = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
-                public static readonly GUIContent stopNaNs = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
-                public static readonly GUIContent cullingMask = EditorGUIUtility.TrTextContent("Culling Mask", "Specifies the list of layers the camera should render.");
-                public static readonly GUIContent occlusionCulling = EditorGUIUtility.TrTextContent("Occlusion Culling", "When enabled, the camera does not render objects that are being obscured by other geometry.");
 
                 public static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
 
