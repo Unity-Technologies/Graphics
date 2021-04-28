@@ -84,7 +84,7 @@ struct ps_input
 #endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
-${VFXURPLitFillVaryings}
+${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 		
 ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
