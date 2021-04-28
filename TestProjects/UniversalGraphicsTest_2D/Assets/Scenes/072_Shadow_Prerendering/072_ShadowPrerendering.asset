@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
-  m_Name: New 2D Renderer Data
+  m_Name: 072_ShadowPrerendering
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
   m_RendererFeatureMap: 
@@ -18,20 +18,20 @@ MonoBehaviour:
   m_TransparencySortMode: 0
   m_TransparencySortAxis: {x: 0, y: 1, z: 0}
   m_HDREmulationScale: 1
-  m_LightRenderTextureScale: 1
+  m_LightRenderTextureScale: 0.5
   m_LightBlendStyles:
-  - name: Operation 0
+  - name: Multiply
     maskTextureChannel: 0
     blendMode: 1
-  - name: Operation 1
+  - name: Additive
+    maskTextureChannel: 0
+    blendMode: 0
+  - name: Multiply with Mask
+    maskTextureChannel: 1
+    blendMode: 1
+  - name: Additive with Mask
     maskTextureChannel: 1
     blendMode: 0
-  - name: Blend Style 2
-    maskTextureChannel: 0
-    blendMode: 1
-  - name: Blend Style 3
-    maskTextureChannel: 0
-    blendMode: 1
   m_UseDepthStencilBuffer: 1
   m_UseCameraSortingLayersTexture: 0
   m_CameraSortingLayersTextureBound: -1
