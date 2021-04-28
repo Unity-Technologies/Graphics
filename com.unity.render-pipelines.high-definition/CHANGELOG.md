@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for alpha channel in FXAA (case 1323941).
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 - Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
+- Added support for lighting full screen debug mode in automated tests.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
