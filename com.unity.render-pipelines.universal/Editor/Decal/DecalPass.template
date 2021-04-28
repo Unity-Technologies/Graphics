@@ -46,7 +46,8 @@ Pass
     $Varyings.color:                    #define VARYINGS_NEED_COLOR
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.sh:                       #define VARYINGS_NEED_SH
-    $Varyings.lightmapUV:               #define VARYINGS_NEED_LIGHTMAP_UV
+    $Varyings.staticLightmapUV:         #define VARYINGS_NEED_STATIC_LIGHTMAP_UV
+    $Varyings.dynamicLightmapUV:        #define VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV
     $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
     
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION

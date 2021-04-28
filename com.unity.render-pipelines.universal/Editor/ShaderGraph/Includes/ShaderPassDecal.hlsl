@@ -60,8 +60,10 @@ void MeshDecalsPositionZBias(inout Varyings input)
 #endif
 }
 
-void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half3 viewDirectionWS, inout InputData inputData)
+void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half3 viewDirectionWS, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = positionWS;
     inputData.normalWS = normalWS;
     inputData.viewDirectionWS = viewDirectionWS;
@@ -79,9 +81,20 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     inputData.vertexLighting = half3(input.fogFactorAndVertexLight.yzw);
 #endif
 
-#ifdef VARYINGS_NEED_SH
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, half3(input.sh), normalWS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+#if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, half3(input.sh), normalWS);
+#elif defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, half3(input.sh), normalWS);
+#endif
+
+#if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+#endif
+
+#if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV) && defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV
+#elif defined(VARYINGS_NEED_SH)
+    inputData.vertexSH = half3(input.sh);
 #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
@@ -118,8 +131,12 @@ PackedVaryings Vert(Attributes inputMesh)
     output = BuildVaryings(inputMesh);
 #endif
 
-#ifdef VARYINGS_NEED_LIGHTMAP_UV
-    OUTPUT_LIGHTMAP_UV(inputMesh.uv1, unity_LightmapST, output.lightmapUV);
+#ifdef VARYINGS_NEED_STATIC_LIGHTMAP_UV
+    OUTPUT_LIGHTMAP_UV(inputMesh.uv1, unity_LightmapST, output.staticLightmapUV);
+#endif
+
+#if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
+    output.dynamicLightmapUV.xy = inputMesh.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
 
 #ifdef VARYINGS_NEED_SH
@@ -249,7 +266,7 @@ void Frag(PackedVaryings packedInput,
     surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
 #endif
 
-    InputData inputData = (InputData)0;
+    InputData inputData;
     InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;
@@ -262,7 +279,7 @@ void Frag(PackedVaryings packedInput,
     outColor = color;
 #elif defined(DECAL_GBUFFER)
 
-    InputData inputData = (InputData)0;
+    InputData inputData;
     InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;

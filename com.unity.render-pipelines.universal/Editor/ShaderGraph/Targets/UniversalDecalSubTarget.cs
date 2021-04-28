@@ -958,15 +958,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
-                { CoreKeywordDescriptors.StaticLightmap },
-                { CoreKeywordDescriptors.DynamicLightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.LightmapShadowMixing },
-                { CoreKeywordDescriptors.ShadowsShadowmask },
                 { Descriptors.DecalsNormalBlend },
             };
 
@@ -986,13 +981,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
-                { CoreKeywordDescriptors.StaticLightmap },
-                { CoreKeywordDescriptors.DynamicLightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.LightmapShadowMixing },
-                { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
             };
