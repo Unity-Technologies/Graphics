@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph
                 // If in a subgraph, the value will be read from a function parameter.
                 // If generating preview mode code, we always inline the value, according to code gen requirements.
                 // The parent graph always sets the explicit value to be passed to a subgraph function.
-                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (generationMode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
             }
         }
 
