@@ -123,15 +123,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
+        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool)"/>)
         /// </summary>
         /// <param name="width">The width of the RTs of this buffer.</param>
         /// <param name="height">The height of the RTs of this buffer.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
-        public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        public void SwapAndSetReferenceSize(int width, int height)
         {
             Swap();
-            m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
+            m_RTHandleSystem.SetReferenceSize(width, height);
         }
 
         /// <summary>

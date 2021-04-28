@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -119,11 +120,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                    {
+                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                    ref m_RenderStateBlock);
+                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref renderStateBlock);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                        }
+                    }
+                }
+                else
+                {
+                    // Ensure we flush our command-buffer before we render...
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    // Render the objects...
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                }
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)
                 {
