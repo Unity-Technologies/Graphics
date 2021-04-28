@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_ShadowmapBufferBits = 16;
         private RenderTargetHandle m_AdditionalLightsShadowmap;
-        RenderTexture m_AdditionalLightsShadowmapTexture;
+        internal RenderTexture m_AdditionalLightsShadowmapTexture;
 
 
         float m_MaxShadowDistanceSq;
@@ -783,6 +783,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
+            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 
@@ -791,7 +792,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
             ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -860,6 +860,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
                     var settings = new ShadowDrawingSettings(cullResults, visibleLightIndex);
+                    settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.supportsLightLayers;
                     settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);

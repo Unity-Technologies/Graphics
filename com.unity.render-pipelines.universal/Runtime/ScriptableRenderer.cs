@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 
@@ -15,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
     ///
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
+    /// The renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
@@ -75,6 +77,11 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             public bool msaa { get; set; } = true;
         }
+
+        /// <summary>
+        /// The class responsible for providing access to debug view settings to renderers and render passes.
+        /// </summary>
+        internal DebugHandler DebugHandler { get; }
 
         /// <summary>
         /// The renderer we are currently rendering with, for low-level render control only.
@@ -401,6 +408,9 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
+        private static bool m_UseOptimizedStoreActions = false;
+
         const int k_RenderPassBlockCount = 4;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -426,6 +436,21 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
+        private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
+        {
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
+        };
+
+        private static RenderBufferStoreAction m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
+
+        static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
+        {
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
+            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment
+        };
+        static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
@@ -459,6 +484,9 @@ namespace UnityEngine.Rendering.Universal
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
+#if URP_ENABLE_DEBUG_DISPLAY
+            DebugHandler = new DebugHandler(data);
+#endif
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
 
             foreach (var feature in data.rendererFeatures)
@@ -475,6 +503,11 @@ namespace UnityEngine.Rendering.Universal
             useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
+
+            if (UniversalRenderPipeline.asset)
+                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+
+            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
         public void Dispose()
@@ -569,6 +602,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = DebugDisplaySettings.Instance.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None;
+
             m_IsPipelineExecuting = true;
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
@@ -685,7 +721,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Draw Gizmos...
-                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                if (drawGizmos)
+                {
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+                }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
@@ -697,7 +736,11 @@ namespace UnityEngine.Rendering.Universal
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
                 DrawWireOverlay(context, camera);
-                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+
+                if (drawGizmos)
+                {
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+                }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
 
@@ -757,6 +800,11 @@ namespace UnityEngine.Rendering.Universal
             if (Application.isMobilePlatform)
                 return ClearFlag.All;
 
+            // Certain debug modes (e.g. wireframe/overdraw modes) require that we override clear flags and clear everything.
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if (debugHandler != null && debugHandler.IsActiveForCamera(ref cameraData) && debugHandler.IsScreenClearNeeded)
+                return ClearFlag.All;
+
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.DepthStencil;
@@ -795,6 +843,10 @@ namespace UnityEngine.Rendering.Universal
                 if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
+
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
         }
 
         void ClearRenderingState(CommandBuffer cmd)
@@ -808,11 +860,14 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
         }
 
         internal void Clear(CameraRenderType cameraType)
@@ -897,7 +952,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // In the MRT path we assume that all color attachments are REAL color attachments,
                 // and that the depth attachment is a REAL depth attachment too.
-
 
                 // Determine what attachments need to be cleared. ----------------
 
@@ -1056,6 +1110,20 @@ namespace UnityEngine.Rendering.Universal
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
+#if UNITY_EDITOR
+                if (CoreUtils.IsSceneFilteringEnabled() && camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                {
+                    finalClearColor.a = 0;
+                    finalClearFlag &= ~ClearFlag.Depth;
+                }
+#endif
+
+                // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    DebugHandler.TryGetScreenClearColor(ref finalClearColor);
+                }
+
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
                     SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
@@ -1063,9 +1131,10 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     // Only setup render target if current render pass attachments are different from the active ones
-                    if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                    if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                        renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
-                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -1113,10 +1182,14 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
 
+            m_ActiveColorStoreActions[0] = RenderBufferStoreAction.Store;
+            m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
+            for (int i = 1; i < m_ActiveColorStoreActions.Length; ++i)
+                m_ActiveColorStoreActions[i] = RenderBufferStoreAction.Store;
+
             m_ActiveDepthAttachment = depthAttachment;
 
-            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
-                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 || ((uint)clearFlag & (uint)ClearFlag.Stencil) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
@@ -1125,8 +1198,40 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-        static void SetRenderTarget(
-            CommandBuffer cmd,
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
+        {
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
+            m_ActiveColorStoreActions[0] = colorStoreAction;
+            m_ActiveDepthStoreAction = depthStoreAction;
+            for (int i = 1; i < m_ActiveColorStoreActions.Length; ++i)
+                m_ActiveColorStoreActions[i] = RenderBufferStoreAction.Store;
+
+            m_ActiveDepthAttachment = depthAttachment;
+
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            // if we shouldn't use optimized store actions then fall back to the conservative safe (un-optimal!) route and just store everything
+            if (!m_UseOptimizedStoreActions)
+            {
+                if (colorStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    colorStoreAction = RenderBufferStoreAction.Store;
+                if (depthStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    depthStoreAction = RenderBufferStoreAction.Store;
+            }
+
+
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
+        }
+
+        static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
@@ -1136,8 +1241,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        static void SetRenderTarget(
-            CommandBuffer cmd,
+        static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
@@ -1150,7 +1254,7 @@ namespace UnityEngine.Rendering.Universal
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
             {
-                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
             else
             {
@@ -1171,7 +1275,7 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
+            if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();

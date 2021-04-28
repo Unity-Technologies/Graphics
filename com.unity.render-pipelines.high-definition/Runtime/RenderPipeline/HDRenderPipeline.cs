@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
+        internal HDRenderPipelineRuntimeResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -108,9 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
         ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
-
-        // The current MSAA count
-        MSAASamples m_MSAASamples;
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         // s_ForwardEmissiveForDeferredName is only in m_ForwardOnlyPassNames as it match the lit mode deferred, not required in forward
@@ -272,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreResourcesCreated() == false)
+            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
                 || (m_GlobalSettings.AreEditorResourcesCreated() == false)
                 || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
                 return;
@@ -317,9 +314,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             // Initial state of the RTHandle system.
-            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            RTHandles.Initialize(Screen.width, Screen.height, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
+            RTHandles.Initialize(Screen.width, Screen.height);
 
             m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
 
@@ -373,7 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+                var pvr = ProbeReferenceVolume.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                {
+                    memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    probeDebugMesh = defaultResources.assets.sphereMesh,
+                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader
+                });
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -405,10 +407,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Build();
 
             InitializeRenderStateBlocks();
-
-            // Keep track of the original msaa sample value
-            // TODO : Bind this directly to the debug menu instead of having an intermediate value
-            m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
             if (m_RayTracingSupported)
             {
@@ -525,6 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -671,7 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
             CoreUtils.SafeRelease(m_EmptyIndexBuffer);
             m_EmptyIndexBuffer = null;
 
@@ -762,6 +760,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
 
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
+            }
+
             CleanupRenderGraph();
 
             ConstantBuffer.ReleaseAll();
@@ -818,7 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             UpdateShaderVariableGlobalAmbientOcclusion(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
@@ -934,7 +937,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers));
 
             // Raise or remove the depth msaa flag based on the frame setting
-            CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+            CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
         }
 
         struct RenderRequest
@@ -1655,7 +1658,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
                             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
                             // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-                            RTHandles.SetReferenceSize(maxSize.x, maxSize.y, m_MSAASamples);
+                            RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
 
@@ -1690,11 +1693,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
 
+                            // Save the camera history before rendering the AOVs
+                            var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
+
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                             {
                                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
                                 {
+                                    // Before rendering the AOV, bind the correct history buffers
+                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
                                     cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                     ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
                                     cmd.SetInvertCulling(false);
@@ -1703,6 +1712,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.Submit();
                                 cmd.Clear();
                             }
+
+                            // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
+                            renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
                             {
@@ -1839,13 +1851,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    // Make sure we are in sync with the debug menu for the msaa count
-                    m_MSAASamples = (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None) ?
-                        m_DebugDisplaySettings.data.msaaSamples :
-                        m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount;
-
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
-
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
@@ -1880,7 +1886,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Resize(hdCamera);
                 BeginPostProcessFrame(cmd, hdCamera, this);
 
-                ApplyDebugDisplaySettings(hdCamera, cmd);
+                ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
                 if (DebugManager.instance.displayRuntimeUI
 #if UNITY_EDITOR
@@ -2062,7 +2068,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera
-            hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
+            hdCamera.Update(currentFrameSettings, this, xrPass);
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -2187,6 +2193,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+            // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
@@ -2497,7 +2506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideCamera.aspect = (float)hdrp.m_CurrentHDCamera.camera.pixelRect.width / (float)hdrp.m_CurrentHDCamera.camera.pixelRect.height;
 
                 // Update HDCamera datas
-                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
                 // Reset the reference size as it could have been changed by the override camera
                 hdrp.m_CurrentHDCamera.SetReferenceSize();
                 overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB);

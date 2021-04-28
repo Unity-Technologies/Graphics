@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Unity.Collections;
@@ -26,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
+    public enum RenderPassEvent
     {
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering any other passes in the pipeline.
@@ -132,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract partial class ScriptableRenderPass
+    public abstract partial class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -149,6 +150,16 @@ namespace UnityEngine.Rendering.Universal
         public RenderTargetIdentifier depthAttachment
         {
             get => m_DepthAttachment;
+        }
+
+        public RenderBufferStoreAction[] colorStoreActions
+        {
+            get => m_ColorStoreActions;
+        }
+
+        public RenderBufferStoreAction depthStoreAction
+        {
+            get => m_DepthStoreAction;
         }
 
         /// <summary>
@@ -169,6 +180,9 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ClearColor;
         }
+
+        RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
+        RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
 
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
@@ -200,11 +214,15 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
+        internal DebugHandler DebugHandler { get; set; }
+
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
+            m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -232,6 +250,25 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureInput(ScriptableRenderPassInput passInput)
         {
             m_Input = passInput;
+        }
+
+        public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
+        {
+            m_ColorStoreActions[attachmentIndex] = storeAction;
+        }
+
+        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
+        {
+            int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
+            for (uint i = 0; i < count; ++i)
+            {
+                m_ColorStoreActions[i] = storeActions[i];
+            }
+        }
+
+        public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
+        {
+            m_DepthStoreAction = storeAction;
         }
 
         /// <summary>
