@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string                      m_IntermediateSummedAreaName;
         string                      m_SummedAreaName;
         int                         m_AtlasShaderID;
-        RenderPipelineResources     m_RenderPipelineResources;
+        HDRenderPipelineRuntimeResources     m_RenderPipelineResources;
 
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
