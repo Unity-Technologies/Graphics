@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Object")]
-    sealed class ObjectNode : AbstractMaterialNode
+    sealed class ObjectNode : AbstractMaterialNode, IMayRequireTransform
     {
         const string kOutputSlotName = "Position";
         const string kOutputSlot1Name = "Scale";
@@ -37,5 +37,7 @@ namespace UnityEditor.ShaderGraph
                     return "SHADERGRAPH_OBJECT_POSITION";
             }
         }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All) => new[] { NeededTransform.ObjectToWorld };
     }
 }

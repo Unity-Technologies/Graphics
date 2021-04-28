@@ -251,4 +251,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/33_LightProbe.unity
     guid: d3f8710940444f14c9f69cf044a9b0ef
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/35_ShaderGraphGenerationFTP.unity
+    guid: da06c943b1328a748a471abe815ea9f6
   m_configObjects: {}
