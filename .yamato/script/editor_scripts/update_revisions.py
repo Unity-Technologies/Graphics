@@ -89,6 +89,7 @@ def main(argv):
     # initialize files etc.
     args = parse_args(argv)
     root = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
+    working_dir = os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
     config = load_yml(DEFAULT_CONFIG_FILE)
     shared = load_yml(DEFAULT_SHARED_FILE)
     editor_versions_file_path = os.path.join(root, config['editor_versions_file'].replace('TRACK',str(args.track)))
