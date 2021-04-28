@@ -85,16 +85,20 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertexSimple
@@ -175,16 +179,19 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertexSimple
@@ -282,6 +289,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"
@@ -342,13 +350,16 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
@@ -471,6 +482,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"

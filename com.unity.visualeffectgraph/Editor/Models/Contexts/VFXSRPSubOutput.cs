@@ -25,6 +25,7 @@ namespace UnityEditor.VFX
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
         public virtual bool supportsExcludeFromTAA { get { return false; } }
+        public virtual bool supportsMaterialOffset { get { return true; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies
         public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
@@ -46,20 +47,27 @@ namespace UnityEditor.VFX
 
         public virtual string GetRenderQueueStr()
         {
+            var baseRenderQueue = string.Empty;
             switch (owner.blendMode)
             {
                 case BlendMode.Additive:
                 case BlendMode.Alpha:
                 case BlendMode.AlphaPremultiplied:
-                    return "Transparent";
+                    baseRenderQueue = "Transparent";
+                    break;
                 case BlendMode.Opaque:
                     if (owner.hasAlphaClipping)
-                        return "AlphaTest";
+                        baseRenderQueue = "AlphaTest";
                     else
-                        return "Geometry";
+                        baseRenderQueue = "Geometry";
+                    break;
                 default:
                     throw new NotImplementedException("Unknown blend mode");
             }
+
+            int rawMaterialOffset = owner.GetMaterialOffset();
+            int materialOffset = Mathf.Clamp(rawMaterialOffset, -50, +50);
+            return baseRenderQueue + materialOffset.ToString("+#;-#;+0");
         }
 
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()

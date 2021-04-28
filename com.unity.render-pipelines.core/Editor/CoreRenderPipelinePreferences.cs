@@ -7,6 +7,9 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class CoreRenderPipelinePreferences
     {
+        /// <summary>
+        /// Path to the Render Pipeline Preferences
+        /// </summary>
         public static readonly string corePreferencePath = "Preferences/Core Render Pipeline";
 
         [SettingsProvider]

@@ -2,18 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using System.ComponentModel;
-
-namespace UnityEngine.Rendering.LWRP
-{
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalAdditionalCameraData", true)]
-    public class LWRPAdditionalCameraData
-    {
-    }
-}
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -23,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// When set to <c>On</c> option will be enabled regardless of what is set on the pipeline asset.
     /// When set to <c>UsePipelineSetting</c> value set in the <see cref="UniversalRenderPipelineAsset"/>.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum CameraOverrideOption
+    public enum CameraOverrideOption
     {
         Off,
         On,
@@ -31,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     //[Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererOverrideOption
+    public enum RendererOverrideOption
     {
         Custom,
         UsePipelineSettings,
@@ -111,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [FormerlySerializedAs("renderShadows"), SerializeField]
         bool m_RenderShadows = true;

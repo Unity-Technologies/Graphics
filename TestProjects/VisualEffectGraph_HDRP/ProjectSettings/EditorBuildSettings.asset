@@ -54,6 +54,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
     guid: 42a36d7781122534f9ce00fa769bdd5c
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/017_MaterialQueueOffset.unity
+    guid: cda518f246caf814c9de4d03ddee9a1e
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/015_FixedTime.unity
     guid: 30c9fe15b8e87e04f9a524d5c01aa810
   - enabled: 1
@@ -233,6 +236,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/28_FlipBookArray.unity
     guid: 69ce8d3ad279c734cbea097f07ebb1fc
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/28_CameraProject.unity
     guid: c479ba3b3ad2ba64dbfc1729ed0a7590
   - enabled: 1
