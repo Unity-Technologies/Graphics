@@ -29,8 +29,8 @@ def parse_args(flags):
     parser = argparse.ArgumentParser()
     parser.add_argument('--commit-and-push', action='store_true',
                         help='If specified: commit/push the each revision separately to the current branch. If not specified: only update the file locally to the most recent revision (no git involved')
-    parser.add_argument("--track", required=True, help='Which editor track the script is targeting (trunk, 2021.1, ..)')
-    parser.add_argument("--ono-branch", required=True, help='Which Ono branch to target via API (trunk, 2021.1/staging, ..)')
+    parser.add_argument("--track", required=True, help='Which editor track the script is targeting')
+    parser.add_argument("--ono-branch", required=True, help='Which Ono branch to target via API')
     parser.add_argument("--api-key", required=True, help='Ono API key')
     args = parser.parse_args(flags)
     return args
@@ -78,7 +78,6 @@ def update_revision_file(editor_versions_file_path, revision_node, track_key, on
     if not editor_versions_file.get(track_key):
         editor_versions_file[track_key] = {}
     editor_versions_file[track_key]["updated_at_UTC"] = UPDATED_AT
-    editor_versions_file[track_key]["ono_branch"] = ono_branch
     editor_versions_file[track_key]["changeset"] = ordereddict_to_dict(revision_node)
     with open(editor_versions_file_path, 'w') as f:
             yaml.dump(editor_versions_file, f)
@@ -109,6 +108,9 @@ def main(argv):
     try:
         # fetch all ono revisions up until the last revision in the file
         last_revisions_nodes = get_last_revisions_from_ono(args.api_key, last_retrieved_revision, args.ono_branch)
+        if len(last_revisions_nodes) == 0:
+            print(f'INFO: No revisions to update.')
+            return 0
 
         if args.commit_and_push:
             print(f'INFO: Pulling branch: {current_branch}).')
@@ -119,7 +121,7 @@ def main(argv):
             for revision_node in last_revisions_nodes:
                 update_revision_file(editor_versions_file, revision_node, args.track)
                 git_cmd(['add','.'], cwd=ROOT)
-                git_cmd(['commit', '-m', f'[CI] [{args.track}] Updated editor versions'], cwd=ROOT)
+                git_cmd(['commit', '-m', f'[CI] [{args.track}] Updated editor to {revision_node["id"]}'], cwd=ROOT)
             git_cmd(['pull'], cwd=ROOT)
             git_cmd(['push'], cwd=ROOT)
         else:
