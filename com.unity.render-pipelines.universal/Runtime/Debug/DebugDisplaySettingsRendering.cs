@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Additional Wireframe Shader Views",
+                displayName = "Additional Wireframe Modes",
                 autoEnum = typeof(WireframeMode),
                 getter = () => (int)data.wireframeMode,
                 setter = (value) => {},
