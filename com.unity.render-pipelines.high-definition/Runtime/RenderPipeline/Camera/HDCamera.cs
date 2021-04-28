@@ -755,6 +755,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
                     {
                         forceReallocPyramid = true;
+                        break;
                     }
                 }
 
