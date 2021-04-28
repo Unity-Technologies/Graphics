@@ -203,6 +203,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Film grain does not affect the alpha channel.
 - Disable TAA sharpening on alpha channel.
+- Default black texture XR is now opaque (alpha = 1).
 
 ## [10.3.0] - 2020-12-01
 
