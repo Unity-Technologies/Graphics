@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed virtual texture layer reference names allowing invalid characters [1304146]
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed ParallaxOcclusionMapping node to clamp very large step counts that could crash GPUs (max set to 256). [1329025] (https://issuetracker.unity3d.com/issues/shadergraph-typing-infinity-into-the-steps-input-for-the-parallax-occlusion-mapping-node-crashes-unity)
 - Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
 - Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
 - Fixed issue where vertex generation was incorrect when only custom blocks were present [1320695].
