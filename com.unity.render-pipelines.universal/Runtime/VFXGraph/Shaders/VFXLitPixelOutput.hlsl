@@ -11,9 +11,16 @@
 
 float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const InputData inputData)
 {
-    float4 outColor = UniversalFragmentPBR(inputData, surfaceData);
-    //TODOPAUL : Check fog correctly applied afterwards
-    return outColor;
+    float4 color = UniversalFragmentPBR(inputData, surfaceData);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+#if IS_OPAQUE_PARTICLE
+    float _Surface = 0.0f;
+#else
+    float _Surface = 1.0f;
+#endif
+    color.a = OutputAlpha(color.a, _Surface);
+    return color;
 }
 
 #ifndef VFX_SHADERGRAPH
