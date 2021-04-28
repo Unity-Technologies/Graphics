@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
+        internal HDRenderPipelineRuntimeResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_GlobalSettings.AreResourcesCreated() == false)
+            if ((m_GlobalSettings.AreRuntimeResourcesCreated() == false)
                 || (m_GlobalSettings.AreEditorResourcesCreated() == false)
                 || (m_RayTracingSupported && !m_GlobalSettings.AreRayTracingResourcesCreated()))
                 return;
@@ -369,7 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+                var pvr = ProbeReferenceVolume.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                {
+                    memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    probeDebugMesh = defaultResources.assets.sphereMesh,
+                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader
+                });
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -517,6 +523,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -663,7 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
             CoreUtils.SafeRelease(m_EmptyIndexBuffer);
             m_EmptyIndexBuffer = null;
 
@@ -754,6 +760,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
 
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
+            }
+
             CleanupRenderGraph();
 
             ConstantBuffer.ReleaseAll();
@@ -810,7 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             UpdateShaderVariableGlobalAmbientOcclusion(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
@@ -2182,6 +2193,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+            // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias

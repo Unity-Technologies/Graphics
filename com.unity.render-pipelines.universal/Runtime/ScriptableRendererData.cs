@@ -18,6 +18,30 @@ namespace UnityEngine.Rendering.Universal
         internal bool isInvalidated { get; set; }
 
         /// <summary>
+        /// Class contains references to shader resources used by Rendering Debugger.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        public sealed class DebugShaderResources
+        {
+            /// <summary>
+            /// Number font used by Rendering Debugger shaders.
+            /// </summary>
+            [Reload("Textures/Debug/numberFont.png")]
+            public Texture2D NumberFont;
+
+            /// <summary>
+            /// Debug shader used to output interpolated vertex attributes.
+            /// </summary>
+            [Reload("Shaders/Debug/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+        }
+
+        /// <summary>
+        /// Container for shader resources used by Rendering Debugger.
+        /// </summary>
+        public DebugShaderResources debugShaders;
+
+        /// <summary>
         /// Creates the instance of the ScriptableRenderer.
         /// </summary>
         /// <returns>The instance of ScriptableRenderer</returns>
