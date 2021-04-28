@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
   m_Name: 2D_Renderer_Shader_Compatibility
   m_EditorClassIdentifier: 
+  debugShaders:
+    NumberFont: {fileID: 2800000, guid: f06a37246bbff114da01277637ca397e, type: 3}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures: []
   m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
