@@ -402,6 +402,9 @@ namespace UnityEngine.Rendering.Universal
 
             bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode != DepthPrimingMode.Disabled && requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
+            // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
+            useDepthPriming &= !SystemInfo.supportsMultisampleAutoResolve || cameraTargetDescriptor.msaaSamples == 1;
+
             if (usesRenderPass || useDepthPriming)
             {
                 createDepthTexture |= createColorTexture;
@@ -494,8 +497,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Depth priming requires a manual resolve of MSAA depth right after the depth prepass.
-            if (useDepthPriming && !SystemInfo.supportsMultisampleAutoResolve)
+            // Depth priming requires a manual resolve of MSAA depth right after the depth prepass. If autoresolve is supported but MSAA is 1x then a copy is still required.
+            if (useDepthPriming && (!SystemInfo.supportsMultisampleAutoResolve || cameraTargetDescriptor.msaaSamples == 1))
             {
                 m_PrimedDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 m_PrimedDepthCopyPass.AllocateRT = false;
