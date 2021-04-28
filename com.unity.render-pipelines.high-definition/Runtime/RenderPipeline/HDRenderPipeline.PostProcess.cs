@@ -3165,6 +3165,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // the mip up 0 will be used by uber, so not allocated as transient.
             m_BloomBicubicParams = new Vector4(passData.bloomMipInfo[0].x, passData.bloomMipInfo[0].y, 1.0f / passData.bloomMipInfo[0].x, 1.0f / passData.bloomMipInfo[0].y);
             var mip0Scale = new Vector2(passData.bloomMipInfo[0].z, passData.bloomMipInfo[0].w);
+
+            //apply DRS on bloom bicubic params
+            m_BloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            m_BloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
+
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
             {
                 name = "Bloom final mip up",
