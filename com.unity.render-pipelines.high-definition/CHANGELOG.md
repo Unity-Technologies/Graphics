@@ -167,6 +167,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
 - Fixed an issue where runtime debug window UI would leak game objects.
 - Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
