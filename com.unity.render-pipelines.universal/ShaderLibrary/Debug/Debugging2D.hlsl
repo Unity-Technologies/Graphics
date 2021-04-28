@@ -72,29 +72,7 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
     {
         return true;
     }
-    else
-    {
-        switch(_DebugMipInfoMode)
-        {
-            case DEBUGMIPINFOMODE_NONE:
-                return false;
-
-            case DEBUGMIPINFOMODE_LEVEL:
-                debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
-                return true;
-
-            case DEBUGMIPINFOMODE_COUNT:
-                debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
-                return true;
-
-            case DEBUGMIPINFOMODE_RATIO:
-                debugColor = half4(GetDebugMipColorIncludingMipReduction(surfaceData.albedo, inputData.mipCount, inputData.texelSize, inputData.uv, inputData.mipInfo), surfaceData.alpha);
-                return true;
-
-            default:
-                return TryGetDebugColorInvalidMode(debugColor);
-        }
-    }
+    return TryGetDebugColorInvalidMode(debugColor);
 }
 
 bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)

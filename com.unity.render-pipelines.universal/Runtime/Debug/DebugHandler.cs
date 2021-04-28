@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
         #region Property Id Constants
 
         static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
-        static readonly int k_DebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
 
         static readonly int k_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
         static readonly int k_DebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
@@ -47,7 +46,6 @@ namespace UnityEngine.Rendering.Universal
 
         #endregion
 
-        readonly Texture2D m_NumberFontTexture;
         readonly Material m_ReplacementMaterial;
 
         bool m_HasDebugRenderTarget;
@@ -97,12 +95,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
-            Texture2D numberFontTexture = scriptableRendererData.debugShaders.NumberFont;
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
-            m_NumberFontTexture = numberFontTexture;
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
@@ -260,7 +256,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Set-up any other persistent properties...
                 cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
-                cmd.SetGlobalTexture(k_DebugNumberTexturePropertyId, m_NumberFontTexture);
             }
             else
             {

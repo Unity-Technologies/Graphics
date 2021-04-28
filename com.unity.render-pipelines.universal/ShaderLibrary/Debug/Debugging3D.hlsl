@@ -120,30 +120,6 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
     }
 }
 
-bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
-{
-    switch (_DebugMipInfoMode)
-    {
-        case DEBUGMIPINFOMODE_NONE:
-            return false;
-
-        case DEBUGMIPINFOMODE_LEVEL:
-            debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
-            return true;
-
-        case DEBUGMIPINFOMODE_COUNT:
-            debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
-            return true;
-
-        case DEBUGMIPINFOMODE_RATIO:
-            debugColor = half4(GetDebugMipColorIncludingMipReduction(surfaceData.albedo, inputData.mipCount, inputData.texelSize, inputData.uv, inputData.mipInfo), surfaceData.alpha);
-            return true;
-
-        default:
-            return TryGetDebugColorInvalidMode(debugColor);
-    }
-}
-
 bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     // Debug materials...
@@ -204,10 +180,6 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
         return true;
     }
     else if (CalculateValidationColorForDebug(inputData, surfaceData, debugColor))
-    {
-        return true;
-    }
-    else if (CalculateDebugColorForMipmaps(inputData, surfaceData, debugColor))
     {
         return true;
     }

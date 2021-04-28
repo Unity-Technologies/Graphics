@@ -37,7 +37,6 @@ float4 _DebugColor;
 float4 _DebugColorInvalidMode;
 float4 _DebugValidateBelowMinThresholdColor;
 float4 _DebugValidateAboveMaxThresholdColor;
-sampler2D _DebugNumberTexture;
 
 half3 GetDebugColor(uint index)
 {
@@ -53,40 +52,6 @@ bool TryGetDebugColorInvalidMode(out half4 debugColor)
     return true;
 }
 
-half4 GetTextNumber(uint numberValue, float3 positionWS)
-{
-    float4 clipPos = TransformWorldToHClip(positionWS);
-    float2 ndc = saturate((clipPos.xy / clipPos.w) * 0.5 + 0.5);
-
-#if UNITY_UV_STARTS_AT_TOP
-    if (_ProjectionParams.x < 0)
-        ndc.y = 1.0 - ndc.y;
-#endif
-
-    // There are currently 10 characters in the font texture, 0-9.
-    const int numChar = 10;
-    const float invNumChar = 1.0 / numChar;
-    numberValue = clamp(0, numChar - 1, numberValue);
-
-    // The following are hardcoded scales that make the font size readable.
-    ndc.x *= 5.0;
-    ndc.y *= 15.0;
-    ndc.x = fmod(ndc.x, invNumChar) + (numberValue * invNumChar);
-
-    return tex2D(_DebugNumberTexture, ndc.xy);
-}
-
-half4 CalculateDebugColorWithNumber(float3 positionWS, half3 albedo, uint index)
-{
-    const float opacity = 0.8f; // TODO: Opacity could be user-defined.
-
-    const half3 debugColor = GetDebugColor(index);
-    const half3 fc = lerp(albedo, debugColor, opacity);
-    const half4 textColor = GetTextNumber(index, positionWS);
-
-    return textColor * half4(fc, 1);
-}
-
 uint GetMipMapLevel(float2 nonNormalizedUVCoordinate)
 {
     // The OpenGL Graphics System: A Specification 4.2
@@ -97,18 +62,6 @@ uint GetMipMapLevel(float2 nonNormalizedUVCoordinate)
     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 
     return (uint)(0.5 * log2(delta_max_sqr));
-}
-
-half4 GetMipLevelDebugColor(float3 positionWS, half3 albedo, float2 uv, float4 texelSize)
-{
-    uint mipLevel = GetMipMapLevel(uv * texelSize.zw);
-
-    return CalculateDebugColorWithNumber(positionWS, albedo, mipLevel);
-}
-
-half4 GetMipCountDebugColor(float3 positionWS, half3 albedo, uint mipCount)
-{
-    return CalculateDebugColorWithNumber(positionWS, albedo, mipCount);
 }
 
 bool CalculateValidationAlbedo(half3 albedo, out half4 color)
