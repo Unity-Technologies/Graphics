@@ -143,6 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Properties common to Unlit and Lit
         MaterialProperty surfaceType = null;
+        MaterialProperty renderQueueTypeSG = null;
 
         MaterialProperty alphaCutoffEnable = null;
         const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
@@ -319,6 +320,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadMaterialProperties()
         {
             surfaceType = FindProperty(kSurfaceType);
+            renderQueueTypeSG = FindProperty("_RenderQueueType");
             useShadowThreshold = FindProperty(kUseShadowThreshold);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled);
             alphaCutoff = FindProperty(kAlphaCutoff);
@@ -615,7 +617,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else // SurfaceType.Opaque
             {
                 EditorGUI.indentLevel++;
-                if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
+                if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && ShowProperty(opaqueCullMode))
                     materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
@@ -632,9 +634,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void SurfaceTypePopup()
         {
-            if (surfaceType == null)
-                return;
-
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
@@ -645,9 +644,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
-            if (material.HasProperty("_RenderQueueType"))
+            if (renderQueueTypeSG != null)
             {
-                renderQueueType = (HDRenderQueue.RenderQueueType)material.GetFloat("_RenderQueueType");
+                renderQueueType = (HDRenderQueue.RenderQueueType)renderQueueTypeSG.floatValue;
             }
             // To know if we need to update the renderqueue, mainly happens if a material is created from a shader graph shader
             // with default render-states.
@@ -674,7 +673,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SurfaceType.Opaque:
                     //GetOpaqueEquivalent: prevent issue when switching surface type
                     HDRenderQueue.OpaqueRenderQueue renderQueueOpaqueType = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(renderQueueType));
-                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)DoOpaqueRenderingPassPopup(Styles.renderingPassText, (int)renderQueueOpaqueType, showAfterPostProcessPass);
+                    var newRenderQueueOpaqueType = renderQueueOpaqueType;
+                    if (ShowProperty(renderQueueTypeSG))
+                        newRenderQueueOpaqueType = DoOpaqueRenderingPassPopup(Styles.renderingPassText, (int)renderQueueOpaqueType, showAfterPostProcessPass);
                     if (newRenderQueueOpaqueType != renderQueueOpaqueType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
@@ -685,7 +686,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SurfaceType.Transparent:
                     //GetTransparentEquivalent: prevent issue when switching surface type
                     HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, true, showLowResolutionPass, showAfterPostProcessPass);
+                    var newRenderQueueTransparentType = renderQueueTransparentType;
+                    if (ShowProperty(renderQueueTypeSG))
+                        newRenderQueueTransparentType = DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, true, showLowResolutionPass, showAfterPostProcessPass);
                     if (newRenderQueueTransparentType != renderQueueTransparentType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");
@@ -699,11 +702,11 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 
-            if (material.HasProperty("_RenderQueueType"))
-                material.SetFloat("_RenderQueueType", (float)renderQueueType);
+            if (renderQueueTypeSG != null)
+                renderQueueTypeSG.floatValue = (float)renderQueueType;
         }
 
-        int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
+        HDRenderQueue.OpaqueRenderQueue DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
         {
             // Build UI enums
             m_RenderingPassNames.Clear();
@@ -718,10 +721,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-            return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
+            return (HDRenderQueue.OpaqueRenderQueue)EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
-        int DoTransparentRenderingPassPopup(string text, int inputValue, bool refraction, bool lowRes, bool afterPost)
+        HDRenderQueue.TransparentRenderQueue DoTransparentRenderingPassPopup(string text, int inputValue, bool refraction, bool lowRes, bool afterPost)
         {
             // Build UI enums
             m_RenderingPassNames.Clear();
@@ -748,7 +751,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
             }
 
-            return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
+            return (HDRenderQueue.TransparentRenderQueue)EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
         /// <summary>

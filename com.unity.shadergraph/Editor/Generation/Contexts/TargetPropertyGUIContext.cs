@@ -1,5 +1,6 @@
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,6 +40,11 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt, VisualElement exposed = null)
         {
+            AddProperty(label, null, indentLevel, field, evt, exposed);
+        }
+
+        public void AddProperty<T>(string label, string tooltip, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt, VisualElement exposed = null)
+        {
             if (field is INotifyValueChanged<T> notifyValueChanged)
                 notifyValueChanged.RegisterValueChangedCallback(evt);
 
@@ -59,7 +65,7 @@ namespace UnityEditor.ShaderGraph
                 UnityEngine.Debug.LogError("This target doesn't support exposable properties. Consider setting 'supportsExposableProperties' to true.");
             }
 
-            var propertyRow = new PropertyRow(new Label(label), exposed);
+            var propertyRow = new PropertyRow(new Label(label) { tooltip = tooltip }, exposed);
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
             this.hierarchy.Add(propertyRow);

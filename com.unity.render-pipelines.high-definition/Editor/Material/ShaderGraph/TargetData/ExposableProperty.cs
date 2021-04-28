@@ -58,9 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public void AddProperty(TargetPropertyGUIContext context, GUIContent label, Action onChange, Action<string> registerUndo, int indentLevel = 0)
             => AddProperty(context, label.text, label.tooltip, onChange, registerUndo, indentLevel);
 
-        public void AddProperty(TargetPropertyGUIContext context, string label, Action onChange, Action<string> registerUndo, int indentLevel = 0)
-            => AddProperty(context, label, null, onChange, registerUndo, indentLevel);
-
         public void AddProperty(TargetPropertyGUIContext context, string label, string tooltip, Action onChange, Action<string> registerUndo, int indentLevel = 0)
         {
             BaseField<bool> exposedField = GetExposeField(onChange, registerUndo);
@@ -78,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (elem != null)
             {
-                context.AddProperty(label, indentLevel, elem, (evt) => {
+                context.AddProperty(label, tooltip, indentLevel, elem, (evt) => {
                     if (Equals(value, evt.newValue))
                         return;
 
@@ -89,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddProperty(label, indentLevel, elemEnum, (evt) => {
+                context.AddProperty(label, tooltip, indentLevel, elemEnum, (evt) => {
                     if (Equals(value, evt.newValue))
                         return;
 

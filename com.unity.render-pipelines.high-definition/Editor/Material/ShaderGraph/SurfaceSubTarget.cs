@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = "_RenderQueueType",
-                hidden = true,
+                hidden = !systemData.renderQueueTypeProp.IsExposed,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)systemData.renderQueueType,
@@ -326,19 +326,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             collector.AddPrimitiveProperty(kDepthOffsetEnable, builtinData.depthOffsetProp);
             collector.AddPrimitiveProperty(kConservativeDepthOffsetEnable, builtinData.conservativeDepthOffsetProp);
 
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = builtinData.transparentWritesMotionVec,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = kTransparentWritingMotionVec
-            });
+            collector.AddPrimitiveProperty(kTransparentWritingMotionVec, builtinData.transparentWritesMotionVecProp);
 
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTestProp, builtinData.alphaTestShadowProp, builtinData.alphaToMaskProp);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedModeProp);
-            HDSubShaderUtilities.AddPrePostPassProperties(collector, builtinData.transparentDepthPrepass, builtinData.transparentDepthPostpass);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, builtinData.transparentDepthPrepassProp, builtinData.transparentDepthPostpassProp);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(

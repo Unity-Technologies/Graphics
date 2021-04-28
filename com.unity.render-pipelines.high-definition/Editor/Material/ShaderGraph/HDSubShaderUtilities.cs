@@ -253,10 +253,10 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_RayTracing", isRayTracing, HLSLDeclaration.UnityPerMaterial);
         }
 
-        public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
+        public static void AddPrePostPassProperties(PropertyCollector collector, ExposableProperty<bool> prepass, ExposableProperty<bool> postpass)
         {
-            collector.AddToggleProperty(kTransparentDepthPrepassEnable, prepass);
-            collector.AddToggleProperty(kTransparentDepthPostpassEnable, postpass);
+            collector.AddPrimitiveProperty(kTransparentDepthPrepassEnable, prepass);
+            collector.AddPrimitiveProperty(kTransparentDepthPostpassEnable, postpass);
         }
 
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
