@@ -444,14 +444,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static RenderBufferStoreAction m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
 
-        static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
-        {
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment
-        };
-        static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
-
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
         // To avoid that warning assert we trim the RenderTargetIdentifier[] arrays we pass to CoreUtils.SetRenderTarget.
