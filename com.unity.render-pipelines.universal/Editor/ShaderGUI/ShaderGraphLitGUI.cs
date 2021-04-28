@@ -75,12 +75,12 @@ namespace UnityEditor
 
         public override void DrawAdvancedOptions(Material material)
         {
-            base.DrawAdvancedOptions(material);
             materialEditor.RenderQueueField();
+            base.DrawAdvancedOptions(material);
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
-            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
             materialEditor.DoubleSidedGIField();
+            materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);
         }
     }
 } // namespace UnityEditor

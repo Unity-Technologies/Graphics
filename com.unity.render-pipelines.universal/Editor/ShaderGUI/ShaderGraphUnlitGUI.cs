@@ -39,8 +39,9 @@ namespace UnityEditor
 
         public override void DrawAdvancedOptions(Material material)
         {
-            base.DrawAdvancedOptions(material);
             materialEditor.RenderQueueField();
+            base.DrawAdvancedOptions(material);
+            materialEditor.DoubleSidedGIField();
         }
     }
 } // namespace UnityEditor
