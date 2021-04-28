@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
                 depthDesc.graphicsFormat = GraphicsFormat.DepthAuto;
-                depthDesc.depthBufferBits = 24;
+                depthDesc.depthBufferBits = depthDesc.depthBufferBits;
                 depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);

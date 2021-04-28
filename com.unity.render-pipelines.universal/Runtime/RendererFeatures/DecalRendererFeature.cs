@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         Albedo,
         [Tooltip("Decals will affect only base color, normal and emission.")]
         AlbedoNormal,
-        [Tooltip("Decals will affect only base color, normal, metallic, ambient occlusion, smoothness and emission.")]
+        [Tooltip("Decals will affect base color, normal, metallic, ambient occlusion, smoothness and emission.")]
         AlbedoNormalMAOS,
     }
 
@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
     {
         [Tooltip("Automatically selects technique based on build platform.")]
         Automatic,
-        [Tooltip("Renders decals into DBuffer and then applied during opaque rendering. Requires DepthNormal prepass which makes not viable solution for tiled based renderers.")]
+        [Tooltip("Renders decals into DBuffer and then applied during opaque rendering. Requires DepthNormal prepass which makes not viable solution for the tile based renderers common on mobile.")]
         [InspectorName("DBuffer")]
         DBuffer,
         [Tooltip("Renders decals after opaque objects with normal reconstructed from depth. The decals are simply rendered as mesh on top of opaque ones, as result does not support blending per single surface data (etc. normal blending only).")]

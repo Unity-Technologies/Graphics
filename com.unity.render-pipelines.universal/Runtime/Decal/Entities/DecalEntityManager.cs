@@ -120,6 +120,9 @@ namespace UnityEngine.Rendering.Universal
         public int version;
     }
 
+    /// <summary>
+    /// Contains <see cref="DecalEntity"/> and shared material.
+    /// </summary>
     internal class DecalEntityChunk : DecalChunk
     {
         public Material material;
@@ -161,6 +164,10 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Manages lifetime between <see cref="DecalProjector"></see> and <see cref="DecalEntity"/>.
+    /// Contains all <see cref="DecalChunk"/>.
+    /// </summary>
     internal class DecalEntityManager : IDisposable
     {
         public List<DecalEntityChunk> entityChunks = new List<DecalEntityChunk>();
@@ -323,6 +330,10 @@ namespace UnityEngine.Rendering.Universal
             cachedChunk.sceneLayerMasks[arrayIndex] = sceneLayerMask;
             cachedChunk.fadeFactors[arrayIndex] = fadeFactor;
             cachedChunk.scaleModes[arrayIndex] = decalProjector.scaleMode;
+
+            cachedChunk.positions[arrayIndex] = decalProjector.transform.position;
+            cachedChunk.rotation[arrayIndex] = decalProjector.transform.rotation;
+            cachedChunk.scales[arrayIndex] = decalProjector.transform.lossyScale;
             cachedChunk.dirty[arrayIndex] = true;
         }
 

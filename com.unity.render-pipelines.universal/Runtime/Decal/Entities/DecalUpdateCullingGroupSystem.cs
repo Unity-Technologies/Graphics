@@ -3,6 +3,9 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Contains culling results.
+    /// </summary>
     internal class DecalCulledChunk : DecalChunk
     {
         public Vector3 cameraPosition;
@@ -13,11 +16,6 @@ namespace UnityEngine.Rendering.Universal
         public int[] visibleDecalIndexArray;
         public NativeArray<int> visibleDecalIndices;
         public int visibleDecalCount;
-
-        public override void Push()
-        {
-            count++;
-        }
 
         public override void RemoveAtSwapBack(int entityIndex)
         {
@@ -49,6 +47,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Issues culling job with <see cref="CullingGroup"/>.
+    /// </summary>
     internal class DecalUpdateCullingGroupSystem
     {
         private float[] m_BoundingDistance = new float[1];

@@ -1,5 +1,8 @@
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Writes culling results into <see cref="DecalCulledChunk"/>.
+    /// </summary>
     internal class DecalUpdateCulledSystem
     {
         private DecalEntityManager m_EntityManager;

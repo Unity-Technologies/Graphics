@@ -4,6 +4,9 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Contains <see cref="DecalProjector"/> cached properties needed for rendering.
+    /// </summary>
     internal class DecalCachedChunk : DecalChunk
     {
         public MaterialPropertyBlock propertyBlock;
@@ -31,11 +34,6 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<bool> dirty;
 
         public BoundingSphere[] boundingSphereArray;
-
-        public override void Push()
-        {
-            count++;
-        }
 
         public override void RemoveAtSwapBack(int entityIndex)
         {
@@ -105,6 +103,10 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Caches <see cref="DecalProjector"/> properties into <see cref="DecalCachedChunk"/>.
+    /// Uses jobs with <see cref="IJobParallelForTransform"/>.
+    /// </summary>
     internal class DecalUpdateCachedSystem
     {
         private DecalEntityManager m_EntityManager;
@@ -172,7 +174,7 @@ namespace UnityEngine.Rendering.Universal
                     decalToWorlds = cachedChunk.decalToWorlds,
                     normalToWorlds = cachedChunk.normalToWorlds,
                     boundingSpheres = cachedChunk.boundingSpheres,
-                    minDistance = 0.01f,
+                    minDistance = 0.0001f,
                 };
 
                 var handle = updateTransformJob.Schedule(entityChunk.transformAccessArray);
@@ -202,19 +204,19 @@ namespace UnityEngine.Rendering.Universal
 
             private float DistanceBetweenQuaternions(quaternion a, quaternion b)
             {
-                return math.distance(a.value, b.value);
+                return math.dot(a.value, b.value);
             }
 
             public void Execute(int index, TransformAccess transform)
             {
                 // Check if transform changed
-                bool positionChanged = math.distance(transform.position, positions[index]) > minDistance;
+                bool positionChanged = math.dot(transform.position, positions[index]) > minDistance;
                 if (positionChanged)
                     positions[index] = transform.position;
                 bool rotationChanged = DistanceBetweenQuaternions(transform.rotation, rotations[index]) > minDistance;
                 if (rotationChanged)
                     rotations[index] = transform.rotation;
-                bool scaleChanged = math.distance(transform.localScale, scales[index]) > minDistance;
+                bool scaleChanged = math.dot(transform.localScale, scales[index]) > minDistance;
                 if (scaleChanged)
                     scales[index] = transform.localScale;
 

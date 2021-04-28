@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering.Universal
         public int count { get => end - start; }
     }
 
+    /// <summary>
+    /// Contains information about <see cref="DecalEntity"/> draw calls.
+    /// </summary>
     internal class DecalDrawCallChunk : DecalChunk
     {
         public NativeArray<float4x4> decalToWorlds;
@@ -19,11 +22,6 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<int> subCallCounts;
 
         public int subCallCount { set { subCallCounts[0] = value; } get => subCallCounts[0]; }
-
-        public override void Push()
-        {
-            count++;
-        }
 
         public override void RemoveAtSwapBack(int entityIndex)
         {
@@ -56,6 +54,9 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    /// <summary>
+    /// Outputs draw calls into <see cref="DecalDrawCallChunk"/>.
+    /// </summary>
     internal class DecalCreateDrawCallSystem
     {
         private DecalEntityManager m_EntityManager;

@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
 
         public JobHandle currentJobHandle { get; set; }
 
-        public abstract void Push();
+        public virtual void Push() { count++; }
         public abstract void RemoveAtSwapBack(int index);
         public abstract void SetCapacity(int capacity);
 
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected void ResizeNativeArray<T>(ref NativeArray<T> array, int capacity) where T : struct
         {
-            var newArray = new NativeArray<T>(capacity, Allocator.Persistent);
+            var newArray = new NativeArray<T>(capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             if (array.IsCreated)
             {
                 NativeArray<T>.Copy(array, newArray, array.Length);

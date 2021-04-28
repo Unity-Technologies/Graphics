@@ -2,6 +2,10 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Abstract class that render decals using <see cref="DecalDrawCallChunk"/>.
+    /// Supports rendering with <see cref="CommandBuffer"/> and graphics draw calls.
+    /// </summary>
     internal abstract class DecalDrawSystem
     {
         protected DecalEntityManager m_EntityManager;
