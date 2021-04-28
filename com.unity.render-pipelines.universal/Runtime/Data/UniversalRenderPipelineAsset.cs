@@ -163,6 +163,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
+        // Reflection Probes
+        [SerializeField] bool m_ReflectionProbeBlending = false;
+        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] int m_ShadowCascadeCount = 1;
@@ -644,6 +648,16 @@ namespace UnityEngine.Rendering.Universal
                 return additionalLightsShadowResolutionTierHigh;
 
             return additionalLightsShadowResolutionTierMedium;
+        }
+
+        public bool reflectionProbeBlending
+        {
+            get { return m_ReflectionProbeBlending; }
+        }
+
+        public bool reflectionProbeBoxProjection
+        {
+            get { return m_ReflectionProbeBoxProjection; }
         }
 
         /// <summary>
