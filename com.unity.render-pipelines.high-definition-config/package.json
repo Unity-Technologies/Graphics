@@ -3,7 +3,7 @@
   "description": "Configuration files for the High Definition Render Pipeline.",
   "version": "12.0.0",
   "unity": "2021.2",
-  "unityRelease": "0a13",
+  "unityRelease": "0a15",
   "displayName": "High Definition RP Config",
   "dependencies": {
     "com.unity.render-pipelines.core": "12.0.0"
