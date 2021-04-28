@@ -774,7 +774,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
-                { Pragma.Fragment("Frag") }
+                { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -792,7 +792,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
-                { Pragma.Fragment("Frag") }
+                { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
             };
         }
