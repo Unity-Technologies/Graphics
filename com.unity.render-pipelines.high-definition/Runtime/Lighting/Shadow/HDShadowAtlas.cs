@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal struct HDShadowAtlasInitParameters
         {
-            internal RenderPipelineResources renderPipelineResources;
+            internal HDRenderPipelineRuntimeResources renderPipelineResources;
             internal RenderGraph renderGraph;
             internal bool useSharedTexture;
             internal int width;
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal RenderTextureFormat format;
             internal ConstantBuffer<ShaderVariablesGlobal> cb;
 
-            internal HDShadowAtlasInitParameters(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
+            internal HDShadowAtlasInitParameters(HDRenderPipelineRuntimeResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
                                                  Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
             {
                 this.renderPipelineResources = renderPipelineResources;
