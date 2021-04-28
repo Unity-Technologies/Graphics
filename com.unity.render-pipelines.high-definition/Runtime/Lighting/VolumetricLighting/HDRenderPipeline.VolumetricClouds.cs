@@ -21,7 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CloudDownscaleDepthKernel;
         int m_CloudRenderKernel;
         int m_CloudReprojectKernel;
-        int m_UpscaleAndCombineCloudsKernel;
+        int m_UpscaleAndCombineCloudsKernelColorCopy;
+        int m_UpscaleAndCombineCloudsKernelColorRW;
 
         void InitializeVolumetricClouds()
         {
@@ -39,7 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudDownscaleDepthKernel = volumetricCloudsCS.FindKernel("DownscaleDepth");
             m_CloudRenderKernel = volumetricCloudsCS.FindKernel("RenderClouds");
             m_CloudReprojectKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
-            m_UpscaleAndCombineCloudsKernel = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds");
+            m_UpscaleAndCombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorCopy");
+            m_UpscaleAndCombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorRW");
 
             // Allocate all the texture initially
             AllocatePresetTextures();
@@ -172,6 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
             public bool historyValidity;
             public bool planarReflection;
+            public bool needExtraColorBufferCopy;
             public Vector2Int previousViewportSize;
 
             // Static textures
@@ -444,13 +447,21 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.historyValidity = historyValidity;
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
 
+            parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
+                // On PC and Metal, but not on console.
+                (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan));
+
+
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
             parameters.convertObliqueDepthKernel = m_ConvertObliqueDepthKernel;
             parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;
             parameters.renderKernel = m_CloudRenderKernel;
             parameters.reprojectKernel = m_CloudReprojectKernel;
-            parameters.upscaleAndCombineKernel = m_UpscaleAndCombineCloudsKernel;
+            parameters.upscaleAndCombineKernel = parameters.needExtraColorBufferCopy ? m_UpscaleAndCombineCloudsKernelColorCopy : m_UpscaleAndCombineCloudsKernelColorRW;
             parameters.shadowsKernel = m_ComputeShadowCloudsKernel;
 
             // Static textures
@@ -486,7 +497,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle colorBuffer, RTHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLightingTexture, TextureHandle scatteringFallbackTexture,
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
-            RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle intermediateDepthBuffer1, RTHandle intermediateDepthBuffer2)
+            RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle intermediateDepthBuffer1, RTHandle intermediateDepthBuffer2,
+            RTHandle intermediateColorBuffer)
         {
             // Compute the number of tiles to evaluate
             int traceTX = (parameters.traceWidth + (8 - 1)) / 8;
@@ -574,11 +586,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine)))
             {
+                if (parameters.needExtraColorBufferCopy)
+                {
+                    HDUtils.BlitCameraTexture(cmd, colorBuffer, intermediateColorBuffer);
+                }
+
                 // Compute the final resolution parameters
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._DepthTexture, currentDepthBuffer);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._DepthStatusTexture, currentHistory1Buffer);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VolumetricCloudsTexture, currentHistory0Buffer);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._CameraColorTextureRW, colorBuffer);
+                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._CameraColorTexture, intermediateColorBuffer);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VBufferLighting, volumetricLightingTexture);
                 if (parameters.cloudsCB._PhysicallyBasedSun == 0)
                 {
@@ -612,6 +630,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateBufferDepth0;
             public TextureHandle intermediateBufferDepth1;
             public TextureHandle intermediateBufferDepth2;
+
+            public TextureHandle intermediateColorBufferCopy;
         }
 
         private bool EvaluateVolumetricCloudsHistoryValidity(HDCamera hdCamera)
@@ -653,6 +673,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.intermediateBufferDepth1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
                     { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 1" });
 
+
+                passData.intermediateColorBufferCopy = passData.parameters.needExtraColorBufferCopy ? builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GetColorBufferFormat(), enableRandomWrite = true, name = "Temporary Color Buffer" }) : renderGraph.defaultResources.blackTextureXR;
+
                 if (passData.parameters.planarReflection)
                 {
                     passData.intermediateBufferDepth2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -669,7 +693,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         TraceVolumetricClouds(ctx.cmd, data.parameters,
                             data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting, data.scatteringFallbackTexture,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0, data.currentHistoryBuffer1, data.previousHistoryBuffer1,
-                            data.intermediateBuffer0, data.intermediateBuffer1, data.intermediateBufferDepth0, data.intermediateBufferDepth1, data.intermediateBufferDepth2);
+                            data.intermediateBuffer0, data.intermediateBuffer1, data.intermediateBufferDepth0, data.intermediateBufferDepth1, data.intermediateBufferDepth2, data.intermediateColorBufferCopy);
                     });
 
                 PushFullScreenDebugTexture(m_RenderGraph, passData.currentHistoryBuffer0, FullScreenDebugMode.VolumetricClouds);
