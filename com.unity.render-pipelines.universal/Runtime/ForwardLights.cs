@@ -115,6 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+
                 m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
             }
             context.ExecuteCommandBuffer(cmd);

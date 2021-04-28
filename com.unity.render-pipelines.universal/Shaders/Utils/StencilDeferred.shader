@@ -134,6 +134,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     int _LightFlags;
     int _ShadowLightIndex;
     uint _LightLayerMask;
+    int _CookieLightIndex;
 
     half4 FragWhite(Varyings input) : SV_Target
     {
@@ -169,6 +170,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                         unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                     #endif
                 }
+
+                #if defined(_MAIN_LIGHT_COOKIE)
+                    half3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
+                    unityLight.color *= float4(cookieColor, 1);
+                #endif
             #else
                 unityLight.direction = _LightDirection;
                 unityLight.distanceAttenuation = 1.0;
@@ -194,8 +200,33 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.flags = _LightFlags;
             light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
-        #endif
 
+            #ifdef _ADDITIONAL_LIGHT_COOKIES
+                half4 cookieColor;
+                #if 1
+                // TODO: try enable/disable by toggling a keyword
+                if(_CookieLightIndex >= 0)
+                {
+                    float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
+                    float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(_CookieLightIndex);
+                    float2 cookieUv = float2(0,0);
+                    #if defined(_SPOT)
+                        cookieUv = URP_LightCookie_ComputeUVSpot(worldToLight, posWS, cookieUvRect);
+                    #endif
+                    #if defined(_POINT)
+                        cookieUv = URP_LightCookie_ComputeUVPoint(worldToLight, posWS, cookieUvRect);
+                    #endif
+                    cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
+                    cookieColor = half4(URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? cookieColor.rgb
+                                        : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? cookieColor.aaa
+                                        : cookieColor.rrr, 1);
+                }
+                #else
+                    cookieColor = half4(URP_LightCookie_SampleAdditionalLightCookie(_CookieLightIndex, posWS), 1);
+                #endif
+                unityLight.color *= cookieColor;
+            #endif
+        #endif
         return unityLight;
     }
 
@@ -387,6 +418,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -431,6 +463,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -477,6 +510,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -523,6 +557,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

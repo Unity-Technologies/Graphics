@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightFlags = Shader.PropertyToID("_LightFlags");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
             public static int _LightLayerMask = Shader.PropertyToID("_LightLayerMask");
+            public static int _CookieLightIndex = Shader.PropertyToID("_CookieLightIndex");
         }
 
         // Disable Burst for now since there are issues on macos builds.
@@ -435,6 +436,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
         ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
+        // TODO: move? share with forward? Pass in?
+        private LightCookieManager m_LightCookieManager;
 
         internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -485,6 +488,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.TiledDeferredShading = true;
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
+
+            {
+                var settings = LightCookieManager.Settings.GetDefault();
+                var asset = UniversalRenderPipeline.asset;
+                if (asset)
+                {
+                    settings.atlas.format = asset.additionalLightsCookieFormat;
+                    settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                }
+
+                m_LightCookieManager = new LightCookieManager(ref settings);
+            }
         }
 
         internal ref DeferredTiler GetTiler(int i)
@@ -565,6 +580,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
+
+                    m_LightCookieManager.Setup(context, cmd, ref renderingData.lightData);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -1664,6 +1681,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
+                int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+
                 cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
                 cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
@@ -1671,6 +1690,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
+                cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
 
                 // Stencil pass.
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);
@@ -1723,6 +1743,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
+                int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
+
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
@@ -1734,6 +1756,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
+                cmd.SetGlobalInt(ShaderConstants._CookieLightIndex, cookieLightIndex);
+
 
                 // Stencil pass.
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.StencilVolume]);

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public partial class LightCookieManager : IDisposable
+    internal class LightCookieManager : IDisposable
     {
         static class ShaderProperty
         {
@@ -97,10 +97,15 @@ namespace UnityEngine.Rendering.Universal
             int  m_Size = 0;
             bool m_useStructuredBuffer;
 
+            // map[visibleLightIndex] = CPUDataIndex (or shaderData)
+            int[] m_VisibleLightIndexToCPUDataIndex;
+
+            // Shader data CPU arrays, used to upload the data to GPU
             Matrix4x4[] m_WorldToLightCpuData;
             Vector4[]   m_AtlasUVRectCpuData;
             float[]     m_LightTypeCpuData;
 
+            // Compute buffer counterparts for the CPU data
             ComputeBuffer  m_WorldToLightBuffer;    // TODO: WorldToLight matrices should be general property of lights!!
             ComputeBuffer  m_AtlasUVRectBuffer;
             ComputeBuffer  m_LightTypeBuffer;
@@ -108,6 +113,8 @@ namespace UnityEngine.Rendering.Universal
             public Matrix4x4[] worldToLights  => m_WorldToLightCpuData;
             public Vector4[]   atlasUVRects   => m_AtlasUVRectCpuData;
             public float[]     lightTypes     => m_LightTypeCpuData;
+
+            public int[] lightIndexToDataIndexMap => m_VisibleLightIndexToCPUDataIndex;
 
             public LightCookieShaderData(int size, bool useStructuredBuffer)
             {
@@ -132,6 +139,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (m_Size > 0)
                     Dispose();
+
+                m_VisibleLightIndexToCPUDataIndex = new int[size];
 
                 if (m_useStructuredBuffer)
                 {
@@ -209,12 +218,23 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsCookieShaderData = new LightCookieShaderData(size, m_Settings.useStructuredBuffer);
         }
 
-        bool isInitialized() => m_AdditionalLightsCookieAtlas != null && m_AdditionalLightsCookieShaderData != null;
+        public bool isInitialized() => m_AdditionalLightsCookieAtlas != null && m_AdditionalLightsCookieShaderData != null;
 
+        /// <summary>
+        /// Release LightCookieManager resources.
+        /// </summary>
         public void Dispose()
         {
             m_AdditionalLightsCookieAtlas?.Release();
             m_AdditionalLightsCookieShaderData?.Dispose();
+        }
+
+        // by VisibleLight
+        public int GetLightCookieShaderDataIndex(int visibleLightIndex)
+        {
+            if (!isInitialized())
+                return -1;
+            return m_AdditionalLightsCookieShaderData.lightIndexToDataIndexMap[visibleLightIndex];
         }
 
         public void Setup(ScriptableRenderContext ctx, CommandBuffer cmd, ref LightData lightData)
@@ -358,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (i == skipMainLightIndex)
                 {
-                    lightBufferOffset = -1;
+                    lightBufferOffset -= 1;
                     continue;
                 }
 
@@ -559,17 +579,30 @@ namespace UnityEngine.Rendering.Universal
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
+            var lightIndexToDataIndexMap = m_AdditionalLightsCookieShaderData.lightIndexToDataIndexMap;
 
             // TODO: clear enable bits instead
             // Set all rects to Invalid (Vector4.zero).
             Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
 
-            // Fill shader data
+            // Clear the light to data mapping
+            int len = Math.Min(lightIndexToDataIndexMap.Length, lightData.visibleLights.Length);
+            for (int i = 0; i < len; i++)
+                lightIndexToDataIndexMap[i] = -1;
+
+            // TODO: for deferred, process and bind only the necessary
+
+            // Fill shader data. Layout should match primary light data for additional lights.
+            // Currently it's the same as visible lights, but main light(s) dropped.
             for (int i = 0; i < validUvRects.Length; i++)
             {
                 int visIndex = validSortedLights[i].visibleLightIndex;
                 int bufIndex = validSortedLights[i].lightBufferIndex;
 
+                // Update the mapping
+                lightIndexToDataIndexMap[visIndex] = bufIndex;
+
+                // Update the (cpu) data
                 lightTypes[bufIndex]    = (int)lightData.visibleLights[visIndex].lightType;
                 worldToLights[bufIndex] = lightData.visibleLights[visIndex].localToWorldMatrix.inverse;
                 atlasUVRects[bufIndex]  = validUvRects[i];
