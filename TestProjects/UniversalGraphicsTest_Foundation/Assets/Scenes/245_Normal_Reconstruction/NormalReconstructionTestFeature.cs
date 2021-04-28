@@ -43,10 +43,10 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
                 int width = renderingData.cameraData.cameraTargetDescriptor.width;
                 int height = renderingData.cameraData.cameraTargetDescriptor.height;
 
-                Render(cmd, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
-                Render(cmd, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
-                Render(cmd, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
+                Render(cmd, renderingData.cameraData, TapMode.Tap1, new Rect(0, 0, 0.5f, 0.5f), width, height);
+                Render(cmd, renderingData.cameraData, TapMode.Tap3, new Rect(0.5f, 0, 0.5f, 0.5f), width, height);
+                Render(cmd, renderingData.cameraData, TapMode.Tap5, new Rect(0, 0.5f, 0.5f, 0.5f), width, height);
+                Render(cmd, renderingData.cameraData, TapMode.Tap9, new Rect(0.5f, 0.5f, 0.5f, 0.5f), width, height);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -55,7 +55,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        private void Render(CommandBuffer cmd, TapMode tapMode, Rect viewport, int width, int height)
+        private void Render(CommandBuffer cmd, in CameraData cameraData, TapMode tapMode, Rect viewport, int width, int height)
         {
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP1", tapMode == TapMode.Tap1);
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP3", tapMode == TapMode.Tap3);
@@ -64,7 +64,23 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
 
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1f / viewport.width, 1f / viewport.height, width * -viewport.x * 2, height * -viewport.y * 2));
             cmd.SetViewport(new Rect(width * viewport.x, height * viewport.y, width * viewport.width, height * viewport.height));
-            cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            bool useDrawProcedural =  cameraData.xrRendering;
+#else
+            bool useDrawProcedural = false;
+#endif
+
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity); // Prepare for manual blit
+            if (useDrawProcedural)
+            {
+                cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
+            }
+            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
         }
     }
 

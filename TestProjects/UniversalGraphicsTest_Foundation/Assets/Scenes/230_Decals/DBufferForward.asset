@@ -15,12 +15,11 @@ MonoBehaviour:
   m_Active: 1
   m_Settings:
     technique: 1
-    normalQuality: 0
     maxDrawDistance: 1000
     dBufferSettings:
       surfaceData: 2
     screenSpaceSettings:
-      blend: 1
+      normalBlend: 0
       useGBuffer: 1
   m_CopyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
   m_DBufferClear: {fileID: 4800000, guid: f056d8bd2a1c7e44e9729144b4c70395, type: 3}
@@ -36,6 +35,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
   m_Name: DBufferForward
   m_EditorClassIdentifier: 
+  debugShaders:
+    NumberFont: {fileID: 2800000, guid: f06a37246bbff114da01277637ca397e, type: 3}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures:
   - {fileID: -1753513150209075571}
   m_RendererFeatureMap: 8dd6cf941445aae7
@@ -50,6 +53,9 @@ MonoBehaviour:
     stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
     fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
     materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
+    coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
+    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b,
+      type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295

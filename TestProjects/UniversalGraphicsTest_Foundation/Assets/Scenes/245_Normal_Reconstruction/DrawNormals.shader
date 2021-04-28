@@ -7,7 +7,7 @@ Shader "Hidden/Universal Render Pipeline/DrawNormals"
 
         Pass
         {
-            Name "Blit"
+            Name "DrawNormals"
             ZTest Always
             ZWrite Off
             Cull Off
@@ -16,8 +16,7 @@ Shader "Hidden/Universal Render Pipeline/DrawNormals"
             #pragma vertex FullscreenVert
             #pragma fragment Fragment
             #pragma multi_compile _DRAW_NORMALS_TAP1 _DRAW_NORMALS_TAP3 _DRAW_NORMALS_TAP5 _DRAW_NORMALS_TAP9
-
-            #define _USE_DRAW_PROCEDURAL 1
+            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
