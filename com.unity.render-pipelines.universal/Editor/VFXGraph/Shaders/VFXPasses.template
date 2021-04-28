@@ -49,8 +49,12 @@ ${VFXPassShadowDefine}
 ${VFXPassDepthDefine}
 #endif
 ${VFXIncludeRP("VFXLit.template")}
- 
+
+#if defined(WRITE_NORMAL_BUFFER)
+${SHADERGRAPH_PIXEL_CODE_DEPTHNORMALS}
+#else
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+#endif
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
@@ -77,7 +81,13 @@ void frag(ps_input i
     
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
+
+        #if defined(WRITE_NORMAL_BUFFER)
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHNORMALS}
+        #else
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+        #endif
+
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
         #else
         
