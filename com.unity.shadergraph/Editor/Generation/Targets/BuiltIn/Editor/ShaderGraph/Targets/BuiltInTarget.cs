@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public void GetDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
             {
                 if (Equals(surfaceType, evt.newValue))
                     return;
@@ -313,13 +313,23 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
             {
                 if (Equals(alphaMode, evt.newValue))
                     return;
 
                 registerUndo("Change Blend");
                 alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            {
+                if (Equals(renderFace, evt.newValue))
+                    return;
+
+                registerUndo("Change Render Face");
+                renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
 
@@ -350,16 +360,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 registerUndo("Change Alpha Clip");
                 alphaClip = evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
-            {
-                if (Equals(renderFace, evt.newValue))
-                    return;
-
-                registerUndo("Change Render Face");
-                renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
         }
