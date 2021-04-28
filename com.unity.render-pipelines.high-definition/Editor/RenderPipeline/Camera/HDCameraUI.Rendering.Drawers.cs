@@ -11,8 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
         partial class Rendering
         {
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
-                Styles.header,
-                Expandable.Rendering,
+                CameraUI.Rendering.Styles.header,
+                CameraUI.Expandable.Rendering,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 CED.Group(
@@ -25,10 +25,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing,
                     Drawer_Rendering_Antialiasing_TAA),
                 CED.Group(
-                    Drawer_Rendering_StopNaNs,
-                    Drawer_Rendering_Dithering,
-                    Drawer_Rendering_CullingMask,
-                    Drawer_Rendering_OcclusionCulling,
+                    CameraUI.Rendering.Drawer_Rendering_StopNaNs,
+                    CameraUI.Rendering.Drawer_Rendering_Dithering,
+                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling,
                     Drawer_Rendering_ExposureTarget,
                     Drawer_Rendering_RenderingPath,
                     Drawer_Rendering_CameraWarnings
@@ -91,26 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(p.passThrough, Styles.fullScreenPassthrough);
                 using (new EditorGUI.DisabledScope(p.passThrough.boolValue))
                     EditorGUILayout.PropertyField(p.customRenderingSettings, Styles.renderingPath);
-            }
-
-            static void Drawer_Rendering_Dithering(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.dithering, Styles.dithering);
-            }
-
-            static void Drawer_Rendering_StopNaNs(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.stopNaNs, Styles.stopNaNs);
-            }
-
-            static void Drawer_Rendering_CullingMask(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.cullingMask, Styles.cullingMask);
-            }
-
-            static void Drawer_Rendering_OcclusionCulling(SerializedHDCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.baseCameraSettings.occlusionCulling, Styles.occlusionCulling);
             }
 
             static void Drawer_Rendering_ExposureTarget(SerializedHDCamera p, Editor owner)
