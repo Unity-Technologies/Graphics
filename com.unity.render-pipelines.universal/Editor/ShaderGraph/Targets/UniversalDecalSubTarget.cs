@@ -612,7 +612,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.normalOS,
                 StructFields.Attributes.tangentOS,
-                StructFields.Attributes.uv0,
+                StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
                 StructFields.Varyings.positionWS,
@@ -646,7 +647,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.normalOS,
                 StructFields.Attributes.tangentOS,
-                StructFields.Attributes.uv0,
+                StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
                 StructFields.Varyings.positionWS,

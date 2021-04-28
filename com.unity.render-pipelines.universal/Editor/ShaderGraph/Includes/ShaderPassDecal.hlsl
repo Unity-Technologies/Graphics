@@ -131,7 +131,7 @@ PackedVaryings Vert(Attributes inputMesh)
     output = BuildVaryings(inputMesh);
 #endif
 
-#ifdef VARYINGS_NEED_STATIC_LIGHTMAP_UV
+#if defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
     OUTPUT_LIGHTMAP_UV(inputMesh.uv1, unity_LightmapST, output.staticLightmapUV);
 #endif
 
