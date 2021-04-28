@@ -500,7 +500,7 @@ namespace UnityEditor.VFX
             {
                 MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
                 Debug.Log("Register SRP Changed callback BEGIN");
-                addHandler.Invoke(null, new Action[] { OnSRPChanged });
+                addHandler.Invoke(null, new Action[] { SRPChanged });
                 Debug.Log("Register SRP Changed callback END");
             }
 
@@ -508,12 +508,15 @@ namespace UnityEditor.VFX
             //RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
         }
 
-        /*public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
+        public delegate void OnSRPChangedEvent();
+        public static event OnSRPChangedEvent OnSRPChanged;
 
-        public static event InvalidateEvent onSRPChanged;*/
-        private static void OnSRPChanged()
+        private static void SRPChanged()
         {
             Debug.Log("!!! SRP Changed "+currentSRPBinder);
+
+            OnSRPChanged();
+            VFXAssetManager.Build();
         }
 
         private static LibrarySentinel m_Sentinel = null;

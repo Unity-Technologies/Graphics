@@ -98,9 +98,9 @@ namespace UnityEditor.VFX
             }
         }
     }
-    class VFXCacheManager : EditorWindow
+    class VFXAssetManager : EditorWindow
     {
-        private static List<VisualEffectObject> GetAllVisualEffectObjects()
+        public static List<VisualEffectObject> GetAllVisualEffectObjects()
         {
             var vfxObjects = new List<VisualEffectObject>();
             var vfxObjectsGuid = AssetDatabase.FindAssets("t:VisualEffectObject");
@@ -116,8 +116,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effects Graphs", priority = 320)]
-        public static void Build()
+        public static void Build(bool forceDirty = false)
         {
             var vfxObjects = GetAllVisualEffectObjects();
 
@@ -131,11 +130,18 @@ namespace UnityEditor.VFX
                 {
                     VFXGraph graph = resource.GetOrCreateGraph();
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-                    EditorUtility.SetDirty(resource);
+                    if (forceDirty)
+                        EditorUtility.SetDirty(resource);
                 }
             }
 
             VFXExpression.ClearCache();
+        }
+
+        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effects Graphs", priority = 320)]
+        public static void BuildAndSave()
+        {
+            Build(true);
             AssetDatabase.SaveAssets();
         }
     }
