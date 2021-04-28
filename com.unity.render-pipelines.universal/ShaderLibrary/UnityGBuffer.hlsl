@@ -51,9 +51,9 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
-    #ifdef GBUFFER_OPTIONAL_SLOT_1
+   // #ifdef GBUFFER_OPTIONAL_SLOT_1
     half4 GBuffer4 : SV_Target4;
-    #endif
+    //#endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
     half4 GBuffer5 : SV_Target5;
     #endif

@@ -205,10 +205,11 @@ namespace UnityEngine.Rendering.Universal
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
+        internal NativeArray<int> m_ColorAttachmentIndices;
         internal NativeArray<int> m_InputAttachmentIndices;
-
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
+		internal RenderTargetIdentifier[] m_InputAttachments = new RenderTargetIdentifier[8];
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -220,6 +221,7 @@ namespace UnityEngine.Rendering.Universal
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
+			m_InputAttachments = new RenderTargetIdentifier[] {-1, -1, -1, -1, -1, -1, -1, -1};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
@@ -271,6 +273,15 @@ namespace UnityEngine.Rendering.Universal
             m_DepthStoreAction = storeAction;
         }
 
+		internal void ConfigureInputAttachments(RenderTargetIdentifier input)
+		{
+			m_InputAttachments[0] = input;
+		}
+
+		internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs)
+		{
+			m_InputAttachments = inputs;
+		}
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
