@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removing unused temporary depth buffers for Depth of Field and Panini Projection.
 - Optimized the Bokeh Depth of Field shader on mobile by using half precision floats.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
+- Made 2D shadow casting more efficient
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
 - Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
 - Advanced Options > Priority has been renamed to Sorting Priority
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled subsurface scattering with GI on handwritten Universal ST8 shader.
 
 ### Fixed
+- Camera Inspector Stack list edition fixes.
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
@@ -270,6 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+- Added Package Samples: 2 Camera Stacking, 2 Renderer Features
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 - Added Transparency Sort Mode and Transparency Sort Axis to 2DRendererData.
 - Added support for a user defined default material to 2DRendererData.

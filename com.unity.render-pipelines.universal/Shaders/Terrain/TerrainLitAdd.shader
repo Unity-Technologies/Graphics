@@ -75,6 +75,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma shader_feature_local_fragment _TERRAIN_BLEND_HEIGHT
             #pragma shader_feature_local _NORMALMAP
