@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hasDepthDeferredPass = depthPrepassParameters.hasDepthDeferredPass;
 
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
-                passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
+                passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, hdCamera, msaa));
                 if (decalLayersEnabled)
                     passData.decalBuffer = builder.WriteTexture(CreateDecalPrepassBuffer(renderGraph, msaa));
                 // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive.
