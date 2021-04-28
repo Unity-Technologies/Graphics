@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
     class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
     {
         static bool firstTimeUpgrade = true;
+        static bool registeredRendererUpdate = false;
         static int editedAssetsCount = 0;
         static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6"); //ForwardRendererData.cs
         static Object fwdRendererScriptObj;
@@ -87,7 +88,7 @@ namespace UnityEditor.Rendering.Universal
                     SerializedObject soAsset = new SerializedObject(pipelineAsset);
 
                     //Make some changes on the Pipeline assets
-                    //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will complain about there is no Default Renderer asset
+                    //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will give "no Default Renderer asset" error and nothing will render
                     SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
                     soAsset.Update();
                     if (scriptPropertyAsset != null)
@@ -100,14 +101,16 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                //Reset counter
+                //Reset counter and register state
                 editedAssetsCount = 0;
+                registeredRendererUpdate = false;
             };
         }
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            //This makes sure the RendererData will be upgraded again if the uppgraded changes are discarded using source control
+            //Opening some projects e.g. URP Template relies on this interation for doing the asset upgrade.
+            //This also makes sure the RendererData will be re-upgraded again if the uppgraded changes are discarded using source control.
             for (int i = 0; i < importedAssets.Length; i++)
             {
                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(importedAssets[i]);
@@ -117,6 +120,15 @@ namespace UnityEditor.Rendering.Universal
                     IterateSubAssets(importedAssets[i]);
                 }
             }
+
+            //If there are assets being upgraded then we need to trigger an update on the Pipeline assets to avoid "no Default Renderer asset" error and making rendering fine again.
+            //However at this moment the Pipeline assets are not yet updated, so the error might still happen in the case of discarded upgrade changes, but it won't harm rendering
+            //This makes sure we re-register the delayCall only once
+            if(!registeredRendererUpdate && editedAssetsCount > 0)
+            {
+                RegisterUpgraderReimport();
+                registeredRendererUpdate = true;
+            }           
         }
     }
 }
