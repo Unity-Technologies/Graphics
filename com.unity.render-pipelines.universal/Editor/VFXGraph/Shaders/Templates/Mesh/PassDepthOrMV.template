@@ -2,17 +2,17 @@
 #pragma target 4.5
 
 struct ps_input
-{		
-	float4 pos : SV_POSITION;
-	#if USE_FLIPBOOK_INTERPOLATION
-		float4 uv : TEXCOORD0;
-	#else
-		#if USE_FLIPBOOK_ARRAY_LAYOUT
-		float3 uv : TEXCOORD0;
-		#else
-		float2 uv : TEXCOORD0;
-		#endif	
-	#endif
+{        
+    float4 pos : SV_POSITION;
+    #if USE_FLIPBOOK_INTERPOLATION
+        float4 uv : TEXCOORD0;
+    #else
+        #if USE_FLIPBOOK_ARRAY_LAYOUT
+        float3 uv : TEXCOORD0;
+        #else
+        float2 uv : TEXCOORD0;
+        #endif    
+    #endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : COLOR2;
     #endif
@@ -25,31 +25,31 @@ struct ps_input
     #if VFX_SHADERGRAPH_HAS_COLOR
     float4 vertexColor : COLOR1;
     #endif
-	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
-	// x: alpha threshold
-	// y: frame blending factor
-	// z: alpha
-	// w: smoothness
-	nointerpolation float4 builtInInterpolants : TEXCOORD1;
-	#endif
-	#if USE_FLIPBOOK_MOTIONVECTORS
-	// x: motion vector scale u
-	// y: motion vector scale v
-	nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
-	#endif
-	#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
-	float3 normal : TEXCOORD4;
-	#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
-	float4 tangent : TEXCOORD5;
-	#endif
-	#endif
-	#if VFX_NEEDS_POSWS_INTERPOLATOR
-	float3 posWS : TEXCOORD6;
-	#endif
+    #if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
+    // x: alpha threshold
+    // y: frame blending factor
+    // z: alpha
+    // w: smoothness
+    nointerpolation float4 builtInInterpolants : TEXCOORD1;
+    #endif
+    #if USE_FLIPBOOK_MOTIONVECTORS
+    // x: motion vector scale u
+    // y: motion vector scale v
+    nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
+    #endif
+    #if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+    float3 normal : TEXCOORD4;
+    #if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+    float4 tangent : TEXCOORD5;
+    #endif
+    #endif
+    #if VFX_NEEDS_POSWS_INTERPOLATOR
+    float3 posWS : TEXCOORD6;
+    #endif
 
     ${VFXAdditionalInterpolantsDeclaration}
-	
-	UNITY_VERTEX_OUTPUT_STEREO
+    
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -72,10 +72,10 @@ struct ps_input
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
-		
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
 ${VFXEnd}
-		
-${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
+
+${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
 ${VFXPassDepthCommonFragmentURPLit}

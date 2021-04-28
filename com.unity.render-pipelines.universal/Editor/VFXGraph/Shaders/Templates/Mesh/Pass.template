@@ -7,8 +7,8 @@ ${VFXGeneratedBlockFunction}
 
 struct vs_input
 {
-	float3 pos : POSITION;
-	float2 uv : TEXCOORD0;
+    float3 pos : POSITION;
+    float2 uv : TEXCOORD0;
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : TEXCOORD1;
     #endif
@@ -21,11 +21,11 @@ struct vs_input
     #if VFX_SHADERGRAPH_HAS_COLOR
     float4 vertexColor : COLOR;
     #endif
-	float3 normal : NORMAL;
-	#if defined(VFX_VARYING_TANGENT) || SHADERGRAPH_HAS_NORMAL
-	float4 tangent : TANGENT;
-	#endif
-	VFX_DECLARE_INSTANCE_ID
+    float3 normal : NORMAL;
+    #if defined(VFX_VARYING_TANGENT) || SHADERGRAPH_HAS_NORMAL
+    float4 tangent : TANGENT;
+    #endif
+    VFX_DECLARE_INSTANCE_ID
 };
 
 #pragma vertex vert
@@ -33,18 +33,18 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 {
     VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 
-	UNITY_SETUP_INSTANCE_ID(i);
-	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    UNITY_SETUP_INSTANCE_ID(i);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-	uint index = VFX_GET_INSTANCE_ID(i);	
+    uint index = VFX_GET_INSTANCE_ID(i);    
 
-	${VFXLoadAttributesOrCull}
-	${VFXProcessBlocks}
-			
-	if (!attributes.alive)
-		return o;
-	
-	o.VFX_VARYING_UV.xy = i.uv;
+    ${VFXLoadAttributesOrCull}
+    ${VFXProcessBlocks}
+            
+    if (!attributes.alive)
+        return o;
+    
+    o.VFX_VARYING_UV.xy = i.uv;
     
     #if VFX_SHADERGRAPH_HAS_UV1
     o.uv1 = i.uv1;
@@ -58,50 +58,50 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
     #if VFX_SHADERGRAPH_HAS_COLOR
     o.vertexColor = i.vertexColor;
     #endif
-	
-	${VFXLoadSize}
-	
-	float3 inputVertexPosition = i.pos;
-	float4x4 elementToVFX = GetElementToVFXMatrix(
-		attributes.axisX,
-		attributes.axisY,
-		attributes.axisZ,
-		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-		size3,
-		attributes.position);
-		
-	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
-	float4 csPos = TransformPositionVFXToClip(vPos);
-	o.VFX_VARYING_POSCS = csPos;
-	
-	// TODO This is needed only if in local space (to handle non uniform scale) or if scale attributes are stored/written (no way to know atm)
-	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
-		attributes.axisX,
-		attributes.axisY,
-		attributes.axisZ,
-		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-		size3);
-			
-	float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
-	#ifdef VFX_VARYING_NORMAL
-	o.VFX_VARYING_NORMAL = normalWS;
-	#endif
-	#ifdef VFX_VARYING_TANGENT
-	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);
-	#endif
+    
+    ${VFXLoadSize}
+    
+    float3 inputVertexPosition = i.pos;
+    float4x4 elementToVFX = GetElementToVFXMatrix(
+        attributes.axisX,
+        attributes.axisY,
+        attributes.axisZ,
+        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+        float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+        size3,
+        attributes.position);
+        
+    float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
+    float4 csPos = TransformPositionVFXToClip(vPos);
+    o.VFX_VARYING_POSCS = csPos;
+    
+    // TODO This is needed only if in local space (to handle non uniform scale) or if scale attributes are stored/written (no way to know atm)
+    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+        attributes.axisX,
+        attributes.axisY,
+        attributes.axisZ,
+        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+        size3);
+            
+    float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
+    #ifdef VFX_VARYING_NORMAL
+    o.VFX_VARYING_NORMAL = normalWS;
+    #endif
+    #ifdef VFX_VARYING_TANGENT
+    o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);
+    #endif
 
-	${VFXVertexComputeCurrentAndPreviousClipPos}
-	
-	${VFXVertexCommonProcess}
-	
-	${VFXVertexSetFlipbooksInterpolants}
+    ${VFXVertexComputeCurrentAndPreviousClipPos}
+    
+    ${VFXVertexCommonProcess}
+    
+    ${VFXVertexSetFlipbooksInterpolants}
 
-	${VFXVertexAdditionalProcess}
+    ${VFXVertexAdditionalProcess}
     
     ${VFXAdditionalInterpolantsGeneration}
-	
-	return o;
+    
+    return o;
 }
 
 ${VFXBegin:VFXComputeNormalWS}
