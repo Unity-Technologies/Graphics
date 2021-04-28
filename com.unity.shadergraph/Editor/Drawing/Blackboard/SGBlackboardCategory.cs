@@ -180,6 +180,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 TryDoFoldout(m_ViewModel.isExpanded);
                 m_Foldout.RegisterCallback<ChangeEvent<bool>>(OnFoldoutToggle);
             }
+
+            // Remove the header element if this is the default category
+            if (!controller.Model.IsNamedCategory())
+                headerVisible = false;
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
