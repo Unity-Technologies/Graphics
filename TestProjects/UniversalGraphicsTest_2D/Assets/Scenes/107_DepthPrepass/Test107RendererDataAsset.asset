@@ -12,6 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77663a26e4417f04fb03a97e7cb56fa6, type: 3}
   m_Name: Test107RendererDataAsset
   m_EditorClassIdentifier: 
+  debugShaders:
+    NumberFont: {fileID: 2800000, guid: f06a37246bbff114da01277637ca397e, type: 3}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
   m_RendererFeatures: []
+  m_RendererFeatureMap: 
+  m_UseNativeRenderPass: 0
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
