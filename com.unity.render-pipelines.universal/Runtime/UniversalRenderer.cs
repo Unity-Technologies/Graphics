@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal
         DeferredLights m_DeferredLights;
         RenderingMode m_RenderingMode;
         DepthPrimingMode m_DepthPrimingMode;
-        bool m_CanUseDepthPriming;
+        bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
 
         // Materials used in URP Scriptable Render Passes
@@ -144,7 +144,11 @@ namespace UnityEngine.Rendering.Universal
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.usesRenderPass = data.useNativeRenderPass;
 
-            this.m_CanUseDepthPriming = !SystemInfo.hasHiddenSurfaceRemovalOnGPU;
+#if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS
+            this.m_DepthPrimingRecommended = false;
+#else
+            this.m_DepthPrimingRecommended = true;
+#endif
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -361,7 +365,7 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
                 requiresDepthPrepass = false;
 
-            requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced && m_CanUseDepthPriming;
+            requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -380,7 +384,7 @@ namespace UnityEngine.Rendering.Universal
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= this.actualRenderingMode == RenderingMode.Deferred;
             // Some render cases (e.g. Material previews) have shown we need to create a depth texture when we're forcing a prepass.
-            createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced && m_CanUseDepthPriming;
+            createDepthTexture |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -400,7 +404,8 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 
-            bool useDepthPriming = m_CanUseDepthPriming && m_DepthPrimingMode != DepthPrimingMode.Disabled && requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
+            bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
+            useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
             useDepthPriming &= !SystemInfo.supportsMultisampleAutoResolve || cameraTargetDescriptor.msaaSamples == 1;
