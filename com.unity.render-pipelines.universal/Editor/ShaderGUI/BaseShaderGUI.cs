@@ -405,10 +405,14 @@ namespace UnityEditor
         #region MaterialDataFunctions
 
         // this function is shared with ShaderGraph Lit/Unlit GUIs and also the hand-written GUIs
-        internal static void UpdateMaterialSurfaceOptions(Material material)
+        internal static void UpdateMaterialSurfaceOptions(Material material, bool automaticRenderQueue)
         {
             // Setup blending - consistent across all Universal RP shaders
-            SetupMaterialBlendMode(material);
+            SetupMaterialBlendModeInternal(material, out int renderQueue);
+
+            // apply automatic render queue
+            if (automaticRenderQueue && (renderQueue != material.renderQueue))
+                material.renderQueue = renderQueue;
 
             bool isShaderGraph = material.IsShaderGraph();
 
@@ -442,7 +446,7 @@ namespace UnityEditor
         // this is the function used by Lit.shader, Unlit.shader GUIs
         public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
         {
-            UpdateMaterialSurfaceOptions(material);
+            UpdateMaterialSurfaceOptions(material, automaticRenderQueue: true);
 
             // Setup double sided GI based on Cull state
             if (material.HasProperty(Property.CullMode))
@@ -500,7 +504,7 @@ namespace UnityEditor
                 material.SetFloat(Property.ZWrite, zwriteEnabled ? 1.0f : 0.0f);
         }
 
-        public static void SetupMaterialBlendMode(Material material)
+        internal static void SetupMaterialBlendModeInternal(Material material, out int automaticRenderQueue)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -600,6 +604,14 @@ namespace UnityEditor
             if (material.HasProperty(Property.QueueOffset))
                 renderQueue += (int)material.GetFloat(Property.QueueOffset);
 
+            automaticRenderQueue = renderQueue;
+        }
+
+        public static void SetupMaterialBlendMode(Material material)
+        {
+            SetupMaterialBlendModeInternal(material, out int renderQueue);
+
+            // apply automatic render queue
             if (renderQueue != material.renderQueue)
                 material.renderQueue = renderQueue;
         }

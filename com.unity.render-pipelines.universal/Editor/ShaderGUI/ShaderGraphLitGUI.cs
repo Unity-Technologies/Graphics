@@ -33,7 +33,7 @@ namespace UnityEditor
             if (updateType == MaterialUpdateType.CreatedNewMaterial)
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
 
-            BaseShaderGUI.UpdateMaterialSurfaceOptions(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
         }
 
@@ -76,6 +76,7 @@ namespace UnityEditor
         public override void DrawAdvancedOptions(Material material)
         {
             base.DrawAdvancedOptions(material);
+            materialEditor.RenderQueueField();
 
             // ignore emission color for shadergraphs, because shadergraphs don't have a hard-coded emission property, it's up to the user
             materialEditor.LightmapEmissionFlagsProperty(0, enabled: true, ignoreEmissionColor: true);

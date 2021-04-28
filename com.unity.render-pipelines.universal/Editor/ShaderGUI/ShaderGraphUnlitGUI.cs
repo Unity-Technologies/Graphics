@@ -20,7 +20,7 @@ namespace UnityEditor
 
         public static void UpdateMaterial(Material material, MaterialUpdateType updateType)
         {
-            BaseShaderGUI.UpdateMaterialSurfaceOptions(material);
+            BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue: false);
         }
 
         public override void MaterialChanged(Material material)
@@ -35,6 +35,12 @@ namespace UnityEditor
         public override void DrawSurfaceInputs(Material material)
         {
             DrawShaderGraphProperties(material, properties);
+        }
+
+        public override void DrawAdvancedOptions(Material material)
+        {
+            base.DrawAdvancedOptions(material);
+            materialEditor.RenderQueueField();
         }
     }
 } // namespace UnityEditor
