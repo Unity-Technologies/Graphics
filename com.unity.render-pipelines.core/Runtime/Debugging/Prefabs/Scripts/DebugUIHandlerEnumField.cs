@@ -186,10 +186,10 @@ namespace UnityEngine.Rendering.UI
             string text = m_Field.enumNames[index].text;
 
             // The UI implementation is tight with space, so let's just truncate the string here if too long.
-            const int maxLength = 17;
+            const int maxLength = 28;
             if (text.Length > maxLength)
             {
-                text = text.Substring(0, maxLength) + "...";
+                text = text.Substring(0, maxLength - 3) + "...";
             }
 
             valueLabel.text = text;
