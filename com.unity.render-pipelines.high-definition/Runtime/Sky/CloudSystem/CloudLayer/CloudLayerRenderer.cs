@@ -51,11 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected override bool Update(BuiltinSkyParameters builtinParams)
+        bool UpdateCache(CloudLayer cloudLayer, Light sunLight)
         {
-            var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-
-            int currPrecomputationParamHash = cloudLayer.GetBakingHashCode(builtinParams.sunLight);
+            int currPrecomputationParamHash = cloudLayer.GetBakingHashCode(sunLight);
             if (currPrecomputationParamHash != m_LastPrecomputationParamHash)
             {
                 s_PrecomputationCache.Release(m_LastPrecomputationParamHash);
@@ -63,15 +61,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LastPrecomputationParamHash = currPrecomputationParamHash;
                 return true;
             }
-
             return false;
         }
+
+        protected override bool Update(BuiltinSkyParameters builtinParams)
+            => UpdateCache(builtinParams.cloudSettings as CloudLayer, builtinParams.sunLight);
 
         public override bool GetSunLightCookieParameters(CloudSettings settings, ref CookieParameters cookieParams)
         {
             var cloudLayer = (CloudLayer)settings;
-            if (cloudLayer.CastShadows && m_PrecomputedData?.cloudShadowsRT != null)
+            if (cloudLayer.CastShadows)
             {
+                if (m_PrecomputedData == null || m_PrecomputedData.cloudShadowsRT == null)
+                    UpdateCache(cloudLayer, HDRenderPipeline.currentPipeline.GetCurrentSunLight());
+
                 cookieParams.texture = m_PrecomputedData.cloudShadowsRT;
                 cookieParams.size = new Vector2(cloudLayer.shadowSize.value, cloudLayer.shadowSize.value);
                 return true;

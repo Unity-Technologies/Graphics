@@ -1156,15 +1156,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     screenSpaceShadowIndex++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
-                m_CurrentSunLight = lightComponent;
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
             }
-
-            // Fallback to the first non shadow casting directional light.
-            if (m_CurrentSunLight == null)
-                m_CurrentSunLight = lightComponent;
 
             // Get correct light cookie in case it is overriden by a volume
             CookieParameters cookieParams = new CookieParameters()
@@ -2252,6 +2247,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalData.WillRenderShadowMap())
                 {
                     additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light, lightType);
+                }
+
+                if (processedData.gpuLightType == GPULightType.Directional)
+                {
+                    // Sunlight is the directional casting shadows
+                    // Fallback to the first non shadow casting directional light.
+                    if (additionalData.WillRenderShadowMap() || m_CurrentSunLight == null)
+                        m_CurrentSunLight = light.light;
                 }
 
                 // Reserve the cookie resolution in the 2D atlas

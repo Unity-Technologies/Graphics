@@ -68,7 +68,7 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Lighting**           | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
 | - **Thickness**        | The thickness of the clouds. The larger the value, the darker the clouds appear. |
-| **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. The tiling of the shadow texture can be controlled through the **Cookie Size** parameter on the light component. |
+| **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |
 
 | Shadows Property      | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
