@@ -133,9 +133,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // TODO: Make this work with VR
                 var fovHalfWidth = fovHalfHeight * (float)screenResolution.x / (float)screenResolution.y;
 
-                m_ZBinFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
+                // TODO: Decide whether to go for desired or always max
+                //m_ZBinFactor = math.sqrt((float)screenResolution.y / (math.sqrt(2f) * fovHalfHeight));
+                var maxZFactor = (float)UniversalRenderPipeline.maxZBins / (math.sqrt(camera.farClipPlane) - math.sqrt(camera.nearClipPlane));
+                // m_ZBinFactor = math.min(m_ZBinFactor, maxZFactor);
+                m_ZBinFactor = maxZFactor;
                 m_ZBinOffset = (int)(math.sqrt(camera.nearClipPlane) * m_ZBinFactor);
                 var binCount = (int)(math.sqrt(camera.farClipPlane) * m_ZBinFactor) - m_ZBinOffset;
+                // c = sqrt(far) * factor - sqrt(near) * factor => c = factor * (sqrt(far) - sqrt(near)) => factor = c / (sqrt(far) - sqrt(near))
                 // Must be a multiple of 4 to be able to alias to vec4
                 binCount = ((binCount + 3) / 4) * 4;
                 binCount = math.min(UniversalRenderPipeline.maxZBins, binCount);
