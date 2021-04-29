@@ -295,18 +295,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Resource Common
 #if UNITY_EDITOR
+        // Yes it is stupid to retry right away but making it called in EditorApplication.delayCall
+        // from EnsureResources create GC
+        void DelayedNullReload<T>(string resourcePath)
+            where T : HDRenderPipelineResources
+        {
+            T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
+            if (resourcesDelayed == null)
+                EditorApplication.delayCall += () => DelayedNullReload<T>(resourcePath);
+            else
+                ResourceReloader.ReloadAllNullIn(resourcesDelayed, HDUtils.GetHDRenderPipelinePath());
+        }
+
         void EnsureResources<T>(bool forceReload, ref T resources, string resourcePath, Func<HDRenderPipelineGlobalSettings, bool> checker)
             where T : HDRenderPipelineResources
         {
-            void Delay()
-            {
-                T resourcesDelayed = AssetDatabase.LoadAssetAtPath<T>(resourcePath);
-                if (resourcesDelayed == null)
-                    EditorApplication.delayCall += Delay;
-                else
-                    ResourceReloader.ReloadAllNullIn(resourcesDelayed, HDUtils.GetHDRenderPipelinePath());
-            }
-
             T resourceChecked = null;
 
             if (checker(this))
@@ -355,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!(e.Data.Contains("InvalidImport") && e.Data["InvalidImport"] is int dii && dii == 1))
                             Debug.LogException(e);
                         else
-                            EditorApplication.delayCall += Delay;
+                            DelayedNullReload<T>(resourcePath);
                     }
                 }
             }
