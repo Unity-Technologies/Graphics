@@ -787,6 +787,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Blending",
+            referenceName = "_REFLECTION_PROBE_BLENDING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Box Projection",
+            referenceName = "_REFLECTION_PROBE_BOX_PROJECTION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
         {
             displayName = "Shadows Soft",
@@ -889,6 +907,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "UseFragmentFog",
             referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
+        {
+            displayName = "Debug Display",
+            referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
     #endregion

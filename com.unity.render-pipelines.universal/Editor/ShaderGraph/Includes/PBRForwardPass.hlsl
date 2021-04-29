@@ -1,13 +1,18 @@
-void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.positionWS;
 
     #ifdef _NORMALMAP
+        // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+        float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+        float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+
+        inputData.tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
         #if _NORMAL_DROPOFF_TS
-            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, inputData.tangentToWorld);
         #elif _NORMAL_DROPOFF_OS
             inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
@@ -36,6 +41,12 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
 #endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV;
+    #else
+    inputData.vertexSH = input.sh;
+    #endif
 }
 
 PackedVaryings vert(Attributes input)
@@ -66,7 +77,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     InputData inputData;
-    BuildInputData(unpacked, surfaceDescription, inputData);
+    InitializeInputData(unpacked, surfaceDescription, inputData);
+    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
+    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord1.xy, _MainTex);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
@@ -76,7 +89,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         float metallic = surfaceDescription.Metallic;
     #endif
 
-    SurfaceData surface         = (SurfaceData)0;
+    half3 normalTS = half3(0, 0, 0);
+    #if defined(_NORMALMAP) && defined(_NORMAL_DROPOFF_TS)
+        normalTS = surfaceDescription.NormalTS;
+    #endif
+
+    SurfaceData surface;
     surface.albedo              = surfaceDescription.BaseColor;
     surface.metallic            = saturate(metallic);
     surface.specular            = specular;
@@ -84,6 +102,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surface.occlusion           = surfaceDescription.Occlusion,
     surface.emission            = surfaceDescription.Emission,
     surface.alpha               = saturate(alpha);
+    surface.normalTS            = normalTS;
     surface.clearCoatMask       = 0;
     surface.clearCoatSmoothness = 1;
 

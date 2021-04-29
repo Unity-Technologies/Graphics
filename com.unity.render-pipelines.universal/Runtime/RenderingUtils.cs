@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
@@ -10,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class RenderingUtils
     {
-        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
@@ -344,20 +343,6 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var identifier in colorBuffers)
                 {
                     if (identifier != 0)
-                        ++nonNullColorBuffers;
-                }
-            }
-            return nonNullColorBuffers;
-        }
-
-        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
-        {
-            uint nonNullColorBuffers = 0;
-            if (colorAttachments != null)
-            {
-                foreach (var attachment in colorAttachments)
-                {
-                    if (attachment != RenderingUtils.emptyAttachment)
                         ++nonNullColorBuffers;
                 }
             }

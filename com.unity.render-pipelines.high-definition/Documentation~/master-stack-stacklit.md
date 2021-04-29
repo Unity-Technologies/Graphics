@@ -191,3 +191,13 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 </table>
+
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
+</table>
