@@ -12,6 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
         //
         // /!\ If you add data that are not from HDRPAsset and then add a migration pattern on them,
         // don't forget to add your migration step into skipedStepWhenCreatedFromHDRPAsset.
+        //
+        // /!\ Also for each new version, you must now upgrade asset in HDRP_Runtime and HDRP_Performance test project.
         enum Version
         {
             First,
