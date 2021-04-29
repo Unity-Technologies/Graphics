@@ -42,6 +42,8 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierLow: 128
   m_AdditionalLightsShadowResolutionTierMedium: 256
   m_AdditionalLightsShadowResolutionTierHigh: 512
+  m_ReflectionProbeBlending: 0
+  m_ReflectionProbeBoxProjection: 0
   m_ShadowDistance: 56
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
@@ -54,6 +56,7 @@ MonoBehaviour:
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
+  m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
