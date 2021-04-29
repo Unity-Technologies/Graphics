@@ -29,6 +29,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
+        public virtual bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
         protected int materialOffset = 0;
 
@@ -36,8 +38,6 @@ namespace UnityEditor.VFX
         {
             return materialOffset;
         }
-
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
         public virtual bool hasMotionVector
         {
