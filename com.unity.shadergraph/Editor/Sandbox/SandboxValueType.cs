@@ -48,7 +48,7 @@ public abstract class SandboxValueTypeDefinition : JsonObject
 
 
 [Serializable]
-public sealed class SandboxValueType // : JsonObject          // TODO: public
+public sealed class SandboxValueType // : JsonObject
 {
     // public override int currentVersion => 1;
 
@@ -56,15 +56,16 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
     string name;                        // must be unique!!!
 
     [SerializeField]
-    JsonRef<SandboxValueTypeDefinition> definition;    // for types that have a data definition
+    JsonData<SandboxValueTypeDefinition> definition;    // for types that have a data definition
 
+    // these flags are used to quickly identify and query for various properties of the type
     public enum Flags
     {
-        Placeholder = 1,
-        Scalar = 2,
-        Vector2 = 4,
-        Vector3 = 8,
-        Vector4 = 16,
+        Placeholder = 1,        // is a placeholder type for generic functions
+        Scalar = 2,             // is a scalar value, i.e. bool, int, float, half...
+        Vector2 = 4,            // is a vector value of dimension 2, i.e. bool2, int2, float2, half2...
+        Vector3 = 8,            // is a vector value of dimension 3, i.e. bool3, int3, float3, half3...
+        Vector4 = 16,           // is a vector value of dimension 4, i.e. bool4, int4, float4, half4...
         AnyVector = Scalar | Vector2 | Vector3 | Vector4,
         Matrix = 32,
         Struct = 64,
@@ -72,6 +73,7 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
         Texture = 256
     }
 
+    [SerializeField]
     Flags flags;
 
     // public interface
@@ -112,7 +114,7 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
     internal SandboxValueType(string name, Flags flags)
     {
         this.name = name;
-        this.definition = null;
+        //this.definition = null;
         this.flags = flags;
     }
 
@@ -158,108 +160,3 @@ public sealed class SandboxValueType // : JsonObject          // TODO: public
         return false;
     }
 }
-
-/*
-public abstract class SandboxValueTypeCaster
-{
-    // aka target type
-    public abstract ShaderValueType leftType { get; }
-    // aka source types
-    public abstract bool IsAssignableFrom(ShaderValueType rightType);
-    // generate code to actually do the type cast between two variables
-    public abstract bool HLSLAssignVariable(string leftName, ShaderValueType rightType, string rightName, ShaderBuilder sb);
-}
-*/
-
-/*
-public class HLSLVector4TypeCaster : ShaderValueTypeCaster
-{
-    // aka target type
-    public override ShaderValueType leftType { get { return HLSLVector4Type.Instance; } }
-    // aka source types
-    public override bool IsAssignableFrom(ShaderValueType rightType)
-    {
-        if (rightType is HLSLVectorType)
-            return true;
-        if (rightType is HLSLIntType)
-            return true;
-        return false;
-    }
-    // generate code to actually do the type cast between two variables
-    public override bool HLSLAssignVariable(string leftName, ShaderValueType rightType, string rightName, ShaderBuilder sb)
-    {
-        if (rightType is HLSLVectorType)
-        {
-            // TODO: this isn't correct, but shows the basic idea
-            sb.Add(leftName, " = (", rightType.GetTypeName(), ") ", rightName);
-            return true;
-        }
-        if (rightType is HLSLIntType)
-        {
-            // TODO: this isn't correct, but shows the basic idea
-            sb.Add(leftName, " = (", rightType.GetTypeName(), ") ", rightName);
-            return true;
-        }
-        return false;
-    }
-}
-*/
-
-[Serializable]
-public class UnityTexture2DTypeDefinition : SandboxValueTypeDefinition
-{
-    public override int latestVersion => 1;
-
-    internal override bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
-    {
-        // defined in the include file -- TODO
-        return false;
-    }
-
-    internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
-    {
-        sb.Add(GetTypeName(), " ", id);
-    }
-
-    public override SandboxValueType.Flags GetTypeFlags()
-    {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Texture | SandboxValueType.Flags.Object;
-    }
-
-    public override string GetTypeName()
-    {
-        return "UnityTexture2D";
-    }
-
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
-    {
-        return (other is UnityTexture2DTypeDefinition);
-    }
-
-    // TODO: make use an interface to add to an include collection
-    // public override string GetIncludes()               { return "com.unity.core/textures.hlsl";  }
-}
-
-// can we make some kind of wrapper class for C# variable types?
-// that we can use for inline operations?
-
-/*
-// non shader type (static eval only)
-public class StringType : SingletonShaderValueType
-{
-    public override int currentVersion => 1;
-    static StringType _instance;
-    public static StringType Instance { get { return _instance ?? (_instance = new StringType()); } }
-    private StringType() { }
-    // TODO: need some way to identify that this is a static build-time only type
-    // i.e. it cannot be evaluated dynamically in a shader
-    public static string GetSingletonTypeName() { return "string"; }
-    public override bool AddHLSLTypeDeclarationString(ShaderBuilder sb, string nameOverride) { return false; }
-    public override void AddHLSLVariableDeclarationString(ShaderBuilder sb, string id)
-    {
-    }
-}
-*/
