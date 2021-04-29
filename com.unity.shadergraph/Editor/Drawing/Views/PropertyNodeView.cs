@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph
                     this.ChangeExposedField,
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
+                    () => graph.OnDropdownChanged(),
                     this.ChangePropertyValue,
                     this.MarkNodesAsDirty);
 
@@ -213,6 +214,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         public void UpdatePortInputTypes()
+        {
+        }
+
+        public void UpdateDropdownEntries()
         {
         }
 

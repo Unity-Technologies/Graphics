@@ -16,6 +16,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trun
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
@@ -30,6 +31,8 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trun
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on_new_revision
 Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
@@ -40,6 +43,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
@@ -75,7 +79,7 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     artifacts:
         logs:
@@ -85,6 +89,9 @@ Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linea
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
+         rerun: on_new_revision
 VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk:
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_editor_mono_Linear on version trunk
     agent:
@@ -93,6 +100,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
@@ -128,13 +136,16 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter="MemoryAllocation;RuntimeProfilerMetrics" --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
+         rerun: on_new_revision
 VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_build_editmode_mono_Linear on version trunk
     agent:
@@ -143,6 +154,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_BUILTIN_BRANCH: built-in
         VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
         UTR_VERSION: "current"
@@ -178,13 +190,16 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
+         rerun: on_new_revision
 VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:

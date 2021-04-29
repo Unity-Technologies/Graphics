@@ -302,6 +302,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>List of Full Screen Rendering Debug mode values.</summary>
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
 
+        /// <summary>List of Full Screen Lighting Debug mode names.</summary>
+        public static GUIContent[] lightingFullScreenDebugStrings => s_LightingFullScreenDebugStrings;
+        /// <summary>List of Full Screen Lighting Debug mode values.</summary>
+        public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
+
         internal DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
