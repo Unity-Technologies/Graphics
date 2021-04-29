@@ -162,6 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed undo of some properties on light editor.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
 - Fixed some reference to old frame settings names in HDRP Wizard.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
