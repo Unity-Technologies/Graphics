@@ -2,7 +2,7 @@
 
 **Menu Path : Operator > Sampling > Buffer Count**
 
-The Buffer Count Operator enables you to get the number of element in the a [GraphicsBuffer](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.html) .
+The Buffer Count Operator enables you to get the number of element in the a [GraphicsBuffer](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.html).
 
 ## Operator Properties
 
