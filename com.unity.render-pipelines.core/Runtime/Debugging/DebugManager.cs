@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
+using UnityEngine.UI;
 
 namespace UnityEngine.Rendering
 {
@@ -102,6 +103,12 @@ namespace UnityEngine.Rendering
                     m_Root.name = "[Debug Canvas]";
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
+
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
+                    var canvasScaler = m_Root.GetComponent<CanvasScaler>();
+                    canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+#endif
+
                     m_Root.SetActive(true);
                 }
                 else
