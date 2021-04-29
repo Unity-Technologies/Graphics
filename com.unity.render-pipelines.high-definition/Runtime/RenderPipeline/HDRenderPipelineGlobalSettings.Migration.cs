@@ -1,15 +1,24 @@
 using System;
 using UnityEngine.Serialization;
+using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDRenderPipelineGlobalSettings : IVersionable<HDRenderPipelineGlobalSettings.Version>, IMigratableAsset
     {
+        // Keep in mind that if there is no HDRenderPipelineGlobalSettings,
+        // it can be created from one HDRPAsset in GraphicSettings before version AddedHDRenderPipelineGlobalSettings.
+        // When it occurs we force Version to be First again for all migration step to occures again.
+        //
+        // /!\ If you add data that are not from HDRPAsset and then add a migration pattern on them,
+        // don't forget to add your migration step into skipedStepWhenCreatedFromHDRPAsset.
         enum Version
         {
             First,
             UpdateMSAA,
         }
+
+        static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] {};
 
         [SerializeField]
         Version m_Version = MigrationDescription.LastVersion<Version>();
@@ -100,7 +109,18 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
 
             //3. Set version to next & Launch remaining of migration
-            (assetToUpgrade as IMigratableAsset).Migrate();
+            // If we created it from HDRPAsset, we want to pass it from all migration step that are relevant as copied data are at version First
+            assetToUpgrade.m_Version = Version.First; //Step only apply on version older
+            for (Version i = Version.First; i <= MigrationDescription.LastVersion<Version>(); ++i)
+            {
+                if (skipedStepWhenCreatedFromHDRPAsset.Contains(i))
+                    continue;
+
+                k_Migration.ExecuteStep(assetToUpgrade, i);
+            }
+            // Above ExecuteStep will change version. Bring it back to last one.
+            assetToUpgrade.m_Version = MigrationDescription.LastVersion<Version>();
+            UnityEditor.EditorUtility.SetDirty(assetToUpgrade);
         }
 
 #endif
