@@ -167,6 +167,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
 - Fixed an issue where runtime debug window UI would leak game objects.
 - Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 - Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 
 ### Changed
