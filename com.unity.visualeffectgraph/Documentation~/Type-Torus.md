@@ -7,5 +7,6 @@ A 3D torus oriented on the XY plane, defined by a position, a major radius (toru
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | **Center**       | The position of the torus.                                   |
+| **Angles**       | The Eular orientation, in degrees, of the torus.             |
 | **Major Radius** | The radius of the torus. This is the distance from the center of the torus to the center of the tube. |
 | **Minor Radius** | The radius of the tube.                                      |
