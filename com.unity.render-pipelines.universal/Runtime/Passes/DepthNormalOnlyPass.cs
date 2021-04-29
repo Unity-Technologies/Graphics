@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
-            if (renderingData.cameraData.renderer.useDepthPriming)
+            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
                 ConfigureTarget(
                     new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),

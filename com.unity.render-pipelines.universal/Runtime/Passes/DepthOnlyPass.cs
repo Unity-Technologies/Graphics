@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
-            if (renderingData.cameraData.renderer.useDepthPriming)
+            if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
                 ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             }
