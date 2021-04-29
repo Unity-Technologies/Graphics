@@ -348,6 +348,9 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
+// VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectMatrices.hlsl"
+
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 // Undef the matrix error macros so that the DOTS instancing macro works
 #undef unity_ObjectToWorld

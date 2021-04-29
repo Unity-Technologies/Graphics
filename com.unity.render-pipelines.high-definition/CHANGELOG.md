@@ -160,6 +160,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed some reference to old frame settings names in HDRP Wizard.
 - Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 
 ### Changed
