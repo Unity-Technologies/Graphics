@@ -49,6 +49,7 @@ test_hdrp_template_Win_trunk:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -73,6 +74,7 @@ test_hdrp_template_Win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -95,6 +97,7 @@ test_universal_template_Win_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -117,6 +120,7 @@ test_universal_template_Win_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -141,6 +145,7 @@ test_hdrp_template_OSX_trunk:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -165,6 +170,7 @@ test_hdrp_template_OSX_trunk_dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -187,6 +193,7 @@ test_universal_template_OSX_trunk:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -209,6 +216,7 @@ test_universal_template_OSX_trunk_dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade

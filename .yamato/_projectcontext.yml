@@ -233,6 +233,7 @@ test_all_project_Win_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -252,6 +253,7 @@ test_all_project_OSX_trunk:
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
