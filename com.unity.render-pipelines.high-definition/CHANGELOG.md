@@ -168,6 +168,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
 - Fixed a NaN generating in Area light code.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
