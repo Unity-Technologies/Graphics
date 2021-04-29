@@ -52,7 +52,7 @@ test_hdrp_template_Win_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
@@ -76,7 +76,7 @@ test_hdrp_template_Win_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-hd
@@ -98,7 +98,7 @@ test_universal_template_Win_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
@@ -120,7 +120,7 @@ test_universal_template_Win_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --type updated-dependencies-tests --project-path com.unity.template-universal
@@ -144,7 +144,7 @@ test_hdrp_template_OSX_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
@@ -168,7 +168,7 @@ test_hdrp_template_OSX_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --project-path com.unity.template-hd
@@ -190,7 +190,7 @@ test_universal_template_OSX_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
@@ -212,7 +212,7 @@ test_universal_template_OSX_trunk_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --project-path com.unity.template-universal
