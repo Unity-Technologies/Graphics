@@ -28,6 +28,16 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -55,6 +65,8 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
 
@@ -67,7 +79,7 @@ Pass
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
     // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
     // to still allow us to rename the field and keyword of this node without breaking existing code.
-    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT
     #define RAYTRACING_SHADER_GRAPH_HIGH
     #endif
 
@@ -174,6 +186,7 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
+	$features.graphVFX:     $include("VFX/Config.template.hlsl")
     $features.graphVertex:  $include("VertexAnimation.template.hlsl")
     $features.graphPixel:   $include("SharedCode.template.hlsl")
 
@@ -205,7 +218,17 @@ Pass
         #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+
+        #if defined(HAVE_VFX_MODIFICATION)
+        GraphProperties properties;
+        ZERO_INITIALIZE(GraphProperties, properties);
+
+        GetElementPixelProperties(fragInputs, properties);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+        #else
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+        #endif
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
@@ -297,6 +320,13 @@ Pass
     // Main
 
     $splice(PostGraphIncludes)
+
+    // --------------------------------------------------
+    // Visual Effect Vertex Invocations
+
+	#ifdef HAVE_VFX_MODIFICATION
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+	#endif
 
     ENDHLSL
 }

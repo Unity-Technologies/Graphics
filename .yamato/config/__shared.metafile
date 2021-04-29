@@ -1,5 +1,4 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
@@ -10,6 +9,7 @@ editors: # applied for all yml files
   - track: trunk
     name: trunk
     rerun_strategy: on_new_revision
+    ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
       green_abv_required: False
@@ -62,9 +62,9 @@ test_platforms:
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -74,7 +74,7 @@ test_platforms:
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER%
 
-      - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
@@ -89,35 +89,36 @@ test_platforms:
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
+      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-enabledxrtargets=OculusXRSDK"
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
 
       - [all]: --timeout=1200
-      - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
       - [iPhone]: --timeout=1800
 
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
       - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-      - [Android_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
       - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
       - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
 
-      - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -376,6 +377,52 @@ platforms:
                     utr <UTR_FLAGS>
         call_utr_without_git:
           - utr <UTR_FLAGS>
+        unity_downloader_cli:
+          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+        turn_off_firewall:
+          - NetSh Advfirewall set allprofiles state off
+        connect_bokken:
+          - '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+          - powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+        kill_server:
+          - start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+
+
+  XRQuest:
+    name: XRQuest
+    os: windows
+    components:
+      - editor
+      - il2cpp
+      - android
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+    commands:
+      [OpenGLES3, Vulkan]:
+        setup_utr:
+          - pip install pywin32 --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - git clone -b xrperf-urp git@github.cds.internal.unity3d.com:unity/xr.xrautomatedtests.git
+        call_utr:
+          - |5-
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+                    set artifactPath=Boatattack/Quest
+                    set jenkinsJob=SBR_Quest_RunTest
+                    set jenkinsNodeLabel=Quest
+                    set cmd=<UTR_FLAGS>
+                    python xr.xrautomatedtests/.yamato/BuildPlayerAndRun.py -s
         unity_downloader_cli:
           - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only

@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     public struct ShaderGraphRequirements
     {
+        [SerializeField] List<NeededTransform> m_RequiresTransforms;
         [SerializeField] NeededCoordinateSpace m_RequiresNormal;
         [SerializeField] NeededCoordinateSpace m_RequiresBitangent;
         [SerializeField] NeededCoordinateSpace m_RequiresTangent;
@@ -29,9 +30,16 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 return new ShaderGraphRequirements
                 {
+                    m_RequiresTransforms = new List<NeededTransform>(),
                     m_RequiresMeshUVs = new List<UVChannel>()
                 };
             }
+        }
+
+        public List<NeededTransform> requiresTransforms
+        {
+            get { return m_RequiresTransforms; }
+            internal set { m_RequiresTransforms = value; }
         }
 
         public NeededCoordinateSpace requiresNormal
@@ -155,6 +163,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
             where T : AbstractMaterialNode
         {
+            var requiresTransforms = nodes.OfType<IMayRequireTransform>().SelectMany(o => o.RequiresTransform()).Distinct().ToList();
             NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
             NeededCoordinateSpace requiresBitangent = nodes.OfType<IMayRequireBitangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresBitangent(stageCapability));
             NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
@@ -196,6 +205,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
             var reqs = new ShaderGraphRequirements()
             {
+                m_RequiresTransforms = requiresTransforms,
                 m_RequiresNormal = requiresNormal,
                 m_RequiresBitangent = requiresBitangent,
                 m_RequiresTangent = requiresTangent,
