@@ -931,16 +931,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
         {
             displayName = "Decals",
-            referenceName = "_DBUFFER",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "OFF", referenceName = "OFF" },
-                new KeywordEntry() { displayName = "MRT1", referenceName = "MRT1" },
-                new KeywordEntry() { displayName = "MRT2", referenceName = "MRT2" },
-                new KeywordEntry() { displayName = "MRT3", referenceName = "MRT3" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
+                new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
+                new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
             }
         };
 

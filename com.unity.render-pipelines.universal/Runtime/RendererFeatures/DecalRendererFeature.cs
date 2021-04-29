@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
                         technique = DecalTechnique.ScreenSpace;
                     break;
                 case DecalTechniqueOption.ScreenSpace:
-                    bool isDeferred = universalRenderer.actualRenderingMode == RenderingMode.Deferred;
+                    bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
                     if (m_Settings.screenSpaceSettings.useGBuffer && isDeferred)
                         technique = DecalTechnique.GBuffer;
                     else
