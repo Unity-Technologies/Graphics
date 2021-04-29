@@ -259,6 +259,18 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
+            m_ExpressionGraphDirty = true;
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_GraphSanitized = false;
             m_ExpressionGraphDirty = true;
         }
 

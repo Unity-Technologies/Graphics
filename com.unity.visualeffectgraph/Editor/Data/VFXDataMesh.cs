@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
             DestroyCachedMaterial();
         }
 
-        public void OnSRPChanged()
+        private void OnSRPChanged()
         {
             DestroyCachedMaterial();
         }

@@ -127,7 +127,7 @@ namespace UnityEditor.VFX
             VFXLibrary.OnSRPChanged -= OnSRPChanged;
         }
 
-        public void OnSRPChanged()
+        private void OnSRPChanged()
         {
             m_CurrentSubOutput = null;
         }

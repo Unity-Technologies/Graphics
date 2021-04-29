@@ -498,9 +498,7 @@ namespace UnityEditor.VFX
             if (onRPChanged != null)
             {
                 MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
-                Debug.Log("Register SRP Changed callback BEGIN");
                 addHandler.Invoke(null, new Action[] { SRPChanged });
-                Debug.Log("Register SRP Changed callback END");
             }
 
             // Once activeRenderPipelineTypeChanged is public don't use reflection anymore
@@ -512,9 +510,8 @@ namespace UnityEditor.VFX
 
         private static void SRPChanged()
         {
-            Debug.Log("!!! SRP Changed "+currentSRPBinder);
-
-            OnSRPChanged();
+            unsupportedSRPWarningIssued = false;
+            OnSRPChanged?.Invoke();
             VFXAssetManager.Build();
         }
 
