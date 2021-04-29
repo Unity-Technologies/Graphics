@@ -583,10 +583,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
                 if (realtimeSubdivision)
-                {
-                    foreach (var cellPos in result.cellPositions)
-                        ctx.refVolume.realtimeSubdivisionInfo.Add(cell.volume, bricks);
-                }
+                    ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = bricks;
             }
 
             return result;
