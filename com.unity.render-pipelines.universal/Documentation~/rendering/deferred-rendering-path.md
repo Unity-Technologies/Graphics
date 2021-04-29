@@ -22,7 +22,7 @@ This section contains the following topics:
 
 * [Limitations and performance](#limitations-and-performance)
 
-## How to select the Deferred Rendering Path<a name="how-to-enable"></a>
+## <a name="how-to-enable"></a>How to select the Deferred Rendering Path
 
 To select the Rendering Path, use the property **Lighting** > **Rendering Path** in the URP Universal Renderer asset.
 
@@ -42,7 +42,7 @@ The following table shows the differences between the Forward and the Deferred R
 | Vertex lighting | Yes | No |
 | Camera stacking | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
 
-## Unity Player system requirements<a name="requirements"></a>
+## <a name="requirements"></a>Unity Player system requirements
 
 The Deferred Rendering Path has the following requirements and limitations on top of the general system requirements for the Unity Player.
 
@@ -54,7 +54,7 @@ The Deferred Rendering Path has the following requirements and limitations on to
 
 This section describes the implementation details of this feature, and technical details about how this feature functions.
 
-### Encoding of normals in G-buffer<a name="accurate-g-buffer-normals"></a>
+### <a name="accurate-g-buffer-normals"></a>Encoding of normals in G-buffer
 
 In the Deferred Rendering Path, Unity stores normals in the G-buffer. Unity encodes each normal as a 24 bit value.
 
@@ -160,11 +160,11 @@ Unity uses the four lowest bits of this render target to mark the Material type.
 
 For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
 
-### Deferred Rendering Path render Passes<a name="render-passes"></a>
+### <a name="render-passes"></a>Deferred Rendering Path render Passes
 
 The following table shows the sequence of Render Pass events in the Deferred Rendering Path.
 
-<table class="table table-bordered table-striped table-condensed">	
+<table>	
 	<thead>
 	<tr>
 		<th>Render Pass events</th>
@@ -283,7 +283,7 @@ In the Deferred Rendering Path, Unity does not use the depth prepass to generate
 
 If the Universal Renderer has the SSAO Renderer Feature, Unity executes the depth and normal prepass. SSAO uses the screen-space normal buffer to calculate ambient occlusion.
 
-#### SSAO, SSAO and blending optional Passes
+#### Optional passes: SSAO, SSAO with blending 
 
 If the Universal Renderer has the SSAO Renderer Feature, and the **After Opaque** option is disabled (the option is disabled by default), Unity executes the SSAO Pass at the AfterRenderingGbuffer event. The SSAO Renderer Feature calculates the SSAO texture. Unity samples this texture in the Deferred rendering Pass and in the Pass that renders Forward-only Materials.
 
