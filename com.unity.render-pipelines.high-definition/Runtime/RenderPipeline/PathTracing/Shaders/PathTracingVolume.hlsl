@@ -14,6 +14,10 @@ bool SampleVolumeScatteringPosition(inout float theSample, inout float t, inout 
 {
     sampleLocalLights = false;
 
+#if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)  
+    return false;
+#endif
+
     if (!_FogEnabled || !_EnableVolumetricFog)
         return false;
 

@@ -5,6 +5,7 @@
 
 void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 value, bool useFogColor = true)
 {
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)   
     if (_FogEnabled)
     {
         float dist = min(t, _MaxFogDistance);
@@ -17,10 +18,12 @@ void ApplyFogAttenuation(float3 origin, float3 direction, float t, inout float3 
             0.0;
         value = lerp(fogColor, value, fogTransmittance);
     }
+#endif
 }
 
 void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value)
 {
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)   
     if (_FogEnabled)
     {
         float dist = min(_MipFogFar, _MaxFogDistance);
@@ -33,6 +36,7 @@ void ApplyFogAttenuation(float3 origin, float3 direction, inout float3 value)
             0.0;
         value = lerp(fogColor, value, fogTransmittance);
     }
+#endif
 }
 
 #endif // UNITY_ATMOSPHERIC_SCATTERING_RAY_TRACING_INCLUDED

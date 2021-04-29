@@ -42,6 +42,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)
     if (_EnableVolumetricFog && _RaytracingMinRecursion <= 1)
     {
         float3 envValue = pathIntersection.value;
@@ -68,6 +69,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         // Reinject the environment value
         pathIntersection.value += envValue;
     }
+#endif
 }
 
 [shader("miss")]

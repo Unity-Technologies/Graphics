@@ -1129,7 +1129,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DEBUG_DISPLAY
 
             #pragma shader_feature _ SENSORSDK_OVERRIDE_REFLECTANCE
-	    #pragma enable_ray_tracing_shader_debug_symbols
+	    //#pragma enable_ray_tracing_shader_debug_symbols
 	    
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

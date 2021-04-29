@@ -390,9 +390,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
             sampleVolume = SampleVolumeScatteringPosition(inputSample.w, pathIntersection.t, pdf, sampleLocalLights);
     }
 
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)  
     if (sampleVolume)
         ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights);
     else
+#endif    
         ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
 
     // Apply the volume/surface pdf

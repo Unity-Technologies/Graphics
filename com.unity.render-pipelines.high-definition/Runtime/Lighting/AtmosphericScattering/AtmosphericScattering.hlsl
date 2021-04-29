@@ -253,6 +253,7 @@ float3 GetViewForwardDir1(float4x4 viewMatrix)
 
 void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3 color, out float3 opacity)
 {
+#if !defined(SENSORSDK_SHADERGRAPH) && !defined(SENSORSDK_OVERRIDE_REFLECTANCE)       
     color = opacity = 0;
 
 #ifdef DEBUG_DISPLAY
@@ -374,6 +375,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         CompositeOver(color, opacity, skyColor, skyOpacity, color, opacity);
 #endif
     }
+#endif
 }
 
 
