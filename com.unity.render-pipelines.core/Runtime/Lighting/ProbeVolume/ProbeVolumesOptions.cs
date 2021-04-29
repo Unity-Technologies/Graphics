@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Experimental/Probe Volumes Options")]
+    [Serializable, VolumeComponentMenu("Lighting/Probe Volumes Options (Experimental)")]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         /// <summary>

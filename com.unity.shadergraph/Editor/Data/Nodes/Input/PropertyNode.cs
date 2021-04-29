@@ -225,6 +225,14 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
             }
+
+            if (property.isConnectionTestable)
+            {
+                // If in a subgraph, the value will be read from a function parameter.
+                // If generating preview mode code, we always inline the value, according to code gen requirements.
+                // The parent graph always sets the explicit value to be passed to a subgraph function.
+                sb.AppendLine("bool {0} = {1};", GetConnectionStateVariableNameForSlot(OutputSlotId), (mode == GenerationMode.Preview || !isGeneratingSubgraph) ? (IsSlotConnected(OutputSlotId) ? "true" : "false") : property.GetConnectionStateHLSLVariableName());
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -235,7 +243,13 @@ namespace UnityEditor.ShaderGraph
                 case PropertyType.VirtualTexture:
                     return property.GetHLSLVariableName(owner.isSubGraph);
             }
+
             return base.GetVariableNameForSlot(slotId);
+        }
+
+        public string GetConnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
         }
 
         protected override void CalculateNodeHasError()
