@@ -12,6 +12,7 @@ public class DebugViewController_Editor : Editor
 
     SerializedProperty s_gBuffer;
     SerializedProperty s_fullScreenDebugMode;
+    SerializedProperty s_lightingFullScreenDebugMode;
 
     SerializedProperty s_lightlayers;
 
@@ -21,6 +22,7 @@ public class DebugViewController_Editor : Editor
 
         s_gBuffer = serializedObject.FindProperty("gBuffer");
         s_fullScreenDebugMode = serializedObject.FindProperty("fullScreenDebugMode");
+        s_lightingFullScreenDebugMode = serializedObject.FindProperty("lightingFullScreenDebugMode");
         s_lightlayers = serializedObject.FindProperty("lightlayers");
     }
 
@@ -45,7 +47,8 @@ public class DebugViewController_Editor : Editor
 
                 case DebugViewController.SettingType.Lighting:
                     s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Light Layers Visualization");
-                    break;
+                    s_lightingFullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_lightingFullScreenDebugMode.intValue, DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues);
+					break;
 
                 case DebugViewController.SettingType.Rendering:
                     s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
