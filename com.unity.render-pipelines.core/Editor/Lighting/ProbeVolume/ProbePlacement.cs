@@ -311,7 +311,6 @@ namespace UnityEngine.Experimental.Rendering
 
         static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget, int maxBrickCountPerAxis, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers)
         {
-            // TODO: group renderers by loaded scene + fill the map?
             var cellAABB = cellVolume.CalculateAABB();
 
             cmd.BeginSample("Clear");
@@ -322,7 +321,6 @@ namespace UnityEngine.Experimental.Rendering
 
             // Hum, will this cause binding issues for other systems?
             cmd.SetRandomWriteTarget(4, sceneSDF);
-            // cmd.ClearRandomWriteTargets();
 
             var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
             mat.SetVector("_OutputSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
@@ -336,12 +334,9 @@ namespace UnityEngine.Experimental.Rendering
             Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
             {
                 var worldToCamera = Matrix4x4.Rotate(rotation);
-                // var projection = Matrix4x4.Ortho(-cellAABB.extents.x, cellAABB.extents.x, -cellAABB.extents.y, cellAABB.extents.y, -cellAABB.extents.z, cellAABB.extents.z);
                 var projection = Matrix4x4.Ortho(-1, 1, -1, 1, -1, 1);
                 return projection * worldToCamera;
             }
-
-            // Voxelize all meshes
 
             // We need to bind at least something for rendering
             cmd.SetRenderTarget(dummyRenderTarget);

@@ -539,6 +539,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RefVolTransform GetTransform() { return m_Transform; }
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
+        internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
 
         /// <summary>
         /// Returns whether any brick data has been loaded.

@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
 
             // Round min and max subdiv
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1);
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
             float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
             float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
 
@@ -85,10 +85,9 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            // To display the subdiv count, we add one because the first level is the cell.
-            int maxVisibleSubdiv = (int)maxSubdiv + 1;
-            // TODO: display distances in m instead of subdiv levels
-            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {serialized.minSubdivisionMultiplier.floatValue * maxVisibleSubdiv} and {serialized.maxSubdivisionMultiplier.floatValue * maxVisibleSubdiv}", MessageType.Info);
+            int minSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.minSubdivisionMultiplier.floatValue);
+            int maxSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - serialized.maxSubdivisionMultiplier.floatValue);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(minSubdivInVolume)}m", MessageType.Info);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;
