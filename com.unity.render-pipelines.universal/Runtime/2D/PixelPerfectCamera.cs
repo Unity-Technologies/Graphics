@@ -7,13 +7,47 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// <summary>
     /// The Pixel Perfect Camera component ensures your pixel art remains crisp and clear at different resolutions, and stable in motion.
     /// </summary>
+    [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
-    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
+    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {
+        public enum CropFrame
+        {
+            None,
+            Pillarbox,
+            Letterbox,
+            Windowbox,
+            StretchFill
+        }
+
+        public enum GridSnapping
+        {
+            None,
+            PixelSnapping,
+            UpscaleRenderTexture
+        }
+
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+
+
+#if UNITY_EDITOR
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+#endif
+
+        public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
+        public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
+
+        public float orthographicSize { get { return m_Internal.orthoSize; } }
+
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.
         /// </summary>
@@ -33,29 +67,113 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// Set to true to have the Scene rendered to a temporary texture set as close as possible to the Reference Resolution,
         /// while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the full screen.
         /// </summary>
-        public bool upscaleRT { get { return m_UpscaleRT; } set { m_UpscaleRT = value; } }
+        [System.Obsolete("Use gridSnapping instead", false)]
+        public bool upscaleRT
+        {
+            get
+            {
+                return m_GridSnapping == GridSnapping.UpscaleRenderTexture;
+            }
+            set
+            {
+                m_GridSnapping = value ? GridSnapping.UpscaleRenderTexture : GridSnapping.None;
+            }
+        }
 
         /// <summary>
         /// Set to true to prevent subpixel movement and make Sprites appear to move in pixel-by-pixel increments.
         /// Only applicable when upscaleRT is false.
         /// </summary>
-        public bool pixelSnapping { get { return m_PixelSnapping; } set { m_PixelSnapping = value; } }
+        [System.Obsolete("Use gridSnapping instead", false)]
+        public bool pixelSnapping
+        {
+            get
+            {
+                return m_GridSnapping == GridSnapping.PixelSnapping;
+            }
+            set
+            {
+                m_GridSnapping = value ? GridSnapping.PixelSnapping : GridSnapping.None;
+            }
+        }
 
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionX in the horizontal direction.
         /// </summary>
-        public bool cropFrameX { get { return m_CropFrameX; } set { m_CropFrameX = value; } }
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool cropFrameX
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Pillarbox;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (m_CropFrame == CropFrame.None)
+                        m_CropFrame = CropFrame.Pillarbox;
+                    else if (m_CropFrame == CropFrame.Letterbox)
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else
+                {
+                    if (m_CropFrame == CropFrame.Pillarbox)
+                        m_CropFrame = CropFrame.None;
+                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
+                        m_CropFrame = CropFrame.Letterbox;
+                }
+            }
+        }
 
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionY in the vertical direction.
         /// </summary>
-        public bool cropFrameY { get { return m_CropFrameY; } set { m_CropFrameY = value; } }
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool cropFrameY
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (m_CropFrame == CropFrame.None)
+                        m_CropFrame = CropFrame.Letterbox;
+                    else if (m_CropFrame == CropFrame.Pillarbox)
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else
+                {
+                    if (m_CropFrame == CropFrame.Letterbox)
+                        m_CropFrame = CropFrame.None;
+                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
+                        m_CropFrame = CropFrame.Pillarbox;
+                }
+            }
+        }
 
         /// <summary>
         /// Set to true to expand the viewport to fit the screen resolution while maintaining the viewport's aspect ratio.
         /// Only applicable when both cropFrameX and cropFrameY are true.
         /// </summary>
-        public bool stretchFill { get { return m_StretchFill; } set { m_StretchFill = value; } }
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool stretchFill
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill;
+            }
+            set
+            {
+                if (value)
+                    m_CropFrame = CropFrame.StretchFill;
+                else
+                    m_CropFrame = CropFrame.Windowbox;
+            }
+        }
 
         /// <summary>
         /// Ratio of the rendered Sprites compared to their original size (readonly).
@@ -66,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (m_CinemachineCompatibilityMode)
                 {
-                    if (m_UpscaleRT)
+                    if (m_GridSnapping == GridSnapping.UpscaleRenderTexture)
                         return m_Internal.zoom * m_Internal.cinemachineVCamZoom;
                     else
                         return m_Internal.cinemachineVCamZoom;
@@ -118,36 +236,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int    m_AssetsPPU         = 100;
         [SerializeField] int    m_RefResolutionX    = 320;
         [SerializeField] int    m_RefResolutionY    = 180;
-        [SerializeField] bool   m_UpscaleRT;
-        [SerializeField] bool   m_PixelSnapping;
-        [SerializeField] bool   m_CropFrameX;
-        [SerializeField] bool   m_CropFrameY;
-        [SerializeField] bool   m_StretchFill;
+
+        [SerializeField] CropFrame m_CropFrame;
+        [SerializeField] GridSnapping m_GridSnapping;
+
+        // These are obsolete. They are here only for migration.
+#if UNITY_EDITOR
+        [SerializeField] bool m_UpscaleRT;
+        [SerializeField] bool m_PixelSnapping;
+        [SerializeField] bool m_CropFrameX;
+        [SerializeField] bool m_CropFrameY;
+        [SerializeField] bool m_StretchFill;
+#endif
 
         Camera m_Camera;
         PixelPerfectCameraInternal m_Internal;
         bool m_CinemachineCompatibilityMode;
 
-        internal bool isRunning
-        {
-            get
-            {
-#if UNITY_EDITOR
-                return (Application.isPlaying || runInEditMode) && enabled;
-#else
-                return enabled;
-#endif
-            }
-        }
-
         internal FilterMode finalBlitFilterMode
         {
             get
             {
-                if (!isRunning)
-                    return FilterMode.Bilinear;
-                else
-                    return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 
@@ -155,10 +265,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                if (!isRunning)
-                    return Vector2Int.zero;
-                else
-                    return new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
+                return new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
             }
         }
 
@@ -188,7 +295,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
-            m_Internal.originalOrthoSize = m_Camera.orthographicSize;
 
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
@@ -208,10 +314,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 
-            // In Cinemachine compatibility mode the control over orthographic size should
-            // be given to the virtual cameras, whose orthographic sizes will be corrected to
-            // be pixel-perfect. This way when there's blending between virtual cameras, we
-            // can have temporary not-pixel-perfect but smooth transitions.
             if (!m_CinemachineCompatibilityMode)
             {
                 m_Camera.orthographicSize = m_Internal.orthoSize;
@@ -237,11 +339,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-                UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChanged;
-#endif
         }
 
         internal void OnDisable()
@@ -251,24 +348,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
             m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
-            m_Camera.orthographicSize = m_Internal.originalOrthoSize;
             m_Camera.ResetWorldToCameraMatrix();
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-                UnityEditor.EditorApplication.playModeStateChanged -= OnPlayModeChanged;
-#endif
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         // Show on-screen warning about invalid render resolutions.
         void OnGUI()
         {
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying && !runInEditMode)
-                return;
-#endif
-
             Color oldColor = GUI.color;
             GUI.color = Color.red;
 
@@ -295,17 +381,48 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 #endif
 
-#if UNITY_EDITOR
-        void OnPlayModeChanged(UnityEditor.PlayModeStateChange state)
+
+        public void OnBeforeSerialize()
         {
-            // Stop running in edit mode when entering play mode.
-            if (state == UnityEditor.PlayModeStateChange.ExitingEditMode)
-            {
-                runInEditMode = false;
-                OnDisable();
-            }
+#if UNITY_EDITOR
+            m_ComponentVersion = k_CurrentComponentVersion;
+#endif
         }
 
+        public void OnAfterDeserialize()
+        {
+#if UNITY_EDITOR
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                if (m_UpscaleRT)
+                    m_GridSnapping = GridSnapping.UpscaleRenderTexture;
+                else if (m_PixelSnapping)
+                    m_GridSnapping = GridSnapping.PixelSnapping;
+
+                if (m_CropFrameX && m_CropFrameY)
+                {
+                    if (m_StretchFill)
+                        m_CropFrame = CropFrame.StretchFill;
+                    else
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else if (m_CropFrameX)
+                {
+                    m_CropFrame = CropFrame.Pillarbox;
+                }
+                else if (m_CropFrameY)
+                {
+                    m_CropFrame = CropFrame.Letterbox;
+                }
+                else
+                {
+                    m_CropFrame = CropFrame.None;
+                }
+
+                m_ComponentVersion = ComponentVersions.Version_1;
+            }
 #endif
+        }
     }
 }

@@ -40,6 +40,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Area Light support for Hair and Fabric master nodes.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 - Added support for Fabric material in Path Tracing.
+- Added help URL for volumetric clouds override.
+- Added Global settings check in Wizard
+- Added localization on Wizard window
+- Added an info box for micro shadow editor (case 1322830).
+- Added support for alpha channel in FXAA (case 1323941).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+- Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
+- Added support for lighting full screen debug mode in automated tests.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -76,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
+- Fixed Force RGBA16 when scene filtering is active (case 1228736)
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
 - Fixed issue with NaNs in Volumetric Clouds on some platforms.
@@ -101,7 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed Missing lighting quality settings for SSGI (case 1312067).
 - Fixed HDRP material being constantly dirty.
-- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed wizard checking FrameSettings not in HDRP Global Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 - Fixed gizmo rendering when wireframe mode is selected.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
@@ -115,7 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- The default LookDev volume profile is now copied and referenced in the Asset folder instead of the package folder.
 - Fixed SSS on console platforms.
 - Assets going through the migration system are now dirtied.
 - Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
@@ -131,6 +140,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 - Fixed missing Update in Wizard's DXR Documentation
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed global Settings ignore the path set via Fix All in HDRP wizard (case 1327978)
+- Fixed issue with an assert getting triggered with OnDemand shadows.
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed ResourceReloader that was not call anymore at pipeline construction
+- Fixed undo of some properties on light editor.
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed some reference to old frame settings names in HDRP Wizard.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -189,10 +222,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
+- Materials with Transparent Surface type, the property Sorting Priority is clamped on the UI from -50 to 50 instead of -100 to 100.
 - Improved lighting models for AxF shader area lights.
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
-- Added Global settings check in Wizard
-- Added localization on Wizard window
+- UI for Frame Settings has been updated: default values in the HDRP Settings and Custom Frame Settings are always editable
+- Updated Light's shadow layer name in Editor.
+- Increased path tracing max samples from 4K to 16K (case 1327729).
+- Film grain does not affect the alpha channel.
+- Disable TAA sharpening on alpha channel.
+- Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
+- Default black texture XR is now opaque (alpha = 1).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [11.0.0] - 2020-10-21
 
@@ -2226,6 +2267,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
 - Re-enable SRP batcher for metal
+- Updated Frame Settings UX in the HDRP Settings and Camera
 
 ## [5.2.0-preview] - 2018-11-27
 

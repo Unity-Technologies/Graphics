@@ -1,10 +1,9 @@
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEditor.Rendering;
-using UnityEditorInternal;
 
 // TODO(Nicholas): deduplicate with LocalVolumetricFogUI.Drawer.cs.
-namespace UnityEditor.Rendering
+namespace UnityEditor.Experimental.Rendering
 {
     using CED = CoreEditorDrawer<SerializedProbeVolume>;
 
@@ -24,39 +23,9 @@ namespace UnityEditor.Rendering
 
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
-                Drawer_FeatureWarningMessage
-                ),
-            CED.Conditional(
-                IsFeatureDisabled,
-                Drawer_FeatureEnableInfo
-                ),
-            CED.Conditional(
-                IsFeatureEnabled,
-                CED.Group(
-                    Drawer_VolumeContent
-                )
+                Drawer_VolumeContent
             )
         );
-
-        static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
-        {
-            return true;
-        }
-
-        static bool IsFeatureDisabled(SerializedProbeVolume serialized, Editor owner)
-        {
-            return false;
-        }
-
-        static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)
-        {
-            EditorGUILayout.HelpBox(Styles.k_featureWarning, MessageType.Warning);
-        }
-
-        static void Drawer_FeatureEnableInfo(SerializedProbeVolume serialized, Editor owner)
-        {
-            EditorGUILayout.HelpBox(Styles.k_featureEnableInfo, MessageType.Error);
-        }
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
@@ -70,6 +39,23 @@ namespace UnityEditor.Rendering
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+
+            var rect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.minSubdivisionMultiplier);
+            EditorGUI.BeginProperty(rect, Styles.s_MinMaxSubdivSlider, serialized.maxSubdivisionMultiplier);
+
+            // Round min and max subdiv
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(1) - 1;
+            float min = Mathf.Round(serialized.minSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
+            float max = Mathf.Round(serialized.maxSubdivisionMultiplier.floatValue * maxSubdiv) / maxSubdiv;
+
+            EditorGUILayout.MinMaxSlider(Styles.s_MinMaxSubdivSlider, ref min, ref max, 0, 1);
+            serialized.minSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, min);
+            serialized.maxSubdivisionMultiplier.floatValue = Mathf.Max(0.01f, max);
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+
+            EditorGUILayout.HelpBox($"The probe subdivision will fluctuate between {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.minSubdivisionMultiplier.floatValue)} and {ProbeReferenceVolume.instance.GetMaxSubdivision(serialized.maxSubdivisionMultiplier.floatValue)}", MessageType.Info);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;

@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
-        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.IsShaderGraph());
 
         /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
         float GetShaderDefaultFloatValue(string propName)
@@ -581,7 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    materialEditor.IntShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
+                    materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriortyRange, HDRenderQueue.sortingPriortyRange, Styles.transparentSortPriorityText);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
