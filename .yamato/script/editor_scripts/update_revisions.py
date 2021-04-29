@@ -47,7 +47,7 @@ def get_last_revisions_from_ono(api_key, last_retrieved_revision, ono_branch):
         ono_query = '''
         {
             repository(name: "unity/unity") {
-                changelog(branch: "ONO_BRANCH", limit: 5) {
+                changelog(branch: "ONO_BRANCH", limit: 100) {
                         nodes{
                             id
                             date
