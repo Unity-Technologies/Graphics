@@ -95,5 +95,13 @@ namespace UnityEngine.Rendering.UI
             return GetComponent<DebugUIHandlerContainer>()
                 .GetFirstItem();
         }
+
+        /// <summary>
+        /// Function to reset DebugManager, provided for UI.
+        /// </summary>
+        public void ResetDebugManager()
+        {
+            DebugManager.instance.Reset();
+        }
     }
 }
