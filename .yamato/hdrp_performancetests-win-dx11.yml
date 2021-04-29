@@ -34,7 +34,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_cache_il2cpp_Linear on version trunk
@@ -62,7 +62,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version trunk
@@ -90,7 +90,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_cache_il2cpp_Linear on version trunk
@@ -118,7 +118,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version CUSTOM-REVISION

@@ -74,7 +74,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_tru
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_editor_mono_Linear on version trunk
@@ -136,7 +136,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_playmode_editor_mono_Linear_trun
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
     name: URP_Performance_LostCrypt on OSX_Metal_performance_build_editmode_mono_Linear on version trunk
@@ -198,7 +198,7 @@ URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 URP_Performance_LostCrypt_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on OSX_Metal_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION

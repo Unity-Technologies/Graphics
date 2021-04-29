@@ -37,7 +37,7 @@ HDRP_Hybrid_Win_DX12_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_playmode_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX12_playmode_cache_mono_Linear on version trunk
@@ -68,7 +68,7 @@ HDRP_Hybrid_Win_DX12_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_playmode_XR_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX12_playmode_XR_mono_Linear on version trunk
@@ -99,7 +99,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_playmode_XR_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX12_playmode_XR_cache_mono_Linear on version trunk
@@ -130,7 +130,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX12_Standalone_mono_Linear on version trunk
@@ -159,7 +159,7 @@ HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-win-dx12.yml#Build_HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -194,7 +194,7 @@ Build_HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_Standalone_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Win_DX12_Standalone_cache_mono_Linear on version trunk
@@ -223,7 +223,7 @@ HDRP_Hybrid_Win_DX12_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-win-dx12.yml#Build_HDRP_Hybrid_Win_DX12_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -258,7 +258,7 @@ Build_HDRP_Hybrid_Win_DX12_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Hybrid_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Win_DX12_playmode_mono_Linear on version CUSTOM-REVISION

@@ -31,7 +31,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-iphone-metal.yml#Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -64,7 +64,7 @@ Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 URP_Foundation_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     name: URP_Foundation on iPhone_Metal_Standalone_cache_il2cpp_Linear on version trunk
@@ -89,7 +89,7 @@ URP_Foundation_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-iphone-metal.yml#Build_URP_Foundation_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -122,7 +122,7 @@ Build_URP_Foundation_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Foundation on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION

@@ -35,7 +35,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
     name: HDRP on Linux_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -64,7 +64,7 @@ HDRP_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Linux_Vulkan_editmode_mono_Linear_trunk:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version trunk
@@ -93,7 +93,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version trunk
@@ -116,7 +116,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -150,7 +150,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: HDRP on Linux_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -173,7 +173,7 @@ HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -207,7 +207,7 @@ Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION

@@ -33,7 +33,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on_new_revision
@@ -96,7 +96,7 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk:
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_editor_mono_Linear on version trunk
@@ -153,7 +153,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_t
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk:
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_build_editmode_mono_Linear on version trunk
@@ -210,7 +210,7 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_tr
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION

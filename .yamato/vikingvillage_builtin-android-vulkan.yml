@@ -40,7 +40,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -98,7 +98,7 @@ Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_L
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     name: VikingVillage_BuiltIn on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
@@ -151,7 +151,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_tr
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION

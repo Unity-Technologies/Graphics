@@ -38,7 +38,7 @@ HDRP_OSX_Metal_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk:
     name: HDRP on OSX_Metal_playmode_cache_mono_Linear on version trunk
@@ -70,7 +70,7 @@ HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_playmode_XR_mono_Linear_trunk:
     name: HDRP on OSX_Metal_playmode_XR_mono_Linear on version trunk
@@ -102,7 +102,7 @@ HDRP_OSX_Metal_playmode_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_playmode_XR_cache_mono_Linear_trunk:
     name: HDRP on OSX_Metal_playmode_XR_cache_mono_Linear on version trunk
@@ -134,7 +134,7 @@ HDRP_OSX_Metal_playmode_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_Standalone_mono_Linear_trunk:
     name: HDRP on OSX_Metal_Standalone_mono_Linear on version trunk
@@ -166,7 +166,7 @@ HDRP_OSX_Metal_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk:
     name: HDRP on OSX_Metal_Standalone_cache_mono_Linear on version trunk
@@ -198,7 +198,7 @@ HDRP_OSX_Metal_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION

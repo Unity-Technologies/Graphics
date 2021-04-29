@@ -35,7 +35,7 @@ URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#Build_URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -71,7 +71,7 @@ Build_URP_Foundation_Win_DX11_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_playmode_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_playmode_mono_Linear on version trunk
@@ -103,7 +103,7 @@ URP_Foundation_Win_DX11_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_playmode_cache_mono_Linear on version trunk
@@ -135,7 +135,7 @@ URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_editmode_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_editmode_mono_Linear on version trunk
@@ -166,7 +166,7 @@ URP_Foundation_Win_DX11_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_playmode_XR_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_playmode_XR_mono_Linear on version trunk
@@ -198,7 +198,7 @@ URP_Foundation_Win_DX11_playmode_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_playmode_XR_cache_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_playmode_XR_cache_mono_Linear on version trunk
@@ -230,7 +230,7 @@ URP_Foundation_Win_DX11_playmode_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_Standalone_cache_mono_Linear on version trunk
@@ -259,7 +259,7 @@ URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#Build_URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -295,7 +295,7 @@ Build_URP_Foundation_Win_DX11_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk:
     name: URP_Foundation on Win_DX11_Standalone_XR_cache_mono_Linear on version trunk
@@ -325,7 +325,7 @@ URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/urp_foundation-win-dx11.yml#Build_URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -361,7 +361,7 @@ Build_URP_Foundation_Win_DX11_Standalone_XR_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URP_Foundation_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION

@@ -38,7 +38,7 @@ URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-opengles3.yml#Build_URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -74,7 +74,7 @@ Build_URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_OpenGLES3_Standalone_cache_il2cpp_Linear on version trunk
@@ -106,7 +106,7 @@ URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-opengles3.yml#Build_URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -142,7 +142,7 @@ Build_URP_Lighting_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 URP_Lighting_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_OpenGLES3_Standalone_il2cpp_Linear on version CUSTOM-REVISION

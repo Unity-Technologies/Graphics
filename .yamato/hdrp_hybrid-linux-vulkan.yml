@@ -35,7 +35,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Linux_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -64,7 +64,7 @@ HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version trunk
@@ -87,7 +87,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -121,7 +121,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: HDRP_Hybrid on Linux_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -144,7 +144,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -178,7 +178,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP_Hybrid on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION

@@ -53,7 +53,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Li
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:XRQuest
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:XRQuest
          rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-xrquest-vulkan.yml#Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -134,7 +134,7 @@ Build_URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:XRQuest
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:XRQuest
          rerun: on_new_revision
 URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     name: URP_Performance_BoatAttack on XRQuest_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
@@ -209,7 +209,7 @@ URP_Performance_BoatAttack_XRQuest_Vulkan_performance_build_editmode_il2cpp_Line
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:XRQuest
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:XRQuest
          rerun: on_new_revision
 URP_Performance_BoatAttack_XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on XRQuest_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION

@@ -43,7 +43,7 @@ URPUpdate_Win_DX11_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP-Update-Testing/URP-Update-Testing/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URPUpdate_Win_DX11_editmode_mono_Linear_trunk:
     name: URPUpdate on Win_DX11_editmode_mono_Linear on version trunk
@@ -80,7 +80,7 @@ URPUpdate_Win_DX11_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/URP-Update-Testing/URP-Update-Testing/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 URPUpdate_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION

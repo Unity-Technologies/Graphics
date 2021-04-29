@@ -47,7 +47,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -114,7 +114,7 @@ Build_URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_i
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk:
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version trunk
@@ -176,7 +176,7 @@ URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Li
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION

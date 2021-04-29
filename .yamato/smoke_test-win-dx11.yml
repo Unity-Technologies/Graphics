@@ -36,7 +36,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Smoke_Test_Win_DX11_editmode_mono_Linear_trunk:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version trunk
@@ -66,7 +66,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version trunk
@@ -94,7 +94,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -130,7 +130,7 @@ Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION

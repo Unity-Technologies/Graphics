@@ -34,7 +34,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/universal_hybrid-win-vulkan.yml#Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -69,7 +69,7 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_playmode_mono_Linear on version trunk
@@ -99,7 +99,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_playmode_cache_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -129,7 +129,7 @@ Universal_Hybrid_Win_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -157,7 +157,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/universal_hybrid-win-vulkan.yml#Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -192,7 +192,7 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION

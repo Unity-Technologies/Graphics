@@ -38,7 +38,7 @@ ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -74,7 +74,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: ShaderGraph on Android_Vulkan_Standalone_cache_il2cpp_Linear on version trunk
@@ -106,7 +106,7 @@ ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/shadergraph-android-vulkan.yml#Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -142,7 +142,7 @@ Build_ShaderGraph_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION

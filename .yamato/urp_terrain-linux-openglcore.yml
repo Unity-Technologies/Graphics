@@ -35,7 +35,7 @@ URP_Terrain_Linux_OpenGLCore_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Terrain_Linux_OpenGLCore_playmode_cache_mono_Linear_trunk:
     name: URP_Terrain on Linux_OpenGLCore_playmode_cache_mono_Linear on version trunk
@@ -64,7 +64,7 @@ URP_Terrain_Linux_OpenGLCore_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Terrain_Linux_OpenGLCore_editmode_mono_Linear_trunk:
     name: URP_Terrain on Linux_OpenGLCore_editmode_mono_Linear on version trunk
@@ -93,7 +93,7 @@ URP_Terrain_Linux_OpenGLCore_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_Terrain_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Terrain on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION

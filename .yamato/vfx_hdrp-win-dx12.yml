@@ -35,7 +35,7 @@ VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx12.yml#Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -70,7 +70,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_Standalone_PerformanceTests_mono_Linear on version trunk
@@ -99,7 +99,7 @@ VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx12.yml#Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
@@ -134,7 +134,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_PerformanceTests_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_mono_Linear on version trunk
@@ -165,7 +165,7 @@ VFX_HDRP_Win_DX12_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_playmode_cache_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_cache_mono_Linear on version trunk
@@ -196,7 +196,7 @@ VFX_HDRP_Win_DX12_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_XR_mono_Linear on version trunk
@@ -227,7 +227,7 @@ VFX_HDRP_Win_DX12_playmode_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_playmode_XR_cache_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_XR_cache_mono_Linear on version trunk
@@ -258,7 +258,7 @@ VFX_HDRP_Win_DX12_playmode_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_playmode_PerformanceTests_mono_Linear on version trunk
@@ -289,7 +289,7 @@ VFX_HDRP_Win_DX12_playmode_PerformanceTests_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_editmode_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_editmode_mono_Linear on version trunk
@@ -319,7 +319,7 @@ VFX_HDRP_Win_DX12_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_editmode_PerformanceTests_mono_Linear on version trunk
@@ -350,7 +350,7 @@ VFX_HDRP_Win_DX12_editmode_PerformanceTests_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk:
     name: VFX_HDRP on Win_DX12_Standalone_cache_mono_Linear on version trunk
@@ -379,7 +379,7 @@ VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx12.yml#Build_VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -414,7 +414,7 @@ Build_VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VFX_HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     name: VFX_HDRP on Win_DX12_Standalone_mono_Linear on version CUSTOM-REVISION

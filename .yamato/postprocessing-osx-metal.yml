@@ -38,7 +38,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 PostProcessing_OSX_Metal_playmode_cache_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_playmode_cache_mono_Linear on version trunk
@@ -70,7 +70,7 @@ PostProcessing_OSX_Metal_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_Standalone_mono_Linear on version trunk
@@ -102,7 +102,7 @@ PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 PostProcessing_OSX_Metal_Standalone_cache_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_Standalone_cache_mono_Linear on version trunk
@@ -134,7 +134,7 @@ PostProcessing_OSX_Metal_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
          rerun: on_new_revision
 PostProcessing_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION

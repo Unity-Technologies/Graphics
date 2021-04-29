@@ -34,7 +34,7 @@ ShaderGraph_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/shadergraph-win-vulkan.yml#Build_ShaderGraph_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -69,7 +69,7 @@ Build_ShaderGraph_Win_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Win_Vulkan_playmode_mono_Linear_trunk:
     name: ShaderGraph on Win_Vulkan_playmode_mono_Linear on version trunk
@@ -100,7 +100,7 @@ ShaderGraph_Win_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Win_Vulkan_playmode_cache_mono_Linear_trunk:
     name: ShaderGraph on Win_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -131,7 +131,7 @@ ShaderGraph_Win_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Win_Vulkan_editmode_mono_Linear_trunk:
     name: ShaderGraph on Win_Vulkan_editmode_mono_Linear on version trunk
@@ -161,7 +161,7 @@ ShaderGraph_Win_Vulkan_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: ShaderGraph on Win_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -189,7 +189,7 @@ ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/shadergraph-win-vulkan.yml#Build_ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -224,7 +224,7 @@ Build_ShaderGraph_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION

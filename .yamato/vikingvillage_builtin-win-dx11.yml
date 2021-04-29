@@ -37,7 +37,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
          rerun: on_new_revision
@@ -94,7 +94,7 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_tr
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
     name: VikingVillage_BuiltIn on Win_DX11_performance_playmode_editor_mono_Linear on version trunk
@@ -147,7 +147,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_trunk:
     name: VikingVillage_BuiltIn on Win_DX11_performance_build_editmode_mono_Linear on version trunk
@@ -199,7 +199,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION

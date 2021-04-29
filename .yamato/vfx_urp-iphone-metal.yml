@@ -31,7 +31,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -64,7 +64,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear on version trunk
@@ -89,7 +89,7 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -122,7 +122,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear on version trunk
@@ -150,7 +150,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear on version trunk
@@ -178,7 +178,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_Standalone_cache_il2cpp_Linear on version trunk
@@ -203,7 +203,7 @@ VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -236,7 +236,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:iPhone
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
          rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: VFX_URP on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION

@@ -33,7 +33,7 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -67,7 +67,7 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
     name: ShaderGraph_Stereo on Win__editmode_mono_Linear on version trunk
@@ -96,7 +96,7 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
     name: ShaderGraph_Stereo on Win__Standalone_cache_mono_Linear on version trunk
@@ -123,7 +123,7 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -157,7 +157,7 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__Standalone_mono_Linear on version CUSTOM-REVISION

@@ -40,7 +40,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-android-opengles3.yml#Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
@@ -98,7 +98,7 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk:
     name: VikingVillage_URP on Android_OpenGLES3_performance_build_editmode_il2cpp_Linear on version trunk
@@ -151,7 +151,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
          rerun: on_new_revision
 VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: VikingVillage_URP on Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION

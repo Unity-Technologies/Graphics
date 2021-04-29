@@ -37,7 +37,7 @@ HDRP_Win_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_playmode_cache_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -68,7 +68,7 @@ HDRP_Win_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_playmode_XR_mono_Linear on version trunk
@@ -99,7 +99,7 @@ HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_playmode_XR_cache_mono_Linear on version trunk
@@ -130,7 +130,7 @@ HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_editmode_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_editmode_mono_Linear on version trunk
@@ -160,7 +160,7 @@ HDRP_Win_Vulkan_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_Standalone_mono_Linear on version trunk
@@ -189,7 +189,7 @@ HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -224,7 +224,7 @@ Build_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: HDRP on Win_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -253,7 +253,7 @@ HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -288,7 +288,7 @@ Build_HDRP_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
          rerun: on_new_revision
 HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION

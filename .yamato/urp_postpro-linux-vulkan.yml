@@ -29,7 +29,7 @@ URP_PostPro_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#Build_URP_PostPro_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -63,7 +63,7 @@ Build_URP_PostPro_Linux_Vulkan_Standalone_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_PostPro_Linux_Vulkan_playmode_mono_Linear_trunk:
     name: URP_PostPro on Linux_Vulkan_playmode_mono_Linear on version trunk
@@ -92,7 +92,7 @@ URP_PostPro_Linux_Vulkan_playmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
     name: URP_PostPro on Linux_Vulkan_playmode_cache_mono_Linear on version trunk
@@ -121,7 +121,7 @@ URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_PostPro_Linux_Vulkan_editmode_mono_Linear_trunk:
     name: URP_PostPro on Linux_Vulkan_editmode_mono_Linear on version trunk
@@ -150,7 +150,7 @@ URP_PostPro_Linux_Vulkan_editmode_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_PostPro_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: URP_PostPro on Linux_Vulkan_Standalone_cache_mono_Linear on version trunk
@@ -173,7 +173,7 @@ URP_PostPro_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_PostPro/Logs/*.log"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#Build_URP_PostPro_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
@@ -207,7 +207,7 @@ Build_URP_PostPro_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "players*/**"
     dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Linux
          rerun: on_new_revision
 URP_PostPro_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: URP_PostPro on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
