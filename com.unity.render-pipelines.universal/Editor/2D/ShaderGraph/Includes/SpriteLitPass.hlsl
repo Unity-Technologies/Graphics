@@ -1,3 +1,7 @@
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
+
 #if USE_SHAPE_LIGHT_TYPE_0
 SHAPE_LIGHT(0)
 #endif
@@ -40,5 +44,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     color *= unpacked.color;
-    return CombinedShapeLightShared(color, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+
+    SurfaceData2D surfaceData;
+    InitializeSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, surfaceData);
+    InputData2D inputData;
+    InitializeInputData(unpacked.texCoord0, unpacked.screenPosition.xy / unpacked.screenPosition.w, inputData);
+    SETUP_DEBUG_DATA_2D(inputData, unpacked.positionWS);
+
+    return CombinedShapeLightShared(surfaceData, inputData);
 }

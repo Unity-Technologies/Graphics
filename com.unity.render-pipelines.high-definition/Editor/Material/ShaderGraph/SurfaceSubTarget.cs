@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
@@ -60,8 +61,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
-            if (supportRaytracing || supportPathtracing)
-                yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+
+            // Always omit DXR SubShader for VFX until DXR support is added.
+            if (!TargetsVFX())
+            {
+                if (supportRaytracing || supportPathtracing)
+                    yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+            }
         }
 
         protected virtual SubShaderDescriptor GetSubShaderDescriptor()
