@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Release all currently allocated singleton constant buffers.
-        /// This needs to be called before shutting down the application. 
+        /// This needs to be called before shutting down the application.
         /// </summary>
         public static void ReleaseAll()
         {
@@ -126,7 +126,6 @@ namespace UnityEngine.Rendering
         {
             m_RegisteredConstantBuffers.Add(cb);
         }
-
     }
 
     /// <summary>
@@ -174,7 +173,7 @@ namespace UnityEngine.Rendering
 #if UNITY_2021_1_OR_NEWER
             cmd.SetBufferData(m_GPUConstantBuffer, m_Data);
 #else
-                cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
+            cmd.SetComputeBufferData(m_GPUConstantBuffer, m_Data);
 #endif
         }
 
@@ -224,7 +223,7 @@ namespace UnityEngine.Rendering
             UpdateData(cmd, data);
             SetGlobal(cmd, shaderId);
         }
-        
+
         /// <summary>
         /// Release the constant buffers.
         /// </summary>
