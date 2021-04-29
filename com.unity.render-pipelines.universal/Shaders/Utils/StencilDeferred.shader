@@ -202,10 +202,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
 
             #ifdef _ADDITIONAL_LIGHT_COOKIES
-                half4 cookieColor;
-                #if 1
-                // TODO: try enable/disable by toggling a keyword
-                if(_CookieLightIndex >= 0)
+                // Enable/disable is done toggling the keyword _ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
+                // if(_CookieLightIndex >= 0)
                 {
                     float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
                     float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(_CookieLightIndex);
@@ -216,15 +214,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                     #if defined(_POINT)
                         cookieUv = URP_LightCookie_ComputeUVPoint(worldToLight, posWS, cookieUvRect);
                     #endif
-                    cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
+                    half4 cookieColor = URP_LightCookie_SampleAdditionalLightsTexture(cookieUv);
                     cookieColor = half4(URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? cookieColor.rgb
                                         : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? cookieColor.aaa
                                         : cookieColor.rrr, 1);
+                    unityLight.color *= cookieColor;
                 }
-                #else
-                    cookieColor = half4(URP_LightCookie_SampleAdditionalLightCookie(_CookieLightIndex, posWS), 1);
-                #endif
-                unityLight.color *= cookieColor;
             #endif
         #endif
         return unityLight;
