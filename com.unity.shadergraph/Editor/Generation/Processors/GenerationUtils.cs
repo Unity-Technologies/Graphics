@@ -55,6 +55,12 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
                 else
                     builder.AppendLine("// Queue: <None>");
+
+                // ShaderGraphShader tag (so we can tell what shadergraph built)
+                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+
+                if (target is IHasMetadata metadata)
+                    builder.AppendLine($"\"ShaderGraphTargetId\"=\"{metadata.identifier}\"");
             }
         }
 
@@ -572,6 +578,8 @@ namespace UnityEditor.ShaderGraph
                     return rawOutput;
                 case ConcreteSlotValueType.Matrix2:
                     return rawOutput;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return node.GetConnnectionStateVariableNameForSlot(outputSlotId);
                 default:
                     return kErrorString;
             }

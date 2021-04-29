@@ -16,6 +16,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         UTR_VERSION: "current"
@@ -46,6 +47,8 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-vulkan.yml#Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
@@ -56,6 +59,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         UTR_VERSION: "current"
@@ -85,8 +89,8 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -109,6 +113,9 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
 URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
     name: URP_Performance_LostCrypt on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
@@ -117,6 +124,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
         UTR_VERSION: "current"
@@ -146,8 +154,8 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -167,6 +175,9 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
 URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -248,7 +259,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -313,7 +324,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linea
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%

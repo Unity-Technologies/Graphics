@@ -198,6 +198,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal override bool isAlwaysExposed => true;
+        internal override bool isCustomSlotAllowed => false;
 
         public override void OnAfterDeserialize(string json)
         {
