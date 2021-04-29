@@ -204,8 +204,6 @@ namespace UnityEngine.Experimental.Rendering
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            // TODO: implement realtime viz here
-
             var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
 
             if (debugDisplay.drawBricks)

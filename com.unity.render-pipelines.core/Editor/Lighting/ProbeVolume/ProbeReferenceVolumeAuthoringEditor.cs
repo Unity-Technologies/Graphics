@@ -144,10 +144,19 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnSceneGUI()
         {
-            if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+            if (Event.current.type == EventType.Layout)
             {
-                var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(actualTarget);
-                ProbeGIBaking.BakeBricks(ctx);
+                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+                {
+                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(actualTarget);
+
+                    // Cull all the cells that are not visible (we don't need them for realtime debug)
+                    ctx.cells.RemoveAll(c => {
+                        return actualTarget.ShouldCull(c.position);
+                    });
+
+                    ProbeGIBaking.BakeBricks(ctx);
+                }
             }
         }
 
