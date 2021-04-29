@@ -508,11 +508,10 @@ namespace UnityEngine.Rendering.Universal
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
         {
-            bool isHdrEnabled = cameraData.isHdrEnabled;
-
-            GraphicsFormat hdrFormat = GraphicsFormat.None;
-            if (isHdrEnabled)
+            if (cameraData.isHdrEnabled)
             {
+                GraphicsFormat hdrFormat = GraphicsFormat.None;
+
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
                         FormatUsage.Linear | FormatUsage.Render))
@@ -522,9 +521,11 @@ namespace UnityEngine.Rendering.Universal
                     hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 else
                     hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+
+                return hdrFormat;
             }
 
-            return isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }
