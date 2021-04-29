@@ -53,6 +53,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static string ToDeclarationSuffix(this KeywordScope scope)
+        {
+            switch (scope)
+            {
+                case KeywordScope.Local:
+                    return "_local";
+                default:
+                    return string.Empty;
+            }
+        }
+
         public static string ToDeclarationString(this KeywordDefinition keywordDefinition)
         {
             switch (keywordDefinition)
@@ -66,26 +77,65 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static bool NeedsMultiStageDefinition(this KeywordDescriptor keyword, ref List<KeywordShaderStage> dstStages)
+        static void GenerateKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            string keywordVariantsString,
+            Action<string> PragmaStringAction)
         {
-            dstStages.Clear();
+            string definitionString = keywordDefinition.ToDeclarationString();
+            string scopeString = keywordScope.ToDeclarationSuffix();
 
-            // All doesn't need special treatment.
-            if (keyword.stages == KeywordShaderStage.All)
-                return false;
+            // check the active shader stages
+            if ((keywordStages == KeywordShaderStage.All) || (keywordStages == 0))  // 0 is a default, so assume that means ALL
+            {
+                PragmaStringAction($"#pragma {definitionString}{scopeString} {keywordVariantsString}");
+            }
+            else
+            {
+                // have to process each stage separately
+                for (int shaderStage = (int)KeywordShaderStage.Vertex; shaderStage <= (int)keywordStages; shaderStage = shaderStage * 2)
+                {
+                    if (((int)keywordStages & shaderStage) != 0)
+                    {
+                        var keywordStage = (KeywordShaderStage)shaderStage;
+                        var stageString = keywordStage.ToKeywordStagesString();
+                        PragmaStringAction($"#pragma {definitionString}{scopeString}{stageString} {keywordVariantsString}");
+                    }
+                }
+            }
+        }
 
-            if ((keyword.stages & KeywordShaderStage.Vertex) == KeywordShaderStage.Vertex)
-                dstStages.Add(KeywordShaderStage.Vertex);
-            if ((keyword.stages & KeywordShaderStage.Hull) == KeywordShaderStage.Hull)
-                dstStages.Add(KeywordShaderStage.Hull);
-            if ((keyword.stages & KeywordShaderStage.Domain) == KeywordShaderStage.Domain)
-                dstStages.Add(KeywordShaderStage.Domain);
-            if ((keyword.stages & KeywordShaderStage.Geometry) == KeywordShaderStage.Geometry)
-                dstStages.Add(KeywordShaderStage.Geometry);
-            if ((keyword.stages & KeywordShaderStage.RayTracing) == KeywordShaderStage.RayTracing)
-                dstStages.Add(KeywordShaderStage.RayTracing);
+        public static void GenerateEnumKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            IEnumerable<KeywordEntry> keywordEntries,
+            Action<string> pragmaStringAction)
+        {
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
+                string variantsString = string.Join(" ", entryStrings);
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
+        }
 
-            return dstStages.Count > 1;
+        public static void GenerateBooleanKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            Action<string> pragmaStringAction)
+        {
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                string variantsString = $"_ {keywordReferenceName}";
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
         }
 
         public static string ToKeywordStagesString(this KeywordShaderStage stages)
@@ -110,31 +160,12 @@ namespace UnityEditor.ShaderGraph
             return outString;
         }
 
-        public static string ToDeclarationString(this KeywordDescriptor keyword)
-        {
-            // Get definition type using scope
-            string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}{keyword.stages.ToKeywordStagesString()}";
-
-            switch (keyword.type)
-            {
-                case KeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {keyword.referenceName}";
-                case KeywordType.Enum:
-                    var enumEntryDefinitions = keyword.entries.Select(x => $"{keyword.referenceName}_{x.referenceName}");
-                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
-                    return $"#pragma {definitionString} {enumEntriesString}";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         public static string ToDefineString(this KeywordDescriptor keyword, int value)
         {
             switch (keyword.type)
             {
                 case KeywordType.Boolean:
-                    return value == 1 ? $"#define {keyword.referenceName}" : string.Empty;
+                    return value == 1 ? $"#define {keyword.referenceName} 1" : string.Empty;
                 case KeywordType.Enum:
                     return $"#define {keyword.referenceName}_{keyword.entries[value].referenceName}";
                 default:

@@ -389,6 +389,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
         public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
 
+        public static readonly string _EMISSION = "_EMISSION";
+        public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+        public static readonly string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+        public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+        public static readonly string _NORMALMAP = "_NORMALMAP";
+
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
     }

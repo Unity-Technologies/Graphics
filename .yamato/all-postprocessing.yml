@@ -28,6 +28,7 @@ PR_PostProcessing_trunk:
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_PostProcessing_trunk:
@@ -42,6 +43,7 @@ Nightly_PostProcessing_trunk:
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_PostProcessing_CUSTOM-REVISION:
