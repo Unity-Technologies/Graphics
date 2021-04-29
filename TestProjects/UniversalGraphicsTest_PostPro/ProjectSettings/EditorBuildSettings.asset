@@ -69,6 +69,12 @@ EditorBuildSettings:
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
   - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
+    guid: 7b2479971db0f4b1b87c121244585fe5
+  - enabled: 1
     path: Assets/Scenes/145_SoftParticlesStackWithPP_deferred.unity
     guid: c8a69ff74f0029f4a9778c11637b3bf4
+  - enabled: 1
+    path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
+    guid: aee9f891d65e44daf811d30053402efd
   m_configObjects: {}
