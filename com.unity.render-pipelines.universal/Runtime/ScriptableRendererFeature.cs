@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method and return true if the feature should use the Native RenderPass API
         /// </summary>
-        public virtual bool SupportsNativeRenderPass()
+        internal virtual bool SupportsNativeRenderPass()
         {
             return false;
         }

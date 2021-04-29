@@ -499,17 +499,19 @@ namespace UnityEngine.Rendering.Universal
 
         private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
-            var w = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
-            var h = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
-            var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+            var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+            var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+            var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
             return new RenderPassDescriptor(w, h, samples, depthID);
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
         {
+            bool isHdrEnabled = cameraData.isHdrEnabled;
+
             GraphicsFormat hdrFormat = GraphicsFormat.None;
-            if (cameraData.isHdrEnabled)
+            if (isHdrEnabled)
             {
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
@@ -522,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
                     hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
             }
 
-            return cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            return isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }
