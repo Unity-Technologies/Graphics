@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using System.ComponentModel;
+using NUnit.Framework;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -140,6 +141,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData"></param>
         public static void UpdateVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
         {
+            Assert.IsNotNull(cameraData, "cameraData can not be null when updating the volume stack.");
+
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in the frame.
             if (cameraData.requiresVolumeFrameworkUpdate)
@@ -161,19 +164,19 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the mask and trigger assigned for volumes on the camera.
         /// </summary>
         /// <param name="camera"></param>
-        /// <param name="additionalCameraData"></param>
+        /// <param name="cameraData"></param>
         /// <param name="layerMask"></param>
         /// <param name="trigger"></param>
-        internal static void GetVolumeLayerMaskAndTrigger(this Camera camera, UniversalAdditionalCameraData additionalCameraData, out LayerMask layerMask, out Transform trigger)
+        internal static void GetVolumeLayerMaskAndTrigger(this Camera camera, UniversalAdditionalCameraData cameraData, out LayerMask layerMask, out Transform trigger)
         {
             // Default values when there's no additional camera data available
             layerMask = 1; // "Default"
             trigger = camera.transform;
 
-            if (additionalCameraData != null)
+            if (cameraData != null)
             {
-                layerMask = additionalCameraData.volumeLayerMask;
-                trigger = (additionalCameraData.volumeTrigger != null) ? additionalCameraData.volumeTrigger : trigger;
+                layerMask = cameraData.volumeLayerMask;
+                trigger = (cameraData.volumeTrigger != null) ? cameraData.volumeTrigger : trigger;
             }
             else if (camera.cameraType == CameraType.SceneView)
             {
