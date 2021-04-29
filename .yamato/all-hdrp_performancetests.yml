@@ -16,6 +16,7 @@ PR_HDRP_PerformanceTests_trunk:
       -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master
@@ -25,6 +26,7 @@ Nightly_HDRP_PerformanceTests_trunk:
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         GIT_BRANCH: master

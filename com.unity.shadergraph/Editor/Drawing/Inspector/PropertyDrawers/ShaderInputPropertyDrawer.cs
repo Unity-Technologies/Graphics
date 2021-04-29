@@ -726,6 +726,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
+            if (!isSubGraph)
+            {
+                if (colorProperty.isMainColor)
+                {
+                    var mainColorLabel = new IMGUIContainer(() =>
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Main Color", EditorStyles.largeLabel);
+                        EditorGUILayout.Space();
+                        EditorGUI.indentLevel--;
+                    });
+                    propertySheet.Insert(2, mainColorLabel);
+                }
+            }
+
             propertySheet.Add(colorPropertyDrawer.CreateGUI(
                 newValue =>
                 {
@@ -761,6 +776,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
         {
             var texture2DPropertyDrawer = new Texture2DPropertyDrawer();
+
+            if (!isSubGraph)
+            {
+                if (texture2DProperty.isMainTexture)
+                {
+                    var mainTextureLabel = new IMGUIContainer(() =>
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Main Texture", EditorStyles.largeLabel);
+                        EditorGUILayout.Space();
+                        EditorGUI.indentLevel--;
+                    });
+                    propertySheet.Insert(2, mainTextureLabel);
+                }
+            }
+
+
             propertySheet.Add(texture2DPropertyDrawer.CreateGUI(
                 newValue =>
                 {
@@ -1201,6 +1233,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var propertyGradientField));
         }
 
+        enum KeywordShaderStageDropdownUI    // maps to KeywordShaderStage, this enum ONLY used for the UI dropdown menu
+        {
+            All = KeywordShaderStage.All,
+            Vertex = KeywordShaderStage.Vertex,
+            Fragment = KeywordShaderStage.Fragment,
+        }
+
         void BuildKeywordFields(PropertySheet propertySheet, ShaderInput shaderInput)
         {
             var keyword = shaderInput as ShaderKeyword;
@@ -1236,6 +1275,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     keyword.keywordScope,
                     "Scope",
                     KeywordScope.Local,
+                    out keywordScopeField));
+            }
+
+            {
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Keyword stage");
+                        if (keyword.keywordStages == (KeywordShaderStage)newValue)
+                            return;
+                        keyword.keywordStages = (KeywordShaderStage)newValue;
+                    },
+                    (KeywordShaderStageDropdownUI)keyword.keywordStages,
+                    "Stages",
+                    KeywordShaderStageDropdownUI.All,
                     out keywordScopeField));
             }
 

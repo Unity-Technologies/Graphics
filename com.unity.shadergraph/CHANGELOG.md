@@ -14,10 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added custom interpolator thresholds on shadergraph project settings page.
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
-  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
-  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+  - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
+  - For Texture2D properties, added linearGrey and red as options for default texture mode.
+  - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
   - Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
   - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
+  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
+  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
   - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
 
