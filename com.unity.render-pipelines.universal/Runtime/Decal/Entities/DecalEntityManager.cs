@@ -462,6 +462,7 @@ namespace UnityEngine.Rendering.Universal
                     cachedChunks.RemoveRange(count, chunkCount - count);
                     culledChunks.RemoveRange(count, chunkCount - count);
                     drawCallChunks.RemoveRange(count, chunkCount - count);
+                    m_CombinedChunks.RemoveRange(count, chunkCount - count);
                     chunkCount = count;
                 }
 
