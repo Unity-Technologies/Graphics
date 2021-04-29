@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
@@ -76,6 +77,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 forwardUnlit.descriptor.includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
                 forwardUnlit.descriptor.includes.Add(CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
                 forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
+
+                if (unlitData.enableShadowMatte)
+                {
+                    // Shadow matte requires world normal provided from constructed TBN.
+                    var depthUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "DepthForwardOnly");
+                    depthUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
+
+                    if (TargetsVFX())
+                    {
+                        // VFX currently suffers from an issue where expressions that lead to particle to clip space computation must be exactly identical in both depth and forward pass.
+                        // Thus we are forced to include TBN for forward pass otherwise the compiler induces potential reordering in transform computation,
+                        // which introduces numerical error (and therefore z fighting)
+                        forwardUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
+                    }
+                }
 
                 return descriptor;
             }

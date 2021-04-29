@@ -16,6 +16,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -33,6 +34,8 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-win-vulkan.yml#Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
 Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
@@ -43,13 +46,14 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -64,6 +68,9 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
@@ -72,13 +79,14 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -90,6 +98,9 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_playmode_cache_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_playmode_cache_mono_Linear on version trunk
     agent:
@@ -98,13 +109,14 @@ Universal_Hybrid_Win_Vulkan_playmode_cache_mono_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -116,6 +128,9 @@ Universal_Hybrid_Win_Vulkan_playmode_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Universal_Hybrid on Win_Vulkan_Standalone_cache_mono_Linear on version trunk
     agent:
@@ -124,6 +139,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -141,6 +157,8 @@ Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-win-vulkan.yml#Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
 Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
@@ -151,13 +169,14 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -172,6 +191,9 @@ Build_Universal_Hybrid_Win_Vulkan_Standalone_cache_mono_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 Universal_Hybrid_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
