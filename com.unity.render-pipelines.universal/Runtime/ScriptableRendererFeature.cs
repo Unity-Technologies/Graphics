@@ -40,6 +40,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Override this method and return true if the feature should use the Native RenderPass API
+        /// </summary>
+        internal virtual bool SupportsNativeRenderPass()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Sets the state of ScriptableRenderFeature (true: the feature is active, false: the feature is inactive).
         /// If the feature is active, it is added to the renderer it is attached to, otherwise the feature is skipped while rendering.
         /// </summary>

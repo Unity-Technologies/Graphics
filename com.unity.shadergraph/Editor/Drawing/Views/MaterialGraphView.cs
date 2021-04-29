@@ -197,12 +197,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal bool ResetSelectedBlockNodes()
         {
+            bool anyNodesWereReset = false;
             var selectedBlocknodes = selection.FindAll(e => e is MaterialNodeView && ((MaterialNodeView)e).node is BlockNode).Cast<MaterialNodeView>().ToArray();
             foreach (var mNode in selectedBlocknodes)
             {
                 var bNode = mNode.node as BlockNode;
                 var context = GetContext(bNode.contextData);
 
+                // Check if the node is currently floating (it's parent isn't the context view that owns it).
+                // If the node's not floating then the block doesn't need to be reset.
+                bool isFloating = mNode.parent != context;
+                if (!isFloating)
+                    continue;
+
+                anyNodesWereReset = true;
                 RemoveElement(mNode);
                 context.InsertBlock(mNode);
 
@@ -212,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             if (selectedBlocknodes.Length > 0)
                 graph.ValidateCustomBlockLimit();
-            return selectedBlocknodes.Length > 0;
+            return anyNodesWereReset;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
