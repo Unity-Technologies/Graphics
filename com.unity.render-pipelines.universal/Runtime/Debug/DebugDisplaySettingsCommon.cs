@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     {
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
-            public override string PanelName => "Common";
+            public override string PanelName => "Frequently Used";
 
             public SettingsPanel()
             {
