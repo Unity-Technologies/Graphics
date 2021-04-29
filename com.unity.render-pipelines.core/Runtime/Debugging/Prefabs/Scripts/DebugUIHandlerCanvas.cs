@@ -94,6 +94,19 @@ namespace UnityEngine.Rendering.UI
             m_DebugTreeState = DebugManager.instance.GetState();
             var panels = DebugManager.instance.panels;
 
+#if UNITY_ANDROID || UNITY_IPHONE
+            // Mobile device safe area
+            Rect parentRect = GetComponentInParent<RectTransform>().rect;
+            float parentWidth = Math.Min(parentRect.width, parentRect.height);
+            float scaleRatio = parentWidth / Math.Min(Screen.height, Screen.width);
+
+            Rect safeAreaRect = Screen.safeArea;
+            Vector2 margin = new Vector2(5, 5);
+            var safeAreaOffsetLeft = safeAreaRect.xMin * scaleRatio;
+            var safeAreaOffsetTop = -safeAreaRect.yMin * scaleRatio;
+            Vector2 safeAreaOffset = new Vector2(safeAreaOffsetLeft, safeAreaOffsetTop) + margin;
+#endif
+
             DebugUIHandlerWidget selectedWidget = null;
             foreach (var panel in panels)
             {
@@ -102,6 +115,13 @@ namespace UnityEngine.Rendering.UI
 
                 var go = Instantiate(panelPrefab, transform, false).gameObject;
                 go.name = panel.displayName;
+
+#if UNITY_ANDROID || UNITY_IPHONE
+                RectTransform rectTransform = go.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = safeAreaOffset;
+                rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, safeAreaRect.height * scaleRatio + 2 * safeAreaOffsetTop);
+#endif
+
                 var uiPanel = go.GetComponent<DebugUIHandlerPanel>();
                 uiPanel.SetPanel(panel);
                 uiPanel.Canvas = this;
