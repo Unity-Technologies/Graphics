@@ -1130,6 +1130,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var propertyGradientField));
         }
 
+        enum KeywordShaderStageDropdownUI    // maps to KeywordShaderStage, this enum ONLY used for the UI dropdown menu
+        {
+            All = KeywordShaderStage.All,
+            Vertex = KeywordShaderStage.Vertex,
+            Fragment = KeywordShaderStage.Fragment,
+        }
+
         void BuildKeywordFields(PropertySheet propertySheet, ShaderInput shaderInput)
         {
             var keyword = shaderInput as ShaderKeyword;
@@ -1165,6 +1172,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     keyword.keywordScope,
                     "Scope",
                     KeywordScope.Local,
+                    out keywordScopeField));
+            }
+
+            {
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Keyword stage");
+                        if (keyword.keywordStages == (KeywordShaderStage)newValue)
+                            return;
+                        keyword.keywordStages = (KeywordShaderStage)newValue;
+                    },
+                    (KeywordShaderStageDropdownUI)keyword.keywordStages,
+                    "Stages",
+                    KeywordShaderStageDropdownUI.All,
                     out keywordScopeField));
             }
 
