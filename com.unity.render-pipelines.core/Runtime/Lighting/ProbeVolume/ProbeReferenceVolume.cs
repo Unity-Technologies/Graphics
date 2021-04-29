@@ -263,6 +263,8 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
+        internal bool clearAssetsOnVolumeClear = false;
+
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
@@ -556,8 +558,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Clear();
                 cells.Clear();
             }
-            m_PendingAssetsToBeLoaded.Clear();
-            m_ActiveAssets.Clear();
+
+            if (clearAssetsOnVolumeClear)
+            {
+                m_PendingAssetsToBeLoaded.Clear();
+                m_ActiveAssets.Clear();
+            }
         }
 
 #if UNITY_EDITOR
