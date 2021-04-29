@@ -276,10 +276,6 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
-
-            // MSAA is temporary disabled when using the RenderPass API. TODO: enable it back once the handling of resolving to implicit resolve textures and Vulkan backbuffer is fixed in trunk!
-            if (useRenderPassEnabled)
-                this.supportedRenderingFeatures.msaa = false;
         }
 
         /// <inheritdoc />

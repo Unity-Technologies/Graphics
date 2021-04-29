@@ -40,6 +40,7 @@ PR_URP_2D_trunk:
       -  path: .yamato/urp_2d-iphone-metal.yml#URP_2D_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URP_2D_trunk:
@@ -56,6 +57,7 @@ Nightly_URP_2D_trunk:
       -  path: .yamato/urp_2d-linux-vulkan.yml#URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_URP_2D_CUSTOM-REVISION:
