@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+- Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -159,6 +160,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 - Fixed fog precision in some camera positions (case 1329603).
 
 ### Changed
