@@ -17,8 +17,6 @@ namespace UnityEngine.Experimental.Rendering
 
         public enum CellSize
         {
-            [InspectorName("1")]
-            CellSize1 = 1,
             [InspectorName("9")]
             CellSize9 = 9,
             [InspectorName("27")]
@@ -34,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// The size of a Cell.
         /// </summary>
-        public CellSize cellSizeInBricks = CellSize.CellSize81;
+        public CellSize cellSizeInBricks = CellSize.CellSize27;
 
         /// <summary>
         /// The size of a Brick.
@@ -50,9 +48,10 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
-        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log((float)cellSize / brickSize, 3));
+        // We don't count the first subdivision because it have the same size as the cell so we subtract one.
+        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log((float)cellSizeInBricks, 3)) - 1;
         public float brickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
-        public int cellSize => Mathf.CeilToInt((float)cellSizeInBricks * brickSize);
+        public float cellSizeInMeter => (float)cellSizeInBricks * minDistanceBetweenProbes;
 
         void OnEnable()
         {
@@ -70,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
-                cellSize == otherProfile.cellSize &&
+                cellSizeInMeter == otherProfile.cellSizeInMeter &&
                 maxSubdivision == otherProfile.maxSubdivision &&
                 normalBias == otherProfile.normalBias;
         }
@@ -115,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 serializedObject.ApplyModifiedProperties();
 
-                float minDistanceBetweenProbes = ((float)profile.cellSize / Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels)) / 3.0f;
+                float minDistanceBetweenProbes = ((float)profile.cellSizeInBricks / Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels)) / 3.0f;
                 if (profile.minDistanceBetweenProbes < minDistanceBetweenProbes)
                     profile.minDistanceBetweenProbes = minDistanceBetweenProbes;
             }

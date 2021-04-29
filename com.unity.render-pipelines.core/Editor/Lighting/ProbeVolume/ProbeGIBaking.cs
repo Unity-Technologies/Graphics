@@ -569,6 +569,7 @@ namespace UnityEngine.Experimental.Rendering
                 List<Brick> bricks = null;
 
                 // TODO: return bricks list directly and rename
+                Debug.Log(cell.volume.CalculateAABB());
                 ProbePlacement.SubdivideWithSDF(cell.volume, refVol, validRenderers, overlappingProbeVolumes, ref bricks);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by

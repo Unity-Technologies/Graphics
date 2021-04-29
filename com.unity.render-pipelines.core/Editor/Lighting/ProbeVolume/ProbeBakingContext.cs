@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering
         public void Initialize(ProbeReferenceVolumeAuthoring refVolume)
         {
             this.refVolume = refVolume;
-            float cellSize = refVolume.cellSize;
+            float cellSize = refVolume.cellSizeInMeter;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {
