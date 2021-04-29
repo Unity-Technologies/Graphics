@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque)
+            if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
                 m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
@@ -100,6 +100,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
+                if (renderingData.cameraData.renderer.useDepthPriming && m_IsOpaque && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
+                    sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
+
                 var filterSettings = m_FilteringSettings;
 
                 #if UNITY_EDITOR
