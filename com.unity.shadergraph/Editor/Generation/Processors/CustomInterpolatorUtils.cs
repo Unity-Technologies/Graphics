@@ -136,15 +136,11 @@ namespace UnityEditor.ShaderGraph
                         customBlockNodes.Add(cin.e_targetBlockNode);
                     }
 
-                    // vertex nodes should not require hierarchical insertion, but if they do (master preview is failing)-- use the "InsertAntecedent" solve above.
-                    //vertexNodes.AddRange(anties.Where(a => !vertexNodes.Contains(a)));
                     foreach (var ant in anties)
                     {
                         if (!vertexNodes.Contains(ant))
                             InsertAntecedent(vertexNodes, ant);
                     }
-
-
 
                     if (!vertexNodes.Contains(cin.e_targetBlockNode))
                         vertexNodes.Add(cin.e_targetBlockNode);
