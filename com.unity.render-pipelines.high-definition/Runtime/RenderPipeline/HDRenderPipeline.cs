@@ -444,7 +444,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
-            bool requiresRayTracingResources = false;
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            bool requiresRayTracingResources = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
+
             // Make sure to include ray-tracing resources if at least one of the quality levels needs it
             int qualityLevelCount = QualitySettings.names.Length;
             for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
