@@ -1,4 +1,5 @@
 using UnityEngine.Rendering.Universal.Internal;
+using kTools.Motion;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -37,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
+        MotionVectorRenderPass m_MotionVectorPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -133,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_MotionVectorPass = new MotionVectorRenderPass();
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -393,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
-            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            bool requiresDepthPrepass = renderPassInputs.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
             requiresDepthPrepass |= isSceneViewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;
@@ -592,6 +595,14 @@ namespace UnityEngine.Rendering.Universal
                     m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
 
                 EnqueuePass(m_CopyDepthPass);
+            }
+
+            if (renderPassInputs.requiresMotionVectors)
+            {
+                SupportedRenderingFeatures.active.motionVectors = true; // Todo : not set this here
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
+                m_MotionVectorPass.Setup(data);
+                EnqueuePass(m_MotionVectorPass);
             }
 
             // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
@@ -818,6 +829,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
+            internal bool requiresMotionVectors;
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
@@ -829,12 +841,14 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+                bool needsMotion  = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
+                inputSummary.requiresMotionVectors  |= needsMotion;
             }
 
             return inputSummary;

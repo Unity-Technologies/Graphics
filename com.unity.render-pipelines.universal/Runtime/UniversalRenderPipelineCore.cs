@@ -774,6 +774,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+        MotionVec,
 
         FinalBlit
     }
