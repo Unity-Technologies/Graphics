@@ -465,7 +465,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_CopyDepthMaterial);
-            CoreUtils.Destroy(m_DBufferClear);
+            CoreUtils.Destroy(m_DBufferClearMaterial);
 
             if (m_DecalEntityManager != null)
             {
