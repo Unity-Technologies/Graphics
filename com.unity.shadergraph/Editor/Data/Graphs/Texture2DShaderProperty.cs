@@ -118,6 +118,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 value = value,
                 defaultType = defaultType,
+                useTilingAndOffset = useTilingAndOffset
             };
         }
     }
