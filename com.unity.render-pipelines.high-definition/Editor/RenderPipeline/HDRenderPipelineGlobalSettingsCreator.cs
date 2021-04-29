@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
+        [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section7 + 2)]
         internal static void CreateHDRenderPipelineGlobalSettings()
         {
             HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: false, activateAsset: false);
