@@ -3163,6 +3163,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             FXAAParameters parameters = new FXAAParameters();
             parameters.fxaaCS = m_Resources.shaders.FXAACS;
+            parameters.fxaaCS.shaderKeywords = null;
+            CoreUtils.SetKeyword(parameters.fxaaCS, "ENABLE_ALPHA", m_EnableAlpha);
             parameters.fxaaKernel = parameters.fxaaCS.FindKernel("FXAA");
 
             parameters.width = camera.actualWidth;

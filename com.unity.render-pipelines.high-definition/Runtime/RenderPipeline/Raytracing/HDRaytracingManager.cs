@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to build the instance flag for this renderer
             uint instanceFlag = 0x00;
 
-            bool singleSided = false;
+            bool doubleSided = false;
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
 
@@ -228,9 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
                                 && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
 
-                        // Force it to be non single sided if it has the keyword if there is a reason
-                        bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
-                        singleSided |= !doubleSided;
+                        // Check if we want to enable double-sidedness for the mesh
+                        // (note that a mix of single and double-sided materials will result in a double-sided mesh in the AS)
+                        doubleSided |= currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
 
                         // Check if the material has changed since last time we were here
                         if (!m_MaterialsDirty)
@@ -250,12 +250,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // If the mesh was not valid, exclude it
+                // If the mesh was not valid, exclude it (without affecting sidedness)
                 if (!validMesh)
                 {
                     subMeshFlagArray[meshIdx] = false;
                     subMeshCutoffArray[meshIdx] = false;
-                    singleSided = true;
                 }
             }
 
@@ -326,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
-            m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+            m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: !doubleSided, mask: instanceFlag);
 
             // Indicates that a transform has changed in our scene (mesh or light)
             m_TransformDirty |= currentRenderer.transform.hasChanged;
