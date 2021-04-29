@@ -513,8 +513,22 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
+        public bool hasVFXTarget
+        {
+            get
+            {
+                bool supports = true;
+                supports &= !isSubGraph;
+                supports &= activeTargets.Any();
+                // Maintain support for VFXTarget and VFX compatible targets.
+                supports &= activeTargets.OfType<VFXTarget>().Any() || hasVFXCompatibleTarget;
+                return supports;
+            }
+        }
+
+        public bool isOnlyVFXTarget => activeTargets.Count() == 1 &&
+        activeTargets.Count(t => t is VFXTarget) == 1;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
@@ -1246,6 +1260,14 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
+                // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
+                // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
+                if (generationMode == GenerationMode.VFX && prop.isExposed)
+                {
+                    prop.overrideHLSLDeclaration = true;
+                    prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
+                }
+
                 // ugh, this needs to be moved to the gradient property implementation
                 if (prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
@@ -1434,6 +1456,7 @@ namespace UnityEditor.ShaderGraph
                 copyProp.precision = sourceProp.precision;
                 copyProp.overrideHLSLDeclaration = sourceProp.overrideHLSLDeclaration;
                 copyProp.hlslDeclarationOverride = sourceProp.hlslDeclarationOverride;
+                copyProp.useCustomSlotLabel = sourceProp.useCustomSlotLabel;
             }
 
             // sanitize the display name (we let the .Copy() function actually copy the display name over)

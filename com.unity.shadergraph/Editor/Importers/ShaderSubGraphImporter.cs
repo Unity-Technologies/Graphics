@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(25, Extension, -905)]
+    [ScriptedImporter(26, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -261,6 +261,10 @@ namespace UnityEditor.ShaderGraph
                     GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
                     string precisionString = propGraphPrecision.ToGenericString();
                     arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
+                    if (prop.isConnectionTestable)
+                    {
+                        arguments.Add($"bool {prop.GetConnectionStateHLSLVariableName()}");
+                    }
                 }
 
                 // now pass surface inputs

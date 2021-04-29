@@ -41,6 +41,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void SetupMaterial(Material material)
+        {
+            VFXLibrary.currentSRPBinder.SetupMaterial(material);
+
+            // TODO Deactivate mv and shadow passes if needed
+        }
+
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) {}
 
         public override void OnEnable()
@@ -213,36 +220,6 @@ namespace UnityEditor.VFX
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
                     mapper.AddExpression(GetInputSlot(2).GetExpression(), "subMeshMask", -1);
-
-                    // TODO Remove this once material are serialized
-                    // Add material properties
-                    if (shader != null)
-                    {
-                        var mat = meshData.GetOrCreateMaterial();
-                        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
-                        {
-                            if (ShaderUtil.IsShaderPropertyHidden(shader, i))
-                            {
-                                var name = ShaderUtil.GetPropertyName(shader, i);
-                                var nameId = Shader.PropertyToID(name);
-                                if (!mat.HasProperty(nameId))
-                                    continue;
-
-                                VFXExpression expr = null;
-                                switch (ShaderUtil.GetPropertyType(shader, i))
-                                {
-                                    case ShaderUtil.ShaderPropertyType.Float:
-                                        expr = VFXValue.Constant<float>(mat.GetFloat(nameId));
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                if (expr != null)
-                                    mapper.AddExpression(expr, name, -1);
-                            }
-                        }
-                    }
 
                     return mapper;
                 }
