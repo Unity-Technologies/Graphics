@@ -42,6 +42,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         // Display Name
         TextField m_DisplayNameField;
 
+        TextField m_CustomSlotLabelField;
+
         // Reference Name
         TextPropertyDrawer m_ReferenceNameDrawer;
         TextField m_ReferenceNameField;
@@ -193,6 +195,57 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Exposed",
                     out var exposedToggleVisualElement));
                 exposedToggle = exposedToggleVisualElement as Toggle;
+            }
+        }
+
+        void BuildCustomBindingField(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            if (isSubGraph && property.isCustomSlotAllowed)
+            {
+                var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        if (property.useCustomSlotLabel == newValue.isOn)
+                            return;
+                        this._preChangeValueCallback("Change Custom Binding");
+                        property.useCustomSlotLabel = newValue.isOn;
+                        graphData.ValidateGraph();
+                        this._postChangeValueCallback(true, ModificationScope.Topological);
+                    },
+                    new ToggleData(property.isConnectionTestable),
+                    "Use Custom Binding",
+                    out var exposedToggleVisualElement));
+                exposedToggleVisualElement.SetEnabled(true);
+
+                if (property.useCustomSlotLabel)
+                {
+                    var textPropertyDrawer = new TextPropertyDrawer();
+                    var guiElement = textPropertyDrawer.CreateGUI(
+                        null,
+                        (string)shaderInput.customSlotLabel,
+                        "Label",
+                        1);
+
+                    m_CustomSlotLabelField = textPropertyDrawer.textField;
+                    m_CustomSlotLabelField.RegisterValueChangedCallback(
+                        evt =>
+                        {
+                            if (evt.newValue != shaderInput.customSlotLabel)
+                            {
+                                this._preChangeValueCallback("Change Custom Binding Label");
+                                shaderInput.customSlotLabel = evt.newValue;
+                                m_CustomSlotLabelField.AddToClassList("modified");
+                                this._postChangeValueCallback(true, ModificationScope.Topological);
+                            }
+                        });
+
+                    if (!string.IsNullOrEmpty(shaderInput.customSlotLabel))
+                        m_CustomSlotLabelField.AddToClassList("modified");
+                    m_CustomSlotLabelField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/CustomSlotLabelField"));
+
+                    propertySheet.Add(guiElement);
+                }
             }
         }
 
@@ -392,6 +445,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     HandleGradientPropertyField(propertySheet, gradientProperty);
                     break;
             }
+
+            BuildCustomBindingField(propertySheet, property);
 
             BuildPrecisionField(propertySheet, property);
 
