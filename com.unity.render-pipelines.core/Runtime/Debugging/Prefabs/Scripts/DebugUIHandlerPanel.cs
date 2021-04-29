@@ -57,6 +57,14 @@ namespace UnityEngine.Rendering.UI
             Canvas.SelectPreviousPanel();
         }
 
+        /// <summary>
+        /// Scrollbar value clicked via mouse/touch.
+        /// </summary>
+        public void OnScrollbarClicked()
+        {
+            DebugManager.instance.SetScrollTarget(null); // Release scroll target
+        }
+
         internal void SetScrollTarget(DebugUIHandlerWidget target)
         {
             m_ScrollTarget = target;
