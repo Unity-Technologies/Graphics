@@ -1,4 +1,7 @@
-namespace UnityEngine.Rendering.Universal
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     // Only to be used when Pixel Perfect Camera is present and it has Crop Frame X or Y enabled.
     // This pass simply clears BuiltinRenderTextureType.CameraTarget to black, so that the letterbox or pillarbox is black instead of garbage.
@@ -6,10 +9,18 @@ namespace UnityEngine.Rendering.Universal
     internal class PixelPerfectBackgroundPass : ScriptableRenderPass
     {
         private static readonly ProfilingSampler m_ProfilingScope = new ProfilingSampler("Pixel Perfect Background Pass");
+        private bool m_SavedIsOrthographic;
+        private float m_SavedOrthographicSize;
 
         public PixelPerfectBackgroundPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
+        }
+
+        public void Setup(bool savedIsOrthographic, float savedOrthographicSize)
+        {
+            m_SavedIsOrthographic = savedIsOrthographic;
+            m_SavedOrthographicSize = savedOrthographicSize;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -27,8 +38,12 @@ namespace UnityEngine.Rendering.Universal
                     Color.black);
             }
 
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            renderingData.cameraData.camera.orthographic = m_SavedIsOrthographic;
+            renderingData.cameraData.camera.orthographicSize = m_SavedOrthographicSize;
         }
     }
 }

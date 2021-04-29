@@ -300,9 +300,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
         }
 
-        /// <summary>Number of samples when using MSAA.</summary>
+        /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
         /// <summary>Support MSAA.</summary>
+        [Obsolete]
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
         // Returns true if the output of the rendering passes support an alpha channel

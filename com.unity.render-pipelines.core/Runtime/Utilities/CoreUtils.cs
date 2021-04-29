@@ -425,6 +425,24 @@ namespace UnityEngine.Rendering
         /// Set the current render texture.
         /// </summary>
         /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">RenderTargetIdentifier of the render texture.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
         /// <param name="colorBuffer">Color buffer RenderTargetIdentifier.</param>
         /// <param name="colorLoadAction">Color buffer load action.</param>
         /// <param name="colorStoreAction">Color buffer store action.</param>
@@ -1351,5 +1369,13 @@ namespace UnityEngine.Rendering
             size |= (size >> 16);
             return size - (size >> 1);
         }
+
+        /// <summary>
+        /// Get the last declared value from an enum Type
+        /// </summary>
+        /// <typeparam name="T">Type of the enum</typeparam>
+        /// <returns>Last value of the enum</returns>
+        public static T GetLastEnumValue<T>() where T : Enum
+            => typeof(T).GetEnumValues().Cast<T>().Last();
     }
 }

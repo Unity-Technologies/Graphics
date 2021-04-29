@@ -45,6 +45,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added localization on Wizard window
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+- Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
+- Added support for lighting full screen debug mode in automated tests.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
 
 ### Fixed
@@ -152,6 +155,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the camera controller in the template with the old input system (case 1326816).
 - Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
 - Fixed global Settings ignore the path set via Fix All in HDRP wizard (case 1327978)
+- Fixed issue with an assert getting triggered with OnDemand shadows.
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed ResourceReloader that was not call anymore at pipeline construction
+- Fixed undo of some properties on light editor.
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed some reference to old frame settings names in HDRP Wizard.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -217,6 +230,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Light's shadow layer name in Editor.
 - Increased path tracing max samples from 4K to 16K (case 1327729).
 - Film grain does not affect the alpha channel.
+- Disable TAA sharpening on alpha channel.
+- Enforced more consistent shading normal computation for path tracing, so that impossible shading/geometric normal combinations are avoided (case 1323455).
+- Default black texture XR is now opaque (alpha = 1).
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [11.0.0] - 2020-10-21
 
