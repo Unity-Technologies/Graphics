@@ -85,6 +85,7 @@ namespace UnityEditor.Rendering.Universal
         public static void ShowWindow()
         {
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
+            wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
 
             wnd.Show();
