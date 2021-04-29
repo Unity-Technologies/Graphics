@@ -258,18 +258,18 @@ namespace UnityEngine.Rendering
 
             var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
             var touchCount = touches.Count;
-            const InputSystem.TouchPhase touchPhaseBegan = InputSystem.TouchPhase.Began;
+            const InputSystem.TouchPhase expectedTouchPhase = InputSystem.TouchPhase.Ended;
 #else
             var touches = Input.touches;
             var touchCount = Input.touchCount;
-            const TouchPhase touchPhaseBegan = TouchPhase.Began;
+            const TouchPhase expectedTouchPhase = TouchPhase.Began;
 #endif
             if (touchCount == 3)
             {
                 foreach (var touch in touches)
                 {
                     // Gesture: 3-finger double-tap
-                    if (touch.phase == touchPhaseBegan && touch.tapCount == 2)
+                    if (touch.phase == expectedTouchPhase && touch.tapCount == 2)
                         return true;
                 }
             }
