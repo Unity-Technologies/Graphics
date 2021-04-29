@@ -113,8 +113,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var cin in pixelNodes.OfType<CustomInterpolatorNode>().ToList())
             {
                 // The CustomBlockNode's subtree.
-                var anties = GetAntecedents(cin.e_targetBlockNode)?.Where(a => !vertexNodes.Contains(a) && !pixelNodes.Contains(a));
-
+                var anties = GetAntecedents(cin.e_targetBlockNode); //?.Where(a => !vertexNodes.Contains(a) && !pixelNodes.Contains(a));
                 // cin contains an inlined value, so there is nothing to do.
                 if (anties == null)
                 {
@@ -125,7 +124,8 @@ namespace UnityEditor.ShaderGraph
                     foreach (var ant in anties)
                     {
                         // sorted insertion, based on dependencies already present in pixelNodes (an issue because we're faking for the preview).
-                        InsertAntecedent(pixelNodes, ant);
+                        if (!pixelNodes.Contains(ant))
+                            InsertAntecedent(pixelNodes, ant);
                     }
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
@@ -137,7 +137,14 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     // vertex nodes should not require hierarchical insertion, but if they do (master preview is failing)-- use the "InsertAntecedent" solve above.
-                    vertexNodes.AddRange(anties);
+                    //vertexNodes.AddRange(anties.Where(a => !vertexNodes.Contains(a)));
+                    foreach (var ant in anties)
+                    {
+                        if (!vertexNodes.Contains(ant))
+                            InsertAntecedent(vertexNodes, ant);
+                    }
+
+
 
                     if (!vertexNodes.Contains(cin.e_targetBlockNode))
                         vertexNodes.Add(cin.e_targetBlockNode);
