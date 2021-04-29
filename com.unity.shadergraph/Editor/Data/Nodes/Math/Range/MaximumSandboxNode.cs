@@ -35,9 +35,8 @@ namespace UnityEditor.ShaderGraph
             if (shaderFunc == null)
                 shaderFunc = BuildFunction();
 
+            // TODO: move this to a utility function
             var vectorType = DetermineDynamicVectorType(context, shaderFunc);
-
-            // TODO: cache the specialization?
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 
             context.SetMainFunction(specializedFunc, declareStaticPins: true);
@@ -48,15 +47,13 @@ namespace UnityEditor.ShaderGraph
         static GenericShaderFunction shaderFunc = null;
         static GenericShaderFunction BuildFunction()
         {
-            // TODO: this should be GenericShaderFunction.Builder...
-            var func = new GenericShaderFunction.Builder("Unity_Maximum");
+            var func = new ShaderFunction.Builder("Unity_Maximum");
             var dynamicVectorType = func.AddGenericTypeParameter(Types._dynamicVector);
-            func.AddInput(Types._dynamicVector, "A");
+            func.AddInput(Types._dynamicVector, "A");       // TODO: could call AddGenericTypeParameter automatically for any input or output placeholder type...
             func.AddInput(Types._dynamicVector, "B");
             func.AddOutput(Types._dynamicVector, "Out");
             func.AddLine("Out = max(A, B);");
-
-            return func.Build();
+            return func.BuildGeneric();
         }
     }
 }

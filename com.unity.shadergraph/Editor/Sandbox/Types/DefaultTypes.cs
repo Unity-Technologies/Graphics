@@ -15,6 +15,7 @@ public sealed partial class Types
             new SandboxValueType("half",   SandboxValueType.Flags.Scalar),
             new SandboxValueType("float",  SandboxValueType.Flags.Scalar),
             new SandboxValueType("double", SandboxValueType.Flags.Scalar),
+            // TODO: $precision$
             new SandboxValueType("$precision", SandboxValueType.Flags.Scalar | SandboxValueType.Flags.Placeholder)
         };
 
@@ -50,8 +51,8 @@ public sealed partial class Types
         }
 
         // dynamic placeholder type for scalar or vectors
-        types.AddType(new SandboxValueType("$dynamicVector", SandboxValueType.Flags.AnyVector | SandboxValueType.Flags.Placeholder));
-        types.AddType(new SandboxValueType("$dynamicMatrix", SandboxValueType.Flags.Matrix | SandboxValueType.Flags.Placeholder));
+        types.AddType(new SandboxValueType("$dynamicVector$", SandboxValueType.Flags.AnyVector | SandboxValueType.Flags.Placeholder));
+        types.AddType(new SandboxValueType("$dynamicMatrix$", SandboxValueType.Flags.Matrix | SandboxValueType.Flags.Placeholder));
 
         // texture types
         List<SandboxValueType> textureTypes = new List<SandboxValueType>()
@@ -77,7 +78,6 @@ public sealed partial class Types
         {
             types.AddType(t);
         }
-        ;
 
         // sampler state type
         types.AddType(new SandboxValueType("SamplerState", SandboxValueType.Flags.Object));

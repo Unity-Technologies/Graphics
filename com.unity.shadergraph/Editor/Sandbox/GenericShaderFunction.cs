@@ -21,6 +21,8 @@ public class GenericShaderFunction : ShaderFunction
 
     public ShaderFunction SpecializeType(SandboxValueType genericTypeParameter, SandboxValueType specializedType)
     {
+        // TODO: we could have a specialization cache to avoid re-specializing over and over...
+
         var specializedName = Name + "_" + specializedType.Name;
 
         // TODO: should figure out if the function is still generic or not...  maybe we should combine the function builders into one that can do either?
@@ -40,55 +42,11 @@ public class GenericShaderFunction : ShaderFunction
         var newBody = Body.Replace(genericTypeParameter.Name, specializedType.Name);
         builder.AddLine(newBody);
 
-        // TODO: should also replace the generic type parameter in any shader function signatures..
+        // TODO: should also replace the generic type parameter in any shader function signatures
+        // and maybe any dependent generic functions as well?  :D
 
         // TODO: copy over functions, includePaths, remaining generic type parameters
 
         return builder.Build();
-    }
-
-    // "new" here means hide the inherited ShaderFunction.Builder, and replace it with this declaration
-    public new class Builder : ShaderFunction.Builder
-    {
-        List<SandboxValueType> genericTypeParameters;
-        // TODO: generic function parameters..  ;)
-
-        public Builder(string name) : base(name)
-        {
-        }
-
-        public SandboxValueType AddGenericTypeParameter(string name)
-        {
-            // create a local placeholder type with the given name
-            var type = new SandboxValueType(name, SandboxValueType.Flags.Placeholder);
-            return AddGenericTypeParameter(type);
-        }
-
-        public SandboxValueType AddGenericTypeParameter(SandboxValueType placeholderType)
-        {
-            if (!placeholderType.IsPlaceholder)
-                return null;        // TODO: error?  can only use placeholder types as generic type parameters
-
-            if (genericTypeParameters == null)
-                genericTypeParameters = new List<SandboxValueType>();
-            genericTypeParameters.Add(placeholderType);
-
-            return placeholderType;
-        }
-
-        public new GenericShaderFunction Build()
-        {
-            var func = new GenericShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths, genericTypeParameters);
-
-            // clear data so we can't accidentally re-use it
-            this.name = null;
-            this.parameters = null;
-            this.body = null;
-            this.functions = null;
-            this.includePaths = null;
-            this.genericTypeParameters = null;
-
-            return func;
-        }
     }
 }

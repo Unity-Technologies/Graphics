@@ -33,6 +33,7 @@ public sealed partial class Types
             Debug.LogError("Cannot add a type to a readonly Types collection");
             return null;
         }
+        // TODO : check for colliding names
         var shaderType = new SandboxValueType(typeDef);
         return AddType(shaderType);
     }
@@ -119,8 +120,8 @@ public sealed partial class Types
     public static SandboxValueType _precision3 = Default.GetShaderType("$precision3");
     public static SandboxValueType _precision4 = Default.GetShaderType("$precision4");
 
-    public static SandboxValueType _dynamicVector = Default.GetShaderType("$dynamicVector");
-    public static SandboxValueType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix");
+    public static SandboxValueType _dynamicVector = Default.GetShaderType("$dynamicVector$");
+    public static SandboxValueType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix$");
 
     public static SandboxValueType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
 

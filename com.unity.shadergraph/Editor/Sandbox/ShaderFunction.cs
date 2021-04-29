@@ -33,9 +33,10 @@ public class ShaderFunction : ShaderFunctionSignature
     // "new" here means hide the inherited ShaderFunctionSignature.Builder, and replace it with this declaration
     public new class Builder : ShaderFunctionSignature.Builder
     {
-        protected ShaderBuilder body;
-        internal List<JsonData<ShaderFunctionSignature>> functions;     // can't make this protected because JsonData is internal  :(
-        protected List<string> includePaths;
+        ShaderBuilder body;
+        List<JsonData<ShaderFunctionSignature>> functions;
+        List<string> includePaths;
+        List<SandboxValueType> genericTypeParameters;
 
         // builder-only state
         int currentIndent;
@@ -46,6 +47,43 @@ public class ShaderFunction : ShaderFunctionSignature
             this.body = new ShaderBuilder();
             this.currentIndent = 4;
             this.tabSize = 4;
+        }
+
+        public SandboxValueType AddGenericTypeParameter(string name)
+        {
+            // create a local placeholder type with the given name
+            var type = new SandboxValueType(name, SandboxValueType.Flags.Placeholder);
+            return AddGenericTypeParameter(type);
+        }
+
+        public SandboxValueType AddGenericTypeParameter(SandboxValueType placeholderType)
+        {
+            if (placeholderType == null)
+                return null;
+
+            if (!placeholderType.IsPlaceholder)
+                return null;        // TODO: error?  can only use placeholder types as generic type parameters
+
+            if (genericTypeParameters == null)
+                genericTypeParameters = new List<SandboxValueType>();
+            else
+            {
+                var existing = genericTypeParameters.Find(x => x == placeholderType);
+                if (existing != null)
+                {
+                    if (existing.ValueEquals(placeholderType))
+                        return existing;
+                    else
+                    {
+                        Debug.LogError("Generic Type Parameter Name Collision: " + placeholderType.Name);
+                        return null;
+                    }
+                }
+            }
+
+            genericTypeParameters.Add(placeholderType);
+
+            return placeholderType;
         }
 
         public ShaderFunctionSignature AddFunctionInput(ShaderFunctionSignature sig)
@@ -297,7 +335,15 @@ public class ShaderFunction : ShaderFunctionSignature
 
         public new ShaderFunction Build()
         {
-            var func = new ShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths);
+            ShaderFunction func = null;
+            if ((genericTypeParameters != null) && (genericTypeParameters.Count > 0))
+            {
+                Debug.LogError("Call ShaderFunction.Builder.BuildGeneric() for generic functions");
+            }
+            else
+            {
+                func = new ShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths);
+            }
 
             // clear data so we can't accidentally re-use it
             this.name = null;
@@ -305,6 +351,30 @@ public class ShaderFunction : ShaderFunctionSignature
             this.body = null;
             this.functions = null;
             this.includePaths = null;
+            this.genericTypeParameters = null;
+
+            return func;
+        }
+
+        public GenericShaderFunction BuildGeneric()
+        {
+            GenericShaderFunction func = null;
+            if ((genericTypeParameters == null) || (genericTypeParameters.Count <= 0))
+            {
+                Debug.LogError("Call ShaderFunction.Builder.Build() for non-generic functions");
+            }
+            else
+            {
+                func = new GenericShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths, genericTypeParameters);
+            }
+
+            // clear data so we can't accidentally re-use it
+            this.name = null;
+            this.parameters = null;
+            this.body = null;
+            this.functions = null;
+            this.includePaths = null;
+            this.genericTypeParameters = null;
 
             return func;
         }
