@@ -168,7 +168,7 @@ namespace UnityEditor.VFX
             var blendMode = BlendMode.Opaque;
 
             var shaderGraph = GetOrRefreshShaderGraphObject();
-            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
             {
                 // VFX Blend Mode state configures important systems like sorting and indirect buffer.
                 // In the case of SG Generation path, we need to know the blend mode state of the SRP
@@ -303,7 +303,7 @@ namespace UnityEditor.VFX
             {
                 var shaderGraph = GetOrRefreshShaderGraphObject();
 
-                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph)
+                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph || VFXLibrary.currentSRPBinder == null)
                     return string.Empty;
 
                 return VFXLibrary.currentSRPBinder.GetShaderName(shaderGraph);
