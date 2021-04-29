@@ -139,10 +139,8 @@ PackedVaryings Vert(Attributes inputMesh)
     output.dynamicLightmapUV.xy = inputMesh.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
 
-#ifdef VARYINGS_NEED_SH
-    half3 sh = 0;
-    OUTPUT_SH(half3(output.normalWS), sh);
-    output.sh = float3(sh);
+#if defined(VARYINGS_NEED_SH) && !defined(LIGHTMAP_ON)
+    output.sh = float3(SampleSHVertex(half3(output.normalWS)));
 #endif
 
     PackedVaryings packedOutput = (PackedVaryings)0;
