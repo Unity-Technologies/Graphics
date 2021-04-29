@@ -513,8 +513,22 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.OfType<VFXTarget>().Any();
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1;
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
+        public bool hasVFXTarget
+        {
+            get
+            {
+                bool supports = true;
+                supports &= !isSubGraph;
+                supports &= activeTargets.Any();
+                // Maintain support for VFXTarget and VFX compatible targets.
+                supports &= activeTargets.OfType<VFXTarget>().Any() || hasVFXCompatibleTarget;
+                return supports;
+            }
+        }
+
+        public bool isOnlyVFXTarget => activeTargets.Count() == 1 &&
+        activeTargets.Count(t => t is VFXTarget) == 1;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
@@ -1216,6 +1230,14 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var prop in properties)
             {
+                // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
+                // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
+                if (generationMode == GenerationMode.VFX && prop.isExposed)
+                {
+                    prop.overrideHLSLDeclaration = true;
+                    prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;
+                }
+
                 // ugh, this needs to be moved to the gradient property implementation
                 if (prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
@@ -1361,7 +1383,7 @@ namespace UnityEditor.ShaderGraph
 
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
-            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, NodeUtils.IsShaderLabKeyWord);
+            var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
 
             switch (input)
             {
@@ -2503,11 +2525,11 @@ namespace UnityEditor.ShaderGraph
 
             int padding = nonCustomUsage + maxTargetUsage;
 
-            // TODO: Add editor settings to select warning/error thresholds.
-            int d3dSupport    = 32 * 4 - padding;   // 32 is standard expected for modern systems and D3D.
-            int chromeSupport = 15 * 4 - padding;   // 15 is for chrome's implementation of WebGL.
-            // int lowSupport = 10 * 4 - padding;   // 10 is some other limitation Unity recognizes.
-            // int minSupport =  8 * 4 - padding;   // If interpolators are supported, 8 is the bare minimum we can expect.
+            int errRange = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
+            int warnRange = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
+
+            int errorLevel = errRange * 4 - padding;
+            int warnLevel = warnRange * 4 - padding;
 
             int total = 0;
 
@@ -2516,13 +2538,13 @@ namespace UnityEditor.ShaderGraph
             {
                 ClearErrorsForNode(cib);
                 total += (int)cib.customWidth;
-                if (total > d3dSupport)
+                if (total > errorLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as Direct3D).");
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel error threshold: {errRange}. See ShaderGraph project settings.");
                 }
-                else if (total > chromeSupport)
+                else if (total > warnLevel)
                 {
-                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as Chrome's WebGL).", ShaderCompilerMessageSeverity.Warning);
+                    AddValidationError(cib.objectId, $"{cib.customName} exceeds the interpolation channel warning threshold: {warnRange}. See ShaderGraph project settings.", ShaderCompilerMessageSeverity.Warning);
                 }
             }
         }

@@ -25,6 +25,9 @@
   * [Property Binders](PropertyBinders.md)
   * [Event Binders](EventBinders.md)
   * [Output Event Handlers](OutputEventHandlers.md)
+* Shader Graph Integration
+  * [Shader Graphs in Visual Effects](sg-working-with.md)
+  * [Visual Effect Target](sg-target-visual-effect.md)
 * Pipeline Tools
   * [Representing Complex Shapes](representing-complex-shapes.md)
     * [Point Caches](point-cache-in-vfx-graph.md)

@@ -12,32 +12,37 @@ struct Attributes
     float3 normalOS     : NORMAL;
     float4 tangentOS    : TANGENT;
     float2 texcoord     : TEXCOORD0;
-    float2 lightmapUV   : TEXCOORD1;
+    float2 staticLightmapUV   : TEXCOORD1;
+    float2 dynamicLightmapUV  : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
     float2 uv                       : TEXCOORD0;
-    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
 
-    float3 posWS                    : TEXCOORD2;    // xyz: posWS
+    float3 posWS                    : TEXCOORD1;    // xyz: posWS
 
     #ifdef _NORMALMAP
-        half4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
-        half4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-        half4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+        half4 normal                   : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangent                  : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangent                : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
     #else
-        half3  normal                  : TEXCOORD3;
+        half3  normal                  : TEXCOORD2;
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half3 vertexLighting            : TEXCOORD6; // xyz: vertex light
+        half3 vertexLighting            : TEXCOORD5; // xyz: vertex light
     #endif
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        float4 shadowCoord              : TEXCOORD7;
+        float4 shadowCoord              : TEXCOORD6;
     #endif
+
+    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
+#ifdef DYNAMICLIGHTMAP_ON
+    float2  dynamicLightmapUV : TEXCOORD8; // Dynamic lightmap UVs
+#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -46,6 +51,8 @@ struct Varyings
 
 void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.posWS;
 
     #ifdef _NORMALMAP
@@ -76,9 +83,21 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     inputData.fogCoord = 0; // we don't apply fog in the gbuffer pass
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+
+#if defined(DYNAMICLIGHTMAP_ON)
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
+#else
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
+#endif
+
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
+
+#if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.staticLightmapUV;
+#else
+    inputData.vertexSH = input.vertexSH;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,7 +129,10 @@ Varyings LitPassVertexSimple(Attributes input)
         output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
     #endif
 
-    OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+#ifdef DYNAMICLIGHTMAP_ON
+    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+#endif
     OUTPUT_SH(output.normal.xyz, output.vertexSH);
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -138,6 +160,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);

@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Intermediate variables
         Vector4 currentScreenSize = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-        public IBLFilterGGX(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
+        public IBLFilterGGX(HDRenderPipelineRuntimeResources renderPipelineResources, MipGenerator mipGenerator)
         {
             m_RenderPipelineResources = renderPipelineResources;
             m_MipGenerator = mipGenerator;

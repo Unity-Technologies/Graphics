@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
 #endif
 
-        internal XRSystem(RenderPipelineResources.ShaderResources shaders)
+        internal XRSystem(HDRenderPipelineRuntimeResources.ShaderResources shaders)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             RefreshXrSdk();
