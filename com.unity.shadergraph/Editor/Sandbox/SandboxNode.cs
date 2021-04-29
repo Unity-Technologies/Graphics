@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph
         WorldSpaceTangent,
         WorldSpaceBitangent,
         WorldSpacePosition,
+        AbsoluteWorldSpacePosition,
         TangentSpaceNormal,
         TangentSpaceTangent,
         TangentSpaceBitangent,
@@ -62,7 +63,7 @@ namespace UnityEditor.ShaderGraph
         where DEF : JsonObject, ISandboxNodeDefinition, new()
     {
         [SerializeField]
-        DEF m_Definition;
+        protected DEF m_Definition;
 
         // runtime data (not serialized)
         ShaderFunction mainFunction;
@@ -86,6 +87,18 @@ namespace UnityEditor.ShaderGraph
             throw new NotImplementedException();
         }
 
+        bool ISandboxNodeBuildContext.GetInputConnected(string pinName)
+        {
+            MaterialSlot inputSlot = GetSlotByShaderOutputName(pinName);
+            if ((inputSlot == null) || (inputSlot.isOutputSlot))
+                return false;
+
+            // TODO: there's a slight mismatch here between isConnected and what GetInputConnected is supposed to return
+            // GetInputConnected is supposed to return whether anything is overriding the definition default (including local slot "defaultValue"), whereas
+            // inputSlot.isConnected only refers to whether there is a wire attached..
+            return inputSlot.isConnected;
+        }
+
         SandboxValueType ISandboxNodeBuildContext.GetInputType(string pinName)
         {
             // lookup type on the slots
@@ -97,7 +110,7 @@ namespace UnityEditor.ShaderGraph
             // so jump to the connected output slot
             var outputSlot = GetConnectedSlot(inputSlot);
             if ((outputSlot == null) || (outputSlot.isInputSlot))
-                return null;
+                return null;        // TODO: should really return the type of the default here...
 
             // problem is.. the actual type is not really (easily) known here..  (old system is weird)
             // it's actually a combination of the ConcreteSlotValueType and the node precision...
@@ -145,9 +158,25 @@ namespace UnityEditor.ShaderGraph
             mainFunction = function;
             if (declareStaticPins)
             {
+                int newSlotId = GetUnusedSlotId();
+
                 foreach (ShaderFunction.Parameter p in function.Parameters)
                 {
-                    int slotId = definitionSlots.Count;
+                    // AbstractMaterialNode requires that slot IDs are the unique stable identifier,
+                    // whereas we are using the parameter Name as the unique stable identifier
+                    int slotId = -1;
+                    var existingSlot = GetSlotByShaderOutputName(p.Name);
+                    if (existingSlot != null)
+                    {
+                        // if a slot exists with the name, re-use the slot ID for it
+                        slotId = existingSlot.id;
+                    }
+                    else
+                    {
+                        // no existing slot with that name .. just allocate a new id
+                        slotId = newSlotId;
+                        newSlotId++;
+                    }
 
                     MaterialSlot s;
 /*
@@ -196,24 +225,25 @@ namespace UnityEditor.ShaderGraph
                             // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
                             // hidden: attribute.hidden                                 // TODO: what's this used for?
                         );
+
+                        if (existingSlot != null)
+                            s.CopyValuesFrom(existingSlot);
                     }
-
-                    /*                    else          // TODO: bound default slots
-
-                    */
 
                     definitionSlots.Add(s);
                 }
             }
         }
 
-        void ISandboxNodeBuildContext.SetPreviewFunction(ShaderFunction function)
+        void ISandboxNodeBuildContext.SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit)
         {
             previewFunction = function;
+
+            // TODO this isn't correct -- stomps on user selection
+            m_PreviewMode = defaultPreviewMode;
         }
 
         // TODO: move to static utils?
-
         private static MaterialSlot CreateBoundSlot(Binding binding, int slotId, string displayName, string shaderOutputName, ShaderStageCapability shaderStageCapability, bool hidden = false)
         {
             switch (binding)
@@ -242,6 +272,8 @@ namespace UnityEditor.ShaderGraph
                     return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
                 case Binding.WorldSpacePosition:
                     return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+                case Binding.AbsoluteWorldSpacePosition:
+                    return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.AbsoluteWorld, shaderStageCapability, hidden);
                 case Binding.TangentSpaceNormal:
                     return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
                 case Binding.TangentSpaceTangent:
@@ -313,6 +345,10 @@ namespace UnityEditor.ShaderGraph
             if (type == Types._UnityTexture2D)
             {
                 return SlotValueType.Texture2D;
+            }
+            if (type == Types._UnitySamplerState)
+            {
+                return SlotValueType.SamplerState;
             }
             /*
                         if (t == typeof(Texture2DArray))
@@ -401,6 +437,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void Setup()
         {
+            UpdateSlotsFromDefinition();
             base.Setup();
         }
 
@@ -408,6 +445,12 @@ namespace UnityEditor.ShaderGraph
         {
             UpdateSlotsFromDefinition();
             base.Concretize();
+        }
+
+        protected void RebuildNode()
+        {
+            UpdateSlotsFromDefinition();
+            Dirty(ModificationScope.Topological);
         }
 
         private void UpdateSlotsFromDefinition()
@@ -418,7 +461,8 @@ namespace UnityEditor.ShaderGraph
             // update actual slots from the definition slots
             foreach (var s in definitionSlots)
             {
-                AddSlot(s);
+                // we must always replace here, as types may change
+                AddSlot(s, false);
             }
             RemoveSlotsNameNotMatching(definitionSlots.Select(x => x.id), true);
         }
@@ -452,10 +496,15 @@ namespace UnityEditor.ShaderGraph
                         sb.Add(", ");
                     firstParam = false;
 
-                    // find slot -- ids are parameter index
-                    var slot = tempSlots.Find(s => s.id == pIndex);
+                    // find slot by name
+                    var slot = tempSlots.Find(s => s.shaderOutputName == p.Name);
                     if (p.IsInput)
-                        sb.Add(GetSlotValue(slot.id, generationMode));
+                    {
+                        if (slot == null)
+                            sb.Add(p.DefaultValue?.ToString() ?? "null");
+                        else
+                            sb.Add(GetSlotValue(slot.id, generationMode));
+                    }
                     else
                         sb.Add(GetVariableNameForSlot(slot.id));
                 }

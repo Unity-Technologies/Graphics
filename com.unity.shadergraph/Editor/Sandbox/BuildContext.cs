@@ -1,18 +1,22 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 
 
-interface ISandboxNodeBuildContext
+public interface ISandboxNodeBuildContext
 {
     void SetName(string name);
     SandboxValueType AddType(SandboxValueTypeDefinition typeDef);
-    SandboxValueType GetInputType(string pinName);
+
+    SandboxValueType GetInputType(string pinName);  // returns the type of the given input
+    bool GetInputConnected(string pinName);         // returns true if the given input is connected (something is overriding the default)
+
     // public System.Object GetInputStaticValue(string inputPin);       // TODO
     // InputPin AddInputPin(string pinName, SandboxValueType concreteType, SandboxValueType.Filter dynamicTypeFilter = null);
     // OutputPin AddOutputPin(string pinName, SandboxValueType concreteType);
     void SetMainFunction(ShaderFunction function, bool declareStaticPins = false);
-    void SetPreviewFunction(ShaderFunction function); // , PreviewType previewType);
+    void SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit);
     // void AddFunction(ShaderFunction function); // may not need this, if Functions have to declare dependent functions...
     void Error(string message);
 }

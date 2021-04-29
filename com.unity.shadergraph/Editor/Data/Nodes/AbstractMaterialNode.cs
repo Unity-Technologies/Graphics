@@ -352,6 +352,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public int GetUnusedSlotId()
+        {
+            int maxSlotId = 0;
+            foreach (var slot in m_Slots.SelectValue())
+            {
+                if (slot.id > maxSlotId)
+                    maxSlotId = slot.id;
+            }
+            return maxSlotId + 1;
+        }
+
         public MaterialSlot GetSlotByShaderOutputName(string shaderOutputName)
         {
             foreach (var slot in m_Slots.SelectValue())

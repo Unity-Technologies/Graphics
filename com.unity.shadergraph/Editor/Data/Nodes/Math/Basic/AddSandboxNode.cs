@@ -5,16 +5,16 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Math", "Range", "MaximumSandbox")]
-    class MaximumSandboxNode : SandboxNode<MaximumNodeDefinition>
+    [Title("Math", "Basic", "AddSandbox")]
+    class AddSandboxNode : SandboxNode<AddNodeDefinition>
     {
     }
 
-    class MaximumNodeDefinition : JsonObject, ISandboxNodeDefinition
+    class AddNodeDefinition : JsonObject, ISandboxNodeDefinition
     {
         public void BuildRuntime(ISandboxNodeBuildContext context)
         {
-            context.SetName("MaximumSandbox");
+            context.SetName("AddSandbox");
 
             // cached generic function
             if (shaderFunc == null)
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         static GenericShaderFunction shaderFunc = null;
         static GenericShaderFunction BuildFunction()
         {
-            var func = new ShaderFunction.Builder("Unity_Maximum");
+            var func = new ShaderFunction.Builder("Unity_Add");
             var dynamicVectorType = func.AddGenericTypeParameter(Types._dynamicVector);
             func.AddInput(Types._dynamicVector, "A");       // TODO: could call AddGenericTypeParameter automatically for any input or output placeholder type...
             func.AddInput(Types._dynamicVector, "B");
@@ -41,4 +41,26 @@ namespace UnityEditor.ShaderGraph
             return func.BuildGeneric();
         }
     }
+
+
+    /*
+        protected override MethodInfo GetFunctionToConvert()
+        {
+            return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        static string Unity_Add(
+            [Slot(0, Binding.None)] DynamicDimensionVector A,
+            [Slot(1, Binding.None)] DynamicDimensionVector B,
+            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
+        {
+            return
+@"
+{
+    Out = A + B;
+}
+";
+        }
+    }
+    */
 }

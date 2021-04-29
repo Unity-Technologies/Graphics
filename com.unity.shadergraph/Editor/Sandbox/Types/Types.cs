@@ -124,6 +124,7 @@ public sealed partial class Types
     public static SandboxValueType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix$");
 
     public static SandboxValueType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
+    public static SandboxValueType _UnitySamplerState = Default.GetShaderType("UnitySamplerState");
 
     public static SandboxValueType Precision(int vectorSize)
     {
