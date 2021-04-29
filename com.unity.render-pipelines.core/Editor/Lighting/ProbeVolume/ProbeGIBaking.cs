@@ -515,7 +515,7 @@ namespace UnityEngine.Experimental.Rendering
             bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
             if (realtimeSubdivision)
                 ctx.refVolume.realtimeSubdivisionInfo.Clear();
-            
+
             Debug.Log("Bake!");
 
             // subdivide all the cells and generate brick positions 

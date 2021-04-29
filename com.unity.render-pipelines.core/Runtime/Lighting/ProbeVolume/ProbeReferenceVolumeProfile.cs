@@ -48,10 +48,10 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
-        // We don't count the first subdivision because it have the same size as the cell so we subtract one.
-        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log((float)cellSizeInBricks, 3)) - 1;
+        // We don't count the first subdivision because it have the same size as the cell so we add one.
+        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log((float)cellSizeInBricks, 3)) + 1;
         public float brickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
-        public float cellSizeInMeter => (float)cellSizeInBricks * minDistanceBetweenProbes;
+        public float cellSizeInMeters => (float)cellSizeInBricks * brickSize;
 
         void OnEnable()
         {
@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
-                cellSizeInMeter == otherProfile.cellSizeInMeter &&
+                cellSizeInMeters == otherProfile.cellSizeInMeters &&
                 maxSubdivision == otherProfile.maxSubdivision &&
                 normalBias == otherProfile.normalBias;
         }
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
 
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
-            EditorGUILayout.HelpBox("Maximum subvision of the volume: " + profile.maxSubdivision, MessageType.Info);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
             {
