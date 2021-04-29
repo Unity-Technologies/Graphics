@@ -1,5 +1,24 @@
-
 #pragma target 4.5
+
+#if defined(WRITE_NORMAL_BUFFER)
+#define NEED_NORMAL 1
+#elif (SHADERPASS == SHADERPASS_DEPTHONLY)
+#define NEED_NORMAL SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#elif (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+#define NEED_NORMAL SHADERGRAPH_NEEDS_NORMAL_DEPTHNORMALS
+#else
+#define NEED_NORMAL 0
+#endif
+
+#if defined(WRITE_NORMAL_BUFFER)
+#define NEED_TANGENT 1
+#elif (SHADERPASS == SHADERPASS_DEPTHONLY)
+#define NEED_TANGENT SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+#elif (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+#define NEED_TANGENT SHADERGRAPH_NEEDS_TANGENT_DEPTHNORMALS
+#else
+#define NEED_TANGENT 0
+#endif
 
 struct ps_input
 {        
@@ -37,9 +56,9 @@ struct ps_input
     // y: motion vector scale v
     nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
     #endif
-    #if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+    #if NEED_NORMAL
     float3 normal : TEXCOORD4;
-    #if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+    #if NEED_TANGENT
     float4 tangent : TEXCOORD5;
     #endif
     #endif
@@ -60,15 +79,14 @@ struct ps_input
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 
-#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#if NEED_NORMAL
 #define VFX_VARYING_NORMAL normal
 #endif
-#ifdef WRITE_NORMAL_BUFFER
-#define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#endif
-#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+
+#if NEED_TANGENT
 #define VFX_VARYING_TANGENT tangent
 #endif
+
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif

@@ -4,7 +4,7 @@ ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
 
 ${VFXBegin:VFXPassDepthDefine}
-#if WRITE_NORMAL_BUFFER
+#if defined(WRITE_NORMAL_BUFFER)
 #define SHADERPASS SHADERPASS_DEPTHNORMALSONLY
 #else
 #define SHADERPASS SHADERPASS_DEPTHONLY
@@ -101,10 +101,10 @@ void frag(ps_input i
     
     #if defined(WRITE_NORMAL_BUFFER)
         #ifdef VFX_SHADERGRAPH
-           #if HAS_SHADERGRAPH_PARAM_NORMAL
-               float3 n =  OUTSG.Normal_8;
-               normalWS = mul(n,tbn);
-           #endif
+            #if HAS_SHADERGRAPH_PARAM_NORMALTS
+                float3 n =  OUTSG.${SHADERGRAPH_PARAM_NORMALTS};
+                normalWS = mul(n,tbn);
+            #endif
         #endif
         VFXComputePixelOutputToNormalBuffer(normalWS,  outNormalBuffer);
     #endif
