@@ -178,14 +178,6 @@ namespace UnityEditor.VFX
         public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
     }
 
-    // This is the default binder used if no SRP is used in the project
-    class VFXLegacyBinder : VFXSRPBinder
-    {
-        public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Legacy"; } }
-        public override string SRPAssetTypeStr { get { return "None"; } }
-        public override Type SRPOutputDataType { get { return null; } }
-    }
-
     static class VFXLibrary
     {
         public static IEnumerable<VFXModelDescriptor<VFXContext>> GetContexts() { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_ContextDescs : m_ContextDescs.Where(o => !o.info.experimental); }
@@ -477,16 +469,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool unsupportedSRPWarningIssued = false;
+
         public static VFXSRPBinder currentSRPBinder
         {
             get
             {
                 LoadSRPBindersIfNeeded();
-                VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline == null ? "None" : GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
-                if (binder == null)
-                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.currentRenderPipeline.GetType());
+                VFXSRPBinder binder = null;
+                if (GraphicsSettings.currentRenderPipeline != null)
+                    srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
+
+                if (binder == null && !unsupportedSRPWarningIssued)
+                {
+                    Debug.LogWarning("The Visual Effect Graph is supported in the High Definition Render Pipeline (HDRP) and the Universal Render Pipeline (URP). Please assign your chosen Render Pipeline Asset in the Graphics Settings to use it.");
+                    unsupportedSRPWarningIssued = true;
+                }
 
                 return binder;
             }

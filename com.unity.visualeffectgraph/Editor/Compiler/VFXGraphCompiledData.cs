@@ -975,17 +975,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        private void CleanRuntimeData()
+        {
+            if (m_Graph.visualEffectResource != null)
+                m_Graph.visualEffectResource.ClearRuntimeData();
+
+            m_ExpressionGraph = new VFXExpressionGraph();
+            m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
+            return;
+        }
+
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
-            // Prevent doing anything ( and especially showing progress) in an empty graph.
-            if (m_Graph.children.Count() < 1)
+            // Early out in case: (Not even displaying the popup)
+            if (m_Graph.children.Count() < 1 ||         // Graph is empty
+                VFXLibrary.currentSRPBinder == null)    // One of supported SRPs is not current SRP
             {
-                // Cleaning
-                if (m_Graph.visualEffectResource != null)
-                    m_Graph.visualEffectResource.ClearRuntimeData();
-
-                m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                CleanRuntimeData();
                 return;
             }
 
@@ -1176,12 +1182,7 @@ namespace UnityEditor.VFX
 
                 Debug.LogError(string.Format("{2} : Exception while compiling expression graph: {0}: {1}", e, e.StackTrace, (asset != null) ? asset.name : "(Null Asset)"), asset);
 
-                // Cleaning
-                if (m_Graph.visualEffectResource != null)
-                    m_Graph.visualEffectResource.ClearRuntimeData();
-
-                m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                CleanRuntimeData();
             }
             finally
             {
