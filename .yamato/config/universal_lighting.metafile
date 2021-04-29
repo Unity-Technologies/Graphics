@@ -147,6 +147,9 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: editmode
+          - name: playmode_XR
+          - name: playmode_XR_cache
+          - name: Standalone_XR_cache
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
