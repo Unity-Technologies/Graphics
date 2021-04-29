@@ -35,8 +35,15 @@ namespace UnityEditor.Rendering
         public delegate void MaterialFinalizer(Material mat);
 
         string m_OldShader;
-        internal string NewShader => m_NewShader;
         string m_NewShader;
+
+        /// <summary>
+        /// Retrieves path to new shader.
+        /// </summary>
+        public string NewShader
+        {
+            get => m_NewShader;
+        }
 
         MaterialFinalizer m_Finalizer;
 
@@ -58,14 +65,26 @@ namespace UnityEditor.Rendering
         }
         List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
 
-        internal enum RenameType
+        /// <summary>
+        /// Type of property to rename.
+        /// </summary>
+        public enum RenameType
         {
+            /// <summary>Texture reference property.</summary>
             Texture,
+            /// <summary>Float property.</summary>
             Float,
+            /// <summary>Color property.</summary>
             Color
         }
 
-        internal IReadOnlyDictionary<string, string> GetRename(RenameType type)
+        /// <summary>
+        /// Retrieves a collection of renamed parameters of a specific RenameType.
+        /// </summary>
+        /// <param name="type">Rename Type</param>
+        /// <returns>Dictionary of property names to their renamed values.</returns>
+        /// <exception cref="ArgumentException">type is not valid.</exception>
+        public IReadOnlyDictionary<string, string> GetRename(RenameType type)
         {
             switch (type)
             {
