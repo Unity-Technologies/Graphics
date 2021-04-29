@@ -662,7 +662,8 @@ namespace UnityEngine.Rendering.Universal
                 lightProbeProxyVolumes = false,
                 motionVectors = false,
                 receiveShadows = false,
-                reflectionProbes = true,
+                reflectionProbes = false,
+                reflectionProbesBlendDistance = true,
                 particleSystemInstancing = true
             };
             SceneViewDrawMode.SetupDrawMode();
@@ -1041,6 +1042,8 @@ namespace UnityEngine.Rendering.Universal
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
+            lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
+            lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
         }
 
@@ -1113,6 +1116,10 @@ namespace UnityEngine.Rendering.Universal
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
             Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
+
+            // Used as fallback cubemap for reflections
+            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
+            Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
 
             // Ambient
             Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));
