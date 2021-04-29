@@ -609,9 +609,6 @@ namespace UnityEngine.Rendering.Universal
             shouldUpdate |= Application.isPlaying == false;
             #endif
 
-            // Get the volume trigger and layer mask
-            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
-
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
             {
@@ -626,6 +623,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // When we want to update the volumes every frame...
+            camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
