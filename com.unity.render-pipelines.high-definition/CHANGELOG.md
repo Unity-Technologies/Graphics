@@ -169,6 +169,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
 - Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
 - Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
 - Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 
 ### Changed
