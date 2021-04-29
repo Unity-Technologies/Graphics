@@ -106,6 +106,11 @@ float GetSSRSampleWeight(float3 V, float3 L, float roughness)
     return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
 }
 
+float remap(float value, float from1, float to1, float from2, float to2)
+{
+    return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+}
+
 // Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
 bool SampleGGX_VNDF(float roughness_,
                     float3x3 localToWorld,
@@ -725,18 +730,14 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float speed = speedDiff;
 
-#define MIN_SPEED 0.0f
-#define MAX_SPEED 1.0f
-
-    float usedSpeed = saturate((speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED));
+    const float prec = 6.0f;
+    float4 remapValues = float4(0.0f, 100000.0f, 0.0f, 1.0f);
+    float usedSpeed = 1.0f - saturate(remap(speed, remapValues.x, pow(_SsrPBRSpeedRejection, prec) * remapValues.y, remapValues.z, remapValues.w));
 
 #define SMOOTH_REJECT
 
 #ifdef SMOOTH_REJECT
-    const float prec = 0.5f;
-    //float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(speed * pow(_SsrPBRSpeedRejection, prec)));
-    //float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(_SsrPBRSpeedRejection * pow(speed, prec)));
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, _SsrPBRSpeedRejection * saturate(pow(usedSpeed, prec)));
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
 #else
     const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
 
@@ -745,19 +746,19 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-//#define REJECT_DEBUG_COLOR
+#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-    result.rgb = float3(speed, 0.0f, 0.0f);
-//#ifdef SMOOTH_REJECT
-//    float debugVal = saturate(pow(speed, prec));
-//    result.rgb = (1.0f - debugVal).xxx;
-//#else
-//    if (speedDiff > _SsrPBRSpeedRejection)
-//        result.rgb = float3(1, 0, 0);
-//    else
-//        result.rgb = float3(0, 1, 0);
-//#endif
+    result.rgb = float3(usedSpeed, 0.0f, 0.0f);
+// #ifdef SMOOTH_REJECT
+   // float debugVal = saturate(pow(speed, prec));
+   // result.rgb = (1.0f - debugVal).xxx;
+// #else
+   // if (speedDiff > _SsrPBRSpeedRejection)
+       // result.rgb = float3(1, 0, 0);
+   // else
+       // result.rgb = float3(0, 1, 0);
+// #endif
 #endif
 
     uint3 intCol = asuint(result.rgb);
