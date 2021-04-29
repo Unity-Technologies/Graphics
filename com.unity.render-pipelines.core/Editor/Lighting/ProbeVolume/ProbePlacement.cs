@@ -196,49 +196,55 @@ namespace UnityEngine.Experimental.Rendering
                     int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - subdivisionLevel);
                     int brickSize = (int)Mathf.Pow(3, subdivisionLevel);
 
-                    // Adds the bricks from the min subdivision setting of the volume
-                    for (int x = 0; x < brickCountPerAxis; x++)
+                    // Check if a probe volume inside the cell will add subdivision at this level
+                    float localMinSubdiv = probeVolumes.Max(pv => pv.component.minSubdivisionMultiplier);
+
+                    if (maxSubdivLevel - subdivisionLevel < refVol.GetMaxSubdivision(localMinSubdiv))
                     {
-                        for (int y = 0; y < brickCountPerAxis; y++)
+                        // Adds the bricks from the min subdivision setting of the volume
+                        for (int x = 0; x < brickCountPerAxis; x++)
                         {
-                            for (int z = 0; z < brickCountPerAxis; z++)
+                            for (int y = 0; y < brickCountPerAxis; y++)
                             {
-                                // var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
-                                // ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
+                                for (int z = 0; z < brickCountPerAxis; z++)
+                                {
+                                    var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
+                                    ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
 
-                                // // TODO: collider check on the probe volume:
-                                // // var closestPoint = collider.ClosestPoint(triggerPos);
-                                // // var d = (closestPoint - triggerPos).sqrMagnitude;
+                                    // TODO: collider check on the probe volume:
+                                    // var closestPoint = collider.ClosestPoint(triggerPos);
+                                    // var d = (closestPoint - triggerPos).sqrMagnitude;
 
-                                // // minSqrDistance = Mathf.Min(minSqrDistance, d);
+                                    // minSqrDistance = Mathf.Min(minSqrDistance, d);
 
-                                // // // Update the list of overlapping colliders
-                                // // if (d <= sqrFadeRadius)
-                                // //     volume.m_OverlappingColliders.Add(collider);
+                                    // // Update the list of overlapping colliders
+                                    // if (d <= sqrFadeRadius)
+                                    //     volume.m_OverlappingColliders.Add(collider);
 
-                                // // Find the local max from all overlapping probe volumes:
-                                // float localMaxSubdiv = 0;
-                                // float localMinSubdiv = 0;
-                                // bool overlapVolume = false;
-                                // foreach (var kp in probeVolumes)
-                                // {
-                                //     var vol = kp.volume;
-                                //     if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
-                                //     {
-                                //         localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
-                                //         // Do we use max for min subdiv too?
-                                //         localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
-                                //         overlapVolume = true;
-                                //     }
-                                // }
+                                    // Find the local max from all overlapping probe volumes:
+                                    // float localMaxSubdiv = 0;
+                                    localMinSubdiv = 0;
+                                    bool overlapVolume = false;
+                                    foreach (var kp in probeVolumes)
+                                    {
+                                        var vol = kp.volume;
+                                        if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
+                                        {
+                                            // localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
+                                            // Do we use max for min subdiv too?
+                                            localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
+                                            overlapVolume = true;
+                                        }
+                                    }
 
-                                // // Debug.Log(localMinSubdiv);
-                                // // bool belowMaxSubdiv = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
-                                // bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < ProbeReferenceVolume.instance.GetMaxSubdivision(localMinSubdiv) - 1;
+                                    // Debug.Log(localMinSubdiv);
+                                    // bool belowMaxSubdiv = subdivisionLevel <= refVol.GetMaxSubdivision(localMaxSubdiv);
+                                    bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < refVol.GetMaxSubdivision(localMinSubdiv);
 
-                                // // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                                // if (overlapVolume && belowMinSubdiv)
-                                //     bricksList.Add(brick);
+                                    // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
+                                    if (overlapVolume && belowMinSubdiv)
+                                        bricksList.Add(brick);
+                                }
                             }
                         }
                     }

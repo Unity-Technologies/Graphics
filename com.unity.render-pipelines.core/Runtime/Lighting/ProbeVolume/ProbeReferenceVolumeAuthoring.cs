@@ -254,6 +254,30 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugDisplay.drawCells)
             {
+                IEnumerable<Vector3> GetVisibleCellCenters()
+                {
+                    if (debugDisplay.realtimeSubdivision)
+                    {
+                        foreach (var kp in realtimeSubdivisionInfo)
+                        {
+                            kp.Key.CalculateCenterAndSize(out var center, out var _);
+                            yield return center;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                        {
+                            if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
+                                continue;
+                            
+                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
+                            var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
+                            yield return center;
+                        }
+                    }
+                }
+
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.
                 Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
@@ -261,13 +285,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
                 cellGizmo.Clear();
-                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                foreach (var center in GetVisibleCellCenters())
                 {
-                    if (ShouldCull(cell.position, transform.position))
-                        continue;
-
-                    var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                    var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
                     Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSizeInMeters);
                     cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
                 }
