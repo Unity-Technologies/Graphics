@@ -62,7 +62,8 @@ namespace UnityEngine
             int endOfCurrentInputList = spAxes.arraySize;
             spAxes.arraySize = endOfCurrentInputList + newEntries.Count;
 
-            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList);
+            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList - 1);
+            spAxis.Next(false);
             for (int i = 0; i < newEntries.Count; ++i, spAxis.Next(false))
                 CopyEntry(spAxis, newEntries[i]);
         }
