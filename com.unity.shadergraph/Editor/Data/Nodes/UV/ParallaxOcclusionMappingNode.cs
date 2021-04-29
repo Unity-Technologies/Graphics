@@ -166,6 +166,11 @@ $precision3 {tmpViewDirUV}    = normalize($precision3({tmpViewDir}.xy * {tmpMaxH
 PerPixelHeightDisplacementParam {tmpPOMParam};
 {tmpPOMParam}.uv = {uvs};");
 
+            // to avoid crashes when steps gets too big, and
+            // to avoid divide by zero, we clamp it to the range [1, 256]
+            // This should compile out when steps is a static value.
+            steps = "max(min(" + steps + ", 256), 1)";
+
             sb.AppendLines($@"
 $precision {tmpOutHeight};
 $precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {uvs} + ParallaxOcclusionMapping{GetFunctionName()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}.tex, {sampler}.samplerstate));

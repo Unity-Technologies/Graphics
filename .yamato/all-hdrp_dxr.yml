@@ -14,6 +14,7 @@ PR_HDRP_DXR_trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_DXR_trunk:
@@ -24,6 +25,7 @@ Nightly_HDRP_DXR_trunk:
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_HDRP_DXR_CUSTOM-REVISION:

@@ -17,9 +17,8 @@ PR_Smoke_Test_trunk:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Smoke_Test_trunk:
@@ -28,6 +27,7 @@ Nightly_Smoke_Test_trunk:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_Smoke_Test_CUSTOM-REVISION:
