@@ -234,6 +234,9 @@ EditorBuildSettings:
     path: Assets/Scenes/2006_Debug_ScreenSpaceShadows.unity
     guid: 379672fbfa6c8dd4c83747a084414b46
   - enabled: 1
+    path: Assets/Scenes/2007_Debug_LightCluster.unity
+    guid: b7fbbc7d0a8ea854aae81bc3243df0ff
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
