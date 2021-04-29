@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     internal abstract class DecalDrawSystem
     {
         protected DecalEntityManager m_EntityManager;
-        private Mesh m_DecalMesh;
+        private Mesh m_DecalProjectorMesh;
         private Matrix4x4[] m_WorldToDecals;
         private Matrix4x4[] m_NormalToDecals;
         private ProfilingSampler m_Sampler;
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         public DecalDrawSystem(string sampler, DecalEntityManager entityManager)
         {
             m_EntityManager = entityManager;
-            m_DecalMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+            m_DecalProjectorMesh = m_EntityManager.decalProjectorMesh;
 
             m_WorldToDecals = new Matrix4x4[250];
             m_NormalToDecals = new Matrix4x4[250];
@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal
         public void Execute(CommandBuffer cmd)
         {
             // On build for some reason mesh dereferences
-            if (m_DecalMesh == null)
-                m_DecalMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+            if (m_DecalProjectorMesh == null)
+                m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 
             using (new ProfilingScope(cmd, m_Sampler))
             {
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                    cmd.DrawMesh(m_DecalMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
+                    cmd.DrawMesh(m_DecalProjectorMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
                 }
             }
         }
@@ -107,15 +107,15 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-                cmd.DrawMeshInstanced(m_DecalMesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
+                cmd.DrawMeshInstanced(m_DecalProjectorMesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
             }
         }
 
         public void Execute(in CameraData cameraData)
         {
             // On build for some reason mesh dereferences
-            if (m_DecalMesh == null)
-                m_DecalMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+            if (m_DecalProjectorMesh == null)
+                m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 
             using (new ProfilingScope(null, m_Sampler))
             {
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                    Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
+                    Graphics.DrawMesh(m_DecalProjectorMesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
                 }
             }
         }
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-                Graphics.DrawMeshInstanced(m_DecalMesh, 0, material,
+                Graphics.DrawMeshInstanced(m_DecalProjectorMesh, 0, material,
                     m_WorldToDecals, subCall.count, decalCachedChunk.propertyBlock, ShadowCastingMode.On, true, 0, cameraData.camera);
             }
         }

@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Util class for normal reconstruction.

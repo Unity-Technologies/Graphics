@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 public class NormalReconstructionTestFeature : ScriptableRendererFeature
 {

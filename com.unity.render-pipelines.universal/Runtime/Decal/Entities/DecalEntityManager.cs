@@ -198,12 +198,17 @@ namespace UnityEngine.Rendering.Universal
         private Material m_ErrorMaterial;
         public Material errorMaterial => m_ErrorMaterial;
 
+        private Mesh m_DecalProjectorMesh;
+        public Mesh decalProjectorMesh => m_DecalProjectorMesh;
+
         public DecalEntityManager()
         {
             m_AddDecalSampler = new ProfilingSampler("DecalEntityManager.CreateDecalEntity");
             m_ResizeChunks = new ProfilingSampler("DecalEntityManager.ResizeChunks");
             m_SortChunks = new ProfilingSampler("DecalEntityManager.SortChunks");
-            m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
+
+            m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+            m_ErrorMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/InternalErrorShader"));
         }
 
         public bool IsValid(DecalEntity decalEntity)
@@ -388,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
                     };
                 }
 
+
                 // Sort
                 m_CombinedChunks.Sort((a, b) =>
                 {
@@ -466,6 +472,9 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
+            CoreUtils.Destroy(m_ErrorMaterial);
+            CoreUtils.Destroy(m_DecalProjectorMesh);
+
             foreach (var entityChunk in entityChunks)
                 entityChunk.currentJobHandle.Complete();
             foreach (var cachedChunk in cachedChunks)
