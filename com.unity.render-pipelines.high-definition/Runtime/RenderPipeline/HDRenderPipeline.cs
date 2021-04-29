@@ -1056,7 +1056,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDCamera.CleanUnused();
             }
 
-            Terrain.FillActiveTerrainList(m_ActiveTerrains);
+            Terrain.GetActiveTerrains(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
