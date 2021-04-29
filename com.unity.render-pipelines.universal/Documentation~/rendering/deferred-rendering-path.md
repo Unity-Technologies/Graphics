@@ -4,9 +4,25 @@ URP supports two Rendering Paths: Forward and Deferred.
 
 This section describes the Deferred Rendering Path.
 
-TODO: insert intro image.
+![Scene rendered with the Deferred Rendering Path](../Images/rendering-deferred/deferred-intro-image.png)<br/>*Sample Scene rendered with the Deferred Rendering Path.*
 
-## How to select the Deferred Rendering Path
+This section contains the following topics:
+
+* [How to select the Deferred Rendering Path](#how-to-enable)
+
+* [Rendering Path comparison](#rendering-path-comparison)
+
+* [Unity Player system requirements](#requirements)
+
+* [Implementation details](#implementation-details)
+
+* [Relevant code files](#relevant-code-files)
+
+* [ShaderLab Pass tags](#shaderlab-pass-tags)
+
+* [Limitations and performance](#limitations-and-performance)
+
+## How to select the Deferred Rendering Path<a name="how-to-enable"></a>
 
 To select the Rendering Path, use the property **Lighting** > **Rendering Path** in the URP Universal Renderer asset.
 
@@ -26,7 +42,7 @@ The following table shows the differences between the Forward and the Deferred R
 | Vertex lighting | Yes | No |
 | Camera stacking | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
 
-## Unity Player system requirements
+## Unity Player system requirements<a name="requirements"></a>
 
 The Deferred Rendering Path has the following requirements and limitations on top of the general system requirements for the Unity Player.
 
@@ -136,15 +152,15 @@ The Subtractive and the Shadow mask modes are optimized for the Forward Renderin
 
 **Rendering Layer Mask**
 
-Unity adds this render target to the G-buffer layout when the Light Layers feature is enabled (URP Asset, **Advanced** > **Light Layers**). The Light Layers feature might have a significant impact on the GPU performance.
+Unity adds this render target to the G-buffer layout when the Light Layers feature is enabled (URP Asset, **Advanced** > **Light Layers**). The Light Layers feature might have a significant impact on the GPU performance. For more information, see section [Light Layers](#light-layers).
 
 **DepthStencil**
 
-Unity uses the four lowest bits of this render target to mark the Material type. See also TODO: insert REF to UniversalMaterialType. 
+Unity uses the four lowest bits of this render target to mark the Material type. See also [URP Pass tags: UniversalMaterialType](../urp-shaders/urp-shaderlab-pass-tags.md#universalmaterialtype). 
 
 For this render target, Unity selects either the D32F_S8 format, or the D24S8 format depending on the platform.
 
-### Deferred Rendering Path render Passes
+### Deferred Rendering Path render Passes<a name="render-passes"></a>
 
 The following table shows the sequence of Render Pass events in the Deferred Rendering Path.
 
@@ -291,13 +307,53 @@ Examples of such shaders:
 
 * **Baked Lit** and **Unlit**: these shaders do not receive dynamic lighting, so writing them directly into the Lighting buffer instead of the G-buffer is faster.
 
-* **Custom shaders**: Unity renders the shaders that do not declare the Pass tags required by the Deferred Rendering Path as Forward-only. The required Pass tags are: `LightMode`, and `UniversalMaterialType`. For more information, see TODO:REF.
+* **Custom shaders**: Unity renders the shaders that do not declare the Pass tags required by the Deferred Rendering Path as Forward-only. The required Pass tags are: `LightMode`, and `UniversalMaterialType`. For more information, see [URP Pass tags](../urp-shaders/urp-shaderlab-pass-tags.md).
 
-Unity renders Materials with such shaders in the Forward Rendering Path. For the SSAO Renderer Feature to be able to calculate ambient occlusion for the Materials using the **Complex Lit** shader, Unity must render such Materials in the depth and normal prepass first. This is because Unity does not render those Materials in the G-buffer pass (GBufferPass). For more information, see TODO:REF ShaderLab tag names.
+Unity renders Materials with such shaders in the Forward Rendering Path. For the SSAO Renderer Feature to be able to calculate ambient occlusion for the Materials using the **Complex Lit** shader, Unity must render such Materials in the depth and normal prepass first. This is because Unity does not render those Materials in the G-buffer pass (GBufferPass). For more information, see [URP Pass tags](../urp-shaders/urp-shaderlab-pass-tags.md).
 
 #### General implementation notes
 
 For maximum platform compatibility, the URP Deferred Rendering Path uses the light stencil volume technique to perform the light accumulation.
+
+## Relevant code files
+
+This section contains the list of files that contain the code related to the Deferred Rendering Path.
+
+* The main class that handles the Deferred Rendering Path:
+
+    ```
+    com.unity.render-pipelines.universal\Runtime\DeferredLights.cs
+    ```
+
+* ScriptableRenderPass for the G-Buffer pass:
+
+    ```
+    com.unity.render-pipelines.universal\Runtime\Passes\GBufferPass.cs
+    ```
+
+* ScriptableRenderPass for the deferred shading pass:
+
+    ```
+    com.unity.render-pipelines.universal\Runtime\Passes\DeferredPass.cs
+    ```
+
+* Shader asset for the deferred shading:
+
+    ```
+    com.unity.render-pipelines.universal\Shaders\Utils\StencilDeferred.shader
+    ```
+
+* Utility functions for the deferred shading:
+
+    ```
+    com.unity.render-pipelines.universal\Shaders\Utils\Deferred.hlsl
+    ```
+
+* Utility functions for storing and loading the Material properties from the G-buffer:
+
+    ```
+    com.unity.render-pipelines.universal\Shaders\Utils\UnityGBuffer.hlsl
+    ```
 
 ## ShaderLab Pass tags
 
@@ -315,9 +371,9 @@ To indicate that Unity must render a certain Material in the Forward-only Pass i
 
 To specify the shader lighting model (Lit, SimpleLit), use the `UniversalMaterialType` tag.
 
-For more information, see the section [URP Pass tags: LightMode](../urp-shaders/urp-shaderlab-pass-tags.md#lightmode)
+For more information, see the section [URP Pass tags: LightMode](../urp-shaders/urp-shaderlab-pass-tags.md#lightmode).
 
-## Limitations
+## Limitations and performance
 
 This section describes the limitations of the Deferred Rendering Path.
 
@@ -327,10 +383,40 @@ When blending more than four Terrain layers, the Deferred Rendering Path generat
 
 In the Forward Rendering Path, Unity merges Material properties and calculates lighting for the combined properties of four layers at once. Unity then processes the next four layers in the same way and alpha-blends the lighting results.
 
-In the Deferred Rendering Path, Unity combines Terrain layers in the G-buffer pass, four layers at a time, and then calculates lighting only once during the deferred rendering pass. This difference with the Forward Rendering Path leads to visually different outcomes.
+In the Deferred Rendering Path, Unity combines Terrain layers in the G-buffer pass, four layers at a time, and then calculates lighting only once during the deferred rendering pass. This difference with the Forward Rendering Path leads to [visually different outcomes](#terrain-visual-diff).
 
 Unity combines the Material properties in the G-buffer using hardware blending (four layers at a time), which limits how correct the combination of property values is. For example, pixel normals cannot be correctly combined using the alpha blend equation alone, because one Terrain layer might contain coarse Terrain detail while another layer might contain fine detail. Averaging or summing normals results in loss of accuracy.
 
 > **NOTE:** Turning the setting [Accurate G-buffer normals](#accurate-g-buffer-normals) on breaks Terrain blending. With this setting turned on, Unity encodes normals using octahedron encoding. Normals in different layers encoded this way cannot be blended together bacause of the bitwise nature of the encoding (2 x 12 bits). If your application requires more than four Terrain layers, turn the **Accurate G-buffer normals** setting off.
 
-TODO: Illustration.
+<a name="terrain-visual-diff"></a>The following illustration shows the visual difference when rendering Terrain layers with different Rendering Paths.
+
+![Terrain layers rendered with the Forward Rendering Path](../Images/rendering-deferred/terrain-layers-forward.png)<br/>*Terrain layers rendered with the Forward Rendering Path*
+
+![Terrain layers rendered with the Deferred Rendering Path](../Images/rendering-deferred/terrain-layers-deferred.png)<br/>*Terrain layers rendered with the Deferred Rendering Path*
+
+### Baked Global Illumination and Lighting Modes
+
+When Baked Global Illumination is enabled, the Subtractive and the Shadowmask Lighting modes put extra load on the GPU in the Deferred Rendering Path.
+
+The Deferred Rendering Path supports the Subtractive and the Shadowmask Lighting modes for compatibility reasons, but, unlike the case with the Forward Rendering Path, these modes do not provide any improvements in performance. In the Deferred Rendering Path, Unity processes all meshes using the same Lighting algorithm and stores the extra Lighting properties required by Subtractive and the Shadowmask modes in the [ShadowMask render target](#g-buffer-layout).
+
+In the Deferred Rendering Path, the Baked Indirect Lighting mode provides better performance, since it does not require the ShadowMask render target.
+
+### Light layers
+
+URP implements the Light Layers feature that lets you configure which Lights in a Scene affect specific meshes. Lights assigned to a specific Light Layer only affect the meshes assigned to the same Light Layer.
+
+To enable the Light Layers feature: in the URP Asset, select **Advanced** > **Light Layers**.
+
+![Light Layers check box.](../Images/rendering-deferred/urp-asset-light-layers.png)
+
+**Performance impact**
+
+The Light Layers feature requires an extra G-buffer render target to store the rendering layer mask (32 bits). The extra render target is likely to have a negative impact on GPU performance.
+
+**Implementation notes**
+
+In the Forward Rendering Path, the [Layers](https://docs.unity3d.com/Manual/Layers.html) feature lets you tell Unity to render specific meshes with a specific set of Lights. The [Layers](https://docs.unity3d.com/Manual/Layers.html) feature uses the culling mask system.
+
+The Deferred Rendering Path cannot use the culling mask system, because the shading is deferred to a later stage in the rendering loop (see the **Deferred rendering (stencil)** step in the [Deferred Rendering Path render Passes](#render-passes) table.)
