@@ -213,6 +213,21 @@ EditorBuildSettings:
     path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
     guid: e94f1768c0fea4843a93cf691ba136fd
   - enabled: 1
+    path: Assets/Scenes/2000_Debug_ScreenSpaceGlobalIllumination.unity
+    guid: 8389bea7a4b533e439040027eee5ccf1
+  - enabled: 1
+    path: Assets/Scenes/2001_Debug_ScreenSpaceReflections.unity
+    guid: 20fffe34192bdd74c98d45f2b0967a5e
+  - enabled: 1
+    path: Assets/Scenes/2002_Debug_ScreenSpaceReflectionsOnTransparents.unity
+    guid: 33882ae72e3092741a756030e10a43d5
+  - enabled: 1
+    path: Assets/Scenes/2003_Debug_RecursiveRendering.unity
+    guid: 4b02a5b1fc4cbca4fa2cc49f28897268
+  - enabled: 1
+    path: Assets/Scenes/2004_Debug_ContactShadows.unity
+    guid: bdd85d6731147b147b149deb57fc9371
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
