@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -23,6 +21,10 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent ShadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
             public static readonly GUIContent ShadowNormalBias = EditorGUIUtility.TrTextContent("Normal", "Controls the distance shadow caster vertices are offset along their normals when rendering shadow maps. Currently ignored for Point Lights.");
             public static readonly GUIContent ShadowDepthBias = EditorGUIUtility.TrTextContent("Depth");
+
+            public static readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
+            public static readonly GUIContent customShadowLayers = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Light Layer property in the General section specifies the layers for both lighting and for shadows.");
+            public static readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Layer", "Specifies the light layer to use for shadows.");
 
             // Resolution (default or custom)
             public static readonly GUIContent ShadowResolution = EditorGUIUtility.TrTextContent("Resolution", $"Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
@@ -58,8 +60,6 @@ namespace UnityEditor.Rendering.Universal
 
         public bool spotOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Spot; } }
         public bool pointOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Point; } }
-        public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
-        public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
         public bool shadowResolutionOptionsValue  { get { return spotOptionsValue || pointOptionsValue; } } // Currently only additional punctual lights can specify per-light shadow resolution
 
         //  Area light shadows not supported
@@ -88,38 +88,54 @@ namespace UnityEditor.Rendering.Universal
             serializedLight.settings.DrawLightType();
 
             Light light = target as Light;
-            if (LightType.Directional != light.type && light == RenderSettings.sun)
+            var lightType = light.type;
+            if (LightType.Directional != lightType && light == RenderSettings.sun)
             {
                 EditorGUILayout.HelpBox(Styles.SunSourceWarning.text, MessageType.Warning);
             }
 
             EditorGUILayout.Space();
 
-            // When we are switching between two light types that don't show the range (directional and area lights)
-            // we want the fade group to stay hidden.
-            if (dirOptionsValue)
+            if (typeIsSame)
+            {
+                if (lightType != LightType.Directional)
+                {
 #if UNITY_2020_1_OR_NEWER
-                serializedLight.settings.DrawRange();
+                    serializedLight.settings.DrawRange();
 #else
-                serializedLight.settings.DrawRange(m_AnimAreaOptions.target);
+                    serializedLight.settings.DrawRange(false);
 #endif
+                }
 
-            // Spot angle
-            if (spotOptionsValue)
-                DrawSpotAngle();
+                // Spot angle
+                if (lightType == LightType.Spot)
+                    DrawSpotAngle();
 
-            // Area width & height
-            if (areaOptionsValue)
-                serializedLight.settings.DrawArea();
+                // Area width & height
+                if (serializedLight.settings.isAreaLightType)
+                    serializedLight.settings.DrawArea();
+            }
 
             serializedLight.settings.DrawColor();
 
             EditorGUILayout.Space();
 
-            CheckLightmappingConsistency();
-            if (areaOptionsValue && light.type != LightType.Disc)
+            if (typeIsSame)
             {
-                serializedLight.settings.DrawLightmapping();
+                if (serializedLight.settings.isAreaLightType)
+                {
+                    //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
+                    if (serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
+                    {
+                        serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
+                        serializedLight.Apply();
+                    }
+                }
+                else
+                {
+                    // Draw the Mode property field
+                    serializedLight.settings.DrawLightmapping();
+                }
             }
 
             serializedLight.settings.DrawIntensity();
@@ -127,10 +143,22 @@ namespace UnityEditor.Rendering.Universal
             if (showLightBounceIntensity)
                 serializedLight.settings.DrawBounceIntensity();
 
+            if (runtimeOptionsValue && UniversalRenderPipeline.asset.supportsLightLayers)
+            {
+                EditorGUI.BeginChangeCheck();
+                DrawLightLayerMask(serializedLight.lightLayerMask, Styles.LightLayer);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!serializedLight.customShadowLayers.boolValue)
+                        SyncLightAndShadowLayers(serializedLight.lightLayerMask);
+                }
+            }
+
             ShadowsGUI();
 
             serializedLight.settings.DrawRenderMode();
-            serializedLight.settings.DrawCullingMask();
+            if (!UniversalRenderPipeline.asset.supportsLightLayers)
+                serializedLight.settings.DrawCullingMask();
 
             EditorGUILayout.Space();
 
@@ -146,29 +174,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             serializedLight.Apply();
-        }
-
-        void CheckLightmappingConsistency()
-        {
-            //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
-            if (serializedLight.settings.isAreaLightType && serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
-            {
-                serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
-                serializedObject.ApplyModifiedProperties();
-            }
-        }
-
-        void SetOptions(AnimBool animBool, bool initialize, bool targetValue)
-        {
-            if (initialize)
-            {
-                animBool.value = targetValue;
-                animBool.valueChanged.AddListener(Repaint);
-            }
-            else
-            {
-                animBool.target = targetValue;
-            }
         }
 
         void DrawSpotAngle()
@@ -212,6 +217,22 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
+            }
+        }
+
+        void SyncLightAndShadowLayers(SerializedProperty serialized)
+        {
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
+            // In mixed state, it make sens to do it only on Light that links the mode.
+            foreach (var lightTarget in targets)
+            {
+                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                if (additionData.customShadowLayers)
+                    continue;
+
+                Light target = lightTarget as Light;
+                if (target.renderingLayerMask != serialized.intValue)
+                    target.renderingLayerMask = serialized.intValue;
             }
         }
 
@@ -282,10 +303,59 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
                     }
                 }
+
+                if (runtimeOptionsValue && UniversalRenderPipeline.asset.supportsLightLayers)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serializedLight.customShadowLayers, Styles.customShadowLayers);
+                    // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (serializedLight.customShadowLayers.boolValue)
+                        {
+                            lightProperty.renderingLayerMask = serializedLight.shadowLayerMask.intValue;
+                        }
+                        else
+                        {
+                            serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties(); // we need to push above modification the modification on object as it is used to sync
+                            SyncLightAndShadowLayers(serializedLight.lightLayerMask);
+                        }
+                    }
+
+                    if (serializedLight.customShadowLayers.boolValue)
+                    {
+                        EditorGUI.indentLevel += 1;
+
+                        EditorGUI.BeginChangeCheck();
+                        DrawLightLayerMask(serializedLight.shadowLayerMask, Styles.ShadowLayer);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            lightProperty.renderingLayerMask = serializedLight.shadowLayerMask.intValue;
+                            serializedObject.ApplyModifiedProperties();
+                        }
+
+                        EditorGUI.indentLevel -= 1;
+                    }
+                }
             }
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(Styles.BakingWarning.text, MessageType.Warning);
+        }
+
+        internal static void DrawLightLayerMask(SerializedProperty property, GUIContent style)
+        {
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
+            int lightLayer = property.intValue;
+
+            EditorGUI.BeginProperty(controlRect, style, property);
+
+            EditorGUI.BeginChangeCheck();
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipeline.asset.lightLayerMaskNames);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = lightLayer;
+
+            EditorGUI.EndProperty();
         }
 
         protected override void OnSceneGUI()

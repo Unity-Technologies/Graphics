@@ -32,6 +32,7 @@ PR_VikingVillage_URP_trunk:
       -  path: .yamato/vikingvillage_urp-linux-vulkan.yml#VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_URP_BRANCH: master
@@ -42,6 +43,7 @@ Nightly_VikingVillage_URP_trunk:
       -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_URP_BRANCH: master

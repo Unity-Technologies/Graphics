@@ -41,12 +41,20 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
         {
+            AddProperty<T>(label, string.Empty, indentLevel, field, evt);
+        }
+
+        public void AddProperty<T>(string label, string tooltip, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
+        {
             if (field is INotifyValueChanged<T> notifyValueChanged)
             {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }
 
-            var propertyRow = new PropertyRow(new Label(label));
+            var propertyLabel = new Label(label);
+            propertyLabel.tooltip = tooltip;
+            var propertyRow = new PropertyRow(propertyLabel);
+
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
             this.hierarchy.Add(propertyRow);
