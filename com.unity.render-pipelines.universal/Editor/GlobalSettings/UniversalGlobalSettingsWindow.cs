@@ -98,8 +98,8 @@ namespace UnityEditor.Rendering.Universal
                 serializedSettings.serializedObject.Update();
             }
 
-            DrawWarnings(ref serializedSettings, null);
             DrawAssetSelection(ref serializedSettings, null);
+            DrawWarnings(ref serializedSettings, null);
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
