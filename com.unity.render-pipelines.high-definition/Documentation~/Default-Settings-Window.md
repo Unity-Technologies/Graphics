@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's
 
 - Assign Render Pipeline Resources Assets for your HDRP Project.
 - Set the verboseness of Shader variant information that Unity writes to the Console window when you build your Project.
-- Set up default [Frame Settings](Frame-Settings.md) for [Cameras](HDRP-Camera.md) to use.
+- Set up default [Frame Setting](Frame-Settings.md) values for [Cameras](HDRP-Camera.md) to use.
 - Assign and edit a default [Volume Profile](Volume-Profile.md).
 
 The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Settings**.
@@ -15,14 +15,14 @@ Resources assets list the Shaders, Materials, Textures, and other Assets needed 
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Player Resources**      | Stores references to Shaders and Materials that HDRP uses. When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. This is the Scriptable Render Pipeline equivalent of Unity’s Resources folder mechanism. When you create a new HDRP Global Settings Asset, Unity also creates one of these and references it in the new HDRP Global Settings Asset automatically. |
-| **Ray Tracing Resources** | Stores references to Shaders and Materials that HDRP uses for ray tracing. HDRP stores these resources in a separate Asset file then the main pipeline resources so it can use less memory for applications that don't support ray tracing. |
-| **Editor Resources**      | Stores reference resources for the Editor only. Unity does not include these when you build your Unity Project. When you create an HDRP Asset, Unity creates an HDRP Resources Asset, and the new HDRP Asset references it automatically. |
+| **Player Resources**      | Stores references to Shaders and Materials that HDRP uses. When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. This is the Scriptable Render Pipeline equivalent of Unity’s Resources folder mechanism. When you create a new HDRP Global Settings Asset, the HDRenderPipelineRuntimeResources from HDRP package is automatically referenced in it. |
+| **Ray Tracing Resources** | Stores references to Shaders and Materials that HDRP uses for ray tracing. HDRP stores these resources in a separate Asset file then the main pipeline resources so it can use less memory for applications that don't support ray tracing. When you create a new HDRP Global Settings Asset, the HDRenderPipelineRayTracingResources from HDRP package is automatically referenced in it if your project use ray tracing. |
+| **Editor Resources**      | Stores reference resources for the Editor only. Unity does not include these when you build your Unity Project. When you create a new HDRP Global Settings Asset, the HDRenderPipelineEditorResources from HDRP package is automatically referenced in it. |
 
 
 ## Frame Settings
 
-[Frame Settings](Frame-Settings.md) control the rendering passes that Cameras make at runtime. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
+[Frame Settings](Frame-Settings.md) control the rendering passes that Cameras make at runtime. This section allows you to set default values for the Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
 ### Volume Profiles
 

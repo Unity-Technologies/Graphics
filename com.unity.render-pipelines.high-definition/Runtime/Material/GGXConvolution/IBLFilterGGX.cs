@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock m_MaterialPropertyBlock = new MaterialPropertyBlock();
 
 
-        public IBLFilterGGX(RenderPipelineResources renderPipelineResources, MipGenerator mipGenerator)
+        public IBLFilterGGX(HDRenderPipelineRuntimeResources renderPipelineResources, MipGenerator mipGenerator)
         {
             m_RenderPipelineResources = renderPipelineResources;
             m_MipGenerator = mipGenerator;
