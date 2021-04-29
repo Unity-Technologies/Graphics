@@ -16,6 +16,7 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -24,7 +25,7 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=2400 --zero-tests-are-ok=1 "
               UTR_RESULT=$?
@@ -36,6 +37,9 @@ Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
     name: Universal_Hybrid on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
@@ -44,6 +48,7 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -52,7 +57,7 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1 "
               UTR_RESULT=$?
@@ -64,6 +69,9 @@ Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
     name: Universal_Hybrid on OSX_Metal_playmode_cache_mono_Linear on version trunk
     agent:
@@ -72,6 +80,7 @@ Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -80,7 +89,7 @@ Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --editor-location=/Users/bokken/.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --zero-tests-are-ok=1 "
               UTR_RESULT=$?
@@ -92,6 +101,9 @@ Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
     name: Universal_Hybrid on OSX_Metal_Standalone_cache_mono_Linear on version trunk
     agent:
@@ -100,6 +112,7 @@ Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -108,7 +121,7 @@ Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
       -  scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalHybridTest/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalHybridTest --timeout=1200 --zero-tests-are-ok=1 "
               UTR_RESULT=$?
@@ -120,6 +133,9 @@ Universal_Hybrid_OSX_Metal_Standalone_cache_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 Universal_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:

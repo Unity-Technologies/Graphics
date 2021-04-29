@@ -403,6 +403,11 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
             {
+                if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
+                {
+                    renderer.useRenderPassEnabled = false;
+                    Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
+                }
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
 

@@ -24,15 +24,6 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1315494/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
