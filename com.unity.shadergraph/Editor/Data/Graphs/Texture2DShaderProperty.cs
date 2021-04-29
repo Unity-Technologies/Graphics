@@ -10,7 +10,25 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(50)]
     public sealed class Texture2DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
-        public enum DefaultType { White, Black, Grey, Bump }
+        public enum DefaultType { White, Black, Grey, NormalMap, LinearGrey, Red }
+
+        static readonly string[] k_DefaultTypeNames = new string[]
+        {
+            "white",
+            "black",
+            "grey",
+            "bump",
+            "linearGrey",
+            "red",
+        };
+
+        internal static string ToShaderLabString(DefaultType defaultType)
+        {
+            int index = (int)defaultType;
+            if ((index >= 0) && (index < k_DefaultTypeNames.Length))
+                return k_DefaultTypeNames[index];
+            return string.Empty;
+        }
 
         internal Texture2DShaderProperty()
         {
@@ -32,7 +50,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}{useSTString}{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            var normalTagString = (defaultType == DefaultType.NormalMap) ? "[Normal]" : "";
+            return $"{hideTagString}{modifiableTagString}{normalTagString}{useSTString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice

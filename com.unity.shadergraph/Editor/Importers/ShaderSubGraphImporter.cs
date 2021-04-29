@@ -261,6 +261,10 @@ namespace UnityEditor.ShaderGraph
                     GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
                     string precisionString = propGraphPrecision.ToGenericString();
                     arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
+                    if (prop.isConnectionTestable)
+                    {
+                        arguments.Add($"bool {prop.GetConnectionStateHLSLVariableName()}");
+                    }
                 }
 
                 // now pass surface inputs

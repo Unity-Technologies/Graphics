@@ -17,6 +17,7 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
         UTR_VERSION: "current"
@@ -36,6 +37,8 @@ VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on_new_revision
 Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
@@ -46,6 +49,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
         UTR_VERSION: "current"
@@ -74,7 +78,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -89,6 +93,9 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
     name: VikingVillage_URP on Win_Vulkan_performance_build_editmode_mono_Linear on version trunk
     agent:
@@ -97,6 +104,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: master
         VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
         UTR_VERSION: "current"
@@ -125,7 +133,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -137,6 +145,9 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_URP on Win_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
