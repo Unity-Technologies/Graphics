@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
   - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
   - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+  - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
+  - Added the ability to enable tiling and offset controls for a Texture2D input.
+  - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
   - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
 
