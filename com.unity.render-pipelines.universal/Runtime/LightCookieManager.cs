@@ -605,8 +605,8 @@ namespace UnityEngine.Rendering.Universal
             // Currently it's the same as visible lights, but main light(s) dropped.
             for (int i = 0; i < validUvRects.length; i++)
             {
-                int visIndex = validSortedLights[i].visibleLightIndex;
-                int bufIndex = validSortedLights[i].lightBufferIndex;
+                int visIndex = validLightMappings[i].visibleLightIndex;
+                int bufIndex = validLightMappings[i].lightBufferIndex;
 
                 // Update the mapping
                 m_VisibleLightIndexToShaderDataIndex[visIndex] = bufIndex;
