@@ -2870,7 +2870,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
+                    probeVolumeNormalBiasEnabled = !(settings == null || 
+                        (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias
+                        && settings.leakMitigationMode.value != LeakMitigationMode.ProbeValidityFilter
+                        && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
                 }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2896,8 +2899,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
-                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        float probeVolumeMaxBiasWS = probeVolumeNormalBiasEnabled ? (probeVolumes.data[i].normalBiasWS + probeVolumes.data[i].viewBiasWS) : 0.0f;
+                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeMaxBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         {
                             // Only probe volume evaluation in the material pass use these custom probe volume specific lists.

@@ -432,6 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeBlendMode volumeBlendMode;
         public float weight;
         public float normalBiasWS;
+        public float viewBiasWS;
 
         public float backfaceTolerance;
         public int dilationIterations;
@@ -505,6 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.volumeBlendMode = VolumeBlendMode.Normal;
             this.weight = 1;
             this.normalBiasWS = 0.0f;
+            this.viewBiasWS = 0.0f;
             this.dilationIterations = 2;
             this.backfaceTolerance = 0.25f;
             this.lightLayers = LightLayerEnum.LightLayerDefault;
@@ -557,6 +559,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.weight = this.weight;
             data.normalBiasWS = this.normalBiasWS;
+            data.viewBiasWS = this.viewBiasWS;
 
             data.debugColor.x = this.debugColor.r;
             data.debugColor.y = this.debugColor.g;
