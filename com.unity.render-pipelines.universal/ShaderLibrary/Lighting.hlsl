@@ -269,7 +269,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion,
+                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
                                               inputData.normalWS, inputData.viewDirectionWS);
 
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))

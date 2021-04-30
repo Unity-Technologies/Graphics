@@ -17,9 +17,8 @@ PR_VFX_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_HDRP_trunk:
@@ -42,6 +41,7 @@ Nightly_VFX_HDRP_trunk:
       -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_VFX_HDRP_CUSTOM-REVISION:

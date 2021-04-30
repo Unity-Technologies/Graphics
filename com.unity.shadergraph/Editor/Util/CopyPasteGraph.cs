@@ -44,10 +44,16 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<string> m_MetaKeywordIds = new List<string>();
 
+        [SerializeField]
+        List<JsonData<ShaderDropdown>> m_MetaDropdowns = new List<JsonData<ShaderDropdown>>();
+
+        [SerializeField]
+        List<string> m_MetaDropdownIds = new List<string>();
+
         public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
-                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,
+                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<ShaderDropdown> metaDropdowns, IEnumerable<StickyNoteData> notes,
                               bool keepOutputEdges = false, bool removeOrphanEdges = true)
         {
             if (groups != null)
@@ -104,6 +110,12 @@ namespace UnityEditor.ShaderGraph
                     AddMetaKeyword(metaKeyword);
             }
 
+            if (metaDropdowns != null)
+            {
+                foreach (var metaDropdown in metaDropdowns.Distinct())
+                    AddMetaDropdown(metaDropdown);
+            }
+
             var distinct = m_Edges.Distinct();
             if (removeOrphanEdges)
             {
@@ -149,6 +161,12 @@ namespace UnityEditor.ShaderGraph
             m_MetaKeywordIds.Add(metaKeyword.objectId);
         }
 
+        void AddMetaDropdown(ShaderDropdown metaDropdown)
+        {
+            m_MetaDropdowns.Add(metaDropdown);
+            m_MetaDropdownIds.Add(metaDropdown.objectId);
+        }
+
         public IEnumerable<T> GetNodes<T>()
         {
             return m_Nodes.SelectValue().OfType<T>();
@@ -176,6 +194,11 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<ShaderKeyword> metaKeywords
         {
             get { return m_MetaKeywords.SelectValue(); }
+        }
+
+        public DataValueEnumerable<ShaderDropdown> metaDropdowns
+        {
+            get { return m_MetaDropdowns.SelectValue(); }
         }
 
         public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;

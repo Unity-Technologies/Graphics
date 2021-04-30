@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for alpha channel in FXAA (case 1323941).
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 - Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
+- Added support for lighting full screen debug mode in automated tests.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -160,6 +161,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
+- Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed some reference to old frame settings names in HDRP Wizard.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 - Fixed null reference exception in Raytracing SSS volume component.
 - Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 - Fixed LightCluster debug view for ray tracing.
@@ -169,6 +173,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
 - Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
 - Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
+- Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 
 ### Changed
