@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override string GetPropertyBlockString()
         {
             var normalTagString = (defaultType == DefaultType.NormalMap) ? "[Normal]" : "";
-            return $"{hideTagString}{modifiableTagString}{normalTagString}{useSTString}{mainTextureString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{normalTagString}{mainTextureString}{useSTString}{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
