@@ -441,6 +441,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
+      propertyPath: ImageComparisonSettings.UseBackBuffer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: ImageComparisonSettings.ImageResolution
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
       propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
