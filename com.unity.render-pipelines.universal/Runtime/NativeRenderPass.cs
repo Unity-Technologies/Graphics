@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         private Dictionary<Hash128, int[]> m_MergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
         // static array storing all the mergeableRenderPassesMap arrays. This is used to remove any GC allocs during the frame which would have been introduced by using a dynamic array to store the mergeablePasses per RenderPass
         private int[][] m_MergeableRenderPassesMapArrays;
-        private Hash128[] m_PassIndexToPassHash = new Hash128[kRenderPassMaxCount + 20];
+        private Hash128[] m_PassIndexToPassHash = new Hash128[kRenderPassMaxCount];
         private Dictionary<Hash128, int> m_RenderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
         AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
         internal void ResetNativeRenderPassFrameData()
         {
             if (m_MergeableRenderPassesMapArrays == null)
-                m_MergeableRenderPassesMapArrays = new int[kRenderPassMapSize + 10][];
+                m_MergeableRenderPassesMapArrays = new int[kRenderPassMapSize][];
 
             for (int i = 0; i < kRenderPassMapSize; ++i)
             {
@@ -302,12 +302,13 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < validInputBufferCount; i++)
                         {
                             pass.m_InputAttachmentIndices[i] = FindAttachmentDescriptorIndexInList(pass.m_InputAttachments[i], m_ActiveColorAttachmentDescriptors);
-                            // m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction =
-                            //     RenderBufferLoadAction.DontCare;
-                            // m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction =
-                            //     RenderBufferStoreAction.DontCare;
+                            m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction =
+                                RenderBufferLoadAction.DontCare;
+                            m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction =
+                                RenderBufferStoreAction.DontCare;
                         }
                     }
+
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
@@ -333,6 +334,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // add a new attachment
                         pass.m_ColorAttachmentIndices[0] = currentAttachmentIdx;
+
                         m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                         currentAttachmentIdx++;
                         m_RenderPassesAttachmentCount[currentPassHash]++;
@@ -422,6 +424,7 @@ namespace UnityEngine.Rendering.Universal
                     attachments.Dispose();
 
                     context.BeginSubPass(attachmentIndices);
+
                     m_LastBeginSubpassPassIndex = currentPassIndex;
                 }
                 else
@@ -460,8 +463,6 @@ namespace UnityEngine.Rendering.Universal
 
                     m_ActiveDepthAttachmentDescriptor = RenderingUtils.emptyAttachment;
                 }
-
-
             }
         }
 
@@ -601,9 +602,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
         {
-            GraphicsFormat hdrFormat = GraphicsFormat.None;
+
             if (cameraData.isHdrEnabled)
             {
+                GraphicsFormat hdrFormat = GraphicsFormat.None;
+
                 if (!Graphics.preserveFramebufferAlpha &&
                     RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
                         FormatUsage.Linear | FormatUsage.Render))
@@ -613,9 +616,11 @@ namespace UnityEngine.Rendering.Universal
                     hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
                 else
                     hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+
+                return hdrFormat;
             }
 
-            return cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }

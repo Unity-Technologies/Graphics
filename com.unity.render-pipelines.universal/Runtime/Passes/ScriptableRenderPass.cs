@@ -207,6 +207,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal NativeArray<int> m_ColorAttachmentIndices;
         internal NativeArray<int> m_InputAttachmentIndices;
+
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
 		internal RenderTargetIdentifier[] m_InputAttachments = new RenderTargetIdentifier[8];

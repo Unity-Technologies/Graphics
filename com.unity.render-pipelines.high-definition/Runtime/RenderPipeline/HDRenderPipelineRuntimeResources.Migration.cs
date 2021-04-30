@@ -2,7 +2,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial class HDRenderPipelineRuntimeResources : IVersionable<HDRenderPipelineRuntimeResources.Version>
+    partial class HDRenderPipelineRuntimeResources : IVersionable<HDRenderPipelineRuntimeResources.Version>, IMigratableAsset
     {
         enum Version
         {
@@ -33,7 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
             })
         );
 
-        public void UpgradeIfNeeded() => k_Migration.Migrate(this);
+        bool IMigratableAsset.Migrate() => k_Migration.Migrate(this);
+
+        bool IMigratableAsset.IsAtLastVersion()
+            => m_Version == MigrationDescription.LastVersion<Version>();
 #endif
     }
 }

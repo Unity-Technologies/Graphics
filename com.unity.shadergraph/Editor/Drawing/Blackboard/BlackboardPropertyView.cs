@@ -165,6 +165,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     },
                     DropdownMenuAction.AlwaysEnabled);
             }
+
+            if (shaderInput is ColorShaderProperty colorProp)
+            {
+                PropertyNodeView.AddMainColorMenuOptions(evt, colorProp, controller.graphData, m_InspectorUpdateDelegate);
+            }
+
+
+            if (shaderInput is Texture2DShaderProperty texProp)
+            {
+                PropertyNodeView.AddMainTextureMenuOptions(evt, texProp, controller.graphData, m_InspectorUpdateDelegate);
+            }
         }
 
         internal void UpdateFromViewModel()
@@ -293,6 +304,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (node.userData is KeywordNode keywordNode)
                         {
                             if (keywordNode.keyword == input)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
+                        }
+                    }
+                    else if (input is ShaderDropdown dropdown)
+                    {
+                        if (node.userData is DropdownNode dropdownNode)
+                        {
+                            if (dropdownNode.dropdown == input)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");
