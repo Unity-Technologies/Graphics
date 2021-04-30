@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: DistanceFade
   m_EditorClassIdentifier: 
   elements:
@@ -19,7 +19,7 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 4.26
+    uniformScale: 1
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
     count: 5
@@ -28,7 +28,7 @@ MonoBehaviour:
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
-    flareType: 2
+    flareType: 1
     modulateByLightColor: 0
     isFoldOpened: 1
     distribution: 0
@@ -143,7 +143,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.9
-    sideCount: 3
+    edgeOffset: 0.1
+    sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

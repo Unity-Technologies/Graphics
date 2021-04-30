@@ -8,10 +8,19 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             First,
-            UpdateLensFlare,
+            UpdateMSAA,
+            UpdateLensFlare
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
+            {
+                FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
+            }),
+
             MigrationStep.New(Version.UpdateLensFlare, (HDRenderPipelineGlobalSettings data) =>
             {
                 FrameSettings.MigrateToLensFlare(ref data.m_RenderingPathDefaultCameraFrameSettings);

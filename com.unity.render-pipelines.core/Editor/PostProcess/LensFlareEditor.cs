@@ -5,17 +5,32 @@ using UnityEngine;
 namespace UnityEngine
 {
     /// <summary>
-    /// Editor for LensFlare (builtin): Editor to show an error message
+    /// Editor for Flare (builtin): Editor to show an error message
     /// </summary>
-    [CustomEditor(typeof(UnityEngine.Flare))]
-    public class LensFlareEditor : Editor
+    [CustomEditorForRenderPipeline(typeof(UnityEngine.Flare), typeof(Rendering.RenderPipelineAsset))]
+    internal class FlareEditor : Editor
     {
         /// <summary>
         /// Implement this function to make a custom inspector
         /// </summary>
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("This asset doesn't work on SRP {URP & HDRP}, use SRP Lens Flare instead.", MessageType.Error);
+            EditorGUILayout.HelpBox("This asset doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
+        }
+    }
+
+    /// <summary>
+    /// Editor for Lens Flare (builtin): Editor to show an error message
+    /// </summary>
+    [CustomEditorForRenderPipeline(typeof(UnityEngine.LensFlare), typeof(Rendering.RenderPipelineAsset))]
+    internal class LensFlareEditor : Editor
+    {
+        /// <summary>
+        /// Implement this function to make a custom inspector
+        /// </summary>
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.HelpBox("This component doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
         }
     }
 }
