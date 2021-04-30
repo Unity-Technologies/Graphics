@@ -30,7 +30,7 @@ if __name__ == "__main__":
         pass
 
     editor = ""
-    update_tests_file_path = path.join(args.root, "UpdateTests.txt")
+    update_tests_file_path = path.join(args.root, "Assets/Resources/UpdateTests.txt")
     if not path.exists(update_tests_file_path):
         print("No update file found, skipping recommit")
         print(os.getcwd())
