@@ -31,6 +31,8 @@ struct ProbeVolumeEngineData
     uint lightLayers;
     float3 resolutionInverse;
     float normalBiasWS;
+    float viewBiasWS;
+    float3 padding;
 };
 
 //
@@ -95,6 +97,14 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
 float GetNormalBiasWS(ProbeVolumeEngineData value)
 {
     return value.normalBiasWS;
+}
+float GetViewBiasWS(ProbeVolumeEngineData value)
+{
+    return value.viewBiasWS;
+}
+float3 GetPadding(ProbeVolumeEngineData value)
+{
+    return value.padding;
 }
 
 #endif

@@ -541,6 +541,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 posInput,
                 bsdfData.normalWS,
                 -bsdfData.normalWS,
+                V,
                 builtinData.renderingLayers,
                 probeVolumeHierarchyWeight,
                 builtinDataProbeVolumes.bakeDiffuseLighting,
