@@ -7,7 +7,7 @@ int _ValidationChannels;
 float _RangeMinimum;
 float _RangeMaximum;
 
-TEXTURE2D(_DebugTexture);        SAMPLER(sampler_DebugTexture);
+TEXTURE2D_X(_DebugTexture);        SAMPLER(sampler_DebugTexture);
 half4 _DebugTextureDisplayRect;
 
 bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 debugColor)
@@ -25,7 +25,7 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
             {
                 float2 debugTextureUv = float2(uvOffset.x / _DebugTextureDisplayRect.z, uvOffset.y / _DebugTextureDisplayRect.w);
 
-                half4 sampleColor = SAMPLE_TEXTURE2D(_DebugTexture, sampler_DebugTexture, debugTextureUv);
+                half4 sampleColor = SAMPLE_TEXTURE2D_X(_DebugTexture, sampler_DebugTexture, debugTextureUv);
                 debugColor = _DebugFullScreenMode == DEBUGFULLSCREENMODE_DEPTH ? half4(sampleColor.rrr, 1) : sampleColor;
                 return true;
             }

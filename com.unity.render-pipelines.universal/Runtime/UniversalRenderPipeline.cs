@@ -1144,12 +1144,11 @@ namespace UnityEngine.Rendering.Universal
                 if (!debugDisplaySettings.IsPostProcessingAllowed)
                     cameraData.postProcessEnabled = false;
 
-                cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
-                    cameraData.renderScale,
-                    cameraData.isHdrEnabled,
-                    msaaSamples,
-                    true,
-                    cameraData.requiresOpaqueTexture);
+                GraphicsFormat hdrFmt = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render) ?
+                    GraphicsFormat.R16G16B16A16_SFloat
+                    : SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+                cameraData.cameraTargetDescriptor.graphicsFormat = cameraData.isHdrEnabled ? hdrFmt : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+                cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
             }
         }
 
