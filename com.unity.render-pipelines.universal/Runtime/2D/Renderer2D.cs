@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
+
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
@@ -155,6 +156,9 @@ namespace UnityEngine.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+            bool savedIsOrthographic = renderingData.cameraData.camera.orthographic;
+            float savedOrthographicSize = renderingData.cameraData.camera.orthographicSize;
+
             if (DebugHandler != null)
             {
                 if (DebugHandler.AreAnySettingsActive)
@@ -180,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
                 cameraData.camera.TryGetComponent(out ppc);
-                if (ppc != null)
+                if (ppc != null && ppc.enabled)
                 {
                     if (ppc.offscreenRTSize != Vector2Int.zero)
                     {
@@ -192,8 +196,11 @@ namespace UnityEngine.Rendering.Universal
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
 
+                    renderingData.cameraData.camera.orthographic = true;
+                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
+
                     colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.upscaleRT && ppc.isRunning;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
                 }
             }
 
@@ -252,8 +259,11 @@ namespace UnityEngine.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+            if (ppc != null && ppc.enabled && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Windowbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.StretchFill))
+            {
+                m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
+            }
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {

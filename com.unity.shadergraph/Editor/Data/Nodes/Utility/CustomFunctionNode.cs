@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireTransform
     {
         // 0 original version
         // 1 differentiate between struct-based UnityTexture2D and bare Texture2D resources (for all texture and samplerstate resources)
@@ -492,6 +492,15 @@ namespace UnityEditor.ShaderGraph
                 }
                 ChangeVersion(1);
             }
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return new[]
+            {
+                NeededTransform.ObjectToWorld,
+                NeededTransform.WorldToObject
+            };
         }
     }
 }

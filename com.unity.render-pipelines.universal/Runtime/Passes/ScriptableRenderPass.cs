@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
 
@@ -151,6 +152,16 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        public RenderBufferStoreAction[] colorStoreActions
+        {
+            get => m_ColorStoreActions;
+        }
+
+        public RenderBufferStoreAction depthStoreAction
+        {
+            get => m_DepthStoreAction;
+        }
+
         /// <summary>
         /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
         /// </summary>
@@ -170,6 +181,9 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
+        RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
+
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
         /// Default is <c>Unnamed_ScriptableRenderPass</c>.
@@ -188,7 +202,10 @@ namespace UnityEngine.Rendering.Universal
         internal bool depthOnly { get; set; }
         // this flag is updated each frame to keep track of which pass is the last for the current camera
         internal bool isLastPass { get; set; }
+        // index to track the position in the current frame
+        internal int renderPassQueueIndex { get; set; }
 
+        internal NativeArray<int> m_InputAttachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
@@ -204,6 +221,8 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
+            m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -213,6 +232,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetWidth = -1;
             renderTargetHeight = -1;
             renderTargetSampleCount = -1;
+            renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
@@ -230,6 +250,25 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureInput(ScriptableRenderPassInput passInput)
         {
             m_Input = passInput;
+        }
+
+        public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
+        {
+            m_ColorStoreActions[attachmentIndex] = storeAction;
+        }
+
+        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
+        {
+            int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
+            for (uint i = 0; i < count; ++i)
+            {
+                m_ColorStoreActions[i] = storeActions[i];
+            }
+        }
+
+        public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
+        {
+            m_DepthStoreAction = storeAction;
         }
 
         /// <summary>
