@@ -131,7 +131,6 @@ namespace UnityEngine.Rendering.Universal
 
         void Reset()
         {
-            ResetLightLayerNames();
             UpdateRenderingLayerNames();
         }
 
@@ -176,21 +175,21 @@ namespace UnityEngine.Rendering.Universal
         #region Light Layer Names [3D]
 
         /// <summary>Name for light layer 0.</summary>
-        public string lightLayerName0;
+        public string lightLayerName0 = "Light Layer default";
         /// <summary>Name for light layer 1.</summary>
-        public string lightLayerName1;
+        public string lightLayerName1 = "Light Layer 1";
         /// <summary>Name for light layer 2.</summary>
-        public string lightLayerName2;
+        public string lightLayerName2 = "Light Layer 2";
         /// <summary>Name for light layer 3.</summary>
-        public string lightLayerName3;
+        public string lightLayerName3 = "Light Layer 3";
         /// <summary>Name for light layer 4.</summary>
-        public string lightLayerName4;
+        public string lightLayerName4 = "Light Layer 4";
         /// <summary>Name for light layer 5.</summary>
-        public string lightLayerName5;
+        public string lightLayerName5 = "Light Layer 5";
         /// <summary>Name for light layer 6.</summary>
-        public string lightLayerName6;
+        public string lightLayerName6 = "Light Layer 6";
         /// <summary>Name for light layer 7.</summary>
-        public string lightLayerName7;
+        public string lightLayerName7 = "Light Layer 7";
 
 
         [System.NonSerialized]
@@ -218,18 +217,6 @@ namespace UnityEngine.Rendering.Universal
 
                 return m_LightLayerNames;
             }
-        }
-
-        void ResetLightLayerNames()
-        {
-            lightLayerName0 = "Light Layer default";
-            lightLayerName1 = "Light Layer 1";
-            lightLayerName2 = "Light Layer 2";
-            lightLayerName3 = "Light Layer 3";
-            lightLayerName4 = "Light Layer 4";
-            lightLayerName5 = "Light Layer 5";
-            lightLayerName6 = "Light Layer 6";
-            lightLayerName7 = "Light Layer 7";
         }
 
         #endregion

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
         }
 
-        [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section7 + 1)]
+        [MenuItem("Assets/Create/Rendering/URP Global Settings Asset", priority = CoreUtils.Sections.section3 + 1)]
         internal static void CreateUniversalRenderPipelineGlobalSettings()
         {
             UniversalGlobalSettingsCreator.Create(activateAsset: false);
