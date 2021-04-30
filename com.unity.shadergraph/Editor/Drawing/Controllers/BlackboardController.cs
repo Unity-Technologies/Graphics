@@ -390,6 +390,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
                 {
+                    order.isKeyword = false;
                     order.deprecatedPropertyName = name;
                     order.version = ColorShaderProperty.deprecatedVersion;
                     ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AdddDeprecatedPropertyAction(order));
