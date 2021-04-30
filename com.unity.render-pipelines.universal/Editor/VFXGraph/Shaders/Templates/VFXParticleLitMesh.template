@@ -5,7 +5,7 @@
         ${VFXIncludeRP("Templates/Mesh/PassSelection.template")}
         ${VFXIncludeRP("Templates/Mesh/PassDepth.template"),IS_OPAQUE_PARTICLE}
         ${VFXIncludeRP("Templates/Mesh/PassDepthNormal.template"),IS_OPAQUE_PARTICLE}
-        ${VFXIncludeRP("Templates/Mesh/PassGBuffer.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
+        ${VFXIncludeRP("Templates/Mesh/PassGBuffer.template")}
         ${VFXIncludeRP("Templates/Mesh/PassForward.template")}
         ${VFXIncludeRP("Templates/Mesh/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
     }

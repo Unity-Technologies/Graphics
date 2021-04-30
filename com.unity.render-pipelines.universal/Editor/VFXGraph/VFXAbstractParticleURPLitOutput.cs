@@ -377,9 +377,6 @@ namespace UnityEditor.VFX
 
                 if (doubleSided)
                     yield return "USE_DOUBLE_SIDED";
-
-                if (isBlendModeOpaque)
-                    yield return "IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE";
             }
         }
 
