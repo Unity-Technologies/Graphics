@@ -330,6 +330,12 @@ namespace UnityEditor.Rendering
                 DebugManager.instance.refreshEditorRequested = false;
             }
 
+            int? requestedPanelIndex = DebugManager.instance.GetRequestedEditorWindowPanelIndex();
+            if (requestedPanelIndex != null)
+            {
+                m_Settings.selectedPanel = requestedPanelIndex.Value;
+            }
+
             int treeState = DebugManager.instance.GetState();
 
             if (m_DebugTreeState != treeState || m_IsDirty)

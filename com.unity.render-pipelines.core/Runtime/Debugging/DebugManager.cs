@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool refreshEditorRequested;
 
+        int? m_RequestedPanelIndex;
+
         GameObject m_Root;
         DebugUIHandlerCanvas m_RootUICanvas;
 
@@ -254,6 +256,25 @@ namespace UnityEngine.Rendering
         void OnPanelDirty(DebugUI.Panel panel)
         {
             onSetDirty();
+        }
+
+        /// <summary>
+        /// Request DebugWindow to open the specified panel.
+        /// </summary>
+        /// <param name="index"></param>
+        public void RequestEditorWindowPanelIndex(int index)
+        {
+            // Similar to RefreshEditor(), this function is required to bypass a dependency problem where DebugWindow
+            // cannot be accessed from the Core.Runtime assembly. Should there be a better way to allow editor-dependent
+            // features in DebugUI?
+            m_RequestedPanelIndex = index;
+        }
+
+        internal int? GetRequestedEditorWindowPanelIndex()
+        {
+            int? requestedIndex = m_RequestedPanelIndex;
+            m_RequestedPanelIndex = null;
+            return requestedIndex;
         }
 
         // TODO: Optimally we should use a query path here instead of a display name

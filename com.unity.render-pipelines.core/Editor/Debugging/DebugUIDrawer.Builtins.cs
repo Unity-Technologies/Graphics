@@ -403,14 +403,33 @@ namespace UnityEditor.Rendering
             var s = Cast<DebugStateBool>(state);
 
             EditorGUI.BeginChangeCheck();
-
             GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
             Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
             if (w.isHeader)
                 GUILayout.Space(k_HeaderVerticalMargin);
 
-            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true, style);
+            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), false, style);
+
+            if (EditorGUI.EndChangeCheck())
+                Apply(w, s, value);
+
+            if (w.contextMenuItems != null)
+            {
+                float contextMenuButtonSize = style.fixedHeight;
+                var labelRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0f, /*17f*/ 0f));
+                labelRect.xMax -= 20f + 16 + 5;
+                var contextMenuRect = new Rect(labelRect.xMax + 3f + 16, labelRect.y - contextMenuButtonSize, contextMenuButtonSize, contextMenuButtonSize);
+                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                {
+                    var menu = new GenericMenu();
+                    foreach (var item in w.contextMenuItems)
+                    {
+                        menu.AddItem(EditorGUIUtility.TrTextContent(item.displayName), false, () => item.action.Invoke());
+                    }
+                    menu.DropDown(new Rect(new Vector2(contextMenuRect.x, contextMenuRect.yMax), Vector2.zero));
+                }
+            }
 
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
@@ -427,9 +446,6 @@ namespace UnityEditor.Rendering
                 }
                 EditorGUI.indentLevel = indent;
             }
-
-            if (EditorGUI.EndChangeCheck())
-                Apply(w, s, value);
 
             EditorGUI.indentLevel++;
         }

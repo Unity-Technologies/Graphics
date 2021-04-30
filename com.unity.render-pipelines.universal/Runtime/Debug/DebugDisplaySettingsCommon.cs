@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
@@ -7,6 +8,8 @@ namespace UnityEngine.Rendering.Universal
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Frequently Used";
+
+            const string k_GoToSectionString = "Go to Section...";
 
             public SettingsPanel()
             {
@@ -19,6 +22,14 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         DebugDisplaySettingsMaterial.WidgetFactory.CreateMaterialOverride(materialSettingsData)
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
+                    {
+                        new DebugUI.Foldout.ContextMenuItem
+                        {
+                            displayName = k_GoToSectionString,
+                            action = () => { DebugManager.instance.RequestEditorWindowPanelIndex(1); }
+                        }
                     }
                 });
 
@@ -32,6 +43,14 @@ namespace UnityEngine.Rendering.Universal
                     {
                         DebugDisplaySettingsLighting.WidgetFactory.CreateLightingDebugMode(lightingSettingsData),
                         DebugDisplaySettingsLighting.WidgetFactory.CreateLightingFeatures(lightingSettingsData)
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
+                    {
+                        new DebugUI.Foldout.ContextMenuItem
+                        {
+                            displayName = k_GoToSectionString,
+                            action = () => { DebugManager.instance.RequestEditorWindowPanelIndex(2); }
+                        }
                     }
                 });
 
@@ -48,6 +67,14 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
+                    },
+                    contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
+                    {
+                        new DebugUI.Foldout.ContextMenuItem
+                        {
+                            displayName = k_GoToSectionString,
+                            action = () => { DebugManager.instance.RequestEditorWindowPanelIndex(3); }
+                        }
                     }
                 });
             }
