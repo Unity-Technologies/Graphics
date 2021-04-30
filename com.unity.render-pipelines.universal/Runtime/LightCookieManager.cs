@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 // Avoid allocs on every tiny size change.
-                size = Math.Max((int)(size * 1.25), 16);
+                size = Math.Max(size, (size + 15) / 16);
 
                 lightMappings = new LightCookieMapping[size];
                 uvRects = new Vector4[size];
@@ -359,7 +359,9 @@ namespace UnityEngine.Rendering.Universal
 
         bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
         {
-            m_WorkMem.Resize(lightData.additionalLightsCount);
+            int maxLightCount = Math.Min(m_Settings.maxAdditionalLights, lightData.visibleLights.Length);
+            m_WorkMem.Resize(maxLightCount);
+
             int validLightCount = FilterAndValidateAdditionalLights(ref lightData, m_WorkMem.lightMappings);
 
             // Early exit if no valid cookie lights
@@ -383,12 +385,16 @@ namespace UnityEngine.Rendering.Universal
             return isAdditionalLightsEnabled;
         }
 
-        int FilterAndValidateAdditionalLights(ref LightData lightData, LightCookieMapping[] validLights)
+        int FilterAndValidateAdditionalLights(ref LightData lightData, LightCookieMapping[] validLightMappings)
         {
             int skipMainLightIndex = lightData.mainLightIndex;
             int lightBufferOffset = 0;
             int validLightCount = 0;
-            for (int i = 0; i < lightData.visibleLights.Length; i++)
+
+            // Warn on dropped lights
+
+            int maxLights = Math.Min(lightData.visibleLights.Length, validLightMappings.Length);
+            for (int i = 0; i < maxLights; i++)
             {
                 if (i == skipMainLightIndex)
                 {
@@ -428,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
                 lp.visibleLightIndex = (ushort)i;
                 lp.lightBufferIndex  = (ushort)(i + lightBufferOffset);
 
-                validLights[validLightCount++] = lp;
+                validLightMappings[validLightCount++] = lp;
             }
 
             return validLightCount;
@@ -566,7 +572,7 @@ namespace UnityEngine.Rendering.Universal
             return octCookieSize;
         }
 
-        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validSortedLights, ref WorkSlice<Vector4> validUvRects)
+        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validLightMappings, ref WorkSlice<Vector4> validUvRects)
         {
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
             Debug.Assert(m_AdditionalLightsCookieShaderData != null);
