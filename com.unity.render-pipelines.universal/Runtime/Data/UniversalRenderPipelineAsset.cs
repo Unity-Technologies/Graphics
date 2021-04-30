@@ -48,8 +48,8 @@ namespace UnityEngine.Rendering.Universal
         Particle,
         Terrain,
         Sprite,
-        SpriteMask,
-        UnityBuiltinDefault
+        UnityBuiltinDefault,
+        SpriteMask
     }
 
     public enum LightRenderingMode
