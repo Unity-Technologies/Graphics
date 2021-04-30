@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
   - Added the ability to enable tiling and offset controls for a Texture2D input.
   - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
+  - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
+  - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
 
 ### Changed
 - Updated/corrected View Direction doc
