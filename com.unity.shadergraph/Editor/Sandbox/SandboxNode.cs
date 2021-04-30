@@ -235,7 +235,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void ISandboxNodeBuildContext.SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit)
+        void ISandboxNodeBuildContext.SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode)
         {
             previewFunction = function;
 
@@ -515,10 +515,15 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction(mainFunction.Name, sb =>
+            var function = (generationMode == GenerationMode.Preview) ? previewFunction : mainFunction;
+
+            registry.ProvideFunction(function.Name, sb =>
             {
-                mainFunction.AppendHLSLDeclarationString(sb);
+                function.AppendHLSLDeclarationString(sb);
             });
+
+            // TODO: also provide all dependent functions
+            // function.Functions
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

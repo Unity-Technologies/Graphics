@@ -13,8 +13,8 @@ public class GenericShaderFunction : ShaderFunction
     List<SandboxValueType> genericTypeParameters;
 
     // constructor is internal, public must use the Builder class instead
-    internal GenericShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functions, List<string> includePaths, List<SandboxValueType> genericTypeParameters)
-        : base(name, parameters, body, functions, includePaths)
+    internal GenericShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functionsCalled, List<string> includePaths, List<SandboxValueType> genericTypeParameters)
+        : base(name, parameters, body, functionsCalled, includePaths)
     {
         this.genericTypeParameters = genericTypeParameters;
     }

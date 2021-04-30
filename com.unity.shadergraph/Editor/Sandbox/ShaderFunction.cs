@@ -11,32 +11,38 @@ public class ShaderFunction : ShaderFunctionSignature
     public override int latestVersion => 1;
 
     // public API
+    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled.SelectValue();      // think this one is safe, as it returns a new enumerable class, and the user cannot extract the List from it
+    public IEnumerable<string> IncludePaths => includePaths;                                           // TODO: users can cast this back to the underlying List and modify the List..  :(  Ideally we convert the List to be a ReadOnlyList, or hide it inside a custom Enumerable struct that doesn't support the cast?
     public string Body { get { return body; } }
     public virtual bool isGeneric => false;
 
     // state
     [SerializeField]
-    List<JsonData<ShaderFunctionSignature>> functions;
-    [SerializeField]
     List<string> includePaths;
+
+    // a list of all dependent functions called
+    [SerializeField]
+    List<JsonData<ShaderFunctionSignature>> functionsCalled;
+
     [SerializeField]
     string body;
 
     // constructor is internal, public must use the Builder class instead
-    internal ShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functions, List<string> includePaths) : base(name, parameters)
+    internal ShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functionsCalled, List<string> includePaths) : base(name, parameters)
     {
-        this.body = body;                   // only null if externally implemented
-        this.functions = functions;         // can be null or empty
-        this.includePaths = includePaths;   // can be null or empty
+        this.body = body;                           // only null if externally implemented
+        this.functionsCalled = functionsCalled;     // can be null or empty
+        this.includePaths = includePaths;           // can be null or empty
     }
 
     // "new" here means hide the inherited ShaderFunctionSignature.Builder, and replace it with this declaration
     public new class Builder : ShaderFunctionSignature.Builder
     {
         ShaderBuilder body;
-        List<JsonData<ShaderFunctionSignature>> functions;
+        List<JsonData<ShaderFunctionSignature>> functionsCalled;
         List<string> includePaths;
         List<SandboxValueType> genericTypeParameters;
+        List<JsonData<ShaderFunctionSignature>> genericFunctionParameters;
 
         // builder-only state
         int currentIndent;
@@ -68,9 +74,11 @@ public class ShaderFunction : ShaderFunctionSignature
                 genericTypeParameters = new List<SandboxValueType>();
             else
             {
-                var existing = genericTypeParameters.Find(x => x == placeholderType);
+                // find any existing parameter with the same name
+                var existing = genericTypeParameters.Find(x => x.Name == placeholderType.Name);
                 if (existing != null)
                 {
+                    // if found, it must be exactly the same
                     if (existing.ValueEquals(placeholderType))
                         return existing;
                     else
@@ -86,11 +94,38 @@ public class ShaderFunction : ShaderFunctionSignature
             return placeholderType;
         }
 
-        public ShaderFunctionSignature AddFunctionInput(ShaderFunctionSignature sig)
+/*
+        public ShaderFunctionSignature AddGenericFunctionParameter(ShaderFunctionSignature placeholderFunctionSignature)
         {
-            // TODO: register as function input
-            return sig;
+            if (placeholderFunctionSignature == null)
+                return null;
+
+            if (!placeholderFunctionSignature.isFunctionSignatureOnly)
+                return null;
+
+            if (genericFunctionParameters == null)
+                genericFunctionParameters = new List<JsonData<ShaderFunctionSignature>>();
+            else
+            {
+                // find any existing parameter with the same name
+                var existing = genericFunctionParameters.Find(x => x == placeholderFunctionSignature);
+                if (existing != null)
+                {
+                    if (existing.ValueEquals(placeholderFunctionSignature))
+                        return existing;
+                    else
+                    {
+                        Debug.LogError("Generic Function Parameter Name Collision: " + placeholderType.Name);
+                        return null;
+                    }
+                }
+            }
+
+            genericFunctionParameters.Add(placeholderFunctionSignature);
+
+            return placeholderFunctionSignature;
         }
+*/
 
         public void ImplementedInIncludeFile(string filePath)
         {
@@ -110,9 +145,9 @@ public class ShaderFunction : ShaderFunctionSignature
 
         public Arguments CallFunction(ShaderFunctionSignature func)
         {
-            if (functions == null)
-                functions = new List<JsonData<ShaderFunctionSignature>>();
-            functions.Add(func);
+            if (functionsCalled == null)
+                functionsCalled = new List<JsonData<ShaderFunctionSignature>>();
+            functionsCalled.Add(func);
 
             // Do we want to insert a special string marker to body,
             // so we can translate the function name at generation time?
@@ -342,14 +377,14 @@ public class ShaderFunction : ShaderFunctionSignature
             }
             else
             {
-                func = new ShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths);
+                func = new ShaderFunction(name, parameters, body.ConvertToString(), functionsCalled, includePaths);
             }
 
             // clear data so we can't accidentally re-use it
             this.name = null;
             this.parameters = null;
             this.body = null;
-            this.functions = null;
+            this.functionsCalled = null;
             this.includePaths = null;
             this.genericTypeParameters = null;
 
@@ -365,14 +400,14 @@ public class ShaderFunction : ShaderFunctionSignature
             }
             else
             {
-                func = new GenericShaderFunction(name, parameters, body.ConvertToString(), functions, includePaths, genericTypeParameters);
+                func = new GenericShaderFunction(name, parameters, body.ConvertToString(), functionsCalled, includePaths, genericTypeParameters);
             }
 
             // clear data so we can't accidentally re-use it
             this.name = null;
             this.parameters = null;
             this.body = null;
-            this.functions = null;
+            this.functionsCalled = null;
             this.includePaths = null;
             this.genericTypeParameters = null;
 
@@ -441,16 +476,16 @@ public class ShaderFunction : ShaderFunctionSignature
         // use separate instances but are otherwise identical.
         // Try to minimize that by re-using shared global static ShaderFunctions
         // instead of creating multiple instances to represent the same function.
-        if (functions != otherFunc.functions)
+        if (functionsCalled != otherFunc.functionsCalled)
         {
-            int count = functions?.Count ?? 0;
-            int otherCount = otherFunc.functions?.Count ?? 0;
+            int count = functionsCalled?.Count ?? 0;
+            int otherCount = otherFunc.functionsCalled?.Count ?? 0;
             if (count != otherCount)
                 return false;
 
             // not obvious, but if either is null, count will be zero here
             for (int i = 0; i < count; i++)
-                if (!functions[i].value.ValueEquals(otherFunc.functions[i].value))
+                if (!functionsCalled[i].value.ValueEquals(otherFunc.functionsCalled[i].value))
                     return false;
         }
 
