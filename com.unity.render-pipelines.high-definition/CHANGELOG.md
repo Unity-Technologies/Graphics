@@ -164,6 +164,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
 - Fixed some reference to old frame settings names in HDRP Wizard.
 - Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
+- Fixed migration step overriden by data copy when creating a HDRenderPipelineGlobalSettings from a HDRPAsset.
 - Fixed null reference exception in Raytracing SSS volume component.
 - Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
 - Fixed LightCluster debug view for ray tracing.
