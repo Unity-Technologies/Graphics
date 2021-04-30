@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.10516715, g: 0.11057758, b: 0.09978673, a: 1}
+  m_IndirectSpecularColor: {r: 0.105231166, g: 0.11074245, b: 0.100031406, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -458,7 +458,7 @@ PrefabInstance:
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
       propertyPath: waitFrames
-      value: 5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
@@ -468,6 +468,11 @@ PrefabInstance:
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
       propertyPath: renderGraphCompatible
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
+        type: 3}
+      propertyPath: waitForFrameCountMultiple
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1838665344073080247, guid: 331e07d695ca55a4081f1b96408bb7a0,
