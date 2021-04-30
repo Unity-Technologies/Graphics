@@ -82,7 +82,8 @@ ${VFXEnd}
 			
     ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
+	void frag(ps_input i
+	, out FragmentOutput outGBuffer
 	#if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 	#endif
