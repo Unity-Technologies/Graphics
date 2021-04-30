@@ -12,7 +12,9 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly int k_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
         static readonly int k_DebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
+        static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
+        static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
 
         // Material settings...
         static readonly int k_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -49,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         readonly Material m_ReplacementMaterial;
 
         bool m_HasDebugRenderTarget;
+        bool m_DebugRenderTargetSupportsStereo;
         Vector4 m_DebugRenderTargetPixelRect;
         RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
@@ -180,9 +183,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
+        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect, bool supportsStereo)
         {
             m_HasDebugRenderTarget = true;
+            m_DebugRenderTargetSupportsStereo = supportsStereo;
             m_DebugRenderTargetIdentifier = renderTargetIdentifier;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
         }
@@ -214,8 +218,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_HasDebugRenderTarget)
             {
-                cmd.SetGlobalTexture(k_DebugTexturePropertyId, m_DebugRenderTargetIdentifier);
+                cmd.SetGlobalTexture(m_DebugRenderTargetSupportsStereo ? k_DebugTexturePropertyId : k_DebugTextureNoStereoPropertyId, m_DebugRenderTargetIdentifier);
                 cmd.SetGlobalVector(k_DebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
+                cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, m_DebugRenderTargetSupportsStereo ? 1 : 0);
             }
 
             var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
