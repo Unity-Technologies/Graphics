@@ -267,6 +267,12 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                {
+                    var dropdowns = graph.dropdowns;
+                    foreach (var dropdown in dropdowns)
+                        arguments.Add($"int {dropdown.referenceName}");
+                }
+
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
@@ -346,7 +352,7 @@ namespace UnityEditor.ShaderGraph
                     prop.OverrideGuid(namespaceId, nameId + "_Guid_" + i);
                 }
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
+            asset.WriteData(graph.properties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

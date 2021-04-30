@@ -1,13 +1,14 @@
-using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditorInternal;
 using System.IO;
-using UnityEngine.Rendering.HighDefinition;
+#endif
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEngine.Rendering.HighDefinition
 {
+#if UNITY_EDITOR
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
-    internal class HDProjectSettings : ScriptableObject
+    class HDProjectSettings : ScriptableObject
     {
         const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
 
@@ -148,4 +149,5 @@ namespace UnityEditor.Rendering.HighDefinition
             InternalEditorUtility.SaveToSerializedFileAndForget(new[] { s_Instance }, filePath, allowTextSerialization: true);
         }
     }
+#endif
 }

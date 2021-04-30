@@ -38,6 +38,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
+        [SerializeField]
+        internal bool isMainTexture = false;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -47,11 +50,12 @@ namespace UnityEditor.ShaderGraph.Internal
         internal bool useTilingAndOffset = false;
 
         internal string useSTString => useTilingAndOffset ? "" : "[NoScaleOffset]";
+        internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
 
         internal override string GetPropertyBlockString()
         {
             var normalTagString = (defaultType == DefaultType.NormalMap) ? "[Normal]" : "";
-            return $"{hideTagString}{modifiableTagString}{normalTagString}{useSTString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}{normalTagString}{useSTString}{mainTextureString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
@@ -138,7 +142,21 @@ namespace UnityEditor.ShaderGraph.Internal
                 value = value,
                 defaultType = defaultType,
                 useTilingAndOffset = useTilingAndOffset
+                isMainTexture = isMainTexture
             };
+        }
+
+        internal override void OnBeforePasteIntoGraph(GraphData graph)
+        {
+            if (isMainTexture)
+            {
+                Texture2DShaderProperty existingMain = graph.GetMainTexture();
+                if (existingMain != null && existingMain != this)
+                {
+                    isMainTexture = false;
+                }
+            }
+            base.OnBeforePasteIntoGraph(graph);
         }
     }
 }

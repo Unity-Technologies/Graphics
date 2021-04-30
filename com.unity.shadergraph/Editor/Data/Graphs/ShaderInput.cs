@@ -213,6 +213,16 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal bool isExposed => isExposable && generatePropertyBlock;
 
+        public virtual bool allowedInSubGraph
+        {
+            get { return true; }
+        }
+
+        public virtual bool allowedInMainGraph
+        {
+            get { return true; }
+        }
+
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
 
         internal abstract bool isExposable { get; }
@@ -252,5 +262,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         internal abstract ShaderInput Copy();
+
+        internal virtual void OnBeforePasteIntoGraph(GraphData graph) {}
     }
 }
