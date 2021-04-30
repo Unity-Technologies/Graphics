@@ -104,8 +104,10 @@ namespace UnityEngine.Experimental.Rendering
 
                 widgetList.Add(probeContainer);
             }
-            
+
+#if UNITY_EDITOR
             widgetList.Add(new DebugUI.BoolField { displayName = "Realtime Subdivision", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
+#endif
 
             widgetList.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.cullingDistance, setter = value => debugDisplay.cullingDistance = value, min = () => 0.0f });
 

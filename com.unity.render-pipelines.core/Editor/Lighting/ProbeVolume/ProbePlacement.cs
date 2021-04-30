@@ -171,9 +171,10 @@ namespace UnityEngine.Experimental.Rendering
                 sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
                 sceneSDF2.name = "Scene SDF Double Buffer";
                 sceneSDF2.Create();
-                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize * 2, sceneSDFSize * 2, 0, GraphicsFormat.R8_SNorm);
+                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize * 4, sceneSDFSize * 4, 0, GraphicsFormat.R8_SNorm);
 
-                var cmd = CommandBufferPool.Get("SDF Gen");
+                cellVolume.CalculateCenterAndSize(out var center, out var _);
+                var cmd = CommandBufferPool.Get($"Subdivide Cell {center}");
 
                 RastersizeMeshes(cmd, cellVolume, sceneSDF, dummyRenderTarget, maxBrickCountPerAxis, renderers);
 
@@ -311,60 +312,66 @@ namespace UnityEngine.Experimental.Rendering
 
         static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget, int maxBrickCountPerAxis, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers)
         {
-            var cellAABB = cellVolume.CalculateAABB();
-
-            cmd.BeginSample("Clear");
-            int clearKernel = subdivideSceneCS.FindKernel("Clear");
-            cmd.SetComputeTextureParam(subdivideSceneCS, clearKernel, "_Output", sceneSDF);
-            DispatchCompute(cmd, clearKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
-            cmd.EndSample("Clear");
-
-            // Hum, will this cause binding issues for other systems?
-            cmd.SetRandomWriteTarget(4, sceneSDF);
-
-            var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
-            mat.SetVector("_OutputSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
-            mat.SetVector("_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
-            mat.SetVector("_VolumeSize", cellAABB.size);
-
-            var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
-            var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
-            var forwardMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 0, 90));
-
-            Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
+            using (new ProfilingScope(cmd, new ProfilingSampler("Rasterize Meshes 3D")))
             {
-                var worldToCamera = Matrix4x4.Rotate(rotation);
-                var projection = Matrix4x4.Ortho(-1, 1, -1, 1, -1, 1);
-                return projection * worldToCamera;
-            }
+                var cellAABB = cellVolume.CalculateAABB();
 
-            // We need to bind at least something for rendering
-            cmd.SetRenderTarget(dummyRenderTarget);
-            cmd.SetViewport(new Rect(0, 0, dummyRenderTarget.width, dummyRenderTarget.height));
-            var props = new MaterialPropertyBlock();
-            foreach (var kp in renderers)
-            {
-                // Only mesh renderers are supported for the voxelization.
-                var renderer = kp.component as MeshRenderer;
-
-                if (renderer == null)
-                    continue;
-
-                if (cellAABB.Intersects(renderer.bounds))
+                using (new ProfilingScope(cmd, new ProfilingSampler("Clear")))
                 {
-                    if (renderer.TryGetComponent<MeshFilter>(out var meshFilter))
+                    int clearKernel = subdivideSceneCS.FindKernel("Clear");
+                    cmd.SetComputeTextureParam(subdivideSceneCS, clearKernel, "_Output", sceneSDF);
+                    DispatchCompute(cmd, clearKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                }
+
+                // Hum, will this cause binding issues for other systems?
+                cmd.SetRandomWriteTarget(4, sceneSDF);
+
+                var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
+                mat.SetVector("_OutputSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
+                mat.SetVector("_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
+                mat.SetVector("_VolumeSize", cellAABB.size);
+
+                var topMatrix = GetCameraMatrixForAngle(Quaternion.Euler(90, 0, 0));
+                var rightMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 90, 0));
+                var forwardMatrix = GetCameraMatrixForAngle(Quaternion.Euler(0, 0, 90));
+
+                Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
+                {
+                    cellVolume.CalculateCenterAndSize(out var _, out var size);
+                    size /= 2;
+                    var worldToCamera = Matrix4x4.Rotate(rotation);
+                    var projection = Matrix4x4.Ortho(-size.x, size.x, -size.y, size.y, -size.z, size.z);
+                    return projection * worldToCamera;
+                }
+
+                // We need to bind at least something for rendering
+                cmd.SetRenderTarget(dummyRenderTarget);
+                cmd.SetViewport(new Rect(0, 0, dummyRenderTarget.width, dummyRenderTarget.height));
+                var props = new MaterialPropertyBlock();
+                foreach (var kp in renderers)
+                {
+                    // Only mesh renderers are supported for the voxelization.
+                    var renderer = kp.component as MeshRenderer;
+
+                    if (renderer == null)
+                        continue;
+
+                    if (cellAABB.Intersects(renderer.bounds))
                     {
-                        props.SetMatrix("_CameraMatrix", topMatrix);
-                        cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                        props.SetMatrix("_CameraMatrix", rightMatrix);
-                        cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                        props.SetMatrix("_CameraMatrix", forwardMatrix);
-                        cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
+                        if (renderer.TryGetComponent<MeshFilter>(out var meshFilter))
+                        {
+                            props.SetMatrix("_CameraMatrix", topMatrix);
+                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
+                            props.SetMatrix("_CameraMatrix", rightMatrix);
+                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
+                            props.SetMatrix("_CameraMatrix", forwardMatrix);
+                            cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
+                        }
                     }
                 }
-            }
 
-            cmd.ClearRandomWriteTargets();
+                cmd.ClearRandomWriteTargets();
+            }
         }
 
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)
@@ -380,43 +387,52 @@ namespace UnityEngine.Experimental.Rendering
 
         static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF, RenderTexture tmp)
         {
-            // Generate distance field with JFA
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_Size", new Vector4(sceneSDF.width, 1.0f / sceneSDF.width));
-
-            int clearKernel = subdivideSceneCS.FindKernel("Clear");
-            int jumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
-            int fillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
-            int finalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
-
-            // TODO: try to get rid of the copies again
-            cmd.BeginSample("Copy");
-            for (int i = 0; i < sceneSDF.volumeDepth; i++)
-                cmd.CopyTexture(sceneSDF, i, 0, tmp, i, 0);
-            cmd.EndSample("Copy");
-
-            // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
-            cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Input", tmp);
-            cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Output", sceneSDF);
-            DispatchCompute(cmd, fillUVKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
-
-            int maxLevels = (int)Mathf.Log(sceneSDF.width, 2);
-            for (int i = 0; i <= maxLevels; i++)
+            // TODO: replace samples by ProfilingScope
+            using (new ProfilingScope(cmd, new ProfilingSampler("GenerateDistanceField")))
             {
-                float offset = 1 << (maxLevels - i);
-                cmd.SetComputeFloatParam(subdivideSceneCS, "_Offset", offset);
-                cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Input", sceneSDF);
-                cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Output", tmp);
-                DispatchCompute(cmd, jumpFloodingKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                // Generate distance field with JFA
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_Size", new Vector4(sceneSDF.width, 1.0f / sceneSDF.width));
 
-                cmd.BeginSample("Copy");
-                for (int j = 0; j < sceneSDF.volumeDepth; j++)
-                    cmd.CopyTexture(tmp, j, 0, sceneSDF, j, 0);
-                cmd.EndSample("Copy");
+                int clearKernel = subdivideSceneCS.FindKernel("Clear");
+                int jumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
+                int fillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
+                int finalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
+
+                // TODO: try to get rid of the copies again
+                using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                {
+                    for (int i = 0; i < sceneSDF.volumeDepth; i++)
+                        cmd.CopyTexture(sceneSDF, i, 0, tmp, i, 0);
+                }
+
+                // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
+                using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
+                {
+                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Input", tmp);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Output", sceneSDF);
+                    DispatchCompute(cmd, fillUVKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+
+                    int maxLevels = (int)Mathf.Log(sceneSDF.width, 2);
+                    for (int i = 0; i <= maxLevels; i++)
+                    {
+                        float offset = 1 << (maxLevels - i);
+                        cmd.SetComputeFloatParam(subdivideSceneCS, "_Offset", offset);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Input", sceneSDF);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Output", tmp);
+                        DispatchCompute(cmd, jumpFloodingKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+
+                        using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                        {
+                            for (int j = 0; j < sceneSDF.volumeDepth; j++)
+                                cmd.CopyTexture(tmp, j, 0, sceneSDF, j, 0);
+                        }
+                    }
+                }
+
+                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", tmp);
+                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF);
+                DispatchCompute(cmd, finalPassKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
             }
-
-            cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", tmp);
-            cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF);
-            DispatchCompute(cmd, finalPassKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
         }
 
         static void SubdivideFromDistanceField(CommandBuffer cmd, Bounds volume, RenderTexture sceneSDF, ComputeBuffer buffer, int brickCount, int maxBrickCountPerAxis)

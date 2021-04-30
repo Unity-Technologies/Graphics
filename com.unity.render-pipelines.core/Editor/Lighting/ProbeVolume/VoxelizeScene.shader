@@ -14,7 +14,6 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             ColorMask 0
             ZWrite Off
             ZClip Off
-            Conservative True
 
             HLSLPROGRAM
             #pragma vertex vert

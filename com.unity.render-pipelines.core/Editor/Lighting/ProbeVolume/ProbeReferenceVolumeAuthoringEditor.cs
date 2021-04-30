@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-
 using UnityEditor;
 using System.Reflection;
 using System;
@@ -12,6 +10,32 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
+        [InitializeOnLoad]
+        class RealtimeProbeSubdivisionDebug
+        {
+            static RealtimeProbeSubdivisionDebug()
+            {
+                EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
+                EditorApplication.update += UpdateRealtimeSubdivisionDebug;
+            }
+
+            static void UpdateRealtimeSubdivisionDebug()
+            {
+                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
+                {
+                    var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
+
+                    // Cull all the cells that are not visible (we don't need them for realtime debug)
+                    ctx.cells.RemoveAll(c => {
+                        return probeVolumeAuthoring.ShouldCull(c.position);
+                    });
+
+                    ProbeGIBaking.BakeBricks(ctx);
+                }
+            }
+        }
+
         private SerializedProperty m_Dilate;
         private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
@@ -142,24 +166,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void OnSceneGUI()
-        {
-            if (Event.current.type == EventType.Layout)
-            {
-                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
-                {
-                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(actualTarget);
-
-                    // Cull all the cells that are not visible (we don't need them for realtime debug)
-                    ctx.cells.RemoveAll(c => {
-                        return actualTarget.ShouldCull(c.position);
-                    });
-
-                    ProbeGIBaking.BakeBricks(ctx);
-                }
-            }
-        }
-
         private void Constrain()
         {
             m_MaxDilationSamples.intValue = Mathf.Max(m_MaxDilationSamples.intValue, 0);
@@ -168,5 +174,3 @@ namespace UnityEngine.Experimental.Rendering
         }
     }
 }
-
-#endif
