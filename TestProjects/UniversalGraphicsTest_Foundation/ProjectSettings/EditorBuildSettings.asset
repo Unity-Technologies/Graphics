@@ -102,6 +102,9 @@ EditorBuildSettings:
     path: Assets/Scenes/050_Shader_Graphs_deferred.unity
     guid: 96da3a5f3f80f534d81098bfe585331d
   - enabled: 1
+    path: Assets/Scenes/050_Shader_Graphs_Override.unity
+    guid: 773767ac5b09198408c0c084dc243abc
+  - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
@@ -146,6 +149,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
+  - enabled: 1
+    path: Assets/Scenes/126_RendererFeatureActive.unity
+    guid: 92276052d376244eb94e9548db46b27f
   - enabled: 1
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677

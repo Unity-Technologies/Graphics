@@ -23,39 +23,9 @@ namespace UnityEditor.Experimental.Rendering
 
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
-                Drawer_FeatureWarningMessage
-                ),
-            CED.Conditional(
-                IsFeatureDisabled,
-                Drawer_FeatureEnableInfo
-                ),
-            CED.Conditional(
-                IsFeatureEnabled,
-                CED.Group(
-                    Drawer_VolumeContent
-                )
+                Drawer_VolumeContent
             )
         );
-
-        static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
-        {
-            return true;
-        }
-
-        static bool IsFeatureDisabled(SerializedProbeVolume serialized, Editor owner)
-        {
-            return false;
-        }
-
-        static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)
-        {
-            EditorGUILayout.HelpBox(Styles.k_featureWarning, MessageType.Warning);
-        }
-
-        static void Drawer_FeatureEnableInfo(SerializedProbeVolume serialized, Editor owner)
-        {
-            EditorGUILayout.HelpBox(Styles.k_featureEnableInfo, MessageType.Error);
-        }
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
