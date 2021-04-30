@@ -16,6 +16,7 @@ PR_Universal_Stereo_trunk:
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_Stereo_trunk:
@@ -24,6 +25,7 @@ Nightly_Universal_Stereo_trunk:
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_Universal_Stereo_CUSTOM-REVISION:

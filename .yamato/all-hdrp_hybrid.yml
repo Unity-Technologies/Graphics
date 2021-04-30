@@ -14,6 +14,7 @@ PR_HDRP_Hybrid_trunk:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_Hybrid_trunk:
@@ -24,6 +25,7 @@ Nightly_HDRP_Hybrid_trunk:
       -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_HDRP_Hybrid_CUSTOM-REVISION:
