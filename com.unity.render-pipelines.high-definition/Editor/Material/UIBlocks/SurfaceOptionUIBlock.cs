@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawLitSurfaceOptions();
         }
 
-        bool AreMaterialsShaderGraphs() => materials.All(m => m.shader.IsShaderGraph());
+        bool AreMaterialsShaderGraphs() => materials.All(m => m.IsShaderGraph());
 
         /// <summary>Returns false if there are multiple materials selected and they have different default values for propName</summary>
         float GetShaderDefaultFloatValue(string propName)
