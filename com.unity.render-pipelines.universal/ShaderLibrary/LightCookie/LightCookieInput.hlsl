@@ -39,7 +39,7 @@ CBUFFER_END
         CBUFFER_START(AdditionalLightsCookies)
     #endif
             float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];  // TODO: Should really be a property of the light !!!
-            float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv offset, zw: uv size)
+            float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS]; // (xy: uv size, zw: uv offset)
             float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS]; // TODO: Should really be a property of the light !!!
             float _AdditionalLightsCookieAtlasFormat;
     #ifndef SHADER_API_GLES3

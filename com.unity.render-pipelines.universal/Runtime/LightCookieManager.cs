@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!SystemInfo.graphicsUVStartsAtTop)
                     uvScaleOffset.w = 1.0f - uvScaleOffset.w - uvScaleOffset.y;
 
-                textureAtlasUVRects[uvRectCount++] = new Vector4(uvScaleOffset.z, uvScaleOffset.w, uvScaleOffset.x, uvScaleOffset.y); // Flip ( scale, offset) into a rect i.e. ( offset, scale )
+                textureAtlasUVRects[uvRectCount++] = uvScaleOffset;
             }
 
             return uvRectCount;

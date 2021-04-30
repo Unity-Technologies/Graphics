@@ -35,7 +35,7 @@ float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 sample
     positionUV.y = (uvWrap.y == URP_TEXTURE_WRAP_MODE_CLAMP)  ? saturate(positionUV.y) : positionUV.y;
 
     // Remap to atlas texture
-    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
@@ -51,7 +51,7 @@ float2 URP_LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sa
     float2 positionUV = saturate(positionNDC * 0.5 + 0.5);
 
     // Remap into rect in the atlas texture
-    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
@@ -68,7 +68,7 @@ float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositi
     float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
 
     // Remap to atlas texture
-    float2 positionAtlasUV = atlasUVRect.xy + float2(positionUV) * atlasUVRect.zw;
+    float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
@@ -78,7 +78,7 @@ float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositi
 
 real3 URP_LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
-    float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(0, 0, 1, 1),
+    float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0),
                 _MainLightCookieUVScale, _MainLightCookieUVOffset, URP_TEXTURE_WRAP_MODE_NONE);
     real4 color = URP_LightCookie_SampleMainLightTexture(uv);
 
