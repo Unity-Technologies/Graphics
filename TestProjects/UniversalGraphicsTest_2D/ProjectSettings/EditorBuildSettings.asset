@@ -65,4 +65,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/070_2D_Forward_Shader_Compatibility_2D.unity
     guid: c8f0da7688959b142bebd1f707d6f935
+  - enabled: 1
+    path: Assets/Scenes/072_Shadow_Prerendering.unity
+    guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e
   m_configObjects: {}

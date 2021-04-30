@@ -84,7 +84,7 @@ if (abs(vectorFieldCoord.x) > 0.5f || abs(vectorFieldCoord.y) > 0.5f || abs(vect
 
                 Source += string.Format(@"
 
-float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz {0};"
+float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f, 0.0f).xyz {0};"
                     , DataEncoding == TextureDataEncoding.UnsignedNormalized ? "* 2.0f - 1.0f" : "");
 
                 if (ConserveMagnitude)

@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Vector**
 
 The **Dot Product** [uniform Operator](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@8.0/manual/Operators.html#uniform-operators) performs a [dot-product](https://docs.unity3d.com/ScriptReference/Vector3.Dot.html) between two input vectors and outputs the result.
 
-This operator is useful for numerous purposes which include:
+This Operator is useful for numerous purposes which include:
 
 - To compute the squared length of a given vector. To do this, connect the same vector to both input ports.
 - To determine whether two normalized vectors point in the same direction. This returns 1.0 if the vectors point in the same direction, 0.0 if they are perpendicular, and -1.0 if they point in opposite directions.
