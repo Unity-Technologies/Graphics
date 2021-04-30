@@ -215,6 +215,9 @@ MonoBehaviour:
   useExposureWeight: 0
   flipbookLayout: 0
   shaderGraph: {fileID: 0}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114085153404433742
@@ -599,7 +602,6 @@ MonoBehaviour:
   m_ImportDependencies: []
   m_GraphVersion: 7
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114420497141572546

@@ -391,8 +391,8 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
-
-            ResyncSlots(true);
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
 
             // Ensure that the output context name is in sync with the shader graph shader enum name.
             if (GetOrRefreshShaderGraphObject() != null &&
