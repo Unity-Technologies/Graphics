@@ -251,6 +251,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Default black texture XR is now opaque (alpha = 1).
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
+- Use the new API for updating Reflection Probe state (fixes garbage allocation, case 1290521)
 
 ## [11.0.0] - 2020-10-21
 
