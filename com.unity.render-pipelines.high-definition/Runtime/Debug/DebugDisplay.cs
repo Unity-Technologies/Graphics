@@ -46,6 +46,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugIsLitShaderModeDeferred;
 
         public int _DebugAOVOutput;
+        public float _ShaderVariablesDebugDisplayPad0;
+        public float _ShaderVariablesDebugDisplayPad1;
+        public float _ShaderVariablesDebugDisplayPad2;
     }
 
     /// <summary>
