@@ -46,8 +46,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         output = new ColorShaderProperty(order.version);
                         break;
                     default:
-                        //TODO: Not sure what should be the default return property
                         output = null;
+                        AssertHelpers.Fail("BlackboardShaderInputFactory: Unknown deprecated property type.");
                         break;
                 }
             }
