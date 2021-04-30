@@ -43,9 +43,9 @@ namespace UnityEditor.VFX.URP
             {
                 var properties = base.inputProperties;
                 if (normalBending)
-                    properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
+                    properties = properties.Concat(PropertiesFromType(nameof(NormalBendingProperties)));
                 if (tilingMode == StripTilingMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
+                    properties = properties.Concat(PropertiesFromType(nameof(CustomUVInputProperties)));
                 return properties;
             }
         }
@@ -80,9 +80,9 @@ namespace UnityEditor.VFX.URP
                 yield return exp;
 
             if (normalBending)
-                yield return slotExpressions.First(o => o.name == "normalBendingFactor");
+                yield return slotExpressions.First(o => o.name == nameof(NormalBendingProperties.normalBendingFactor));
             if (tilingMode == StripTilingMode.Custom)
-                yield return slotExpressions.First(o => o.name == "texCoord");
+                yield return slotExpressions.First(o => o.name == nameof(CustomUVInputProperties.texCoord));
         }
 
         public override IEnumerable<string> additionalDefines
