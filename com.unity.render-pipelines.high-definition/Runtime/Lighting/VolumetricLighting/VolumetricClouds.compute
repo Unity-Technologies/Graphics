@@ -2,7 +2,8 @@
 #pragma kernel DownscaleDepth
 #pragma kernel RenderClouds
 #pragma kernel ReprojectClouds
-#pragma kernel UpscaleAndCombineClouds
+#pragma kernel UpscaleAndCombineClouds_ColorRW      UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
+#pragma kernel UpscaleAndCombineClouds_ColorCopy    UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorCopy
 #pragma kernel ComputeVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
@@ -941,6 +942,9 @@ TEXTURE2D_X(_VolumetricCloudsTexture);
 TEXTURE2D_X(_DepthStatusTexture);
 
 // Input output camera color buffer
+#ifndef CAN_RW_ON_COLOR_BUFFER
+TEXTURE2D_X(_CameraColorTexture);
+#endif
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
 
 void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
@@ -973,7 +977,7 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 }
 
 [numthreads(8, 8, 1)]
-void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
+void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
                             uint2 groupThreadId : SV_GroupThreadID,
                             uint2 groupId : SV_GroupID)
@@ -1001,7 +1005,11 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
 
     // Read the color buffer
+#ifdef CAN_RW_ON_COLOR_BUFFER
     float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
+#else
+    float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
+#endif
 
     // Fill the sample data
     FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
