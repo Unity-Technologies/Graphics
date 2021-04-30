@@ -106,6 +106,10 @@ float4x4 unity_WorldToObject;
 float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 
+// Render Layer block feature
+// Only the first channel (x) contains valid data and the float must be reinterpreted using asuint() to extract the original 32 bits values.
+float4 unity_RenderingLayer;
+
 // Light Indices block feature
 // These are set internally by the engine upon request by RendererConfiguration.
 half4 unity_LightData;
@@ -116,6 +120,14 @@ half4 unity_ProbesOcclusion;
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions
 real4 unity_SpecCube0_HDR;
+real4 unity_SpecCube1_HDR;
+
+float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
+float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
+float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
+float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
+float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
+float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 
 // Lightmap block feature
 float4 unity_LightmapST;
@@ -198,6 +210,8 @@ real4 unity_ShadowColor;
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
 SAMPLER(samplerunity_SpecCube0);
+TEXTURECUBE(unity_SpecCube1);
+SAMPLER(samplerunity_SpecCube1);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
