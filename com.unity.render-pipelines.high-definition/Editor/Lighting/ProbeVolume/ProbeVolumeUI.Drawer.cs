@@ -301,6 +301,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     serialized.normalBiasWS.floatValue = Mathf.Max(0, normalBiasWS);
                 }
+
+                EditorGUI.BeginChangeCheck();
+                float viewBiasWS = EditorGUILayout.FloatField(Styles.s_ViewBiasWSLabel, serialized.viewBiasWS.floatValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.viewBiasWS.floatValue = Mathf.Max(0, viewBiasWS);
+                }
             }
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
 

@@ -23,7 +23,7 @@
 #elif PROBE_VOLUMES_ACCUMULATE_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
     void ProbeVolumeAccumulateSphericalHarmonicsL2(
 #endif
-        PositionInputs posInput, float3 normalWS, uint renderingLayers,
+        PositionInputs posInput, float3 normalWS, float3 viewDirectionWS, uint renderingLayers,
 #if PROBE_VOLUMES_ACCUMULATE_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
         out ProbeVolumeSphericalHarmonicsL0 coefficients,
 #elif PROBE_VOLUMES_ACCUMULATE_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
@@ -109,7 +109,7 @@
                 ProbeVolumeComputeOBBBoundsToFrame(s_probeVolumeBounds, obbFrame, obbExtents, obbCenter);
                 
                 // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
-                float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + posInput.positionWS;
+                float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + viewDirectionWS * s_probeVolumeData.viewBiasWS + posInput.positionWS;
 
                 float3 probeVolumeTexel3D;
                 ProbeVolumeComputeTexel3DAndWeight(

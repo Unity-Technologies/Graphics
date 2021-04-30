@@ -173,10 +173,12 @@ void SampleBakedGI(
         posInputs.tileCoord = tileCoord;
         #endif
 
+        float3 viewDirectionWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
         ProbeVolumeEvaluateSphericalHarmonics(
             posInputs,
             normalWS,
             backNormalWS,
+            viewDirectionWS,
             renderingLayers,
             probeVolumeHierarchyWeight,
             bakeDiffuseLighting,

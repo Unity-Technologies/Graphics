@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Optimized version of 'ProbeVolumeArtistParameters'.
-    // Currently 128-bytes.
+    // Currently 144-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
     [GenerateHLSL]
     internal struct ProbeVolumeEngineData
@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightLayers;
         public Vector3 resolutionInverse;
         public float normalBiasWS;
+        public float viewBiasWS;
+        public Vector3 padding;
 
         public static ProbeVolumeEngineData GetNeutralValues()
         {
@@ -46,6 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightLayers = 0;
             data.resolutionInverse = Vector3.zero;
             data.normalBiasWS = 0.0f;
+            data.viewBiasWS = 0.0f;
+            data.padding = Vector3.zero;
 
             return data;
         }
