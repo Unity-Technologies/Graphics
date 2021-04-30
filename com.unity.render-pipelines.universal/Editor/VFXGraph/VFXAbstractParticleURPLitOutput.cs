@@ -334,7 +334,8 @@ namespace UnityEditor.VFX
 
                 // URP Forward specific defines
                 var forwardDefines = new VFXShaderWriter();
-                //Nothing for now
+                if (materialType == MaterialType.Specular)
+                    forwardDefines.Write("#define _SPECULAR_SETUP");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
             }
         }
