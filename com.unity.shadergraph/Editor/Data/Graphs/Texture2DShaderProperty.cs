@@ -141,8 +141,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 value = value,
                 defaultType = defaultType,
-                useTilingAndOffset = useTilingAndOffset
-                    isMainTexture = isMainTexture
+                useTilingAndOffset = useTilingAndOffset,
+                isMainTexture = isMainTexture
             };
         }
 
