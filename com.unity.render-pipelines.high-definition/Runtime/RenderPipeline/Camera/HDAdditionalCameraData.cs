@@ -515,6 +515,20 @@ namespace UnityEngine.Rendering.HighDefinition
             data.antialiasing = antialiasing;
             data.dithering = dithering;
             data.xrRendering = xrRendering;
+            data.SMAAQuality = SMAAQuality;
+            data.stopNaNs = stopNaNs;
+            data.taaSharpenStrength = taaSharpenStrength;
+            data.TAAQuality = TAAQuality;
+            data.taaHistorySharpening = taaHistorySharpening;
+            data.taaAntiFlicker = taaAntiFlicker;
+            data.taaMotionVectorRejection = taaMotionVectorRejection;
+            data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.flipYMode = flipYMode;
+            data.fullscreenPassthrough = fullscreenPassthrough;
+            data.allowDynamicResolution = allowDynamicResolution;
+            data.invertFaceCulling = invertFaceCulling;
+            data.probeLayerMask = probeLayerMask;
+            data.hasPersistentHistory = hasPersistentHistory;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
