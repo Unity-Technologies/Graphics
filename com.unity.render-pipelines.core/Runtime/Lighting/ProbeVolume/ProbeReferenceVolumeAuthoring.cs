@@ -208,6 +208,8 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugDisplay.drawBricks)
             {
+                var debugColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+
                 IEnumerable<ProbeBrickIndex.Brick> GetVisibleBricks()
                 {
                     if (debugDisplay.realtimeSubdivision)
@@ -215,7 +217,7 @@ namespace UnityEngine.Experimental.Rendering
                         foreach (var kp in realtimeSubdivisionInfo)
                         {
                             var cellVolume = kp.Key;
-                            
+
                             foreach (var brick in kp.Value)
                             {
                                 yield return brick;
@@ -228,10 +230,10 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                                 continue;
-                            
+
                             if (cell.bricks == null)
                                 continue;
-                            
+
                             foreach (var brick in cell.bricks)
                                 yield return brick;
                         }
@@ -246,7 +248,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                     Vector3 scaledPos = brick.position + scaledSize / 2;
-                    brickGizmos.AddWireCube(scaledPos, scaledSize, Color.blue);
+                    brickGizmos.AddWireCube(scaledPos, scaledSize, debugColors[brick.subdivisionLevel]);
                 }
 
                 brickGizmos.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
@@ -270,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                                 continue;
-                            
+
                             var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
                             var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
                             yield return center;

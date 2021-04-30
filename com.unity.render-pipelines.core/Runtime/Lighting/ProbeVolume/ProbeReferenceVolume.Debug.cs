@@ -37,11 +37,15 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeVolumeDebug       debugDisplay { get; } = new ProbeVolumeDebug();
 
+        /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
+        public Color[] subdivisionDebugColors { get; } = new Color[ProbeBrickIndex.kMaxSubdivisionLevels];
+
         DebugUI.Widget[]                m_DebugItems;
         Mesh                            m_DebugMesh;
         Material                        m_DebugMaterial;
         List<CellInstancedDebugProbes>  m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[]                         m_DebugFrustumPlanes = new Plane[6];
+
 
         /// <summary>
         /// Render Probe Volume related debug
@@ -62,6 +66,16 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugMesh = debugProbeMesh;
             m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugProbeShader);
             m_DebugMaterial.enableInstancing = true;
+
+            // Hard-coded colors for now.
+            Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
+            subdivisionDebugColors[0] = new Color(1.0f, 0.0f, 0.0f);
+            subdivisionDebugColors[1] = new Color(0.0f, 1.0f, 0.0f);
+            subdivisionDebugColors[2] = new Color(0.0f, 0.0f, 1.0f);
+            subdivisionDebugColors[3] = new Color(1.0f, 1.0f, 0.0f);
+            subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
+            subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
+            subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
 
             RegisterDebug();
         }
@@ -104,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 widgetList.Add(probeContainer);
             }
-            
+
             widgetList.Add(new DebugUI.BoolField { displayName = "Realtime Subdivision", getter = () => debugDisplay.realtimeSubdivision, setter = value => debugDisplay.realtimeSubdivision = value, onValueChanged = RefreshDebug });
 
             widgetList.Add(new DebugUI.FloatField { displayName = "Culling Distance", getter = () => debugDisplay.cullingDistance, setter = value => debugDisplay.cullingDistance = value, min = () => 0.0f });

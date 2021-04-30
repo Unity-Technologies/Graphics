@@ -157,6 +157,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
+                if (asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                {
+                    var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        for (int j = 0; j < 4; ++j)
+                            cb._DebugAPVSubdivColors[i * 4 + j] = subdivColors[i][j];
+                    }
+                }
+
                 cb._DebugLightingMode = (int)debugLightingMode;
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
