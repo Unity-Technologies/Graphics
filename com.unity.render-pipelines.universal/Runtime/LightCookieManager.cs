@@ -69,26 +69,58 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private struct LightCookieData : System.IComparable<LightCookieData>
+        private struct LightCookieMapping
         {
-            public ushort visibleLightIndex; // Index into visible light (src) (after sorting)
-            public ushort lightBufferIndex; // Index into light shader data buffer (dst)
-            public int priority;
-            public float score;
+            public ushort visibleLightIndex; // Index into visible light (src)
+            public ushort lightBufferIndex;  // Index into light shader data buffer (dst)
+        }
 
-            public int CompareTo(LightCookieData other)
+        private struct WorkSlice<T>
+        {
+            private T[] m_Data;
+            private int m_Start;
+            private int m_Length;
+
+            public WorkSlice(T[] src, int srcLen = -1)
             {
-                if (priority > other.priority)
-                    return -1;
-                if (priority == other.priority)
-                {
-                    if (score > other.score)
-                        return -1;
-                    if (score == other.score)
-                        return 0;
-                }
+                m_Data = src;
+                m_Start = 0;
+                m_Length = (srcLen < 0) ? src.Length : Math.Min(srcLen, src.Length);
+            }
 
-                return 1;
+            public WorkSlice(T[] src, int srcStart, int srcLen = -1)
+            {
+                m_Data = src;
+                m_Start = srcStart;
+                m_Length = (srcLen < 0) ? src.Length : Math.Min(srcLen, src.Length);
+                Debug.Assert(m_Start + m_Length <= capacity, "Slice out of bounds!");
+            }
+
+            public T this[int index]
+            {
+                get => m_Data[m_Start + index];
+                set => m_Data[m_Start + index] = value;
+            }
+
+            public int length => m_Length;
+            public int capacity => m_Data.Length;
+        }
+
+        private class WorkMemory
+        {
+            public LightCookieMapping[] lightMappings;
+            public Vector4[] uvRects;
+
+            public void Resize(int size)
+            {
+                if (size < lightMappings?.Length)
+                    return;
+
+                // Avoid allocs on every tiny size change.
+                size = Math.Max((int)(size * 1.25), 16);
+
+                lightMappings = new LightCookieMapping[size];
+                uvRects = new Vector4[size];
             }
         }
 
@@ -172,6 +204,7 @@ namespace UnityEngine.Rendering.Universal
 
         Texture2DAtlas        m_AdditionalLightsCookieAtlas;
         LightCookieShaderData m_AdditionalLightsCookieShaderData;
+        WorkMemory            m_WorkMem;
 
         // map[visibleLightIndex] = ShaderDataIndex
         int[] m_VisibleLightIndexToShaderDataIndex;
@@ -181,6 +214,7 @@ namespace UnityEngine.Rendering.Universal
         public LightCookieManager(ref Settings settings)
         {
             m_Settings = settings;
+            m_WorkMem = new WorkMemory();
         }
 
         void InitAdditionalLights(int size)
@@ -280,8 +314,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale,  cookieUVScale);
                 cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVOffset, cookieUVOffset);
                 cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,    cookieFormat);
-
-                //DrawDebugFrustum(visibleMainLight.localToWorldMatrix);
             }
 
             return isMainLightCookieEnabled;
@@ -294,7 +326,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 default:
                     return LightCookieShaderFormat.RGB;
-                case (GraphicsFormat)53:    // L8_Unorm TODO: GraphicsFormat does not expose yet.
                 case (GraphicsFormat)54:    // A8_Unorm TODO: GraphicsFormat does not expose yet.
                 case (GraphicsFormat)55:    // A16_Unorm TODO: GraphicsFormat does not expose yet.
                     return LightCookieShaderFormat.Alpha;
@@ -328,47 +359,31 @@ namespace UnityEngine.Rendering.Universal
 
         bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
         {
-            // TODO: how fast is temp alloc???
-            var validLights = new NativeArray<LightCookieData>(lightData.additionalLightsCount , Allocator.Temp);
-            int validLightCount = PrepareAndValidateAdditionalLights(ref lightData, ref validLights);
+            m_WorkMem.Resize(lightData.additionalLightsCount);
+            int validLightCount = FilterAndValidateAdditionalLights(ref lightData, m_WorkMem.lightMappings);
 
             // Early exit if no valid cookie lights
             if (validLightCount <= 0)
-            {
-                validLights.Dispose();
                 return false;
-            }
-
-            // TODO: does this even make sense???
-            // TODO: Lights are globally sorted by intensity. Kind of the same thing, as our sort is not strict cookie priority.
-            // Sort by priority
-            unsafe
-            {
-                CoreUnsafeUtils.QuickSort<LightCookieData>(validLightCount, validLights.GetUnsafePtr());
-            }
 
             // Lazy init GPU resources
-            if (validLightCount > 0 && !isInitialized())
+            if (!isInitialized())
                 InitAdditionalLights(validLightCount);
 
             // Update Atlas
-            var validSortedLights = validLights.GetSubArray(0, validLightCount);
-            var uvRects = new NativeArray<Vector4>(validLightCount , Allocator.Temp);
-            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, ref lightData, ref validSortedLights, ref uvRects);
+            var validLights = new WorkSlice<LightCookieMapping>(m_WorkMem.lightMappings, validLightCount);
+            int validUVRectCount = UpdateAdditionalLightsAtlas(cmd, ref lightData, ref validLights, m_WorkMem.uvRects);
 
             // Upload shader data
-            var validUvRects = uvRects.GetSubArray(0, validUVRectCount);
-            UploadAdditionalLights(cmd, ref lightData, ref validSortedLights, ref validUvRects);
+            var validUvRects = new WorkSlice<Vector4>(m_WorkMem.uvRects, validUVRectCount);
+            UploadAdditionalLights(cmd, ref lightData, ref validLights, ref validUvRects);
 
-            bool isAdditionalLightsEnabled = validUvRects.Length > 0;
-
-            uvRects.Dispose();
-            validLights.Dispose();
+            bool isAdditionalLightsEnabled = validUvRects.length > 0;
 
             return isAdditionalLightsEnabled;
         }
 
-        int PrepareAndValidateAdditionalLights(ref LightData lightData, ref NativeArray<LightCookieData> validLights)
+        int FilterAndValidateAdditionalLights(ref LightData lightData, LightCookieMapping[] validLights)
         {
             int skipMainLightIndex = lightData.mainLightIndex;
             int lightBufferOffset = 0;
@@ -407,29 +422,11 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-
                 Debug.Assert(i < ushort.MaxValue);
 
-                LightCookieData lp;
+                LightCookieMapping lp;
                 lp.visibleLightIndex = (ushort)i;
                 lp.lightBufferIndex  = (ushort)(i + lightBufferOffset);
-                lp.priority = 0;
-                lp.score = 0;
-
-                // Get user priority
-                var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
-                if (additionalLightData != null)
-                    lp.priority = additionalLightData.priority;
-
-                // TODO: could be computed globally and shared between systems!
-                // Compute automatic importance score
-                // Factors:
-                // 1. Light screen area
-                // 2. Light intensity
-                Rect  lightScreenUVRect = lightData.visibleLights[i].screenRect;
-                float lightScreenAreaUV = lightScreenUVRect.width * lightScreenUVRect.height;
-                float lightIntensity    = light.intensity;
-                lp.score                = lightScreenAreaUV * lightIntensity;
 
                 validLights[validLightCount++] = lp;
             }
@@ -437,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
             return validLightCount;
         }
 
-        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> sortedLights, ref NativeArray<Vector4> textureAtlasUVRects)
+        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> sortedLights, Vector4[] textureAtlasUVRects)
         {
             // Test if a texture is in atlas
             // If yes
@@ -457,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool atlasResetBefore = false;
             int uvRectCount = 0;
-            for (int i = 0; i < sortedLights.Length; i++)
+            for (int i = 0; i < sortedLights.length; i++)
             {
                 var lcd = sortedLights[i];
                 Light light = lightData.visibleLights[lcd.visibleLightIndex].light;
@@ -481,7 +478,7 @@ namespace UnityEngine.Rendering.Universal
                     if (atlasResetBefore)
                     {
                         // TODO: better messages
-                        //Debug.LogError("Universal Light Cookie Manager: Atlas full!");
+                        Debug.LogError("Universal Light Cookie Manager: Atlas full!");
                         return uvRectCount;
                     }
 
@@ -569,7 +566,7 @@ namespace UnityEngine.Rendering.Universal
             return octCookieSize;
         }
 
-        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref NativeArray<LightCookieData> validSortedLights, ref NativeArray<Vector4> validUvRects)
+        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validSortedLights, ref WorkSlice<Vector4> validUvRects)
         {
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
             Debug.Assert(m_AdditionalLightsCookieShaderData != null);
@@ -600,7 +597,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Fill shader data. Layout should match primary light data for additional lights.
             // Currently it's the same as visible lights, but main light(s) dropped.
-            for (int i = 0; i < validUvRects.Length; i++)
+            for (int i = 0; i < validUvRects.length; i++)
             {
                 int visIndex = validSortedLights[i].visibleLightIndex;
                 int bufIndex = validSortedLights[i].lightBufferIndex;

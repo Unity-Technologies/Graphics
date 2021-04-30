@@ -105,14 +105,5 @@ namespace UnityEngine.Rendering.Universal
             get => m_LightCookieOffset;
             set => m_LightCookieOffset = value;
         }
-
-        // TODO: check priority ordering, so that it's consistent with rest URP/Unity
-        [Tooltip("Light priority. Higher priority number is more important.")]
-        [SerializeField] int m_Priority = 0;
-        public int priority
-        {
-            get => m_Priority;
-            set => m_Priority = value;
-        }
     }
 }
