@@ -46,8 +46,11 @@ MonoBehaviour:
     type: 3}
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
   m_SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-  m_ShadowGroupShader: {fileID: 4800000, guid: d33b6d70b14697547ad0dc2d4debb009, type: 3}
-  m_RemoveSelfShadowShader: {fileID: 4800000, guid: 02e071f10b6a15d4d87dac88ce529302,
+  m_ProjectedShadowShader: {fileID: 4800000, guid: ce09d4a80b88c5a4eb9768fab4f1ee00,
+    type: 3}
+  m_SpriteShadowShader: {fileID: 4800000, guid: 44fc62292b65ab04eabcf310e799ccf6,
+    type: 3}
+  m_SpriteUnshadowShader: {fileID: 4800000, guid: de02b375720b5c445afe83cd483bedf3,
     type: 3}
   m_FallbackErrorShader: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd,
     type: 3}

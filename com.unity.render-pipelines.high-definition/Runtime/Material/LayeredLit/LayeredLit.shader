@@ -1098,6 +1098,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -1143,6 +1144,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -1185,6 +1187,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -1248,6 +1251,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
 

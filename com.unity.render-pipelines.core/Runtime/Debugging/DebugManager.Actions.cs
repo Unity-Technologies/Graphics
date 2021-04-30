@@ -1,7 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 #endif
 
 using System.Collections.Generic;
@@ -248,6 +247,30 @@ namespace UnityEngine.Rendering
         internal float GetAction(DebugAction action)
         {
             return m_DebugActionStates[(int)action].actionState;
+        }
+
+        internal bool GetActionToggleDebugMenuWithTouch()
+        {
+#if USE_INPUT_SYSTEM
+            var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
+            var touchCount = touches.Count;
+            const InputSystem.TouchPhase touchPhaseBegan = InputSystem.TouchPhase.Began;
+#else
+            var touches = Input.touches;
+            var touchCount = Input.touchCount;
+            const TouchPhase touchPhaseBegan = TouchPhase.Began;
+#endif
+            if (touchCount == 3)
+            {
+                foreach (var touch in touches)
+                {
+                    // Gesture: 3-finger double-tap
+                    if (touch.phase == touchPhaseBegan && touch.tapCount == 2)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         void RegisterInputs()

@@ -357,7 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.ColorLog);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -1086,7 +1086,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 TextureHandle source = colorBuffer;
-                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, defaultAsset.beforeTransparentCustomPostProcesses);
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTransparentCustomPostProcesses);
 
                 if (needBlitToColorBuffer)
                 {
@@ -3019,6 +3019,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
 
+                    if (m_EnableAlpha)
+                        passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                     passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
 
@@ -3162,6 +3165,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // the mip up 0 will be used by uber, so not allocated as transient.
             m_BloomBicubicParams = new Vector4(passData.bloomMipInfo[0].x, passData.bloomMipInfo[0].y, 1.0f / passData.bloomMipInfo[0].x, 1.0f / passData.bloomMipInfo[0].y);
             var mip0Scale = new Vector2(passData.bloomMipInfo[0].z, passData.bloomMipInfo[0].w);
+
+            // We undo the scale here, because bloom uses these parameters for its bicubic filtering offset.
+            // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
+            // unscaled pixel sizes to compute the offsets of the samples.
+            // For more info please see the implementation of SampleTexture2DBicubic
+            m_BloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            m_BloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
+
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
             {
                 name = "Bloom final mip up",
@@ -3902,6 +3915,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
+
+                    passData.fxaaCS.shaderKeywords = null;
+                    if (m_EnableAlpha)
+                        passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
 
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>

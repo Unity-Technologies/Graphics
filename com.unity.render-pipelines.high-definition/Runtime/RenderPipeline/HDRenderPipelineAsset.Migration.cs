@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
-using UnityEditor;
 using UnityEngine.Serialization;
+using System.Linq;
+
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Rendering;
+using UnityEditor.PackageManager;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipelineAsset : IVersionable<HDRenderPipelineAsset.Version>
+    public partial class HDRenderPipelineAsset : IVersionable<HDRenderPipelineAsset.Version>, IMigratableAsset
     {
+        // /!\ For each new version, you must now upgrade asset in HDRP_Runtime and HDRP_Performance test project.
         enum Version
         {
             None,
@@ -31,6 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
+        #region Migration steps
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UpgradeFrameSettingsToStruct, (HDRenderPipelineAsset data) =>
             {
@@ -162,20 +170,49 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_EDITOR
                 if (data == GraphicsSettings.defaultRenderPipeline)
-                {
                     HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data);
-                }
 #endif
+#pragma warning disable 618 // Type or member is obsolete
+                data.m_ObsoleteDefaultVolumeProfile = null;
+                data.m_ObsoleteDefaultLookDevProfile = null;
+
+                data.m_ObsoleteRenderPipelineResources = null;
+                data.m_ObsoleteRenderPipelineRayTracingResources = null;
+
+                data.m_ObsoleteBeforeTransparentCustomPostProcesses = null;
+                data.m_ObsoleteBeforePostProcessCustomPostProcesses = null;
+                data.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
+                data.m_ObsoleteBeforeTAACustomPostProcesses = null;
+                data.m_ObsoleteDiffusionProfileSettingsList = null;
+
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName0 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName1 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName2 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName3 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName4 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName5 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName6 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteLightLayerName7 = null;
+
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName0 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName1 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName2 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName3 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName4 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName5 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName6 = null;
+                data.m_RenderPipelineSettings.m_ObsoleteDecalLayerName7 = null;
+#pragma warning restore 618
             })
         );
+        #endregion
 
         [SerializeField]
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        void OnEnable() => k_Migration.Migrate(this);
-
 #pragma warning disable 618 // Type or member is obsolete
+        #region FrameSettings Moved
         [SerializeField]
         [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings"), Obsolete("For data migration")]
         ObsoleteFrameSettings m_ObsoleteFrameSettings;
@@ -185,6 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("m_RealtimeReflectionFrameSettings"), Obsolete("For data migration")]
         ObsoleteFrameSettings m_ObsoleteRealtimeReflectionFrameSettings;
+        #endregion
 
         #region Settings Moved from the HDRP Asset to HDRenderPipelineGlobalSettings
         [SerializeField]
@@ -206,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [FormerlySerializedAs("m_RenderPipelineResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal RenderPipelineResources m_ObsoleteRenderPipelineResources;
+        internal HDRenderPipelineRuntimeResources m_ObsoleteRenderPipelineResources;
         [SerializeField]
         [FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
@@ -234,7 +272,63 @@ namespace UnityEngine.Rendering.HighDefinition
         [FormerlySerializedAs("diffusionProfileSettingsList"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal DiffusionProfileSettings[] m_ObsoleteDiffusionProfileSettingsList;
         #endregion
-
 #pragma warning restore 618
+
+
+#if UNITY_EDITOR
+        const string packageName = "com.unity.render-pipelines.high-definition";
+
+        [InitializeOnLoadMethod]
+        static void  SubscribeToPacManEvents()
+        {
+            UnityEditor.PackageManager.Events.registeredPackages += RegisteredPackagesEventHandler;
+        }
+
+        static void RegisteredPackagesEventHandler(PackageRegistrationEventArgs packageRegistrationEventArgs)
+        {
+            foreach (var addedPackage in packageRegistrationEventArgs.added)
+            {
+                if (addedPackage.name == packageName)
+                {
+                    MigrateDueToHDRPPackageUpdate();
+                    return;
+                }
+            }
+
+            for (int i = 0; i <= packageRegistrationEventArgs.changedFrom.Count; i++)
+            {
+                if (packageRegistrationEventArgs.changedTo[i].name == packageName)
+                {
+                    MigrateDueToHDRPPackageUpdate();
+                    return;
+                }
+            }
+        }
+
+        static void MigrateDueToHDRPPackageUpdate()
+        {
+            // Migrate all HDRPAsset but also Resources assets and any HDRenderPipelineGlobalSettings (always migrated last)
+            foreach (IMigratableAsset asset in CoreUtils.LoadAllAssets<IMigratableAsset>().OrderBy(asset => asset is HDRenderPipelineGlobalSettings ? 1 : 0))
+                asset.Migrate();
+        }
+
+        bool IMigratableAsset.Migrate()
+            => Migrate();
+
+        bool IMigratableAsset.IsAtLastVersion()
+            => m_Version == MigrationDescription.LastVersion<Version>();
+
+        internal bool IsVersionBelowAddedHDRenderPipelineGlobalSettings()
+            => m_Version < Version.AddedHDRenderPipelineGlobalSettings;
+#endif
+
+        bool Migrate()
+            => k_Migration.Migrate(this);
+
+        // This is not optimal.
+        // When using AssetCache, this is not called. [TODO: fix it]
+        // It will be called though if you import it.
+        void OnEnable()
+            => Migrate();
     }
 }
