@@ -260,6 +260,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
             }
+
+            if (ViewModel.defaultDropdownNameToAdd != null)
+            {
+                string defaultDropdownName = ViewModel.defaultDropdownNameToAdd.Item1;
+                IGraphDataAction addAction = ViewModel.defaultDropdownNameToAdd.Item2;
+                m_AddBlackboardItemMenu.AddItem(new GUIContent($"{defaultDropdownName}"), false, () => ViewModel.requestModelChangeAction(addAction));
+            }
+
+            foreach (string disabledDropdownName in ViewModel.disabledDropdownNameList)
+            {
+                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledDropdownName));
+            }
         }
 
         void ShowAddPropertyMenu()

@@ -16,6 +16,7 @@ PR_URPUpdate_Top_Asset_Store_trunk:
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
@@ -26,6 +27,7 @@ Nightly_URPUpdate_Top_Asset_Store_trunk:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         ASSETSTORE_UPDATE_PROJECT_BRANCH: master
