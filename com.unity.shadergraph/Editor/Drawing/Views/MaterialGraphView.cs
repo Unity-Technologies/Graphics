@@ -889,12 +889,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selectable is SGBlackboardCategory blackboardCategory)
                 {
                     categories.Add(blackboardCategory.userData as CategoryData);
-                    // Remove the children that live in this category (if any) from the selection, as they will get copied twice otherwise
-                    /*var childBlackboardFields = blackboardCategory.Query<SGBlackboardField>();
-                    foreach (var blackboardField in childBlackboardFields.ToList())
-                    {
-                        selection.Remove(blackboardField);
-                    }*/
                 }
             }
 
@@ -1263,7 +1257,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                var copyShaderInputAction = new CopyShaderInputAction { shaderInputToCopy = input };
+                // Disregard any inputs that belong to a category in the CopyPasteGraph already,
+                // GraphData handles copying those child inputs over when the category is copied
+                if(copyGraph.IsInputCategorized(input))
+                    continue;
+
+                string associatedCategoryGuid = String.Empty;
+                foreach (var category in graphView.graph.categories)
+                {
+                    if (copyGraph.IsInputDuplicatedFromCategory(input, category))
+                    {
+                        associatedCategoryGuid = category.categoryGuid;
+                    }
+                }
+
+                // In the specific case of just an input being selected to copy but some other category than the one containing it being selected, we want to copy it to the default category
+                if (associatedCategoryGuid != String.Empty)
+                {
+                    foreach (var selection in graphView.selection)
+                    {
+                        if (selection is SGBlackboardCategory blackboardCategory && blackboardCategory.viewModel.associatedCategoryGuid != associatedCategoryGuid)
+                        {
+                            associatedCategoryGuid = String.Empty;
+                        }
+                    }
+                }
+
+                var copyShaderInputAction = new CopyShaderInputAction { shaderInputToCopy = input, containingCategoryGuid = associatedCategoryGuid };
 
                 switch (input)
                 {

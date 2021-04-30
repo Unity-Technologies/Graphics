@@ -1,6 +1,3 @@
-// TODO: REMOVE
-#define SG_ASSERTIONS
-
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -100,8 +97,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyShaderInputAction");
             AssertHelpers.IsNotNull(shaderInputToCopy, "ShaderInputToCopy is null while carrying out CopyShaderInputAction");
-            // Don't handle undo here as there are different contexts in which this action is used, that define the undo action namea
+
+            // Don't handle undo here as there are different contexts in which this action is used, that define the undo action
             // TODO: Perhaps a sign that each of those need to be made their own actions instead of conflating intent into a single action
+
             switch (shaderInputToCopy)
             {
                 case AbstractShaderProperty property:
@@ -149,25 +148,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var category in graphData.categories)
             {
-                if (category.IsItemInCategory(shaderInputToCopy))
+                if (category.categoryGuid == containingCategoryGuid)
                 {
                     graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
                     return;
                 }
             }
-
-            foreach(var category in graphData.categories)
-            {
-                foreach(var child in category.Children)
-                {
-                    if(child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
-                    {
-                        graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
-                        return;
-                    }
-                }
-            }
-
         }
 
         public Action<GraphData> modifyGraphDataAction => CopyShaderInput;
@@ -177,6 +163,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardItem shaderInputToCopy { get; set; }
 
         public BlackboardItem copiedShaderInput { get; set; }
+
+        public string containingCategoryGuid { get; set; }
 
         public int insertIndex { get; set; } = -1;
     }
@@ -209,7 +197,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.owner.RegisterCompleteObjectUndo("Move Category");
             // Handling for out of range moves is slightly different, but otherwise we need to reverse for insertion order.
             var guids = newIndexValue >= graphData.categories.Count() ? categoryGuids : categoryGuids.Reverse<string>();
-            foreach (var guid in guids)
+            foreach (var guid in categoryGuids)
             {
                 var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == guid);
                 graphData.MoveCategory(cat, newIndexValue);
@@ -226,6 +214,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class AddItemToCategoryAction : IGraphDataAction
     {
+        public enum AddActionSource
+        {
+            Default,
+            DragDrop
+        }
+
         void AddItemsToCategory(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddItemToCategoryAction");
@@ -241,6 +235,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // By default an item is always added to the end of a category, if this value is set to something other than -1, will insert the item at that position within the category
         public int indexToAddItemAt { get; set; } = -1;
+
+        public AddActionSource addActionSource { get; set; }
     }
 
     class CopyCategoryAction : IGraphDataAction
@@ -543,7 +539,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case MoveCategoryAction moveCategoryAction:
-                    // TODO: Not this.
                     ClearBlackboardCategories();
                     foreach (var categoryData in ViewModel.categoryInfoList)
                         AddBlackboardCategory(graphData.owner.graphDataStore, categoryData);
@@ -585,6 +580,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return true;
+        }
+
+        public SGBlackboardCategory GetBlackboardCategory(string inputGuid)
+        {
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
+            {
+                if(categoryController.Model.categoryGuid == inputGuid)
+                    return categoryController.blackboardCategoryView;
+            }
+
+            return null;
         }
 
         public SGBlackboardRow GetBlackboardRow(ShaderInput blackboardItem)

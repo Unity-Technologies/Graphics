@@ -445,10 +445,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (draggedElement.userData is ShaderInput newShaderInput)
                     {
                         addItemToCategoryAction.categoryGuid = viewModel.associatedCategoryGuid;
+                        addItemToCategoryAction.addActionSource = AddItemToCategoryAction.AddActionSource.DragDrop;
                         addItemToCategoryAction.itemToAdd = newShaderInput;
                         addItemToCategoryAction.indexToAddItemAt = m_InsertIndex;
                         m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
                     }
+                    m_InsertIndex++;
                 }
             }
             else
@@ -487,7 +489,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (draggedElement.Item2.userData is ShaderInput shaderInput)
                         {
                             moveShaderInputAction.shaderInputReference = shaderInput;
-                            moveShaderInputAction.newIndexValue = m_InsertIndex;
+                            moveShaderInputAction.newIndexValue = insertIndex;
                             m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                             if (insertIndex == contentContainer.childCount)
@@ -558,13 +560,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void RemoveFromSelection(ISelectable selectable)
         {
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
-            materialGraphView?.RemoveFromSelection(selectable);
 
-            // Also deselect the child elements within this category (the field views)
-            var fieldViews = this.Query<SGBlackboardField>();
-            foreach (var child in fieldViews.ToList())
+            // If we're de-selecting the category itself
+            if (selectable == this)
             {
-                materialGraphView?.RemoveFromSelection(child);
+                materialGraphView?.RemoveFromSelection(selectable);
+                // Also deselect the child elements within this category (the field views)
+                var fieldViews = this.Query<SGBlackboardField>();
+                foreach (var child in fieldViews.ToList())
+                {
+                    materialGraphView?.RemoveFromSelection(child);
+                }
+            }
+            // If a category is unselected, only then can the children beneath it be deselected
+            else if (selection.Contains(this) == false)
+            {
+                materialGraphView?.RemoveFromSelection(selectable);
             }
         }
 
