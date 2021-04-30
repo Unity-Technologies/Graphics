@@ -319,6 +319,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // No Keywords may indicate removal and this may have now made the Graph valid again
                         // Need to validate Graph to clear errors in this case
                         materialGraph.OnKeywordChanged();
+
+                        UpdateDropdownEntries();
+                        materialGraph.OnDropdownChanged();
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
@@ -376,6 +379,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var changedFileGUID in changedFileGUIDs)
             {
                 m_ChangedFileDependencyGUIDs.Add(changedFileGUID);
+            }
+        }
+
+        void UpdateDropdownEntries()
+        {
+            var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+            foreach (var subGraphNode in subGraphNodes)
+            {
+                var nodeView = graphEditorView.graphView.nodes.ToList().OfType<IShaderNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node == subGraphNode);
+                if (nodeView != null)
+                {
+                    nodeView.UpdateDropdownEntries();
+                }
             }
         }
 
@@ -721,7 +738,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Collect the keyword nodes and get the corresponding keywords
             var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
+            var dropdownNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is DropdownNode)).Select(x => ((DropdownNode)x.node).dropdown);
+
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
+            var metaDropdowns = graphView.graph.dropdowns.Where(x => dropdownNodes.Contains(x));
 
             var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                 nodes,
@@ -729,6 +749,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphInputs,
                 metaProperties,
                 metaKeywords,
+                metaDropdowns,
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData),
                 true,
                 false);
@@ -760,6 +781,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner = graphView.graph;
                     node.keyword = copiedInput;
+                }
+            }
+
+            // Always copy deserialized dropdown inputs
+            foreach (ShaderDropdown dropdown in deserialized.metaDropdowns)
+            {
+                var copiedInput = (ShaderDropdown)subGraph.AddCopyOfShaderInput(dropdown);
+
+                // Update the dropdown nodes that depends on the copied dropdown
+                var dependentDropdownNodes = deserialized.GetNodes<DropdownNode>().Where(x => x.dropdown == dropdown);
+                foreach (var node in dependentDropdownNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.dropdown = copiedInput;
                 }
             }
 

@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="converterTopVisualElement" style="flex-grow: 1; height: 128px; width: 621px; flex-shrink: 0; border-bottom-width: 0; border-top-width: 0; border-bottom-color: rgb(0, 0, 0); margin-bottom: 20px;">
+        <ui:VisualElement style="height: 24px; width: 613px; flex-direction: row; flex-grow: 1; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 10px; flex-shrink: 0; padding-bottom: 0; padding-left: 0; border-top-width: 4px; border-top-color: rgb(0, 0, 0);">
+            <ui:Toggle name="converterEnabled" value="false" tooltip="Enabling this will start the pre-processing of this converter." />
+            <ui:Label name="converterName" text="Name Of The Converter" style="width: 143px; -unity-text-align: middle-left; flex-grow: 1; flex-direction: column;" />
+            <ui:Label name="converterStats" text="100 Items" style="flex-grow: 0; -unity-text-align: middle-right; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="height: 29px; width: 609px; flex-direction: row; flex-grow: 1; flex-shrink: 1;">
+            <ui:Label text="In progress..." name="converterStatus" style="-unity-text-align: middle-left;" />
+            <ui:Label text="info" name="converterInfo" style="-unity-text-align: middle-left; flex-grow: 1;" />
+            <ui:Label text="30 Seconds" name="converterTime" style="-unity-text-align: middle-left; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-direction: row; height: 19px; flex-grow: 0; margin-top: 8px; margin-bottom: 17px;">
+            <ui:Label text="collapse&#10;" style="flex-grow: 1;" />
+            <ui:Image name="pendingImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="pendingLabel" />
+            <ui:Image name="warningImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="warningLabel" />
+            <ui:Image name="errorImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="errorLabel" />
+            <ui:Image name="successImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="successLabel" style="flex-grow: 0; flex-shrink: 0;" />
+        </ui:VisualElement>
+        <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" text="Info" style="flex-grow: 1; flex-shrink: 0; height: 100px; width: 632px; padding-bottom: 0; margin-bottom: 0; margin-top: 0;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -30,6 +30,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ReorderableList m_KeywordReorderableList;
         int m_KeywordSelectedIndex;
 
+        // Dropdown
+        ReorderableList m_DropdownReorderableList;
+        ShaderDropdown m_Dropdown;
+        int m_DropdownId;
+        int m_DropdownSelectedIndex;
+
         //Virtual Texture
         ReorderableList m_VTReorderableList;
         int m_VTSelectedIndex;
@@ -41,6 +47,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         // Display Name
         TextField m_DisplayNameField;
+
+        TextField m_CustomSlotLabelField;
 
         // Reference Name
         TextPropertyDrawer m_ReferenceNameDrawer;
@@ -70,6 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
+        Action _dropdownChangedCallback;
         Action<string> _displayNameChangedCallback;
         Action<string> _referenceNameChangedCallback;
         ChangeValueCallback _changeValueCallback;
@@ -82,12 +91,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             ChangeExposedFieldCallback exposedFieldCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
+            Action dropdownChangedCallback,
             ChangeValueCallback changeValueCallback,
             PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
             this._keywordChangedCallback = keywordChangedCallback;
+            this._dropdownChangedCallback = dropdownChangedCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._exposedFieldChangedCallback = exposedFieldCallback;
             this._changeValueCallback = changeValueCallback;
@@ -101,6 +112,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.isSubGraph = m_ViewModel.isSubGraph;
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._dropdownChangedCallback = () => graphData.OnDropdownChanged();
             this._precisionChangedCallback = () =>  graphData.ValidateGraph();
 
             this._exposedFieldChangedCallback = newValue =>
@@ -165,16 +177,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
+            BuildDropdownFields(propertySheet, shaderInput);
             UpdateEnableState();
             return propertySheet;
         }
 
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
+            string prefix;
             if (shaderInput is ShaderKeyword)
-                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
+                prefix = "Keyword";
+            else if (shaderInput is ShaderDropdown)
+                prefix = "Dropdown";
             else
-                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
+                prefix = "Property";
+
+            propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"{prefix}: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
         void BuildExposedField(PropertySheet propertySheet)
@@ -193,6 +211,57 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Exposed",
                     out var exposedToggleVisualElement));
                 exposedToggle = exposedToggleVisualElement as Toggle;
+            }
+        }
+
+        void BuildCustomBindingField(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            if (isSubGraph && property.isCustomSlotAllowed)
+            {
+                var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        if (property.useCustomSlotLabel == newValue.isOn)
+                            return;
+                        this._preChangeValueCallback("Change Custom Binding");
+                        property.useCustomSlotLabel = newValue.isOn;
+                        graphData.ValidateGraph();
+                        this._postChangeValueCallback(true, ModificationScope.Topological);
+                    },
+                    new ToggleData(property.isConnectionTestable),
+                    "Use Custom Binding",
+                    out var exposedToggleVisualElement));
+                exposedToggleVisualElement.SetEnabled(true);
+
+                if (property.useCustomSlotLabel)
+                {
+                    var textPropertyDrawer = new TextPropertyDrawer();
+                    var guiElement = textPropertyDrawer.CreateGUI(
+                        null,
+                        (string)shaderInput.customSlotLabel,
+                        "Label",
+                        1);
+
+                    m_CustomSlotLabelField = textPropertyDrawer.textField;
+                    m_CustomSlotLabelField.RegisterValueChangedCallback(
+                        evt =>
+                        {
+                            if (evt.newValue != shaderInput.customSlotLabel)
+                            {
+                                this._preChangeValueCallback("Change Custom Binding Label");
+                                shaderInput.customSlotLabel = evt.newValue;
+                                m_CustomSlotLabelField.AddToClassList("modified");
+                                this._postChangeValueCallback(true, ModificationScope.Topological);
+                            }
+                        });
+
+                    if (!string.IsNullOrEmpty(shaderInput.customSlotLabel))
+                        m_CustomSlotLabelField.AddToClassList("modified");
+                    m_CustomSlotLabelField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/CustomSlotLabelField"));
+
+                    propertySheet.Add(guiElement);
+                }
             }
         }
 
@@ -392,6 +461,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     HandleGradientPropertyField(propertySheet, gradientProperty);
                     break;
             }
+
+            BuildCustomBindingField(propertySheet, property);
 
             BuildPrecisionField(propertySheet, property);
 
@@ -655,6 +726,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
+            if (!isSubGraph)
+            {
+                if (colorProperty.isMainColor)
+                {
+                    var mainColorLabel = new IMGUIContainer(() =>
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Main Color", EditorStyles.largeLabel);
+                        EditorGUILayout.Space();
+                        EditorGUI.indentLevel--;
+                    });
+                    propertySheet.Insert(2, mainColorLabel);
+                }
+            }
+
             propertySheet.Add(colorPropertyDrawer.CreateGUI(
                 newValue =>
                 {
@@ -690,6 +776,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
         {
             var texture2DPropertyDrawer = new Texture2DPropertyDrawer();
+
+            if (!isSubGraph)
+            {
+                if (texture2DProperty.isMainTexture)
+                {
+                    var mainTextureLabel = new IMGUIContainer(() =>
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Main Texture", EditorStyles.largeLabel);
+                        EditorGUILayout.Space();
+                        EditorGUI.indentLevel--;
+                    });
+                    propertySheet.Insert(2, mainTextureLabel);
+                }
+            }
+
+
             propertySheet.Add(texture2DPropertyDrawer.CreateGUI(
                 newValue =>
                 {
@@ -1130,6 +1233,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var propertyGradientField));
         }
 
+        enum KeywordShaderStageDropdownUI    // maps to KeywordShaderStage, this enum ONLY used for the UI dropdown menu
+        {
+            All = KeywordShaderStage.All,
+            Vertex = KeywordShaderStage.Vertex,
+            Fragment = KeywordShaderStage.Fragment,
+        }
+
         void BuildKeywordFields(PropertySheet propertySheet, ShaderInput shaderInput)
         {
             var keyword = shaderInput as ShaderKeyword;
@@ -1165,6 +1275,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     keyword.keywordScope,
                     "Scope",
                     KeywordScope.Local,
+                    out keywordScopeField));
+            }
+
+            {
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Keyword stage");
+                        if (keyword.keywordStages == (KeywordShaderStage)newValue)
+                            return;
+                        keyword.keywordStages = (KeywordShaderStage)newValue;
+                    },
+                    (KeywordShaderStageDropdownUI)keyword.keywordStages,
+                    "Stages",
+                    KeywordShaderStageDropdownUI.All,
                     out keywordScopeField));
             }
 
@@ -1279,7 +1404,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     displayName = GetSanitizedDisplayName(displayName);
                     referenceName = GetSanitizedReferenceName(displayName.ToUpper());
-                    var duplicateIndex = FindDuplicateReferenceNameIndex(entry.id, referenceName);
+                    var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
                     if (duplicateIndex != -1)
                     {
                         var duplicateEntry = ((KeywordEntry)m_KeywordReorderableList.list[duplicateIndex]);
@@ -1290,7 +1415,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
                         Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
                     else
-                        keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
+                        keyword.entries[index] = new KeywordEntry(GetFirstUnusedKeywordID(), displayName, referenceName);
 
                     this._postChangeValueCallback(true);
                 }
@@ -1327,7 +1452,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
 
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
-        int GetFirstUnusedID()
+        int GetFirstUnusedKeywordID()
         {
             if (!(shaderInput is ShaderKeyword keyword))
                 return 0;
@@ -1356,7 +1481,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             this._preChangeValueCallback("Add Keyword Entry");
 
-            int index = GetFirstUnusedID();
+            int index = GetFirstUnusedKeywordID();
             if (index <= 0)
                 return; // Error has already occured, don't attempt to add this entry.
 
@@ -1398,13 +1523,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void KeywordReorderEntries(ReorderableList list)
         {
             this._postChangeValueCallback(true);
-        }
-
-        public string GetDuplicateSafeDisplayName(int id, string name)
-        {
-            name = name.Trim();
-            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, m_DisplayNameDisallowedPattern);
         }
 
         public string GetDuplicateSafeEnumDisplayName(int id, string name)
@@ -1450,10 +1568,217 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return Regex.Replace(name, m_ReferenceNameDisallowedPattern, "_");
         }
 
-        int FindDuplicateReferenceNameIndex(int id, string referenceName)
+        int FindDuplicateKeywordReferenceNameIndex(int id, string referenceName)
         {
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return entryList.FindIndex(entry => entry.id != id && entry.referenceName == referenceName);
+        }
+
+        void BuildDropdownFields(PropertySheet propertySheet, ShaderInput shaderInput)
+        {
+            var dropdown = shaderInput as ShaderDropdown;
+            if (dropdown == null)
+                return;
+
+            BuildDropdownField(propertySheet, dropdown);
+            BuildExposedField(propertySheet);
+        }
+
+        void BuildDropdownField(PropertySheet propertySheet, ShaderDropdown dropdown)
+        {
+            // Clamp value between entry list
+            int value = Mathf.Clamp(dropdown.value, 0, dropdown.entries.Count - 1);
+
+            // Default field
+            var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), value);
+            field.RegisterValueChangedCallback(evt =>
+            {
+                this._preChangeValueCallback("Change Dropdown Value");
+                dropdown.value = field.index;
+                m_DropdownId = dropdown.entryId;
+                this._postChangeValueCallback(false, ModificationScope.Graph);
+            });
+
+            AddPropertyRowToSheet(propertySheet, field, "Default");
+
+            var container = new IMGUIContainer(() => OnDropdownGUIHandler()) { name = "ListContainer" };
+            AddPropertyRowToSheet(propertySheet, container, "Entries");
+            container.SetEnabled(true);
+        }
+
+        void OnDropdownGUIHandler()
+        {
+            if (m_DropdownReorderableList == null)
+            {
+                DropdownRecreateList();
+                DropdownAddCallbacks();
+            }
+
+            m_DropdownReorderableList.index = m_DropdownSelectedIndex;
+            m_DropdownReorderableList.DoLayoutList();
+        }
+
+        internal void DropdownRecreateList()
+        {
+            if (!(shaderInput is ShaderDropdown dropdown))
+                return;
+
+            // Create reorderable list from entries
+            m_DropdownReorderableList = new ReorderableList(dropdown.entries, typeof(DropdownEntry), true, true, true, true);
+            m_Dropdown = dropdown;
+            m_DropdownId = dropdown.entryId;
+        }
+
+        void DropdownAddCallbacks()
+        {
+            if (!(shaderInput is ShaderDropdown dropdown))
+                return;
+
+            // Draw Header
+            m_DropdownReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(displayRect, "Entry Name");
+            };
+
+            // Draw Element
+            m_DropdownReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                DropdownEntry entry = ((DropdownEntry)m_DropdownReorderableList.list[index]);
+                EditorGUI.BeginChangeCheck();
+
+                Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+                var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    displayName = GetSanitizedDisplayName(displayName);
+                    var duplicateIndex = FindDuplicateDropdownDisplayNameIndex(entry.id, displayName);
+                    if (duplicateIndex != -1)
+                    {
+                        var duplicateEntry = ((DropdownEntry)m_DropdownReorderableList.list[duplicateIndex]);
+                        Debug.LogWarning($"Display name '{displayName}' will create the same display name as entry {duplicateIndex + 1}.");
+                    }
+                    else if (string.IsNullOrWhiteSpace(displayName))
+                        Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
+                    else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
+                        Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
+                    else
+                        dropdown.entries[index] = new DropdownEntry(GetFirstUnusedDropdownID(), displayName);
+
+                    this._postChangeValueCallback(true);
+                }
+            };
+
+            // Element height
+            m_DropdownReorderableList.elementHeightCallback = (int indexer) =>
+            {
+                return m_DropdownReorderableList.elementHeight;
+            };
+
+            // Can add
+            m_DropdownReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
+                return true;
+            };
+
+            // Can remove
+            m_DropdownReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
+                return list.count > DropdownNode.k_MinEnumEntries;
+            };
+
+            // Add callback delegates
+            m_DropdownReorderableList.onSelectCallback += DropdownSelectEntry;
+            m_DropdownReorderableList.onAddCallback += DropdownAddEntry;
+            m_DropdownReorderableList.onRemoveCallback += DropdownRemoveEntry;
+            m_DropdownReorderableList.onReorderCallback += DropdownReorderEntries;
+        }
+
+        void DropdownSelectEntry(ReorderableList list)
+        {
+            m_DropdownSelectedIndex = list.index;
+        }
+
+        int GetFirstUnusedDropdownID()
+        {
+            if (!(shaderInput is ShaderDropdown dropdown))
+                return 0;
+
+            List<int> ids = new List<int>();
+
+            foreach (DropdownEntry dropdownEntry in dropdown.entries)
+            {
+                ids.Add(dropdownEntry.id);
+            }
+
+            for (int x = 1;; x++)
+            {
+                if (!ids.Contains(x))
+                    return x;
+            }
+        }
+
+        void DropdownAddEntry(ReorderableList list)
+        {
+            if (!(shaderInput is ShaderDropdown dropdown))
+                return;
+
+            this._preChangeValueCallback("Add Dropdown Entry");
+
+            int index = GetFirstUnusedDropdownID();
+
+            var displayName = GetDuplicateSafeDropdownDisplayName(index, "New");
+
+            // Add new entry
+            dropdown.entries.Add(new DropdownEntry(index, displayName));
+
+            // Update GUI
+            this._postChangeValueCallback(true);
+            this._dropdownChangedCallback();
+            m_DropdownSelectedIndex = list.list.Count - 1;
+        }
+
+        void DropdownRemoveEntry(ReorderableList list)
+        {
+            if (!(shaderInput is ShaderDropdown dropdown))
+                return;
+
+            this._preChangeValueCallback("Remove Dropdown Entry");
+
+            // Remove entry
+            m_DropdownSelectedIndex = list.index;
+            var selectedEntry = (DropdownEntry)m_DropdownReorderableList.list[list.index];
+            dropdown.entries.Remove(selectedEntry);
+
+            // Clamp value within new entry range
+            int value = Mathf.Clamp(dropdown.value, 0, dropdown.entries.Count - 1);
+            dropdown.value = value;
+
+            this._postChangeValueCallback(true);
+            this._dropdownChangedCallback();
+            m_DropdownSelectedIndex = m_DropdownSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_DropdownSelectedIndex;
+        }
+
+        void DropdownReorderEntries(ReorderableList list)
+        {
+            var index = m_Dropdown.IndexOfId(m_DropdownId);
+            if (index != m_Dropdown.value)
+                m_Dropdown.value = index;
+            this._postChangeValueCallback(true);
+        }
+
+        public string GetDuplicateSafeDropdownDisplayName(int id, string name)
+        {
+            var entryList = m_DropdownReorderableList.list as List<DropdownEntry>;
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} {1}", name, m_DisplayNameDisallowedPattern);
+        }
+
+        int FindDuplicateDropdownDisplayNameIndex(int id, string displayName)
+        {
+            var entryList = m_DropdownReorderableList.list as List<DropdownEntry>;
+            return entryList.FindIndex(entry => entry.id != id && entry.displayName == displayName);
         }
     }
 }
