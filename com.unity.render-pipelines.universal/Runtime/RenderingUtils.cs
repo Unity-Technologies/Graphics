@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
                 //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
                 //return !Application.isMobilePlatform &&
                 //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
-                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
+                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.PlayStation5 || deviceType == GraphicsDeviceType.XboxOne);
             }
         }
 
