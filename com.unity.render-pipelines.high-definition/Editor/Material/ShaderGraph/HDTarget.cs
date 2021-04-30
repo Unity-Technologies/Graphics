@@ -11,6 +11,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -44,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -57,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+        Toggle m_SupportVFXToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -66,6 +68,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
+
+        private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
+        {
+            // Currently there is not support for VFX decals via HDRP master node.
+            typeof(DecalSubTarget)
+        };
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 8;
@@ -181,6 +192,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            {
+                // VFX Support
+                if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else
+                {
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                        onChange();
+                    });
+                }
+            }
 
             context.globalIndentLevel--;
         }
@@ -336,6 +364,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
+        }
+
+        public bool SupportsVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                return false;
+
+            return m_SupportVFX;
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
         }
     }
 

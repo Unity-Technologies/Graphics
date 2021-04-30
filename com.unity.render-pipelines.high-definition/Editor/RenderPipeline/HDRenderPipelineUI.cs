@@ -162,16 +162,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
-            {
-                ++EditorGUI.indentLevel;
-
-                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
-                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
-
-                --EditorGUI.indentLevel;
-            }
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);

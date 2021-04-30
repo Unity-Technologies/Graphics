@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added custom interpolator thresholds on shadergraph project settings page.
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+  - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
+  - For Texture2D properties, added linearGrey and red as options for default texture mode.
+  - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
+  - Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
+  - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
+  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
+  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
 
 ### Changed
 - Updated/corrected View Direction doc
@@ -39,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed virtual texture layer reference names allowing invalid characters [1304146]
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed ParallaxOcclusionMapping node to clamp very large step counts that could crash GPUs (max set to 256). [1329025] (https://issuetracker.unity3d.com/issues/shadergraph-typing-infinity-into-the-steps-input-for-the-parallax-occlusion-mapping-node-crashes-unity)
 - Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
 - Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
 - Fixed issue where vertex generation was incorrect when only custom blocks were present [1320695].
@@ -55,9 +63,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where users can't create multiple Boolean or Enum keywords on the blackboard. [1329021](https://issuetracker.unity3d.com/issues/shadergraph-cant-create-multiple-boolean-or-enum-keywords)
 - Fixed an issue where generated property reference names could conflict with Shader Graph reserved keywords [1328762] (https://issuetracker.unity3d.com/product/unity/issues/guid/1328762/)
 - Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
-
+- Fixed a ShaderGraph issue where the right click menu doesn't work when a stack block node is selected [1320212].
 - Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
-
+- Fixed divide by zero warnings when using the Sample Gradient Node
+- Fixed the default dimension (1) for vector material slots so that it is consistent with other nodes. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328756/)
+- Fixed reordering when renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
 
 ## [11.0.0] - 2020-10-21
 

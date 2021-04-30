@@ -18,9 +18,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             HLSLPROGRAM
             #pragma target 2.0
 
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -35,109 +32,13 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+            #pragma multi_compile _ DEBUG_DISPLAY
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #pragma vertex TerrainLitVertex
+            #pragma fragment TerrainLitForwardFragment
 
-            TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
-            float4 _MainTex_ST;
-
-            struct Attributes
-            {
-                float4  PositionOS  : POSITION;
-                float2  UV0         : TEXCOORD0;
-                float2  UV1         : TEXCOORD1;
-                float3  NormalOS    : NORMAL;
-                half4   Color       : COLOR;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct Varyings
-            {
-                float2  UV01            : TEXCOORD0; // UV0
-                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 1);
-                half4   Color           : TEXCOORD2; // Vertex Color
-                half4   LightingFog     : TEXCOORD3; // Vertex Lighting, Fog Factor
-#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                float4  ShadowCoords    : TEXCOORD4; // Shadow UVs
-#endif
-                half4   NormalWS        : TEXCOORD5;
-                float4  PositionCS      : SV_POSITION; // Clip Position
-
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            Varyings Vert(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                // Vertex attributes
-                output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
-                OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
-                output.Color = input.Color;
-                output.PositionCS = vertexInput.positionCS;
-
-                // Shadow Coords
-                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                    output.ShadowCoords = GetShadowCoord(vertexInput);
-                #endif
-
-                // Vertex Lighting
-                half3 NormalWS = input.NormalOS;
-                OUTPUT_SH(NormalWS, output.vertexSH);
-                Light mainLight = GetMainLight();
-                half3 diffuseColor = 0.0;
-
-                half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
-                diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
-
-                #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
-                    int pixelLightCount = GetAdditionalLightsCount();
-                    for (int i = 0; i < pixelLightCount; ++i)
-                    {
-                        Light light = GetAdditionalLight(i, vertexInput.positionWS);
-                        half3 attenuatedLightColor = light.color * light.distanceAttenuation;
-                        diffuseColor += LightingLambert(attenuatedLightColor, light.direction, NormalWS);
-                    }
-                #endif
-
-                output.LightingFog.xyz = diffuseColor;
-
-                // Fog factor
-                output.LightingFog.w = ComputeFogFactor(output.PositionCS.z);
-
-                output.NormalWS.xyz = NormalWS;
-
-                return output;
-            }
-
-            half4 Frag(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
-                half3 lighting = bakedGI;
-
-                half realtimeShadows = 1.0;
-                #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                    realtimeShadows = MainLightRealtimeShadow(input.ShadowCoords);
-                #endif
-
-                lighting += input.LightingFog.rgb * realtimeShadows;
-
-                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
-                half4 color = 1.0;
-                color.rgb = input.Color.rgb * tex.rgb * lighting;
-
-                color.rgb = MixFog(color.rgb, input.LightingFog.w);
-
-                return color;
-            }
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainDetailLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainDetailLitPasses.hlsl"
             ENDHLSL
         }
 
@@ -208,6 +109,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 // Vertex attributes
                 output.UV01 = TRANSFORM_TEX(input.UV0, _MainTex);
+                OUTPUT_LIGHTMAP_UV(input.UV1, unity_LightmapST, output.staticLightmapUV);
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.PositionOS.xyz);
                 output.Color = input.Color;
                 output.PositionCS = vertexInput.positionCS;
@@ -322,7 +224,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitMetaPass.hlsl"
-
             ENDHLSL
         }
     }

@@ -8,6 +8,29 @@
 
 ---
 
+editor:priming:trunk:Win:
+    name: '[trunk,Win] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:Win:
     name: '[CUSTOM-REVISION,Win] Editor priming'
     agent:
@@ -50,6 +73,29 @@ editor:priming:test_min_editor:Win:
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:trunk:OSX:
+    name: '[trunk,OSX] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -100,6 +146,29 @@ editor:priming:test_min_editor:OSX:
         unity_revision.zip:
             paths:
               -  "unity_revision.txt"
+editor:priming:trunk:Linux:
+    name: '[trunk,Linux] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:Linux:
     name: '[CUSTOM-REVISION,Linux] Editor priming'
     agent:
@@ -142,6 +211,29 @@ editor:priming:test_min_editor:Linux:
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:trunk:Android:
+    name: '[trunk,Android] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
@@ -192,6 +284,29 @@ editor:priming:test_min_editor:Android:
         unity_revision.zip:
             paths:
               -  "unity_revision.txt"
+editor:priming:trunk:XRQuest:
+    name: '[trunk,XRQuest] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
 editor:priming:CUSTOM-REVISION:XRQuest:
     name: '[CUSTOM-REVISION,XRQuest] Editor priming'
     agent:
@@ -205,6 +320,7 @@ editor:priming:CUSTOM-REVISION:XRQuest:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -225,6 +341,7 @@ editor:priming:test_min_editor:XRQuest:
         DISPLAY: ":0"
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
@@ -232,6 +349,29 @@ editor:priming:test_min_editor:XRQuest:
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
       -  unity-downloader-cli --source-file tmp_unity_revision.txt -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
       -  rm tmp_unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:trunk:iPhone:
+    name: '[trunk,iPhone] Editor priming'
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+    commands:
+      -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+      -  sudo apt update
+      -  sudo apt install unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
     artifacts:
         unity_revision.zip:
             paths:
