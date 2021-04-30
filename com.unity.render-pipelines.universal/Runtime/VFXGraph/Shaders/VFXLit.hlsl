@@ -52,6 +52,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
+    float4 baseColorMapSample = (float4)1.0f;
     float4 color = float4(1,1,1,1);
     #if URP_USE_BASE_COLOR
     color *= VFXGetParticleColor(i);
@@ -64,12 +65,12 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     #endif
     #endif
     #if URP_USE_BASE_COLOR_MAP
-    float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+    baseColorMapSample = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
     #if URP_USE_BASE_COLOR_MAP_COLOR
-    color.xyz *= colorMap.xyz;
+    color.xyz *= baseColorMapSample.xyz;
     #endif
     #if URP_USE_BASE_COLOR_MAP_ALPHA
-    color.a *= colorMap.a;
+    color.a *= baseColorMapSample.a;
     #endif
     #endif
     color.a *= VFXGetSoftParticleFade(i);
@@ -83,27 +84,46 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     #endif
     surfaceData.alpha = opacity;
 
+    float4 metallicMapSample = (float4)1.0f;
+    float4 specularMapSample = (float4)1.0f;
     #if URP_MATERIAL_TYPE_METALLIC
+    surfaceData.metallic = 1.0f;
     #ifdef VFX_VARYING_METALLIC
-    surfaceData.metallic = i.VFX_VARYING_METALLIC;
+    surfaceData.metallic *= i.VFX_VARYING_METALLIC;
+    #endif
+    #if URP_USE_METALLIC_MAP
+    metallicMapSample = SampleTexture(VFX_SAMPLER(metallicMap), uvData);
+    surfaceData.metallic *= metallicMapSample.r;
     #endif
     #elif URP_MATERIAL_TYPE_SPECULAR
+    surfaceData.specular = (float3)1.0f;
     #ifdef VFX_VARYING_SPECULAR
-    surfaceData.specular = saturate(i.VFX_VARYING_SPECULAR);
+    surfaceData.specular *= saturate(i.VFX_VARYING_SPECULAR);
+    #endif
+    #if URP_USE_SPECULAR_MAP
+    specularMapSample = SampleTexture(VFX_SAMPLER(specularMap), uvData);
+    surfaceData.specular *= specularMapSample.rgb;
     #endif
     #endif
 
     surfaceData.normalTS = float3(1.0f, 0.0f, 0.0f); //NormalWS is directly modified in VFX
-    #ifdef VFX_VARYING_SMOOTHNESS
-    surfaceData.smoothness = i.VFX_VARYING_SMOOTHNESS;
-    #endif
-    surfaceData.occlusion = 1.0f;
 
-    #if URP_USE_MASK_MAP
-    float4 mask = SampleTexture(VFX_SAMPLER(maskMap),uvData);
-    surfaceData.metallic *= mask.r;
+    surfaceData.smoothness = 1.0f;
+    #ifdef VFX_VARYING_SMOOTHNESS
+    surfaceData.smoothness *= i.VFX_VARYING_SMOOTHNESS;
+    #endif
+    #if URP_USE_SMOOTHNESS_IN_ALBEDO
+    surfaceData.smoothness *= baseColorMapSample.a;
+    #elif URP_USE_SMOOTHNESS_IN_METALLIC
+    surfaceData.smoothness *= metallicMapSample.a;
+    #elif URP_USE_SMOOTHNESS_IN_SPECULAR
+    surfaceData.smoothness *= specularMapSample.a;
+    #endif
+
+    surfaceData.occlusion = 1.0f;
+    #if URP_USE_OCCLUSION_MAP
+    float4 mask = SampleTexture(VFX_SAMPLER(occlusionMap),uvData);
     surfaceData.occlusion *= mask.g;
-    surfaceData.smoothness *= mask.a;
     #endif
 
     #if URP_USE_EMISSIVE

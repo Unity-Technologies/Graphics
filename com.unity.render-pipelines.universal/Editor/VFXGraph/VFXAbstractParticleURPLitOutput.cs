@@ -1,8 +1,8 @@
 #if HAS_VFX_GRAPH
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -34,6 +34,14 @@ namespace UnityEditor.VFX
             ColorAndAlpha = Color | Alpha
         }
 
+        public enum SmoothnessSource
+        {
+            None,
+            MetallicAlpha,
+            SpecularAlpha,
+            AlbedoAlpha,
+        }
+
         private readonly string[] kMaterialTypeToName = new string[]
         {
             nameof(StandardProperties),
@@ -43,11 +51,22 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Metallic;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected SmoothnessSource smoothnessSource = SmoothnessSource.None;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
         protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a Mask Map to control how the particle receives lighting.")]
-        protected bool useMaskMap = false;
+        //TODO : texture & define
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept an occlusion to control how the particle receives lighting.")]
+        protected bool useOcclusionMap = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a metallic map to multiply the metallic value.")]
+        protected bool useMetallicMap = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a metallic map to multiply the metallic value.")]
+        protected bool useSpecularMap = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a Normal Map to simulate additional surface details when illuminated.")]
         protected bool useNormalMap = false;
@@ -86,6 +105,43 @@ namespace UnityEditor.VFX
             public Color specularColor = Color.gray;
         }
 
+        private IEnumerable<SmoothnessSource> validSmoothnessSources
+        {
+            get
+            {
+                yield return SmoothnessSource.None;
+                if (useBaseColorMap != BaseColorMapMode.None)
+                    yield return SmoothnessSource.AlbedoAlpha;
+                if (materialType == MaterialType.Metallic && useMetallicMap)
+                    yield return SmoothnessSource.MetallicAlpha;
+                if (materialType == MaterialType.Specular && useSpecularMap)
+                    yield return SmoothnessSource.SpecularAlpha;
+            }
+        }
+
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        {
+            if (name == nameof(smoothnessSource))
+            {
+                var all = Enum.GetValues(typeof(SmoothnessSource)).Cast<int>();
+                var valid = validSmoothnessSources.Cast<int>();
+                return all.Except(valid);
+            }
+
+            return base.GetFilteredOutEnumerators(name);
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            if (cause == InvalidationCause.kSettingChanged
+                && !validSmoothnessSources.Contains(smoothnessSource))
+            {
+                SetSettingValue(nameof(smoothnessSource), SmoothnessSource.None);
+            }
+        }
+
         private static readonly string kBaseColorMap = "baseColorMap";
         protected IEnumerable<VFXPropertyWithValue> baseColorMapProperties
         {
@@ -95,12 +151,30 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static readonly string kMaskMap = "maskMap";
-        protected IEnumerable<VFXPropertyWithValue> maskMapsProperties
+        private static readonly string kOcclusionMap = "occlusionMap";
+        protected IEnumerable<VFXPropertyWithValue> occlusionMapsProperties
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMaskMap, new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kOcclusionMap, new TooltipAttribute("Specifies the Occlusion Map for the particle - Ambient occlusion (G)")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+            }
+        }
+
+        private static readonly string kSpecularMap = "specularMap";
+        protected IEnumerable<VFXPropertyWithValue> specularMapsProperties
+        {
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kSpecularMap, new TooltipAttribute("Specifies the Specular Map for the particle - Color (RGB) - (Optional A) Smoothness")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+            }
+        }
+
+        private static readonly string kMetallicMap = "metallicMap";
+        protected IEnumerable<VFXPropertyWithValue> metallicMapsProperties
+        {
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMetallicMap, new TooltipAttribute("Specifies the Metallic Map for the particle - Metallic (R) - (Optional A) Smoothness")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
             }
         }
 
@@ -168,8 +242,12 @@ namespace UnityEditor.VFX
 
                     if (allowTextures)
                     {
-                        if (useMaskMap)
-                            properties = properties.Concat(maskMapsProperties);
+                        if (useOcclusionMap)
+                            properties = properties.Concat(occlusionMapsProperties);
+                        if (useMetallicMap && materialType == MaterialType.Metallic)
+                            properties = properties.Concat(metallicMapsProperties);
+                        if (useSpecularMap && materialType == MaterialType.Specular)
+                            properties = properties.Concat(specularMapsProperties);
                         if (useNormalMap)
                             properties = properties.Concat(normalMapsProperties);
                         if (useEmissiveMap)
@@ -209,8 +287,12 @@ namespace UnityEditor.VFX
                 {
                     if (useBaseColorMap != BaseColorMapMode.None)
                         yield return slotExpressions.First(o => o.name == kBaseColorMap);
-                    if (useMaskMap)
-                        yield return slotExpressions.First(o => o.name == kMaskMap);
+                    if (useOcclusionMap)
+                        yield return slotExpressions.First(o => o.name == kOcclusionMap);
+                    if (useMetallicMap && materialType == MaterialType.Metallic)
+                        yield return slotExpressions.First(o => o.name == kMetallicMap);
+                    if (useSpecularMap && materialType == MaterialType.Specular)
+                        yield return slotExpressions.First(o => o.name == kSpecularMap);
                     if (useNormalMap)
                     {
                         yield return slotExpressions.First(o => o.name == kNormalMap);
@@ -260,8 +342,12 @@ namespace UnityEditor.VFX
                         yield return "URP_USE_BASE_COLOR_MAP_COLOR";
                     if ((useBaseColorMap & BaseColorMapMode.Alpha) != 0)
                         yield return "URP_USE_BASE_COLOR_MAP_ALPHA";
-                    if (useMaskMap)
-                        yield return "URP_USE_MASK_MAP";
+                    if (useOcclusionMap)
+                        yield return "URP_USE_OCCLUSION_MAP";
+                    if (useMetallicMap && materialType == MaterialType.Metallic)
+                        yield return "URP_USE_METALLIC_MAP";
+                    if (useSpecularMap && materialType == MaterialType.Specular)
+                        yield return "URP_USE_SPECULAR_MAP";
                     if (useNormalMap)
                         yield return "USE_NORMAL_MAP";
                     if (useEmissiveMap)
@@ -279,6 +365,14 @@ namespace UnityEditor.VFX
                         yield return "URP_USE_EMISSIVE_COLOR";
                     else if (useEmissive)
                         yield return "URP_USE_ADDITIONAL_EMISSIVE_COLOR";
+
+                    switch (smoothnessSource)
+                    {
+                        case SmoothnessSource.None: yield return "URP_USE_SMOOTHNESS_IN_NONE"; break;
+                        case SmoothnessSource.MetallicAlpha: yield return "URP_USE_SMOOTHNESS_IN_METALLIC"; break;
+                        case SmoothnessSource.SpecularAlpha: yield return "URP_USE_SMOOTHNESS_IN_SPECULAR"; break;
+                        case SmoothnessSource.AlbedoAlpha: yield return "URP_USE_SMOOTHNESS_IN_ALBEDO"; break;
+                    }
                 }
 
                 if (doubleSided)
@@ -301,16 +395,25 @@ namespace UnityEditor.VFX
                 if (!allowTextures)
                 {
                     yield return nameof(useBaseColorMap);
-                    yield return nameof(useMaskMap);
+                    yield return nameof(useOcclusionMap);
+                    yield return nameof(useMetallicMap);
+                    yield return nameof(useSpecularMap);
                     yield return nameof(useNormalMap);
                     yield return nameof(useEmissiveMap);
                 }
+
+                if (materialType != MaterialType.Metallic)
+                    yield return nameof(useMetallicMap);
+
+                if (materialType != MaterialType.Specular)
+                    yield return nameof(useSpecularMap);
 
                 if (GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return nameof(materialType);
                     yield return nameof(useEmissive);
                     yield return nameof(colorMode);
+                    yield return nameof(smoothnessSource);
                 }
                 else if ((colorMode & ColorMode.Emissive) != 0)
                     yield return nameof(useEmissive);
