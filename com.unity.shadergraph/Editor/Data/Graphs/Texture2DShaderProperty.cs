@@ -10,7 +10,25 @@ namespace UnityEditor.ShaderGraph.Internal
     [BlackboardInputInfo(50)]
     public sealed class Texture2DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
-        public enum DefaultType { White, Black, Grey, Bump }
+        public enum DefaultType { White, Black, Grey, NormalMap, LinearGrey, Red }
+
+        static readonly string[] k_DefaultTypeNames = new string[]
+        {
+            "white",
+            "black",
+            "grey",
+            "bump",
+            "linearGrey",
+            "red",
+        };
+
+        internal static string ToShaderLabString(DefaultType defaultType)
+        {
+            int index = (int)defaultType;
+            if ((index >= 0) && (index < k_DefaultTypeNames.Length))
+                return k_DefaultTypeNames[index];
+            return string.Empty;
+        }
 
         internal Texture2DShaderProperty()
         {
@@ -20,14 +38,20 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
+        [SerializeField]
+        internal bool isMainTexture = false;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
+        internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
+
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            var normalTagString = (defaultType == DefaultType.NormalMap) ? "[Normal]" : "";
+            return $"{hideTagString}{modifiableTagString}{normalTagString}{mainTextureString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{ToShaderLabString(defaultType)}\" {{}}";
         }
 
         // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
@@ -101,7 +125,21 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 value = value,
                 defaultType = defaultType,
+                isMainTexture = isMainTexture
             };
+        }
+
+        internal override void OnBeforePasteIntoGraph(GraphData graph)
+        {
+            if (isMainTexture)
+            {
+                Texture2DShaderProperty existingMain = graph.GetMainTexture();
+                if (existingMain != null && existingMain != this)
+                {
+                    isMainTexture = false;
+                }
+            }
+            base.OnBeforePasteIntoGraph(graph);
         }
     }
 }

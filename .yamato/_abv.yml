@@ -23,8 +23,8 @@ all_project_ci_trunk:
          rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
@@ -50,6 +50,8 @@ all_project_ci_nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
     triggers:
         recurring:
           -  branch: master
@@ -91,6 +93,8 @@ trunk_verification_trunk:
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
     dependencies:
