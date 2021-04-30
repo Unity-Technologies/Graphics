@@ -74,9 +74,9 @@ namespace UnityEditor.VFX.URP
                 yield return exp;
 
             if (normalBending)
-                yield return slotExpressions.First(o => o.name == "normalBendingFactor");
+                yield return slotExpressions.First(o => o.name == nameof(NormalBendingProperties.normalBendingFactor));
             if (primitiveType == VFXPrimitiveType.Octagon)
-                yield return slotExpressions.First(o => o.name == "cropFactor");
+                yield return slotExpressions.First(o => o.name == nameof(VFXPlanarPrimitiveHelper.OctagonInputProperties.cropFactor));
         }
 
         public override IEnumerable<string> additionalDefines
@@ -89,6 +89,7 @@ namespace UnityEditor.VFX.URP
                 if (normalBending)
                     yield return "USE_NORMAL_BENDING";
 
+                //TODOPAUL : Consider this integration in template
                 yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);

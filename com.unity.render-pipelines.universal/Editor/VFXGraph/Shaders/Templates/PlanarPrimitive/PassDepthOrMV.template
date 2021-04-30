@@ -83,7 +83,7 @@ struct ps_input
 #if NEEDS_WORLDPOS
 #define VFX_VARYING_POSWS posWS
 #endif
-#if USE_NORMAL_MAP
+#if USE_NORMAL_MAP && NEEDS_NORMAL
 #define VFX_VARYING_NORMALSCALE normal.w
 #endif
 #if USE_NORMAL_BENDING
