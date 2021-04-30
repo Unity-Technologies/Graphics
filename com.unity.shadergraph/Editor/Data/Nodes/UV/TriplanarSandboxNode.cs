@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         static ShaderFunction BuildFunction(bool useSeparateSamplerState, TextureType textureType)
         {
-            var func = new ShaderFunction.Builder("Unity_Triplanar_$precision");
+            var func = new ShaderFunction.Builder($"Unity_Triplanar_{textureType}_{(useSeparateSamplerState ? "sampler_" : "")}$precision");
             func.AddInput(Types._UnityTexture2D, "Texture");
             func.AddInput(Types._UnitySamplerState, "Sampler");
             func.AddInput(Types._float3, "Position", Binding.AbsoluteWorldSpacePosition);
@@ -66,6 +66,10 @@ namespace UnityEditor.ShaderGraph
                 func.AddInput(Types._precision3, "MeshNormal", Binding.WorldSpaceNormal);
             }
             func.AddOutput(Types._precision4, "Out");
+            func.AddOutput(Types._precision, "R");
+            func.AddOutput(Types._precision, "G");
+            func.AddOutput(Types._precision, "B");
+            func.AddOutput(Types._precision, "A");
 
             func.AddLine("$precision3 UV = Position * Tile;");
             func.AddLine("$precision3 Alpha = SafePositivePow_$precision(Normal, min(Blend, floor(log2(Min_$precision()) / log2(1 / sqrt(3)))));");
@@ -102,7 +106,6 @@ namespace UnityEditor.ShaderGraph
                     func.AddLine("$precision3 Y = UnpackNormal(SAMPLE_TEXTURE2D(Texture.tex, Texture.samplerstate, UV.xz));");
                     func.AddLine("$precision3 Z = UnpackNormal(SAMPLE_TEXTURE2D(Texture.tex, Texture.samplerstate, UV.xy));");
                 }
-
                 func.AddLine("X = $precision3(X.xy + Normal.zy, abs(X.z) * Normal.x);");
                 func.AddLine("Y = $precision3(Y.xy + Normal.xz, abs(Y.z) * Normal.y);");
                 func.AddLine("Z = $precision3(Z.xy + Normal.xy, abs(Z.z) * Normal.z);");
@@ -113,6 +116,7 @@ namespace UnityEditor.ShaderGraph
                 func.AddLine("$precision3x3 Transform = float3x3(MeshTangent, MeshBiTangent, MeshNormal);");
                 func.AddLine("Out.xyz = TransformWorldToTangent(Out.xyz, Transform);");
             }
+            func.AddLine("R = Out.r; G = Out.g; B = Out.b; A = Out.a;");
 
             return func.Build();
         }
