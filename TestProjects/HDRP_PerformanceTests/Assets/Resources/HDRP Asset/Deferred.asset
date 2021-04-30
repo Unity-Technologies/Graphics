@@ -12,56 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: Deferred
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
-  m_RenderPipelineRayTracingResources: {fileID: 0}
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: f940a8037e6cda542891dc1aac1fa4e8,
-    type: 2}
-  m_LensAttenuation: 0
-  m_DefaultLookDevProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
-    type: 2}
-  m_RenderingPathDefaultCameraFrameSettings:
-    bitDatas:
-      data1: 139567109766989
-      data2: 4539628425463136280
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
-  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
-    bitDatas:
-      data1: 135310787769165
-      data2: 4539628424389459992
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
-  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
-    bitDatas:
-      data1: 139923425337165
-      data2: 4539628424657895448
-    lodBias: 1
-    lodBiasMode: 0
-    lodBiasQualityLevel: 0
-    maximumLODLevel: 0
-    maximumLODLevelMode: 0
-    maximumLODLevelQualityLevel: 0
-    sssQualityMode: 0
-    sssQualityLevel: 0
-    sssCustomSampleBudget: 20
-    materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
@@ -74,15 +24,8 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
+    supportVolumetricClouds: 0
     supportLightLayers: 1
-    lightLayerName0: Light Layer default
-    lightLayerName1: Light Layer 1
-    lightLayerName2: Light Layer 2
-    lightLayerName3: Light Layer 3
-    lightLayerName4: Light Layer 4
-    lightLayerName5: Light Layer 5
-    lightLayerName6: Light Layer 6
-    lightLayerName7: Light Layer 7
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -97,14 +40,6 @@ MonoBehaviour:
         m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 1
-    decalLayerName0: Decal Layer default
-    decalLayerName1: Decal Layer 1
-    decalLayerName2: Decal Layer 2
-    decalLayerName3: Decal Layer 3
-    decalLayerName4: Decal Layer 4
-    decalLayerName5: Decal Layer 5
-    decalLayerName6: Decal Layer 6
-    decalLayerName7: Decal Layer 7
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 1
@@ -138,8 +73,8 @@ MonoBehaviour:
       maxDecalsOnScreen: 2048
       maxPlanarReflectionOnScreen: 16
       maxLightsPerClusterCell: 8
-      maxDensityVolumeSize: 32
-      maxDensityVolumesOnScreen: 64
+      maxLocalVolumetricFogSize: 32
+      maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -240,6 +175,8 @@ MonoBehaviour:
       AODirectionCount: 010000000200000004000000
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
+      SSGIRaySteps: 200000004000000080000000
+      SSGIFilterRadius: 100000000e0000000c000000
       RTAORayLength:
       - 0.5
       - 3
@@ -296,29 +233,34 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    m_ObsoleteLightLayerName0: 
+    m_ObsoleteLightLayerName1: 
+    m_ObsoleteLightLayerName2: 
+    m_ObsoleteLightLayerName3: 
+    m_ObsoleteLightLayerName4: 
+    m_ObsoleteLightLayerName5: 
+    m_ObsoleteLightLayerName6: 
+    m_ObsoleteLightLayerName7: 
+    m_ObsoleteDecalLayerName0: 
+    m_ObsoleteDecalLayerName1: 
+    m_ObsoleteDecalLayerName2: 
+    m_ObsoleteDecalLayerName3: 
+    m_ObsoleteDecalLayerName4: 
+    m_ObsoleteDecalLayerName5: 
+    m_ObsoleteDecalLayerName6: 
+    m_ObsoleteDecalLayerName7: 
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
-  shaderVariantLogLevel: 0
   availableMaterialQualityLevels: -1
   m_DefaultMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 0}
-  diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
-  - {fileID: 11400000, guid: ad180cf900c4ef141be2b350f09ffa5b, type: 2}
-  beforeTransparentCustomPostProcesses: []
-  beforeTAACustomPostProcesses: []
-  beforePostProcessCustomPostProcesses:
-  - UnityEngine.Rendering.HighDefinition.Compositor.ChromaKeying, Unity.RenderPipelines.HighDefinition.Runtime,
-    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - UnityEngine.Rendering.HighDefinition.Compositor.AlphaInjection, Unity.RenderPipelines.HighDefinition.Runtime,
-    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  afterPostProcessCustomPostProcesses: []
   virtualTexturingSettings:
     streamingCpuCacheSizeInMegaBytes: 256
     streamingGpuCacheSettings:
     - format: 0
       sizeInMegaBytes: 128
-  m_Version: 18
+  m_UseRenderGraph: 1
+  m_Version: 19
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -454,3 +396,59 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
+  m_ObsoleteDefaultVolumeProfile: {fileID: 0}
+  m_ObsoleteDefaultLookDevProfile: {fileID: 0}
+  m_ObsoleteFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 139567109766989
+      data2: 4539628425463136280
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    msaaMode: 0
+    materialQuality: 0
+  m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 135310787769165
+      data2: 4539628424389459992
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    msaaMode: 0
+    materialQuality: 0
+  m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
+    bitDatas:
+      data1: 139923425337165
+      data2: 4539628424657895448
+    lodBias: 1
+    lodBiasMode: 0
+    lodBiasQualityLevel: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
+    msaaMode: 0
+    materialQuality: 0
+  m_ObsoleteRenderPipelineResources: {fileID: 0}
+  m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
+  m_ObsoleteBeforeTransparentCustomPostProcesses: []
+  m_ObsoleteBeforePostProcessCustomPostProcesses: []
+  m_ObsoleteAfterPostProcessCustomPostProcesses: []
+  m_ObsoleteBeforeTAACustomPostProcesses: []
+  m_ObsoleteShaderVariantLogLevel: 0
+  m_ObsoleteLensAttenuation: 0
+  m_ObsoleteDiffusionProfileSettingsList: []

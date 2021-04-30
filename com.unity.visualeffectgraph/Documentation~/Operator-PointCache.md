@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Utility > Point Cache**
 
-The **Point Cache** Operator exposes the attribute maps and the point count stored into a [Point Cache asset](PointCaches.md).
+The **Point Cache** Operator exposes the attribute maps and the point count stored into a [Point Cache asset](point-cache-asset.md).
 
 ## Operator settings
 
