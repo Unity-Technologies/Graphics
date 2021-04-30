@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
 
             public void Resize(int size)
             {
-                if (size < lightMappings?.Length)
+                if (size <= lightMappings?.Length)
                     return;
 
                 // Avoid allocs on every tiny size change.
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
 
             public void Resize(int size)
             {
-                if (size < m_Size)
+                if (size <= m_Size)
                     return;
 
                 if (m_Size > 0)
@@ -599,7 +599,8 @@ namespace UnityEngine.Rendering.Universal
             // Set all rects to Invalid (Vector4.zero).
             Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
 
-            // TODO: for deferred, process and bind only the necessary
+            // TODO: technically, we don't need to upload constants again if we knew the lights, atlas (rects) or visible order haven't changed.
+            // TODO: but detecting that, might be as time consuming as just doing the work.
 
             // Fill shader data. Layout should match primary light data for additional lights.
             // Currently it's the same as visible lights, but main light(s) dropped.
