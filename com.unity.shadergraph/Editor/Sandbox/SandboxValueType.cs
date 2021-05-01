@@ -47,6 +47,57 @@ public abstract class SandboxValueTypeDefinition : JsonObject
 }
 
 
+public sealed class SandboxTypeDecl
+{
+    enum DeclOp
+    {
+        TypeVoid = 1,             // void         0 bytes
+        TypeBool = 2,             // bool         0 bytes
+        TypeInt = 3,              // int          1 byte         (bits)
+        TypeFloat = 4,            // float        1 byte         (bits)
+
+        TypeImage,                // 5 bytes:  (dimension)  (depth?) (arrayed?) (multisample?) (sampled?)
+        TypeSampler,              //
+        TypeSampledImage,         // texture and sampler combined
+
+        TypeVector,               // 3 bytes:  vec      (component count)     (subtype)
+        TypeMatrix,               // 3 bytes:  mat      (column count)        (vector subtype)
+
+        TypeFixedArray,           // fixed size array
+
+        TypeUnboundedArray,       // unbounded array
+
+        TypeStruct,               // structure
+        TypeOpaque,               // structure with no declared members
+        TypeFunction,             //
+        TypePointer,              // :P
+    };
+
+    List<byte> declCode;
+
+    // public must go through the Builder class
+    internal SandboxTypeDecl(List<byte> declCode)
+    {
+        this.declCode = declCode;
+    }
+
+    public bool isVoid => (declCode[0] == (byte)DeclOp.TypeVoid);
+    public bool isBool => (declCode[0] == (byte)DeclOp.TypeBool);
+    public bool isInt => (declCode[0] == (byte)DeclOp.TypeInt);
+    public bool isFloat => (declCode[0] == (byte)DeclOp.TypeFloat);
+    public bool isVector => (declCode[0] == (byte)DeclOp.TypeVector);
+    public bool isMatrix => (declCode[0] == (byte)DeclOp.TypeMatrix);
+    public bool isFixedArray => (declCode[0] == (byte)DeclOp.TypeFixedArray);
+    public bool isUnboundedArray => (declCode[0] == (byte)DeclOp.TypeUnboundedArray);
+    public bool isStruct => (declCode[0] == (byte)DeclOp.TypeStruct);
+
+    public class Builder
+    {
+        List<Byte> declCode;
+    }
+}
+
+
 [Serializable]
 public sealed class SandboxValueType // : JsonObject
 {

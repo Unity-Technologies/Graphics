@@ -5,22 +5,24 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 
+// TODO: should be able to represent functions that use return values (not just output parameters)
+// maybe just the output parameter labeled "return"?
+
 [Serializable]
 public class ShaderFunction : ShaderFunctionSignature
 {
     public override int latestVersion => 1;
 
     // public API
-    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled.SelectValue();      // think this one is safe, as it returns a new enumerable class, and the user cannot extract the List from it
-    public IEnumerable<string> IncludePaths => includePaths;                                           // TODO: users can cast this back to the underlying List and modify the List..  :(  Ideally we convert the List to be a ReadOnlyList, or hide it inside a custom Enumerable struct that doesn't support the cast?
+    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled.SelectValue();
+    public IEnumerable<string> IncludePaths => includePaths.AsReadOnly();
     public string Body { get { return body; } }
     public virtual bool isGeneric => false;
 
-    // state
+    // serialized state
     [SerializeField]
     List<string> includePaths;
 
-    // a list of all dependent functions called
     [SerializeField]
     List<JsonData<ShaderFunctionSignature>> functionsCalled;
 
@@ -143,11 +145,29 @@ public class ShaderFunction : ShaderFunctionSignature
             includePaths.Add(filePath);
         }
 
+        public void CallFunction(ShaderFunctionSignature func, params string[] arguments)
+        {
+            if (arguments.Length == func.Parameters.Count)
+            {
+                using (var args = CallFunction(func))
+                {
+                    foreach (var p in arguments)
+                        args.Add(p);
+                }
+            }
+            else
+            {
+                Debug.Log("CallFunction: " + func.Name + " argument count mismatch, " + arguments.Length + " arguments provided, but function takes " + func.Parameters.Count + " parameters.");
+            }
+        }
+
         public Arguments CallFunction(ShaderFunctionSignature func)
         {
             if (functionsCalled == null)
                 functionsCalled = new List<JsonData<ShaderFunctionSignature>>();
-            functionsCalled.Add(func);
+
+            if (!functionsCalled.Contains(func))
+                functionsCalled.Add(func);
 
             // Do we want to insert a special string marker to body,
             // so we can translate the function name at generation time?
@@ -174,7 +194,7 @@ public class ShaderFunction : ShaderFunctionSignature
                 this.paramCount = paramCount;
             }
 
-            public void Add(string arg)
+            public Arguments Add(string arg)
             {
                 if (argCount <= paramCount)
                 {
@@ -186,10 +206,10 @@ public class ShaderFunction : ShaderFunctionSignature
                 }
                 else
                 {
-                    // ERROR: too many arguments
-                    Debug.Log("ERROR: too many arguments");
+                    Debug.Log("CallFunction: too many arguments");
                 }
                 argCount++;
+                return this;
             }
 
             public void Dispose()
@@ -197,7 +217,7 @@ public class ShaderFunction : ShaderFunctionSignature
                 if (argCount != paramCount)
                 {
                     // ERROR: mismatched argument count
-                    Debug.Log("ERROR: mismatched argument count");
+                    Debug.Log("CallFunction: mismatched argument count");
                 }
                 body.AddLine(");");
                 body = null;

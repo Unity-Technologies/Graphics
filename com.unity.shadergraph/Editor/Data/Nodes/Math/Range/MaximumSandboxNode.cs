@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             if (shaderFunc == null)
                 shaderFunc = BuildFunction();
 
-            // TODO: move this to a utility function
             var vectorType = SandboxNodeUtils.DetermineDynamicVectorType(context, shaderFunc);
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 

@@ -517,13 +517,7 @@ namespace UnityEditor.ShaderGraph
         {
             var function = (generationMode == GenerationMode.Preview) ? previewFunction : mainFunction;
 
-            registry.ProvideFunction(function.Name, sb =>
-            {
-                function.AppendHLSLDeclarationString(sb);
-            });
-
-            // TODO: also provide all dependent functions
-            // function.Functions
+            SandboxNodeUtils.ProvideFunctionToRegistry(function, registry);
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
