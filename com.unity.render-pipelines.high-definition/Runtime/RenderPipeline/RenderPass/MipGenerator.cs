@@ -167,8 +167,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
-            float sourceScaleX = (float)size.x / source.width;
-            float sourceScaleY = (float)size.y / source.height;
+            bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+            var hardwareTextureSize = new Vector2Int(source.width, source.height);
+            if (isHardwareDrsOn)
+                hardwareTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareTextureSize);
+
+            float sourceScaleX = (float)size.x / (float)hardwareTextureSize.x;
+            float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
             // Copies src mip0 to dst mip0
             m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);

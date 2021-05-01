@@ -428,6 +428,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag that holds
             bool generalErrorFlag = false;
             var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
+            var lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
             List<Material> materialArray = new List<Material>(32);
             ReflectionProbe reflectionProbe = new ReflectionProbe();
 
@@ -525,10 +526,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!singleSided && hasSingleSided)
                 {
-                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. The double sided flag will be ignored.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. All materials will be considered double-sided for ray-traced effects.");
                     generalErrorFlag = true;
                 }
             }
+			
+			//Check if one LOD is missing a renderer
+			for (var i = 0; i < lodGroupArray.Length; i++)
+            {
+                // Grab the current LOD group
+                LODGroup lodGroup = lodGroupArray[i];
+				LOD[] lodArray = lodGroup.GetLODs();
+                for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
+                {
+					
+                    LOD currentLOD = lodArray[lodIdx];
+                    for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
+                    {
+                        if(currentLOD.renderers[rendererIdx] == null)
+						{
+							Debug.LogWarning("The LOD Group " + lodGroup.gameObject.name + " has at least one missing renderer in its children.");
+							generalErrorFlag = true;
+						}
+                    }
+                }
+			}
 
             if (!generalErrorFlag)
             {
