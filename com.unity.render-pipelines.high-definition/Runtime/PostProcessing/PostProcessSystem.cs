@@ -2450,6 +2450,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
             }
 
+            if (m_EnableAlpha)
+                parameters.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
             parameters.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
             parameters.paniniProjectionKernel = parameters.paniniProjectionCS.FindKernel("KMain");
 
