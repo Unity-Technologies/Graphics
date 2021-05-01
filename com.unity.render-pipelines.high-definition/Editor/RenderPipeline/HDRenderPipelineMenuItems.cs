@@ -530,27 +530,26 @@ namespace UnityEditor.Rendering.HighDefinition
                     generalErrorFlag = true;
                 }
             }
-			
-			//Check if one LOD is missing a renderer
-			for (var i = 0; i < lodGroupArray.Length; i++)
+
+            //Check if one LOD is missing a renderer
+            for (var i = 0; i < lodGroupArray.Length; i++)
             {
                 // Grab the current LOD group
                 LODGroup lodGroup = lodGroupArray[i];
-				LOD[] lodArray = lodGroup.GetLODs();
+                LOD[] lodArray = lodGroup.GetLODs();
                 for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
                 {
-					
                     LOD currentLOD = lodArray[lodIdx];
                     for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
                     {
-                        if(currentLOD.renderers[rendererIdx] == null)
-						{
-							Debug.LogWarning("The LOD Group " + lodGroup.gameObject.name + " has at least one missing renderer in its children.");
-							generalErrorFlag = true;
-						}
+                        if (currentLOD.renderers[rendererIdx] == null)
+                        {
+                            Debug.LogWarning("The LOD Group " + lodGroup.gameObject.name + " has at least one missing renderer in its children.");
+                            generalErrorFlag = true;
+                        }
                     }
                 }
-			}
+            }
 
             if (!generalErrorFlag)
             {
