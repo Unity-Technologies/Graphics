@@ -170,6 +170,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
 - Fixed undo of some properties on light editor.
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
