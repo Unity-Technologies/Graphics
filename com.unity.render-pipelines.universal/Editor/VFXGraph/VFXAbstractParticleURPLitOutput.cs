@@ -437,6 +437,12 @@ namespace UnityEditor.VFX
                 if (materialType == MaterialType.Specular)
                     forwardDefines.Write("#define _SPECULAR_SETUP");
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPForwardDefines}", forwardDefines);
+
+                // URP GBuffer specific defines
+                var gbufferDefines = new VFXShaderWriter();
+                if (materialType == MaterialType.Specular)
+                    gbufferDefines.Write("#define _SPECULAR_SETUP");
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXURPGBufferDefines}", gbufferDefines);
             }
         }
     }
