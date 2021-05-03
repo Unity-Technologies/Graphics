@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(UnlitPasses.Forward(target));
+                result.passes.Add(UnlitPasses.ForwardOnly(target));
 
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(PassVariant(UnlitPasses.Forward(target), CorePragmas.DOTSForward));
+                result.passes.Add(PassVariant(UnlitPasses.ForwardOnly(target), CorePragmas.DOTSForward));
 
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
@@ -167,13 +167,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pass
         static class UnlitPasses
         {
-            public static PassDescriptor Forward(UniversalTarget target)
+            public static PassDescriptor ForwardOnly(UniversalTarget target)
             {
                 var result = new PassDescriptor
                 {
                     // Definition
                     displayName = "Universal Forward",
                     referenceName = "SHADERPASS_UNLIT",
+                    lightMode = "UniversalForwardOnly",
                     useInPreview = true,
 
                     // Template
