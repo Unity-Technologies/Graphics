@@ -16,7 +16,9 @@ namespace UnityEditor.VFX
             const string k_DisplayName = "Visual Effect Event Tester";
             public override bool ShouldDisplay()
             {
-                return visible;
+                if (Selection.activeGameObject && Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
+                    return visible;
+                return false;
             }
 
             public override void OnGUI()
