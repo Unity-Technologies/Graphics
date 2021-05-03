@@ -47,22 +47,22 @@ editor_versions:
       version: 2021.1.5f1
   2021_1_staging:
     Android:
-      revision: ebdd646c59c8a15cac892e9fbe0e99fb27071711
-      updated_at: '2021-05-02 23:08:01.544357'
+      revision: bc65e35d7881cdbcd32e84668f0f53937816fa49
+      updated_at: '2021-05-03 23:56:34.851392'
       version: ''
     Linux:
-      revision: ebdd646c59c8a15cac892e9fbe0e99fb27071711
-      updated_at: '2021-05-02 23:08:01.544357'
+      revision: bc65e35d7881cdbcd32e84668f0f53937816fa49
+      updated_at: '2021-05-03 23:56:34.851392'
       version: ''
     OSX:
-      revision: ebdd646c59c8a15cac892e9fbe0e99fb27071711
-      updated_at: '2021-05-02 23:08:01.544357'
+      revision: bc65e35d7881cdbcd32e84668f0f53937816fa49
+      updated_at: '2021-05-03 23:56:34.851392'
       version: ''
     Win:
-      revision: ebdd646c59c8a15cac892e9fbe0e99fb27071711
-      updated_at: '2021-05-02 23:08:01.544357'
+      revision: bc65e35d7881cdbcd32e84668f0f53937816fa49
+      updated_at: '2021-05-03 23:56:34.851392'
       version: ''
     iPhone:
-      revision: ebdd646c59c8a15cac892e9fbe0e99fb27071711
-      updated_at: '2021-05-02 23:08:01.544357'
+      revision: bc65e35d7881cdbcd32e84668f0f53937816fa49
+      updated_at: '2021-05-03 23:56:34.851392'
       version: ''
