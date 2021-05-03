@@ -30,13 +30,13 @@ namespace UnityEditor.ShaderGraph
             // always generate at least the binary version of this function
             var shaderFunc = BuildFunction(maxSlot < 2 ? 2 : maxSlot);
 
-            // TODO: move this to a utility function
             var vectorType = SandboxNodeUtils.DetermineDynamicVectorType(context, shaderFunc);
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 
             context.SetMainFunction(specializedFunc, declareSlots: true);
             context.SetPreviewFunction(specializedFunc);
 
+            // Add the prompt slot for the user to connect another input, if they want
             if ((maxSlot >= 2) && (maxSlot < 26))
                 context.AddInputSlot(vectorType, GetSlotName(maxSlot));
         }
