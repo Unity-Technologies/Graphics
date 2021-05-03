@@ -116,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (reference.transform.localScale != compare.transform.localScale)
                     return null;
 
-                if (reference.profile != compare.profile)
+                if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
 
