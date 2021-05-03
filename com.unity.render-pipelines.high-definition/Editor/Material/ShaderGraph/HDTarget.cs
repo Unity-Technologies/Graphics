@@ -767,37 +767,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
-        public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-        };
-
-        public static PragmaCollection InstancedRenderingLayerEditorSync = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.EditorSyncCompilation },
-        };
-
         public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
         {
             { Basic },
             { Pragma.MultiCompileInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV2OnlyEditorSync = new PragmaCollection
-        {
-            { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.EditorSyncCompilation },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
