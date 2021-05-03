@@ -69,6 +69,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new ColorControl(Color.white, false), ShaderStage.Fragment);
             public static BlockFieldDescriptor RefractionDistance = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionDistance", "Refraction Distance", "SURFACEDESCRIPTION_REFRACTIONDISTANCE",
                 new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationFactor", "Tessellation Factor", "SURFACEDESCRIPTION_TESSELLATIONFACTOR",
+                new FloatControl(0.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // Decal

@@ -231,6 +231,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Depth offset needs positionRWS and is now a multi_compile
             if (builtinData.depthOffset)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
+
+            context.AddField(HDFields.TessellationFactor, builtinData.tessellation && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.TessellationFactor));
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -267,6 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TessellationFactor, builtinData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

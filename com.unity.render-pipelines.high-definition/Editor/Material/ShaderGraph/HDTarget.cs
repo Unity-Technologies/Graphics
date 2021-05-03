@@ -756,6 +756,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
+        public static PragmaCollection BasicTessellation = new PragmaCollection
+        {
+            { Pragma.NeverUseDXC(PragmaRenderers.GetNeverUseDXCPlatformArray()) },
+            { Pragma.Target(ShaderModel.Target50) },
+            { Pragma.Vertex("Vert") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.Hull("Hull") },
+            { Pragma.Domain("Domain") },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+        };
+
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
         {
             { Basic },

@@ -122,6 +122,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(conservativeDepthOffsetEnableText, () => builtinData.conservativeDepthOffset, (newValue) => builtinData.conservativeDepthOffset = newValue);
                 context.globalIndentLevel--;
             }
+
+            AddProperty(tessellationEnableText, () => builtinData.tessellation, (newValue) => builtinData.tessellation = newValue);
         }
     }
 }
