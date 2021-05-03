@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering
                 var maxCellPosition = (probeVolume.transform.position + halfSize) / cellSize;
 
                 Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
-                Vector3Int max = new Vector3Int(Mathf.FloorToInt(maxCellPosition.x), Mathf.FloorToInt(maxCellPosition.y), Mathf.FloorToInt(maxCellPosition.z));
+                Vector3Int max = new Vector3Int(Mathf.CeilToInt(maxCellPosition.x), Mathf.CeilToInt(maxCellPosition.y), Mathf.CeilToInt(maxCellPosition.z));
 
                 for (int x = min.x; x <= max.x; x++)
                 {
@@ -74,7 +74,6 @@ namespace UnityEngine.Experimental.Rendering
                                 cellVolume.X = new Vector3(cellSize, 0, 0);
                                 cellVolume.Y = new Vector3(0, cellSize, 0);
                                 cellVolume.Z = new Vector3(0, 0, cellSize);
-                                cellVolume.Transform(cellTrans);
                                 cells.Add((cellPos, cellVolume));
                             }
                         }

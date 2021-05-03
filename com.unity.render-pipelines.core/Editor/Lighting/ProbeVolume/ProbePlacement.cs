@@ -38,104 +38,6 @@ namespace UnityEngine.Experimental.Rendering
             return v;
         }
 
-        // static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
-        // {
-        //     if (!sceneRefs.ContainsKey(origin))
-        //         sceneRefs[origin] = 0;
-        //     else
-        //         sceneRefs[origin] += 1;
-        // }
-
-        // static protected int RenderersToVolumes(in List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, in ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
-        // {
-        //     int num = 0;
-
-        //     foreach (var kp in renderers)
-        //     {
-        //         var r = kp.component;
-        //         var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
-        //         bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
-
-        //         if (!r.enabled || !r.gameObject.activeSelf || !contributeGI)
-        //             continue;
-
-        //         ProbeReferenceVolume.Volume v = ToVolume(r.bounds);
-
-        //         if (ProbeVolumePositioning.OBBIntersect(cellVolume, v))
-        //         {
-        //             volumes.Add(v);
-
-        //             TrackSceneRefs(r.gameObject.scene, sceneRefs);
-
-        //             num++;
-        //         }
-        //     }
-
-        //     return num;
-        // }
-
-        // static protected int ProbeVolumesToVolumes(in List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes, ref ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> volumes, Dictionary<Scene, int> sceneRefs)
-        // {
-        //     int num = 0;
-
-        //     foreach (var kp in probeVolumes)
-        //     {
-        //         var pv = kp.component;
-        //         if (!pv.isActiveAndEnabled)
-        //             continue;
-
-        //         ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
-
-        //         if (ProbeVolumePositioning.OBBIntersect(cellVolume, indicatorVolume))
-        //         {
-        //             cellVolume.maxSubdivisionMultiplier = Mathf.Max(cellVolume.maxSubdivisionMultiplier, pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
-        //             volumes.Add(indicatorVolume);
-        //             TrackSceneRefs(pv.gameObject.scene, sceneRefs);
-        //             num++;
-        //         }
-        //     }
-
-        //     return num;
-        // }
-
-        // static protected void CullVolumes(in List<ProbeReferenceVolume.Volume> cullees, in List<ProbeReferenceVolume.Volume> cullers, List<ProbeReferenceVolume.Volume> result)
-        // {
-        //     foreach (ProbeReferenceVolume.Volume v in cullers)
-        //     {
-        //         ProbeReferenceVolume.Volume lv = v;
-
-        //         foreach (ProbeReferenceVolume.Volume c in cullees)
-        //         {
-        //             if (result.Contains(c))
-        //                 continue;
-
-        //             ProbeReferenceVolume.Volume lc = c;
-
-        //             if (ProbeVolumePositioning.OBBIntersect(lv, lc))
-        //                 result.Add(c);
-        //         }
-        //     }
-        // }
-
-        // static public void CreateInfluenceVolumes(ref ProbeReferenceVolume.Volume cellVolume, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
-        //     out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
-        // {
-        //     // Keep track of volumes and which scene they originated from
-        //     sceneRefs = new Dictionary<Scene, int>();
-
-        //     // Extract all influencers inside the cell
-        //     List<ProbeReferenceVolume.Volume> influenceVolumes = new List<ProbeReferenceVolume.Volume>();
-        //     RenderersToVolumes(renderers, cellVolume, influenceVolumes, sceneRefs);
-
-        //     // Extract all ProbeVolumes inside the cell
-        //     List<ProbeReferenceVolume.Volume> indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
-        //     ProbeVolumesToVolumes(probeVolumes, ref cellVolume, indicatorVolumes, sceneRefs);
-
-        //     // Cull all influencers against ProbeVolumes
-        //     culledVolumes = new List<ProbeReferenceVolume.Volume>();
-        //     CullVolumes(influenceVolumes, indicatorVolumes, culledVolumes);
-        // }
-
         // TODO: alloc this in the BakeCells function
         static RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
         {
@@ -442,7 +344,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // We convert the world space volume position (of a corner) in bricks.
             // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
-            Vector3 volumeBrickPosition = (volume.center - volume.extents) / 3.0f;
+            Vector3 volumeBrickPosition = (volume.center - volume.extents) / ProbeReferenceVolume.instance.MinBrickSize();
             cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffset", volumeBrickPosition);
             cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
             cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);

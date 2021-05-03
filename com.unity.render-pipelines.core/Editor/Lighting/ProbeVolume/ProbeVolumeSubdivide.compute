@@ -132,7 +132,6 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
 
     // Compute the position at the center of the voxel
     float3 position01 = (float3(id) + 0.5) / _MaxBrickSize;
-    float3 positionWorldSpace = _VolumeOffset + position01 * _VolumeSize;
 
     // TODO: check the subdiv level of the probe volume min and max
     uint3 sdfId = floor(position01 * _SDFSize);

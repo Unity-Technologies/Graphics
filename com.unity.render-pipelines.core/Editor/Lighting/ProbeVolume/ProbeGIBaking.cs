@@ -612,53 +612,6 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
-
-        // TODO: remove me (probably by merging Julien's work + decoupling probe baking)
-        static MeshGizmo gizmo = new MeshGizmo(3000);
-        static Color[] colors = new Color[]
-        {
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-            Random.ColorHSV(0, 1, 0, 1, 0.5f, 1),
-        };
-        public static void DrawBakingCellsGizmo(float cellSize)
-        {
-            gizmo.Clear();
-
-            Handles.color = Color.red;
-            Handles.zTest = CompareFunction.LessEqual;
-            foreach (var cell in bakingCells)
-            {
-                // Debug.Log(cell.cell.position + " | " + ProbeReferenceVolume.CellSize(3));
-                using (new Handles.DrawingScope(
-                    Color.red,
-                    Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one)
-                ))
-                {
-                    // float cellSize = ProbeReferenceVolume.instance.MaxBrickSize();
-                    var positionF = new Vector3(cell.cell.position.x, cell.cell.position.y, cell.cell.position.z);
-                    var center = positionF * cellSize + cellSize * 0.5f * Vector3.one;
-                    Handles.DrawWireCube(center, Vector3.one * cellSize);
-                }
-
-                foreach (var brick in cell.cell.bricks)
-                {
-                    Vector3 scaledSize = Vector3.one * ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
-                    Vector3 scaledPos = brick.position + scaledSize / 2;
-                    scaledPos *= 3;
-                    scaledPos -= scaledSize;
-                    gizmo.AddWireCube(scaledPos, scaledSize, colors[brick.subdivisionLevel]);
-                }
-            }
-
-            gizmo.RenderWireframe(Matrix4x4.Scale(Vector3.one));
-        }
     }
 }
 
