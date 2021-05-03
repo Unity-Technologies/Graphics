@@ -14,7 +14,7 @@ public class ShaderFunction : ShaderFunctionSignature
     public override int latestVersion => 1;
 
     // public API
-    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled.SelectValue();
+    public IEnumerable<ShaderFunctionSignature> FunctionsCalled => functionsCalled?.SelectValue();
     public IEnumerable<string> IncludePaths => includePaths.AsReadOnly();
     public string Body { get { return body; } }
     public virtual bool isGeneric => false;

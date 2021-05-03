@@ -81,19 +81,25 @@ public sealed class SandboxTypeDecl
         this.declCode = declCode;
     }
 
-    public bool isVoid => (declCode[0] == (byte)DeclOp.TypeVoid);
-    public bool isBool => (declCode[0] == (byte)DeclOp.TypeBool);
-    public bool isInt => (declCode[0] == (byte)DeclOp.TypeInt);
-    public bool isFloat => (declCode[0] == (byte)DeclOp.TypeFloat);
-    public bool isVector => (declCode[0] == (byte)DeclOp.TypeVector);
-    public bool isMatrix => (declCode[0] == (byte)DeclOp.TypeMatrix);
-    public bool isFixedArray => (declCode[0] == (byte)DeclOp.TypeFixedArray);
+    public bool isVoid =>           (declCode[0] == (byte)DeclOp.TypeVoid);
+    public bool isBool =>           (declCode[0] == (byte)DeclOp.TypeBool);
+    public bool isInt =>            (declCode[0] == (byte)DeclOp.TypeInt);
+    public bool isFloat =>          (declCode[0] == (byte)DeclOp.TypeFloat);
+    public bool isVector =>         (declCode[0] == (byte)DeclOp.TypeVector);
+    public bool isMatrix =>         (declCode[0] == (byte)DeclOp.TypeMatrix);
+    public bool isFixedArray =>     (declCode[0] == (byte)DeclOp.TypeFixedArray);
     public bool isUnboundedArray => (declCode[0] == (byte)DeclOp.TypeUnboundedArray);
-    public bool isStruct => (declCode[0] == (byte)DeclOp.TypeStruct);
+    public bool isStruct =>         (declCode[0] == (byte)DeclOp.TypeStruct);
 
     public class Builder
     {
         List<Byte> declCode;
+
+        SandboxTypeDecl Build()
+        {
+            return new SandboxTypeDecl(declCode);
+            declCode = null;
+        }
     }
 }
 

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         static ShaderFunction shaderFunc = null;
         static ShaderFunction BuildUnityNoiseFunction()
         {
-            var func = new ShaderFunction.Builder($"Unity_Noise_$precision");
+            var func = new ShaderFunction.Builder($"Unity_NoiseSB_$precision");
             func.AddInput(Types._precision2, "UV", Binding.MeshUV0);
             func.AddInput(Types._precision, "Scale", 500.0f);
             func.AddOutput(Types._precision, "Out");
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
         static ShaderFunction BuildValueNoise()
         {
-            var func = new ShaderFunction.Builder($"Unity_SimpleNoise_ValueNoise_$precision");
+            var func = new ShaderFunction.Builder($"Unity_NoiseSB_ValueNoise_$precision");
             func.AddInput(Types._precision2, "uv");
             func.AddOutput(Types._precision, "Out");
 
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph
 
         static ShaderFunction BuildRandomValue()
         {
-            var func = new ShaderFunction.Builder($"Unity_SimpleNoise_RandomValue_$precision");
+            var func = new ShaderFunction.Builder($"Unity_NoiseSB_RandomValue_$precision");
             func.AddInput(Types._precision2, "uv");
             func.AddOutput(Types._precision, "Out");
 
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
 
         static ShaderFunction BuildInterpolate()
         {
-            var func = new ShaderFunction.Builder($"Unity_SimpleNoise_Interpolate_$precision");
+            var func = new ShaderFunction.Builder($"Unity_NoiseSB_Interpolate_$precision");
             func.AddInput(Types._precision, "a");
             func.AddInput(Types._precision, "b");
             func.AddInput(Types._precision, "t");
