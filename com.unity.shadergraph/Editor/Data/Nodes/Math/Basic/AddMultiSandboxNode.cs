@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -37,13 +38,23 @@ namespace UnityEditor.ShaderGraph
             context.SetPreviewFunction(specializedFunc);
 
             if ((maxSlot >= 2) && (maxSlot < 26))
-                context.AddInputSlot(vectorType, GetSlotName(maxSlot).ToString());
+                context.AddInputSlot(vectorType, GetSlotName(maxSlot));
         }
 
-        static char GetSlotName(int slotIndex)
+        // static slot name cache
+        static List<string> k_slotNames = new List<string>();
+        static string GetSlotName(int slotIndex)
         {
-            char d = (char)('A' + (slotIndex % 26));
-            return d;
+            // grow if necessary
+            if (k_slotNames.Count <= slotIndex)
+                k_slotNames.Insert(slotIndex, null);
+
+            // lookup in cache, populate if necessary
+            string result = k_slotNames[slotIndex];
+            if (result == null)
+                k_slotNames[slotIndex] = result = ((char)('A' + (slotIndex % 26))).ToString();
+
+            return result;
         }
 
         static GenericShaderFunction BuildFunction(int connectionCount)
@@ -56,7 +67,7 @@ namespace UnityEditor.ShaderGraph
                 line.Add("Out = ");
                 for (int input = 0; input < connectionCount; input++)
                 {
-                    var slotName = GetSlotName(input).ToString();
+                    var slotName = GetSlotName(input);
                     if (input > 0)
                         line.Add(" + ");
                     func.AddInput(Types._dynamicVector, slotName);
@@ -67,26 +78,4 @@ namespace UnityEditor.ShaderGraph
             return func.BuildGeneric();
         }
     }
-
-
-    /*
-        protected override MethodInfo GetFunctionToConvert()
-        {
-            return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);
-        }
-
-        static string Unity_Add(
-            [Slot(0, Binding.None)] DynamicDimensionVector A,
-            [Slot(1, Binding.None)] DynamicDimensionVector B,
-            [Slot(2, Binding.None)] out DynamicDimensionVector Out)
-        {
-            return
-@"
-{
-    Out = A + B;
-}
-";
-        }
-    }
-    */
 }

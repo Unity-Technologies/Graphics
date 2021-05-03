@@ -7,17 +7,26 @@ public static class SandboxNodeUtils
 {
     public static SandboxValueType DetermineDynamicVectorType(ISandboxNodeBuildContext context, ShaderFunction dynamicShaderFunc)
     {
-        int vectorCount = 1;
+        // Dynamic vector is chosen to be the minimum vector size (ignoring scalars),
+        // falling back to scalars if that's all there is.
+
+        int minVectorCount = 5;
         foreach (var p in dynamicShaderFunc.Parameters)
         {
             if (p.Type == Types._dynamicVector)
             {
                 var pType = context.GetInputType(p.Name);
-                if (pType != null)
-                    vectorCount = Math.Max(vectorCount, pType.VectorSize);
+
+                // scalars can be cast to any vector size easily, so ignore them
+                if ((pType != null) && !pType.IsScalar)
+                    minVectorCount = Math.Min(minVectorCount, pType.VectorSize);
             }
         }
-        return Types.Precision(vectorCount);
+
+        if (minVectorCount < 5)
+            return Types.Precision(minVectorCount);
+        else
+            return Types._precision;
     }
 
     internal static void ProvideFunctionToRegistry(ShaderFunction function, FunctionRegistry registry)
