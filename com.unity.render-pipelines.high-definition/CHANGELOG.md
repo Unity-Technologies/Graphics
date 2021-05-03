@@ -183,6 +183,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fog precision in some camera positions (case 1329603).
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
