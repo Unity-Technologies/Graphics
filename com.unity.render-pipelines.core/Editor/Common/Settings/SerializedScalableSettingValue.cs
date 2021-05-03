@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Serialized version of <see cref="ScalableSettingValue{T}"/>.
     /// </summary>
-    internal class SerializedScalableSettingValue
+    public class SerializedScalableSettingValue
     {
         public SerializedProperty level;
         public SerializedProperty useOverride;
@@ -37,7 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="value">The evaluated value.</param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetValue<T>(SerializedScalableSetting setting, out T value)
-            where T : struct
         {
             if (hasMultipleValues)
             {
@@ -65,7 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="value">The evaluated value.</param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetValue<T>(ScalableSetting<T> setting, out T value)
-            where T : struct
         {
             if (hasMultipleValues)
             {
@@ -86,7 +84,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    internal static class SerializedScalableSettingValueUI
+    /// <summary>
+    /// Display for a <see cref="SerializedScalableSettingValue"/>
+    /// </summary>
+    public static class SerializedScalableSettingValueUI
     {
         /// <summary>
         /// Draw the level enum popup for a scalable setting value.

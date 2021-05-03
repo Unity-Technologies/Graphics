@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Save a setting to the quality blob.
-            public void Save<T>(SerializedDataParameter setting) where T : struct
+            public void Save<T>(SerializedDataParameter setting)
             {
                 QualitySetting s;
                 s.state = setting.overrideState.boolValue;
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Attempts to fill a quality setting with its custom value and override state.
-            public void TryLoad<T>(ref SerializedDataParameter setting) where T : struct
+            public void TryLoad<T>(ref SerializedDataParameter setting)
             {
                 if (settings.TryGetValue(Hash(setting), out QualitySetting s))
                 {

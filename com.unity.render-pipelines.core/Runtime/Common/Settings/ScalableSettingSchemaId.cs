@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Identifies uniquely a <see cref="ScalableSettingSchema"/>.

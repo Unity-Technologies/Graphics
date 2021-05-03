@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
@@ -69,6 +70,165 @@ namespace UnityEditor.Rendering
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Get the value of a <see cref="SerializedProperty"/>.
+        ///
+        /// This function will be inlined by the compiler.
+        /// Caution: The case of Enum is not handled here.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the value to get.
+        ///
+        /// It is expected to be a supported type by the <see cref="SerializedProperty"/>.
+        /// </typeparam>
+        /// <param name="serializedProperty">The property to get.</param>
+        /// <returns>The value of the property.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T GetInline<T>(this SerializedProperty serializedProperty)
+        {
+            var propertyType = typeof(T);
+            if (propertyType == typeof(Color))
+                return (T)(object)serializedProperty.colorValue;
+            if (propertyType == typeof(string))
+                return (T)(object)serializedProperty.stringValue;
+            if (propertyType == typeof(double))
+                return (T)(object)serializedProperty.doubleValue;
+            if (propertyType == typeof(float))
+                return (T)(object)serializedProperty.floatValue;
+            if (propertyType == typeof(long))
+                return (T)(object)serializedProperty.longValue;
+            if (propertyType == typeof(int))
+                return (T)(object)serializedProperty.intValue;
+            if (propertyType == typeof(bool))
+                return (T)(object)serializedProperty.boolValue;
+            if (propertyType == typeof(BoundsInt))
+                return (T)(object)serializedProperty.boundsIntValue;
+            if (propertyType == typeof(Bounds))
+                return (T)(object)serializedProperty.boundsValue;
+            if (propertyType == typeof(RectInt))
+                return (T)(object)serializedProperty.rectIntValue;
+            if (propertyType == typeof(Rect))
+                return (T)(object)serializedProperty.rectValue;
+            if (propertyType == typeof(Quaternion))
+                return (T)(object)serializedProperty.quaternionValue;
+            if (propertyType == typeof(Vector2Int))
+                return (T)(object)serializedProperty.vector2IntValue;
+            if (propertyType == typeof(Vector4))
+                return (T)(object)serializedProperty.vector4Value;
+            if (propertyType == typeof(Vector3))
+                return (T)(object)serializedProperty.vector3Value;
+            if (propertyType == typeof(Vector2))
+                return (T)(object)serializedProperty.vector2Value;
+            if (propertyType.IsEnum)
+                return serializedProperty.GetEnumValue<T>();
+            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
+        }
+
+        /// <summary>
+        /// Set the value of a <see cref="SerializedProperty"/>.
+        ///
+        /// This function will be inlined by the compiler.
+        /// Caution: The case of Enum is not handled here.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the value to set.
+        ///
+        /// It is expected to be a supported type by the <see cref="SerializedProperty"/>.
+        /// </typeparam>
+        /// <param name="serializedProperty">The property to set.</param>
+        /// <param name="value">The value to set.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetInline<T>(this SerializedProperty serializedProperty, T value)
+        {
+            var propertyType = typeof(T);
+            if (propertyType == typeof(Color))
+            {
+                serializedProperty.colorValue = (Color)(object)value;
+                return;
+            }
+            if (propertyType == typeof(string))
+            {
+                serializedProperty.stringValue = (string)(object)value;
+                return;
+            }
+            if (propertyType == typeof(double))
+            {
+                serializedProperty.doubleValue = (double)(object)value;
+                return;
+            }
+            if (propertyType == typeof(float))
+            {
+                serializedProperty.floatValue = (float)(object)value;
+                return;
+            }
+            if (propertyType == typeof(long))
+            {
+                serializedProperty.longValue = (long)(object)value;
+                return;
+            }
+            if (propertyType == typeof(int))
+            {
+                serializedProperty.intValue = (int)(object)value;
+                return;
+            }
+            if (propertyType == typeof(bool))
+            {
+                serializedProperty.boolValue = (bool)(object)value;
+                return;
+            }
+            if (propertyType== typeof(BoundsInt))
+            {
+                serializedProperty.boundsIntValue = (BoundsInt)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Bounds))
+            {
+                serializedProperty.boundsValue = (Bounds)(object)value;
+                return;
+            }
+            if (propertyType == typeof(RectInt))
+            {
+                serializedProperty.rectIntValue = (RectInt)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Rect))
+            {
+                serializedProperty.rectValue = (Rect)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Quaternion))
+            {
+                serializedProperty.quaternionValue = (Quaternion)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Vector2Int))
+            {
+                serializedProperty.vector2IntValue = (Vector2Int)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Vector4))
+            {
+                serializedProperty.vector4Value = (Vector4)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Vector3))
+            {
+                serializedProperty.vector3Value = (Vector3)(object)value;
+                return;
+            }
+            if (propertyType == typeof(Vector2))
+            {
+                serializedProperty.vector2Value = (Vector2)(object)value;
+                return;
+            }
+            if (propertyType.IsEnum)
+            {
+                serializedProperty.SetEnumValue(value);
+                return;
+            }
+            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
         }
 
         // UI Helpers

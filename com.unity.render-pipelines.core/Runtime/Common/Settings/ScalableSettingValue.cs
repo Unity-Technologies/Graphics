@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Define a value that can be either customized or fetched from a current quality settings' sub level.

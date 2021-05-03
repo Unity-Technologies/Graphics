@@ -1,14 +1,14 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Serialized version of <see cref="ScalableSetting{T}"/>.
     /// </summary>
-    internal class SerializedScalableSetting
+    public class SerializedScalableSetting
     {
         public SerializedProperty values;
         public SerializedProperty schemaId;
@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetLevelValue<T>(int level, out T value)
-            where T : struct
         {
             if (level < values.arraySize && level >= 0)
             {
@@ -55,7 +54,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    internal static class SerializedScalableSettingUI
+    /// <summary>
+    /// UI wrapper for <see cref="SerializedScalableSetting"/>
+    /// </summary>
+    public static class SerializedScalableSettingUI
     {
         /// <summary>
         /// Draw the scalable setting as a single line field with multiple values.
@@ -66,7 +68,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="self">The scalable setting to draw.</param>
         /// <param name="label">The label of the field.</param>
         public static void ValueGUI<T>(this SerializedScalableSetting self, GUIContent label)
-            where T : struct
         {
             var schema = ScalableSettingSchema.GetSchemaOrNull(new ScalableSettingSchemaId(self.schemaId.stringValue))
                 ?? ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels);
@@ -93,6 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 LevelValuesFieldGUI<float>(contentRect, self, count, schema);
             else if (typeof(T).IsEnum)
                 LevelValuesFieldGUI<T>(contentRect, self, count, schema);
+
             EditorGUI.showMixedValue = false;
         }
 
@@ -113,7 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             int count,
             ScalableSettingSchema schema
         )
-            where T : struct
         {
             var labels = new GUIContent[count];
             Array.Copy(schema.levelNames, labels, count);
@@ -125,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
             {
                 for (var i = 0; i < count; ++i)
-                    scalableSetting.values.GetArrayElementAtIndex(i).SetInline(values[i]);
+                    scalableSetting.values.GetArrayElementAtIndex(i).SetInline<T>(values[i]);
             }
         }
 
@@ -135,7 +136,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="subLabels">The labels for each sub value field.</param>
         /// <param name="values">The current values of the fields.</param>
         static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
-            where T : struct
         {
             // The number of slots we need to fit into this rectangle
             var length = values.Length;

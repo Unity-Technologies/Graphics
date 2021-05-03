@@ -1,7 +1,7 @@
 using System.Text;
 using System.Reflection;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.Build;
