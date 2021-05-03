@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 }
             }
-            AssertHelpers.IsNotNull(metadata, "Cannot draw ShaderGraph GUI on a non-ShaderGraph material", materialEditor.target);
+            AssertHelpers.IsNotNull(metadata, "Cannot draw ShaderGraph GUI on a non-ShaderGraph material: " + materialEditor.target);
             DrawShaderGraphGUI(materialEditor, properties, metadata.categoryDatas);
         }
 

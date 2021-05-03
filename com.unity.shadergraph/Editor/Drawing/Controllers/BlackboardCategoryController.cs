@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action<GraphData> modifyGraphDataAction => ChangeCategoryName;
 
-        //Reference to the category being modified
+        // Guid of the category being modified
         public string categoryGuid { get; set; }
 
         internal string newCategoryNameValue { get; set; }
@@ -114,12 +114,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<string, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<string, ShaderInputViewController>();
         SGBlackboard blackboard { get; set; }
 
-
         internal BlackboardCategoryController(CategoryData categoryData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
             : base(categoryData, categoryViewModel, dataStore)
         {
-            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
-            m_BlackboardCategoryView.controller = this;
+            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel, this);
             blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
                 return;
@@ -132,16 +130,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             blackboard.hideDragIndicatorAction += m_BlackboardCategoryView.OnDragActionCanceled;
 
-            foreach (var shaderInput in dataStore.State.properties)
+            foreach (var categoryItem in categoryData.Children)
             {
-                if (IsInputInCategory(shaderInput))
-                    InsertBlackboardRow(shaderInput);
-            }
-
-            foreach (var shaderInput in dataStore.State.keywords)
-            {
-                if (IsInputInCategory(shaderInput))
-                    InsertBlackboardRow(shaderInput);
+                InsertBlackboardRow(categoryItem);
             }
         }
 
@@ -230,7 +221,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ChangeCategoryNameAction changeCategoryNameAction:
                     if (changeCategoryNameAction.categoryGuid == ViewModel.associatedCategoryGuid)
                     {
-                        ViewModel.name = changeCategoryNameAction.newCategoryNameValue;
+                        ViewModel.name = Model.name;
                         m_BlackboardCategoryView.title = ViewModel.name;
                     }
                     break;

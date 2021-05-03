@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Serializable]
     class CategoryData : JsonObject
     {
         [SerializeField]
@@ -113,6 +112,11 @@ namespace UnityEditor.ShaderGraph
                     m_ChildObjectIDSet.Add(childObject.objectId);
                 }
             }
+        }
+
+        public CategoryData(CategoryData categoryToCopy)
+        {
+            this.name = categoryToCopy.name;
         }
 
         public static CategoryData DefaultCategory(List<ShaderInput> categoryChildren = null)

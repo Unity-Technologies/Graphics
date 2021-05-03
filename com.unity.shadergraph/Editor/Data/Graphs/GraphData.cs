@@ -1483,10 +1483,10 @@ namespace UnityEditor.ShaderGraph
         public void MoveCategory(CategoryData category, int newIndex)
         {
             if (newIndex > m_CategoryData.Count || newIndex < 0)
-                throw new ArgumentException("New index is not within categories list.");
+                AssertHelpers.Fail("New index is not within categories list.");
             var currentIndex = m_CategoryData.IndexOf(category);
             if (currentIndex == -1)
-                throw new ArgumentException("Category is not in graph.");
+                AssertHelpers.Fail("Category is not in graph.");
             if (newIndex == currentIndex)
                 return;
             m_CategoryData.RemoveAt(currentIndex);
@@ -1637,15 +1637,33 @@ namespace UnityEditor.ShaderGraph
             m_AddedCategories.Add(categoryDataReference);
         }
 
+        public string FindCategoryForInput(ShaderInput input)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.IsItemInCategory(input))
+                {
+                    return categoryData.categoryGuid;
+                }
+            }
+
+            AssertHelpers.Fail("Attempted to find category for an input that doesn't exist in the graph.");
+            return String.Empty;
+        }
+
         public void ChangeCategoryName(string categoryGUID, string newName)
         {
             foreach (var categoryData in categories)
             {
                 if (categoryData.categoryGuid == categoryGUID)
                 {
-                    categoryData.name = newName;
+                    var sanitizedCategoryName = GraphUtil.SanitizeCategoryName(newName);
+                    categoryData.name = sanitizedCategoryName;
+                    return;
                 }
             }
+
+            AssertHelpers.Fail("Attempted to change name of a category that does not exist in the graph.");
         }
 
         public void InsertItemIntoCategory(string categoryGUID, ShaderInput itemToAdd, int insertionIndex = -1)
@@ -1671,8 +1689,11 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == categoryGUID)
                 {
                     categoryData.RemoveItemFromCategory(itemToRemove);
+                    return;
                 }
             }
+
+            AssertHelpers.Fail("Attempted to remove item from a category that does not exist in the graph.");
         }
 
         public void RemoveCategory(string categoryGUID)
@@ -1687,8 +1708,30 @@ namespace UnityEditor.ShaderGraph
                     // Whenever a category is removed, also remove any inputs within that category
                     foreach (var shaderInput in categoryData.Children)
                         RemoveGraphInput(shaderInput);
+
+                    return;
                 }
             }
+
+            AssertHelpers.Fail("Attempted to remove a category that does not exist in the graph.");
+        }
+
+        // This differs from the rest of the category handling functions due to how categories can be copied between graphs
+        // Since we have no guarantee of us owning the categories, we need a direct reference to the category to copy
+        public CategoryData CopyCategory(CategoryData categoryToCopy)
+        {
+            var copiedCategory = new CategoryData(categoryToCopy);
+            AddCategory(copiedCategory);
+            int insertIndex = 0;
+            // Whenever a category is copied, also copy over all the inputs within that category
+            foreach (var childInputToCopy in categoryToCopy.Children)
+            {
+                var newShaderInput = AddCopyOfShaderInput(childInputToCopy, insertIndex);
+                copiedCategory.InsertItemIntoCategory(newShaderInput);
+                insertIndex++;
+            }
+
+            return copiedCategory;
         }
 
         public void OnKeywordChanged()

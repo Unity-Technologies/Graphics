@@ -1,6 +1,3 @@
-// TODO: REMOVE
-#define SG_ASSERTIONS
-
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -111,12 +108,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public static AddShaderInputAction AdddDeprecatedPropertyAction(BlackboardShaderInputOrder order)
+        public static AddShaderInputAction AddDeprecatedPropertyAction(BlackboardShaderInputOrder order)
         {
             return new AddShaderInputAction() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
 
-        public static AddShaderInputAction AdddKeywordAction(BlackboardShaderInputOrder order)
+        public static AddShaderInputAction AddKeywordAction(BlackboardShaderInputOrder order)
         {
             return new AddShaderInputAction() { shaderInputReference = BlackboardShaderInputFactory.GetShaderInput(order), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu };
         }
@@ -156,8 +153,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyShaderInputAction");
             AssertHelpers.IsNotNull(shaderInputToCopy, "ShaderInputToCopy is null while carrying out CopyShaderInputAction");
-            // Don't handle undo here as there are different contexts in which this action is used, that define the undo action namea
+
+            // Don't handle undo here as there are different contexts in which this action is used, that define the undo action
             // TODO: Perhaps a sign that each of those need to be made their own actions instead of conflating intent into a single action
+
             switch (shaderInputToCopy)
             {
                 case AbstractShaderProperty property:
@@ -205,22 +204,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var category in graphData.categories)
             {
-                if (category.IsItemInCategory(shaderInputToCopy))
+                if (category.categoryGuid == containingCategoryGuid)
                 {
                     graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
                     return;
-                }
-            }
-
-            foreach (var category in graphData.categories)
-            {
-                foreach (var child in category.Children)
-                {
-                    if (child.referenceName.Equals(shaderInputToCopy.referenceName, StringComparison.Ordinal))
-                    {
-                        graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
-                        return;
-                    }
                 }
             }
         }
@@ -233,6 +220,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public BlackboardItem copiedShaderInput { get; set; }
 
+        public string containingCategoryGuid { get; set; }
+
         public int insertIndex { get; set; } = -1;
     }
 
@@ -243,7 +232,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddCategoryAction");
             graphData.owner.RegisterCompleteObjectUndo("Add Category");
             // If categoryDataReference is not null, directly add it to graphData
-            graphData.AddCategory(categoryDataReference ?? new CategoryData(categoryName, childObjects));
+            if (categoryDataReference == null)
+                categoryDataReference = new CategoryData(categoryName, childObjects);
+            graphData.AddCategory(categoryDataReference);
         }
 
         public Action<GraphData> modifyGraphDataAction => AddCategory;
@@ -262,7 +253,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.owner.RegisterCompleteObjectUndo("Move Category");
             // Handling for out of range moves is slightly different, but otherwise we need to reverse for insertion order.
             var guids = newIndexValue >= graphData.categories.Count() ? categoryGuids : categoryGuids.Reverse<string>();
-            foreach (var guid in guids)
+            foreach (var guid in categoryGuids)
             {
                 var cat = graphData.categories.FirstOrDefault(c => c.categoryGuid == guid);
                 graphData.MoveCategory(cat, newIndexValue);
@@ -279,6 +270,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class AddItemToCategoryAction : IGraphDataAction
     {
+        public enum AddActionSource
+        {
+            Default,
+            DragDrop
+        }
+
         void AddItemsToCategory(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddItemToCategoryAction");
@@ -294,22 +291,30 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // By default an item is always added to the end of a category, if this value is set to something other than -1, will insert the item at that position within the category
         public int indexToAddItemAt { get; set; } = -1;
+
+        public AddActionSource addActionSource { get; set; }
     }
 
-    class RemoveItemsFromCategoryAction : IGraphDataAction
+    class CopyCategoryAction : IGraphDataAction
     {
-        void RemoveItemsFromCategory(GraphData graphData)
+        void CopyCategory(GraphData graphData)
         {
-            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out RemoveItemsFromCategoryAction");
-            graphData.owner.RegisterCompleteObjectUndo("Remove Item from Category");
-            graphData.RemoveItemFromCategory(categoryGuid, itemToRemove);
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyCategoryAction");
+            AssertHelpers.IsNotNull(categoryToCopyReference, "CategoryToCopyReference is null while carrying out CopyCategoryAction");
+
+            // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
+            //graphData.owner.RegisterCompleteObjectUndo("Copy Category");
+
+            newCategoryDataReference = graphData.CopyCategory(categoryToCopyReference);
         }
 
-        public Action<GraphData> modifyGraphDataAction => RemoveItemsFromCategory;
+        // Reference to the new category created as a copy
+        public CategoryData newCategoryDataReference { get; set; }
 
-        public string categoryGuid { get; set; }
+        // After category has been copied, store reference to it
+        public CategoryData categoryToCopyReference { get; set; }
 
-        public ShaderInput itemToRemove { get; set; }
+        public Action<GraphData> modifyGraphDataAction => CopyCategory;
     }
 
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
@@ -393,7 +398,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     order.isKeyword = false;
                     order.deprecatedPropertyName = name;
                     order.version = ColorShaderProperty.deprecatedVersion;
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AdddDeprecatedPropertyAction(order));
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AddDeprecatedPropertyAction(order));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.AddPropertyAction(shaderInputType));
                 }
                 else
@@ -403,9 +408,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Default Keywords next
             order.isKeyword = true;
             order.keywordType = KeywordType.Boolean;
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", AddShaderInputAction.AdddKeywordAction(order));
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean", AddShaderInputAction.AddKeywordAction(order));
             order.keywordType = KeywordType.Enum;
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", AddShaderInputAction.AdddKeywordAction(order));
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum", AddShaderInputAction.AddKeywordAction(order));
 
             // Built-In Keywords after that
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
@@ -419,7 +424,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     order.builtInKeyword = (ShaderKeyword)keyword.Copy();
-                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName, AddShaderInputAction.AdddKeywordAction(order));
+                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName, AddShaderInputAction.AddKeywordAction(order));
                 }
             }
 
@@ -481,13 +486,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.parentView = blackboard;
             blackboardCategoryViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
             blackboardCategoryViewModel.name = categoryInfo.name;
-            blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
+            blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.categoryGuid;
             blackboardCategoryViewModel.isExpanded = EditorPrefs.GetBool($"{editorPrefsBaseKey}.{categoryInfo.categoryGuid}.{ChangeCategoryIsExpandedAction.kEditorPrefKey}", true);
 
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            if (m_BlackboardCategoryControllers.ContainsKey(categoryInfo.objectId) == false)
+            if(m_BlackboardCategoryControllers.ContainsKey(categoryInfo.categoryGuid) == false)
             {
-                m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
+                m_BlackboardCategoryControllers.Add(categoryInfo.categoryGuid, blackboardCategoryController);
             }
             else
             {
@@ -597,10 +602,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case MoveCategoryAction moveCategoryAction:
-                    // TODO: Not this.
                     ClearBlackboardCategories();
                     foreach (var categoryData in ViewModel.categoryInfoList)
                         AddBlackboardCategory(graphData.owner.graphDataStore, categoryData);
+                    break;
+
+                case CopyCategoryAction copyCategoryAction:
+                    AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
                     break;
             }
 
@@ -635,6 +643,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return true;
+        }
+
+        public SGBlackboardCategory GetBlackboardCategory(string inputGuid)
+        {
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
+            {
+                if(categoryController.Model.categoryGuid == inputGuid)
+                    return categoryController.blackboardCategoryView;
+            }
+
+            return null;
         }
 
         public SGBlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
