@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.7.0] - 2021-04-28
+
+### Added
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed lights shadow frustum near and far planes.
+
 ## [7.6.0] - 2021-03-25
 
 ### Added
@@ -11,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
-- Fixed lights shadow frustum near and far planes.
 
 ## Changed
 - Tidy up of platform abstraction code for shader optimization.
