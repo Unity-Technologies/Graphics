@@ -16,7 +16,7 @@ pre_pack_hdrp_template_Win_trunk:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     artifacts:
         primed:
@@ -52,7 +52,7 @@ test_hdrp_template_Win_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
@@ -66,8 +66,7 @@ pre_pack_hdrp_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     artifacts:
         primed:
@@ -101,9 +100,7 @@ test_hdrp_template_OSX_trunk:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
     artifacts:
@@ -154,7 +151,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
@@ -192,7 +189,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
@@ -206,8 +203,7 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
@@ -243,9 +239,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
     artifacts:
@@ -296,7 +290,7 @@ pre_pack_universal_template_Win_trunk:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     artifacts:
         primed:
@@ -332,7 +326,7 @@ test_universal_template_Win_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
@@ -346,8 +340,7 @@ pre_pack_universal_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     artifacts:
         primed:
@@ -381,9 +374,7 @@ test_universal_template_OSX_trunk:
       -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
     artifacts:
@@ -434,7 +425,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
@@ -472,7 +463,7 @@ test_universal_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
@@ -486,8 +477,7 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
@@ -523,9 +513,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
       -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u $CUSTOM_REVISION -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
     artifacts:
