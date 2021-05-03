@@ -21,7 +21,7 @@ namespace kTools.Motion
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
         MotionData m_MotionData;
-        private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVec);
+        private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
         #endregion
 
         #region Constructors
@@ -62,8 +62,8 @@ namespace kTools.Motion
             if (m_CameraMaterial == null || m_ObjectMaterial == null)
                 return;
 
-                // Get data
-                var camera = renderingData.cameraData.camera;
+            // Get data
+            var camera = renderingData.cameraData.camera;
 
             // Never draw in Preview
             if(camera.cameraType == CameraType.Preview)
