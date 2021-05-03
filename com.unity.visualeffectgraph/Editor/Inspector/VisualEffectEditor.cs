@@ -9,6 +9,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.VFX;
 
+using UnityEditor.Overlays;
+using UnityEditor.Experimental;
+using UnityEditor.SceneManagement;
+
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using EditMode = UnityEditorInternal.EditMode;
@@ -115,7 +119,7 @@ namespace UnityEditor.VFX
             m_RendererEditor = new RendererEditor(renderers);
 
             s_FakeObjectSerializedCache = new SerializedObject(targets[0]);
-            SceneView.duringSceneGui += OnSceneViewGUI;
+            s_EffectUi = this;
         }
 
         protected void OnDisable()
@@ -127,12 +131,14 @@ namespace UnityEditor.VFX
                 effect.playRate = 1.0f;
             }
             OnDisableWithoutResetting();
+            if (s_EffectUi == this)
+                s_EffectUi = null;
         }
 
         protected void OnDisableWithoutResetting()
         {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-
+            if (s_EffectUi == this)
+                s_EffectUi = null;
             s_AllEditors.Remove(this);
         }
 
@@ -466,7 +472,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        protected virtual void SceneViewGUICallback()
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect == null)
@@ -552,9 +558,25 @@ namespace UnityEditor.VFX
             effect.playRate = rate;
         }
 
-        protected virtual void OnSceneViewGUI(SceneView sv)
+        static VisualEffectEditor s_EffectUi;
+
+        [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
+        class SceneViewVFXSlotContainerOverlay : TransientSceneViewOverlay
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            const string k_OverlayId = "Scene View/Visual Effect";
+            const string k_DisplayName = "Visual Effect";
+            public override bool ShouldDisplay()
+            {
+                return s_EffectUi != null;
+            }
+
+            public override void OnGUI()
+            {
+                if (s_EffectUi == null)
+                    return;
+
+                s_EffectUi.SceneViewGUICallback();
+            }
         }
 
         private VFXGraph m_graph;

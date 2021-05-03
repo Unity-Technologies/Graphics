@@ -81,15 +81,57 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 
     backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
 }
 
+// Temporary duplication
+float3 EvaluateAPVL0Point(APVResources apvRes, float3 uvw, out float L1Rx)
+{
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
+    L1Rx = L0_L1Rx.w;
+
+    return L0_L1Rx.xyz;
+}
+
+void EvaluateAPVL1Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+{
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_point_clamp_sampler, uvw, 0).rgba;
+
+    float3 l1_R = float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w);
+    float3 l1_G = L1G_L1Ry.xyz;
+    float3 l1_B = L1B_L1Rz.xyz;
+
+    // decode the L1 coefficients
+    l1_R = DecodeSH(L0.r, l1_R);
+    l1_G = DecodeSH(L0.g, l1_G);
+    l1_B = DecodeSH(L0.b, l1_B);
+
+    diffuseLighting = SHEvalLinearL1(N, l1_R, l1_G, l1_B);
+    backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
+}
+
 #ifdef PROBE_VOLUMES_L2
 void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
 {
     EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
+
     float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-
     float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+
+    DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
+
+    diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
+    backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
+}
+
+void EvaluateAPVL1L2Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
+{
+    EvaluateAPVL1Point(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
+
+    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_point_clamp_sampler, uvw, 0).rgba;
+    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_point_clamp_sampler, uvw, 0).rgba;
 
     DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
@@ -98,7 +140,7 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float
 }
 #endif
 
-bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw, out uint subdiv)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -148,7 +190,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
-    uint   subdiv = (packed_pool_idx >> 28) & 15;
+    subdiv = (packed_pool_idx >> 28) & 15;
     float  cellSize = pow(3.0, subdiv);
     uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     uint3  pool_idx;
@@ -165,6 +207,12 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     uvw += offset;                                  // add the final offset
 
     return hasValidUVW;
+}
+
+bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+{
+    uint unusedSubdiv;
+    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, uvw, unusedSubdiv);
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,

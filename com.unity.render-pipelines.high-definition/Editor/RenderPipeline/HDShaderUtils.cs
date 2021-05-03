@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
             { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
             // no entry for ShaderID.SG_Decal
-            // no entry for ShaderID.SG_Eye
+            { ShaderID.SG_Eye, LightingShaderGraphGUI.SetupLightingKeywordsAndPass }
         };
 
         /// <summary>
@@ -84,12 +84,18 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
+            var shaderID = GetShaderEnumFromShader(material.shader);
+            return ResetMaterialKeywords(material, shaderID);
+        }
+
+        internal static bool ResetMaterialKeywords(Material material, ShaderID shaderId)
+        {
             MaterialResetter resetter;
 
             // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
             try
             {
-                k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
+                k_MaterialResetters.TryGetValue(shaderId, out resetter);
             }
             catch
             {
@@ -124,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // All HDRP shader graphs should have HD metadata
                 return shader.TryGetMetadataOfType<HDMetadata>(out _);
@@ -140,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (shader == null)
                 return false;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
@@ -168,7 +174,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static ShaderID GetShaderEnumFromShader(Shader shader)
         {
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
