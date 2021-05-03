@@ -54,7 +54,6 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
 
-            GUILayout.BeginHorizontal();
             if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene"), EditorStyles.miniButton))
             {
                 performFitting = true;
@@ -112,8 +111,6 @@ namespace UnityEditor.Experimental.Rendering
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
             }
-
-            GUILayout.EndHorizontal();
         }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
