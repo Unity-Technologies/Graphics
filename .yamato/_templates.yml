@@ -18,6 +18,8 @@ pre_pack_hdrp_template_Win_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     artifacts:
         primed:
             paths:
@@ -68,6 +70,8 @@ pre_pack_hdrp_template_OSX_trunk:
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     artifacts:
         primed:
             paths:
@@ -155,7 +159,6 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
         primed:
             paths:
@@ -207,7 +210,6 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
         primed:
@@ -294,6 +296,8 @@ pre_pack_universal_template_Win_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     artifacts:
         primed:
             paths:
@@ -344,6 +348,8 @@ pre_pack_universal_template_OSX_trunk:
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     artifacts:
         primed:
             paths:
@@ -431,7 +437,6 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
         primed:
             paths:
@@ -483,7 +488,6 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
         primed:
