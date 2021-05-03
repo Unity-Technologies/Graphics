@@ -44,7 +44,7 @@ public class MultipleViewGCTest : MonoBehaviour
 
         if (allocationCountOfRenderPipeline > 0)
         {
-            Debug.LogError($"Memory was allocated {allocationCountOfRenderPipeline} times");
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, $"Memory was allocated {allocationCountOfRenderPipeline} times");
         }
         Profiler.EndSample();
     }

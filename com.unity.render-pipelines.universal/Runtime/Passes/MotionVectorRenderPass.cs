@@ -9,8 +9,6 @@ namespace kTools.Motion
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
 #region Fields
-        const string kCameraShader = "Hidden/kMotion/CameraMotionVectors";
-        const string kObjectShader = "Hidden/kMotion/ObjectMotionVectors";
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kMotionVectorTexture = "_MotionVectorTexture";
 
@@ -20,27 +18,25 @@ namespace kTools.Motion
         };
 
         RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
-        Material m_CameraMaterial;
-        Material m_ObjectMaterial;
+        readonly Material m_CameraMaterial;
+        readonly Material m_ObjectMaterial;
         MotionData m_MotionData;
         private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVec);
         #endregion
 
         #region Constructors
-        internal MotionVectorRenderPass()
+        internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
         {
-            // Set data
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+            m_CameraMaterial = cameraMaterial;
+            m_ObjectMaterial = objectMaterial;
         }
 #endregion
 
 #region State
         internal void Setup(MotionData motionData)
         {
-            // Set data
             m_MotionData = motionData;
-            m_CameraMaterial = new Material(Shader.Find(kCameraShader));
-            m_ObjectMaterial = new Material(Shader.Find(kObjectShader));
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -62,8 +58,12 @@ namespace kTools.Motion
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Get data
-            var camera = renderingData.cameraData.camera;
+
+            if (m_CameraMaterial == null || m_ObjectMaterial == null)
+                return;
+
+                // Get data
+                var camera = renderingData.cameraData.camera;
 
             // Never draw in Preview
             if(camera.cameraType == CameraType.Preview)
@@ -88,6 +88,7 @@ namespace kTools.Motion
                 DrawObjectMotionVectors(context, ref renderingData, cmd, camera);
             }
             ExecuteCommand(context, cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         DrawingSettings GetDrawingSettings(ref RenderingData renderingData)

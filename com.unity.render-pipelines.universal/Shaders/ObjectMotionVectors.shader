@@ -37,8 +37,8 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
             struct Varyings
             {
                 float4 positionCS           : SV_POSITION;
-                float2 positionVP           : TEXCOORD0;
-                //float4 previousPositionVP   : TEXCOORD1;
+                float4 positionVP           : TEXCOORD0;
+                float4 previousPositionVP   : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -63,15 +63,9 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                     output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
                 #endif
 
-                //output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
-                //output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x == 1 ? float4(input.positionOld, 1) : input.position));
+                output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
+                output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x == 1 ? float4(input.positionOld, 1) : input.position));
 
-                float4 posVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
-                float4 prevPosVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x == 1 ? float4(input.positionOld, 1) : input.position));
-
-                posVP.xy = posVP.xy / posVP.w;
-                prevPosVP.xy = prevPosVP.xy / prevPosVP.w;
-                output.positionVP = posVP.xy - prevPosVP.xy;
                 return output;
             }
 
@@ -89,14 +83,13 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                     return float4(0.0, 0.0, 0.0, 0.0);
                 }
 
-                //// Calculate positions
-                //float4 posVP = input.positionVP;
-                //posVP.xy = posVP.xy / posVP.w;
-                //input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;
-                //
-                //// Calculate velocity
-                //float2 velocity = (posVP.xy - input.previousPositionVP.xy);
-                float2 velocity = input.positionVP;
+                // Calculate positions
+                float4 posVP = input.positionVP;
+                posVP.xy = posVP.xy / posVP.w;
+                input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;
+                
+                // Calculate velocity
+                float2 velocity = (posVP.xy - input.previousPositionVP.xy);
                 #if UNITY_UV_STARTS_AT_TOP
                     velocity.y = -velocity.y;
                 #endif
@@ -105,8 +98,6 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
                 // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
                 return float4(velocity.xy * 0.5, 0, 0);
-                // return posVP;
-                // return float4(posVP.w, posVP.w, posVP.w, 1);
             }
             ENDHLSL
         }
