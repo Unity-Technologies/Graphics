@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("version")]
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         Version m_Version = MigrationDescription.LastVersion<Version>();
 
         static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
@@ -84,9 +85,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         int m_ObsoleteRenderingPath;
         [SerializeField]
         [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
 #pragma warning disable 618 // Type or member is obsolete
         ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618

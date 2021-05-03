@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         Camera m_Camera;
 
         /// <summary>
@@ -302,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool taaAntiHistoryRinging = false;
 
         /// <summary>Physical camera parameters.</summary>
+        [CopyFilter(CopyFilterAttribute.Filter.CheckContent)] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
         /// <summary>Vertical flip mode.</summary>
@@ -347,14 +349,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
+
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
+
         /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+
         /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+
         /// <summary>Custom frame settings.</summary>
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
 
@@ -367,6 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettings IFrameSettingsHistoryContainer.frameSettings
             => m_RenderingPathCustomFrameSettings;
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         FrameSettingsHistory m_RenderingPathHistory = new FrameSettingsHistory()
         {
             defaultType = FrameSettingsRenderType.Camera
@@ -391,8 +399,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // => m_FrameSettingsHistory.TriggerReset
             => () => m_RenderingPathHistory.TriggerReset();
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         internal ProfilingSampler profilingSampler;
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
         /// <summary>Set AOV requests to use.</summary>
@@ -489,7 +499,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.
         // This is the purpose of this class
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         bool m_IsDebugRegistered = false;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         string m_CameraRegisterName;
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
@@ -497,6 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
         /// </summary>
+        [field: CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         public bool isEditorCameraPreview { get; internal set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
@@ -529,6 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.invertFaceCulling = invertFaceCulling;
             data.probeLayerMask = probeLayerMask;
             data.hasPersistentHistory = hasPersistentHistory;
+            data.exposureTarget = exposureTarget;
             physicalParameters.CopyTo(data.physicalParameters);
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
@@ -548,6 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specify a custom getter for non oblique projection matrix.
         /// </summary>
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
 
         /// <summary>

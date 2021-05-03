@@ -1266,6 +1266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
+        [CopyFilter(CopyFilterAttribute.Filter.CheckContent)] //we want separate object with same values
         [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
@@ -1331,6 +1332,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        [CopyFilter(CopyFilterAttribute.Filter.CheckContent)] //we want separate object with same values
         BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
 
         /// <summary>
@@ -1621,6 +1623,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData
 
         [SerializeField]
+        [CopyFilter(CopyFilterAttribute.Filter.CheckContent)] //we want separate object with same values
         float[] m_ShadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
         internal float[] shadowCascadeRatios
         {
@@ -1629,6 +1632,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        [CopyFilter(CopyFilterAttribute.Filter.CheckContent)] //we want separate object with same values
         float[] m_ShadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
         internal float[] shadowCascadeBorders
         {
@@ -1672,29 +1676,38 @@ namespace UnityEngine.Rendering.HighDefinition
         bool featuresFoldout = true;
 #pragma warning restore 0414
 
-        HDShadowRequest[]   shadowRequests;
-        bool                m_WillRenderShadowMap;
-        bool                m_WillRenderScreenSpaceShadow;
-        bool                m_WillRenderRayTracedShadow;
-        int[]               m_ShadowRequestIndices;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        HDShadowRequest[] shadowRequests;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        bool m_WillRenderShadowMap;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        bool m_WillRenderScreenSpaceShadow;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        bool m_WillRenderRayTracedShadow;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        int[] m_ShadowRequestIndices;
 
 
         // Data for cached shadow maps
-        [System.NonSerialized]
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         internal int lightIdxForCachedShadows = -1;
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         Vector3[] m_CachedViewPositions;
 
 
-        [System.NonSerialized]
-        Plane[]             m_ShadowFrustumPlanes = new Plane[6];
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        Plane[] m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
-        [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        internal Matrix4x4 previousTransform = Matrix4x4.identity;
         // Temporary index that stores the current shadow index for the light
-        [System.NonSerialized] internal int shadowIndex = -1;
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
+        internal int shadowIndex = -1;
 
         // Runtime datas used to compute light intensity
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         Light m_Light;
         internal Light legacyLight
         {
@@ -1710,14 +1723,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const string k_EmissiveMeshViewerName = "EmissiveMeshViewer";
 
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         GameObject m_ChildEmissiveMeshViewer;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         MeshFilter m_EmissiveMeshFilter;
+
+        [field: CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
 #if UNITY_EDITOR
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         bool m_NeedsPrefabInstanceCheck = false;
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         bool needRefreshPrefabInstanceEmissiveMeshes = false;
 #endif
+        [CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
 
         void CreateChildEmissiveMeshViewerIfNeeded()
@@ -2414,7 +2434,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
 
         // Force to retrieve color light's m_UseColorTemperature because it's private
-        [System.NonSerialized]
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         SerializedProperty m_UseColorTemperatureProperty;
         SerializedProperty useColorTemperatureProperty
         {
@@ -2429,7 +2449,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [System.NonSerialized]
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         SerializedObject m_LightSerializedObject;
         SerializedObject lightSerializedObject
         {
@@ -2459,7 +2479,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: we might be able to get rid to that
-        [System.NonSerialized]
+        [System.NonSerialized, CopyFilter(CopyFilterAttribute.Filter.Exclude)]
         bool m_Animated;
 
         private void Start()
