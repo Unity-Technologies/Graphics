@@ -200,6 +200,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
 - Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
 - Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
