@@ -507,12 +507,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4052_TAA.unity
     guid: 3f337bf06aa4e694c9ef5f6dc0eab02e
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4053_TAA-FP16Alpha.unity
-    guid: f1d648a459637e342b078667ecd64f74
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4054_FXAA-FP16Alpha.unity
-    guid: fc37e20eb082d6944a895596faa6f019
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4060_CustomPostProcess.unity
     guid: cf78ea2211e5e6c45b8a85261bb291dd
   - enabled: 1
@@ -540,9 +534,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4080_DepthOfField.unity
     guid: d3375e5f6f853104cab3917c2424cca2
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4081_DepthOfField-FP16Alpha.unity
-    guid: ce905d8c0a0497f458dbe86bf3b1f615
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4082_DepthOfField-PB.unity
     guid: d31e5e20c0b5d8b42af93fda0f5f77a5
   - enabled: 1
@@ -554,6 +545,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4091_DRS-Software.unity
     guid: 6293ce393e2851d4e9827ff3dadd2673
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4101_FP16Alpha.unity
+    guid: 5f05ae64777a2d9458961c7ac5f1977f
   - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f

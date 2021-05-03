@@ -93,6 +93,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<int> m_PropertyIds = new List<int>();
 
+        [SerializeField]
+        List<string> m_Dropdowns = new List<string>();
+
+        [SerializeField]
+        List<string> m_DropdownSelectedEntries = new List<string>();
+
         public string subGraphGuid
         {
             get
@@ -218,6 +224,19 @@ namespace UnityEditor.ShaderGraph
                 prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
+
+                if (prop.isConnectionTestable)
+                    arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
+            }
+
+            var dropdowns = asset.dropdowns;
+            foreach (var dropdown in dropdowns)
+            {
+                var name = GetDropdownEntryName(dropdown.referenceName);
+                if (dropdown.ContainsEntry(name))
+                    arguments.Add(dropdown.IndexOfName(name).ToString());
+                else
+                    arguments.Add(dropdown.value.ToString());
             }
 
             // pass surface inputs through
@@ -561,6 +580,23 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public AbstractShaderProperty GetShaderProperty(int id)
+        {
+            var index = m_PropertyIds.IndexOf(id);
+            if (index >= 0)
+            {
+                var guid = m_PropertyGuids[index];
+                var properties = m_SubGraph.inputs.Where(x => x.guid.ToString().Equals(guid));
+                var count = properties.Count();
+                if (properties.Count() > 0)
+                {
+                    return properties.First();
+                }
+            }
+
+            return null;
+        }
+
         public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
         {
             if (asset == null)
@@ -735,6 +771,26 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresVertexID;
+        }
+
+        public string GetDropdownEntryName(string referenceName)
+        {
+            var index = m_Dropdowns.IndexOf(referenceName);
+            return index >= 0 ? m_DropdownSelectedEntries[index] : string.Empty;
+        }
+
+        public void SetDropdownEntryName(string referenceName, string value)
+        {
+            var index = m_Dropdowns.IndexOf(referenceName);
+            if (index >= 0)
+            {
+                m_DropdownSelectedEntries[index] = value;
+            }
+            else
+            {
+                m_Dropdowns.Add(referenceName);
+                m_DropdownSelectedEntries.Add(value);
+            }
         }
     }
 }
