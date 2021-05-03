@@ -18,6 +18,8 @@ ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil ad
 
 From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as the default Asset for HDRP. A new HDRP Global Settings Asset now exists to save settings unrelated to which HDRP Asset is active.
 
+Also, to ensure your build will use up to date data, HDRenderPipelineAsset and HDRenderPipelineGlobalSettings can raise a build error if they are not up to date when building. They can only be upgraded in Editor. Just opening the editor will upgrade them if they are used in your project (in a QualitySettings or in GraphicsSettings). The error can be raised when building from command line.
+
 ## Materials
 
 ### Transparent Surface Type

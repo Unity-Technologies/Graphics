@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     // TODO: Culling of shadow casters, rotate color channels for shadow casting, check get material functions.
 
