@@ -4,15 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
+
 public class LensFlareInput : MonoBehaviour
 {
     [Header("References")]
     public GameObject cameraGameObject;
-    public SRPLensFlareOverride lensFlareComponent;
+    public LensFlareComponentSRP lensFlareComponent;
     public Text lensFlareUIText;
 
     public GameObject[] skies;
-    public SRPLensFlareData[] lensFlares;
+    public LensFlareDataSRP[] lensFlares;
 
     [Header("Light Settings")]
     public GameObject lensFlareLight;
@@ -33,9 +37,7 @@ public class LensFlareInput : MonoBehaviour
     private Camera cameraComponent;
 
     private int flareNumber;
-    private int skyNumber;
 
-    private Vector2 mousePosition;
     private Vector3 vectorNoise = Vector3.zero;
 
     void Start()
@@ -45,75 +47,123 @@ public class LensFlareInput : MonoBehaviour
 
     void Update()
     {
-        SetSkyFromInput();
-        MoveLightWithMouse();
-        ChangeLensFlareWithMiddleMouse();
-        CameraMovementWithMouse();
+        if (Application.isFocused)
+        {
+            SetSkyFromInput();
+            MoveLightWithMouse();
+            ChangeLensFlare();
+            CameraMovementWithMouse();
+        }
         CameraShake();
     }
 
     private void SetSkyFromInput()
     {
-        for (int i = 0; i < skies.Length; i++)
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
-            if (Input.GetKeyDown(i.ToString()))
-            {
-                skyNumber = i;
-                SetSky();
-            }
+            SetSky(0);
         }
+        else if (Keyboard.current.digit2Key.wasPressedThisFrame)
+        {
+            SetSky(1);
+        }
+        else if (Keyboard.current.digit3Key.wasPressedThisFrame)
+        {
+            SetSky(2);
+        }
+#else
+        if (Input.GetKeyDown("1"))
+        {
+            SetSky(0);
+        }
+        else if (Input.GetKeyDown("2"))
+        {
+            SetSky(1);
+        }
+        else if (Input.GetKeyDown("3"))
+        {
+            SetSky(2);
+        }
+#endif
     }
 
-    void SetSky()
+    void SetSky(int inputNumber)
     {
-        if (skyNumber < skies.Length)
+        if (inputNumber < skies.Length)
         {
             for (int i = 0; i < skies.Length; i++)
             {
                 skies[i].SetActive(false);
             }
 
-            skies[skyNumber].SetActive(true);
+            skies[inputNumber].SetActive(true);
         }
     }
 
     private void MoveLightWithMouse()
     {
+#if ENABLE_INPUT_SYSTEM
+        if (Mouse.current.leftButton.IsPressed())
+        {
+            var mousePosition = Mouse.current.position.ReadValue();
+            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, lightDistance));
+        }
+#else
         if (Input.GetMouseButton(0))
         {
-            mousePosition.x = Input.mousePosition.x / Screen.width;
-            mousePosition.y = Input.mousePosition.y / Screen.height;
-
             lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, lightDistance));
         }
+#endif
     }
 
-    private void ChangeLensFlareWithMiddleMouse()
+    private void ChangeLensFlare()
     {
-        if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current.dKey.wasPressedThisFrame)
         {
-            flareNumber += 1;
-
-            if (flareNumber == lensFlares.Length)
-            {
-                flareNumber = 0;
-            }
-
-            lensFlareComponent.lensFlareData = lensFlares[flareNumber];
-            UpdateFlareNameUI();
+            IncrementFlare();
         }
-        else if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+        else if (Keyboard.current.aKey.wasPressedThisFrame)
         {
-            flareNumber -= 1;
-
-            if (flareNumber < 0)
-            {
-                flareNumber = lensFlares.Length - 1;
-            }
-
-            lensFlareComponent.lensFlareData = lensFlares[flareNumber];
-            UpdateFlareNameUI();
+            DecrementFlare();
         }
+#else
+        if (Input.GetKeyDown("d"))
+        {
+            IncrementFlare();
+        }
+        else if (Input.GetKeyDown("a"))
+        {
+            DecrementFlare();
+        }
+#endif
+    }
+
+    private void IncrementFlare()
+    {
+        flareNumber += 1;
+
+        if (flareNumber == lensFlares.Length)
+        {
+            flareNumber = 0;
+        }
+
+        lensFlareComponent.lensFlareData = lensFlares[flareNumber];
+        UpdateFlareNameUI();
+    }
+
+    private void DecrementFlare()
+    {
+        flareNumber -= 1;
+
+        if (flareNumber < 0)
+        {
+            flareNumber = lensFlares.Length - 1;
+        }
+
+        lensFlareComponent.lensFlareData = lensFlares[flareNumber];
+        UpdateFlareNameUI();
     }
 
     private void UpdateFlareNameUI()
@@ -124,11 +174,26 @@ public class LensFlareInput : MonoBehaviour
 
     private void CameraMovementWithMouse()
     {
-        LockCursorWhileMouseButtonDown(1);
+        LockCursorWhileMouseButtonDown();
 
+#if ENABLE_INPUT_SYSTEM
+        if (Mouse.current.rightButton.isPressed)
+        {
+            var mouseMovement = Mouse.current.delta.ReadValue() * cameraRotationSpeed / 30f;
+
+            if (useMouseDragInsteadOfFPSControl)
+            {
+                cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.y, mouseMovement.x * -1f, 0f);
+            }
+            else
+            {
+                cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.y * -1f, mouseMovement.x, 0f);
+            }
+        }
+#else
         if (Input.GetMouseButton(1))
         {
-            var mouseMovement = new Vector2(Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"));
+            var mouseMovement = new Vector2(Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X")) * Time.deltaTime * cameraRotationSpeed * 200.0f;
 
             if (useMouseDragInsteadOfFPSControl)
             {
@@ -139,20 +204,35 @@ public class LensFlareInput : MonoBehaviour
                 cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.x * -1f, mouseMovement.y, 0f);
             }
         }
+#endif
     }
 
-    private void LockCursorWhileMouseButtonDown(int mouseButton)
+    private void LockCursorWhileMouseButtonDown()
     {
-        if (Input.GetMouseButtonDown(mouseButton))
+#if ENABLE_INPUT_SYSTEM
+        if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        if (Input.GetMouseButtonUp(mouseButton))
+        if (Mouse.current.rightButton.wasReleasedThisFrame)
         {
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
+#else
+        if (Input.GetMouseButtonDown(1))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        if (Input.GetMouseButtonUp(1))
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+#endif
+
     }
 
     private void CameraShake()

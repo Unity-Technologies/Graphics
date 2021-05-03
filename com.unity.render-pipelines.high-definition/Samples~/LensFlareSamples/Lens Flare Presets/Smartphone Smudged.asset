@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: Smartphone Smudged
   m_EditorClassIdentifier: 
   elements:
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 2
-    edgeOffset: 0
+    fallOff: 0.588
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -250,7 +250,7 @@ MonoBehaviour:
     scaleVariation: 0
     rotationVariation: 0
     enableRadialDistortion: 0
-    targetSizeDistortion: {x: 3, y: 3}
+    targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -275,9 +275,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 1
+    distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.9
+    edgeOffset: 0.1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -384,7 +384,7 @@ MonoBehaviour:
     scaleVariation: 0
     rotationVariation: 0
     enableRadialDistortion: 0
-    targetSizeDistortion: {x: 3, y: 3}
+    targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -409,9 +409,9 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 1
+    distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.9
+    edgeOffset: 0.1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -544,8 +544,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.75
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -561,7 +561,7 @@ MonoBehaviour:
     count: 5
     preserveAspectRatio: 0
     rotation: -45.34
-    tint: {r: 0.27901864, g: 1, b: 0, a: 0.5}
+    tint: {r: 0.2784314, g: 1, b: 0, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -678,8 +678,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.75
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -695,7 +695,7 @@ MonoBehaviour:
     count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 0.32894266, g: 0.9056604, b: 0.5063995, a: 0.5}
+    tint: {r: 0.32941177, g: 0.9058824, b: 0.5058824, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -812,8 +812,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.732
+    fallOff: 0.813
+    edgeOffset: 0.246
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -829,7 +829,7 @@ MonoBehaviour:
     count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 0.32894266, g: 0.9056604, b: 0.5063995, a: 0.5}
+    tint: {r: 0.32941177, g: 0.9058824, b: 0.5058824, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -946,8 +946,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.702
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: Sun Glare
   m_EditorClassIdentifier: 
   elements:
@@ -19,13 +19,13 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     localIntensity: 1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 50
+    uniformScale: 40
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
     count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 1, g: 0.5030826, b: 0.2216981, a: 0.5}
+    tint: {r: 1, g: 0.5019608, b: 0.22352943, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 2
-    edgeOffset: 0.009
+    fallOff: 0.587
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -158,8 +158,8 @@ MonoBehaviour:
     allowMultipleElement: 0
     count: 5
     preserveAspectRatio: 0
-    rotation: 27.52
-    tint: {r: 0.6435868, g: 0.4008989, b: 0.9339623, a: 1}
+    rotation: 207.52
+    tint: {r: 0.6431373, g: 0.40000004, b: 0.9333334, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 0
@@ -277,7 +277,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.9
+    edgeOffset: 0.1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

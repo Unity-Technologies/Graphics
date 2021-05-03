@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: Simple Spike
   m_EditorClassIdentifier: 
   elements:
@@ -29,7 +29,7 @@ MonoBehaviour:
     blendMode: 0
     autoRotate: 0
     flareType: 0
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 2
     lengthSpread: 0
@@ -86,18 +86,18 @@ MonoBehaviour:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0.99876064, g: 1, b: 0.6839622, a: 0}
-      key3: {r: 0.6146319, g: 1, b: 0.6084906, a: 0}
-      key4: {r: 0.54147387, g: 0.565612, b: 0.9811321, a: 0}
-      key5: {r: 0.8365704, g: 0.5518868, b: 1, a: 0}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
       key6: {r: 0, g: 0, b: 0, a: 0}
       key7: {r: 0, g: 0, b: 0, a: 0}
       ctime0: 0
       ctime1: 65535
-      ctime2: 25250
-      ctime3: 38165
-      ctime4: 52043
-      ctime5: 65342
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
       ctime6: 0
       ctime7: 0
       atime0: 0
@@ -113,8 +113,8 @@ MonoBehaviour:
       m_NumAlphaKeys: 2
     intensityVariation: 1
     positionVariation: {x: 0, y: 0}
-    scaleVariation: 0.42
-    rotationVariation: 36.65
+    scaleVariation: 1.36
+    rotationVariation: 6.1
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
@@ -143,7 +143,7 @@ MonoBehaviour:
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.9
+    edgeOffset: 0.1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

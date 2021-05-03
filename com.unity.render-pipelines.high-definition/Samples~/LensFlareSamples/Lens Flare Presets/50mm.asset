@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: 50mm
   m_EditorClassIdentifier: 
   elements:
@@ -29,7 +29,7 @@ MonoBehaviour:
     blendMode: 0
     autoRotate: 0
     flareType: 1
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 0
     lengthSpread: 1
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.8
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -153,7 +153,7 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     localIntensity: 0.05
     lensFlareTexture: {fileID: 0}
-    uniformScale: 5.45
+    uniformScale: 5
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 1
     count: 6
@@ -163,7 +163,7 @@ MonoBehaviour:
     blendMode: 0
     autoRotate: 0
     flareType: 2
-    modulateByLightColor: 1
+    modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 1
     lengthSpread: 0.11
@@ -195,31 +195,22 @@ MonoBehaviour:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.013034821
-        value: 0.32089233
-        inSlope: 0.4307875
-        outSlope: 0.4307875
-        tangentMode: 34
+        time: 0
+        value: 0.3208923
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.33333334
+        outWeight: 0
       - serializedVersion: 3
-        time: 0.6304228
-        value: 0.58685535
-        inSlope: 1.1455895
-        outSlope: 1.1455895
-        tangentMode: 34
+        time: 1
+        value: 1.266487
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.9957395
-        value: 1.2664875
-        inSlope: 1.8603914
-        outSlope: 1.8603914
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
+        inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
@@ -230,7 +221,7 @@ MonoBehaviour:
       key0: {r: 0.19200894, g: 0.08018869, b: 1, a: 1}
       key1: {r: 1, g: 0.33490568, b: 0.5423741, a: 1}
       key2: {r: 0.078097194, g: 0.21395244, b: 0.4245283, a: 0}
-      key3: {r: 0.023362398, g: 0.28651288, b: 0.7075472, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
       key5: {r: 0, g: 0, b: 0, a: 0}
       key6: {r: 0, g: 0, b: 0, a: 0}
@@ -238,7 +229,7 @@ MonoBehaviour:
       ctime0: 14842
       ctime1: 38165
       ctime2: 53585
-      ctime3: 63222
+      ctime3: 0
       ctime4: 0
       ctime5: 0
       ctime6: 0
@@ -285,8 +276,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.177
+    fallOff: 0.86
+    edgeOffset: 0.747
     sideCount: 5
     sdfRoundness: 0.812
     inverseSDF: 0
@@ -302,7 +293,7 @@ MonoBehaviour:
     count: 3
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 0.7253661, g: 0.7735849, b: 0.09852261, a: 0.5}
+    tint: {r: 0.7254902, g: 0.7725491, b: 0.098039225, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 2
@@ -358,7 +349,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 27
+    seed: 0
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 0.79607844, b: 0, a: 1}
@@ -419,10 +410,10 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.809
+    fallOff: 0.876
+    edgeOffset: 0.573
     sideCount: 5
-    sdfRoundness: 0.414
+    sdfRoundness: 0.4
     inverseSDF: 0
   - position: -0.39
     positionOffset: {x: 0, y: 0}
@@ -553,8 +544,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.832
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -570,12 +561,12 @@ MonoBehaviour:
     count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 0.9983167, g: 0.5707547, b: 1, a: 0.5}
+    tint: {r: 1, g: 0.57254905, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
     modulateByLightColor: 0
-    isFoldOpened: 0
+    isFoldOpened: 1
     distribution: 0
     lengthSpread: 1
     positionCurve:
@@ -687,8 +678,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.815
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

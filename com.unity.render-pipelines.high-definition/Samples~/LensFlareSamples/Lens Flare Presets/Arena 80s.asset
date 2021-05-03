@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
   m_Name: Arena 80s
   m_EditorClassIdentifier: 
   elements:
@@ -19,10 +19,10 @@ MonoBehaviour:
     translationScale: {x: 1, y: 1}
     localIntensity: 1
     lensFlareTexture: {fileID: 2800000, guid: 57bb5846aaf6f144d99efd4f8439bb63, type: 3}
-    uniformScale: 6.54
+    uniformScale: 6.5
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
-    count: 1
+    count: 5
     preserveAspectRatio: 0
     rotation: 16.46
     tint: {r: 1, g: 1, b: 1, a: 0.5}
@@ -31,7 +31,7 @@ MonoBehaviour:
     flareType: 0
     modulateByLightColor: 1
     isFoldOpened: 0
-    distribution: 1
+    distribution: 0
     lengthSpread: 1
     positionCurve:
       serializedVersion: 2
@@ -122,9 +122,9 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -132,8 +132,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 2
-    edgeOffset: 0
+    fallOff: 1
+    edgeOffset: 0.1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -276,8 +276,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0
+    fallOff: 0.697
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -288,11 +288,11 @@ MonoBehaviour:
     localIntensity: 1
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
-    sizeXY: {x: 0.5, y: 20}
+    sizeXY: {x: 0.4, y: 14.76}
     allowMultipleElement: 1
     count: 2
     preserveAspectRatio: 0
-    rotation: 0
+    rotation: 12.3
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
@@ -382,7 +382,7 @@ MonoBehaviour:
     intensityVariation: 0
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
-    rotationVariation: 171.01
+    rotationVariation: 23.98
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
@@ -390,9 +390,9 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -400,8 +400,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 0
-        outSlope: 0
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -410,8 +410,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 2
-    edgeOffset: 0.2
+    fallOff: 0.641
+    edgeOffset: 0.8
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
