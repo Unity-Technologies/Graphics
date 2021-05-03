@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)
+        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (!m_RecreateSystems)
                 return;
@@ -335,6 +335,15 @@ namespace UnityEngine.Rendering.Universal
             m_Technique = GetTechnique(renderer);
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
+
+            // TODO: Remove once decals stable with XR
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                m_Technique = DecalTechnique.Invalid;
+                Debug.LogError("Decals are currently not supported with XR.");
+            }
+#endif
 
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_CopyDepthPS);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
@@ -401,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.cameraType == CameraType.Preview)
                 return;
 
-            RecreateSystemsIfNeeded(renderer);
+            RecreateSystemsIfNeeded(renderer, cameraData);
 
             m_DecalEntityManager.Update();
 
@@ -438,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            RecreateSystemsIfNeeded(renderer);
+            RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
 
             if (intermediateRendering)
             {
@@ -460,14 +469,14 @@ namespace UnityEngine.Rendering.Universal
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(universalRenderer.deferredLights.DepthAttachmentIdentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier)
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthAttachmentIndentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier)
                         );
                     }
                     else
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
                             new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
                     }

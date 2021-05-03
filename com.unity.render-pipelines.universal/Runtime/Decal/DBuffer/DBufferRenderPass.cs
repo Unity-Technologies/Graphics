@@ -28,7 +28,8 @@ namespace UnityEngine.Rendering.Universal
         private bool isDeferred => deferredLights != null;
         internal RenderTargetIdentifier[] dBufferColorIndentifiers { get; private set; }
         internal RenderTargetIdentifier dBufferDepthIndentifier { get; private set; }
-        internal RenderTargetIdentifier cameraDepthIndentifier { get; private set; }
+        internal RenderTargetIdentifier cameraDepthTextureIndentifier { get; private set; }
+        internal RenderTargetIdentifier cameraDepthAttachmentIndentifier { get; private set; }
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
         {
@@ -51,7 +52,8 @@ namespace UnityEngine.Rendering.Universal
             m_DBufferCount = dBufferCount;
 
             dBufferDepthIndentifier = new RenderTargetIdentifier(s_DBufferDepthName);
-            cameraDepthIndentifier = new RenderTargetIdentifier("_CameraDepthTexture");
+            cameraDepthTextureIndentifier = new RenderTargetIdentifier("_CameraDepthTexture");
+            cameraDepthAttachmentIndentifier = new RenderTargetIdentifier("_CameraDepthAttachment");
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -96,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);
-                depthIdentifier = new RenderTargetIdentifier(s_DBufferDepthName);
+                depthIdentifier = dBufferDepthIndentifier;
             }
             else
             {

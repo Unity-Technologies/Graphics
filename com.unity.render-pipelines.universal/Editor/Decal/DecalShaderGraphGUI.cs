@@ -183,7 +183,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (renderer.TryGetRendererFeature(out DecalRendererFeature decalRendererFeature))
                 {
-                    if (decalRendererFeature.GetTechnique(renderer) == DecalTechnique.ScreenSpace)
+                    var technique = decalRendererFeature.GetTechnique(renderer);
+                    if (technique == DecalTechnique.ScreenSpace || technique == DecalTechnique.GBuffer)
                     {
                         hasDecalScreenSpace = true;
                         break;
