@@ -51,6 +51,8 @@ namespace UnityEngine.Rendering.Universal
             cachedInstance = newSettings;
         }
 
+        public static readonly string defaultAssetName = "UniversalRenderPipelineGlobalSettings";
+
 #if UNITY_EDITOR
         //Making sure there is at least one UniversalRenderPipelineGlobalSettings instance in the project
         internal static UniversalRenderPipelineGlobalSettings Ensure(string folderPath = "", bool canCreateNewAsset = true)
@@ -59,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
                 return UniversalRenderPipelineGlobalSettings.instance;
 
             UniversalRenderPipelineGlobalSettings assetCreated = null;
-            string path = "Assets/" + folderPath + "/UniversalRenderPipelineGlobalSettings.asset";
+            string path = $"Assets/{folderPath}/{defaultAssetName}.asset";
             assetCreated = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {

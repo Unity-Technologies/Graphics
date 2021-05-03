@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             settings = null;
             updateGraphicsSettings = activateAsset;
 
-            var path = "Assets/UniversalRenderPipelineGlobalSettings.asset";
+            var path = $"Assets/{UniversalRenderPipelineGlobalSettings.defaultAssetName}.asset";
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<UniversalGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
         }
 
