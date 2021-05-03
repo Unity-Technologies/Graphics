@@ -1,34 +1,47 @@
 # Decal Projector
 
-The Universal Render Pipeline (URP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader Graph](decal-shader.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because URP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
+URP includes the Decal Projector component, which lets you project specific Materials (decals) onto other objects in the Scene. A Decal Projector can use a Material if the Material uses the [Decal Shader Graph asset](decal-shader.md). When the Decal Projector component projects decals onto other GameObjects, the decals interact with the Scene’s lighting and wrap around Meshes.
 
-![](Images/decal/decal-projector-preview.png)
 
-To edit a Decal Projector’s properties, select the GameObject with the Decal Projector component and use the Inspector. If you just want to change the size of the projection, you can either use the Inspector or one of the Decal Projector's Scene view gizmos.
+![Decal Projector in a sample Scene](Images/decal/decal-projector-scene-view.png)<br/>*Decal Projector in a sample Scene.*
 
-## Using the Scene view
+## How to use Decal Projectors
 
-The Decal Projector includes a Scene view representation of its bounds and projection direction to help you position the projector. The Scene view representation includes:
+To use Decal Projectors in your Scene:
 
-* A box that describes the 3D size of the projector; the projector draws its decal on every Material inside the box.
+1. Create a Material, and assign it the `Shader Graphs/Decal` shader. In the Material, select the Base Map and the Normal Map.
 
-* An arrow that indicates the direction the projector faces. The base of this arrow is on the pivot point.
+    ![Example decal Material](Images/decal/decal-example-material.png)
 
-![](Images/decal/decal-projector-gizmos.png)
+2. Create a new Decal Projector GameObject, or add a Decal Projector component to an existing GameObject.
 
-The decal Projector also includes three gizmos. The first two add handles on every face for you to click and drag to alter the size of the projector's bounds.
+The following illustration shows a Decal Projector in the Scene.
 
-| __Button__                                   | __Gizmo__      | __Description__ |
+![Decal Projector in the Scene.](Images/decal/decal-projector-selected-with-inspector.png)
+
+The Decal Projector component provides the Scene view editing tools.
+
+![Scene view editing tools](Images/decal/decal-scene-view-editing-tools.png)
+
+## Decal Scene view editing tools
+
+When you select a Decal Projector, Unity shows its bounds and the projection direction.
+
+The Decal Projector draws the decal Material on every Mesh inside the bounding box.
+
+The white arrow shows the projection direction. The base of the arrow is the pivot point.
+
+![Decal Projector bounding box](Images/decal/decal-projector-bounding-box.png)
+
+The Decal Projector component provides the following Scene view editing tools.
+
+![Scene view editing tools](Images/decal/decal-scene-view-editing-tools.png)
+
+| __Icon__                                   | __Action__      | __Description__ |
 | -------------------------------------------- |--------------- | --------------- |
-|![](Images/decal/decal-projector-scale.png)   | __Scale__     | Scales the decal with the projector box. This changes the UVs of the Material to match the size of the projector box. This stretches the decal. The Pivot remains still.|
-|![](Images/decal/decal-projector-crop.png)    | __Crop__      | Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal. The Pivot remains still. |
-|![](Images/decal/decal-projector-pivotuv.png) | __Pivot / UV__| Moves the decal's pivot point without moving the projection box. This changes the transform position.<br/>Note this also sets the UV used on the projected texture.|
-
-The color of the gizmos can be set up in the Preference window inside Color panel.
-
-## Using the Inspector
-
-Using the Inspector allows you to change all of the Decal Projector properties, and lets you use numerical values for __Size__, __Tiling__, and __Offset__, which allows for greater precision than the click-and-drag gizmo method.
+|![](Images/decal/decal-projector-scale.png)   | __Scale__     | Select to scale the projector box and the decal. This tool changes the UVs of the Material to match the size of the projector box. The tool does not affect the pivot point. |
+|![](Images/decal/decal-projector-crop.png)    | __Crop__      | Select to crop or tile the decal with the projector box. This tool changes the size of the projector box but not the UVs of the Material. The tool does not affect the pivot point. |
+|![](Images/decal/decal-projector-pivotuv.png) | __Pivot / UV__| Select to move the pivot point of the decal without moving the projection box. This tool changes the transform position.<br/>This tool also affects the UV coordinates of the projected texture. |
 
 ## Properties
 
@@ -48,6 +61,10 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 | __Draw Distance__       | The distance from the Camera to the Decal at which this projector stops projecting the decal and URP no longer renders the decal. |
 | __Start Fade__          | Use the slider to set the distance from the Camera at which the projector begins to fade out the decal. Scales from 0 to 1 and represents a percentage of the __Draw Distance__. A value of 0.9 begins fading the decal out at 90% of the __Draw Distance__ and finished fading it out at the __Draw Distance__. |
 | __Angle Fade__          | Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface. |
+
+## Performance
+
+URP supports the GPU instancing of Materials. If the decals in your Scene use the same Material, and if the Material has the **Enable GPU Instancing** property turned on, URP instances the Materials and reduces the performance impact.
 
 ## Limitations
 
