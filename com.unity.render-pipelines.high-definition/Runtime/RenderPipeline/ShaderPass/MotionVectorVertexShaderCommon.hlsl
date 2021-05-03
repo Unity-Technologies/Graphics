@@ -85,7 +85,11 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 #endif
 }
 
-PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
+PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass
+#ifdef HAVE_VFX_MODIFICATION
+    , AttributesElement inputElement
+#endif
+)
 {
 
 #if !defined(TESSELLATION_ON)
@@ -107,6 +111,10 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
+#if defined(HAVE_VFX_MODIFICATION)
+        GetMeshAndElementIndex(inputMesh, inputElement);
+#endif
+
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
@@ -117,11 +125,20 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         AttributesMesh previousMesh = inputMesh;
         previousMesh.positionOS = effectivePositionOS;
 
-        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
+        previousMesh = ApplyMeshModification(previousMesh,
+            _LastTimeParameters.xyz
     #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
             , varyingsType.vmesh
     #endif
+    #if defined(HAVE_VFX_MODIFICATION)
+            , inputElement
+    #endif
             );
+
+#if defined(HAVE_VFX_MODIFICATION)
+        // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
+        previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
+#endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else

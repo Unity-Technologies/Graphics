@@ -34,6 +34,7 @@ PR_HDRP_trunk:
       -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_HDRP_trunk:
@@ -62,6 +63,7 @@ Nightly_HDRP_trunk:
       -  path: .yamato/hdrp-osx_apple_silicon-metal.yml#HDRP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_HDRP_CUSTOM-REVISION:

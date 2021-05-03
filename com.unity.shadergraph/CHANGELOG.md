@@ -14,6 +14,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added custom interpolator thresholds on shadergraph project settings page.
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+  - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
+  - For Texture2D properties, added linearGrey and red as options for default texture mode.
+  - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
+  - Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
+  - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
+  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
+  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+  - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
+  - Added the ability to enable tiling and offset controls for a Texture2D input.
+  - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
+  - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
+  - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
 
 ### Changed
 - Updated/corrected View Direction doc
@@ -59,6 +71,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where the right click menu doesn't work when a stack block node is selected [1320212].
 - Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
 - Fixed divide by zero warnings when using the Sample Gradient Node
+- Fixed the default dimension (1) for vector material slots so that it is consistent with other nodes. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328756/)
+- Fixed reordering when renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
+- Fixed an issue where an integer property would be exposed in the material inspector as a float [1330302](https://issuetracker.unity3d.com/product/unity/issues/guid/1330302/)
 
 ## [11.0.0] - 2020-10-21
 

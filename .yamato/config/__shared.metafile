@@ -1,5 +1,4 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
@@ -10,6 +9,7 @@ editors: # applied for all yml files
   - track: trunk
     name: trunk
     rerun_strategy: on_new_revision
+    ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
       green_abv_required: False
@@ -415,7 +415,7 @@ platforms:
         call_utr_without_git:
           - utr <UTR_FLAGS>
         unity_downloader_cli:
-          - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+          - choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
           - unity-downloader-cli <EDITOR_REVISION_CMD> -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
         turn_off_firewall:
           - NetSh Advfirewall set allprofiles state off

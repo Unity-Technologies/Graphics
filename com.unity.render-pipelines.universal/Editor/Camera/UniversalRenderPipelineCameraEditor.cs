@@ -542,7 +542,20 @@ namespace UnityEditor.Rendering.Universal
             m_CommonCameraSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_CommonCameraSettingsFoldout.value, Styles.projectionSettingsText);
             if (m_CommonCameraSettingsFoldout.value)
             {
-                settings.DrawProjection();
+                UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera pixelPerfectCamera;
+                camera.TryGetComponent<UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
+                bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
+
+                if (pixelPerfectEnabled)
+                {
+                    EditorGUILayout.HelpBox(Styles.pixelPerfectInfo, MessageType.Info);
+                    EditorGUI.BeginDisabledGroup(true);
+                    settings.DrawProjection();
+                    EditorGUI.EndDisabledGroup();
+                }
+                else
+                    settings.DrawProjection();
+
                 settings.DrawClippingPlanes();
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -693,7 +706,7 @@ namespace UnityEditor.Rendering.Universal
             if (fowardRendererData != null && fowardRendererData.postProcessData == null)
                 return true;
 
-            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
+            var fenderer2DData = rendererData as Renderer2DData;
             if (fenderer2DData != null && fenderer2DData.postProcessData == null)
                 return true;
 

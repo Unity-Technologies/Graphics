@@ -14,6 +14,7 @@ PR_VFX_URP_trunk:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_URP_trunk:
@@ -34,6 +35,7 @@ Nightly_VFX_URP_trunk:
       -  path: .yamato/vfx_urp-osx_apple_silicon-metal.yml#VFX_URP_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_VFX_URP_CUSTOM-REVISION:

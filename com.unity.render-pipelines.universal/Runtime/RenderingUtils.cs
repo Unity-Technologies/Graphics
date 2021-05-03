@@ -349,20 +349,6 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
-        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
-        {
-            uint nonNullColorBuffers = 0;
-            if (colorAttachments != null)
-            {
-                foreach (var attachment in colorAttachments)
-                {
-                    if (attachment != RenderingUtils.emptyAttachment)
-                        ++nonNullColorBuffers;
-                }
-            }
-            return nonNullColorBuffers;
-        }
-
         /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
