@@ -109,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void QueueAssetLoading()
         {
-            if (volumeAsset == null || m_Profile == null)
+            if (m_Profile == null)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
@@ -117,7 +117,8 @@ namespace UnityEngine.Experimental.Rendering
             refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
 
-            refVol.AddPendingAssetLoading(volumeAsset);
+            if (volumeAsset != null)
+                refVol.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
@@ -139,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
-        private void Start()
+        private void OnEnable()
         {
 #if UNITY_EDITOR
             if (m_Profile == null)
@@ -189,7 +190,8 @@ namespace UnityEngine.Experimental.Rendering
                 return true;
 
             Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
-            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
+            float halfCellDiagonalSize = new Vector3(m_PrevProfile.cellSizeInMeters, m_PrevProfile.cellSizeInMeters, m_PrevProfile.cellSizeInMeters).magnitude / 2.0f;
+            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) - halfCellDiagonalSize > ProbeReferenceVolume.instance.debugDisplay.cullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
