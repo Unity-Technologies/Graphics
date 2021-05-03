@@ -36,8 +36,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
 
-        private static RenderStateBlock defaultRenderStateBlock = new RenderStateBlock();
-
         private readonly Renderer2DData m_Renderer2DData;
         private bool m_NeedsDepth;
         private short m_CameraSortingLayerBoundsIndex;
@@ -161,7 +159,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var activeDebugHandler = GetActiveDebugHandler(renderingData);
             if (activeDebugHandler != null)
             {
-                activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref defaultRenderStateBlock,
+                RenderStateBlock renderStateBlock = new RenderStateBlock();
+                activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref renderStateBlock,
                     (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                     {
                         ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
