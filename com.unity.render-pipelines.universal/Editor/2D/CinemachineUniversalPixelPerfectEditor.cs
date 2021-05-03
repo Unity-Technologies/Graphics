@@ -1,6 +1,6 @@
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Experimental.Rendering.Universal
 {
-    [CustomEditor(typeof(UnityEngine.Rendering.Universal.CinemachineUniversalPixelPerfect)), CanEditMultipleObjects]
+    [CustomEditor(typeof(UnityEngine.Experimental.Rendering.Universal.CinemachineUniversalPixelPerfect)), CanEditMultipleObjects]
     internal class CinemachineUniversalPixelPerfectEditor : Editor
     {
         public override void OnInspectorGUI()

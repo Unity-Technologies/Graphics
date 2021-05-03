@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt, VisualElement exposed = null)
         {
-            AddProperty(label, null, indentLevel, field, evt, exposed);
+            AddProperty<T>(label, string.Empty, indentLevel, field, evt, exposed);
         }
 
         public void AddProperty<T>(string label, string tooltip, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt, VisualElement exposed = null)
@@ -66,6 +66,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var propertyRow = new PropertyRow(new Label(label) { tooltip = tooltip }, exposed);
+
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
             this.hierarchy.Add(propertyRow);

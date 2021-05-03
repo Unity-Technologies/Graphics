@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditorInternal;
 using UnityEditorInternal.VR;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -158,19 +157,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_Entries == null)
                     m_Entries = new[]
                     {
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
+                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpColorSpace, IsColorSpaceCorrect, FixColorSpace),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
-                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
-                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
-                        new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpEditorResources, IsEditorResourcesCorrect, FixEditorResources),
                         new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile),
                         new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile),
+                        new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
 
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
                         new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
@@ -407,10 +407,10 @@ namespace UnityEditor.Rendering.HighDefinition
             => HDRenderPipelineGlobalSettings.instance != null;
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
-            => HDRenderPipelineGlobalSettings.Ensure(folderPath: HDProjectSettings.projectSettingsFolderPath);
+            => HDRenderPipelineGlobalSettings.Ensure();
 
         bool IsRuntimeResourcesCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreResourcesCreated();
+            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreRuntimeResourcesCreated();
 
         void FixRuntimeResources(bool fromAsyncUnused)
         {
@@ -533,6 +533,41 @@ namespace UnityEditor.Rendering.HighDefinition
             hdrpSettings.lookDevVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpSettings.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpSettings);
+        }
+
+        IEnumerable<IMigratableAsset> migratableAssets
+        {
+            get
+            {
+                // Note: ideally we should grab all migratableAssets with LoadAllAsset<IMigratableAsset but this can be at high cost for big project. So we check only currently used.
+                //construct it wih all assets used in quality followed by current global settings asset
+                List<IMigratableAsset> collection = new List<IMigratableAsset>();
+                for (int i = QualitySettings.names.Length - 1; i >= 0; --i)
+                {
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset qualityAsset)
+                        collection.Add(qualityAsset);
+                }
+                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset graphicsAsset)
+                    collection.Add(graphicsAsset);
+                if (HDRenderPipelineGlobalSettings.instance)
+                {
+                    collection.Add(HDRenderPipelineGlobalSettings.instance.renderPipelineResources); //only resource that have migration
+                    collection.Add(HDRenderPipelineGlobalSettings.instance);
+                }
+                return collection;
+            }
+        }
+
+        bool IsMigratableAssetsCorrect()
+            => !migratableAssets.Any(asset => !asset.IsAtLastVersion());
+
+        void FixMigratableAssets(bool fromAsyncUnused)
+        {
+            foreach (var asset in migratableAssets)
+            {
+                if (asset.Migrate())
+                    Debug.LogWarning($"Migrated asset {AssetDatabase.GetAssetPath(asset as UnityEngine.Object)}. You should save your project to save changes.");
+            }
         }
 
         #endregion

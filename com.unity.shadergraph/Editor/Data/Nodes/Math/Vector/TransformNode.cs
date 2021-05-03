@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Math", "Vector", "Transform")]
-    class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal
+    class TransformNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireTangent, IMayRequireBitangent, IMayRequireNormal, IMayRequireTransform
     {
         private const int InputSlotId = 0;
         private const int OutputSlotId = 1;
@@ -271,6 +271,14 @@ namespace UnityEditor.ShaderGraph
             if (RequiresWorldSpaceTangentTransform())
                 return NeededCoordinateSpace.World;
             return conversion.from.ToNeededCoordinateSpace();
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability)
+        {
+            return new[]
+            {
+                new NeededTransform(conversion.from.ToNeededCoordinateSpace(), conversion.to.ToNeededCoordinateSpace())
+            };
         }
     }
 }

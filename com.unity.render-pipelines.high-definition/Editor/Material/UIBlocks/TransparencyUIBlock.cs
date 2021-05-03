@@ -70,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     return false;
 
                 // If refraction model is not exposed in SG, we don't show the section
-                var shader = materials[0].shader;
-                if (shader.IsShaderGraph())
+                if (materials[0].IsShaderGraph())
                 {
+                    var shader = materials[0].shader;
                     if ((shader.GetPropertyFlags(shader.FindPropertyIndex(kRefractionModel)) & ShaderPropertyFlags.HideInInspector) != ShaderPropertyFlags.None)
                         return false;
                 }

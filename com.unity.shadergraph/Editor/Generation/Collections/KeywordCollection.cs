@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
         {
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
-            public string value => descriptor.ToDeclarationString();
 
             public Item(KeywordDescriptor descriptor, FieldCondition[] fieldConditions)
             {
