@@ -763,7 +763,7 @@ MonoBehaviour:
   cameraGameObject: {fileID: 298882543}
   lensFlareComponent: {fileID: 79213242}
   lensFlareUIText: {fileID: 196923335}
-  skies:
+  environments:
   - {fileID: 1509821796}
   - {fileID: 2046100714}
   - {fileID: 1013397970}
@@ -940,7 +940,7 @@ GameObject:
   - component: {fileID: 1013397972}
   - component: {fileID: 1013397971}
   m_Layer: 0
-  m_Name: HDRi Sky
+  m_Name: HDRi Night Environment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1178,7 +1178,7 @@ GameObject:
   - component: {fileID: 1509821798}
   - component: {fileID: 1509821797}
   m_Layer: 0
-  m_Name: Black Sky
+  m_Name: Nothing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1542,7 +1542,7 @@ GameObject:
   - component: {fileID: 2046100716}
   - component: {fileID: 2046100715}
   m_Layer: 0
-  m_Name: Physical Sky
+  m_Name: Physical Sky Environment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

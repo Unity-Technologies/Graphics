@@ -15,7 +15,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
     public LensFlareComponentSRP lensFlareComponent;
     public Text lensFlareUIText;
 
-    public GameObject[] skies;
+    public GameObject[] environments;
     public LensFlareDataSRP[] lensFlares;
 
     [Header("Light Settings")]
@@ -90,14 +90,14 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     void SetSky(int inputNumber)
     {
-        if (inputNumber < skies.Length)
+        if (inputNumber < environments.Length)
         {
-            for (int i = 0; i < skies.Length; i++)
+            for (int i = 0; i < environments.Length; i++)
             {
-                skies[i].SetActive(false);
+                environments[i].SetActive(false);
             }
 
-            skies[inputNumber].SetActive(true);
+            environments[inputNumber].SetActive(true);
         }
     }
 
