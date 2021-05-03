@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Controls the update frequency for the Volume Framework.
+    /// Defines the update frequency for the Volume Framework.
     /// </summary>
     public enum VolumeFrameworkUpdateMode
     {
