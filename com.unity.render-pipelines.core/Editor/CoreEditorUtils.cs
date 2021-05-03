@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering
                 serializedProperty.boolValue = (bool)(object)value;
                 return;
             }
-            if (propertyType== typeof(BoundsInt))
+            if (propertyType == typeof(BoundsInt))
             {
                 serializedProperty.boundsIntValue = (BoundsInt)(object)value;
                 return;

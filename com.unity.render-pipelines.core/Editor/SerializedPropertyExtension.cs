@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetEnumValue<T>(this SerializedProperty property, T value)
-            // intValue actually is the value underlying beside the enum
+        // intValue actually is the value underlying beside the enum
             => SetEnumValue_Internal(property, value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

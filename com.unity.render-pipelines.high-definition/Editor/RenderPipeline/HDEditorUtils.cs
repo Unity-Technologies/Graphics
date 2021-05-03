@@ -30,9 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(
             string basePath)
             => (
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
+            AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
             );
 
         internal static void AddStyleSheets(VisualElement element, string baseSkinPath)
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum
         {
-            var intV = (int) (object) v;
+            var intV = (int)(object)v;
             var isOn = (property.intValue & intV) != 0;
             var rect = ReserveAndGetFlagToggleRect();
             isOn = GUI.Toggle(rect, isOn, s_OverrideTooltip, CoreEditorStyles.smallTickbox);
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var isPathRooted = Path.IsPathRooted(path);
             return isPathRooted && path.StartsWith(Application.dataPath)
-                   || !isPathRooted && path.StartsWith("Assets");
+                || !isPathRooted && path.StartsWith("Assets");
         }
 
         // Copy texture from cache
@@ -136,8 +136,8 @@ namespace UnityEditor.Rendering.HighDefinition
         )
             where TEnum : struct, IConvertible // restrict to ~enum
         {
-            var intDisplayed = (int) (object) displayed;
-            var intV = (int) (object) v;
+            var intDisplayed = (int)(object)displayed;
+            var intV = (int)(object)v;
             if ((intDisplayed & intV) == intV)
             {
                 EditorGUILayout.BeginHorizontal();
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
         )
             where TEnum : struct, IConvertible
         {
-            var intButton = (int) (object) button;
+            var intButton = (int)(object)button;
             bool enabled = toolbarMode[button] == EditMode.editMode;
             EditorGUI.BeginChangeCheck();
             enabled = GUILayout.Toggle(enabled, toolbarContent[button], EditorStyles.miniButton, options);
@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return () =>
             {
                 var bounds = new Bounds();
-                var rp = ((Component) o.target).transform;
+                var rp = ((Component)o.target).transform;
                 var b = rp.position;
                 bounds.Encapsulate(b);
                 return bounds;
