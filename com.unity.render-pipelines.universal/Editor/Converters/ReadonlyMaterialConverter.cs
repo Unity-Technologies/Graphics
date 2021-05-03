@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,11 +42,11 @@ namespace Editor.Converters
         };
     }
 
-    public class ReadonlyMaterialConverter : RenderPipelineConverter
+    internal class ReadonlyMaterialConverter : RenderPipelineConverter
     {
         public override string name => "Readonly Material Converter";
         public override string info => "Converts references to Built-In readonly materials to URP readonly materials";
-        public override Type conversion => typeof(BuiltInToURPConversion);
+        public override Type conversion => typeof(BuiltInToURPConverterContainer);
 
         private bool _startingSceneIsClosed;
 
@@ -57,10 +57,10 @@ namespace Editor.Converters
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast
                 var orderedRequest = request.OrderBy(req =>
-                    {
-                        GlobalObjectId.TryParse(req.id, out var gid);
-                        return gid.assetGUID;
-                    })
+                {
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                })
                     .ToList();
 
                 foreach (var r in orderedRequest)
@@ -84,12 +84,14 @@ namespace Editor.Converters
             }
         }
 
-        public override void OnRun(RunConverterContext ctx)
+        public override void OnRun(ref RunItemContext ctx)
         {
             // order by the assetGuid so that they run in order
-            var items = ctx.items.ToList();
-
-            foreach (var (index, obj) in EnumerateObjects(items, ctx).Where(item => item != null))
+            //var items = ctx.items.ToList();
+            //var items = ctx.item.ToList();
+            List<ConverterItemInfo> items = new List<ConverterItemInfo>();
+            items.Add(ctx.item);
+            foreach (var(index, obj) in EnumerateObjects(items, ctx).Where(item => item != null))
             {
                 var materials = MaterialReferenceBuilder.GetMaterialsFromObject(obj);
 
@@ -107,13 +109,10 @@ namespace Editor.Converters
                     }
                 }
 
-                if (result)
+                if (!result)
                 {
-                    ctx.MarkSuccessful(index);
-                }
-                else
-                {
-                    ctx.MarkFailed(index, errorString.ToString());
+                    ctx.didFail = true;
+                    ctx.info = errorString.ToString();
                 }
             }
         }
@@ -204,7 +203,7 @@ namespace Editor.Converters
             return result;
         }
 
-        private IEnumerable<Tuple<int,Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunConverterContext ctx)
+        private IEnumerable<Tuple<int, Object>> EnumerateObjects(IReadOnlyList<ConverterItemInfo> items, RunItemContext ctx)
         {
             for (var i = 0; i < items.Count; i++)
             {
@@ -257,7 +256,8 @@ namespace Editor.Converters
                             obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
                             if (!obj)
                             {
-                                ctx.MarkFailed(i, $"Object {gid.assetGUID} failed to load...");
+                                ctx.didFail = true;
+                                ctx.info = $"{i}, Object {gid.assetGUID} failed to load...";
                                 continue;
                             }
                         }
@@ -267,7 +267,8 @@ namespace Editor.Converters
                 }
                 else
                 {
-                    ctx.MarkFailed(i, $"Failed to parse Global ID {item.descriptor.info}...");
+                    ctx.didFail = true;
+                    ctx.info = $"{i}, Failed to parse Global ID {item.descriptor.info}...";
                 }
             }
         }
