@@ -15,7 +15,7 @@ pre_pack_hdrp_template_Win_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     artifacts:
@@ -51,7 +51,7 @@ test_hdrp_template_Win_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
@@ -66,7 +66,7 @@ pre_pack_hdrp_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     artifacts:
@@ -102,7 +102,7 @@ test_hdrp_template_OSX_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
@@ -111,14 +111,31 @@ test_hdrp_template_OSX_trunk:
             paths:
               -  "**/test-results/**"
 publish_hdrp_template_trunk:
-    name: Publish HDRP Template trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
+    name: Publish HDRP Template trunk
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_template_Win_trunk
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_hdrp_template_trunk_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  upm-ci template publish --project-path com.unity.template-hd --dry-run
+    name: Publish HDRP Template trunk Dry Run
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_trunk
       -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
@@ -136,7 +153,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
@@ -174,7 +191,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
@@ -189,7 +206,7 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
@@ -227,7 +244,7 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
@@ -236,14 +253,31 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
 publish_hdrp_template_CUSTOM-REVISION:
-    name: Publish HDRP Template CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
+    name: Publish HDRP Template CUSTOM-REVISION
+    dependencies:
+      -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_hdrp_template_CUSTOM-REVISION_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  upm-ci template publish --project-path com.unity.template-hd --dry-run
+    name: Publish HDRP Template CUSTOM-REVISION Dry Run
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#test_hdrp_template_OSX_CUSTOM-REVISION
@@ -261,7 +295,7 @@ pre_pack_universal_template_Win_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     artifacts:
@@ -297,7 +331,7 @@ test_universal_template_Win_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
@@ -312,7 +346,7 @@ pre_pack_universal_template_OSX_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     artifacts:
@@ -348,7 +382,7 @@ test_universal_template_OSX_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
@@ -357,14 +391,31 @@ test_universal_template_OSX_trunk:
             paths:
               -  "**/test-results/**"
 publish_universal_template_trunk:
-    name: Publish Universal Template trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal
+    name: Publish Universal Template trunk
+    dependencies:
+      -  .yamato/_templates.yml#test_universal_template_Win_trunk
+      -  .yamato/_templates.yml#test_universal_template_OSX_trunk
+      -  .yamato/_templates.yml#pack_universal_template_Win_trunk
+      -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_universal_template_trunk_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  upm-ci template publish --project-path com.unity.template-universal --dry-run
+    name: Publish Universal Template trunk Dry Run
     dependencies:
       -  .yamato/_templates.yml#test_universal_template_Win_trunk
       -  .yamato/_templates.yml#test_universal_template_OSX_trunk
@@ -382,7 +433,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
@@ -420,7 +471,7 @@ test_universal_template_Win_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
@@ -435,7 +486,7 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
@@ -473,7 +524,7 @@ test_universal_template_OSX_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
@@ -482,14 +533,31 @@ test_universal_template_OSX_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
 publish_universal_template_CUSTOM-REVISION:
-    name: Publish Universal Template CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     commands:
-      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal
+    name: Publish Universal Template CUSTOM-REVISION
+    dependencies:
+      -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_universal_template_Win_CUSTOM-REVISION
+      -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
+    artifacts:
+        packages:
+            paths:
+              -  "upm-ci~/packages/**/*"
+              -  "upm-ci~/templates/**/*"
+publish_universal_template_CUSTOM-REVISION_dry_run:
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    commands:
+      -  upm-ci template publish --project-path com.unity.template-universal --dry-run
+    name: Publish Universal Template CUSTOM-REVISION Dry Run
     dependencies:
       -  .yamato/_templates.yml#test_universal_template_Win_CUSTOM-REVISION
       -  .yamato/_templates.yml#test_universal_template_OSX_CUSTOM-REVISION
