@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.Block
             var near = expressions.First(e => e.name == "Camera_nearPlane");
             var far = expressions.First(e => e.name == "Camera_farPlane");
             var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
-            var isOrtho = expressions.First(e => e.name == "Camera_isOrthographic");
+            var isOrtho = expressions.First(e => e.name == "Camera_orthographic");
             var orthoSize = expressions.First(e => e.name == "Camera_orthographicSize");
 
             VFXExpression ViewToVFX = cameraMatrix.exp;

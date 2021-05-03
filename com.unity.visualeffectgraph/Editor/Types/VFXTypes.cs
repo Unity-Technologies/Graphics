@@ -317,6 +317,8 @@ namespace UnityEditor.VFX
     {
         [Tooltip("The camera's Transform in the world.")]
         public Transform transform;
+        [Tooltip("Uses Orthographic projection.")]
+        public bool orthographic;
         [Angle, Range(0.0f, Mathf.PI), Tooltip("The field of view is the height of the camera’s view angle, measured in degrees along the local Y axis.")]
         public float fieldOfView;
         [Min(0.0f), Tooltip("The near plane is the closest plane relative to the camera where drawing occurs.")]

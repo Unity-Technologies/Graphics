@@ -74,7 +74,6 @@ namespace UnityEditor.VFX.Block
                     t.name != "Camera_aspectRatio" &&
                     t.name != "Camera_transform" &&
                     t.name != "Camera_colorBuffer" &&
-                    t.name != "Camera_isOrthographic" &&
                     t.name != "Camera_orthographicSize");
 
                 foreach (var e in expressions)
@@ -110,7 +109,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
     float linearEyeDepth;
-    if (IsPerspectiveProjection())
+    if (!Camera_orthographic)
     {
         linearEyeDepth = n * f / (depth * (n - f) + f);
     }
