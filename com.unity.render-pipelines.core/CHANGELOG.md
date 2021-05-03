@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 - Fixed L2 for Probe Volumes.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
+- Fixed issue displaying a warning of different probe reference volume profiles even when they are equivalent.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
