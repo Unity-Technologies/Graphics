@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
 
@@ -201,7 +202,10 @@ namespace UnityEngine.Rendering.Universal
         internal bool depthOnly { get; set; }
         // this flag is updated each frame to keep track of which pass is the last for the current camera
         internal bool isLastPass { get; set; }
+        // index to track the position in the current frame
+        internal int renderPassQueueIndex { get; set; }
 
+        internal NativeArray<int> m_InputAttachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
@@ -228,6 +232,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetWidth = -1;
             renderTargetHeight = -1;
             renderTargetSampleCount = -1;
+            renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,

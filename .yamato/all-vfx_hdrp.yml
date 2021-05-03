@@ -18,6 +18,7 @@ PR_VFX_HDRP_trunk:
       -  path: .yamato/vfx_hdrp-win-dx12.yml#VFX_HDRP_Win_DX12_Standalone_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_VFX_HDRP_trunk:
@@ -40,6 +41,7 @@ Nightly_VFX_HDRP_trunk:
       -  path: .yamato/vfx_hdrp-osx-metal.yml#VFX_HDRP_OSX_Metal_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_VFX_HDRP_CUSTOM-REVISION:
