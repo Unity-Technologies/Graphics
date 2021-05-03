@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         #region Distortion Pass
 
-        public static PassDescriptor GenerateDistortionPass(bool supportLighting)
+        public static PassDescriptor GenerateDistortionPass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Scene Picking Pass
 
-        public static PassDescriptor GenerateScenePicking()
+        public static PassDescriptor GenerateScenePicking(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ScenePicking,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV1AndV2EditorSyncTessellation : CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Scene Selection Pass
 
-        public static PassDescriptor GenerateSceneSelection(bool supportLighting)
+        public static PassDescriptor GenerateSceneSelection(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.SceneSelection,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV1AndV2EditorSyncTessellation : CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Shadow Caster Pass
 
-        static public PassDescriptor GenerateShadowCaster(bool supportLighting)
+        static public PassDescriptor GenerateShadowCaster(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor()
             {
@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -223,7 +223,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.Meta,
                 renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                // Note: no tessellation for meta pass
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
             };
@@ -253,7 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Depth Forward Only
 
-        public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting)
+        public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -266,7 +267,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -330,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Motion Vectors
 
-        public static PassDescriptor GenerateMotionVectors(bool supportLighting, bool supportForward)
+        public static PassDescriptor GenerateMotionVectors(bool supportLighting, bool supportForward, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -344,7 +345,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
                 defines = GenerateDefines(),
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -400,7 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Forward Only
 
-        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
+        public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -413,7 +414,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
                 includes = GenerateIncludes(),
 
@@ -469,7 +470,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Forward Emissive For Deferred
 
-        public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
+        public static PassDescriptor GenerateForwardEmissiveForDeferredPass(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -482,7 +483,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.ForwardEmissiveForDeferred,
                 includes = GenerateIncludes(),
 
@@ -510,7 +511,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Back then front pass
 
-        public static PassDescriptor GenerateBackThenFront(bool supportLighting)
+        public static PassDescriptor GenerateBackThenFront(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -523,7 +524,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common
@@ -563,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Transparent Depth Prepass
 
-        public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting)
+        public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -598,7 +599,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -665,7 +666,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Transparent Depth Postpass
 
-        public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting)
+        public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -685,7 +686,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.TransparentDepthPostpass,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -729,7 +730,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Lit DepthOnly
 
-        public static PassDescriptor GenerateLitDepthOnly()
+        public static PassDescriptor GenerateLitDepthOnly(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -741,7 +742,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = CoreRenderStates.DepthOnly,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
@@ -770,7 +771,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region GBuffer
 
-        public static PassDescriptor GenerateGBuffer()
+        public static PassDescriptor GenerateGBuffer(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -783,7 +784,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = GBufferRenderState,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
@@ -826,7 +827,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region Lit Forward
 
-        public static PassDescriptor GenerateLitForward()
+        public static PassDescriptor GenerateLitForward(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -839,7 +840,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
                 defines = CoreDefines.ForwardLit,
                 includes = ForwardIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -1273,7 +1274,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #region FullScreen Debug
 
-        public static PassDescriptor GenerateFullScreenDebug()
+        public static PassDescriptor GenerateFullScreenDebug(bool tessellationEnabled)
         {
             return new PassDescriptor
             {
@@ -1284,7 +1285,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                pragmas = CorePragmas.Basic,
+                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only,
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),
             };

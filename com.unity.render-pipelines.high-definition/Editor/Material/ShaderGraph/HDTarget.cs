@@ -767,60 +767,77 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        public static PragmaCollection DotsInstancedInV2OnlyBase = new PragmaCollection
         {
-            { Basic },
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
             { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
             #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV1AndV2Base = new PragmaCollection
+        {
+            { Pragma.MultiCompileInstancing },
+            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
+            #if ENABLE_HYBRID_RENDERER_V2
+            { Pragma.DOTSInstancing },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
+            #else
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
+            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
+              {
+                  new FieldCondition(HDFields.DotsInstancing, false),
+                  new FieldCondition(HDFields.DotsProperties, false),
+              } },
+            #endif
+        };
+
+        public static PragmaCollection DotsInstancedInV1AndV2EditorSyncBase = new PragmaCollection
+        {
+            { DotsInstancedInV1AndV2Base },
+            { Pragma.EditorSyncCompilation },
+        };
+
+        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        {
+            { Basic },
+            { DotsInstancedInV2OnlyBase }
+        };
+
+        public static PragmaCollection DotsInstancedInV2OnlyTessellation = new PragmaCollection
+        {
+            { BasicTessellation },
+            { DotsInstancedInV2OnlyBase }
         };
 
         public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
         {
             { Basic },
-            { Pragma.MultiCompileInstancing },
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
+            { DotsInstancedInV1AndV2Base }
+        };
+
+        public static PragmaCollection DotsInstancedInV1AndV2Tessellation = new PragmaCollection
+        {
+            { BasicTessellation },
+            { DotsInstancedInV1AndV2Base }
         };
 
         public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
         {
             { Basic },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.EditorSyncCompilation },
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
-            { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
+            { DotsInstancedInV1AndV2EditorSyncBase }
+        };
+
+        public static PragmaCollection DotsInstancedInV1AndV2EditorSyncTessellation = new PragmaCollection
+        {
+            { BasicTessellation },
+            { DotsInstancedInV1AndV2EditorSyncBase }
         };
 
         public static PragmaCollection RaytracingBasic = new PragmaCollection

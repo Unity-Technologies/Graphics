@@ -60,11 +60,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descriptor = base.GetSubShaderDescriptor();
 
-            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
-            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
-            descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
-            descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
+            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(builtinData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(builtinData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(builtinData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(builtinData.tessellation), new FieldCondition(HDFields.EmissionOverriden, true));
+            if (!builtinData.tessellation) // Raytracing don't support tessellation
+                descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
         }

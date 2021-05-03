@@ -83,36 +83,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateShadowCaster(supportLighting),
+                    HDShaderPasses.GenerateShadowCaster(supportLighting, builtinData.tessellation),
                     HDShaderPasses.GenerateMETA(supportLighting),
-                    HDShaderPasses.GenerateScenePicking(),
-                    HDShaderPasses.GenerateSceneSelection(supportLighting),
-                    HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
-                    { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
-                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
+                    HDShaderPasses.GenerateScenePicking(builtinData.tessellation),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting, builtinData.tessellation),
+                    HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, builtinData.tessellation),
+                    { HDShaderPasses.GenerateBackThenFront(supportLighting, builtinData.tessellation), new FieldCondition(HDFields.TransparentBackFace, true)},
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting, builtinData.tessellation), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
                 };
 
                 if (supportLighting)
                 {
                     // We always generate the TransparentDepthPrepass as it can be use with SSR transparent
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(true, builtinData.tessellation));
                 }
                 else
                 {
                     // We only generate the pass if requested
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(false), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(false, builtinData.tessellation), new FieldCondition(HDFields.TransparentDepthPrePass, true));
                 }
 
                 if (supportForward)
                 {
-                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, builtinData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, builtinData.tessellation));
                 }
 
                 if (supportDistortion)
-                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
+                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting, builtinData.tessellation), new FieldCondition(HDFields.TransparentDistortion, true));
 
-                passes.Add(HDShaderPasses.GenerateFullScreenDebug());
+                passes.Add(HDShaderPasses.GenerateFullScreenDebug(builtinData.tessellation));
 
                 return passes;
             }
