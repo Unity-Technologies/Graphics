@@ -32,6 +32,8 @@ The Visual Effect Graph supports the [High Definition Render Pipeline](https://d
 
 The Visual Effect Graph supports the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP) from Unity 2019.3. However, it is not yet out of preview for URP, which means it only supports a subset of platforms that URP supports. It also does not support every feature that it does with HDRP, and also only supports unlit particles.
 
+**Note**: In URP, the Visual Effect Graph does not support [gamma color space](https://docs.unity3d.com/Manual/LinearRendering-LinearOrGammaWorkflow.html).
+
 ## Unity Player system requirements
 
 The Unity Player system requirements for the Visual Effect Graph depend on which render pipeline you use.

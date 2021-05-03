@@ -180,7 +180,6 @@ MonoBehaviour:
   m_ImportDependencies: []
   m_GraphVersion: 7
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114380859405582094
@@ -2322,6 +2321,7 @@ MonoBehaviour:
   useAlphaClipping: 1
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614753}
   cullMode: 0
@@ -2340,6 +2340,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 989a73485b0b3b4499fd66ea6ae7220e,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614753
@@ -2484,6 +2487,7 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
+  materialOffset: 0
   m_SubOutputs:
   - {fileID: 8926484042661614769}
   cullMode: 0
@@ -2502,6 +2506,9 @@ MonoBehaviour:
   flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 989a73485b0b3b4499fd66ea6ae7220e,
     type: 3}
+  materialSettings:
+    m_PropertyNames: []
+    m_PropertyValues: []
   MeshCount: 1
   lod: 0
 --- !u!114 &8926484042661614766
