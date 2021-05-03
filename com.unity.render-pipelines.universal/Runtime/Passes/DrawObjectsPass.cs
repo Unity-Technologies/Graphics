@@ -99,9 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (activeDebugHandler != null)
                 {
                     activeDebugHandler.DrawWithDebugRenderState(context, cmd, ref renderingData, ref drawSettings, ref filterSettings, ref m_RenderStateBlock,
-                        (ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
+                        (ScriptableRenderContext ctx, ref RenderingData data, ref DrawingSettings ds, ref FilteringSettings fs, ref RenderStateBlock rsb) =>
                         {
-                            context.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
+                            ctx.DrawRenderers(data.cullResults, ref ds, ref fs, ref rsb);
                         });
                 }
                 else
