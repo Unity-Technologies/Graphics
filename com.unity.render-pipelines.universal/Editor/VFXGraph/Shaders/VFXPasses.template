@@ -96,7 +96,7 @@ void frag(ps_input i
         #else
         
         float alpha = VFXGetFragmentColor(i).a;
-        #if HDRP_USE_BASE_COLOR_MAP_ALPHA
+        #if URP_USE_BASE_COLOR_MAP_ALPHA
             alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
         #endif
     #endif
