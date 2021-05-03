@@ -237,6 +237,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal DecalTechnique GetTechnique(ScriptableRendererData renderer)
+        {
+            var universalRenderer = renderer as UniversalRendererData;
+            if (universalRenderer == null)
+            {
+                Debug.LogError("Only universal renderer supports Decal renderer feature.");
+                return DecalTechnique.Invalid;
+            }
+
+            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            return GetTechnique(isDeferred);
+        }
+
         internal DecalTechnique GetTechnique(ScriptableRenderer renderer)
         {
             var universalRenderer = renderer as UniversalRenderer;
@@ -246,6 +259,12 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
+            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            return GetTechnique(isDeferred);
+        }
+
+        private DecalTechnique GetTechnique(bool isDeferred)
+        {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
             {
                 Debug.LogError("Decals are not supported with OpenGLES2.");
@@ -262,7 +281,6 @@ namespace UnityEngine.Rendering.Universal
                         technique = DecalTechnique.ScreenSpace;
                     break;
                 case DecalTechniqueOption.ScreenSpace:
-                    bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
                     if (m_Settings.screenSpaceSettings.useGBuffer && isDeferred)
                         technique = DecalTechnique.GBuffer;
                     else
@@ -309,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer)
+        private void RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (!m_RecreateSystems)
                 return;
@@ -317,6 +335,15 @@ namespace UnityEngine.Rendering.Universal
             m_Technique = GetTechnique(renderer);
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
+
+            // TODO: Remove once decals stable with XR
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                m_Technique = DecalTechnique.Invalid;
+                Debug.LogError("Decals are currently not supported with XR.");
+            }
+#endif
 
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_CopyDepthPS);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
@@ -383,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.cameraType == CameraType.Preview)
                 return;
 
-            RecreateSystemsIfNeeded(renderer);
+            RecreateSystemsIfNeeded(renderer, cameraData);
 
             m_DecalEntityManager.Update();
 
@@ -420,7 +447,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            RecreateSystemsIfNeeded(renderer);
+            RecreateSystemsIfNeeded(renderer, renderingData.cameraData);
 
             if (intermediateRendering)
             {
@@ -442,14 +469,14 @@ namespace UnityEngine.Rendering.Universal
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(universalRenderer.deferredLights.DepthAttachmentIdentifier),
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier)
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthAttachmentIndentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier)
                         );
                     }
                     else
                     {
                         m_CopyDepthPass.Setup(
-                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthIndentifier),
+                            new RenderTargetHandle(m_DBufferRenderPass.cameraDepthTextureIndentifier),
                             new RenderTargetHandle(m_DBufferRenderPass.dBufferDepthIndentifier)
                         );
                     }
