@@ -155,7 +155,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   captureFrameRate: 10
-  simulateTime: 0.2
+  simulateTime: 1
   xrCompatible: 1
 --- !u!1 &1853057717306474691
 GameObject:
