@@ -29,9 +29,8 @@ PR_Universal_Split_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest_*/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_Universal_Split_trunk:
@@ -58,6 +57,7 @@ Nightly_Universal_Split_trunk:
       -  path: .yamato/all-urpupdate.yml#Nightly_URPUpdate_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_Universal_Split_CUSTOM-REVISION:

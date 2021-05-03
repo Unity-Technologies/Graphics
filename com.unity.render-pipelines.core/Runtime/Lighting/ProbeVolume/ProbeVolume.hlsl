@@ -140,7 +140,7 @@ void EvaluateAPVL1L2Point(APVResources apvRes, float3 L0, float L1Rx, float3 N, 
 }
 #endif
 
-bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw, out uint subdiv)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -190,7 +190,7 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
-    uint   subdiv = (packed_pool_idx >> 28) & 15;
+    subdiv = (packed_pool_idx >> 28) & 15;
     float  cellSize = pow(3.0, subdiv);
     uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     uint3  pool_idx;
@@ -207,6 +207,12 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     uvw += offset;                                  // add the final offset
 
     return hasValidUVW;
+}
+
+bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+{
+    uint unusedSubdiv;
+    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, uvw, unusedSubdiv);
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,

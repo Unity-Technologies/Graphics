@@ -233,15 +233,18 @@ test_all_project_Win_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
 test_all_project_OSX_trunk:
     name: Test all packages [project context] OSX trunk
     agent:
@@ -250,15 +253,18 @@ test_all_project_OSX_trunk:
         flavor: m1.mac
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
 test_all_project_Win_CUSTOM-REVISION:
     name: Test all packages [project context] Win CUSTOM-REVISION
     agent:
@@ -346,8 +352,8 @@ all_package_ci_project_trunk:
       -  .yamato/_projectcontext.yml#test_all_project_Win_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
       -  .yamato/_projectcontext.yml#test_all_project_OSX_min_editor
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

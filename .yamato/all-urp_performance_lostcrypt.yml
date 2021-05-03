@@ -40,6 +40,7 @@ PR_URP_Performance_LostCrypt_trunk:
       -  path: .yamato/urp_performance_lostcrypt-iphone-metal.yml#URP_Performance_LostCrypt_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
@@ -50,6 +51,7 @@ Nightly_URP_Performance_LostCrypt_trunk:
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test

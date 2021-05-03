@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Reference Volume")]
+    [AddComponentMenu("Light/Probe Reference Volume (Experimental)")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
     {
 #if UNITY_EDITOR
@@ -200,6 +200,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugDisplay.drawBricks)
             {
+                var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
                     if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
@@ -221,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                             Vector3 scaledPos = brick.position + scaledSize / 2;
-                            meshGizmo.AddWireCube(scaledPos, scaledSize, Color.blue);
+                            meshGizmo.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                         }
                         brickGizmos[cell] = meshGizmo;
                         return meshGizmo;

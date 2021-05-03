@@ -27,7 +27,7 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --commit-and-push
+      -  python3 .yamato/script/editor_scripts/update_revisions.py --track trunk --ono-branch $ONO_BRANCH_TRUNK --api-key $ONO_API_KEY --commit-and-push
     triggers:
         recurring:
           -  branch: master

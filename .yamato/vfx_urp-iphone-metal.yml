@@ -16,6 +16,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -30,6 +31,8 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
@@ -40,6 +43,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -47,7 +51,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -59,6 +63,9 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear on version trunk
     agent:
@@ -67,6 +74,7 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -81,6 +89,8 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
@@ -91,6 +101,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -98,7 +109,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
@@ -110,6 +121,9 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
 VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear on version trunk
     agent:
@@ -118,6 +132,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -125,7 +140,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -134,6 +149,9 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
 VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear on version trunk
     agent:
@@ -142,6 +160,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -149,7 +168,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
@@ -158,6 +177,9 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
     name: VFX_URP on iPhone_Metal_Standalone_cache_il2cpp_Linear on version trunk
     agent:
@@ -166,6 +188,7 @@ VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -180,6 +203,8 @@ VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
       -  path: .yamato/vfx_urp-iphone-metal.yml#Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
@@ -190,6 +215,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -197,7 +223,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity/unity/unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
               ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=3000
@@ -209,6 +235,9 @@ Build_VFX_URP_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:iPhone
+         rerun: on_new_revision
 VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: VFX_URP on iPhone_Metal_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
