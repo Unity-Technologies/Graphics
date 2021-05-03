@@ -119,6 +119,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        bool m_Tessellation;
+        public bool tessellation
+        {
+            get => m_Tessellation;
+            set => m_Tessellation = value;
+        }
+
+        [SerializeField]
+        TessellationMode m_TessellationMode;
+        public TessellationMode tessellationMode
+        {
+            get => m_TessellationMode;
+            set => m_TessellationMode = value;
+        }
+
+        [SerializeField]
         ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();
         public ShaderGraphVersion version
         {

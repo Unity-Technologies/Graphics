@@ -867,6 +867,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Defines
     static class CoreDefines
     {
+        public static DefineCollection Tessellation = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Tessellation, 1 },
+            { CoreKeywordDescriptors.TessellationModification, 1 },
+        };
+
         public static DefineCollection ScenePicking = new DefineCollection
         {
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
@@ -1306,6 +1312,33 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Scene Selection Pass",
             referenceName = "SCENESELECTIONPASS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor Tessellation = new KeywordDescriptor()
+        {
+            displayName = "Tessellation",
+            referenceName = "TESSELLATION_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor TessellationModification = new KeywordDescriptor()
+        {
+            displayName = "Tessellation Modification",
+            referenceName = "HAVE_TESSELLATION_MODIFICATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor TessellationMode = new KeywordDescriptor()
+        {
+            displayName = "Tessellation Mode",
+            referenceName = "_TESSELLATION_PHONG",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

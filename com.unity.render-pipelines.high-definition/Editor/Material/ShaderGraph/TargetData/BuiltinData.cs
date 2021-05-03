@@ -117,13 +117,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SupportLodCrossFade;
             set => m_SupportLodCrossFade = value;
         }
-
-        [SerializeField]
-        bool m_Tessellation;
-        public bool tessellation
-        {
-            get => m_Tessellation;
-            set => m_Tessellation = value;
-        }
     }
 }

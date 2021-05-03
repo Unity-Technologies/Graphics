@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         #region Fields
         // These are core Fields shared between URP and HDRP etc.
         public static FieldDescriptor GraphVertex =           new FieldDescriptor(kFeatures, "graphVertex", "FEATURES_GRAPH_VERTEX");
+        public static FieldDescriptor GraphTessellation =     new FieldDescriptor(kFeatures, "GraphTessellation", "FEATURES_GRAPH_TESSELLATION");
         public static FieldDescriptor GraphPixel =            new FieldDescriptor(kFeatures, "graphPixel", "FEATURES_GRAPH_PIXEL");
         public static FieldDescriptor GraphColorInterp =      new FieldDescriptor(kFeatures, "graphColorInterp", "FEATURES_GRAPH_COLOR_INTERP");
         public static FieldDescriptor AlphaTest =             new FieldDescriptor(string.Empty, "AlphaTest", "_ALPHA_TEST 1");          // HDRP: surface & decal subtargets

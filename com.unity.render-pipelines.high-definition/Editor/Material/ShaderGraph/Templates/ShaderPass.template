@@ -188,6 +188,7 @@ Pass
 
 	$features.graphVFX:     $include("VFX/Config.template.hlsl")
     $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+	$features.graphTessellation:  $include("Tesselation.template.hlsl")
     $features.graphPixel:   $include("SharedCode.template.hlsl")
 
     // --------------------------------------------------

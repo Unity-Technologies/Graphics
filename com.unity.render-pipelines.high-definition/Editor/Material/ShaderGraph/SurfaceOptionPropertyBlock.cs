@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
+            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) =>
+            {
                 systemData.surfaceType = newValue;
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
@@ -123,7 +124,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.globalIndentLevel--;
             }
 
-            AddProperty(tessellationEnableText, () => builtinData.tessellation, (newValue) => builtinData.tessellation = newValue);
+            AddProperty(tessellationEnableText, () => systemData.tessellation, (newValue) => systemData.tessellation = newValue);
+            if (systemData.tessellation)
+            {
+                context.globalIndentLevel++;
+                AddProperty(tessellationModeText, () => systemData.tessellationMode, (newValue) => systemData.tessellationMode = newValue);
+                context.globalIndentLevel--;
+            }
         }
     }
 }
