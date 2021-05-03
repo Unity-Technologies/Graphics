@@ -48,6 +48,7 @@
 CBUFFER_START(ShaderVariablesDebugDisplay)
     float4 _DebugRenderingLayersColors[32];
     uint4 _DebugViewMaterialArray[11];
+    float4 _DebugAPVSubdivColors[7];
     int _DebugLightingMode;
     int _DebugLightLayersMask;
     int _DebugShadowMapMode;
@@ -71,6 +72,10 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
     int _DebugIsLitShaderModeDeferred;
+    int _DebugAOVOutput;
+    float _ShaderVariablesDebugDisplayPad0;
+    float _ShaderVariablesDebugDisplayPad1;
+    float _ShaderVariablesDebugDisplayPad2;
 CBUFFER_END
 
 

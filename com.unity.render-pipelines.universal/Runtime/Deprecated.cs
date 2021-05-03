@@ -2,7 +2,6 @@
 // way to being deprecated and removed in future releases
 using System;
 using System.ComponentModel;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -61,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
+    public enum ShadowCascadesOption
     {
         NoCascades,
         TwoCascades,
@@ -108,7 +107,6 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public abstract partial class ScriptableRenderer
     {
         // Deprecated in 10.x

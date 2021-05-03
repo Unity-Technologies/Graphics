@@ -203,7 +203,7 @@ By default, the Shader template provides you with the following inputs:
 
 HDRP allows you to customize the order of your custom post-processing effect at each injection point. To order your effects:
 
-1. Go to **Edit > Project Settings** and select the **HDRP Default Settings** tab.
+1. Go to **Edit > Project Settings > Graphics** and select the [HDRP Global Settings](Default-Settings-Window.md) tab.
 
 2. Scroll down until you find the **Custom Post Process Orders** section. This section contains three lists, one for each injection point.
 
