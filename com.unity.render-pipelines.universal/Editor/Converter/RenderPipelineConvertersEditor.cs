@@ -78,10 +78,7 @@ namespace UnityEditor.Rendering.Universal
 
         TypeCache.TypeCollection m_ConverterContainers;
 
-#if RENDER_PIPELINE_CONVERTER
-        [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
-#endif
-
+        [MenuItem("Window/Rendering/Render Pipeline Converter", false, 50)]
         public static void ShowWindow()
         {
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
