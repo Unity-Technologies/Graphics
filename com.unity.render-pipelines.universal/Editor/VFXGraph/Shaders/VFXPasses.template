@@ -14,6 +14,8 @@ ${VFXBegin:VFXPassShadowDefine}#define SHADERPASS SHADERPASS_SHADOWS${VFXEnd}
 ${VFXBegin:VFXPassVelocityDefine}#define SHADERPASS SHADERPASS_MOTION_VECTORS${VFXEnd}
 
 ${VFXBegin:VFXPassForwardAdditionalPragma}
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
 #pragma multi_compile _ _ADDITIONAL_LIGHTS
 #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
@@ -24,6 +26,8 @@ ${VFXBegin:VFXPassDepthAdditionalPragma}
 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 ${VFXEnd}
 ${VFXBegin:VFXPassGBufferAdditionalPragma}
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+#pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
 #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
 //#pragma multi_compile _ _ADDITIONAL_LIGHTS
