@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 #endif
 
-public class LensFlareInput : MonoBehaviour
+public class LensFlareSamplesInputAndControl : MonoBehaviour
 {
     [Header("References")]
     public GameObject cameraGameObject;
@@ -20,19 +20,19 @@ public class LensFlareInput : MonoBehaviour
 
     [Header("Light Settings")]
     public GameObject lensFlareLight;
-    public float lightDistance;
+    public float lightDistance = 100.0f;
 
 
     [Header("Camera Movement")]
-    public float cameraRotationSpeed;
+    public float cameraRotationSpeed = 1.0f;
     public bool useMouseDragInsteadOfFPSControl;
 
     [Header("Camera Shake")]
     public bool enableCameraShake;
     [Range(0, 10)]
-    public float cameraShakeSpeed;
+    public float cameraShakeSpeed = 3.0f;
     [Range(0, 1)]
-    public float cameraShakeAmplitude;
+    public float cameraShakeAmplitude = 0.3f;
 
     private Camera cameraComponent;
 
