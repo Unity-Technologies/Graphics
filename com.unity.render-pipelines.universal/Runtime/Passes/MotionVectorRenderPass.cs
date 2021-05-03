@@ -4,13 +4,14 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace kTools.Motion
+namespace UnityEngine.Rendering.Universal.Internal
 {
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
-#region Fields
+        #region Fields
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kMotionVectorTexture = "_MotionVectorTexture";
+        const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[]
         {
@@ -31,9 +32,10 @@ namespace kTools.Motion
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
         }
-#endregion
 
-#region State
+        #endregion
+
+        #region State
         internal void Setup(MotionData motionData)
         {
             m_MotionData = motionData;
@@ -42,7 +44,7 @@ namespace kTools.Motion
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var rtd = cameraTextureDescriptor;
-            rtd.graphicsFormat = GraphicsFormat.R16G16_SFloat;
+            rtd.graphicsFormat = m_TargetFormat;
             // Configure Render Target
             m_MotionVectorHandle.Init(kMotionVectorTexture);
             cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
@@ -52,13 +54,13 @@ namespace kTools.Motion
             // TODO: Why do clear here?
             cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
         }
-#endregion
 
-#region Execution
+        #endregion
+
+        #region Execution
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-
             if (m_CameraMaterial == null || m_ObjectMaterial == null)
                 return;
 
@@ -66,7 +68,7 @@ namespace kTools.Motion
             var camera = renderingData.cameraData.camera;
 
             // Never draw in Preview
-            if(camera.cameraType == CameraType.Preview)
+            if (camera.cameraType == CameraType.Preview)
                 return;
 
             // Profiling command
@@ -108,7 +110,7 @@ namespace kTools.Motion
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
-            
+
             // Material
             drawingSettings.fallbackMaterial = m_ObjectMaterial;
             return drawingSettings;
@@ -130,9 +132,10 @@ namespace kTools.Motion
             // Draw Renderers
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
         }
-#endregion
 
-#region Cleanup
+        #endregion
+
+        #region Cleanup
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
@@ -145,14 +148,16 @@ namespace kTools.Motion
                 m_MotionVectorHandle = RenderTargetHandle.CameraTarget;
             }
         }
-#endregion
 
-#region CommandBufer
+        #endregion
+
+        #region CommandBufer
         void ExecuteCommand(ScriptableRenderContext context, CommandBuffer cmd)
         {
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
-#endregion
+
+        #endregion
     }
 }

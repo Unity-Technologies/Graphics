@@ -11,7 +11,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-			#pragma target 3.0
+            #pragma target 3.0
             #pragma enable_d3d11_debug_symbols
 
             //--------------------------------------
@@ -87,7 +87,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                 float4 posVP = input.positionVP;
                 posVP.xy = posVP.xy / posVP.w;
                 input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;
-                
+
                 // Calculate velocity
                 float2 velocity = (posVP.xy - input.previousPositionVP.xy);
                 #if UNITY_UV_STARTS_AT_TOP

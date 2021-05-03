@@ -1,20 +1,20 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace kTools.Motion
+namespace UnityEngine.Rendering.Universal.Internal
 {
     sealed class MotionVectorRendering
     {
-#region Fields
+        #region Fields
         static MotionVectorRendering s_Instance;
 
         Dictionary<Camera, MotionData> m_MotionDatas;
         uint  m_FrameCount;
         float m_LastTime;
         float m_Time;
-#endregion
+        #endregion
 
-#region Constructors
+        #region Constructors
         private MotionVectorRendering()
         {
             // Set data
@@ -30,9 +30,9 @@ namespace kTools.Motion
                 return s_Instance;
             }
         }
-#endregion
+        #endregion
 
-#region RenderPass
+        #region RenderPass
 
         public void Clear()
         {
@@ -43,7 +43,7 @@ namespace kTools.Motion
         {
             // Get MotionData
             MotionData motionData;
-            if(!m_MotionDatas.TryGetValue(camera, out motionData))
+            if (!m_MotionDatas.TryGetValue(camera, out motionData))
             {
                 motionData = new MotionData();
                 m_MotionDatas.Add(camera, motionData);
@@ -54,7 +54,8 @@ namespace kTools.Motion
             UpdateMotionData(camera, motionData);
             return motionData;
         }
-#endregion
+
+        #endregion
 
         void CalculateTime()
         {
@@ -103,10 +104,10 @@ namespace kTools.Motion
             if (motionData.lastFrameActive != Time.frameCount)
             {
                 motionData.isFirstFrame = false;
-                motionData.previousGPUViewProjectionMatrix = motionData.isFirstFrame ? 
-                        gpuVP : motionData.gpuViewProjectionMatrix;
-                motionData.previousViewProjectionMatrix = motionData.isFirstFrame ? 
-                        vp : motionData.viewProjectionMatrix;
+                motionData.previousGPUViewProjectionMatrix = motionData.isFirstFrame ?
+                    gpuVP : motionData.gpuViewProjectionMatrix;
+                motionData.previousViewProjectionMatrix = motionData.isFirstFrame ?
+                    vp : motionData.viewProjectionMatrix;
             }
 
             // Set current frame data

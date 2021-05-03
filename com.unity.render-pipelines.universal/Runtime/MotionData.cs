@@ -1,20 +1,20 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace kTools.Motion
+namespace UnityEngine.Rendering.Universal.Internal
 {
     internal sealed class MotionData
     {
-#region Fields
+        #region Fields
         bool m_IsFirstFrame;
         int m_LastFrameActive;
         Matrix4x4 m_GpuViewProjectionMatrix;
         Matrix4x4 m_PreviousGpuViewProjectionMatrix;
-        
+
         Matrix4x4 m_ViewProjectionMatrix;
         Matrix4x4 m_PreviousViewProjectionMatrix;
-#endregion
+        #endregion
 
-#region Constructors
+        #region Constructors
         internal MotionData()
         {
             // Set data
@@ -23,9 +23,10 @@ namespace kTools.Motion
             m_GpuViewProjectionMatrix = Matrix4x4.identity;
             m_PreviousGpuViewProjectionMatrix = Matrix4x4.identity;
         }
-#endregion
 
-#region Properties
+        #endregion
+
+        #region Properties
         internal bool isFirstFrame
         {
             get => m_IsFirstFrame;
@@ -61,6 +62,6 @@ namespace kTools.Motion
             get => m_PreviousViewProjectionMatrix;
             set => m_PreviousViewProjectionMatrix = value;
         }
-#endregion
+        #endregion
     }
 }

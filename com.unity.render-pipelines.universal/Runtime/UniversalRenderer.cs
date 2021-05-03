@@ -1,5 +1,4 @@
 using UnityEngine.Rendering.Universal.Internal;
-using kTools.Motion;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -23,9 +22,6 @@ namespace UnityEngine.Rendering.Universal
     {
         const int k_DepthStencilBufferBits = 32;
         static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
-
-        const string kCameraShader = "Hidden/kMotion/CameraMotionVectors"; //Move to UniversalRendererData?
-        const string kObjectShader = "Hidden/kMotion/ObjectMotionVectors";
 
         private static class Profiling
         {
