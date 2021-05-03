@@ -55,7 +55,6 @@ test_hdrp_template_Win_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -104,8 +103,8 @@ test_hdrp_template_OSX_trunk:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -194,7 +193,6 @@ test_hdrp_template_Win_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -243,8 +241,8 @@ test_hdrp_template_OSX_CUSTOM-REVISION:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_CUSTOM-REVISION
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -333,7 +331,6 @@ test_universal_template_Win_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -382,8 +379,8 @@ test_universal_template_OSX_trunk:
       -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -472,7 +469,6 @@ test_universal_template_Win_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -521,8 +517,8 @@ test_universal_template_OSX_CUSTOM-REVISION:
       -  .yamato/_templates.yml#pack_universal_template_OSX_CUSTOM-REVISION
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
     artifacts:
         logs:
