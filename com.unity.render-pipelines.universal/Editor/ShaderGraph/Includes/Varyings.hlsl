@@ -105,7 +105,8 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionWS);
+    // Need the unnormalized direction here as it will get normalized after interpolation
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
