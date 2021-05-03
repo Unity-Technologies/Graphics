@@ -237,6 +237,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal DecalTechnique GetTechnique(ScriptableRendererData renderer)
+        {
+            var universalRenderer = renderer as UniversalRendererData;
+            if (universalRenderer == null)
+            {
+                Debug.LogError("Only universal renderer supports Decal renderer feature.");
+                return DecalTechnique.Invalid;
+            }
+
+            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            return GetTechnique(isDeferred);
+        }
+
         internal DecalTechnique GetTechnique(ScriptableRenderer renderer)
         {
             var universalRenderer = renderer as UniversalRenderer;
@@ -246,6 +259,12 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
+            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            return GetTechnique(isDeferred);
+        }
+
+        private DecalTechnique GetTechnique(bool isDeferred)
+        {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2)
             {
                 Debug.LogError("Decals are not supported with OpenGLES2.");
@@ -262,7 +281,6 @@ namespace UnityEngine.Rendering.Universal
                         technique = DecalTechnique.ScreenSpace;
                     break;
                 case DecalTechniqueOption.ScreenSpace:
-                    bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
                     if (m_Settings.screenSpaceSettings.useGBuffer && isDeferred)
                         technique = DecalTechnique.GBuffer;
                     else

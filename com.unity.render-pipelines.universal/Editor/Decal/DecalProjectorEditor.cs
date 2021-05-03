@@ -688,15 +688,18 @@ namespace UnityEditor.Rendering.Universal
                 // We need to prevent the user to edit default decal materials
                 if (isValidDecalMaterial)
                 {
-                    using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                    using (new DecalProjectorScope())
                     {
-                        // Draw the material's foldout and the material shader field
-                        // Required to call m_MaterialEditor.OnInspectorGUI ();
-                        m_MaterialEditor.DrawHeader();
+                        using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
+                        {
+                            // Draw the material's foldout and the material shader field
+                            // Required to call m_MaterialEditor.OnInspectorGUI ();
+                            m_MaterialEditor.DrawHeader();
 
-                        // Draw the material properties
-                        // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
-                        m_MaterialEditor.OnInspectorGUI();
+                            // Draw the material properties
+                            // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
+                            m_MaterialEditor.OnInspectorGUI();
+                        }
                     }
                 }
             }

@@ -8,9 +8,25 @@ using UnityEngine.Rendering.Universal.Internal;
 namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
+    /// Scope that indicates start of <see cref="DecalProjector"/> GUI.
+    /// </summary>
+    internal class DecalProjectorScope : GUI.Scope
+    {
+        public DecalProjectorScope()
+        {
+            DecalShaderGraphGUI.isDecalProjectorGUI = true;
+        }
+
+        protected override void CloseScope()
+        {
+            DecalShaderGraphGUI.isDecalProjectorGUI = false;
+        }
+    }
+
+    /// <summary>
     /// Represents the GUI for Decal Shader Graph materials.
     /// </summary>
-    internal class DecalShaderGraphGUI : PBRMasterGUI
+    internal class DecalShaderGraphGUI : UnityEditor.ShaderGUI
     {
         internal class Styles
         {
@@ -28,6 +44,8 @@ namespace UnityEditor.Rendering.Universal
             Inputs = 1 << 0,
             Advanced = 1 << 1,
         }
+
+        public static bool isDecalProjectorGUI { get; set; }
 
         const string kDecalMeshBiasType = "_DecalMeshBiasType";
         const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
@@ -57,6 +75,8 @@ namespace UnityEditor.Rendering.Universal
         /// <param name="props">The list of properties the material has.</param>
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
+            DecalMeshWarning();
+
             m_MaterialEditor = materialEditor;
             FindProperties(props);
 
@@ -146,6 +166,33 @@ namespace UnityEditor.Rendering.Universal
                 drawOrder.floatValue = queue;
             }
             EditorGUI.showMixedValue = false;
+        }
+
+        private void DecalMeshWarning()
+        {
+            if (isDecalProjectorGUI)
+                return;
+
+            var urp = UniversalRenderPipeline.asset;
+            if (urp == null)
+                return;
+
+            bool hasDecalScreenSpace = false;
+            var renderers = urp.m_RendererDataList;
+            foreach (var renderer in renderers)
+            {
+                if (renderer.TryGetRendererFeature(out DecalRendererFeature decalRendererFeature))
+                {
+                    if (decalRendererFeature.GetTechnique(renderer) == DecalTechnique.ScreenSpace)
+                    {
+                        hasDecalScreenSpace = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasDecalScreenSpace)
+                EditorGUILayout.HelpBox("Decals with Screen Space technique only support rendering with DecalProjector component.", MessageType.Warning);
         }
     }
 }
