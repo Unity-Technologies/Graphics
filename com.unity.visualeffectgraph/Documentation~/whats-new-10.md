@@ -36,9 +36,9 @@ For more information about this feature, see [Output Particle Mesh](Context-Outp
 
 ![](Images/banner-mesh-sampling.png)
 
-Spawn particles directly from meshes. This enables you to quickly spawn particles in more complex shapes directly from meshes without the need to first bake their positions into a [point cache](PointCaches.md).
+Spawn particles directly from meshes. This enables you to quickly spawn particles in more complex shapes directly from meshes without the need to first bake their positions into a [point cache](point-cache-in-vfx-graph.md).
 
-You can sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator.
+You can sample vertices of a mesh with the Position (Mesh) Block and the Sample Mesh Operator.
 
 For more information about this feature, see [Mesh sampling](MeshSampling.md).
 
@@ -105,7 +105,7 @@ These allow you to create custom behaviors like detecting whether particles have
 
 For more information about the sample SDF Operator, see [Sample Signed Distance Field](Operator-SampleSDF.md).
 
-For more information about the new position block, see [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md).
+For more information about the new position Block, see [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md).
 
 ### Distortion Output
 

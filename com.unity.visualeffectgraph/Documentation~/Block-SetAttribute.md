@@ -2,7 +2,7 @@
 
 Menu Path : **Attribute > Set > [Add/Blend/Inherit/Multiply/Set] \<Attribute> **
 
-The **Set Attribute** Block is a generic block that allows you to write values to an attribute using composition.
+The **Set Attribute** Block is a generic Block that allows you to write values to an attribute using composition.
 
 You can either set the value of the attribute directly, or use two different random modes, **Uniform** and **Per-Component**, to set the attribute to a random value.
 

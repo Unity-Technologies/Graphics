@@ -369,7 +369,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+                var pvr = ProbeReferenceVolume.instance;
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                {
+                    memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
+                    probeDebugMesh = defaultResources.assets.sphereMesh,
+                    probeDebugShader = defaultResources.shaders.probeVolumeDebugShader
+                });
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -438,22 +444,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
 
-            bool requiresRayTracingResources = false;
-            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
+            // Make sure to include ray-tracing resources if at least one of the defaultAsset or quality levels needs it
+            bool requiresRayTracingResources = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
+
+            // Make sure to include ray-tracing resources if at least one of the quality levels needs it
+            int qualityLevelCount = QualitySettings.names.Length;
+            for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
             {
-                requiresRayTracingResources = true;
+                var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+                if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    requiresRayTracingResources = true;
             }
-            // Also make sure to include ray-tracing resources if at least one of the quality levels needs it
-            else if (rayTracingSupportedBySystem)
-            {
-                int qualityLevelCount = QualitySettings.names.Length;
-                for (int i = 0; i < qualityLevelCount && !requiresRayTracingResources; ++i)
-                {
-                    var hdrpAsset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
-                    if (hdrpAsset != null && hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                        requiresRayTracingResources = true;
-                }
-            }
+
             // If ray tracing is not enabled we do not want to have ray tracing resources referenced
             if (requiresRayTracingResources)
                 m_GlobalSettings.EnsureRayTracingResources(forceReload: true);
@@ -517,6 +519,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
                 , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                , autoAmbientProbeBaking = false
+                , autoDefaultReflectionProbeBaking = false
+                , enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -663,7 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
             CoreUtils.SafeRelease(m_EmptyIndexBuffer);
             m_EmptyIndexBuffer = null;
 
@@ -752,6 +756,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #endif
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.Cleanup();
             }
 
             CleanupRenderGraph();
@@ -2182,6 +2191,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+            // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
+            ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera);
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
