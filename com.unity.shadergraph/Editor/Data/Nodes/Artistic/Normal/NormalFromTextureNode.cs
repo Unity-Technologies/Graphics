@@ -83,9 +83,9 @@ namespace UnityEditor.ShaderGraph
                         s.AppendLine("$precision2 offsetU = $precision2(UV.x + Offset, UV.y);");
                         s.AppendLine("$precision2 offsetV = $precision2(UV.x, UV.y + Offset);");
 
-                        s.AppendLine("$precision normalSample = SAMPLE_TEXTURE2D(Texture, Sampler, UV);");
-                        s.AppendLine("$precision uSample = SAMPLE_TEXTURE2D(Texture, Sampler, offsetU);");
-                        s.AppendLine("$precision vSample = SAMPLE_TEXTURE2D(Texture, Sampler, offsetV);");
+                        s.AppendLine("$precision normalSample = SAMPLE_TEXTURE2D(Texture, Sampler, UV).x;");
+                        s.AppendLine("$precision uSample = SAMPLE_TEXTURE2D(Texture, Sampler, offsetU).x;");
+                        s.AppendLine("$precision vSample = SAMPLE_TEXTURE2D(Texture, Sampler, offsetV).x;");
 
                         s.AppendLine("$precision3 va = $precision3(1, 0, (uSample - normalSample) * Strength);");
                         s.AppendLine("$precision3 vb = $precision3(0, 1, (vSample - normalSample) * Strength);");
