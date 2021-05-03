@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
     internal abstract class DecalDrawSystem
     {
         protected DecalEntityManager m_EntityManager;
-        private Mesh m_DecalProjectorMesh;
         private Matrix4x4[] m_WorldToDecals;
         private Matrix4x4[] m_NormalToDecals;
         private ProfilingSampler m_Sampler;
@@ -19,7 +18,6 @@ namespace UnityEngine.Rendering.Universal
         public DecalDrawSystem(string sampler, DecalEntityManager entityManager)
         {
             m_EntityManager = entityManager;
-            m_DecalProjectorMesh = m_EntityManager.decalProjectorMesh;
 
             m_WorldToDecals = new Matrix4x4[250];
             m_NormalToDecals = new Matrix4x4[250];
@@ -29,10 +27,6 @@ namespace UnityEngine.Rendering.Universal
 
         public void Execute(CommandBuffer cmd)
         {
-            // On build for some reason mesh dereferences
-            if (m_DecalProjectorMesh == null)
-                m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-
             using (new ProfilingScope(cmd, m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
@@ -74,6 +68,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void Draw(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
         {
+            var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
             decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
@@ -85,13 +80,14 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                    cmd.DrawMesh(m_DecalProjectorMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
+                    cmd.DrawMesh(mesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
                 }
             }
         }
 
         private void DrawInstanced(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
         {
+            var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
             decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
@@ -107,16 +103,12 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-                cmd.DrawMeshInstanced(m_DecalProjectorMesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
+                cmd.DrawMeshInstanced(mesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
             }
         }
 
         public void Execute(in CameraData cameraData)
         {
-            // On build for some reason mesh dereferences
-            if (m_DecalProjectorMesh == null)
-                m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-
             using (new ProfilingScope(null, m_Sampler))
             {
                 for (int i = 0; i < m_EntityManager.chunkCount; ++i)
@@ -154,6 +146,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void Draw(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk)
         {
+            var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
             int subCallCount = decalDrawCallChunk.subCallCount;
             for (int i = 0; i < subCallCount; ++i)
@@ -163,13 +156,14 @@ namespace UnityEngine.Rendering.Universal
                 for (int j = subCall.start; j < subCall.end; ++j)
                 {
                     decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
-                    Graphics.DrawMesh(m_DecalProjectorMesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
+                    Graphics.DrawMesh(mesh, decalCachedChunk.decalToWorlds[j], material, decalCachedChunk.layerMasks[j], cameraData.camera, 0, decalCachedChunk.propertyBlock);
                 }
             }
         }
 
         private void DrawInstanced(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk)
         {
+            var mesh = m_EntityManager.decalProjectorMesh;
             var material = GetMaterial(decalEntityChunk);
             decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
@@ -185,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
                 decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-                Graphics.DrawMeshInstanced(m_DecalProjectorMesh, 0, material,
+                Graphics.DrawMeshInstanced(mesh, 0, material,
                     m_WorldToDecals, subCall.count, decalCachedChunk.propertyBlock, ShadowCastingMode.On, true, 0, cameraData.camera);
             }
         }

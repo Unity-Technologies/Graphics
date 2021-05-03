@@ -196,19 +196,32 @@ namespace UnityEngine.Rendering.Universal
         private List<int> m_CombinedChunkRemmap = new List<int>();
 
         private Material m_ErrorMaterial;
-        public Material errorMaterial => m_ErrorMaterial;
+        public Material errorMaterial
+        {
+            get
+            {
+                if (m_ErrorMaterial == null)
+                    m_ErrorMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/InternalErrorShader"));
+                return m_ErrorMaterial;
+            }
+        }
 
         private Mesh m_DecalProjectorMesh;
-        public Mesh decalProjectorMesh => m_DecalProjectorMesh;
+        public Mesh decalProjectorMesh
+        {
+            get
+            {
+                if (m_DecalProjectorMesh == null)
+                    m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+                return m_DecalProjectorMesh;
+            }
+        }
 
         public DecalEntityManager()
         {
             m_AddDecalSampler = new ProfilingSampler("DecalEntityManager.CreateDecalEntity");
             m_ResizeChunks = new ProfilingSampler("DecalEntityManager.ResizeChunks");
             m_SortChunks = new ProfilingSampler("DecalEntityManager.SortChunks");
-
-            m_DecalProjectorMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.5f, -0.5f, -0.5f, 1.0f), new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-            m_ErrorMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/InternalErrorShader"));
         }
 
         public bool IsValid(DecalEntity decalEntity)
