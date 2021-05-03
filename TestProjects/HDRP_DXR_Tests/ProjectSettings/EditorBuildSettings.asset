@@ -225,9 +225,6 @@ EditorBuildSettings:
     path: Assets/Scenes/2003_Debug_RecursiveRendering.unity
     guid: 4b02a5b1fc4cbca4fa2cc49f28897268
   - enabled: 1
-    path: Assets/Scenes/2004_Debug_ContactShadows.unity
-    guid: bdd85d6731147b147b149deb57fc9371
-  - enabled: 1
     path: Assets/Scenes/2005_Debug_ScreenSpaceAmbientOcclusion.unity
     guid: 922ab6aeebc215348b79619079b0059c
   - enabled: 1
