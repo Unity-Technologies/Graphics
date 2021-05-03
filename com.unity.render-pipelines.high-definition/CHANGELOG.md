@@ -47,6 +47,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a NaN generating in Area light code.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed undo of some properties on light editor.
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
