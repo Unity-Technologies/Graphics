@@ -109,14 +109,18 @@ bool InitSphericalQuad(LightData light, float3 positionWS, float3 normalWS, inou
 
     // Make sure that this point may have light contributions
     float d = -dot(normalWS, positionWS);
-    if (positionLS.z <= 0.0 || (positionLS.z > 0.0 && ((dot(normalWS, v0) + d < 0) && (dot(normalWS, v1) + d < 0) && (dot(normalWS, v2) + d < 0) && (dot(normalWS, v3) + d < 0))))
-        return false;
-        
-    float3 ex = v1 - v0;
-    float3 ey = v3 - v0;
 
-    SphQuadInit(v0, ex, ey, positionWS, squad);
-    return true;
+    bool isValid = false;
+    if (!(positionLS.z <= 0.0 || (positionLS.z > 0.0 && ((dot(normalWS, v0) + d < 0) && (dot(normalWS, v1) + d < 0) && (dot(normalWS, v2) + d < 0) && (dot(normalWS, v3) + d < 0)))))
+    {
+        float3 ex = v1 - v0;
+        float3 ey = v3 - v0;
+
+        SphQuadInit(v0, ex, ey, positionWS, squad);
+        isValid = true;
+    }
+
+    return isValid;
 }
 
 float EvalBrdfPDF(MISSamplingInput misInput, float3 L)

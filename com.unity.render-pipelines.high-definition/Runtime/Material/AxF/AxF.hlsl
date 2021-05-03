@@ -1554,23 +1554,25 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float2  roughness = max(0.0001, bsdfData.roughness.xy);
     //if (bsdfData.roughness.y == 0.0) bsdfData.specularColor = float3(1,0,0);
 
-    if (roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0)
+    float3 res = 0.0;
+
+    if (!(roughness.x * roughness.y <= 0.0001 && tsH.z < 1.0))
     {
-        return 0;
+        float   N = exp(-Sq(rotH.x / roughness.x) - Sq(rotH.y / roughness.y));
+        N /= max(0.0001, PI * roughness.x * roughness.y);
+        //N /= (PI * roughness.x * roughness.y);
+
+        switch ((_SVBRDF_BRDFVariants >> 2) & 3)
+        {
+        case 0: N /= max(0.0001, 4.0 * Sq(LdotH) * Sq(Sq(tsH.z))); break; // Moroder
+        case 1: N /= max(0.0001, 4.0 * NdotL * NdotV); break;             // Duer
+        case 2: N /= max(0.0001, 4.0 * sqrt(NdotL * NdotV)); break;       // Ward
+        }
+
+        res = bsdfData.specularColor * F * N;
     }
 
-    float   N = exp(-Sq(rotH.x / roughness.x) - Sq(rotH.y / roughness.y));
-    N /= max(0.0001, PI * roughness.x * roughness.y);
-    //N /= (PI * roughness.x * roughness.y);
-
-    switch ((_SVBRDF_BRDFVariants >> 2) & 3)
-    {
-    case 0: N /= max(0.0001, 4.0 * Sq(LdotH) * Sq(Sq(tsH.z))); break; // Moroder
-    case 1: N /= max(0.0001, 4.0 * NdotL * NdotV); break;             // Duer
-    case 2: N /= max(0.0001, 4.0 * sqrt(NdotL * NdotV)); break;       // Ward
-    }
-
-    return bsdfData.specularColor * F * N;
+    return res;
 }
 
 float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
@@ -2001,158 +2003,158 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
                                                      lightData.rangeAttenuationBias);
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
-        return lighting;
+    if (intensity > 0.0)
+    {
+        lightData.diffuseDimmer *= intensity;
+        lightData.specularDimmer *= intensity;
 
-    lightData.diffuseDimmer *= intensity;
-    lightData.specularDimmer *= intensity;
+        // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+        float3  lightPositionRWS = lightData.positionRWS - positionWS;
 
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    float3  lightPositionRWS = lightData.positionRWS - positionWS;
+        // TODO: some of this could be precomputed.
+        float3  P1 = lightPositionRWS - T * (0.5 * len);
+        float3  P2 = lightPositionRWS + T * (0.5 * len);
 
-    // TODO: some of this could be precomputed.
-    float3  P1 = lightPositionRWS - T * (0.5 * len);
-    float3  P2 = lightPositionRWS + T * (0.5 * len);
+        // Rotate the endpoints into the local coordinate system.
+        P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
+        P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
 
-    // Rotate the endpoints into the local coordinate system.
-    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
+        // Compute the binormal in the local coordinate system.
+        float3  B = normalize(cross(P1, P2));
 
-    // Compute the binormal in the local coordinate system.
-    float3  B = normalize(cross(P1, P2));
+        float   ltcValue;
 
-    float   ltcValue;
-
-    //-----------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------
 #if defined(_AXF_BRDF_TYPE_SVBRDF)
 
-    // Evaluate the diffuse part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-    ltcValue *= lightData.diffuseDimmer;
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+        // Evaluate the diffuse part
+        // Polygon irradiance in the transformed configuration.
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
+        ltcValue *= lightData.diffuseDimmer;
+        lighting.diffuse = preLightData.diffuseFGD * ltcValue;
 
-    // Evaluate the specular part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-    ltcValue *= lightData.specularDimmer;
-    lighting.specular = preLightData.specularFGD * ltcValue;
+        // Evaluate the specular part
+        // Polygon irradiance in the transformed configuration.
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
+        ltcValue *= lightData.specularDimmer;
+        lighting.specular = preLightData.specularFGD * ltcValue;
 
-    //-----------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
-    float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
+        float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
 
-    //-----------------------------------------------------------------------------
-    // Use Lambert for diffuse
-    ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);    // No transform: Lambert uses identity
-    ltcValue *= lightData.diffuseDimmer;
-    lighting.diffuse = ltcValue; // no FGD, lambert gives 1
+        //-----------------------------------------------------------------------------
+        // Use Lambert for diffuse
+        ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);    // No transform: Lambert uses identity
+        ltcValue *= lightData.diffuseDimmer;
+        lighting.diffuse = ltcValue; // no FGD, lambert gives 1
 
-    // Evaluate a BRDF color response in diffuse direction
-    // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
-    // todo_dir
+        // Evaluate a BRDF color response in diffuse direction
+        // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
+        // todo_dir
 #if 0
-    float3  bestLightWS_Diffuse = ComputeBestLightDirection_Line(lightPositionRWS, -lightData.forward, lightData);
+        float3  bestLightWS_Diffuse = ComputeBestLightDirection_Line(lightPositionRWS, -lightData.forward, lightData);
 
-    // todo_dir todo_pseudorefract
-    // refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
-    // compute LTC / env fetching using *non refracted dir*
+        // todo_dir todo_pseudorefract
+        // refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
+        // compute LTC / env fetching using *non refracted dir*
 
-    float3  H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Diffuse);
-    float   NdotH = dot(bsdfData.normalWS, H);
-    float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
+        float3  H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Diffuse);
+        float   NdotH = dot(bsdfData.normalWS, H);
+        float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    float   thetaH = acos(clamp(NdotH, 0, 1));
-    float   thetaD = acos(clamp(VdotH, 0, 1));
+        float   thetaH = acos(clamp(NdotH, 0, 1));
+        float   thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments:
-    float   thetaH = 0;
-    float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
+        // Just use the same assumptions as for environments:
+        float   thetaH = 0;
+        float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
 #endif
-    lighting.diffuse *= preLightData.singleBRDFColor;
+        lighting.diffuse *= preLightData.singleBRDFColor;
 
 
-    //-----------------------------------------------------------------------------
-    // Evaluate multi-lobes Cook-Torrance
-    // Each CT lobe samples the environment with the appropriate roughness
-    for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
-    {
-        float   coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecularCT[lobeIndex]);
-        lighting.specular += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue;
-    }
-    lighting.specular *= lightData.specularDimmer;
+        //-----------------------------------------------------------------------------
+        // Evaluate multi-lobes Cook-Torrance
+        // Each CT lobe samples the environment with the appropriate roughness
+        for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
+        {
+            float   coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
+            ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecularCT[lobeIndex]);
+            lighting.specular += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue;
+        }
+        lighting.specular *= lightData.specularDimmer;
 
-    // Evaluate a BRDF color response in specular direction
-    // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
-    // todo_dir:
+        // Evaluate a BRDF color response in specular direction
+        // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
+        // todo_dir:
 #if 0
-    float3  bestLightWS_Specular = ComputeBestLightDirection_Line(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
+        float3  bestLightWS_Specular = ComputeBestLightDirection_Line(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
 
-    // todo_dir todo_pseudorefract
-    // refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
-    // compute LTC / env fetching using *non refracted dir*
-    H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Specular);
-    NdotH = dot(bsdfData.normalWS, H);
-    VdotH = dot(preLightData.viewWS_UnderCoat, H);
+        // todo_dir todo_pseudorefract
+        // refract light dir here for GetBRDFColor since it is a fresnel-like effect, but
+        // compute LTC / env fetching using *non refracted dir*
+        H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Specular);
+        NdotH = dot(bsdfData.normalWS, H);
+        VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    thetaH = acos(clamp(NdotH, 0, 1));
-    thetaD = acos(clamp(VdotH, 0, 1));
+        thetaH = acos(clamp(NdotH, 0, 1));
+        thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments
-    // (already calculated thetaH and thetaD above)
+        // Just use the same assumptions as for environments
+        // (already calculated thetaH and thetaD above)
 #endif
-    //now already in rebuilt specularFGD: lighting.specular *= GetBRDFColor(thetaH, thetaD);
+        //now already in rebuilt specularFGD: lighting.specular *= GetBRDFColor(thetaH, thetaD);
 
 
-    //-----------------------------------------------------------------------------
-    // Sample flakes as tiny mirrors
-    // (update1: this is not really doing that, more like applying a BTF on a
-    // lobe following the top normalmap. For them being like tiny mirrors, you would
-    // need the N of the flake, and then you end up with the problem of normal aliasing)
-    // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
-    // - TODO in that case calculated irradiance should be the same as clearcoat, should be optimized)
-    // todo_dir NdotV wrong
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformFlakes);
-    ltcValue *= lightData.specularDimmer;
-
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
-
-#endif
-
-    //-----------------------------------------------------------------------------
-
-    // Evaluate the clear-coat
-    if (HasClearcoat())
-    {
-
-        // Use the complement of FGD value as an approximation of the extinction of the undercoat
-        float3  clearcoatExtinction = 1.0 - preLightData.coatFGD;
-
-        // Apply clear-coat extinction to existing lighting
-        lighting.diffuse *= clearcoatExtinction;
-        lighting.specular *= clearcoatExtinction;
-
-        // Then add clear-coat contribution
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformClearcoat);
+        //-----------------------------------------------------------------------------
+        // Sample flakes as tiny mirrors
+        // (update1: this is not really doing that, more like applying a BTF on a
+        // lobe following the top normalmap. For them being like tiny mirrors, you would
+        // need the N of the flake, and then you end up with the problem of normal aliasing)
+        // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
+        // - TODO in that case calculated irradiance should be the same as clearcoat, should be optimized)
+        // todo_dir NdotV wrong
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformFlakes);
         ltcValue *= lightData.specularDimmer;
-        lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
-    }
 
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
+        lighting.specular += ltcValue * preLightData.singleFlakesComponent;
+
+#endif
+
+        //-----------------------------------------------------------------------------
+
+        // Evaluate the clear-coat
+        if (HasClearcoat())
+        {
+
+            // Use the complement of FGD value as an approximation of the extinction of the undercoat
+            float3  clearcoatExtinction = 1.0 - preLightData.coatFGD;
+
+            // Apply clear-coat extinction to existing lighting
+            lighting.diffuse *= clearcoatExtinction;
+            lighting.specular *= clearcoatExtinction;
+
+            // Then add clear-coat contribution
+            ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformClearcoat);
+            ltcValue *= lightData.specularDimmer;
+            lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
+        }
+
+        // Save ALU by applying 'lightData.color' only once.
+        lighting.diffuse *= lightData.color;
+        lighting.specular *= lightData.color;
 
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-        lighting.diffuse *= PI * lightData.diffuseDimmer;
-    }
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+        {
+            // Only lighting, not BSDF
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
+            lighting.diffuse *= PI * lightData.diffuseDimmer;
+        }
 #endif
+    }
 
     return lighting;
 }
@@ -2178,198 +2180,198 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
 #endif
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
     float3  lightPositionRWS = lightData.positionRWS - positionWS;
-    if (dot(lightData.forward, lightPositionRWS) >= 0.0001)
+    if (dot(lightData.forward, lightPositionRWS) < 0.0001)
     {
-        return lighting;    // The light is back-facing.
-    }
+        // The light is front facing.
 
-    // Rotate the light direction into the light space.
-    float3x3    lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
-    float3      unL = mul(lightPositionRWS, transpose(lightToWorld));
+        // Rotate the light direction into the light space.
+        float3x3    lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
+        float3      unL = mul(lightPositionRWS, transpose(lightToWorld));
 
-    // TODO: This could be precomputed.
-    float   halfWidth = lightData.size.x * 0.5;
-    float   halfHeight = lightData.size.y * 0.5;
+        // TODO: This could be precomputed.
+        float   halfWidth = lightData.size.x * 0.5;
+        float   halfHeight = lightData.size.y * 0.5;
 
-    // Define the dimensions of the attenuation volume.
-    // TODO: This could be precomputed.
-    float  range      = lightData.range;
-    float3 invHalfDim = rcp(float3(range + halfWidth,
-                                   range + halfHeight,
-                                   range));
+        // Define the dimensions of the attenuation volume.
+        // TODO: This could be precomputed.
+        float  range      = lightData.range;
+        float3 invHalfDim = rcp(float3(range + halfWidth,
+                                       range + halfHeight,
+                                       range));
 
-    // Compute the light attenuation.
+        // Compute the light attenuation.
 #ifdef ELLIPSOIDAL_ATTENUATION
-    // The attenuation volume is an axis-aligned ellipsoid s.t.
-    // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
-                                                     lightData.rangeAttenuationScale,
-                                                     lightData.rangeAttenuationBias);
+        // The attenuation volume is an axis-aligned ellipsoid s.t.
+        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
+                                                         lightData.rangeAttenuationScale,
+                                                         lightData.rangeAttenuationBias);
 #else
-    // The attenuation volume is an axis-aligned box s.t.
-    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = BoxDistanceAttenuation(unL, invHalfDim,
-                                             lightData.rangeAttenuationScale,
-                                             lightData.rangeAttenuationBias);
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
+                                                 lightData.rangeAttenuationScale,
+                                                 lightData.rangeAttenuationBias);
 #endif
 
-    // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
-        return lighting;
+        // Terminate if the shaded point is too far away.
+        if (intensity > 0.0)
+        {
+            //TOCHECK, had to fix this:
+            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+            lightData.positionRWS -= positionWS;
 
-    //TOCHECK, had to fix this:
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionRWS -= positionWS;
+            lightData.diffuseDimmer *= intensity;
+            lightData.specularDimmer *= intensity;
 
-    lightData.diffuseDimmer *= intensity;
-    lightData.specularDimmer *= intensity;
+            // TODO: some of this could be precomputed.
+            float4x3    lightVerts;
+            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
-    // TODO: some of this could be precomputed.
-    float4x3    lightVerts;
-    lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
-    lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
-    lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
-    lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
+            // Rotate the endpoints into tangent space
+            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
-    // Rotate the endpoints into tangent space
-    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+            float   ltcValue;
 
-    float   ltcValue;
-
-    //-----------------------------------------------------------------------------
+            //-----------------------------------------------------------------------------
 
 #if defined(_AXF_BRDF_TYPE_SVBRDF)
 
-    // Evaluate the diffuse part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-    ltcValue *= lightData.diffuseDimmer;
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+            // Evaluate the diffuse part
+            // Polygon irradiance in the transformed configuration.
+            ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+            ltcValue *= lightData.diffuseDimmer;
+            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
 
 
-    // Evaluate the specular part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-    ltcValue *= lightData.specularDimmer;
-    lighting.specular = preLightData.specularFGD * ltcValue;
+            // Evaluate the specular part
+            // Polygon irradiance in the transformed configuration.
+            ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+            ltcValue *= lightData.specularDimmer;
+            lighting.specular = preLightData.specularFGD * ltcValue;
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
-    float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
-    // TODO_dir: refract light dir for GetBRDFColor like for FGD since it is a fresnel-like effect, but
-    // compute LTC / env fetching using *non refracted dir*
+            float   NdotV = ClampNdotV(preLightData.NdotV_UnderCoat);
+            // TODO_dir: refract light dir for GetBRDFColor like for FGD since it is a fresnel-like effect, but
+            // compute LTC / env fetching using *non refracted dir*
 
-    //-----------------------------------------------------------------------------
-    // Use Lambert for diffuse
-//        float3  bestLightWS_Diffuse;
-//        ltcValue  = PolygonIrradiance(lightVerts, bestLightWS_Diffuse);    // No transform: Lambert uses identity
-//        bestLightWS_Diffuse = normalize(bestLightWS_Diffuse);
-    ltcValue = PolygonIrradiance(lightVerts);    // No transform: Lambert uses identity
-    ltcValue *= lightData.diffuseDimmer;
-    lighting.diffuse = ltcValue;
+            //-----------------------------------------------------------------------------
+            // Use Lambert for diffuse
+        //        float3  bestLightWS_Diffuse;
+        //        ltcValue  = PolygonIrradiance(lightVerts, bestLightWS_Diffuse);    // No transform: Lambert uses identity
+        //        bestLightWS_Diffuse = normalize(bestLightWS_Diffuse);
+            ltcValue = PolygonIrradiance(lightVerts);    // No transform: Lambert uses identity
+            ltcValue *= lightData.diffuseDimmer;
+            lighting.diffuse = ltcValue;
 
-    // Evaluate a BRDF color response in diffuse direction
-    // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
-    //TODO_dir:
+            // Evaluate a BRDF color response in diffuse direction
+            // We project the point onto the area light's plane using the light's forward direction and recompute the light direction from this position
+            //TODO_dir:
 #if 0
-    float3  bestLightWS_Diffuse = ComputeBestLightDirection_Rectangle(lightPositionRWS, -lightData.forward, lightData);
+            float3  bestLightWS_Diffuse = ComputeBestLightDirection_Rectangle(lightPositionRWS, -lightData.forward, lightData);
 
-    // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
-    // compute LTC / env fetching using *non refracted dir*
+            // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
+            // compute LTC / env fetching using *non refracted dir*
 
-    float3  H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Diffuse);
-    float   NdotH = dot(bsdfData.normalWS, H);
-    float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
+            float3  H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Diffuse);
+            float   NdotH = dot(bsdfData.normalWS, H);
+            float   VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    float   thetaH = acos(clamp(NdotH, 0, 1));
-    float   thetaD = acos(clamp(VdotH, 0, 1));
+            float   thetaH = acos(clamp(NdotH, 0, 1));
+            float   thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments:
-    float   thetaH = 0;
-    float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
+            // Just use the same assumptions as for environments:
+            float   thetaH = 0;
+            float   thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
 #endif
 
-    lighting.diffuse *= preLightData.singleBRDFColor; //GetBRDFColor(thetaH, thetaD);
+            lighting.diffuse *= preLightData.singleBRDFColor; //GetBRDFColor(thetaH, thetaD);
 
 
-    //-----------------------------------------------------------------------------
-    // Evaluate multi-lobes Cook-Torrance
-    // Each CT lobe samples the environment with the appropriate roughness
-    for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
-    {
-        float   coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
-        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecularCT[lobeIndex]));
-        lighting.specular += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue;
-    }
-    lighting.specular *= lightData.specularDimmer;
+            //-----------------------------------------------------------------------------
+            // Evaluate multi-lobes Cook-Torrance
+            // Each CT lobe samples the environment with the appropriate roughness
+            for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
+            {
+                float   coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
+                ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecularCT[lobeIndex]));
+                lighting.specular += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue;
+            }
+            lighting.specular *= lightData.specularDimmer;
 
-    // Evaluate a BRDF color response in specular direction
-    // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
-    // TODO_dir:
+            // Evaluate a BRDF color response in specular direction
+            // We project the point onto the area light's plane using the reflected view direction and recompute the light direction from this position
+            // TODO_dir:
 #if 0
-    float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
+            float3  bestLightWS_Specular = ComputeBestLightDirection_Rectangle(lightPositionRWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, lightData);
 
-    // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
-    // compute LTC / env fetching using *non refracted dir*
+            // TODO_dir: refract light dir for GetBRDFColor here since it is a fresnel-like effect, but
+            // compute LTC / env fetching using *non refracted dir*
 
-    H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Specular);
-    NdotH = dot(bsdfData.normalWS, H);
-    VdotH = dot(preLightData.viewWS_UnderCoat, H);
+            H = normalize(preLightData.viewWS_UnderCoat + bestLightWS_Specular);
+            NdotH = dot(bsdfData.normalWS, H);
+            VdotH = dot(preLightData.viewWS_UnderCoat, H);
 
-    thetaH = acos(clamp(NdotH, 0, 1));
-    thetaD = acos(clamp(VdotH, 0, 1));
+            thetaH = acos(clamp(NdotH, 0, 1));
+            thetaD = acos(clamp(VdotH, 0, 1));
 #else
-    // Just use the same assumptions as for environments
-    // (already calculated thetaH and thetaD above)
+            // Just use the same assumptions as for environments
+            // (already calculated thetaH and thetaD above)
 #endif
 
-    //now already in rebuilt specularFGD: lighting.specular *= GetBRDFColor(thetaH, thetaD);
+            //now already in rebuilt specularFGD: lighting.specular *= GetBRDFColor(thetaH, thetaD);
 
-    //-----------------------------------------------------------------------------
-    // Sample flakes as tiny mirrors
-    // TODO_dir NdotV wrong
-    // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
-    // - TODO in that case calculated irradiance should be the same as clearcoat, should be optimized)
-    ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformFlakes));
-    ltcValue *= lightData.specularDimmer;
+            //-----------------------------------------------------------------------------
+            // Sample flakes as tiny mirrors
+            // TODO_dir NdotV wrong
+            // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
+            // - TODO in that case calculated irradiance should be the same as clearcoat, should be optimized)
+            ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformFlakes));
+            ltcValue *= lightData.specularDimmer;
 
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
+            lighting.specular += ltcValue * preLightData.singleFlakesComponent;
 
 #endif
 
 
-    //-----------------------------------------------------------------------------
+            //-----------------------------------------------------------------------------
 
-    // Evaluate the clear-coat
-    if (HasClearcoat())
-    {
+            // Evaluate the clear-coat
+            if (HasClearcoat())
+            {
 
-        // Use the complement of FGD value as an approximation of the extinction of the undercoat
-        float3  clearcoatExtinction = 1.0 - preLightData.coatFGD;
+                // Use the complement of FGD value as an approximation of the extinction of the undercoat
+                float3  clearcoatExtinction = 1.0 - preLightData.coatFGD;
 
-        // Apply clear-coat extinction to existing lighting
-        lighting.diffuse *= clearcoatExtinction;
-        lighting.specular *= clearcoatExtinction;
+                // Apply clear-coat extinction to existing lighting
+                lighting.diffuse *= clearcoatExtinction;
+                lighting.specular *= clearcoatExtinction;
 
-        // Then add clear-coat contribution
-        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformClearcoat));
-        ltcValue *= lightData.specularDimmer;
-        lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
-    }
+                // Then add clear-coat contribution
+                ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformClearcoat));
+                ltcValue *= lightData.specularDimmer;
+                lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
+            }
 
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
+            // Save ALU by applying 'lightData.color' only once.
+            lighting.diffuse *= lightData.color;
+            lighting.specular *= lightData.color;
 
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-        lighting.diffuse *= PI * lightData.diffuseDimmer;
-    }
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+            {
+                // Only lighting, not BSDF
+                // Apply area light on lambert then multiply by PI to cancel Lambert
+                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+                lighting.diffuse *= PI * lightData.diffuseDimmer;
+            }
 #endif
+        }
+    }
 
     return lighting;
 }

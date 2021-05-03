@@ -4,14 +4,17 @@
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
+    bool intersects = false;
+    t = FLT_MAX;
+
 	float denom = dot(normal, ray_dir);
 	if (abs(denom) > PLANE_INTERSECTION_EPSILON)
 	{ 
 	    float3 d = pos - ray_origin;
 	    t = dot(d, normal) / denom;
-	    return (t >= 0); 
+	    intersects = (t >= 0); 
 	} 
-	return false; 
+	return intersects; 
 }
 
 struct SphQuad
