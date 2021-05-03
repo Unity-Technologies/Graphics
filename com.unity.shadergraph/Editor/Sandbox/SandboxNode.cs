@@ -70,6 +70,9 @@ namespace UnityEditor.ShaderGraph
         ShaderFunction previewFunction;
         List<MaterialSlot> definitionSlots = new List<MaterialSlot>();
 
+        // temporary data (used during BuildRuntime)
+        int newSlotId = -1;
+
         #region ISandboxNodeBuildContext
         void ClearRuntimeData()
         {
@@ -153,84 +156,101 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        void ISandboxNodeBuildContext.SetMainFunction(ShaderFunction function, bool declareStaticPins)
+        void AddSlotInternal(SlotType slotType, SandboxValueType type, string name, System.Object defaultValue = null)
+        {
+            // AbstractMaterialNode requires that slot IDs are the unique stable identifier,
+            // whereas we are using the parameter Name as the unique stable identifier
+            int slotId = -1;
+            var existingSlot = GetSlotByShaderOutputName(name);
+            if (existingSlot != null)
+            {
+                // if a slot exists with the name, re-use the slot ID for it
+                slotId = existingSlot.id;
+            }
+            else
+            {
+                // no existing slot with that name .. just allocate a new id
+                slotId = newSlotId;
+                newSlotId++;
+            }
+
+            MaterialSlot s;
+            /*
+                                if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
+                                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
+                                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
+                                    s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
+                                else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
+                                    s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
+                                else if (attribute.binding == Binding.None || par.IsOut)
+            */
+            // we assume strings are for external input bindings
+            if (defaultValue is Binding binding)
+            {
+                s = CreateBoundSlot(binding, slotId, name, name, ShaderStageCapability.All
+                    // attribute.stageCapability, attribute.hidden      // TODO
+                );
+            }
+            else
+            {
+                // hack massage defaults into old system
+                Vector4 defaultVector = Vector4.zero;
+                switch (defaultValue)
+                {
+                    case float f:
+                        defaultVector = new Vector4(f, f, f, f);
+                        break;
+                    case Vector2 vec2:
+                        defaultVector = new Vector4(vec2.x, vec2.y, 0.0f, 0.0f);
+                        break;
+                    case Vector3 vec3:
+                        defaultVector = new Vector4(vec3.x, vec3.y, vec3.z, 0.0f);
+                        break;
+                    case Vector4 vec4:
+                        defaultVector = vec4;
+                        break;
+                }
+
+                s = MaterialSlot.CreateMaterialSlot(
+                    ConvertSandboxValueTypeToSlotValueType(type),
+                    slotId,
+                    name,
+                    name,
+                    slotType,
+                    defaultVector
+                    // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
+                    // hidden: attribute.hidden                                 // TODO: what's this used for?
+                );
+
+                if (existingSlot != null)
+                    s.CopyValuesFrom(existingSlot);
+            }
+
+            definitionSlots.Add(s);
+        }
+
+        void ISandboxNodeBuildContext.AddInputSlot(SandboxValueType type, string name, System.Object defaultValue)
+        {
+            AddSlotInternal(SlotType.Input, type, name, defaultValue);
+        }
+
+        void ISandboxNodeBuildContext.AddOutputSlot(SandboxValueType type, string name)
+        {
+            AddSlotInternal(SlotType.Output, type, name);
+        }
+
+        void ISandboxNodeBuildContext.SetMainFunction(ShaderFunction function, bool declareSlots)
         {
             mainFunction = function;
-            if (declareStaticPins)
+            if (declareSlots)
             {
-                int newSlotId = GetUnusedSlotId();
-
                 foreach (ShaderFunction.Parameter p in function.Parameters)
                 {
-                    // AbstractMaterialNode requires that slot IDs are the unique stable identifier,
-                    // whereas we are using the parameter Name as the unique stable identifier
-                    int slotId = -1;
-                    var existingSlot = GetSlotByShaderOutputName(p.Name);
-                    if (existingSlot != null)
-                    {
-                        // if a slot exists with the name, re-use the slot ID for it
-                        slotId = existingSlot.id;
-                    }
-                    else
-                    {
-                        // no existing slot with that name .. just allocate a new id
-                        slotId = newSlotId;
-                        newSlotId++;
-                    }
-
-                    MaterialSlot s;
-/*
-                    if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(Color))
-                        s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
-                    else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGBA))
-                        s = new ColorRGBAMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
-                    else if (attribute.binding == Binding.None && !par.IsOut && par.ParameterType == typeof(ColorRGB))
-                        s = new ColorRGBMaterialSlot(attribute.slotId, name, par.Name, SlotType.Input, attribute.defaultValue ?? Vector4.zero, ColorMode.Default, stageCapability: attribute.stageCapability, hidden: attribute.hidden);
-                    else if (attribute.binding == Binding.None || par.IsOut)
-*/
-                    // we assume strings are for external input bindings
-                    if (p.DefaultValue is Binding binding)
-                    {
-                        s = CreateBoundSlot(binding, slotId, p.Name, p.Name, ShaderStageCapability.All
-                            // attribute.stageCapability, attribute.hidden      // TODO
-                        );
-                    }
-                    else
-                    {
-                        // hack massage defaults into old system
-                        Vector4 defaultValue = Vector4.zero;
-                        switch (p.DefaultValue)
-                        {
-                            case float f:
-                                defaultValue = new Vector4(f, f, f, f);
-                                break;
-                            case Vector2 vec2:
-                                defaultValue = new Vector4(vec2.x, vec2.y, 0.0f, 0.0f);
-                                break;
-                            case Vector3 vec3:
-                                defaultValue = new Vector4(vec3.x, vec3.y, vec3.z, 0.0f);
-                                break;
-                            case Vector4 vec4:
-                                defaultValue = vec4;
-                                break;
-                        }
-
-                        s = MaterialSlot.CreateMaterialSlot(
-                            ConvertSandboxValueTypeToSlotValueType(p.Type),
-                            slotId,
-                            p.Name,
-                            p.Name,
-                            p.IsOutput ? SlotType.Output : SlotType.Input,
-                            defaultValue
-                            // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
-                            // hidden: attribute.hidden                                 // TODO: what's this used for?
-                        );
-
-                        if (existingSlot != null)
-                            s.CopyValuesFrom(existingSlot);
-                    }
-
-                    definitionSlots.Add(s);
+                    AddSlotInternal(
+                        p.IsInput ? SlotType.Input : SlotType.Output,
+                        p.Type,
+                        p.Name,
+                        p.DefaultValue);
                 }
             }
         }
@@ -456,6 +476,10 @@ namespace UnityEditor.ShaderGraph
         private void UpdateSlotsFromDefinition()
         {
             ClearRuntimeData();
+
+            // figure out where new slots start to get allocated
+            newSlotId = GetUnusedSlotId();
+
             m_Definition.BuildRuntime(this);
 
             // update actual slots from the definition slots

@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             // not cached (TODO: build a pure function memoizer cache)
             var shaderFunc = BuildFunction(context.GetInputConnected("Sampler"), m_TextureType);
 
-            context.SetMainFunction(shaderFunc, declareStaticPins: true);
+            context.SetMainFunction(shaderFunc, declareSlots: true);
             context.SetPreviewFunction(shaderFunc, PreviewMode.Preview3D);
         }
 

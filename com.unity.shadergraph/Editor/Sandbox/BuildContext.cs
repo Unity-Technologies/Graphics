@@ -13,9 +13,10 @@ public interface ISandboxNodeBuildContext
     bool GetInputConnected(string pinName);         // returns true if the given input is connected (something is overriding the default)
 
     // public System.Object GetInputStaticValue(string inputPin);       // TODO
-    // InputPin AddInputPin(string pinName, SandboxValueType concreteType, SandboxValueType.Filter dynamicTypeFilter = null);
-    // OutputPin AddOutputPin(string pinName, SandboxValueType concreteType);
-    void SetMainFunction(ShaderFunction function, bool declareStaticPins = false);
+
+    void AddInputSlot(SandboxValueType type, string name, System.Object defaultValue = null);       // TODO: slot type filters
+    void AddOutputSlot(SandboxValueType type, string name);
+    void SetMainFunction(ShaderFunction function, bool declareSlots = false);
     void SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit);
     // void AddFunction(ShaderFunction function); // may not need this, if Functions have to declare dependent functions...
     void Error(string message);

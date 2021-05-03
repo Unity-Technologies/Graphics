@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             var vectorType = SandboxNodeUtils.DetermineDynamicVectorType(context, shaderFunc);
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 
-            context.SetMainFunction(specializedFunc, declareStaticPins: true);
+            context.SetMainFunction(specializedFunc, declareSlots: true);
             context.SetPreviewFunction(specializedFunc);
         }
 

@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             if (shaderFunc == null)
                 shaderFunc = BuildUnityNoiseFunction();
 
-            context.SetMainFunction(shaderFunc, declareStaticPins: true);
+            context.SetMainFunction(shaderFunc, declareSlots: true);
             context.SetPreviewFunction(shaderFunc);
         }
 
