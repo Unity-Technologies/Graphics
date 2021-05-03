@@ -122,6 +122,30 @@ namespace UnityEditor.ShaderGraph
                     node.keyword = keyword;
                     break;
                 }
+                case ShaderDropdown dropdown:
+                {
+                    if (graphData.IsInputAllowedInGraph(dropdown))
+                    {
+                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
+                        if (graphData.dropdowns.FirstOrDefault(d => d == dropdown) == null)
+                        {
+                            var copyShaderInputAction = new CopyShaderInputAction();
+                            copyShaderInputAction.shaderInputToCopy = dropdown;
+                            graphData.owner.graphDataStore.Dispatch(copyShaderInputAction);
+                            dropdown = (ShaderDropdown)copyShaderInputAction.copiedShaderInput;
+                        }
+
+                        var node = new DropdownNode();
+                        var drawState = node.drawState;
+                        drawState.position = new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graphData.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.dropdown = dropdown;
+                    }
+                    break;
+                }
                 default:
                     throw new ArgumentOutOfRangeException();
             }

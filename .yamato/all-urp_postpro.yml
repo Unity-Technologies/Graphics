@@ -44,6 +44,7 @@ PR_URP_PostPro_trunk:
       -  path: .yamato/urp_postpro-iphone-metal.yml#URP_PostPro_iPhone_Metal_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 Nightly_URP_PostPro_trunk:
@@ -60,6 +61,7 @@ Nightly_URP_PostPro_trunk:
       -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
 PR_URP_PostPro_CUSTOM-REVISION:

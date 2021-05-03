@@ -32,6 +32,7 @@ PR_VikingVillage_BuiltIn_trunk:
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
@@ -42,6 +43,7 @@ Nightly_VikingVillage_BuiltIn_trunk:
       -  path: .yamato/all-vikingvillage_builtin.yml#PR_VikingVillage_BuiltIn_trunk
          rerun: on_new_revision
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
