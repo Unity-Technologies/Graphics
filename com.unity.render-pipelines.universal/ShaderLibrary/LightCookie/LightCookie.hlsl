@@ -18,11 +18,8 @@ float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 sample
     // Translate and rotate 'positionWS' into the light space.
     float3 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xyz;
 
-    // Project
-    float2 positionCS  = positionLS.xy;
-
-    // Remap ortho CS to the texture coordinates, from [-1, 1]^2 to [0, 1]^2.
-    float2 positionUV = positionCS * 0.5 + 0.5;
+    // Project into light "view" plane.
+    float2 positionUV = positionLS.xy;
 
     // Scale UVs
     positionUV *= uvScale;

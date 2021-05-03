@@ -539,24 +539,49 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < requests.Length; i++)
             {
                 Light light = requests[i];
+
+                var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
+                if (additionalLightData == null)
+                {
+                    additionalLightData = ComponentSingleton<UniversalAdditionalLightData>.instance;
+                }
+
+                Cookie cookie;
+                LightmapperUtils.Extract(light, out cookie);
+
                 switch (light.type)
                 {
                     case LightType.Directional:
                         DirectionalLight directionalLight = new DirectionalLight();
                         LightmapperUtils.Extract(light, ref directionalLight);
-                        lightData.Init(ref directionalLight);
+
+                        if (light.cookie != null && additionalLightData != null)
+                        {
+                            // Size == 1 / Scale
+                            cookie.sizes = additionalLightData.lightCookieSize;
+                            // Offset, Map cookie UV offset to light position on along local axes.
+                            if (additionalLightData.lightCookieOffset != Vector2.zero)
+                            {
+                                // TODO: check against real-time cookie
+                                // TODO: scale
+                                directionalLight.position += light.transform.right * -additionalLightData.lightCookieOffset.x +
+                                    light.transform.up * -additionalLightData.lightCookieOffset.y;
+                            }
+                        }
+
+                        lightData.Init(ref directionalLight, ref cookie);
                         break;
                     case LightType.Point:
                         PointLight pointLight = new PointLight();
                         LightmapperUtils.Extract(light, ref pointLight);
-                        lightData.Init(ref pointLight);
+                        lightData.Init(ref pointLight, ref cookie);
                         break;
                     case LightType.Spot:
                         SpotLight spotLight = new SpotLight();
                         LightmapperUtils.Extract(light, ref spotLight);
                         spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
                         spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
-                        lightData.Init(ref spotLight);
+                        lightData.Init(ref spotLight, ref cookie);
                         break;
                     case LightType.Area:
                         RectangleLight rectangleLight = new RectangleLight();
