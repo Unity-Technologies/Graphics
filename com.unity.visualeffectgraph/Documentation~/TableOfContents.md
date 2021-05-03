@@ -19,6 +19,7 @@
   * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
+  * [Visual Effect Bounds](visual-effect-bounds.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
   * [C# Component API](ComponentAPI.md)
   * [Using Visual Effects with Timeline](Timeline.md)
@@ -37,7 +38,6 @@
   * [Vector Fields](VectorFields.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
 * [Node Library](node-library.md)
-* Node Library
   * Context
     * [Event](Context-Event.md)
     * [GPU Event](Context-GPUEvent.md)

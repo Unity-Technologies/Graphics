@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sphere and Cube outputs are now experimental
 - Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
 - Property Binder : Prevent multiple VFXPropertyBinder within the same game object
+- New tool to help set VFX Bounds
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime

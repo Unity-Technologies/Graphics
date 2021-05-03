@@ -192,6 +192,13 @@ namespace UnityEditor.VFX
         private List<int> m_BucketOffsets = new List<int>();
     }
 
+    public enum BoundsSettingMode
+    {
+        Recorded,
+        Manual,
+        Automatic,
+    }
+
     class VFXDataParticle : VFXData, ISpaceable
     {
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
@@ -210,6 +217,13 @@ namespace UnityEditor.VFX
         protected uint stripCapacity = 1;
         [VFXSetting, Delayed, SerializeField]
         protected uint particlePerStripCount = 128;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
+        protected bool needsComputeBounds = false;
+
+        public bool NeedsComputeBounds() => needsComputeBounds;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.All), SerializeField]
+        public BoundsSettingMode boundsSettingMode = BoundsSettingMode.Recorded;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
@@ -223,6 +237,18 @@ namespace UnityEditor.VFX
                 stripCapacity = 1;
             else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
                 particlePerStripCount = 1;
+            else if (setting.name == "boundsSettingMode")
+            {
+                //Refresh errors on Output contexts
+                var allSystemOutputContexts = owners.Where(ctx => ctx is VFXAbstractParticleOutput);
+                foreach (var ctx in allSystemOutputContexts)
+                {
+                    ctx.RefreshErrors(GetGraph());
+                }
+                if (boundsSettingMode == BoundsSettingMode.Automatic)
+                    needsComputeBounds = true;
+            }
+
 
             if (hasStrip)
             {
@@ -233,6 +259,7 @@ namespace UnityEditor.VFX
                 }
                 capacity = stripCapacity * particlePerStripCount;
             }
+
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -563,6 +590,7 @@ namespace UnityEditor.VFX
             int eventGPUFrom = -1;
 
             var stripDataIndex = -1;
+            var boundsBufferIndex = -1;
 
             if (m_DependenciesIn.Any())
             {
@@ -626,6 +654,24 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
             }
 
+            if (needsComputeBounds || boundsSettingMode == BoundsSettingMode.Automatic)
+            {
+                systemFlag |= VFXSystemFlag.SystemNeedsComputeBounds;
+
+                boundsBufferIndex = dependentBuffers.boundsBuffers[this];
+                systemBufferMappings.Add(new VFXMapping("boundsBuffer", boundsBufferIndex));
+            }
+
+            if (boundsSettingMode == BoundsSettingMode.Automatic)
+            {
+                systemFlag |= VFXSystemFlag.SystemAutomaticBounds;
+            }
+
+            if (space == VFXCoordinateSpace.World)
+            {
+                systemFlag |= VFXSystemFlag.SystemInWorldSpace;
+            }
+            
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
             if (initContext != null)
                 systemBufferMappings.AddRange(effectiveFlowInputLinks[initContext].SelectMany(t => t.Select(u => u.context)).Where(o => o.contextType == VFXContextType.Spawner).Select(o => new VFXMapping("spawner_input", contextSpawnToBufferIndex[o])));
@@ -635,14 +681,20 @@ namespace UnityEditor.VFX
 
                 var boundsCenterExp = mapper.FromNameAndId("bounds_center", -1);
                 var boundsSizeExp = mapper.FromNameAndId("bounds_size", -1);
+                var boundsPaddingExp = mapper.FromNameAndId("boundsPadding", -1);
 
                 int boundsCenterIndex = boundsCenterExp != null ? expressionGraph.GetFlattenedIndex(boundsCenterExp) : -1;
                 int boundsSizeIndex = boundsSizeExp != null ? expressionGraph.GetFlattenedIndex(boundsSizeExp) : -1;
+                int boundsPaddingIndex = boundsPaddingExp != null ? expressionGraph.GetFlattenedIndex(boundsPaddingExp) : -1;
 
                 if (boundsCenterIndex != -1 && boundsSizeIndex != -1)
                 {
                     systemValueMappings.Add(new VFXMapping("bounds_center", boundsCenterIndex));
                     systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
+                }
+                if(boundsPaddingIndex != -1)
+                {
+                    systemValueMappings.Add(new VFXMapping("boundsPadding", boundsPaddingIndex));
                 }
             }
 
@@ -941,6 +993,15 @@ namespace UnityEditor.VFX
                 type = VFXSystemType.Particle,
                 layer = m_Layer
             });
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+            if (version < 8)
+            {
+                boundsSettingMode = BoundsSettingMode.Manual;
+            }
         }
 
         public override void CopySettings<T>(T dst)

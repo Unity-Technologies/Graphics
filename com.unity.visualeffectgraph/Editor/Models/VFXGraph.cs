@@ -274,7 +274,8 @@ namespace UnityEditor.VFX
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
         // 6: Remove automatic strip orientation from quad strip context
         // 7: Add CameraBuffer type
-        public static readonly int CurrentVersion = 7;
+        // 8: Bounds computation introduces a BoundsSettingMode for VFXDataParticles
+        public static readonly int CurrentVersion = 8;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
