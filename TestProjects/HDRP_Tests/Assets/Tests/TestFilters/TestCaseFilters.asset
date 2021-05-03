@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -19,7 +19,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
@@ -28,7 +28,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
@@ -37,7 +37,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -46,7 +46,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: not working  correctly on yamato
   - FilteredScene: {fileID: 0}
@@ -55,7 +55,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: crash with xr
   - FilteredScene: {fileID: 0}
@@ -64,34 +64,16 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: incoclusive on  XR yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2c45a175605910b429f6a1568c825d52, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unsupported yet
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2d74a7c25635150458c8929bffe51aa3, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk:
-    StereoModes: 0
-    Reason: unsupported yet
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -100,6 +82,6 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
