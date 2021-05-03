@@ -20,50 +20,50 @@
 #define NEEDS_TANGENT 0
 #endif
 
-#define NEEDS_WORLDPOS	VFX_NEEDS_POSWS_INTERPOLATOR
+#define NEEDS_WORLDPOS VFX_NEEDS_POSWS_INTERPOLATOR
 
 struct ps_input
 {
-	float4 pos : SV_POSITION;
-	#if USE_FLIPBOOK_INTERPOLATION
-	float4 uv : TEXCOORD0;
-	#else
-		#if USE_FLIPBOOK_ARRAY_LAYOUT
-		float3 uv : TEXCOORD0;
-		#else
-		float2 uv : TEXCOORD0;	
-		#endif
-	#endif
-	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
-	// x: alpha threshold
-	// y: frame blending factor
-	// z: alpha
-	// w: smoothness
-	VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
-	#endif
-	
-	#if USE_FLIPBOOK_MOTIONVECTORS
-	// x: motion vector scale u
-	// y: motion vector scale v
-	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
-	#endif
-	
-	#if NEEDS_NORMAL
-	float4 normal : TEXCOORD3; // normal scale is stored in w
-	#endif
-	#if NEEDS_TANGENT
-	float3 tangent : TEXCOORD4;
-	#endif
-	#if USE_NORMAL_BENDING
-	float2 bentFactors : TEXCOORD5;
-	#endif
-	#if NEEDS_WORLDPOS
-	float3 posWS : TEXCOORD6;
-	#endif
+    float4 pos : SV_POSITION;
+    #if USE_FLIPBOOK_INTERPOLATION
+    float4 uv : TEXCOORD0;
+    #else
+        #if USE_FLIPBOOK_ARRAY_LAYOUT
+        float3 uv : TEXCOORD0;
+        #else
+        float2 uv : TEXCOORD0;    
+        #endif
+    #endif
+    #if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
+    // x: alpha threshold
+    // y: frame blending factor
+    // z: alpha
+    // w: smoothness
+    VFX_OPTIONAL_INTERPOLATION float4 builtInInterpolants : TEXCOORD1;
+    #endif
+    
+    #if USE_FLIPBOOK_MOTIONVECTORS
+    // x: motion vector scale u
+    // y: motion vector scale v
+    VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
+    #endif
+    
+    #if NEEDS_NORMAL
+    float4 normal : TEXCOORD3; // normal scale is stored in w
+    #endif
+    #if NEEDS_TANGENT
+    float3 tangent : TEXCOORD4;
+    #endif
+    #if USE_NORMAL_BENDING
+    float2 bentFactors : TEXCOORD5;
+    #endif
+    #if NEEDS_WORLDPOS
+    float3 posWS : TEXCOORD6;
+    #endif
     
     ${VFXAdditionalInterpolantsDeclaration}
 
-	UNITY_VERTEX_OUTPUT_STEREO
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 #define VFX_VARYING_PS_INPUTS ps_input

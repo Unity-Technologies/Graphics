@@ -1,12 +1,12 @@
 Pass
-{		
-	Tags { "LightMode"="SceneSelectionPass" }
+{
+    Tags { "LightMode"="SceneSelectionPass" }
 
-	ZWrite On
-	Blend Off
-	
-	HLSLPROGRAM
-	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
-	${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
-	ENDHLSL
+    ZWrite On
+    Blend Off
+    
+    HLSLPROGRAM
+    #define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
+    ${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
+    ENDHLSL
 }

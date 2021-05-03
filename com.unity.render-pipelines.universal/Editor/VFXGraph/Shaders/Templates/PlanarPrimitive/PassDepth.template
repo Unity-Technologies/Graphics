@@ -1,13 +1,13 @@
 Pass
-{		
-	Tags { "LightMode"="DepthOnly" }
+{
+    Tags { "LightMode"="DepthOnly" }
 
-	ZWrite On
-	Blend Off
-	
-	HLSLPROGRAM
-	#define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
-	${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
+    ZWrite On
+    Blend Off
+    
+    HLSLPROGRAM
+    #define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
+    ${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
 
-	ENDHLSL
+    ENDHLSL
 }
