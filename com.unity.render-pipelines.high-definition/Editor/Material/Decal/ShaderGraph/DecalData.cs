@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class DecalData : HDTargetData
     {
-        public ExposableProperty<bool> affectsMetalProp = new ExposableProperty<bool>(true);
+        public ExposableProperty<bool> affectsMetalProp = new ExposableProperty<bool>(true, true);
         public bool affectsMetal
         {
             get => affectsMetalProp.value;
@@ -19,21 +19,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => affectsAOProp.value = value;
         }
 
-        public ExposableProperty<bool> affectsSmoothnessProp = new ExposableProperty<bool>(true);
+        public ExposableProperty<bool> affectsSmoothnessProp = new ExposableProperty<bool>(true, true);
         public bool affectsSmoothness
         {
             get => affectsSmoothnessProp.value;
             set => affectsSmoothnessProp.value = value;
         }
 
-        public ExposableProperty<bool> affectsAlbedoProp = new ExposableProperty<bool>(true);
+        public ExposableProperty<bool> affectsAlbedoProp = new ExposableProperty<bool>(true, true);
         public bool affectsAlbedo
         {
             get => affectsAlbedoProp.value;
             set => affectsAlbedoProp.value = value;
         }
 
-        public ExposableProperty<bool> affectsNormalProp = new ExposableProperty<bool>(true);
+        public ExposableProperty<bool> affectsNormalProp = new ExposableProperty<bool>(true, true);
         public bool affectsNormal
         {
             get => affectsNormalProp.value;

@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 
 // Include material common properties names
@@ -70,12 +69,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (materials.Any(material => material.GetSurfaceType() != SurfaceType.Transparent))
                     return false;
 
-                // If refraction model is not enabled in SG, we don't show the section
+                // If refraction model is not exposed in SG, we don't show the section
                 var shader = materials[0].shader;
                 if (shader.IsShaderGraph())
                 {
-                    var defaultRefractionModel = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kRefractionModel));
-                    if (defaultRefractionModel == 0)
+                    if ((shader.GetPropertyFlags(shader.FindPropertyIndex(kRefractionModel)) & ShaderPropertyFlags.HideInInspector) != ShaderPropertyFlags.None)
                         return false;
                 }
 

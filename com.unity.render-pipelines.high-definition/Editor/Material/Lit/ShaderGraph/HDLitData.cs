@@ -100,9 +100,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal void MigrateToExposableProperties()
         {
 #pragma warning disable 618
-            // Expose everything to keep same interface
-            refractionModelProp.IsExposed = true;
             forceForwardEmissiveProp.IsExposed = true;
+            refractionModelProp.IsExposed = m_RefractionModel != ScreenSpaceRefraction.RefractionModel.None;
 
             // Migrate Values
             refractionModel = m_RefractionModel;

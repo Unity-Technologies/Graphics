@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             bool hasAlphaTest = IsEnabled(systemData.alphaTestProp);
-            bool transparent = systemData.surfaceTypeProp.IsExposed || systemData.surfaceType == SurfaceType.Transparent;
+            bool transparent = systemData.surfaceType == SurfaceType.Transparent;
 
             if (supportDistortion)
                 AddDistortionBlocks(ref context);
