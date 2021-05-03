@@ -48,7 +48,6 @@ test_hdrp_template_Win_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -98,7 +97,6 @@ test_hdrp_template_OSX_trunk:
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
@@ -322,7 +320,6 @@ test_universal_template_Win_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_Win_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -372,7 +369,6 @@ test_universal_template_OSX_trunk:
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     commands:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor --wait --published-only
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
