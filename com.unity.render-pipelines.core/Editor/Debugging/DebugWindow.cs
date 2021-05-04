@@ -140,8 +140,7 @@ namespace UnityEditor.Rendering
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
         static bool ValidateMenuItem()
         {
-            bool srpActive = RenderPipelineManager.currentPipeline != null;
-            return srpActive;
+            return RenderPipelineManager.currentPipeline != null;
         }
 
         void OnEnable()
