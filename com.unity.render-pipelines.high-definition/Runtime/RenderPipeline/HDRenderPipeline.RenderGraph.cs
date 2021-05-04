@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
-            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, msaa);
+            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, hdCamera, msaa);
 
             var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 

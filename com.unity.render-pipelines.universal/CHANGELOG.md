@@ -4,16 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.6.0] - 2021-04-29
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ### Fixed
-- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
+- Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629]
 
 ## [10.5.0] - 2021-04-19
 
 ### Fixed
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
 - Fixed errors when the Profiler is used with XR multipass. [case 1322918](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
+- Fixed ordering of subshaders in the Unlit Shader Graph, such that shader target 4.5 takes priority over 2.0. [case 1328636](https://issuetracker.unity3d.com/product/unity/issues/guid/1328636/)
 
 ## [10.4.0] - 2021-03-11
 
