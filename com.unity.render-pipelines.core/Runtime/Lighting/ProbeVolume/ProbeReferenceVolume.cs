@@ -254,12 +254,14 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
         bool m_NeedsIndexDimChange = false;
 
-        private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
+        int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 

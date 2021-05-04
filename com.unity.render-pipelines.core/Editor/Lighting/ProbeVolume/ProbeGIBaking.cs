@@ -39,10 +39,10 @@ namespace UnityEngine.Experimental.Rendering
     [InitializeOnLoad]
     internal class ProbeGIBaking
     {
-        private static bool init = false;
-        private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
-        private static List<BakingCell> bakingCells = new List<BakingCell>();
-        private static ProbeReferenceVolumeAuthoring bakingReferenceVolumeAuthoring = null;
+        static bool init = false;
+        static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
+        static List<BakingCell> bakingCells = new List<BakingCell>();
+        static ProbeReferenceVolumeAuthoring bakingReferenceVolumeAuthoring = null;
 
         static ProbeGIBaking()
         {
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering
             bakingCells.Clear();
         }
 
-        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
+        static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
 
@@ -123,8 +123,10 @@ namespace UnityEngine.Experimental.Rendering
             return reference;
         }
 
-        private static void OnBakeStarted()
+        static void OnBakeStarted()
         {
+            if (!ProbeReferenceVolume.instance.isInitialized) return;
+
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
                 return;
@@ -140,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
-        private static void OnAdditionalProbesBakeCompleted()
+        static void OnAdditionalProbesBakeCompleted()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
 
@@ -221,7 +223,11 @@ namespace UnityEngine.Experimental.Rendering
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
+                var dilationSettings = bakingReferenceVolumeAuthoring.GetDilationSettings();
+                if (dilationSettings.dilate)
+                {
+                    DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, dilationSettings);
+                }
 
                 ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
@@ -289,7 +295,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static void OnLightingDataCleared()
+        static void OnLightingDataCleared()
         {
             Clear();
         }
@@ -317,7 +323,7 @@ namespace UnityEngine.Experimental.Rendering
             return (float)(sum / 2.0);
         }
 
-        private static void DilateInvalidProbes(Vector3[] probePositions,
+        static void DilateInvalidProbes(Vector3[] probePositions,
             List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
@@ -363,7 +369,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a brick index, find and accumulate probes in nearby bricks
-        private static void CullDilationProbes(int brickIdx, List<Brick> bricks,
+        static void CullDilationProbes(int brickIdx, List<Brick> bricks,
             float[] validity, ProbeDilationSettings dilationSettings, List<DilationProbe> outProbeIndices)
         {
             outProbeIndices.Clear();
@@ -400,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Given a probe index, find nearby probes weighted by inverse distance
-        private static void FindNearProbes(int probeIdx, Vector3[] probePositions,
+        static void FindNearProbes(int probeIdx, Vector3[] probePositions,
             ProbeDilationSettings dilationSettings, List<DilationProbe> culledProbes, List<DilationProbe> outNearProbes, out float invDistSum)
         {
             outNearProbes.Clear();
@@ -437,7 +443,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, out Vector3[] deduplicatedProbePositions, out int[] indices)
+        static void DeduplicateProbePositions(in Vector3[] probePositions, out Vector3[] deduplicatedProbePositions, out int[] indices)
         {
             var uniquePositions = new Dictionary<Vector3, int>();
             indices = new int[probePositions.Length];

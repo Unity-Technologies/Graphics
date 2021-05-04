@@ -68,9 +68,9 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         [SerializeField]
-        private ProbeReferenceVolumeProfile m_Profile = null;
+        ProbeReferenceVolumeProfile m_Profile = null;
 #if UNITY_EDITOR
-        private ProbeReferenceVolumeProfile m_PrevProfile = null;
+        ProbeReferenceVolumeProfile m_PrevProfile = null;
 #endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
@@ -82,15 +82,15 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
         // Dilation
         [SerializeField]
-        private bool m_Dilate = false;
+        bool m_Dilate = false;
         [SerializeField]
-        private int m_MaxDilationSamples = 16;
+        int m_MaxDilationSamples = 16;
         [SerializeField]
-        private float m_MaxDilationSampleDistance = 1f;
+        float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
-        private float m_DilationValidityThreshold = 0.25f;
+        float m_DilationValidityThreshold = 0.25f;
         [SerializeField]
-        private bool m_GreedyDilation = false;
+        bool m_GreedyDilation = false;
 
         Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
         MeshGizmo cellGizmo;
@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
         [System.NonSerialized]
-        private ProbeVolumeAsset m_PrevAsset = null;
+        ProbeVolumeAsset m_PrevAsset = null;
 #endif
         public ProbeVolumeAsset volumeAsset = null;
 
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
-        private void Start()
+        void Start()
         {
 #if UNITY_EDITOR
             if (m_Profile == null)
@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
 
-        private void OnValidate()
+        void OnValidate()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
@@ -166,12 +166,12 @@ namespace UnityEngine.Experimental.Rendering
             m_PrevAsset = volumeAsset;
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             QueueAssetRemoval();
         }
 
-        private void OnDestroy()
+        void OnDestroy()
         {
             QueueAssetRemoval();
         }
@@ -192,9 +192,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
-        private void OnDrawGizmos()
+        void OnDrawGizmos()
         {
-            if (!enabled || !gameObject.activeSelf)
+            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isInitialized)
                 return;
 
             var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
