@@ -27,14 +27,12 @@ test_platforms:
     - [all]: <shared.platform.commands.setup_utr>
     - [all]: <shared.platform.commands.unity_downloader_cli>
     - [all]: choco install python3 && refreshenv
-    - [all]: python .yamato/tooling/wrap_utr.py --args "<UTR_FLAGS>"
+    - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
     - [all]: mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
     - [all]: pip install GitPython
-    - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
-    - [all]: <shared.platform.commands.call_utr>
-    - [Win_DX11]: copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
+    - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py "TestProjects/ShaderGraph" <UTR_FLAGS>
+    - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py "TestProjects/ShaderGraph" <UTR_FLAGS>
+    - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py "TestProjects/ShaderGraph" <UTR_FLAGS>
   - type: playmode
     name: playmode_cache
     utr_flags:
