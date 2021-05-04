@@ -16,6 +16,7 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -37,6 +38,8 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
@@ -47,13 +50,14 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -69,6 +73,9 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
 URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_Vulkan_Standalone_cache_il2cpp_Linear on version trunk
     agent:
@@ -77,6 +84,7 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -98,6 +106,8 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
@@ -108,13 +118,14 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -130,6 +141,9 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
 URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
     name: URP_Lighting on Android_Vulkan_Standalone_XR_cache_il2cpp_Linear on version trunk
     agent:
@@ -138,6 +152,7 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -159,6 +174,8 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk
          rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
@@ -169,13 +186,14 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -191,6 +209,9 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Android
+         rerun: on_new_revision
 URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -239,7 +260,7 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -307,7 +328,7 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
@@ -375,7 +396,7 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVIS
     commands:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%

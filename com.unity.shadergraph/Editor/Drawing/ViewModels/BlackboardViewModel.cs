@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Dictionary<string, IGraphDataAction> propertyNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> defaultKeywordNameToAddActionMap { get; set; }
         public Dictionary<string, IGraphDataAction> builtInKeywordNameToAddActionMap { get; set; }
+        public Tuple<string, IGraphDataAction> defaultDropdownNameToAdd { get; set; }
 
         public Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
@@ -24,14 +25,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // Can't add disbled keywords, so don't need an add action
         public List<string> disabledKeywordNameList { get; set; }
+        public List<string> disabledDropdownNameList { get; set; }
 
         public BlackboardViewModel()
         {
             propertyNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
             defaultKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
             builtInKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
+            defaultDropdownNameToAdd = null;
             categoryInfoList = new List<CategoryData>();
             disabledKeywordNameList = new List<string>();
+            disabledDropdownNameList = new List<string>();
         }
 
         public void ResetViewModelData()
@@ -40,8 +44,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             propertyNameToAddActionMap.Clear();
             defaultKeywordNameToAddActionMap.Clear();
             builtInKeywordNameToAddActionMap.Clear();
+            defaultDropdownNameToAdd = null;
             categoryInfoList.Clear();
             disabledKeywordNameList.Clear();
+            disabledDropdownNameList.Clear();
             requestModelChangeAction = null;
         }
     }

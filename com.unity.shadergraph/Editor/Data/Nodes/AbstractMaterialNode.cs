@@ -746,6 +746,11 @@ namespace UnityEditor.ShaderGraph
             return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
         }
 
+        public string GetConnnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
+        }
+
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;

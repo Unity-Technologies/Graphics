@@ -83,6 +83,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        private KeywordShaderStage m_KeywordStages = KeywordShaderStage.All;
+
+        public KeywordShaderStage keywordStages
+        {
+            get => m_KeywordStages;
+            set => m_KeywordStages = value;
+        }
+
+        [SerializeField]
         private List<KeywordEntry> m_Entries;
 
         public List<KeywordEntry> entries
@@ -149,26 +158,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string GetKeywordDeclarationString()
+        public void AppendKeywordDeclarationStrings(ShaderStringBuilder builder)
         {
-            // Predefined keywords do not need to be defined
-            if (keywordDefinition == KeywordDefinition.Predefined)
-                return string.Empty;
-
-            // Get definition type using scope
-            string scopeString = keywordScope == KeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
-
-            switch (keywordType)
+            if (keywordDefinition != KeywordDefinition.Predefined)
             {
-                case KeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {referenceName}";
-                case KeywordType.Enum:
-                    var enumEntryDefinitions = entries.Select(x => $"{referenceName}_{x.referenceName}");
-                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
-                    return $"#pragma {definitionString} {enumEntriesString}";
-                default:
-                    throw new ArgumentOutOfRangeException();
+                if (keywordType == KeywordType.Boolean)
+                    KeywordUtil.GenerateBooleanKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, str => builder.AppendLine(str));
+                else
+                    KeywordUtil.GenerateEnumKeywordPragmaStrings(referenceName, keywordDefinition, keywordScope, keywordStages, entries, str => builder.AppendLine(str));
             }
         }
 
