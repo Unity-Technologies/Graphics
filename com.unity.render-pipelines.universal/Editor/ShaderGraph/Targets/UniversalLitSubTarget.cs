@@ -732,15 +732,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
-            {
-                displayName = "GBuffer normal octahedron encoding",
-                referenceName = "_GBUFFER_NORMALS_OCT",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-
             public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
@@ -764,6 +755,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
             };
@@ -779,9 +771,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.DBuffer },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
-                { GBufferNormalsOct },
             };
         }
         #endregion
@@ -803,6 +796,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -815,6 +809,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
