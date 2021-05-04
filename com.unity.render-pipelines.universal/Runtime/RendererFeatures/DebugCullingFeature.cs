@@ -128,6 +128,23 @@ namespace UnityEngine.Rendering.Universal
             Vector4[] q = new Vector4[4];
             for (int j = splitStart; j < splitCount; j++)
             {
+                Color color1;
+                switch (j)
+                {
+                    case 0:
+                        color1 = Color.cyan;
+                        break;
+                    case 1:
+                        color1 = Color.yellow;
+                        break;
+                    case 2:
+                        color1 = Color.blue;
+                        break;
+                    default:
+                        color1 = Color.red;
+                        break;
+                }
+
                 float d = splitPct[j];
                 for (int i = 0; i < 4; i++)
                 {
@@ -139,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var s = q[i];
                     var e = q[(i + 1) % 4];
-                    Debug.DrawLine(s, e, color);
+                    Debug.DrawLine(s, e, color1);
                 }
             }
         }
@@ -392,6 +409,7 @@ namespace UnityEngine.Rendering.Universal
                             var s = renderingData.cameraData.maxShadowDistance;
                             var sMax = (s - n) / f;
                             DebugCullingHelpers.DrawFrustumSplits(renderingData.cameraData.camera.cullingMatrix, sMax, renderingData.shadowData.mainLightShadowCascadesSplit, 0, shadowCascadesCount - 1, Color.gray);
+
                         }
                     }
 
@@ -439,11 +457,28 @@ namespace UnityEngine.Rendering.Universal
                         {
                             for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
                             {
+                                Color color;
+                                switch(cascadeIndex)
+                                {
+                                    case 0:
+                                        color = Color.green;
+                                        break;
+                                    case 1:
+                                        color = Color.red;
+                                        break;
+                                    case 2:
+                                        color = Color.blue;
+                                        break;
+                                    default:
+                                        color = Color.yellow;
+                                        break;
+                                }
+
                                 Vector4 s = shadowSplitData[cascadeIndex].cullingSphere;
                                 Vector3 c = s;
                                 float radius = s.w;
-                                DebugCullingHelpers.DrawSphere(c, radius, Color.white);
-                                DebugCullingHelpers.DrawPoint(c, 0.5f, Color.white);
+                                DebugCullingHelpers.DrawSphere(c, radius, color);
+                                DebugCullingHelpers.DrawPoint(c, 0.5f, color);
                             }
                         }
 

@@ -661,6 +661,8 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+
+            cullingParameters.tightEnclosingSphere = UniversalRenderPipeline.asset.tightEnclosingSphere;
         }
 
         /// <inheritdoc />

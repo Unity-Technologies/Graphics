@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering.Universal
             get => 2.0f;
         }
 
+        public static bool tightEnclosingSphere
+        {
+            get => false;
+        }
+
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
         public static int maxPerObjectLights
         {

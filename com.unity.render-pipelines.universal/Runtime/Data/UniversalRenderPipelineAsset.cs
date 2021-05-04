@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_TightEnclosingSphere = false;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -749,6 +750,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
+        }
+
+        public bool tightEnclosingSphere
+        {
+            get { return m_TightEnclosingSphere; }
+            set { m_TightEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial
