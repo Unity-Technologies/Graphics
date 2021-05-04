@@ -440,6 +440,8 @@ namespace UnityEngine.Experimental.Rendering
 
         void PerformPendingLoading()
         {
+            LoadPendingCells();
+
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
@@ -461,8 +463,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_PendingAssetsToBeLoaded.Clear();
-
-            LoadPendingCells();
 
             // Mark the loading as done.
             m_NeedLoadAsset = false;
