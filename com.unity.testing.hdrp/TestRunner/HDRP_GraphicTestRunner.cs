@@ -78,9 +78,8 @@ public class HDRP_GraphicTestRunner
             // When we capture from the back buffer, there is no requirement of compensation frames
             // Else, given that we will render two frames, we need to compensate for them in the waiting
             var frameCountOffset = useBackBuffer ? 0 : 2;
-
             while (((hdCamera.cameraFrameCount + frameCountOffset) % (uint)settings.frameCountMultiple) != 0)
-                WaitFunction(useBackBuffer);
+                yield return new WaitForEndOfFrame();
         }
 
         // Force clear all the history buffers
@@ -178,11 +177,6 @@ public class HDRP_GraphicTestRunner
 #else
         Screen.SetResolution(width, height, Screen.fullScreenMode);
 #endif
-    }
-
-    YieldInstruction WaitFunction(bool isBackbuffer)
-    {
-        return isBackbuffer ? new WaitForEndOfFrame() : null;
     }
 
 #if UNITY_EDITOR
