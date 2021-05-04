@@ -94,7 +94,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1"
+      -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1"
       -  mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
       -  pip install GitPython
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
@@ -103,8 +103,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
-      -  ls C:\Users\Bokken\AppData\Local\Unity\Editor\
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
     artifacts:
         logs:
@@ -339,7 +338,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  choco install python3 && refreshenv
-      -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1"
+      -  python .yamato/tooling/wrap_utr.py --args "--artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1"
       -  mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
       -  pip install GitPython
       -  python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
@@ -348,8 +347,7 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
-      -  ls C:\Users\Bokken\AppData\Local\Unity\Editor\
+              utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
       -  copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
     artifacts:
         logs:
