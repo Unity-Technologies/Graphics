@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+            DecalProjector.defaultMaterial = asset.decalMaterial;
+
 #if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
 #endif
@@ -363,6 +365,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 
@@ -465,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
                         {
-                            var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
+                            var renderer2DType = typeof(Renderer2D);
                             if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
                             {
                                 Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));

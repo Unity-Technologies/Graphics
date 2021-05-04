@@ -6,7 +6,7 @@ The **Trigger Event Rate** Block triggers the creation of particles via a GPU Ev
 
 ![](Images/Block-TriggerEventRateExample.gif)
 
-Trigger blocks always execute at the end of the [Update Context](Context-Update.md), regardless of where the Block is situated within the Context.
+Trigger Blocks always execute at the end of the [Update Context](Context-Update.md), regardless of where the Block is situated within the Context.
 
 ## Block compatibility
 

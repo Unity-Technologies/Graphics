@@ -116,6 +116,9 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+            => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
+
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
@@ -124,6 +127,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
             }
             materialEditor.serializedObject.Update();
+        }
+
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
+        {
+            Color emissiveColorLDRLinear = emissiveColorLDR.colorValue / emissiveIntensity.floatValue;
+            emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
         }
 
         internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
@@ -186,13 +195,13 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (updateEmissiveColor)
-                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(materialEditor, materials);
+                    UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(emissiveColorLDR, emissiveIntensity, emissiveColor);
 
                 EditorGUI.BeginChangeCheck();
                 DoEmissiveTextureProperty(emissiveColorLDR);
                 DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
                 if (EditorGUI.EndChangeCheck())
-                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materialEditor, materials);
+                    UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(emissiveColorLDR, emissiveIntensity, emissiveColor);
             }
 
             materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
