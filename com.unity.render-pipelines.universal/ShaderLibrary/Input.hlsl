@@ -33,11 +33,13 @@ struct InputData
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
-    half2   lightmapUV;
-    float3  vertexSH;
     half3x3 tangentToWorld;
 
     #if defined(DEBUG_DISPLAY)
+    half2   dynamicLightmapUV;
+    half2   staticLightmapUV;
+    float3  vertexSH;
+
     half3 brdfDiffuse;
     half3 brdfSpecular;
     float2 uv;
