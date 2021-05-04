@@ -583,11 +583,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.uv2,
         };
 
-        public static FieldCollection PositionRWS = new FieldCollection()
-        {
-            HDStructFields.VaryingsMeshToPS.positionRWS,
-        };
-
         public static FieldCollection LitMinimal = new FieldCollection()
         {
             HDStructFields.FragInputs.tangentToWorld,
