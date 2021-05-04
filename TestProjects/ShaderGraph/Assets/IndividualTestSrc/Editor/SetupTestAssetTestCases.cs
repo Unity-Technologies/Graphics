@@ -285,6 +285,7 @@ public class SetupTestAssetTestCases : IPrebuildSetup
 //                AssetDatabase.ImportAsset(data.FilePath);
 
                 string path = data.GetReferenceImagePath();
+                Debug.Log(path);
                 if(File.Exists(path) && AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null)
                 {
                     output[data.ReferenceImageLookup] = path;

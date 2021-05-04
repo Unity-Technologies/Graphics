@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
             repo.git.add(path.join(args.root, asset_path))
             repo.git.add(path.join(args.root, asset_path + ".meta"))
+            print(asset_path + " Added")
             full_asset_path = path.join(os.getcwd(), args.root, asset_path)
 
     repo.git.commit("-m", "Generated reference images for " + editor)
