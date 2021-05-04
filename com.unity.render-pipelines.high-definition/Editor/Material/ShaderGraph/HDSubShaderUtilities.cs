@@ -189,6 +189,27 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kTransparentBackfaceEnable, backThenFrontRendering);
         }
 
+        public static void AddTessellationShaderProperties(PropertyCollector collector, TessellationMode tessellationMode)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = kTessellationMode,
+                floatType = FloatType.Enum,
+                value = (int)tessellationMode,
+                enumNames = { "None", "Phong" },
+                enumValues = { (int)TessellationMode.None, (int)TessellationMode.Phong },
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+            });
+
+            collector.AddFloatProperty("_TessellationFactorMinDistance", 20.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty("_TessellationFactorMaxDistance", 50.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty("_TessellationFactorTriangleSize", 100.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty("_TessellationShapeFactor", 0.75f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty("_TessellationBackFaceCullEpsilon", -0.25f, HLSLDeclaration.UnityPerMaterial);
+        }
+
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);

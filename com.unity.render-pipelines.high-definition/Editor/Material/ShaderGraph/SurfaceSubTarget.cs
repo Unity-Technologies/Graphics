@@ -276,6 +276,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
             context.AddBlock(HDBlockFields.SurfaceDescription.TessellationFactor, systemData.tessellation);
+            context.AddBlock(HDBlockFields.SurfaceDescription.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
@@ -372,6 +373,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
             );
+
+            // Add all shader properties required by the inspector for Tessellation
+            if (systemData.tessellation)
+                HDSubShaderUtilities.AddTessellationShaderProperties(collector, systemData.tessellationMode);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -387,6 +392,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
             material.SetFloat(kOpaqueCullMode, (int)systemData.opaqueCullMode);
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
+
+            if (systemData.tessellation)
+            {
+                material.SetFloat(kTessellationFactorMinDistance, systemData.tessellationFactorMinDistance);
+                material.SetFloat(kTessellationFactorMaxDistance, systemData.tessellationFactorMaxDistance);
+                material.SetFloat(kTessellationFactorTriangleSize, systemData.tessellationFactorTriangleSize);
+                material.SetFloat(kTessellationShapeFactor, systemData.tessellationShapeFactor);
+                material.SetFloat(kTessellationBackFaceCullEpsilon, systemData.tessellationBackFaceCullEpsilon);
+            }
 
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);

@@ -118,6 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_DOTSInstancing = value;
         }
 
+        // Tessellation properties
         [SerializeField]
         bool m_Tessellation;
         public bool tessellation
@@ -133,6 +134,56 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_TessellationMode;
             set => m_TessellationMode = value;
         }
+
+        [SerializeField]
+        bool m_TessellationAdaptative;
+        public bool tessellationAdaptative
+        {
+            get => m_TessellationAdaptative;
+            set => m_TessellationAdaptative = value;
+        }
+
+        [SerializeField]
+        float m_TessellationFactorMinDistance;
+        public float tessellationFactorMinDistance
+        {
+            get => m_TessellationFactorMinDistance;
+            set => m_TessellationFactorMinDistance = value;
+        }
+
+        [SerializeField]
+        float m_TessellationFactorMaxDistance;
+        public float tessellationFactorMaxDistance
+        {
+            get => m_TessellationFactorMaxDistance;
+            set => m_TessellationFactorMaxDistance = value;
+        }
+
+        [SerializeField]
+        float m_TessellationFactorTriangleSize;
+        public float tessellationFactorTriangleSize
+        {
+            get => m_TessellationFactorTriangleSize;
+            set => m_TessellationFactorTriangleSize = value;
+        }
+
+        [SerializeField]
+        float m_TessellationShapeFactor;
+        public float tessellationShapeFactor
+        {
+            get => m_TessellationShapeFactor;
+            set => m_TessellationShapeFactor = value;
+        }
+
+        [SerializeField]
+        float m_TessellationBackFaceCullEpsilon;
+        public float tessellationBackFaceCullEpsilon
+        {
+            get => m_TessellationBackFaceCullEpsilon;
+            set => m_TessellationBackFaceCullEpsilon = value;
+        }
+
+        // End Tessellation
 
         [SerializeField]
         ShaderGraphVersion m_Version = MigrationDescription.LastVersion<ShaderGraphVersion>();

@@ -28,23 +28,21 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle Size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape Factor", "Controls the strength of Phong tessellation shape (lerp factor).");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle Culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
+
+            // Shader graph
+            public static GUIContent tessellationEnableText = new GUIContent("Tessellation", "When enabled, HDRP active tessellation for this Material.");
+            public static GUIContent tessellationModeText = new GUIContent("Tessellation Mode", "Specifies the method HDRP uses to tessellate the mesh.");
+            public static GUIContent tessellationAdaptativeText = new GUIContent("Tessellation Adaptative", "Specifies the method HDRP uses to adapat the tessellation factor.");
         }
 
         // tessellation params
         MaterialProperty tessellationMode = null;
-        const string kTessellationMode = "_TessellationMode";
         MaterialProperty tessellationFactor = null;
-        const string kTessellationFactor = "_TessellationFactor";
         MaterialProperty tessellationFactorMinDistance = null;
-        const string kTessellationFactorMinDistance = "_TessellationFactorMinDistance";
         MaterialProperty tessellationFactorMaxDistance = null;
-        const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
         MaterialProperty tessellationFactorTriangleSize = null;
-        const string kTessellationFactorTriangleSize = "_TessellationFactorTriangleSize";
         MaterialProperty tessellationShapeFactor = null;
-        const string kTessellationShapeFactor = "_TessellationShapeFactor";
         MaterialProperty tessellationBackFaceCullEpsilon = null;
-        const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
         MaterialProperty doubleSidedEnable = null;
 
         /// <summary>

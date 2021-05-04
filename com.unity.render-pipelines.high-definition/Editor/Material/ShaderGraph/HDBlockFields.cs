@@ -71,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationFactor", "Tessellation Factor", "SURFACEDESCRIPTION_TESSELLATIONFACTOR",
                 new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TessellationDisplacement = new BlockFieldDescriptor(SurfaceDescription.name, "TessellationDisplacement", "Tessellation Displacement (World Space)", "SURFACEDESCRIPTION_TESSELLATIONFACTOR",
+                new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // Decal

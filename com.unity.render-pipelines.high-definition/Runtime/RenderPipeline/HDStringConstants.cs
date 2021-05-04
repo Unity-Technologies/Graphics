@@ -1087,5 +1087,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Emission
         internal const string kForceForwardEmissive = "_ForceForwardEmissive";
         internal const string kEmissiveColorMap = "_EmissiveColorMap";
+
+        // Tessellation
+        internal const string kTessellationMode = "_TessellationMode";
+        internal const string kTessellationFactor = "_TessellationFactor";
+        internal const string kTessellationFactorMinDistance = "_TessellationFactorMinDistance";
+        internal const string kTessellationFactorMaxDistance = "_TessellationFactorMaxDistance";
+        internal const string kTessellationFactorTriangleSize = "_TessellationFactorTriangleSize";
+        internal const string kTessellationShapeFactor = "_TessellationShapeFactor";
+        internal const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
     }
 }
