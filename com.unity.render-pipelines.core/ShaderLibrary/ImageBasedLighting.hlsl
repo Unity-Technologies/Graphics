@@ -81,7 +81,7 @@ float3 ComputeViewFacingNormal(float3 V, float3 T)
 real3 GetAnisotropicModifiedNormal(real3 grainDir, real3 N, real3 V, real anisotropy)
 {
     real3 grainNormal = ComputeViewFacingNormal(V, grainDir);
-    return normalize(lerp(N, grainNormal, anisotropy));
+    return SafeNormalize(lerp(N, grainNormal, anisotropy));
 }
 
 // For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference.
