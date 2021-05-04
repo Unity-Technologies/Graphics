@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
+    class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
         private class SettingsPanel : DebugDisplaySettingsPanel
         {

@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Request DebugWindow to open the specified panel.
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="index">Index of the debug window panel to activate.</param>
         public void RequestEditorWindowPanelIndex(int index)
         {
             // Similar to RefreshEditor(), this function is required to bypass a dependency problem where DebugWindow
