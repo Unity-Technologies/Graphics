@@ -54,6 +54,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -65,7 +66,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ DOTS_INSTANCING_O
 
             #pragma vertex BakedLitForwardPassVertex
             #pragma fragment BakedLitForwardPassFragment

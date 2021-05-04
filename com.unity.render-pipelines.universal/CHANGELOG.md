@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added _SURFACE_TYPE_TRANSPARENT keyword to URP shaders.
 - Added Depth and DepthNormals passes to particles shaders.
 - Added support for SSAO in Particle and Unlit shaders.
+- Added Decal support. This includes new Decal Projector component, Decal renderer feature and Decal shader graph.
 - Added a SpeedTree 8 Shader Graph but did not set it as the default when importing or upgrading Speed Tree 8 assets. Because URP doesn't yet support per-material culling, this Shader Graph does not yet behave in the same way as the existing handwritten SpeedTree 8 shader for URP.
 - Added blending and box projection for reflection probes.
 - Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.

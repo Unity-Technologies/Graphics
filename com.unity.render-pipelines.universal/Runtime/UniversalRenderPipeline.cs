@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+            DecalProjector.defaultMaterial = asset.decalMaterial;
+
 #if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
 #endif
@@ -363,6 +365,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 
