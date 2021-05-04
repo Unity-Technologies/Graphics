@@ -543,6 +543,10 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
             var volumeScale = bakingReferenceVolumeAuthoring.transform.localScale;
+            if (hasFoundBounds)
+            {
+                volumeScale = globalBounds.size;
+            }
             var CellSize = bakingReferenceVolumeAuthoring.cellSize;
             var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
             var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
