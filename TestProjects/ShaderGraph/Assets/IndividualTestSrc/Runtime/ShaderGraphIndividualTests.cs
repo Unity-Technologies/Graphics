@@ -61,7 +61,7 @@ public class ShaderGraphIndividualTests
             {
 #if UNITY_EDITOR
                 data.UpdateResult();
-                File.AppendAllLines("UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},False" });
+                File.AppendAllLines("Assets/Resources/UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},False" });
 
 #else
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
@@ -79,7 +79,7 @@ public class ShaderGraphIndividualTests
             {
 #if UNITY_EDITOR
                 data.UpdateResult();
-                File.AppendAllLines("UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},True"});
+                File.AppendAllLines("Assets/Resources/UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},True"});
 
 #else
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
