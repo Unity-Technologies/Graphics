@@ -5,25 +5,25 @@ editor_version_names:
 editor_versions:
   2020_3_latest_internal:
     Android:
-      revision: dd97f2c94397
-      updated_at: '2021-05-03 23:57:16.280951'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-04 23:54:09.366714'
+      version: 2020.3.8f1
     Linux:
-      revision: dd97f2c94397
-      updated_at: '2021-05-03 23:57:16.280951'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-04 23:54:09.366714'
+      version: 2020.3.8f1
     OSX:
-      revision: dd97f2c94397
-      updated_at: '2021-05-03 23:57:16.280951'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-04 23:54:09.366714'
+      version: 2020.3.8f1
     Win:
-      revision: dd97f2c94397
-      updated_at: '2021-05-03 23:57:16.280951'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-04 23:54:09.366714'
+      version: 2020.3.8f1
     iPhone:
-      revision: dd97f2c94397
-      updated_at: '2021-05-03 23:57:16.280951'
-      version: 2020.3.7f1
+      revision: 507919d4fff5
+      updated_at: '2021-05-04 23:54:09.366714'
+      version: 2020.3.8f1
   2020_3_latest_public:
     Android:
       revision: 338bb68529b2
