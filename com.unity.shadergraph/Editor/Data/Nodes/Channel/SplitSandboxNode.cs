@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
 
             // convert to equivalent precision vector type:
             var vecCount = inputType.VectorDimension;
-            inputType = Types.Precision(vecCount);
+            inputType = Types.PrecisionVector(vecCount);
 
             // TODO: memoize! :D
             var shaderFunc = BuildFunction(inputType);

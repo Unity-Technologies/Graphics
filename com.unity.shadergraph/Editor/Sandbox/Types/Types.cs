@@ -135,7 +135,7 @@ public sealed partial class Types
     public static SandboxType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
     public static SandboxType _UnitySamplerState = Default.GetShaderType("UnitySamplerState");
 
-    public static SandboxType Precision(int vectorDimension)
+    public static SandboxType PrecisionVector(int vectorDimension)
     {
         if (vectorDimension == 1)
             return Types._precision;
@@ -145,6 +145,19 @@ public sealed partial class Types
             return Types._precision3;
         if (vectorDimension == 4)
             return Types._precision4;
+        return null;
+    }
+
+    static SandboxType[,] _precisionMatrices = new SandboxType[4, 4];
+    public static SandboxType PrecisionMatrix(int rows, int cols)
+    {
+        if ((rows >= 1) && (rows <= 4) && (cols >= 1) && (cols <= 4))
+        {
+            SandboxType result = _precisionMatrices[rows - 1, cols - 1];
+            if (result == null)
+                result = Default.GetShaderType("$precision" + rows + "x" + cols);
+            return result;
+        }
         return null;
     }
 

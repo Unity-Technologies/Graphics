@@ -43,6 +43,11 @@ namespace UnityEditor.ShaderGraph
         VertexColor,
     }
 
+    public class DynamicDefaultValue
+    {
+        public Matrix4x4 matrixDefault;
+    };
+
     interface ISandboxNodeDefinition
     {
         void BuildRuntime(ISandboxNodeBuildContext context);
@@ -211,16 +216,31 @@ namespace UnityEditor.ShaderGraph
                         break;
                 }
 
-                s = MaterialSlot.CreateMaterialSlot(
-                    SandboxNodeUtils.ConvertSandboxValueTypeToSlotValueType(type),
-                    slotId,
-                    name,
-                    name,
-                    slotType,
-                    defaultVector
-                    // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
-                    // hidden: attribute.hidden                                 // TODO: what's this used for?
-                );
+                if (defaultValue is DynamicDefaultValue dynamicDefault)
+                {
+                    var dyn = new DynamicValueMaterialSlot(slotId, name, name, slotType, dynamicDefault.matrixDefault
+                        // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
+                        // hidden: attribute.hidden                                 // TODO: what's this used for?
+                    );
+
+                    // because it's a dynamic slot, we need to set the current type ourselves
+                    var concreteType = SandboxNodeUtils.ConvertSandboxTypeToConcreteSlotValueType(type);
+                    dyn.SetConcreteType(concreteType);
+                    s = dyn;
+                }
+                else
+                {
+                    s = MaterialSlot.CreateMaterialSlot(
+                        SandboxNodeUtils.ConvertSandboxValueTypeToSlotValueType(type),
+                        slotId,
+                        name,
+                        name,
+                        slotType,
+                        defaultVector
+                        // shaderStageCapability: attribute.stageCapability,        // TODO: ability to tag stage capabilities
+                        // hidden: attribute.hidden                                 // TODO: what's this used for?
+                    );
+                }
 
                 if (existingSlot != null)
                     s.CopyValuesFrom(existingSlot);
@@ -368,15 +388,22 @@ namespace UnityEditor.ShaderGraph
 
                     // find slot by name
                     var slot = tempSlots.Find(s => s.shaderOutputName == p.Name);
-                    if (p.IsInput)
+                    if (slot == null)
                     {
-                        if (slot == null)
-                            sb.Add(p.DefaultValue?.ToString() ?? "null");
-                        else
-                            sb.Add(GetSlotValue(slot.id, generationMode));
+                        Debug.LogWarning("SandboxNode: Cannot find Slot " + p.Name);
                     }
                     else
-                        sb.Add(GetVariableNameForSlot(slot.id));
+                    {
+                        if (p.IsInput)
+                        {
+                            if (slot == null)
+                                sb.Add(p.DefaultValue?.ToString() ?? "null");
+                            else
+                                sb.Add(GetSlotValue(slot.id, generationMode));
+                        }
+                        else
+                            sb.Add(GetVariableNameForSlot(slot.id));
+                    }
                 }
                 sb.Add(");");
                 sb.NewLine();

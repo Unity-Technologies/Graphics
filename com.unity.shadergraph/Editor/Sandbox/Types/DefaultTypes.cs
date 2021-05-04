@@ -31,8 +31,8 @@ public sealed partial class Types
                 types.AddType(new VectorTypeDefinition(s, dim, baseFlags));
 
             // matrix variants
-            for (int rows = 1; rows < 4; rows++)
-                for (int cols = 1; cols < 4; cols++)
+            for (int rows = 1; rows <= 4; rows++)
+                for (int cols = 1; cols <= 4; cols++)
                     types.AddType(new MatrixTypeDefinition(s, rows, cols, baseFlags));
         }
 

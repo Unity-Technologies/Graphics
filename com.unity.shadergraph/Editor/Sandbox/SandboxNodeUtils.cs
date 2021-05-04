@@ -1,33 +1,36 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 
 public static class SandboxNodeUtils
 {
-    public static SandboxType DetermineDynamicVectorType(ISandboxNodeBuildContext context, ShaderFunction dynamicShaderFunc)
+    public static SandboxType DetermineDynamicVectorType(IEnumerable<SandboxType> inputTypes)
     {
         // Dynamic vector is chosen to be the minimum vector size (ignoring scalars),
         // falling back to scalars if that's all there is.
-
         int minVectorDimension = 5;
-        foreach (var p in dynamicShaderFunc.Parameters)
+        foreach (var vt in inputTypes)
         {
-            if (p.Type == Types._dynamicVector)
+            if ((vt != null) && (vt.IsVector))
             {
-                var pType = context.GetInputType(p.Name);
-
-                // scalars can be cast to any vector size easily, so ignore them
-                if ((pType != null) && !pType.IsScalar)
-                    minVectorDimension = Math.Min(minVectorDimension, pType.VectorDimension);
+                var dim = vt.VectorDimension;
+                if (dim > 1)
+                    minVectorDimension = Math.Min(minVectorDimension, dim);
             }
         }
-
         if (minVectorDimension < 5)
-            return Types.Precision(minVectorDimension);
+            return Types.PrecisionVector(minVectorDimension);
         else
             return Types._precision;
+    }
+
+    public static SandboxType DetermineDynamicVectorType(ISandboxNodeBuildContext context, ShaderFunction dynamicShaderFunc)
+    {
+        var dynamicInputTypes = dynamicShaderFunc.Parameters.Select(p => (p.Type == Types._dynamicVector) ? context.GetInputType(p.Name) : null);
+        return DetermineDynamicVectorType(dynamicInputTypes);
     }
 
     internal static void ProvideFunctionToRegistry(ShaderFunction function, FunctionRegistry registry)
@@ -207,6 +210,86 @@ public static class SandboxNodeUtils
         if (type.IsPlaceholder)
         {
             return SlotValueType.Dynamic;
+        }
+        throw new ArgumentException("Unsupported type " + type.Name);
+    }
+
+    internal static ConcreteSlotValueType ConvertSandboxTypeToConcreteSlotValueType(SandboxType type)
+    {
+        if (type == Types._bool)
+        {
+            return ConcreteSlotValueType.Boolean;
+        }
+        if (type.IsScalar || (type.IsVector && type.VectorDimension == 1))
+        {
+            return ConcreteSlotValueType.Vector1;
+        }
+        if (type.IsVector && type.VectorDimension == 2)
+        {
+            return ConcreteSlotValueType.Vector2;
+        }
+        if (type.IsVector && type.VectorDimension == 3)
+        {
+            return ConcreteSlotValueType.Vector3;
+        }
+        if (type.IsVector && type.VectorDimension == 4)
+        {
+            return ConcreteSlotValueType.Vector4;
+        }
+        /*            if (t == typeof(Color))
+                    {
+                        return SlotValueType.Vector4;
+                    }
+                    if (t == typeof(ColorRGBA))
+                    {
+                        return SlotValueType.Vector4;
+                    }
+                    if (t == typeof(ColorRGB))
+                    {
+                        return SlotValueType.Vector3;
+                    }
+        */
+        if (type == Types._UnityTexture2D)
+        {
+            return ConcreteSlotValueType.Texture2D;
+        }
+        if (type == Types._UnitySamplerState)
+        {
+            return ConcreteSlotValueType.SamplerState;
+        }
+        /*
+                    if (t == typeof(Texture2DArray))
+                    {
+                        return SlotValueType.Texture2DArray;
+                    }
+                    if (t == typeof(Texture3D))
+                    {
+                        return SlotValueType.Texture3D;
+                    }
+                    if (t == typeof(Cubemap))
+                    {
+                        return SlotValueType.Cubemap;
+                    }
+                    if (t == typeof(Gradient))
+                    {
+                        return SlotValueType.Gradient;
+                    }
+                    if (t == typeof(SamplerState))
+                    {
+                        return SlotValueType.SamplerState;
+                    }
+        */
+        if (type.IsMatrix && type.MatrixColumns == 4)
+        {
+            return ConcreteSlotValueType.Matrix4;
+        }
+        if (type.IsMatrix && type.MatrixColumns == 3)
+        {
+            return ConcreteSlotValueType.Matrix3;
+        }
+        if (type.IsMatrix && type.MatrixColumns == 2)
+        {
+            return ConcreteSlotValueType.Matrix2;
         }
         throw new ArgumentException("Unsupported type " + type.Name);
     }
