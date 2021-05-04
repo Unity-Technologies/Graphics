@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [10.6.0] - 2021-04-29
+
 ## [10.3.1/custom]
 Version Updated
 ### Fixed
