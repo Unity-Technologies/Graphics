@@ -111,6 +111,10 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
+#ifdef _DBUFFER
+    ApplyDecalToBaseColor(input.positionCS, color);
+#endif
+
     #if defined(_FOG_FRAGMENT)
         #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
         float viewZ = -input.fogCoord;

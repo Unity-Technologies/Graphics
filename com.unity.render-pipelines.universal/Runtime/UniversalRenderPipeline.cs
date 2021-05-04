@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
             CameraCaptureBridge.enabled = true;
 
-            RenderingUtils.ClearSystemInfoCache();
+            RenderingUtils.ClearSystemInfoCache();               DecalProjector.defaultMaterial = asset.decalMaterial;
 
             DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
@@ -357,6 +357,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 

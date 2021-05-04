@@ -48,7 +48,8 @@ namespace UnityEngine.Rendering.Universal
         Particle,
         Terrain,
         Sprite,
-        UnityBuiltinDefault
+        UnityBuiltinDefault,
+        Decal,
     }
 
     public enum LightRenderingMode
@@ -410,6 +411,9 @@ namespace UnityEngine.Rendering.Universal
 
                 case DefaultMaterialType.Terrain:
                     return editorResources.materials.terrainLit;
+
+                case DefaultMaterialType.Decal:
+                    return editorResources.materials.decal;
 
                 // Unity Builtin Default
                 default:
@@ -852,6 +856,11 @@ namespace UnityEngine.Rendering.Universal
         public override Material default2DMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
+        }
+
+        public Material decalMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.Decal); }
         }
 
         public override Shader defaultShader

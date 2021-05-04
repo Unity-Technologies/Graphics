@@ -282,6 +282,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
 
+        public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
+
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
@@ -344,6 +346,13 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
         internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
+
+        public static readonly string DBufferMRT1 = "_DBUFFER_MRT1";
+        public static readonly string DBufferMRT2 = "_DBUFFER_MRT2";
+        public static readonly string DBufferMRT3 = "_DBUFFER_MRT3";
+        public static readonly string DecalNormalBlendLow = "_DECAL_NORMAL_BLEND_LOW";
+        public static readonly string DecalNormalBlendMedium = "_DECAL_NORMAL_BLEND_MEDIUM";
+        public static readonly string DecalNormalBlendHigh = "_DECAL_NORMAL_BLEND_HIGH";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
