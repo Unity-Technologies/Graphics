@@ -6,8 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.6.0] - 2021-04-29
 
-### Added
-- Added support for lighting full screen debug mode in automated tests.
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 
 ### Fixed
