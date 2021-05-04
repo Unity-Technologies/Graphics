@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Note: value is due to code change, don't change the value
         Alpha = 0,
         Premultiply = 4,
-        Additive = 1
+        Additive = 1,
+        DualBlending = 5
     }
 }

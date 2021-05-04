@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
             TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
+            TextureHandle dualBlendingRT = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
             m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
             TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
             TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
@@ -179,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No need for old stencil values here since from transparent on different features are tagged
                 ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
-                colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
+                colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, dualBlendingRT, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
                 if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                 {
@@ -700,6 +701,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle               volumetricLighting,
             TextureHandle               ssrLighting,
             TextureHandle?              colorPyramid,
+            TextureHandle               dualBlendingRT,
             in BuildGPULightListOutput  lightLists,
             in ShadowResult             shadowResult,
             CullingResults              cullResults,
@@ -740,6 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int index = 0;
                 builder.UseColorBuffer(colorBuffer, index++);
+                builder.UseColorBuffer(dualBlendingRT, index++);
 #if ENABLE_VIRTUALTEXTURES
                 builder.UseColorBuffer(vtFeedbackBuffer, index++);
 #endif
@@ -981,6 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle               currentColorPyramid,
             TextureHandle               volumetricLighting,
             TextureHandle               rayCountTexture,
+            TextureHandle               dualBlendingRT,
             Texture                     skyTexture,
             in BuildGPULightListOutput  lightLists,
             ref PrepassOutput           prepassOutput,
@@ -1007,7 +1011,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             // Render pre-refraction objects
-            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true);
+            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, dualBlendingRT, lightLists, shadowResult, cullingResults, true);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled())
             {
@@ -1019,7 +1023,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
+            RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, dualBlendingRT, lightLists, shadowResult, cullingResults, false); ;
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
