@@ -16,6 +16,7 @@ URP_Terrain_OSX_OpenGLCore_playmode_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -23,13 +24,16 @@ URP_Terrain_OSX_OpenGLCore_playmode_mono_Linear_trunk:
       -  chmod +x utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 URP_Terrain_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
     name: URP_Terrain on OSX_OpenGLCore_playmode_cache_mono_Linear on version trunk
     agent:
@@ -38,6 +42,7 @@ URP_Terrain_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -45,13 +50,16 @@ URP_Terrain_OSX_OpenGLCore_playmode_cache_mono_Linear_trunk:
       -  chmod +x utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_trunk:
     name: URP_Terrain on OSX_OpenGLCore_editmode_mono_Linear on version trunk
     agent:
@@ -60,6 +68,7 @@ URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_trunk:
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -67,13 +76,16 @@ URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_trunk:
       -  chmod +x utr
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-downloader-cli
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.OSX.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  ./utr  --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Terrain --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+         rerun: on_new_revision
 URP_Terrain_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Terrain on OSX_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
