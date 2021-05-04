@@ -2,7 +2,7 @@
 
 namespace UnityEditor.VFX.URP
 {
-    class VFXUniversalSubOutput : VFXSRPSubOutput
+    class VFXURPSubOutput : VFXSRPSubOutput
     {
     }
 }

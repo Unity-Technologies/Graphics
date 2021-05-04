@@ -6,9 +6,9 @@ using UnityEngine;
 namespace UnityEditor.VFX.URP
 {
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
-    class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleURPLitOutput
+    class VFXURPLitPlanarPrimitiveOutput : VFXAbstractParticleURPLitOutput
     {
-        public override string name { get { return "Output Particle Lit " + primitiveType.ToString(); } }
+        public override string name { get { return "Output Particle URP Lit " + primitiveType.ToString(); } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

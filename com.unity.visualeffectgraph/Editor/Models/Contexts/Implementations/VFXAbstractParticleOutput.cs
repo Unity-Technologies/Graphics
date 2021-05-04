@@ -608,5 +608,11 @@ namespace UnityEditor.VFX
             // TODO: @gabriel.delacruz - Temporarily disable per vertex optimization
             return false; //vertsCount != 0;
         }
+
+        protected static RenderPipelineAsset GetCurrentRenderPipelineAsset()
+        {
+            var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.renderPipelineAsset;
+            return srpAsset;
+        }
     }
 }

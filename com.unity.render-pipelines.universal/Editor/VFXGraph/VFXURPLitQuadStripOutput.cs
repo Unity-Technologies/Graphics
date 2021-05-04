@@ -7,11 +7,11 @@ using UnityEngine;
 namespace UnityEditor.VFX.URP
 {
     [VFXInfo(experimental = true)]
-    class VFXLitQuadStripOutput : VFXAbstractParticleURPLitOutput
+    class VFXURPLitQuadStripOutput : VFXAbstractParticleURPLitOutput
     {
-        protected VFXLitQuadStripOutput() : base(true) {}  // strips
+        protected VFXURPLitQuadStripOutput() : base(true) {}  // strips
 
-        public override string name { get { return "Output ParticleStrip Lit Quad"; } }
+        public override string name { get { return "Output ParticleStrip URP Lit Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }

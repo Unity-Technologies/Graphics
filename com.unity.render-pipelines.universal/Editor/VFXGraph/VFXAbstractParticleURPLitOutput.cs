@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.VFX
 {
@@ -57,8 +58,6 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
         protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
-        //TODO : texture & define
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept an occlusion to control how the particle receives lighting.")]
         protected bool useOcclusionMap = false;
 
@@ -103,6 +102,13 @@ namespace UnityEditor.VFX
         {
             [Tooltip("Sets the specular color of the particle.")]
             public Color specularColor = Color.gray;
+        }
+
+        public override sealed bool CanBeCompiled()
+        {
+            if (!base.CanBeCompiled())
+                return false;
+            return GetCurrentRenderPipelineAsset() is UniversalRenderPipelineAsset;
         }
 
         private IEnumerable<SmoothnessSource> validSmoothnessSources

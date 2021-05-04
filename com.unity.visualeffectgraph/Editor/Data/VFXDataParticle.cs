@@ -743,7 +743,9 @@ namespace UnityEditor.VFX
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
 
                 var context = m_Contexts[i];
-                var contextData = contextToCompiledData[context];
+                //An output context can be skipped due to invalid current RP
+                if (!contextToCompiledData.TryGetValue(context, out var contextData))
+                    continue;
 
                 var taskDesc = new VFXEditorTaskDesc();
                 taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;
