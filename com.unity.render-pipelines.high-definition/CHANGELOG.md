@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 - Added an info box for micro shadow editor (case 1322830).
+- Added support for alpha channel in FXAA (case 1323941).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -160,6 +161,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with the color space of AOVs (case 1324759)
 - Fixed issue with history buffers when using multiple AOVs (case 1323684).
 - Fixed camera preview with multi selection (case 1324126).
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
+- Fixed undo of some properties on light editor.
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -197,6 +221,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Assets going through the migration system are now dirtied.
 - Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
 - Increased path tracing max samples from 4K to 16K (case 1327729).
+- Film grain does not affect the alpha channel.
+- Disable TAA sharpening on alpha channel.
+- Default black texture XR is now opaque (alpha = 1).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [10.3.0] - 2020-12-01
 
