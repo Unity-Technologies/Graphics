@@ -80,46 +80,6 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 0
---- !u!114 &-2806406479603280582
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f086a068d4c5889438831b3ae9afc11c, type: 3}
-  m_Name: Tonemapping
-  m_EditorClassIdentifier: 
-  active: 1
-  mode:
-    m_OverrideState: 1
-    m_Value: 0
-  toeStrength:
-    m_OverrideState: 0
-    m_Value: 0
-  toeLength:
-    m_OverrideState: 0
-    m_Value: 0.5
-  shoulderStrength:
-    m_OverrideState: 0
-    m_Value: 0
-  shoulderLength:
-    m_OverrideState: 0
-    m_Value: 0.5
-  shoulderAngle:
-    m_OverrideState: 0
-    m_Value: 0
-  gamma:
-    m_OverrideState: 0
-    m_Value: 1
-  lutTexture:
-    m_OverrideState: 0
-    m_Value: {fileID: 0}
-  lutContribution:
-    m_OverrideState: 0
-    m_Value: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,7 +96,6 @@ MonoBehaviour:
   - {fileID: -3671228646652344306}
   - {fileID: -4647395509809486497}
   - {fileID: 3218614289452040685}
-  - {fileID: -2806406479603280582}
 --- !u!114 &3218614289452040685
 MonoBehaviour:
   m_ObjectHideFlags: 3

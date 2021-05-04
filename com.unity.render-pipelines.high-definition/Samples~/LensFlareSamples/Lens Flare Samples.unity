@@ -770,6 +770,7 @@ MonoBehaviour:
   lensFlares:
   - {fileID: 11400000, guid: d6ed082a5550f354eacd829d9e8e905f, type: 2}
   - {fileID: 11400000, guid: 23b3558d43ac307448484a66b1986572, type: 2}
+  - {fileID: 11400000, guid: 481c03ea222474e47ac4688b7cafc305, type: 2}
   - {fileID: 11400000, guid: 6c9d9dfc3d7204d4792a39e8a9f7904d, type: 2}
   - {fileID: 11400000, guid: 88670ec5a314dff4fa7523b2a1e3be6c, type: 2}
   - {fileID: 11400000, guid: 6d9690ff840e7264dac777dd53474a85, type: 2}
@@ -781,11 +782,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7b784bb991e5254499f0339a1da9960c, type: 2}
   - {fileID: 11400000, guid: b586a74942fa7fb4585fc03acb473887, type: 2}
   - {fileID: 11400000, guid: 22ae2bca5df960246a3108606371c4bd, type: 2}
-  - {fileID: 11400000, guid: 481c03ea222474e47ac4688b7cafc305, type: 2}
-  - {fileID: 11400000, guid: ec2918894e5ff724c92c30b87ec78180, type: 2}
   - {fileID: 11400000, guid: 632ff411dbbf5d54593d6e684940a2bf, type: 2}
   - {fileID: 11400000, guid: 3d06c7e513973914d98d12f2f668741a, type: 2}
   - {fileID: 11400000, guid: 87b3236eee3798646863f18655766828, type: 2}
+  - {fileID: 11400000, guid: ec2918894e5ff724c92c30b87ec78180, type: 2}
   - {fileID: 11400000, guid: db5b3a7275d73f04ab61fb9fe3fab8b9, type: 2}
   - {fileID: 11400000, guid: 25c14a125c47ca84d91092e582f0adef, type: 2}
   - {fileID: 11400000, guid: cf478225bf63e2d49ae9365e4f8cc30a, type: 2}
@@ -1051,15 +1051,16 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Left Click to place and move  the lens flare
+  m_Text: 'Left Click to place and move the lens flare with the mouse
 
-    Right Click to navigate
-    the scene
+    Right
+    Click to rotate the camera with the mouse
 
-    Use keys A and D to change flare
+    Use keys A and D or the left and
+    right arrow keys to cycle through the flares
 
     Use the number keys (1,2,3)
-    to change the environment'
+    to change the background environment'
 --- !u!222 &1045076803
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1080,7 +1081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8407cd09923ac1b4fad1cd8b59ec8861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timerLength: 7
+  timerLength: 10
   timerEvent:
     m_PersistentCalls:
       m_Calls:

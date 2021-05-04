@@ -24,7 +24,7 @@ MonoBehaviour:
     allowMultipleElement: 1
     count: 2
     preserveAspectRatio: 0
-    rotation: 23.03
+    rotation: 14.22
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0

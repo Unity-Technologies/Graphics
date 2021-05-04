@@ -285,9 +285,9 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 1
-    lensFlareTexture: {fileID: 2800000, guid: c8a99b72bd3f8914ea8964f3c246b89d, type: 3}
-    uniformScale: 10.92
+    localIntensity: 0.82
+    lensFlareTexture: {fileID: 2800000, guid: 62bb1123d19cf634b8795e456d1fe37f, type: 3}
+    uniformScale: 8.94
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
     count: 5

@@ -164,7 +164,7 @@ MonoBehaviour:
     autoRotate: 0
     flareType: 0
     modulateByLightColor: 1
-    isFoldOpened: 1
+    isFoldOpened: 0
     distribution: 2
     lengthSpread: 0
     positionCurve:

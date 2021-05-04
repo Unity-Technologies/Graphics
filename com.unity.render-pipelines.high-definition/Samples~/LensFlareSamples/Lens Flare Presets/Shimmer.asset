@@ -32,7 +32,7 @@ MonoBehaviour:
     modulateByLightColor: 1
     isFoldOpened: 0
     distribution: 2
-    lengthSpread: 0
+    lengthSpread: 0.02
     positionCurve:
       serializedVersion: 2
       m_Curve:

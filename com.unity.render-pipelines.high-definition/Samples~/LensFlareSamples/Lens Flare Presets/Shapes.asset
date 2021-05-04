@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Many Polys
+  m_Name: Shapes
   m_EditorClassIdentifier: 
   elements:
   - position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 0.06
+    localIntensity: 0.1
     lensFlareTexture: {fileID: 0}
-    uniformScale: 26.63
-    sizeXY: {x: 1, y: 1}
+    uniformScale: 1
+    sizeXY: {x: 27.81, y: 0.25}
     allowMultipleElement: 0
     count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tint: {r: 0, g: 0.30980393, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
@@ -142,7 +142,275 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 0.826
+    fallOff: 0.865
+    edgeOffset: 0.8
+    sideCount: 6
+    sdfRoundness: 0
+    inverseSDF: 0
+  - position: 0
+    positionOffset: {x: 0, y: 0}
+    angularOffset: 0
+    translationScale: {x: 1, y: 1}
+    localIntensity: 0.1
+    lensFlareTexture: {fileID: 0}
+    uniformScale: 1
+    sizeXY: {x: 16.65, y: 0.8}
+    allowMultipleElement: 0
+    count: 5
+    preserveAspectRatio: 0
+    rotation: 0
+    tint: {r: 0, g: 0.30980393, b: 1, a: 0.5}
+    blendMode: 0
+    autoRotate: 0
+    flareType: 1
+    modulateByLightColor: 0
+    isFoldOpened: 0
+    distribution: 0
+    lengthSpread: 1
+    positionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    scaleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    seed: 0
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    intensityVariation: 0
+    positionVariation: {x: 0, y: 0}
+    scaleVariation: 0
+    rotationVariation: 0
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
+    distortionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    distortionRelativeToCenter: 0
+    fallOff: 0.809
+    edgeOffset: 0.8
+    sideCount: 6
+    sdfRoundness: 0
+    inverseSDF: 0
+  - position: 0
+    positionOffset: {x: 0, y: 0}
+    angularOffset: 0
+    translationScale: {x: 1, y: 1}
+    localIntensity: 0.07
+    lensFlareTexture: {fileID: 0}
+    uniformScale: 1
+    sizeXY: {x: 0.18, y: 4.86}
+    allowMultipleElement: 1
+    count: 11
+    preserveAspectRatio: 0
+    rotation: 25.33
+    tint: {r: 0, g: 0.30980393, b: 1, a: 0.5}
+    blendMode: 0
+    autoRotate: 0
+    flareType: 1
+    modulateByLightColor: 0
+    isFoldOpened: 0
+    distribution: 2
+    lengthSpread: 0
+    positionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    scaleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    seed: 0
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    intensityVariation: 0.63
+    positionVariation: {x: 0, y: 0}
+    scaleVariation: 0.91
+    rotationVariation: 6.79
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
+    distortionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    distortionRelativeToCenter: 0
+    fallOff: 0.871
     edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
@@ -151,18 +419,18 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 0.31
-    lensFlareTexture: {fileID: 2800000, guid: df2034d9b8cbd4b4f87e2f8da75edeb6, type: 3}
-    uniformScale: 8.865
+    localIntensity: 3.15
+    lensFlareTexture: {fileID: 0}
+    uniformScale: 1.63
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
     count: 5
     preserveAspectRatio: 0
-    rotation: 16.36
-    tint: {r: 1, g: 0.8941177, b: 0.7137255, a: 0.5}
+    rotation: 0
+    tint: {r: 0.2784314, g: 0.5019608, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
-    flareType: 0
+    flareType: 1
     modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 0
@@ -249,140 +517,6 @@ MonoBehaviour:
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
     rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 3, y: 3}
-    distortionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0.1
-    sideCount: 6
-    sdfRoundness: 0
-    inverseSDF: 0
-  - position: 0
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.18
-    lensFlareTexture: {fileID: 2800000, guid: c8a99b72bd3f8914ea8964f3c246b89d, type: 3}
-    uniformScale: 14.35
-    sizeXY: {x: 1, y: 1}
-    allowMultipleElement: 1
-    count: 9
-    preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
-    blendMode: 0
-    autoRotate: 0
-    flareType: 0
-    modulateByLightColor: 0
-    isFoldOpened: 0
-    distribution: 2
-    lengthSpread: 0.01
-    positionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    scaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    seed: 29
-    colorGradient:
-      serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 1}
-      key1: {r: 1, g: 0.684128, b: 0, a: 1}
-      key2: {r: 0.9974991, g: 1, b: 0, a: 0}
-      key3: {r: 0.016162038, g: 1, b: 0, a: 0}
-      key4: {r: 0, g: 0.054581404, b: 1, a: 0}
-      key5: {r: 0.63479805, g: 0, b: 1, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 13300
-      ctime2: 25250
-      ctime3: 38165
-      ctime4: 52043
-      ctime5: 65342
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_NumColorKeys: 6
-      m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 0.96
-    rotationVariation: 1.98
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
@@ -410,191 +544,30 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.1
+    fallOff: 0.624
+    edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
-  - position: -0.15
+  - position: 0.81
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
     localIntensity: 0.04
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
-    sizeXY: {x: 0.5, y: 0.5}
-    allowMultipleElement: 1
-    count: 11
+    sizeXY: {x: 32.73, y: 1}
+    allowMultipleElement: 0
+    count: 5
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 1, g: 0.023529414, b: 0.7803922, a: 0.5}
-    blendMode: 0
-    autoRotate: 0
-    flareType: 2
-    modulateByLightColor: 0
-    isFoldOpened: 0
-    distribution: 1
-    lengthSpread: 1.27
-    positionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.2300134
-        value: 0.28743222
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.56225896
-        value: 0.43822393
-        inSlope: 1.0000001
-        outSlope: 1.0000001
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.6831876
-        value: 0.7342435
-        inSlope: 0.99999994
-        outSlope: 0.99999994
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    scaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    seed: 0
-    colorGradient:
-      serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 0}
-      key3: {r: 0, g: 0, b: 0, a: 0}
-      key4: {r: 0, g: 0, b: 0, a: 0}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 65535
-      ctime2: 0
-      ctime3: 0
-      ctime4: 0
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 0
-    rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 4, y: 4}
-    distortionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0.472
-    sideCount: 8
-    sdfRoundness: 0
-    inverseSDF: 0
-  - position: -0.16
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.31
-    lensFlareTexture: {fileID: 0}
-    uniformScale: 0.27
-    sizeXY: {x: 1, y: 1}
-    allowMultipleElement: 1
-    count: 17
-    preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tint: {r: 0, g: 0, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 1
     modulateByLightColor: 0
     isFoldOpened: 0
-    distribution: 2
+    distribution: 0
     lengthSpread: 1
     positionCurve:
       serializedVersion: 2
@@ -647,140 +620,6 @@ MonoBehaviour:
     seed: 0
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0.6367924, b: 0.6367924, a: 1}
-      key1: {r: 1, g: 0.87863487, b: 0.6179246, a: 1}
-      key2: {r: 0.99876064, g: 1, b: 0.6839622, a: 0}
-      key3: {r: 0.6146319, g: 1, b: 0.6084906, a: 0}
-      key4: {r: 0.54147387, g: 0.565612, b: 0.9811321, a: 0}
-      key5: {r: 0.8365704, g: 0.5518868, b: 1, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 13300
-      ctime2: 25250
-      ctime3: 38165
-      ctime4: 52043
-      ctime5: 65342
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_NumColorKeys: 6
-      m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 1.92, y: 0}
-    scaleVariation: 0.93
-    rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 2, y: 2}
-    distortionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    distortionRelativeToCenter: 1
-    fallOff: 0.905
-    edgeOffset: 0.302
-    sideCount: 6
-    sdfRoundness: 0
-    inverseSDF: 0
-  - position: -0.13
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.01
-    lensFlareTexture: {fileID: 0}
-    uniformScale: 4.3
-    sizeXY: {x: 0.8, y: 0.8}
-    allowMultipleElement: 1
-    count: 11
-    preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 0.011764707, g: 0.07058824, b: 0.48235297, a: 0.5}
-    blendMode: 0
-    autoRotate: 0
-    flareType: 2
-    modulateByLightColor: 0
-    isFoldOpened: 0
-    distribution: 2
-    lengthSpread: 1.27
-    positionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    scaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    seed: 5
-    colorGradient:
-      serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
@@ -807,298 +646,30 @@ MonoBehaviour:
       atime7: 0
       m_Mode: 0
       m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 0.6
-    rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 3, y: 3}
-    distortionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0.3
-    sideCount: 8
-    sdfRoundness: 0
-    inverseSDF: 0
-  - position: -0.13
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.003
-    lensFlareTexture: {fileID: 0}
-    uniformScale: 4.3
-    sizeXY: {x: 0.8, y: 0.8}
-    allowMultipleElement: 1
-    count: 11
-    preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 0.58431375, g: 0.37254903, b: 0.85098046, a: 0.5}
-    blendMode: 0
-    autoRotate: 0
-    flareType: 2
-    modulateByLightColor: 0
-    isFoldOpened: 0
-    distribution: 2
-    lengthSpread: 1.27
-    positionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    scaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    seed: 6
-    colorGradient:
-      serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 0}
-      key3: {r: 0, g: 0, b: 0, a: 0}
-      key4: {r: 0, g: 0, b: 0, a: 0}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 65535
-      ctime2: 0
-      ctime3: 0
-      ctime4: 0
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
-    intensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 2.61
-    rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 3, y: 3}
-    distortionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    distortionRelativeToCenter: 1
-    fallOff: 1
-    edgeOffset: 0.3
-    sideCount: 8
-    sdfRoundness: 0
-    inverseSDF: 0
-  - position: 1.1
-    positionOffset: {x: 0, y: 0}
-    angularOffset: 0
-    translationScale: {x: 1, y: 1}
-    localIntensity: 0.05
-    lensFlareTexture: {fileID: 0}
-    uniformScale: 1.1
-    sizeXY: {x: 0.1, y: 0.1}
-    allowMultipleElement: 1
-    count: 9
-    preserveAspectRatio: 0
-    rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
-    blendMode: 0
-    autoRotate: 0
-    flareType: 2
-    modulateByLightColor: 0
-    isFoldOpened: 0
-    distribution: 1
-    lengthSpread: 0.07
-    positionCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 1
-        outSlope: -1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    scaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    seed: 0
-    colorGradient:
-      serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 1}
-      key1: {r: 1, g: 0.684128, b: 0, a: 1}
-      key2: {r: 0.9974991, g: 1, b: 0, a: 0}
-      key3: {r: 0.016162038, g: 1, b: 0, a: 0}
-      key4: {r: 0, g: 0.054581404, b: 1, a: 0}
-      key5: {r: 0.63479805, g: 0, b: 1, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 13300
-      ctime2: 25250
-      ctime3: 38165
-      ctime4: 52043
-      ctime5: 65342
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_NumColorKeys: 6
       m_NumAlphaKeys: 2
     intensityVariation: 0
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
     rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 4, y: 4}
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: 0.5042735
-        outSlope: 0.5042735
+        inSlope: 1
+        outSlope: 1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
-        outWeight: 0.10169491
+        outWeight: 0
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 2
-        outSlope: 2
+        inSlope: 1
+        outSlope: -1
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -1106,32 +677,32 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 1
+    distortionRelativeToCenter: 0
     fallOff: 1
-    edgeOffset: 0.3
-    sideCount: 8
+    edgeOffset: 0.1
+    sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
-  - position: -0.15
-    positionOffset: {x: 0, y: 0}
+  - position: 0.63
+    positionOffset: {x: 0.38, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 0.01
+    localIntensity: 0.02
     lensFlareTexture: {fileID: 0}
-    uniformScale: 1.4
-    sizeXY: {x: 0.5, y: 0.5}
+    uniformScale: 0.45
+    sizeXY: {x: 14, y: 1}
     allowMultipleElement: 1
-    count: 5
+    count: 3
     preserveAspectRatio: 0
     rotation: 0
-    tint: {r: 1, g: 1, b: 1, a: 0.5}
+    tint: {r: 1, g: 0.03137255, b: 0, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 2
     modulateByLightColor: 0
     isFoldOpened: 0
     distribution: 2
-    lengthSpread: 1.27
+    lengthSpread: 0.73
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -1180,11 +751,11 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 11
+    seed: 10
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 0, b: 0, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1211,11 +782,11 @@ MonoBehaviour:
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     intensityVariation: 0
-    positionVariation: {x: 2.2, y: 0.03}
-    scaleVariation: 0.72
+    positionVariation: {x: 0, y: 0}
+    scaleVariation: 2
     rotationVariation: 0
-    enableRadialDistortion: 1
-    targetSizeDistortion: {x: 5, y: 5}
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -1224,7 +795,7 @@ MonoBehaviour:
         value: 0
         inSlope: 1
         outSlope: 1
-        tangentMode: 34
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
@@ -1232,17 +803,151 @@ MonoBehaviour:
         time: 1
         value: 1
         inSlope: 1
-        outSlope: 1
-        tangentMode: 34
+        outSlope: -1
+        tangentMode: 0
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 1
+    distortionRelativeToCenter: 0
     fallOff: 1
     edgeOffset: 0.5
-    sideCount: 8
+    sideCount: 6
+    sdfRoundness: 0
+    inverseSDF: 0
+  - position: 0.16
+    positionOffset: {x: -0.1, y: 0}
+    angularOffset: 0
+    translationScale: {x: 1, y: 1}
+    localIntensity: 0.005
+    lensFlareTexture: {fileID: 0}
+    uniformScale: 2.76
+    sizeXY: {x: 2.13, y: 1}
+    allowMultipleElement: 1
+    count: 5
+    preserveAspectRatio: 0
+    rotation: 0
+    tint: {r: 0, g: 0.33333334, b: 1, a: 0.5}
+    blendMode: 0
+    autoRotate: 0
+    flareType: 1
+    modulateByLightColor: 0
+    isFoldOpened: 0
+    distribution: 2
+    lengthSpread: 1.84
+    positionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    scaleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    seed: 8
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    intensityVariation: 0
+    positionVariation: {x: 0.42, y: 0}
+    scaleVariation: 1.18
+    rotationVariation: 0
+    enableRadialDistortion: 0
+    targetSizeDistortion: {x: 1, y: 1}
+    distortionCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    distortionRelativeToCenter: 0
+    fallOff: 0.966
+    edgeOffset: 0.1
+    sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

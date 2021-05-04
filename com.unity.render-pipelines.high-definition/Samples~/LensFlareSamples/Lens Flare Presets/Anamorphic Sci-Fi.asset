@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 877e1507ae8d81c40bf1b94c1a86036f, type: 3}
-  m_Name: Anamorphic Streak Sci-Fi
+  m_Name: Anamorphic Sci-Fi
   m_EditorClassIdentifier: 
   elements:
   - position: 0
@@ -276,7 +276,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 0.618
+    fallOff: 0.533
     edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0

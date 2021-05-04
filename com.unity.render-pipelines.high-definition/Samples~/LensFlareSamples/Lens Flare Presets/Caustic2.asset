@@ -163,7 +163,7 @@ MonoBehaviour:
     localIntensity: 0.3
     lensFlareTexture: {fileID: 0}
     uniformScale: 2.45
-    sizeXY: {x: 1, y: 1.2}
+    sizeXY: {x: 0.5, y: 0.5}
     allowMultipleElement: 0
     count: 5
     preserveAspectRatio: 0
@@ -258,8 +258,8 @@ MonoBehaviour:
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
     rotationVariation: 0
-    enableRadialDistortion: 0
-    targetSizeDistortion: {x: 1, y: 1}
+    enableRadialDistortion: 1
+    targetSizeDistortion: {x: 1, y: 1.2}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -284,8 +284,8 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 0
-    fallOff: 0.828
+    distortionRelativeToCenter: 1
+    fallOff: 0.706
     edgeOffset: 1
     sideCount: 6
     sdfRoundness: 0

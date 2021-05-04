@@ -120,11 +120,11 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
     private void ChangeLensFlare()
     {
 #if ENABLE_INPUT_SYSTEM
-        if (Keyboard.current.dKey.wasPressedThisFrame)
+        if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasReleasedThisFrame)
         {
             IncrementFlare();
         }
-        else if (Keyboard.current.aKey.wasPressedThisFrame)
+        else if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasReleasedThisFrame)
         {
             DecrementFlare();
         }
