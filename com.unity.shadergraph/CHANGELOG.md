@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
   - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
+  - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
 
 ### Changed
 - Updated/corrected View Direction doc
