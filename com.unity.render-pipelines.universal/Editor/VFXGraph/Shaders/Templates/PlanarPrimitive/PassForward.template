@@ -7,7 +7,7 @@ Pass
             
     HLSLPROGRAM
     #pragma target 4.5
-    ${VFXPassForwardAdditionalPragma}
+    ${VFXPassForwardLitAdditionalPragma}
     ${VFXURPForwardDefines}
     //#pragma enable_d3d11_debug_symbols
             
