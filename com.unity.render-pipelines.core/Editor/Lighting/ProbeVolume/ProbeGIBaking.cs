@@ -235,13 +235,13 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                // Reset index
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
-
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
 
                 ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
+
+            // Reset index
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
 
             // Map from each scene to an existing reference volume
             var scene2RefVol = new Dictionary<Scene, ProbeReferenceVolumeAuthoring>();
@@ -457,8 +457,8 @@ namespace UnityEngine.Experimental.Rendering
         private static void DeduplicateProbePositions(in Vector3[] probePositions, Dictionary<Vector3, int> uniquePositions, out int[] indices)
         {
             indices = new int[probePositions.Length];
+            int uniqueIndex = uniquePositions.Count;
 
-            int uniqueIndex = 0;
             for (int i = 0; i < probePositions.Length; i++)
             {
                 var pos = probePositions[i];
