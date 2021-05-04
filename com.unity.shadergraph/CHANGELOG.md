@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where ObjectField focus and Node selections would both capture deletion commands [1313943].
 - Fixed a ShaderGraph issue where the right click menu doesn't work when a stack block node is selected [1320212].
 - Fixed a bug when a node was both vertex and fragment exclusive but could still be used causing a shader compiler error [1316128].
+- Fixed a ShaderGraph issue where a warning about an uninitialized value was being displayed on newly created graphs [1331377].
 - Fixed divide by zero warnings when using the Sample Gradient Node
 - Fixed the default dimension (1) for vector material slots so that it is consistent with other nodes. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328756/)
 - Fixed reordering when renaming enum keywords. (https://issuetracker.unity3d.com/product/unity/issues/guid/1328761/)
