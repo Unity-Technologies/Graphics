@@ -47,6 +47,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<string> m_MetaKeywordIds = new List<string>();
 
+        [SerializeField]
+        List<JsonData<ShaderDropdown>> m_MetaDropdowns = new List<JsonData<ShaderDropdown>>();
+
+        [SerializeField]
+        List<string> m_MetaDropdownIds = new List<string>();
+
         public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<GroupData> groups,
@@ -56,6 +62,7 @@ namespace UnityEditor.ShaderGraph
                                 IEnumerable<CategoryData> categories,
                                 IEnumerable<AbstractShaderProperty> metaProperties,
                                 IEnumerable<ShaderKeyword> metaKeywords,
+                                IEnumerable<ShaderDropdown> metaDropdowns,
                                 IEnumerable<StickyNoteData> notes,
                                 bool keepOutputEdges = false,
                                 bool removeOrphanEdges = true)
@@ -120,6 +127,12 @@ namespace UnityEditor.ShaderGraph
                     AddMetaKeyword(metaKeyword);
             }
 
+            if (metaDropdowns != null)
+            {
+                foreach (var metaDropdown in metaDropdowns.Distinct())
+                    AddMetaDropdown(metaDropdown);
+            }
+
             var distinct = m_Edges.Distinct();
             if (removeOrphanEdges)
             {
@@ -140,8 +153,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         // The only situation in which an input has an identical reference name to another input in a category, while not being the same instance, is if they are duplicates
-        public bool IsInputDuplicatedFromCategory(ShaderInput shaderInput, CategoryData inputCategory)
+        public bool IsInputDuplicatedFromCategory(ShaderInput shaderInput, CategoryData inputCategory, GraphData targetGraphData)
         {
+            // Need to check if they share same graph owner as well, if not then we can early out
+            bool inputBelongsToTargetGraph = targetGraphData.ContainsInput(shaderInput);
+            if (inputBelongsToTargetGraph == false)
+                return false;
+
             foreach(var child in inputCategory.Children)
             {
                 if(child.referenceName.Equals(shaderInput.referenceName, StringComparison.Ordinal) && child.objectId != shaderInput.objectId)
@@ -194,6 +212,12 @@ namespace UnityEditor.ShaderGraph
             m_MetaKeywordIds.Add(metaKeyword.objectId);
         }
 
+        void AddMetaDropdown(ShaderDropdown metaDropdown)
+        {
+            m_MetaDropdowns.Add(metaDropdown);
+            m_MetaDropdownIds.Add(metaDropdown.objectId);
+        }
+
         public IEnumerable<T> GetNodes<T>()
         {
             return m_Nodes.SelectValue().OfType<T>();
@@ -226,6 +250,11 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<ShaderKeyword> metaKeywords
         {
             get { return m_MetaKeywords.SelectValue(); }
+        }
+
+        public DataValueEnumerable<ShaderDropdown> metaDropdowns
+        {
+            get { return m_MetaDropdowns.SelectValue(); }
         }
 
         public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;

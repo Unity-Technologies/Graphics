@@ -4,12 +4,12 @@ The **Material Type** property allows you to give your Material a type, which al
 
 | **Material Type**         | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Subsurface Scattering** | Applies the subsurface scattering workflow to the Material. Subsurface scattering simulates the way light interacts with and penetrates translucent objects, such as skin or plant leaves. When light penetrates the surface of a subsurface scattering Material, it scatters and blurs before exiting the surface at a different point. |
+| **Subsurface Scattering** | Applies the subsurface scattering workflow to the Material. Subsurface scattering simulates the way light interacts with and penetrates translucent objects, such as skin. When light penetrates the surface of a subsurface scattering Material, it scatters and blurs before exiting the surface at a different point. |
 | **Standard**              | Applies the basic metallic Shader workflow to the Material. This is the default **Material Type**. |
 | **Anisotropy**            | Applies the anisotropic workflow to the Material. The highlights of Anisotropic surfaces change in appearance as you view the Material from different angles. Use this **Material Type** to create Materials with anisotropic highlights. For example, brushed metal or velvet. |
 | **Iridescence**           | Applies the Iridescence workflow to the Material. Iridescent surfaces appear to gradually change color as the angle of view or angle of illumination changes. Use this **Material Type** to create Materials like soap bubbles, iridescent metal, or insect wings. |
 | **Specular Color**        | Applies the Specular Color workflow to the Material. Use this **Material Type** to create Materials with a coloured specular highlight. This is similar to the [built-in Specular Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterSpecular.html). |
-| **Translucent**           | Applies the Translucent workflow to the Material. Use this **Material Type**, and a thickness map, to simulate a translucent Material. In contrast to **Subsurface Scattering** Materials, **Translucent** Materials do not blur light that transmits through the Material. |
+| **Translucent**           | Applies the Translucent workflow to the Material. Use this **Material Type**, and a thickness map, to simulate a translucent object, such as a plant leaf. In contrast to **Subsurface Scattering** Materials, **Translucent** Materials do not blur light that transmits through the Material. |
 
 ![](Images/MaterialType1.png)
 

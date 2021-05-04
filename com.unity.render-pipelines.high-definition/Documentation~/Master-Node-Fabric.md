@@ -98,7 +98,3 @@ These properties are in the **Exposed Properties** section of the Inspector, alo
 | **Emission**                           | Toggles whether emission affects global illumination. |
 | **- Global Illumination**              | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 | **Motion Vector For Vertex Animation** | Enable the checkbox to make HDRP write motion vectors for GameObjects that use vertex animation. This removes the ghosting that vertex animation can cause. |
-
-## Limitations
-
-[!include[](snippets/area-light-material-support-disclaimer.md)]

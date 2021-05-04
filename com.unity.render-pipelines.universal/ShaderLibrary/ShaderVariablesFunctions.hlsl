@@ -2,6 +2,7 @@
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
@@ -135,6 +136,7 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
     #ifdef _ALPHATEST_ON
+    if (IsAlphaDiscardEnabled())
         clip(alpha - cutoff + offset);
     #endif
 }
@@ -188,21 +190,25 @@ float3 NormalizeNormalPerPixel(float3 normalWS)
 
 
 
-real ComputeFogFactor(float z)
+real ComputeFogFactorZ0ToFar(float z)
 {
-    float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
-
     #if defined(FOG_LINEAR)
-        // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
-        float fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);
-        return real(fogFactor);
+    // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
+    float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
+    return real(fogFactor);
     #elif defined(FOG_EXP) || defined(FOG_EXP2)
-        // factor = exp(-(density*z)^2)
-        // -density * z computed at vertex
-        return real(unity_FogParams.x * clipZ_01);
+    // factor = exp(-(density*z)^2)
+    // -density * z computed at vertex
+    return real(unity_FogParams.x * z);
     #else
         return real(0.0);
     #endif
+}
+
+real ComputeFogFactor(float zPositionCS)
+{
+    float clipZ_0Far = UNITY_Z_0_FAR_FROM_CLIPSPACE(zPositionCS);
+    return ComputeFogFactorZ0ToFar(clipZ_0Far);
 }
 
 half ComputeFogIntensity(half fogFactor)
@@ -222,6 +228,25 @@ half ComputeFogIntensity(half fogFactor)
         #endif
     #endif
     return fogIntensity;
+}
+
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
+{
+    real fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        // Compiler eliminates unused math --> matrix.column_z * vec
+        float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
+        // View Z is 0 at camera pos, remap 0 to near plane.
+        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+    #endif
+#else
+    fogFactor = vertFogFactor;
+#endif
+    return fogFactor;
 }
 
 float ComputeFogIntensity(float fogFactor)
@@ -255,8 +280,11 @@ half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    if (IsFogEnabled())
+    {
         float fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);
+    }
     #endif
     return fragColor;
 }

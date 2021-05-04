@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 #endif
         }
 
-        public static void Fail(string message, params object[] args)
+        public static void Fail(string message)
         {
 #if SG_ASSERTIONS
             throw new AssertionException(message, null);

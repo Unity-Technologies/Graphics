@@ -215,6 +215,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ViewModel.inputTypeName = shaderKeyword.keywordType  + " Keyword";
                     ViewModel.inputTypeName = shaderKeyword.isBuiltIn ? "Built-in " + ViewModel.inputTypeName : ViewModel.inputTypeName;
                     break;
+                case ShaderDropdown shaderDropdown:
+                    ViewModel.inputTypeName = "Dropdown";
+                    break;
             }
 
             ViewModel.requestModelChangeAction = this.RequestModelChange;
@@ -289,6 +292,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
                     // Cant determine if Sub Graphs contain the keyword so just update them
+                    foreach (var node in DataStore.State.GetNodes<SubGraphNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
+                case ShaderDropdown dropdown:
+                    foreach (var node in DataStore.State.GetNodes<DropdownNode>())
+                    {
+                        node.UpdateNode();
+                        node.Dirty(modificationScope);
+                    }
+
+                    // Cant determine if Sub Graphs contain the dropdown so just update them
                     foreach (var node in DataStore.State.GetNodes<SubGraphNode>())
                     {
                         node.Dirty(modificationScope);

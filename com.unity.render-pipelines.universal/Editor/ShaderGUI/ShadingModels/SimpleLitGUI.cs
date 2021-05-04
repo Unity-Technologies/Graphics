@@ -5,7 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class SimpleLitGUI
+    public static class SimpleLitGUI
     {
         public enum SpecularSource
         {
@@ -23,16 +23,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             public static GUIContent specularMapText =
                 new GUIContent("Specular Map", "Sets and configures a Specular map and color for your Material.");
-
-            public static GUIContent smoothnessText = new GUIContent("Smoothness",
-                "Controls the spread of highlights and reflections on the surface.");
-
-            public static GUIContent smoothnessMapChannelText =
-                new GUIContent("Source",
-                    "Specifies where to sample a smoothness map from. By default, uses the alpha channel for your map.");
-
-            public static GUIContent highlightsText = new GUIContent("Specular Highlights",
-                "When enabled, the Material reflects the shine from direct lighting.");
         }
 
         public struct SimpleLitProperties
@@ -68,7 +58,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             SpecularSource specularSource = (SpecularSource)properties.specHighlights.floatValue;
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.specHighlights.hasMixedValue;
-            bool enabled = EditorGUILayout.Toggle(Styles.highlightsText, specularSource == SpecularSource.SpecularTextureAndColor);
+            bool enabled = EditorGUILayout.Toggle(LitGUI.Styles.highlightsText, specularSource == SpecularSource.SpecularTextureAndColor);
             if (EditorGUI.EndChangeCheck())
                 properties.specHighlights.floatValue = enabled ? (float)SpecularSource.SpecularTextureAndColor : (float)SpecularSource.NoSpecular;
             EditorGUI.showMixedValue = false;
@@ -79,39 +69,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             SpecularSource specSource = (SpecularSource)properties.specHighlights.floatValue;
             EditorGUI.BeginDisabledGroup(specSource == SpecularSource.NoSpecular);
             BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, properties.specColor, true);
-            DoSmoothness(properties, material);
-            EditorGUI.EndDisabledGroup();
-        }
-
-        public static void DoSmoothness(SimpleLitProperties properties, Material material)
-        {
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
-            EditorGUI.indentLevel += 2;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
-            var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
-            var smoothness = properties.smoothness.floatValue;
-            smoothness = EditorGUILayout.Slider(Styles.smoothnessText, smoothness, 0f, 1f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                properties.smoothness.floatValue = smoothness;
-            }
-            EditorGUI.showMixedValue = false;
-
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginDisabledGroup(!opaque);
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
-            if (opaque)
-                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessMapChannel)));
-            else
-                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessMapChannel)));
-            if (EditorGUI.EndChangeCheck())
-                properties.smoothnessMapChannel.floatValue = smoothnessSource;
-            EditorGUI.showMixedValue = false;
-            EditorGUI.indentLevel -= 3;
+            LitGUI.DoSmoothness(materialEditor, material, properties.smoothness, properties.smoothnessMapChannel, LitGUI.Styles.specularSmoothnessChannelNames);
             EditorGUI.EndDisabledGroup();
         }
 

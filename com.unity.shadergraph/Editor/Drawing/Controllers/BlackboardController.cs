@@ -198,6 +198,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     copiedShaderInput = copiedKeyword;
                     break;
 
+                case ShaderDropdown shaderDropdown:
+                    var copiedDropdown = (ShaderDropdown)graphData.AddCopyOfShaderInput(shaderDropdown, insertIndex);
+
+                    // Update the dropdown nodes that depends on the copied node
+                    foreach (var node in dependentNodeList)
+                    {
+                        if (node is DropdownNode propertyNode)
+                        {
+                            propertyNode.owner = graphData;
+                            propertyNode.dropdown = copiedDropdown;
+                        }
+                    }
+
+                    copiedShaderInput = copiedDropdown;
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -206,7 +222,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (category.categoryGuid == containingCategoryGuid)
                 {
-                    graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput);
+                    graphData.InsertItemIntoCategory(category.objectId, copiedShaderInput, insertIndex);
                     return;
                 }
             }
@@ -339,9 +355,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             s_ShaderInputTypes = shaderInputTypes.ToList();
         }
 
-        internal int propertyCategoryIndex = 0;
-        internal int keywordCategoryIndex = 1;
-
         BlackboardCategoryController m_DefaultCategoryController = null;
         Dictionary<string, BlackboardCategoryController> m_BlackboardCategoryControllers = new Dictionary<string, BlackboardCategoryController>();
 
@@ -376,7 +389,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return selectedCategoryGuid;
         }
 
-        void InitializeViewModel()
+        void InitializeViewModel(bool useDropdowns)
         {
             // Clear the view model
             ViewModel.ResetViewModelData();
@@ -428,19 +441,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            if (useDropdowns)
+                ViewModel.defaultDropdownNameToAdd = new Tuple<string, IGraphDataAction>("Dropdown", new AddShaderInputAction() { shaderInputReferenceGetter = () => new ShaderDropdown(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+
             // Category data last
             var defaultNewCategoryReference = new CategoryData("Category");
             ViewModel.addCategoryAction = new AddCategoryAction() { categoryDataReference = defaultNewCategoryReference };
 
             ViewModel.requestModelChangeAction = this.RequestModelChange;
-
             ViewModel.categoryInfoList.AddRange(DataStore.State.categories.ToList());
         }
 
         internal BlackboardController(GraphData model, BlackboardViewModel inViewModel, GraphDataStore graphDataStore)
             : base(model, inViewModel, graphDataStore)
         {
-            InitializeViewModel();
+            // TODO: hide this more generically for category types.
+            bool useDropdowns = model.isSubGraph;
+            InitializeViewModel(useDropdowns);
 
             blackboard = new SGBlackboard(ViewModel, this);
 
@@ -461,6 +478,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var shaderKeyword in DataStore.State.keywords)
                     if (IsInputUncategorized(shaderKeyword))
                         uncategorizedBlackboardItems.Add(shaderKeyword);
+
+                if (useDropdowns)
+                {
+                    foreach (var shaderDropdown in DataStore.State.dropdowns)
+                        if (IsInputUncategorized(shaderDropdown))
+                            uncategorizedBlackboardItems.Add(shaderDropdown);
+                }
 
                 var addCategoryAction = new AddCategoryAction();
                 addCategoryAction.categoryDataReference = CategoryData.DefaultCategory(uncategorizedBlackboardItems);
@@ -523,7 +547,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
             // Reconstruct view-model first
-            InitializeViewModel();
+            // TODO: hide this more generically for category types.
+            bool useDropdowns = graphData.isSubGraph;
+            InitializeViewModel(useDropdowns);
 
             switch (changeAction)
             {
@@ -670,17 +696,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         int numberOfCategories => m_BlackboardCategoryControllers.Count;
 
-        // Gets the index after the currently selected shader input per row.
-        internal List<int> GetIndicesOfSelectedItems()
+        // Gets the index after the currently selected shader input for pasting properties into this graph
+        internal int GetInsertionIndexForPaste()
         {
-            List<int> indexPerCategory = new List<int>();
-
-            for (int x = 0; x < numberOfCategories; x++)
-                indexPerCategory.Add(-1);
-
             if (blackboard?.selection == null || blackboard.selection.Count == 0)
             {
-                return indexPerCategory;
+                return 0;
             }
 
             foreach (ISelectable selection in blackboard.selection)
@@ -694,18 +715,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     VisualElement categoryContainer = category.parent;
 
                     int categoryIndex = categoryContainer.IndexOf(category);
-                    if (categoryIndex > numberOfCategories)
-                        continue;
 
-                    int rowAfterIndex = category.IndexOf(row) + 1;
-                    if (rowAfterIndex > indexPerCategory[categoryIndex])
-                    {
-                        indexPerCategory[categoryIndex] = rowAfterIndex;
-                    }
+                    return categoryIndex;
                 }
             }
 
-            return indexPerCategory;
+            return 0;
         }
 
         void RemoveBlackboardCategory(string categoryGUID)

@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
-            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateField<ArrayList>("menuItems");
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
             Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
 
             foreach (var item in menuItems)
@@ -151,9 +151,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
-            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateField<ArrayList>("menuItems");
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
             Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
 
+            // invoke all menu items on the "add Blackboard Items Menu" to add all property types
             foreach (var item in menuItems)
             {
                 var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
