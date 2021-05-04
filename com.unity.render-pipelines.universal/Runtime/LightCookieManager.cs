@@ -1,7 +1,5 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System.Runtime.InteropServices;
 
@@ -13,8 +11,6 @@ namespace UnityEngine.Rendering.Universal
         {
             public static readonly int _MainLightTexture        = Shader.PropertyToID("_MainLightCookieTexture");
             public static readonly int _MainLightWorldToLight   = Shader.PropertyToID("_MainLightWorldToLight");
-            public static readonly int _MainLightCookieUVScale  = Shader.PropertyToID("_MainLightCookieUVScale");
-            public static readonly int _MainLightCookieUVOffset = Shader.PropertyToID("_MainLightCookieUVOffset");
             public static readonly int _MainLightCookieFormat   = Shader.PropertyToID("_MainLightCookieFormat");
 
             public static readonly int _AdditionalLightsCookieAtlasTexture = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
@@ -57,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Settings s;
                 s.atlas.resolution    = new Vector2Int(1024, 1024);
-                s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
+                s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB;
                 s.atlas.useMips       = false; // TODO: set to true, make sure they work proper first! Disable them for now...
                 s.maxAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 // (Scale * W * Scale * H) / (6 * WH) == (Scale^2 / 6)
@@ -124,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// Must match light data layout.
         private class LightCookieShaderData : IDisposable
         {
             int  m_Size = 0;
@@ -210,6 +207,10 @@ namespace UnityEngine.Rendering.Universal
         int[] m_VisibleLightIndexToShaderDataIndex;
 
         readonly Settings     m_Settings;
+
+        // Unity defines directional light UVs over a unit box centered at (0,0,0).
+        // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the "intuitive" (0,1) world area.
+        static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
 
         public LightCookieManager(ref Settings settings)
         {
@@ -300,19 +301,18 @@ namespace UnityEngine.Rendering.Universal
 
             if (isMainLightCookieEnabled)
             {
-                Matrix4x4 cookieMatrix = visibleMainLight.localToWorldMatrix.inverse;
-                Vector2 cookieUVScale  = Vector2.one;
-                Vector2 cookieUVOffset = Vector2.zero;
+                Matrix4x4 cookieUVTransform = Matrix4x4.identity;
                 float cookieFormat     = (float)GetLightCookieShaderFormat(cookieTexture.graphicsFormat);
 
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
-                    GetLightUVScaleOffset(ref additionalLightData, out cookieUVScale, out cookieUVOffset);
+                    GetLightUVScaleOffset(ref additionalLightData, ref cookieUVTransform);
+
+                Matrix4x4 cookieMatrix = s_DirLightProj * cookieUVTransform *
+                    visibleMainLight.localToWorldMatrix.inverse;
 
                 cmd.SetGlobalTexture(ShaderProperty._MainLightTexture,       cookieTexture);
                 cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,   cookieMatrix);
-                cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale,  cookieUVScale);
-                cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVOffset, cookieUVOffset);
                 cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,    cookieFormat);
             }
 
@@ -346,15 +346,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void GetLightUVScaleOffset(ref UniversalAdditionalLightData additionalLightData, out Vector2 uvScale, out Vector2 uvOffset)
+        private void GetLightUVScaleOffset(ref UniversalAdditionalLightData additionalLightData, ref Matrix4x4 uvTransform)
         {
-            uvScale  = Vector2.one / additionalLightData.lightCookieSize;
-            uvOffset = additionalLightData.lightCookieOffset;
+            Vector2 uvScale  = Vector2.one / additionalLightData.lightCookieSize;
+            Vector2 uvOffset = additionalLightData.lightCookieOffset;
 
             if (Mathf.Abs(uvScale.x) < half.MinValue)
                 uvScale.x = Mathf.Sign(uvScale.x) * half.MinValue;
             if (Mathf.Abs(uvScale.y) < half.MinValue)
                 uvScale.y = Mathf.Sign(uvScale.y) * half.MinValue;
+
+            uvTransform = Matrix4x4.Scale(new Vector3(uvScale.x, uvScale.y, 1));
+            uvTransform.SetColumn(3, new Vector4(-uvOffset.x * uvScale.x, -uvOffset.y * uvScale.y, 0, 1));
         }
 
         bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
@@ -402,7 +405,6 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                // TODO: visibleLights[].light is a search, should cache these somewhere
                 Light light = lightData.visibleLights[i].light;
 
                 // Skip lights without a cookie texture
@@ -421,6 +423,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
+                // TODO: check if this is necessary
                 // Skip vertex lights, no support
                 if (light.renderMode == LightRenderMode.ForceVertex)
                 {
@@ -440,7 +443,7 @@ namespace UnityEngine.Rendering.Universal
             return validLightCount;
         }
 
-        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> sortedLights, Vector4[] textureAtlasUVRects)
+        int UpdateAdditionalLightsAtlas(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validLightMappings, Vector4[] textureAtlasUVRects)
         {
             // Test if a texture is in atlas
             // If yes
@@ -460,10 +463,10 @@ namespace UnityEngine.Rendering.Universal
 
             bool atlasResetBefore = false;
             int uvRectCount = 0;
-            for (int i = 0; i < sortedLights.length; i++)
+            for (int i = 0; i < validLightMappings.length; i++)
             {
-                var lcd = sortedLights[i];
-                Light light = lightData.visibleLights[lcd.visibleLightIndex].light;
+                var lcm = validLightMappings[i];
+                Light light = lightData.visibleLights[lcm.visibleLightIndex].light;
                 Texture cookie = light.cookie;
 
                 Vector4 uvScaleOffset = Vector4.zero;
@@ -516,7 +519,10 @@ namespace UnityEngine.Rendering.Universal
             Vector4 uvScaleOffset = Vector4.zero;
             m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset, cookie);
             if (m_Settings.atlas.useMips)
+            {
+                // Payload texture is inset
                 uvScaleOffset = (m_AdditionalLightsCookieAtlas as PowerOfTwoTextureAtlas).GetPaddedScaleOffset(cookie, uvScaleOffset);
+            }
             else
             {
                 // Shrink by 0.5px to clamp sampling atlas neighbors (no padding)

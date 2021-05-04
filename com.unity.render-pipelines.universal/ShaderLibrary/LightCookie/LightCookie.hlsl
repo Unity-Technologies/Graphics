@@ -13,17 +13,15 @@
 #endif
 
 
-float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, float2 uvScale, float2 uvOffset, uint2 uvWrap)
+float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, uint2 uvWrap)
 {
     // Translate and rotate 'positionWS' into the light space.
-    float3 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xyz;
+    // Project point to light "view" plane, i.e. discard Z.
+    float2 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xy;
 
-    // Project into light "view" plane.
-    float2 positionUV = positionLS.xy;
-
-    // Scale UVs
-    positionUV *= uvScale;
-    positionUV += uvOffset;
+    // Remap [-1, 1] to [0, 1]
+    // (implies the transform has ortho projection mapping world space box to [-1, 1])
+    float2 positionUV = positionLS * 0.5 + 0.5;
 
     // Tile texture for cookie in repeat mode
     positionUV.x = (uvWrap.x == URP_TEXTURE_WRAP_MODE_REPEAT) ? frac(positionUV.x) : positionUV.x;
@@ -75,8 +73,7 @@ float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositi
 
 real3 URP_LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
-    float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0),
-                _MainLightCookieUVScale, _MainLightCookieUVOffset, URP_TEXTURE_WRAP_MODE_NONE);
+    float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
     real4 color = URP_LightCookie_SampleMainLightTexture(uv);
 
     return URP_LightCookie_MainLightTextureIsRGBFormat() ? color.rgb
@@ -105,8 +102,7 @@ real3 URP_LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float
     }
     else if(isDirectional)
     {
-        uv = URP_LightCookie_ComputeUVDirectional(worldToLight, samplePositionWS, uvRect,
-            float2(1,1), float2(0,0), URP_TEXTURE_WRAP_MODE_REPEAT);
+        uv = URP_LightCookie_ComputeUVDirectional(worldToLight, samplePositionWS, uvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
     }
     else
     {

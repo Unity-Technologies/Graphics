@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        private static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
             LightDataGI lightData = new LightDataGI();
 #if UNITY_EDITOR
@@ -562,10 +562,11 @@ namespace UnityEngine.Rendering.Universal
                             // Offset, Map cookie UV offset to light position on along local axes.
                             if (additionalLightData.lightCookieOffset != Vector2.zero)
                             {
-                                // TODO: check against real-time cookie
-                                // TODO: scale
-                                directionalLight.position += light.transform.right * -additionalLightData.lightCookieOffset.x +
-                                    light.transform.up * -additionalLightData.lightCookieOffset.y;
+                                var r = light.transform.right * additionalLightData.lightCookieOffset.x;
+                                var u = light.transform.up * additionalLightData.lightCookieOffset.y;
+                                var offset = r + u;
+
+                                directionalLight.position += offset;
                             }
                         }
 

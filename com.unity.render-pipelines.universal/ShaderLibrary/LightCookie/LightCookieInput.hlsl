@@ -19,8 +19,6 @@ SAMPLER(sampler_AdditionalLightsCookieAtlasTexture);
 CBUFFER_START(MainLightCookie)
 #endif
     float4x4 _MainLightWorldToLight;  // TODO: Simple solution. Should property of the light! Orthographic! 3x4 would be enough or even just light.up (cross(spotDir, light.up), light.up, spotDir, lightPos)
-    float2   _MainLightCookieUVScale;
-    float2   _MainLightCookieUVOffset;
     float    _MainLightCookieFormat;  // 0 RGBA, 1 Alpha only
 //  float3   _MainLightCookie_Unused;
 #ifndef SHADER_API_GLES3
@@ -34,6 +32,7 @@ CBUFFER_END
     StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light! Move to Input.hlsl
     StructuredBuffer<float4>   _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
     StructuredBuffer<float>    _AdditionalLightsLightTypeBuffer; // TODO: should really be property of the light! Move to Input.hlsl
+    float _AdditionalLightsCookieAtlasFormat;
 #else
     #ifndef SHADER_API_GLES3
         CBUFFER_START(AdditionalLightsCookies)
