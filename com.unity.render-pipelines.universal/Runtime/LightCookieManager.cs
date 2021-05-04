@@ -208,8 +208,8 @@ namespace UnityEngine.Rendering.Universal
 
         readonly Settings     m_Settings;
 
-        // Unity defines directional light UVs over a unit box centered at (0,0,0).
-        // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the "intuitive" (0,1) world area.
+        // Unity defines directional light UVs over a unit box centered at light.
+        // i.e. (0, 1) uv == (-0.5, 0.5) world area instead of the (0,1) world area.
         static readonly Matrix4x4 s_DirLightProj = Matrix4x4.Ortho(-0.5f, 0.5f, -0.5f, 0.5f, -0.5f, 0.5f);
 
         public LightCookieManager(ref Settings settings)
