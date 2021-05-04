@@ -538,7 +538,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)
         {
             // We gather the active renderer lists of a frame in a list/array before we pass it in the core API for batch processing
             m_ActiveRendererLists.Clear();
@@ -551,7 +551,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_ActiveRendererLists.Add(rendererListResource.rendererList);
             }
 
-            context.PrepareRendererListsAsync(m_ActiveRendererLists);
+            if (manualDispatch)
+                context.PrepareRendererListsAsync(m_ActiveRendererLists);
         }
 
         internal void Clear(bool onException)

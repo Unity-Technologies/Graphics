@@ -996,7 +996,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext, rendererListCulling);
         }
 
         void UpdateResourceAllocationAndSynchronization()
