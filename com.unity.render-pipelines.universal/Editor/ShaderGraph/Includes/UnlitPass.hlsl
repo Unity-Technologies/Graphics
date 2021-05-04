@@ -55,6 +55,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = 1;
     #endif
 
+#if defined(_DBUFFER)
+    ApplyDecalToBaseColor(unpacked.positionCS, surfaceDescription.BaseColor);
+#endif
+
     InputData inputData;
     InitializeInputData(unpacked, inputData);
     // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.

@@ -230,6 +230,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.SampleGI,
+                CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,
             };
         }
@@ -245,6 +246,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

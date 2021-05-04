@@ -200,4 +200,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
+  - enabled: 1
+    path: Assets/Scenes/230_Decal_Projector.unity
+    guid: 443214b3f73466742a19acf21b430d0d
+  - enabled: 1
+    path: Assets/Scenes/231_Decal_Mesh.unity
+    guid: 8a4a76dbf4743fc4bb21e40f08c759a0
+  - enabled: 1
+    path: Assets/Scenes/245_Normal_Reconstruction.unity
+    guid: 99abb841000951945931ee709e2370a4
+  - enabled: 1
+    path: Assets/Scenes/246_Normal_Reconstruction_Orthographic.unity
+    guid: 87e5a8f1555fbd541bf94257b7cb34e7
   m_configObjects: {}
