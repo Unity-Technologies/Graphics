@@ -104,6 +104,8 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_trunk:
               echo %GIT_REVISIONDATE%
               del revdate.tmp
               utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  ls C:\Users\Bokken\AppData\Local\Unity\Editor\
+      -  copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
     artifacts:
         logs:
             paths:
@@ -347,6 +349,8 @@ ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               echo %GIT_REVISIONDATE%
               del revdate.tmp
               utr --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
+      -  ls C:\Users\Bokken\AppData\Local\Unity\Editor\
+      -  copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
     artifacts:
         logs:
             paths:

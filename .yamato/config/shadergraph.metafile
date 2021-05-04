@@ -32,6 +32,8 @@ test_platforms:
     - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
     - [all]: <shared.platform.commands.call_utr>
+    - [Win_DX11]: ls C:\Users\Bokken\AppData\Local\Unity\Editor\
+    - [Win_DX11]: copy C:\Users\Bokken\AppData\Local\Unity\Editor\Editor.log TestProjects\ShaderGraph\Logs\
   - type: playmode
     name: playmode_cache
     utr_flags:
