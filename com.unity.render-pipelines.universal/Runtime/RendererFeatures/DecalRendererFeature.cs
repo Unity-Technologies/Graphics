@@ -336,15 +336,6 @@ namespace UnityEngine.Rendering.Universal
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
 
-            // TODO: Remove once decals stable with XR
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                m_Technique = DecalTechnique.Invalid;
-                Debug.LogWarning("Decals are currently not supported with XR.");
-            }
-#endif
-
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_CopyDepthPS);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
 
