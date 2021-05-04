@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(DeferredPass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
-            m_DeferredLights.UseRenderPass = true;
         }
 
         // ScriptableRenderPass
@@ -32,7 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var inputAttachments = new RenderTargetIdentifier[]
             {
                 m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1],
-                m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[4]
+                m_DeferredLights.GbufferAttachmentIdentifiers[2]
             };
             ConfigureInputAttachments(inputAttachments);
             // TODO: change to m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferLightingIndex) when it's not GraphicsFormat.None

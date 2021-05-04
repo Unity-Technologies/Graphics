@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public partial class ScriptableRenderer
     {
-        private const int kRenderPassMapSize = 10;
+        private const int kRenderPassMapSize = 15;
         private const int kRenderPassMaxCount = 20;
 
         // used to keep track of the index of the last pass when we called BeginSubpass
@@ -302,6 +302,8 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < validInputBufferCount; i++)
                         {
                             pass.m_InputAttachmentIndices[i] = FindAttachmentDescriptorIndexInList(pass.m_InputAttachments[i], m_ActiveColorAttachmentDescriptors);
+                            if (pass.m_InputAttachmentIndices[i] == -1)
+                                continue;
                             m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction =
                                 RenderBufferLoadAction.DontCare;
                             m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction =

@@ -801,8 +801,11 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            //m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
-            //EnqueuePass(m_GBufferCopyDepthPass);
+            if (!usesRenderPass)
+            {
+                m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
+                EnqueuePass(m_GBufferCopyDepthPass);
+            }
 
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
@@ -825,7 +828,8 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
             EnqueuePass(m_DeferredPass);
 
-            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            //TODO: RenderPass API doesn't get the color attachment, fixit
+          //  EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
         private struct RenderPassInputSummary

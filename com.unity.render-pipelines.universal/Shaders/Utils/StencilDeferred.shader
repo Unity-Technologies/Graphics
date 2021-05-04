@@ -112,13 +112,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return output;
     }
 
-    //TEXTURE2D_X(_CameraDepthTexture);
+    TEXTURE2D_X(_CameraDepthAttachment);
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    //#ifdef GBUFFER_OPTIONAL_SLOT_1
+	FRAMEBUFFER_INPUT_HALF(0);
+	FRAMEBUFFER_INPUT_HALF(1);
+	FRAMEBUFFER_INPUT_HALF(2);
+
+    #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer4);
-    //#endif
+    #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
     TEXTURE2D_X(_GBuffer5);
     #endif
@@ -207,10 +211,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
-        float d        = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-        half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
-        half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
-        half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
+        float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthAttachment, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(0, input.positionCS.xy);//SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(1, input.positionCS.xy);//SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
+        half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(2, input.positionCS.xy);//SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
         #if defined(_DEFERRED_MIXED_LIGHTING)
         half4 shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), my_point_clamp_sampler, screen_uv, 0);
@@ -289,7 +293,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
-        float d = LOAD_TEXTURE2D_X(_GBuffer4, input.positionCS.xy).x;
+        float d = LOAD_TEXTURE2D_X(_CameraDepthAttachment, input.positionCS.xy).x;
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);

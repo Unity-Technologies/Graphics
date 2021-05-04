@@ -51,9 +51,9 @@ struct FragmentOutput
     half4 GBuffer1 : SV_Target1;
     half4 GBuffer2 : SV_Target2;
     half4 GBuffer3 : SV_Target3; // Camera color attachment
-   // #ifdef GBUFFER_OPTIONAL_SLOT_1
+    #ifdef GBUFFER_OPTIONAL_SLOT_1
     half4 GBuffer4 : SV_Target4;
-    //#endif
+    #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
     half4 GBuffer5 : SV_Target5;
     #endif
@@ -114,7 +114,7 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.occlusion);            // specular        specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, surfaceData.smoothness);                     // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if OUTPUT_SHADOWMASK
+	#if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
     #ifdef _LIGHT_LAYERS
@@ -185,7 +185,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(packedSpecular, occlusion);                              // metallic/specular specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal    encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI                GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-    #if OUTPUT_SHADOWMASK
+	#if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
     #ifdef _LIGHT_LAYERS
