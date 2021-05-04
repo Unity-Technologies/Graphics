@@ -8,81 +8,63 @@ public sealed partial class Types
     {
         var types = new Types(null);
 
-        List<SandboxValueType> scalarTypes = new List<SandboxValueType>()
+        List<SandboxType> scalarTypes = new List<SandboxType>()
         {
-            new SandboxValueType("bool",   SandboxValueType.Flags.Scalar),
-            new SandboxValueType("int",    SandboxValueType.Flags.Scalar),
-            new SandboxValueType("half",   SandboxValueType.Flags.Scalar),
-            new SandboxValueType("float",  SandboxValueType.Flags.Scalar),
-            new SandboxValueType("double", SandboxValueType.Flags.Scalar),
+            new SandboxType("bool",   SandboxType.Flags.Scalar),
+            new SandboxType("int",    SandboxType.Flags.Scalar),
+            new SandboxType("half",   SandboxType.Flags.Scalar),
+            new SandboxType("float",  SandboxType.Flags.Scalar),
+            new SandboxType("double", SandboxType.Flags.Scalar),
             // TODO: $precision$
-            new SandboxValueType("$precision", SandboxValueType.Flags.Scalar | SandboxValueType.Flags.Placeholder)
+            new SandboxType("$precision", SandboxType.Flags.Scalar | SandboxType.Flags.Placeholder)
         };
 
         foreach (var s in scalarTypes)
         {
-            // scalar type
+            // add the scalar type
             types.AddType(s);
 
-            // TODO: could just copy flags from s, remove scalar, add vector.. ?
-            var baseFlags = (s.IsPlaceholder ? SandboxValueType.Flags.Placeholder : 0);
+            var baseFlags = (s.IsPlaceholder ? SandboxType.Flags.Placeholder : 0);
 
             // vector variants
-            var vec2Type = new SandboxValueType(s.Name + "2", baseFlags | SandboxValueType.Flags.Vector2);
-            types.AddType(vec2Type);
-            var vec3Type = new SandboxValueType(s.Name + "3", baseFlags | SandboxValueType.Flags.Vector3);
-            types.AddType(vec3Type);
-            var vec4Type = new SandboxValueType(s.Name + "4", baseFlags | SandboxValueType.Flags.Vector4);
-            types.AddType(vec4Type);
+            for (int dim = 2; dim <= 4; dim++)
+                types.AddType(new VectorTypeDefinition(s, dim, baseFlags));
 
             // matrix variants
             for (int rows = 1; rows < 4; rows++)
-            {
-                string r = rows.ToString();
-                var mat1Type = new SandboxValueType(s.Name + r + "x1", baseFlags | SandboxValueType.Flags.Matrix);
-                types.AddType(mat1Type);
-                var mat2Type = new SandboxValueType(s.Name + r + "x2", baseFlags | SandboxValueType.Flags.Matrix);
-                types.AddType(mat2Type);
-                var mat3Type = new SandboxValueType(s.Name + r + "x3", baseFlags | SandboxValueType.Flags.Matrix);
-                types.AddType(mat3Type);
-                var mat4Type = new SandboxValueType(s.Name + r + "x4", baseFlags | SandboxValueType.Flags.Matrix);
-                types.AddType(mat4Type);
-            }
+                for (int cols = 1; cols < 4; cols++)
+                    types.AddType(new MatrixTypeDefinition(s, rows, cols, baseFlags));
         }
 
-        // dynamic placeholder type for scalar or vectors
-        types.AddType(new SandboxValueType("$dynamicVector$", SandboxValueType.Flags.AnyVector | SandboxValueType.Flags.Placeholder));
-        types.AddType(new SandboxValueType("$dynamicMatrix$", SandboxValueType.Flags.Matrix | SandboxValueType.Flags.Placeholder));
+        // standard dynamic placeholder types
+        types.AddType(new SandboxType("$dynamicVector$", SandboxType.Flags.Vector | SandboxType.Flags.Placeholder));
+        types.AddType(new SandboxType("$dynamicMatrix$", SandboxType.Flags.Matrix | SandboxType.Flags.Placeholder));
+        types.AddType(new SandboxType("$dynamic$", SandboxType.Flags.Placeholder));
 
-        // texture types
-        List<SandboxValueType> textureTypes = new List<SandboxValueType>()
+        // bare types
+        List<SandboxType> bareTypes = new List<SandboxType>()
         {
-            //new ShaderType("Texture1D",           ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture1DArray",      ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture2D",           ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture2DArray",      ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture3D",           ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("TextureCube",         ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("TextureCubeArray",    ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture2DMS",         ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            //new ShaderType("Texture2DMSArray",    ShaderType.Flags.Texture | ShaderType.Flags.Object),
-            // ShaderType.FromDefinition<UnityTexture2DTypeDefinition>(),
-            new SandboxValueType(new UnityTexture2DTypeDefinition()),
-            new SandboxValueType(new UnityTexture2DArrayTypeDefinition()),
-            new SandboxValueType(new UnityTexture3DTypeDefinition()),
-            new SandboxValueType(new UnityTextureCubeTypeDefinition()),
-            new SandboxValueType(new UnitySamplerStateTypeDefinition()),
+            new SandboxType("Texture1D",           SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture1DArray",      SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture2D",           SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture2DArray",      SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture3D",           SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("TextureCube",         SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("TextureCubeArray",    SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture2DMS",         SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("Texture2DMSArray",    SandboxType.Flags.Texture | SandboxType.Flags.BareResource),
+            new SandboxType("SamplerState",        SandboxType.Flags.SamplerState | SandboxType.Flags.BareResource)
         };
+        foreach (var b in bareTypes)
+            types.AddType(b);
 
-        foreach (var t in textureTypes)
-        {
-            types.AddType(t);
-        }
+        // Unity wrapped resource types
+        types.AddType(new TextureTypeDefinition("UnityTexture2D"));
+        types.AddType(new TextureTypeDefinition("UnityTexture2DArray"));
+        types.AddType(new TextureTypeDefinition("UnityTexture3DArray"));
+        types.AddType(new TextureTypeDefinition("UnityTextureCube"));
+        types.AddType(new SamplerStateTypeDefinition("UnitySamplerState"));
 
-        // sampler state type
-        types.AddType(new SandboxValueType("SamplerState", SandboxValueType.Flags.Object));
-
-        // TODO:
         types.SetReadOnly();
 
         return types;

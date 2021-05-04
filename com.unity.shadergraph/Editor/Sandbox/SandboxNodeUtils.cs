@@ -2,15 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 
 public static class SandboxNodeUtils
 {
-    public static SandboxValueType DetermineDynamicVectorType(ISandboxNodeBuildContext context, ShaderFunction dynamicShaderFunc)
+    public static SandboxType DetermineDynamicVectorType(ISandboxNodeBuildContext context, ShaderFunction dynamicShaderFunc)
     {
         // Dynamic vector is chosen to be the minimum vector size (ignoring scalars),
         // falling back to scalars if that's all there is.
 
-        int minVectorCount = 5;
+        int minVectorDimension = 5;
         foreach (var p in dynamicShaderFunc.Parameters)
         {
             if (p.Type == Types._dynamicVector)
@@ -19,12 +20,12 @@ public static class SandboxNodeUtils
 
                 // scalars can be cast to any vector size easily, so ignore them
                 if ((pType != null) && !pType.IsScalar)
-                    minVectorCount = Math.Min(minVectorCount, pType.VectorSize);
+                    minVectorDimension = Math.Min(minVectorDimension, pType.VectorDimension);
             }
         }
 
-        if (minVectorCount < 5)
-            return Types.Precision(minVectorCount);
+        if (minVectorDimension < 5)
+            return Types.Precision(minVectorDimension);
         else
             return Types._precision;
     }
@@ -51,5 +52,162 @@ public static class SandboxNodeUtils
         {
             function.AppendHLSLDeclarationString(sb);
         });
+    }
+
+    // shim function to help map to old AbstractMaterialNode / MaterialSlot system
+    internal static MaterialSlot CreateBoundSlot(Binding binding, int slotId, string displayName, string shaderOutputName, ShaderStageCapability shaderStageCapability, bool hidden = false)
+    {
+        switch (binding)
+        {
+            case Binding.ObjectSpaceNormal:
+                return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+            case Binding.ObjectSpaceTangent:
+                return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+            case Binding.ObjectSpaceBitangent:
+                return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+            case Binding.ObjectSpacePosition:
+                return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+            case Binding.ViewSpaceNormal:
+                return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+            case Binding.ViewSpaceTangent:
+                return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+            case Binding.ViewSpaceBitangent:
+                return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+            case Binding.ViewSpacePosition:
+                return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+            case Binding.WorldSpaceNormal:
+                return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+            case Binding.WorldSpaceTangent:
+                return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+            case Binding.WorldSpaceBitangent:
+                return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+            case Binding.WorldSpacePosition:
+                return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+            case Binding.AbsoluteWorldSpacePosition:
+                return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.AbsoluteWorld, shaderStageCapability, hidden);
+            case Binding.TangentSpaceNormal:
+                return new NormalMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+            case Binding.TangentSpaceTangent:
+                return new TangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+            case Binding.TangentSpaceBitangent:
+                return new BitangentMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+            case Binding.TangentSpacePosition:
+                return new PositionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+            case Binding.MeshUV0:
+                return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV0, shaderStageCapability, hidden);
+            case Binding.MeshUV1:
+                return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV1, shaderStageCapability, hidden);
+            case Binding.MeshUV2:
+                return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV2, shaderStageCapability, hidden);
+            case Binding.MeshUV3:
+                return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3, shaderStageCapability, hidden);
+            case Binding.ScreenPosition:
+                return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName, ScreenSpaceType.Default, shaderStageCapability, hidden);
+            case Binding.ObjectSpaceViewDirection:
+                return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Object, shaderStageCapability, hidden);
+            case Binding.ViewSpaceViewDirection:
+                return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.View, shaderStageCapability, hidden);
+            case Binding.WorldSpaceViewDirection:
+                return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.World, shaderStageCapability, hidden);
+            case Binding.TangentSpaceViewDirection:
+                return new ViewDirectionMaterialSlot(slotId, displayName, shaderOutputName, CoordinateSpace.Tangent, shaderStageCapability, hidden);
+            case Binding.VertexColor:
+                return new VertexColorMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden);
+            default:
+                throw new ArgumentOutOfRangeException("binding", binding, null);
+        }
+    }
+
+    // shim function to help map to old AbstractMaterialNode / MaterialSlot system
+    internal static SlotValueType ConvertSandboxValueTypeToSlotValueType(SandboxType type)
+    {
+        if (type == Types._bool)
+        {
+            return SlotValueType.Boolean;
+        }
+        if (type.IsScalar || (type.IsVector && type.VectorDimension == 1))
+        {
+            return SlotValueType.Vector1;
+        }
+        if (type.IsVector && type.VectorDimension == 2)
+        {
+            return SlotValueType.Vector2;
+        }
+        if (type.IsVector && type.VectorDimension == 3)
+        {
+            return SlotValueType.Vector3;
+        }
+        if (type.IsVector && type.VectorDimension == 4)
+        {
+            return SlotValueType.Vector4;
+        }
+        /*            if (t == typeof(Color))
+                    {
+                        return SlotValueType.Vector4;
+                    }
+                    if (t == typeof(ColorRGBA))
+                    {
+                        return SlotValueType.Vector4;
+                    }
+                    if (t == typeof(ColorRGB))
+                    {
+                        return SlotValueType.Vector3;
+                    }
+        */
+        if (type == Types._UnityTexture2D)
+        {
+            return SlotValueType.Texture2D;
+        }
+        if (type == Types._UnitySamplerState)
+        {
+            return SlotValueType.SamplerState;
+        }
+        /*
+                    if (t == typeof(Texture2DArray))
+                    {
+                        return SlotValueType.Texture2DArray;
+                    }
+                    if (t == typeof(Texture3D))
+                    {
+                        return SlotValueType.Texture3D;
+                    }
+                    if (t == typeof(Cubemap))
+                    {
+                        return SlotValueType.Cubemap;
+                    }
+                    if (t == typeof(Gradient))
+                    {
+                        return SlotValueType.Gradient;
+                    }
+                    if (t == typeof(SamplerState))
+                    {
+                        return SlotValueType.SamplerState;
+                    }
+        */
+        if (type.IsMatrix && type.MatrixColumns == 4)
+        {
+            return SlotValueType.Matrix4;
+        }
+        if (type.IsMatrix && type.MatrixColumns == 3)
+        {
+            return SlotValueType.Matrix3;
+        }
+        if (type.IsMatrix && type.MatrixColumns == 2)
+        {
+            return SlotValueType.Matrix2;
+        }
+        if (type == Types._dynamicVector)
+        {
+            return SlotValueType.DynamicVector;
+        }
+        if (type == Types._dynamicMatrix)
+        {
+            return SlotValueType.DynamicMatrix;
+        }
+        if (type.IsPlaceholder)
+        {
+            return SlotValueType.Dynamic;
+        }
+        throw new ArgumentException("Unsupported type " + type.Name);
     }
 };

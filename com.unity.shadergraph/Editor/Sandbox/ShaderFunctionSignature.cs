@@ -30,8 +30,8 @@ public class ShaderFunctionSignature : JsonObject
         public string Name => name;
 
         [SerializeField]
-        SandboxValueType type;
-        public SandboxValueType Type => type;
+        SandboxType type;
+        public SandboxType Type => type;
 
         // TODO: make this an enum
         [SerializeField]
@@ -47,7 +47,7 @@ public class ShaderFunctionSignature : JsonObject
         System.Object defaultValue;     // not serialized (yet??)
         public System.Object DefaultValue => defaultValue;
 
-        public Parameter(SandboxValueType type, string name, bool input, bool output, System.Object defaultValue = null)
+        public Parameter(SandboxType type, string name, bool input, bool output, System.Object defaultValue = null)
         {
             this.type = type;
             this.name = name;
@@ -65,7 +65,7 @@ public class ShaderFunctionSignature : JsonObject
                 output == p.output;
         }
 
-        internal Parameter ReplaceType(SandboxValueType newType)
+        internal Parameter ReplaceType(SandboxType newType)
         {
             return new Parameter(newType, name, input, output, defaultValue);
         }
@@ -89,17 +89,17 @@ public class ShaderFunctionSignature : JsonObject
             parameters.Add(param);
         }
 
-        public void AddInput(SandboxValueType type, string name, object defaultValue = null)
+        public void AddInput(SandboxType type, string name, object defaultValue = null)
         {
             AddParameter(new Parameter(type, name, true, false, defaultValue));
         }
 
-        public void AddOutput(SandboxValueType type, string name)
+        public void AddOutput(SandboxType type, string name)
         {
             AddParameter(new Parameter(type, name, false, true));
         }
 
-        public void AddInOut(SandboxValueType type, string name, object defaultValue = null)
+        public void AddInOut(SandboxType type, string name, object defaultValue = null)
         {
             AddParameter(new Parameter(type, name, true, true, defaultValue));
         }

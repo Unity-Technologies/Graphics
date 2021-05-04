@@ -8,12 +8,12 @@ public sealed partial class Types
     Types parent;
 
     // each type is stored using its unique name as the key
-    Dictionary<string, SandboxValueType> shaderTypes = new Dictionary<string, SandboxValueType>();
+    Dictionary<string, SandboxType> shaderTypes = new Dictionary<string, SandboxType>();
 
     bool readOnly = false;
 
     // store all TypeCasters
-    //         Dictionary<SandboxValueType, List<SandboxValueTypeCaster>> casts = new Dictionary<SandboxValueType, List<SandboxValueTypeCaster>>();
+    //   Dictionary<SandboxValueType, List<SandboxValueTypeCaster>> casts = new Dictionary<SandboxValueType, List<SandboxValueTypeCaster>>();
 
     public Types(Types parent)
     {
@@ -26,7 +26,12 @@ public sealed partial class Types
         readOnly = true;
     }
 
-    public SandboxValueType AddType(SandboxValueTypeDefinition typeDef)
+    public SandboxType AddType(StructTypeDefinition structType)
+    {
+        return AddType(structType);
+    }
+
+    internal SandboxType AddType(SandboxTypeDefinition typeDef)
     {
         if (readOnly)
         {
@@ -34,14 +39,14 @@ public sealed partial class Types
             return null;
         }
         // TODO : check for colliding names
-        var shaderType = new SandboxValueType(typeDef);
+        var shaderType = new SandboxType(typeDef);
         return AddType(shaderType);
     }
 
     // returns the ShaderType added on success, or null on failure
     // NOTE: the returned ShaderType may not be the one you passed in --
     // -- you may have tried to add a duplicate definition, and it returns the existing one
-    internal SandboxValueType AddType(SandboxValueType type)
+    internal SandboxType AddType(SandboxType type)
     {
         if (readOnly)
         {
@@ -63,9 +68,9 @@ public sealed partial class Types
         }
     }
 
-    public SandboxValueType GetShaderType(string name)
+    public SandboxType GetShaderType(string name)
     {
-        SandboxValueType result = null;
+        SandboxType result = null;
         shaderTypes.TryGetValue(name, out result);
         if ((result == null) && parent != null)
             result = parent.GetShaderType(name);
@@ -81,9 +86,9 @@ public sealed partial class Types
         return false;
     }
 
-    public SandboxValueType FindExactType(SandboxValueType type)
+    public SandboxType FindExactType(SandboxType type)
     {
-        if (shaderTypes.TryGetValue(type.Name, out SandboxValueType match))
+        if (shaderTypes.TryGetValue(type.Name, out SandboxType match))
         {
             if (match.ValueEquals(type))
                 return match;   // the type matches, we found it
@@ -101,40 +106,44 @@ public sealed partial class Types
     public static Types Default { get { return _default ?? (_default = BuildDefaultTypeSystem()); } }
 
     // cache of commonly used built-in types
-    public static SandboxValueType _bool = Default.GetShaderType("bool");
+    public static SandboxType _bool = Default.GetShaderType("bool");
 
-    public static SandboxValueType _int = Default.GetShaderType("int");
+    public static SandboxType _int = Default.GetShaderType("int");
 
-    public static SandboxValueType _float = Default.GetShaderType("float");
-    public static SandboxValueType _float2 = Default.GetShaderType("float2");
-    public static SandboxValueType _float3 = Default.GetShaderType("float3");
-    public static SandboxValueType _float4 = Default.GetShaderType("float4");
+    public static SandboxType _float = Default.GetShaderType("float");
+    public static SandboxType _float2 = Default.GetShaderType("float2");
+    public static SandboxType _float3 = Default.GetShaderType("float3");
+    public static SandboxType _float4 = Default.GetShaderType("float4");
 
-    public static SandboxValueType _half = Default.GetShaderType("half");
-    public static SandboxValueType _half2 = Default.GetShaderType("half2");
-    public static SandboxValueType _half3 = Default.GetShaderType("half3");
-    public static SandboxValueType _half4 = Default.GetShaderType("half4");
+    public static SandboxType _half = Default.GetShaderType("half");
+    public static SandboxType _half2 = Default.GetShaderType("half2");
+    public static SandboxType _half3 = Default.GetShaderType("half3");
+    public static SandboxType _half4 = Default.GetShaderType("half4");
 
-    public static SandboxValueType _precision = Default.GetShaderType("$precision");
-    public static SandboxValueType _precision2 = Default.GetShaderType("$precision2");
-    public static SandboxValueType _precision3 = Default.GetShaderType("$precision3");
-    public static SandboxValueType _precision4 = Default.GetShaderType("$precision4");
+    public static SandboxType _precision = Default.GetShaderType("$precision");
+    public static SandboxType _precision2 = Default.GetShaderType("$precision2");
+    public static SandboxType _precision3 = Default.GetShaderType("$precision3");
+    public static SandboxType _precision4 = Default.GetShaderType("$precision4");
+    public static SandboxType _precision4x4 = Default.GetShaderType("$precision4x4");
+    public static SandboxType _precision3x3 = Default.GetShaderType("$precision3x3");
+    public static SandboxType _precision2x2 = Default.GetShaderType("$precision2x2");
 
-    public static SandboxValueType _dynamicVector = Default.GetShaderType("$dynamicVector$");
-    public static SandboxValueType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix$");
+    public static SandboxType _dynamicVector = Default.GetShaderType("$dynamicVector$");
+    public static SandboxType _dynamicMatrix = Default.GetShaderType("$dynamicMatrix$");
+    public static SandboxType _dynamic = Default.GetShaderType("$dynamic$");
 
-    public static SandboxValueType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
-    public static SandboxValueType _UnitySamplerState = Default.GetShaderType("UnitySamplerState");
+    public static SandboxType _UnityTexture2D = Default.GetShaderType("UnityTexture2D");
+    public static SandboxType _UnitySamplerState = Default.GetShaderType("UnitySamplerState");
 
-    public static SandboxValueType Precision(int vectorSize)
+    public static SandboxType Precision(int vectorDimension)
     {
-        if (vectorSize == 1)
+        if (vectorDimension == 1)
             return Types._precision;
-        if (vectorSize == 2)
+        if (vectorDimension == 2)
             return Types._precision2;
-        if (vectorSize == 3)
+        if (vectorDimension == 3)
             return Types._precision3;
-        if (vectorSize == 4)
+        if (vectorDimension == 4)
             return Types._precision4;
         return null;
     }

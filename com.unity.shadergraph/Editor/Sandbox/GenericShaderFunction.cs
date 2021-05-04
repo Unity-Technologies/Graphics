@@ -10,16 +10,16 @@ public class GenericShaderFunction : ShaderFunction
 {
     public override bool isGeneric => true;
 
-    List<SandboxValueType> genericTypeParameters;
+    List<SandboxType> genericTypeParameters;
 
     // constructor is internal, public must use the Builder class instead
-    internal GenericShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functionsCalled, List<string> includePaths, List<SandboxValueType> genericTypeParameters)
+    internal GenericShaderFunction(string name, List<Parameter> parameters, string body, List<JsonData<ShaderFunctionSignature>> functionsCalled, List<string> includePaths, List<SandboxType> genericTypeParameters)
         : base(name, parameters, body, functionsCalled, includePaths)
     {
         this.genericTypeParameters = genericTypeParameters;
     }
 
-    public ShaderFunction SpecializeType(SandboxValueType genericTypeParameter, SandboxValueType specializedType)
+    public ShaderFunction SpecializeType(SandboxType genericTypeParameter, SandboxType specializedType)
     {
         // TODO: we could have a specialization cache to avoid re-specializing over and over...
 

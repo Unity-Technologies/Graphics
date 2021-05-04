@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             func.AddInput(Types._dynamicVector, "A");       // TODO: could call AddGenericTypeParameter automatically for any input or output placeholder type...
             func.AddInput(Types._dynamicVector, "B");
             func.AddOutput(Types._dynamicVector, "Out");
-            func.AddLine("Out = max(A, B);");
+            func.AddLine("Out = A + B;");
             return func.BuildGeneric();
         }
     }

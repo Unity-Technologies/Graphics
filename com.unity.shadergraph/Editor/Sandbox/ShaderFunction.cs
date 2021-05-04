@@ -43,7 +43,7 @@ public class ShaderFunction : ShaderFunctionSignature
         ShaderBuilder body;
         List<JsonData<ShaderFunctionSignature>> functionsCalled;
         List<string> includePaths;
-        List<SandboxValueType> genericTypeParameters;
+        List<SandboxType> genericTypeParameters;
         List<JsonData<ShaderFunctionSignature>> genericFunctionParameters;
 
         // builder-only state
@@ -57,14 +57,14 @@ public class ShaderFunction : ShaderFunctionSignature
             this.tabSize = 4;
         }
 
-        public SandboxValueType AddGenericTypeParameter(string name)
+        public SandboxType AddGenericTypeParameter(string name)
         {
             // create a local placeholder type with the given name
-            var type = new SandboxValueType(name, SandboxValueType.Flags.Placeholder);
+            var type = new SandboxType(name, SandboxType.Flags.Placeholder);
             return AddGenericTypeParameter(type);
         }
 
-        public SandboxValueType AddGenericTypeParameter(SandboxValueType placeholderType)
+        public SandboxType AddGenericTypeParameter(SandboxType placeholderType)
         {
             if (placeholderType == null)
                 return null;
@@ -73,7 +73,7 @@ public class ShaderFunction : ShaderFunctionSignature
                 return null;        // TODO: error?  can only use placeholder types as generic type parameters
 
             if (genericTypeParameters == null)
-                genericTypeParameters = new List<SandboxValueType>();
+                genericTypeParameters = new List<SandboxType>();
             else
             {
                 // find any existing parameter with the same name

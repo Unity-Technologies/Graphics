@@ -1,19 +1,37 @@
 using System;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 
 
 [Serializable]
-public abstract class UnityTextureBaseDefinition : SandboxValueTypeDefinition
+internal class TextureTypeDefinition : SandboxTypeDefinition
 {
-    internal override bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
+    [SerializeField]
+    string name;
+
+    internal TextureTypeDefinition(string name)
     {
-        // defined in the include file -- TODO
-        return false;
+        this.name = name;
     }
 
-    internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
+    public override string GetTypeName()
     {
-        sb.Add(GetTypeName(), " ", id);
+        return name;
+    }
+
+    public override SandboxType.Flags GetTypeFlags()
+    {
+        return SandboxType.Flags.Texture;
+    }
+
+    public override bool ValueEquals(SandboxTypeDefinition other)
+    {
+        var otherTexType = other as TextureTypeDefinition;
+        if (otherTexType == null)
+            return false;
+        if (otherTexType == this)
+            return true;
+        return otherTexType.name == this.name;
     }
 
     // TODO: make use an interface to add to an include collection
@@ -22,139 +40,36 @@ public abstract class UnityTextureBaseDefinition : SandboxValueTypeDefinition
 
 
 [Serializable]
-public class UnitySamplerStateTypeDefinition : SandboxValueTypeDefinition
+internal class SamplerStateTypeDefinition : SandboxTypeDefinition
 {
-    public override int latestVersion => 1;
+    [SerializeField]
+    string name;
 
-    public override SandboxValueType.Flags GetTypeFlags()
+    internal SamplerStateTypeDefinition(string name)
     {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Object;
+        this.name = name;
     }
 
     public override string GetTypeName()
     {
-        return "UnitySamplerState";
+        return name;
     }
 
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
+    public override SandboxType.Flags GetTypeFlags()
     {
-        return (other is UnitySamplerStateTypeDefinition);
+        return SandboxType.Flags.SamplerState;
     }
 
-    internal override bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
+    public override bool ValueEquals(SandboxTypeDefinition other)
     {
-        // defined in the include file -- TODO
-        return false;
-    }
-
-    internal override void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
-    {
-        sb.Add(GetTypeName(), " ", id);
+        var otherSSType = other as SamplerStateTypeDefinition;
+        if (otherSSType == null)
+            return false;
+        if (otherSSType == this)
+            return true;
+        return otherSSType.name == this.name;
     }
 
     // TODO: make use an interface to add to an include collection
     // public override string GetIncludes()               { return "com.unity.core/textures.hlsl";  }
-}
-
-
-[Serializable]
-public class UnityTexture2DTypeDefinition : UnityTextureBaseDefinition
-{
-    public override int latestVersion => 1;
-
-    public override SandboxValueType.Flags GetTypeFlags()
-    {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Texture | SandboxValueType.Flags.Object;
-    }
-
-    public override string GetTypeName()
-    {
-        return "UnityTexture2D";
-    }
-
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
-    {
-        return (other is UnityTexture2DTypeDefinition);
-    }
-}
-
-
-[Serializable]
-public class UnityTexture3DTypeDefinition : UnityTextureBaseDefinition
-{
-    public override int latestVersion => 1;
-
-    public override SandboxValueType.Flags GetTypeFlags()
-    {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Texture | SandboxValueType.Flags.Object;
-    }
-
-    public override string GetTypeName()
-    {
-        return "UnityTexture3D";
-    }
-
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
-    {
-        return (other is UnityTexture3DTypeDefinition);
-    }
-}
-
-
-[Serializable]
-public class UnityTexture2DArrayTypeDefinition : UnityTextureBaseDefinition
-{
-    public override int latestVersion => 1;
-
-    public override SandboxValueType.Flags GetTypeFlags()
-    {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Texture | SandboxValueType.Flags.Object;
-    }
-
-    public override string GetTypeName()
-    {
-        return "UnityTexture2DArray";
-    }
-
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
-    {
-        return (other is UnityTexture2DArrayTypeDefinition);
-    }
-}
-
-
-[Serializable]
-public class UnityTextureCubeTypeDefinition : UnityTextureBaseDefinition
-{
-    public override int latestVersion => 1;
-
-    public override SandboxValueType.Flags GetTypeFlags()
-    {
-        // TODO: not clear what category this falls into, struct and/or texture
-        // Although it is really a struct,
-        // I guess this is the default type we use to represent Texture, so...
-        return SandboxValueType.Flags.Texture | SandboxValueType.Flags.Object;
-    }
-
-    public override string GetTypeName()
-    {
-        return "UnityTextureCube";
-    }
-
-    public override bool ValueEquals(SandboxValueTypeDefinition other)
-    {
-        return (other is UnityTextureCubeTypeDefinition);
-    }
 }

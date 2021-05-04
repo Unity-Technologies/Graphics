@@ -20,7 +20,7 @@ public class ShaderBuilder
     }
 
     // this looks up a generic parameter for the currently generating context
-    public SandboxValueType FindLocalGenericType(string localName)
+    public SandboxType FindLocalGenericType(string localName)
     {
         // TODO: actual lookup..  :)
         return Types._half;

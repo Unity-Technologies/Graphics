@@ -7,15 +7,15 @@ using UnityEngine;
 public interface ISandboxNodeBuildContext
 {
     void SetName(string name);
-    SandboxValueType AddType(SandboxValueTypeDefinition typeDef);
+    SandboxType AddType(SandboxTypeDefinition typeDef);
 
-    SandboxValueType GetInputType(string pinName);  // returns the type of the given input
+    SandboxType GetInputType(string pinName);  // returns the type of the given input
     bool GetInputConnected(string pinName);         // returns true if the given input is connected (something is overriding the default)
 
     // public System.Object GetInputStaticValue(string inputPin);       // TODO
 
-    void AddInputSlot(SandboxValueType type, string name, System.Object defaultValue = null);       // TODO: slot type filters
-    void AddOutputSlot(SandboxValueType type, string name);
+    void AddInputSlot(SandboxType type, string name, System.Object defaultValue = null);       // TODO: slot type filters
+    void AddOutputSlot(SandboxType type, string name);
     void SetMainFunction(ShaderFunction function, bool declareSlots = false);
     void SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit);
     // void AddFunction(ShaderFunction function); // may not need this, if Functions have to declare dependent functions...

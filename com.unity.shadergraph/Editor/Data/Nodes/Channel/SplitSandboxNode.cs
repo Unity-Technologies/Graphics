@@ -24,20 +24,21 @@ namespace UnityEditor.ShaderGraph
                 inputType = Types._precision;
 
             // convert to equivalent precision vector type:
-            var vecCount = inputType.VectorSize;
+            var vecCount = inputType.VectorDimension;
             inputType = Types.Precision(vecCount);
 
+            // TODO: memoize! :D
             var shaderFunc = BuildFunction(inputType);
 
             context.SetMainFunction(shaderFunc, declareSlots: true);
             context.SetPreviewFunction(shaderFunc, PreviewMode.Preview3D);
         }
 
-        static ShaderFunction BuildFunction(SandboxValueType inputType)
+        static ShaderFunction BuildFunction(SandboxType inputType)
         {
             var func = new ShaderFunction.Builder("Unity_Split_" + inputType.Name);
             func.AddInput(inputType, "In");
-            int vecCount = inputType.VectorSize;
+            int vecCount = inputType.VectorDimension;
 
             func.AddOutput(Types._precision, "R");
             func.AddLine("R = In.r;");

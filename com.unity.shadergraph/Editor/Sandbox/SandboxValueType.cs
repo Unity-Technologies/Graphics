@@ -4,12 +4,10 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
-// hmm, how do we represent types.. as serializable classes we can record on the graph?
-// if it's user extendable, we need to be able to represent "unknown" types, like we do for Targets and Nodes...
-
 
 // Shader Value Types have the following requirements:
 // serialize / deserialize (with support for singletons and data-based types)
+//
 // provide a unique type name -- maybe we don't care about renaming types to avoid collisions, just make it an error
 // able to determine if two ShaderValueTypes are the same type
 // if an HLSL type:
@@ -30,104 +28,53 @@ using UnityEngine;
 //   HLSL Sampler type
 //   HLSL Struct type
 
-// able to express pseudo-generic types like $precision switch, and $precision2, $precision4 from the function definition side
-//
-// Do we need full generic type support?  probably not...  but if we do, data-based types seems the way to go.
-// trying to base it off of actual generic types in C# seems troublesome, lots of limitations to work around
-
 
 [Serializable]
-public abstract class SandboxValueTypeDefinition : JsonObject
+public abstract class SandboxTypeDefinition : JsonObject
 {
     public abstract string GetTypeName();
-    public abstract SandboxValueType.Flags GetTypeFlags();
-    internal abstract void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id);
-    internal abstract bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb);
-    public abstract bool ValueEquals(SandboxValueTypeDefinition other);
-}
+    public abstract SandboxType.Flags GetTypeFlags();
+    public abstract bool ValueEquals(SandboxTypeDefinition other);
 
+    public virtual int VectorDimension => 0;
+    public virtual int MatrixRows => 0;
+    public virtual int MatrixColumns => 0;
 
-public sealed class SandboxTypeDecl
-{
-    enum DeclOp
+    internal virtual void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
     {
-        TypeVoid = 1,             // void         0 bytes
-        TypeBool = 2,             // bool         0 bytes
-        TypeInt = 3,              // int          1 byte         (bits)
-        TypeFloat = 4,            // float        1 byte         (bits)
-
-        TypeImage,                // 5 bytes:  (dimension)  (depth?) (arrayed?) (multisample?) (sampled?)
-        TypeSampler,              //
-        TypeSampledImage,         // texture and sampler combined
-
-        TypeVector,               // 3 bytes:  vec      (component count)     (subtype)
-        TypeMatrix,               // 3 bytes:  mat      (column count)        (vector subtype)
-
-        TypeFixedArray,           // fixed size array
-
-        TypeUnboundedArray,       // unbounded array
-
-        TypeStruct,               // structure
-        TypeOpaque,               // structure with no declared members
-        TypeFunction,             //
-        TypePointer,              // :P
-    };
-
-    List<byte> declCode;
-
-    // public must go through the Builder class
-    internal SandboxTypeDecl(List<byte> declCode)
-    {
-        this.declCode = declCode;
+        sb.Add(GetTypeName(), " ", id);
     }
 
-    public bool isVoid =>           (declCode[0] == (byte)DeclOp.TypeVoid);
-    public bool isBool =>           (declCode[0] == (byte)DeclOp.TypeBool);
-    public bool isInt =>            (declCode[0] == (byte)DeclOp.TypeInt);
-    public bool isFloat =>          (declCode[0] == (byte)DeclOp.TypeFloat);
-    public bool isVector =>         (declCode[0] == (byte)DeclOp.TypeVector);
-    public bool isMatrix =>         (declCode[0] == (byte)DeclOp.TypeMatrix);
-    public bool isFixedArray =>     (declCode[0] == (byte)DeclOp.TypeFixedArray);
-    public bool isUnboundedArray => (declCode[0] == (byte)DeclOp.TypeUnboundedArray);
-    public bool isStruct =>         (declCode[0] == (byte)DeclOp.TypeStruct);
-
-    public class Builder
+    internal virtual bool AddHLSLTypeDeclarationString(ShaderStringBuilder sb)
     {
-        List<Byte> declCode;
-
-        SandboxTypeDecl Build()
-        {
-            return new SandboxTypeDecl(declCode);
-            declCode = null;
-        }
+        // no declaration by default
+        return false;
     }
 }
 
 
 [Serializable]
-public sealed class SandboxValueType // : JsonObject
+public sealed class SandboxType
 {
-    // public override int currentVersion => 1;
+    [SerializeField]
+    string name;
 
     [SerializeField]
-    string name;                        // must be unique!!!
+    JsonData<SandboxTypeDefinition> definition;     // for types that have a definition (all except plain built-in types)
 
-    [SerializeField]
-    JsonData<SandboxValueTypeDefinition> definition;    // for types that have a data definition
-
-    // these flags are used to quickly identify and query for various properties of the type
+    // these flags are used to quickly query for various aspects of the type
     public enum Flags
     {
-        Placeholder = 1,        // is a placeholder type for generic functions
-        Scalar = 2,             // is a scalar value, i.e. bool, int, float, half...
-        Vector2 = 4,            // is a vector value of dimension 2, i.e. bool2, int2, float2, half2...
-        Vector3 = 8,            // is a vector value of dimension 3, i.e. bool3, int3, float3, half3...
-        Vector4 = 16,           // is a vector value of dimension 4, i.e. bool4, int4, float4, half4...
-        AnyVector = Scalar | Vector2 | Vector3 | Vector4,
-        Matrix = 32,
-        Struct = 64,
-        Object = 128,
-        Texture = 256
+        Placeholder = 1,                    // is a placeholder type for generic types or functions, does not generate valid HLSL
+        Scalar = 2,                         // is a scalar value, i.e. bool, int, float, half...
+        Vector = 4,                         // is a vector value (bool2, int3, float4, half2, float1)
+        Matrix = 8,                         // is a matrix value (float3x3, int2x4, bool1x4, half1x1, etc.)
+        Struct = 16,
+        Texture = 32,
+        SamplerState = 64,
+        BareResource = 128,                 // raw resource, not wrapped in Unity struct (Texture2D, SamplerState, cbuffer etc.)
+
+        VectorOrScalar = Scalar | Vector,
     }
 
     [SerializeField]
@@ -135,30 +82,66 @@ public sealed class SandboxValueType // : JsonObject
 
     // public interface
     public string Name => name;
-    public SandboxValueTypeDefinition Definition => definition.value;
-    public T GetDefinition<T>() where T : SandboxValueTypeDefinition { return definition.value as T; }
+    internal SandboxTypeDefinition Definition => definition.value;
+    internal T GetDefinition<T>() where T : SandboxTypeDefinition { return definition.value as T; }
 
-    public bool IsPlaceholder => (flags & Flags.Placeholder) != 0;
-    public bool IsScalar => (flags & Flags.Scalar) != 0;
-    public bool IsVector => (flags & Flags.AnyVector) != 0;
-    public bool IsMatrix => (flags & Flags.Matrix) != 0;
-    public bool IsStruct => (flags & Flags.Struct) != 0;
-    public bool IsObject => (flags & Flags.Object) != 0;
-    public bool IsTexture => (flags & Flags.Texture) != 0;
+    public bool IsPlaceholder =>    (flags & Flags.Placeholder) != 0;
+    public bool IsScalar =>         (flags & Flags.Scalar) != 0;
+    public bool IsVector =>         (flags & Flags.Vector) != 0;
+    public bool IsMatrix =>         (flags & Flags.Matrix) != 0;
+    public bool IsStruct =>         (flags & Flags.Struct) != 0;
+    public bool IsTexture =>        (flags & Flags.Texture) != 0;
+    public bool IsSamplerState =>   (flags & Flags.SamplerState) != 0;
+    public bool IsBareResource =>   (flags & Flags.BareResource) != 0;
+    public bool IsVectorOrScalar => (flags & Flags.VectorOrScalar) != 0;
 
-    public int VectorSize
+    // returns the vector dimension (1, 2, 3 or 4) for vector types, 1 for scalar types, and 0 for all other types
+    public int VectorDimension
     {
         get
         {
-            if ((flags & Flags.Vector4) != 0) return 4;
-            if ((flags & Flags.Vector3) != 0) return 3;
-            if ((flags & Flags.Vector2) != 0) return 2;
-            if ((flags & Flags.Scalar) != 0) return 1;
+            if ((flags & Flags.Vector) != 0)
+            {
+                var vecDef = GetDefinition<VectorTypeDefinition>();
+                return vecDef?.VectorDimension ?? 0;
+            }
+            if ((flags & Flags.Scalar) != 0)
+                return 1;
             return 0;
         }
     }
 
-    internal SandboxValueType(SandboxValueTypeDefinition definition)
+    // returns the number of matrix columns (1, 2, 3 or 4) for matrix types, 0 for all other types
+    public int MatrixColumns
+    {
+        get
+        {
+            if ((flags & Flags.Matrix) != 0)
+            {
+                var matDef = GetDefinition<MatrixTypeDefinition>();
+                if (matDef != null)
+                    return matDef.MatrixColumns;
+            }
+            return 0;
+        }
+    }
+
+    // returns the number of matrix columns (1, 2, 3 or 4) for matrix types, 0 for all other types
+    public int MatrixRows
+    {
+        get
+        {
+            if ((flags & Flags.Matrix) != 0)
+            {
+                var matDef = GetDefinition<MatrixTypeDefinition>();
+                if (matDef != null)
+                    return matDef.MatrixRows;
+            }
+            return 0;
+        }
+    }
+
+    internal SandboxType(SandboxTypeDefinition definition)
     {
         this.name = definition.GetTypeName();
         this.definition = definition;
@@ -168,15 +151,17 @@ public sealed class SandboxValueType // : JsonObject
     // this constructor is only for basic built-in types that don't have to be serialized
     // (because we can always assume they will always exist in the Default)
     // this cannot be used by public users, they must go the TypeDefinition route
-    internal SandboxValueType(string name, Flags flags)
+    internal SandboxType(string name, Flags flags)
     {
         this.name = name;
-        //this.definition = null;
         this.flags = flags;
     }
 
-    public bool ValueEquals(SandboxValueType other)
+    public bool ValueEquals(SandboxType other)
     {
+        if (other == this)
+            return true;
+
         return (name == other.name) &&
             (flags == other.flags) &&
             (definition.value.ValueEquals(other.definition.value));
@@ -185,7 +170,7 @@ public sealed class SandboxValueType // : JsonObject
     public sealed override bool Equals(object other)
     {
         // names are enforced unique, so we can use those as a proxy for equality
-        var otherType = other as SandboxValueType;
+        var otherType = other as SandboxType;
         if (otherType == null)
             return false;
         return otherType.name == name;
@@ -198,9 +183,9 @@ public sealed class SandboxValueType // : JsonObject
 
     // can auto-convert any string to the corresponding default type
     // note this only works with DEFAULT types, not any custom introduced types
-    public static implicit operator SandboxValueType(string s) => Types.Default.GetShaderType(s);
+    public static implicit operator SandboxType(string s) => Types.Default.GetShaderType(s);
 
-    public delegate bool Filter(SandboxValueType type);
+    public delegate bool Filter(SandboxType type);
 
     internal void AddHLSLVariableDeclarationString(ShaderStringBuilder sb, string id)
     {
