@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.Universal
             initButton.RegisterCallback<ClickEvent>(Init);
         }
 
-        void GetAndSetData(int i)
+        void GetAndSetData(int i, Action finished)
         {
             // This need to be in Init method
             // Need to get the assets that this converter is converting.
@@ -212,47 +212,49 @@ namespace UnityEditor.Rendering.Universal
 
             // This should also go to the init method
             // This will fill out the converter item infos list
-            conv.OnInitialize(initCtx);
-
-            // Set the item infos list to to the right index
-            m_ItemsToConvert[i] = converterItemInfos;
-            m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
-
-            // Default all the entries to true
-            for (var j = 0; j < converterItemInfos.Count; j++)
+            conv.OnInitialize(initCtx, () =>
             {
-                string message = string.Empty;
-                Status status;
-                bool active = true;
-                // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
-                if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
+                // Set the item infos list to to the right index
+                m_ItemsToConvert[i] = converterItemInfos;
+                m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
+
+                // Default all the entries to true
+                for (var j = 0; j < converterItemInfos.Count; j++)
                 {
-                    status = Status.Pending;
+                    string message = string.Empty;
+                    Status status;
+                    bool active = true;
+                    // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
+                    if (string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
+                    {
+                        status = Status.Pending;
+                    }
+                    else
+                    {
+                        status = Status.Warning;
+                        message = converterItemInfos[j].warningMessage;
+                        active = false;
+                        m_ConverterStates[i].warnings++;
+                    }
+
+                    m_ConverterStates[i].items.Add(new ConverterItemState
+                    {
+                        isActive = active,
+                        message = message,
+                        status = status,
+                        hasConverted = false,
+                    });
                 }
-                else
-                {
-                    status = Status.Warning;
-                    message = converterItemInfos[j].warningMessage;
-                    active = false;
-                    m_ConverterStates[i].warnings++;
-                }
 
-                m_ConverterStates[i].items.Add(new ConverterItemState
-                {
-                    isActive = active,
-                    message = message,
-                    status = status,
-                    hasConverted = false,
-                });
-            }
+                m_ConverterStates[i].isInitialized = true;
 
-            m_ConverterStates[i].isInitialized = true;
+                // Making sure that the pending amount is set to the amount of items needs converting
+                m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
 
-            // Making sure that the pending amount is set to the amount of items needs converting
-            m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
-
-            EditorUtility.SetDirty(this);
-            m_SerializedObject.Update();
+                EditorUtility.SetDirty(this);
+                m_SerializedObject.Update();
+                finished.Invoke();
+            });
         }
 
         void Init(ClickEvent evt)
@@ -268,85 +270,86 @@ namespace UnityEditor.Rendering.Universal
                 if (state.isInitialized || !state.isEnabled || !state.isActive)
                     continue;
 
-                GetAndSetData(i);
-
-                var id = i;
-                if (m_ConverterStates[i].isActive)
+                int localID = i;
+                GetAndSetData(localID, () =>
                 {
-                    var converterItemInfos = m_ItemsToConvert[i];
-                    // Update the amount of things to convert
-                    child.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
-
-                    listView.makeItem = () =>
+                    var id = localID;
+                    if (m_ConverterStates[localID].isActive)
                     {
-                        var convertItem = converterItem.CloneTree();
-                        // Adding the contextual menu for each item
-                        convertItem.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id)));
-                        return convertItem;
-                    };
+                        var converterItemInfos = m_ItemsToConvert[localID];
+                        // Update the amount of things to convert
+                        child.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
 
-                    listView.showBoundCollectionSize = false;
-
-                    listView.bindingPath =
-                        $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
-                    // I would like this to work, have a separate method and not inlined like this
-                    listView.bindItem = (element, index) =>
-                    {
-                        // ListView doesn't bind the child elements for us properly, so we do that for it
-                        var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
-                        // In the UXML our root is a BindableElement, as we can't bind otherwise.
-                        var bindable = (BindableElement)element;
-                        bindable.BindProperty(property);
-
-                        // Adding index here to userData so it can be retrieved later
-                        element.userData = index;
-
-                        ConverterItemDescriptor convItemDesc = converterItemInfos[index];
-
-                        element.Q<Label>("converterItemName").text = convItemDesc.name;
-                        element.Q<Label>("converterItemPath").text = convItemDesc.info;
-
-                        element.Q<Image>("converterItemHelpIcon").image = CoreEditorStyles.iconHelp;
-                        element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
-
-                        // Changing the icon here depending on the status.
-                        Status status = m_ConverterStates[id].items[index].status;
-                        string info = m_ConverterStates[id].items[index].message;
-                        Texture2D icon = null;
-
-                        switch (status)
+                        listView.makeItem = () =>
                         {
-                            case Status.Pending:
-                                icon = CoreEditorStyles.iconPending;
-                                break;
-                            case Status.Error:
-                                icon = CoreEditorStyles.iconFail;
-                                break;
-                            case Status.Warning:
-                                icon = CoreEditorStyles.iconWarn;
-                                break;
-                            case Status.Success:
-                                icon = CoreEditorStyles.iconSuccess;
-                                break;
-                        }
+                            var convertItem = converterItem.CloneTree();
+                            // Adding the contextual menu for each item
+                            convertItem.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id)));
+                            return convertItem;
+                        };
 
-                        element.Q<Image>("converterItemStatusIcon").image = icon;
-                        element.Q<Image>("converterItemStatusIcon").tooltip = info;
-                    };
-                    listView.onSelectionChange += obj =>
-                    {
-                        m_CoreConvertersList[id].OnClicked(listView.selectedIndex);
-                    };
-                    listView.unbindItem = (element, index) =>
-                    {
-                        var bindable = (BindableElement)element;
-                        bindable.Unbind();
-                    };
+                        listView.showBoundCollectionSize = false;
 
-                    listView.Refresh();
-                }
+                        listView.bindingPath =
+                            $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
+                        // I would like this to work, have a separate method and not inlined like this
+                        listView.bindItem = (element, index) =>
+                        {
+                            // ListView doesn't bind the child elements for us properly, so we do that for it
+                            var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
+                            // In the UXML our root is a BindableElement, as we can't bind otherwise.
+                            var bindable = (BindableElement)element;
+                            bindable.BindProperty(property);
+
+                            // Adding index here to userData so it can be retrieved later
+                            element.userData = index;
+
+                            ConverterItemDescriptor convItemDesc = converterItemInfos[index];
+
+                            element.Q<Label>("converterItemName").text = convItemDesc.name;
+                            element.Q<Label>("converterItemPath").text = convItemDesc.info;
+
+                            element.Q<Image>("converterItemHelpIcon").image = CoreEditorStyles.iconHelp;
+                            element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
+
+                            // Changing the icon here depending on the status.
+                            Status status = m_ConverterStates[id].items[index].status;
+                            string info = m_ConverterStates[id].items[index].message;
+                            Texture2D icon = null;
+
+                            switch (status)
+                            {
+                                case Status.Pending:
+                                    icon = CoreEditorStyles.iconPending;
+                                    break;
+                                case Status.Error:
+                                    icon = CoreEditorStyles.iconFail;
+                                    break;
+                                case Status.Warning:
+                                    icon = CoreEditorStyles.iconWarn;
+                                    break;
+                                case Status.Success:
+                                    icon = CoreEditorStyles.iconSuccess;
+                                    break;
+                            }
+
+                            element.Q<Image>("converterItemStatusIcon").image = icon;
+                            element.Q<Image>("converterItemStatusIcon").tooltip = info;
+                        };
+                        listView.onSelectionChange += obj =>
+                        {
+                            m_CoreConvertersList[id].OnClicked(listView.selectedIndex);
+                        };
+                        listView.unbindItem = (element, index) =>
+                        {
+                            var bindable = (BindableElement)element;
+                            bindable.Unbind();
+                        };
+
+                        listView.Refresh();
+                    }
+                });
             }
-
             rootVisualElement.Bind(m_SerializedObject);
         }
 

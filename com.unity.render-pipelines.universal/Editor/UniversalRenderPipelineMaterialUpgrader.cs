@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.Universal
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
-        public override void OnInitialize(InitializeConverterContext context)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
@@ -220,6 +220,7 @@ namespace UnityEditor.Rendering.Universal
                     context.AddAssetToConvert(desc);
                 }
             }
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)

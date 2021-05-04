@@ -50,13 +50,15 @@ namespace Editor.Converters
 
         private bool _startingSceneIsClosed;
 
-        public override void OnInitialize(InitializeConverterContext ctx)
+        public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            using var context = SearchService.CreateContext("asset", "urp:convert-readonly");
-            using var request = SearchService.Request(context);
+            var context = SearchService.CreateContext("asset", "urp:convert-readonly");
+
+
+            SearchService.Request(context, (c, items) =>
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast
-                var orderedRequest = request.OrderBy(req =>
+                var orderedRequest = items.OrderBy(req =>
                 {
                     GlobalObjectId.TryParse(req.id, out var gid);
                     return gid.assetGUID;
@@ -81,7 +83,40 @@ namespace Editor.Converters
 
                     ctx.AddAssetToConvert(item);
                 }
-            }
+
+                callback.Invoke();
+            });
+
+
+            // using var request = SearchService.Request(context);
+            // {
+            //     // we're going to do this step twice in order to get them ordered, but it should be fast
+            //     var orderedRequest = request.OrderBy(req =>
+            //         {
+            //             GlobalObjectId.TryParse(req.id, out var gid);
+            //             return gid.assetGUID;
+            //         })
+            //         .ToList();
+            //
+            //     foreach (var r in orderedRequest)
+            //     {
+            //         if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+            //         {
+            //             continue;
+            //         }
+            //
+            //         var label = r.provider.fetchLabel(r, r.context);
+            //         var description = r.provider.fetchDescription(r, r.context);
+            //
+            //         var item = new ConverterItemDescriptor()
+            //         {
+            //             name = $"{label} : {description}",
+            //             info = gid.ToString(),
+            //         };
+            //
+            //         ctx.AddAssetToConvert(item);
+            //     }
+            // }
         }
 
         public override void OnRun(ref RunItemContext ctx)
