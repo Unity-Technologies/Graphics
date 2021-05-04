@@ -60,8 +60,6 @@ Nightly_URP_PostPro_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/urp_postpro-osx_apple_silicon-metal.yml#URP_PostPro_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_trunk
-         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
@@ -117,8 +115,6 @@ Nightly_URP_PostPro_CUSTOM-REVISION:
       -  path: .yamato/urp_postpro-win-vulkan.yml#URP_PostPro_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_postpro-linux-vulkan.yml#URP_PostPro_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/urp_postpro-osx_apple_silicon-metal.yml#URP_PostPro_OSX_Apple_Silicon_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
