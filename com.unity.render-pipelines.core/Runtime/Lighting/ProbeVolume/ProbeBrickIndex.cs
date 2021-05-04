@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to [IMPORTANT NOTE! For now we always have it at indexDimensions / 2, so is not passed to the shader, but is kept here until development is active in case we find it useful]
         private HeightRange[] m_HeightRanges;
 #if !USE_NATIVE_ARRAY
-        private int[]         m_TmpUpdater = new int[ProbeReferenceVolume.CellSize(15) + 1];
+        private int[]         m_TmpUpdater = new int[ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels) + 1];
 #endif
         private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering
         public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
-            int largest_cell = ProbeReferenceVolume.CellSize(15);
+            int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
 
             // create a new copy
             BrickMeta bm = new BrickMeta();
