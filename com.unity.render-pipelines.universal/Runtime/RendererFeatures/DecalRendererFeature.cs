@@ -341,7 +341,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 m_Technique = DecalTechnique.Invalid;
-                Debug.LogError("Decals are currently not supported with XR.");
             }
 #endif
 
