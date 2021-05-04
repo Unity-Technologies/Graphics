@@ -2,7 +2,7 @@ using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
-namespace Unity.Rendering.BuiltIn
+namespace UnityEditor.Rendering.BuiltIn
 {
     public static class ShaderUtils
     {

@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
 
             // Setup keywords based on the new shader
-            Unity.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
+            UnityEditor.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
         }
 
         static void ShaderPropertiesGUI(MaterialEditor materialEditor, Material material, MaterialProperty[] properties)
