@@ -39,6 +39,9 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> visibleLights;
         public bool shadeAdditionalLightsPerVertex;
         public bool supportsMixedLighting;
+        public bool reflectionProbeBoxProjection;
+        public bool reflectionProbeBlending;
+        public bool supportsLightLayers;
     }
 
     public struct CameraData
@@ -249,14 +252,18 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 color;
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
-        public int lightIndex;
+        public int flags;
         public Vector4 occlusionProbeInfo;
+        public uint layerMask;
     }
 
     internal static class ShaderPropertyId
     {
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
+
+        public static readonly int glossyEnvironmentCubeMap = Shader.PropertyToID("_GlossyEnvironmentCubeMap");
+        public static readonly int glossyEnvironmentCubeMapHDR = Shader.PropertyToID("_GlossyEnvironmentCubeMap_HDR");
 
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
@@ -321,10 +328,13 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+        public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+        public static readonly string LightLayers = "_LIGHT_LAYERS";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
@@ -377,6 +387,14 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
         public static readonly string _CLEARCOAT = "_CLEARCOAT";
         public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
+        public static readonly string DEBUG_DISPLAY = "DEBUG_DISPLAY";
+
+        public static readonly string _EMISSION = "_EMISSION";
+        public static readonly string _RECEIVE_SHADOWS_OFF = "_RECEIVE_SHADOWS_OFF";
+        public static readonly string _SURFACE_TYPE_TRANSPARENT = "_SURFACE_TYPE_TRANSPARENT";
+        public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
+        public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
+        public static readonly string _NORMALMAP = "_NORMALMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";

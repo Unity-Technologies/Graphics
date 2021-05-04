@@ -157,6 +157,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
+                if (asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+                {
+                    var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        for (int j = 0; j < 4; ++j)
+                            cb._DebugAPVSubdivColors[i * 4 + j] = subdivColors[i][j];
+                    }
+                }
+
                 cb._DebugLightingMode = (int)debugLightingMode;
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
@@ -648,7 +658,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (!bUseClustered && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                            if (!bUseClustered && data.hdCamera.msaaEnabled)
                                 data.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
                             else
                                 data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
@@ -1049,7 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
         {
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
 
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
@@ -1057,7 +1067,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
-                    enableMSAA = msaa,
+                    msaaSamples = hdCamera.msaaSamples,
                     clearBuffer = true,
                     clearColor = Color.clear,
                     name = msaa ? "CameraColorMSAA" : "CameraColor"
@@ -1090,7 +1100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.frameSettings = hdCamera.frameSettings;
                     passData.outputColor = builder.UseColorBuffer(output, 0);
-                    passData.outputDepth = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), DepthAccess.ReadWrite);
+                    passData.outputDepth = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples), DepthAccess.ReadWrite);
 
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
