@@ -33,6 +33,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Transparent,
     }
 
+    enum ZWriteControl
+    {
+        Auto = 0,
+        ForceEnabled = 1,
+        ForceDisabled = 2
+    }
+
+    enum ZTestMode  // the values here match UnityEngine.Rendering.CompareFunction
+    {
+        Disabled = 0,
+        Never = 1,
+        Less = 2,
+        Equal = 3,
+        LEqual = 4,     // default for most rendering
+        Greater = 5,
+        NotEqual = 6,
+        GEqual = 7,
+        Always = 8,
+    }
+
     enum AlphaMode
     {
         Alpha,
@@ -41,15 +61,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Multiply,
     }
 
-    sealed class UniversalTarget : Target, ILegacyTarget
+    internal enum RenderFace
     {
+        Front = 2,      // = CullMode.Back -- render front face only
+        Back = 1,       // = CullMode.Front -- render back face only
+        Both = 0        // = CullMode.Off -- render both faces
+    }
+
+    sealed class UniversalTarget : Target, IHasMetadata, ILegacyTarget
+    {
+        public override int latestVersion => 1;
+
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
-        public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
+        public const string kUberTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -63,17 +92,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
+        // when checked, allows the material to control ALL surface settings (uber shader style)
+        [SerializeField]
+        bool m_AllowMaterialOverride = false;
+
         [SerializeField]
         SurfaceType m_SurfaceType = SurfaceType.Opaque;
+
+        [SerializeField]
+        ZTestMode m_ZTestMode = ZTestMode.LEqual;
+
+        [SerializeField]
+        ZWriteControl m_ZWriteControl = ZWriteControl.Auto;
 
         [SerializeField]
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
 
         [SerializeField]
-        bool m_TwoSided = false;
+        RenderFace m_RenderFace = RenderFace.Front;
 
         [SerializeField]
         bool m_AlphaClip = false;
+
+        [SerializeField]
+        bool m_CastShadows = true;
+
+        [SerializeField]
+        bool m_ReceiveShadows = true;
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -100,6 +145,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
+        // this sets up the default renderQueue -- but it can be overridden by ResetMaterialKeywords()
         public string renderQueue
         {
             get
@@ -115,8 +161,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public SubTarget activeSubTarget
         {
-            get => m_ActiveSubTarget;
+            get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;
+        }
+
+        public bool allowMaterialOverride
+        {
+            get => m_AllowMaterialOverride;
+            set => m_AllowMaterialOverride = value;
         }
 
         public SurfaceType surfaceType
@@ -125,16 +177,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_SurfaceType = value;
         }
 
+        public ZWriteControl zWriteControl
+        {
+            get => m_ZWriteControl;
+            set => m_ZWriteControl = value;
+        }
+
+        public ZTestMode zTestMode
+        {
+            get => m_ZTestMode;
+            set => m_ZTestMode = value;
+        }
+
         public AlphaMode alphaMode
         {
             get => m_AlphaMode;
             set => m_AlphaMode = value;
         }
 
-        public bool twoSided
+        public RenderFace renderFace
         {
-            get => m_TwoSided;
-            set => m_TwoSided = value;
+            get => m_RenderFace;
+            set => m_RenderFace = value;
         }
 
         public bool alphaClip
@@ -143,10 +207,47 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaClip = value;
         }
 
+        public bool castShadows
+        {
+            get => m_CastShadows;
+            set => m_CastShadows = value;
+        }
+
+        public bool receiveShadows
+        {
+            get => m_ReceiveShadows;
+            set => m_ReceiveShadows = value;
+        }
+
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;
             set => m_CustomEditorGUI = value;
+        }
+
+        // generally used to know if we need to build a depth pass
+        public bool mayWriteDepth
+        {
+            get
+            {
+                if (allowMaterialOverride)
+                {
+                    // material may or may not choose to write depth... we should create the depth pass
+                    return true;
+                }
+                else
+                {
+                    switch (zWriteControl)
+                    {
+                        case ZWriteControl.Auto:
+                            return (surfaceType == SurfaceType.Opaque);
+                        case ZWriteControl.ForceDisabled:
+                            return false;
+                        default:
+                            return true;
+                    }
+                }
+            }
         }
 
         public override bool IsActive()
@@ -159,7 +260,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
-            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
+
+            SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
+            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+
+            return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void Setup(ref TargetSetupContext context)
@@ -191,8 +296,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
-            context.AddField(Fields.AlphaClip, alphaClip);
-            context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -210,13 +313,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
+        }
+
+        public override object saveContext => m_ActiveSubTarget.value?.saveContext;
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
+            activeSubTarget.CollectShaderProperties(collector, generationMode);
 
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+
+
+            // SubTarget blocks
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -249,6 +364,118 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+        }
+
+        // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
+        enum ZTestModeForUI
+        {
+            Never = 1,
+            Less = 2,
+            Equal = 3,
+            LEqual = 4,     // default for most rendering
+            Greater = 5,
+            NotEqual = 6,
+            GEqual = 7,
+            Always = 8,
+        };
+
+        public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            // At some point we may want to convert this to be a per-property control
+            // or Unify the UX with the upcoming "lock" feature of the Material Variant properties
+            context.AddProperty("Allow Material Override", new Toggle() { value = allowMaterialOverride }, (evt) =>
+            {
+                if (Equals(allowMaterialOverride, evt.newValue))
+                    return;
+
+                registerUndo("Change Allow Material Override");
+                allowMaterialOverride = evt.newValue;
+                onChange();
+            });
+        }
+
+        public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo, bool showReceiveShadows)
+        {
+            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = surfaceType }, (evt) =>
+            {
+                if (Equals(surfaceType, evt.newValue))
+                    return;
+
+                registerUndo("Change Surface");
+                surfaceType = (SurfaceType)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = alphaMode }, surfaceType == SurfaceType.Transparent, (evt) =>
+            {
+                if (Equals(alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = renderFace }, (evt) =>
+            {
+                if (Equals(renderFace, evt.newValue))
+                    return;
+
+                registerUndo("Change Render Face");
+                renderFace = (RenderFace)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = zWriteControl }, (evt) =>
+            {
+                if (Equals(zWriteControl, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write Control");
+                zWriteControl = (ZWriteControl)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Test", new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI)zTestMode }, (evt) =>
+            {
+                if (Equals(zTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                zTestMode = (ZTestMode)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clipping", new Toggle() { value = alphaClip }, (evt) =>
+            {
+                if (Equals(alphaClip, evt.newValue))
+                    return;
+
+                registerUndo("Change Alpha Clip");
+                alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Cast Shadows", new Toggle() { value = castShadows }, (evt) =>
+            {
+                if (Equals(castShadows, evt.newValue))
+                    return;
+
+                registerUndo("Change Cast Shadows");
+                castShadows = evt.newValue;
+                onChange();
+            });
+
+            if (showReceiveShadows)
+                context.AddProperty("Receive Shadows", new Toggle() { value = receiveShadows }, (evt) =>
+                {
+                    if (Equals(receiveShadows, evt.newValue))
+                        return;
+
+                    registerUndo("Change Receive Shadows");
+                    receiveShadows = evt.newValue;
+                    onChange();
+                });
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -286,19 +513,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Upgrade Target
+            allowMaterialOverride = false;
             switch (masterNode)
             {
                 case PBRMasterNode1 pbrMasterNode:
                     m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
-                    m_TwoSided = pbrMasterNode.m_TwoSided;
+                    m_RenderFace = pbrMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                     UpgradeAlphaClip();
                     m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
                     break;
                 case UnlitMasterNode1 unlitMasterNode:
                     m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
-                    m_TwoSided = unlitMasterNode.m_TwoSided;
+                    m_RenderFace = unlitMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                     UpgradeAlphaClip();
                     m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
                     break;
@@ -331,69 +559,163 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
+
+        [Serializable]
+        class UniversalTargetLegacySerialization
+        {
+            [SerializeField]
+            public bool m_TwoSided = false;
+        }
+
+        public override void OnAfterDeserialize(string json)
+        {
+            base.OnAfterDeserialize(json);
+
+            if (this.sgVersion < latestVersion)
+            {
+                if (this.sgVersion == 0)
+                {
+                    // deserialize the old settings to upgrade
+                    var oldSettings = JsonUtility.FromJson<UniversalTargetLegacySerialization>(json);
+                    this.m_RenderFace = oldSettings.m_TwoSided ? RenderFace.Both : RenderFace.Front;
+                }
+                ChangeVersion(latestVersion);
+            }
+        }
+
+        #region Metadata
+        string IHasMetadata.identifier
+        {
+            get
+            {
+                // defer to subtarget
+                if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+                return null;
+            }
+        }
+
+        ScriptableObject IHasMetadata.GetMetadataObject()
+        {
+            // defer to subtarget
+            if (m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+            return null;
+        }
+
+        #endregion
     }
 
     #region Passes
     static class CorePasses
     {
-        public static readonly PassDescriptor DepthOnly = new PassDescriptor()
+        internal static void AddAlphaClipControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
-            // Definition
-            displayName = "DepthOnly",
-            referenceName = "SHADERPASS_DEPTHONLY",
-            lightMode = "DepthOnly",
-            useInPreview = true,
+            if (target.allowMaterialOverride)
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaTestOn);
+            else if (target.alphaClip)
+                pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
+        }
 
-            // Template
-            passTemplatePath = UniversalTarget.kTemplatePath,
-            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
-
-            // Port Mask
-            validVertexBlocks = CoreBlockMasks.Vertex,
-            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
-            // Fields
-            structs = CoreStructCollections.Default,
-            fieldDependencies = CoreFieldDependencies.Default,
-
-            // Conditional State
-            renderStates = CoreRenderStates.DepthOnly,
-            pragmas = CorePragmas.Instanced,
-            includes = CoreIncludes.DepthOnly,
-
-            // Custom Interpolator Support
-            customInterpolators = CoreCustomInterpDescriptors.Common
-        };
-
-        public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
+        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target)
         {
-            // Definition
-            displayName = "ShadowCaster",
-            referenceName = "SHADERPASS_SHADOWCASTER",
-            lightMode = "ShadowCaster",
+            // the surface settings can either be material controlled or target controlled
+            if (target.allowMaterialOverride)
+            {
+                // setup material control of via keyword
+                pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
+            }
+            else
+            {
+                // setup target control via define
+                if (target.surfaceType == SurfaceType.Transparent)
+                    pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
 
-            // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+                if (target.alphaMode == AlphaMode.Premultiply)
+                    pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+            }
 
-            // Port Mask
-            validVertexBlocks = CoreBlockMasks.Vertex,
-            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+            AddAlphaClipControlToPass(ref pass, target);
+        }
 
-            // Fields
-            structs = CoreStructCollections.Default,
-            requiredFields = CoreRequiredFields.ShadowCaster,
-            fieldDependencies = CoreFieldDependencies.Default,
+        // used by lit/unlit subtargets
+        public static PassDescriptor DepthOnly(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DepthOnly",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "DepthOnly",
+                useInPreview = true,
 
-            // Conditional State
-            renderStates = CoreRenderStates.ShadowCaster,
-            pragmas = CorePragmas.Instanced,
-            keywords = CoreKeywords.ShadowCaster,
-            includes = CoreIncludes.ShadowCaster,
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
-            // Custom Interpolator Support
-            customInterpolators = CoreCustomInterpDescriptors.Common
-        };
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthOnly(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.DepthOnly,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
+        // used by lit/unlit targets
+        public static PassDescriptor ShadowCaster(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "ShadowCaster",
+                referenceName = "SHADERPASS_SHADOWCASTER",
+                lightMode = "ShadowCaster",
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.ShadowCaster,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.ShadowCaster(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
+                includes = CoreIncludes.ShadowCaster,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
     }
     #endregion
 
@@ -460,6 +782,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region RenderStates
     static class CoreRenderStates
     {
+        public static class Uniforms
+        {
+            public static readonly string srcBlend = "[" + Property.SrcBlend + "]";
+            public static readonly string dstBlend = "[" + Property.DstBlend + "]";
+            public static readonly string cullMode = "[" + Property.CullMode + "]";
+            public static readonly string zWrite = "[" + Property.ZWrite + "]";
+            public static readonly string zTest = "[" + Property.ZTest + "]";
+        }
+
+        // used by sprite targets, NOT used by lit/unlit anymore
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
@@ -474,51 +806,132 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
+        // used by lit/unlit subtargets
+        public static readonly RenderStateCollection MaterialControlledRenderState = new RenderStateCollection
+        {
+            { RenderState.ZTest(Uniforms.zTest) },
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) }, //, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+        };
+
+        public static Cull RenderFaceToCull(RenderFace renderFace)
+        {
+            switch (renderFace)
+            {
+                case RenderFace.Back:
+                    return Cull.Front;
+                case RenderFace.Front:
+                    return Cull.Back;
+                case RenderFace.Both:
+                    return Cull.Off;
+            }
+            return Cull.Back;
+        }
+
+        // used by lit/unlit subtargets
+        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target)
+        {
+            if (target.allowMaterialOverride)
+                return MaterialControlledRenderState;
+            else
+            {
+                var result = new RenderStateCollection();
+
+                result.Add(RenderState.ZTest(target.zTestMode.ToString()));
+
+                if (target.zWriteControl == ZWriteControl.Auto)
+                {
+                    if (target.surfaceType == SurfaceType.Opaque)
+                        result.Add(RenderState.ZWrite(ZWrite.On));
+                    else
+                        result.Add(RenderState.ZWrite(ZWrite.Off));
+                }
+                else if (target.zWriteControl == ZWriteControl.ForceEnabled)
+                    result.Add(RenderState.ZWrite(ZWrite.On));
+                else
+                    result.Add(RenderState.ZWrite(ZWrite.Off));
+
+                result.Add(RenderState.Cull(RenderFaceToCull(target.renderFace)));
+
+                if (target.surfaceType == SurfaceType.Opaque)
+                {
+                    result.Add(RenderState.Blend(Blend.One, Blend.Zero));
+                }
+                else
+                    switch (target.alphaMode)
+                    {
+                        case AlphaMode.Alpha:
+                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            break;
+                        case AlphaMode.Premultiply:
+                            result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            break;
+                        case AlphaMode.Additive:
+                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                            break;
+                        case AlphaMode.Multiply:
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            break;
+                    }
+
+                return result;
+            }
+        }
+
+        // used by lit target ONLY
         public static readonly RenderStateCollection Meta = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
         };
 
-        public static readonly RenderStateCollection ShadowCaster = new RenderStateCollection
+        public static RenderStateDescriptor UberSwitchedCullRenderState(UniversalTarget target)
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
-        };
+            if (target.allowMaterialOverride)
+                return RenderState.Cull(Uniforms.cullMode);
+            else
+                return RenderState.Cull(RenderFaceToCull(target.renderFace));
+        }
 
-        public static readonly RenderStateCollection DepthOnly = new RenderStateCollection
+        // used by lit/unlit targets
+        public static RenderStateCollection ShadowCaster(UniversalTarget target)
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
-        };
+            var result = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { UberSwitchedCullRenderState(target) },
+                { RenderState.ColorMask("ColorMask 0") },
+            };
+            return result;
+        }
 
-        public static readonly RenderStateCollection DepthNormalsOnly = new RenderStateCollection
+        // used by lit/unlit targets
+        public static RenderStateCollection DepthOnly(UniversalTarget target)
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
-        };
+            var result = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { UberSwitchedCullRenderState(target) },
+                { RenderState.ColorMask("ColorMask 0") },
+            };
+
+            return result;
+        }
+
+        // used by lit target ONLY
+        public static RenderStateCollection DepthNormalsOnly(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { UberSwitchedCullRenderState(target) }
+            };
+
+            return result;
+        }
     }
     #endregion
 
@@ -551,6 +964,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -587,6 +1001,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -598,6 +1013,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -619,6 +1035,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -672,6 +1089,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
+
+        public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
+        {
+            { kDBuffer, IncludeLocation.Pregraph },
+        };
     }
     #endregion
 
@@ -695,10 +1117,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
     {
-        public static readonly KeywordDescriptor Lightmap = new KeywordDescriptor()
+        public static readonly KeywordDescriptor StaticLightmap = new KeywordDescriptor()
         {
-            displayName = "Lightmap",
+            displayName = "Static Lightmap",
             referenceName = "LIGHTMAP_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
+        {
+            displayName = "Dynamic Lightmap",
+            referenceName = "DYNAMICLIGHTMAP_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -720,6 +1151,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._ALPHATEST_ON,
+            referenceName = ShaderKeywordStrings._ALPHATEST_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
+            referenceName = ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global, // needs to match HDRP
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
+            referenceName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
@@ -750,15 +1211,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "_ADDITIONAL",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
             }
         };
 
@@ -766,6 +1227,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Additional Light Shadows",
             referenceName = "_ADDITIONAL_LIGHT_SHADOWS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Blending",
+            referenceName = "_REFLECTION_PROBE_BLENDING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Box Projection",
+            referenceName = "_REFLECTION_PROBE_BOX_PROJECTION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -807,12 +1286,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
+        public static readonly KeywordDescriptor LightLayers = new KeywordDescriptor()
         {
-            displayName = "Smoothness Channel",
-            referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
+            displayName = "Light Layers",
+            referenceName = "_LIGHT_LAYERS",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
+            definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
 
@@ -862,8 +1341,42 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
         {
             displayName = "UseFragmentFog",
-            referenceName = "_FOG_FRAGMENT 1",
+            referenceName = "_FOG_FRAGMENT",
             type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+        {
+            displayName = "GBuffer normal octahedron encoding",
+            referenceName = "_GBUFFER_NORMALS_OCT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
+        {
+            displayName = "Decals",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
+                new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
+                new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
+            }
+        };
+
+        public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
+        {
+            displayName = "Debug Display",
+            referenceName = "DEBUG_DISPLAY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
     }
     #endregion
