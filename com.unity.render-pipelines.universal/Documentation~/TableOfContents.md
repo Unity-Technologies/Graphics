@@ -95,21 +95,18 @@
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
 
-* [2D](2d-index.md)
+* [2D graphic features](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
-  * [Requirements and setup](Setup.md)
-  * [Preparing and upgrading](PrepShader.md)
-  * [Normal map and mask Textures](SecondaryTextures.md)
-  * [Lights 2D properties](2DLightProperties.md)
-
-    * [Light types](LightTypes.md)
-  * [2D Shadows](2DShadows.md)
-  * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
-
-    * [HDR emulation scale](HDREmulationScale.md)
-    * [Light Blend Styles](LightBlendStyles.md)
-
-  * [2D Renderer and Shader Graph](ShaderGraph.md)
+    * [Requirements and setup](Setup.md)
+    * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
+      * [HDR emulation scale](HDREmulationScale.md)
+      * [Light Blend Styles](LightBlendStyles.md)
+    * [Preparing and upgrading](PrepShader.md)
+    * [Normal map and mask Textures](SecondaryTextures.md)
+    * [Common Lights 2D properties](2DLightProperties.md)
+      * [Lights 2D types and specific properties](LightTypes.md)
+    * [2D Shadows](2DShadows.md)
+    * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
 

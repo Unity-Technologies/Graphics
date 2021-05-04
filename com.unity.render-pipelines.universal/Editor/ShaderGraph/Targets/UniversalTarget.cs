@@ -1211,15 +1211,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "_ADDITIONAL",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
             }
         };
 
