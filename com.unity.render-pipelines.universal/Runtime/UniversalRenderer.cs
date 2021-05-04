@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RenderTargetHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
+        internal DeferredLights deferredLights { get => m_DeferredLights; }
 
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
@@ -245,10 +246,6 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
-
-            // MSAA is temporary disabled when using the RenderPass API. TODO: enable it back once the handling of resolving to implicit resolve textures and Vulkan backbuffer is fixed in trunk!
-            if (useRenderPassEnabled)
-                this.supportedRenderingFeatures.msaa = false;
         }
 
         /// <inheritdoc />
@@ -421,7 +418,7 @@ namespace UnityEngine.Rendering.Universal
             // around a bug where during gbuffer pass (MRT pass), the camera depth attachment is correctly bound, but during
             // deferred pass ("camera color" + "camera depth"), the implicit depth surface of "camera color" is used instead of "camera depth",
             // because BuiltinRenderTextureType.CameraTarget for depth means there is no explicit depth attachment...
-            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            bool createDepthTexture = requiresDepthTexture && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
             // Deferred renderer always need to access depth buffer.
             createDepthTexture |= this.actualRenderingMode == RenderingMode.Deferred;
@@ -470,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool requiresDepthCopyPass = !requiresDepthPrepass
-                && renderingData.cameraData.requiresDepthTexture
+                && requiresDepthTexture
                 && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
@@ -541,7 +538,9 @@ namespace UnityEngine.Rendering.Universal
                         // Depth is allocated by this renderer.
                         m_DepthNormalPrepass.allocateDepth = false;
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
-                        m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
+                        if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
+                            renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
+                            m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
                     }
                     else
                     {
@@ -575,7 +574,22 @@ namespace UnityEngine.Rendering.Universal
             if (this.actualRenderingMode == RenderingMode.Deferred)
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             else
+            {
+                // Optimized store actions are very important on tile based GPUs and have a great impact on performance.
+                // if MSAA is enabled and any of the following passes need a copy of the color or depth target, make sure the MSAA'd surface is stored
+                // if following passes won't use it then just resolve (the Resolve action will still store the resolved surface, but discard the MSAA'd surface, which is very expensive to store).
+                RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
+                if (cameraTargetDescriptor.msaaSamples > 1)
+                    opaquePassColorStoreAction = copyColorPass ? RenderBufferStoreAction.StoreAndResolve : RenderBufferStoreAction.Store;
+
+                // make sure we store the depth only if following passes need it.
+                RenderBufferStoreAction opaquePassDepthStoreAction = (copyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+
+                m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
+                m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+
                 EnqueuePass(m_RenderOpaqueForwardPass);
+            }
 
             if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
@@ -617,6 +631,10 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TransparentSettingsPass);
                 }
 
+                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
+                m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
+                m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
@@ -818,11 +836,13 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
+            internal RenderPassEvent requiresDepthNormalAtEvent;
         }
 
         private RenderPassInputSummary GetRenderPassInputs(ref RenderingData renderingData)
         {
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
+            inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
                 ScriptableRenderPass pass = activeRenderPassQueue[i];
@@ -835,6 +855,8 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
+                if (needsNormals || needsDepth)
+                    inputSummary.requiresDepthNormalAtEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthNormalAtEvent);
             }
 
             return inputSummary;

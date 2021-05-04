@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Internal
         Matrix3,
         Matrix4,
         SamplerState,
-        VirtualTexture
+        VirtualTexture,
+        PropertyConnectionState
     }
 }

@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+            DecalProjector.defaultMaterial = asset.decalMaterial;
+
 #if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
 #endif
@@ -363,6 +365,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 
@@ -400,6 +403,11 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
             {
+                if (renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
+                {
+                    renderer.useRenderPassEnabled = false;
+                    Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
+                }
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
 
@@ -460,7 +468,7 @@ namespace UnityEngine.Rendering.Universal
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
                         {
-                            var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
+                            var renderer2DType = typeof(Renderer2D);
                             if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
                             {
                                 Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
@@ -655,7 +663,8 @@ namespace UnityEngine.Rendering.Universal
                 lightProbeProxyVolumes = false,
                 motionVectors = false,
                 receiveShadows = false,
-                reflectionProbes = true,
+                reflectionProbes = false,
+                reflectionProbesBlendDistance = true,
                 particleSystemInstancing = true
             };
             SceneViewDrawMode.SetupDrawMode();
@@ -1034,6 +1043,8 @@ namespace UnityEngine.Rendering.Universal
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
+            lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
+            lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
         }
 
@@ -1106,6 +1117,10 @@ namespace UnityEngine.Rendering.Universal
             Color linearGlossyEnvColor = new Color(ambientSH[0, 0], ambientSH[1, 0], ambientSH[2, 0]) * RenderSettings.reflectionIntensity;
             Color glossyEnvColor = CoreUtils.ConvertLinearToActiveColorSpace(linearGlossyEnvColor);
             Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentColor, glossyEnvColor);
+
+            // Used as fallback cubemap for reflections
+            Shader.SetGlobalVector(ShaderPropertyId.glossyEnvironmentCubeMapHDR, ReflectionProbe.defaultTextureHDRDecodeValues);
+            Shader.SetGlobalTexture(ShaderPropertyId.glossyEnvironmentCubeMap, ReflectionProbe.defaultTexture);
 
             // Ambient
             Shader.SetGlobalVector(ShaderPropertyId.ambientSkyColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.ambientSkyColor));

@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
-using UnityEngine.Rendering;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {
@@ -37,14 +34,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Material m_SamplingMaterial;
 
         private readonly Renderer2DData m_Renderer2DData;
-
         private bool m_NeedsDepth;
+        private short m_CameraSortingLayerBoundsIndex;
 
         public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
         {
             m_Renderer2DData = rendererData;
             m_BlitMaterial = blitMaterial;
             m_SamplingMaterial = samplingMaterial;
+
+            m_CameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
         }
 
         internal void Setup(bool useDepth)
@@ -417,19 +416,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 this.DisableAllKeywords(cmd);
                 context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
-                filterSettings.sortingLayerRange = new SortingLayerRange(short.MinValue, cameraSortingLayerBoundsIndex);
-                Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
+                if (m_Renderer2DData.useCameraSortingLayerTexture)
+                {
+                    filterSettings.sortingLayerRange = new SortingLayerRange(short.MinValue, m_CameraSortingLayerBoundsIndex);
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
 
-                CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
+                    CopyCameraSortingLayerRenderTexture(context, renderingData, storeAction);
 
-                filterSettings.sortingLayerRange = new SortingLayerRange(cameraSortingLayerBoundsIndex, short.MaxValue);
-                Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
+                    filterSettings.sortingLayerRange = new SortingLayerRange(m_CameraSortingLayerBoundsIndex, short.MaxValue);
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
+                }
+                else
+                {
+                    Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
+                }
                 Profiler.EndSample();
+
+                CommandBufferPool.Release(cmd);
             }
 
             filterSettings.sortingLayerRange = SortingLayerRange.all;

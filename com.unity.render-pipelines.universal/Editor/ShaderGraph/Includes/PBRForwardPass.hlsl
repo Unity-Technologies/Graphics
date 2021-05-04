@@ -67,7 +67,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-    #if _AlphaClip
+    #if _ALPHATEST_ON
         half alpha = surfaceDescription.Alpha;
         clip(alpha - surfaceDescription.AlphaClipThreshold);
     #elif _SURFACE_TYPE_TRANSPARENT
@@ -110,6 +110,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         surface.clearCoatMask       = saturate(surfaceDescription.CoatMask);
         surface.clearCoatSmoothness = saturate(surfaceDescription.CoatSmoothness);
     #endif
+
+#ifdef _DBUFFER
+    ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
+#endif
 
     half4 color = UniversalFragmentPBR(inputData, surface);
 
