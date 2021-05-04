@@ -65,7 +65,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-    #if _AlphaClip
+    #if _ALPHATEST_ON
         half alpha = surfaceDescription.Alpha;
         clip(alpha - surfaceDescription.AlphaClipThreshold);
     #elif _SURFACE_TYPE_TRANSPARENT
@@ -86,6 +86,16 @@ FragmentOutput frag(PackedVaryings packedInput)
         float3 specular = 0;
         float metallic = surfaceDescription.Metallic;
     #endif
+
+#ifdef _DBUFFER
+    ApplyDecal(unpacked.positionCS,
+        surfaceDescription.BaseColor,
+        specular,
+        inputData.normalWS,
+        metallic,
+        surfaceDescription.Occlusion,
+        surfaceDescription.Smoothness);
+#endif
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
