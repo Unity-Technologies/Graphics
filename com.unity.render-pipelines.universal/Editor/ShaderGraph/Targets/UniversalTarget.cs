@@ -328,6 +328,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+
+
+            // SubTarget blocks
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -1031,6 +1035,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDepthNormalsOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthNormalsOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1083,6 +1088,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
+        {
+            { kDBuffer, IncludeLocation.Pregraph },
         };
     }
     #endregion
@@ -1201,15 +1211,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "_ADDITIONAL",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
             }
         };
 
@@ -1333,6 +1343,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "UseFragmentFog",
             referenceName = "_FOG_FRAGMENT",
             type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+        {
+            displayName = "GBuffer normal octahedron encoding",
+            referenceName = "_GBUFFER_NORMALS_OCT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor DBuffer = new KeywordDescriptor()
+        {
+            displayName = "Decals",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "DBuffer Mrt1", referenceName = "DBUFFER_MRT1" },
+                new KeywordEntry() { displayName = "DBuffer Mrt2", referenceName = "DBUFFER_MRT2" },
+                new KeywordEntry() { displayName = "DBuffer Mrt3", referenceName = "DBUFFER_MRT3" },
+            }
         };
 
         public static readonly KeywordDescriptor DebugDisplay = new KeywordDescriptor()
