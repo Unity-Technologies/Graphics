@@ -62,9 +62,10 @@ namespace UnityEngine.Experimental.Rendering
     [InitializeOnLoad]
     class ProbeGIBaking
     {
-        static bool init = false;
+        static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeReferenceVolumeAuthoring bakingReferenceVolumeAuthoring = null;
+        static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
+        static int m_BakingBatchIndex = 0;
 
         static ProbeGIBaking()
         {
@@ -73,9 +74,9 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void Init()
         {
-            if (!init)
+            if (!m_IsInit)
             {
-                init = true;
+                m_IsInit = true;
                 Lightmapping.lightingDataCleared += OnLightingDataCleared;
                 Lightmapping.bakeStarted += OnBakeStarted;
             }
@@ -100,6 +101,8 @@ namespace UnityEngine.Experimental.Rendering
 
             if (m_BakingBatch != null)
                 m_BakingBatch.Clear();
+
+            m_BakingBatchIndex = 0;
         }
 
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
@@ -145,9 +148,9 @@ namespace UnityEngine.Experimental.Rendering
             if (refVolAuthList.Length == 0)
                 return;
 
-            bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
 
-            if (bakingReferenceVolumeAuthoring == null)
+            if (m_BakingReferenceVolumeAuthoring == null)
             {
                 Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
                 return;
@@ -235,10 +238,12 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
+                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, m_BakingReferenceVolumeAuthoring.GetDilationSettings());
 
                 ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
+
+            m_BakingBatchIndex = 0;
 
             // Reset index
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
@@ -484,8 +489,8 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
 
-            var volumeScale = bakingReferenceVolumeAuthoring.transform.localScale;
-            var CellSize = bakingReferenceVolumeAuthoring.cellSize;
+            var volumeScale = m_BakingReferenceVolumeAuthoring.transform.localScale;
+            var CellSize = m_BakingReferenceVolumeAuthoring.cellSize;
             var xCells = (int)Mathf.Ceil(volumeScale.x / CellSize);
             var yCells = (int)Mathf.Ceil(volumeScale.y / CellSize);
             var zCells = (int)Mathf.Ceil(volumeScale.z / CellSize);
@@ -503,7 +508,7 @@ namespace UnityEngine.Experimental.Rendering
             // For now we just have one baking batch. Later we'll have more than one for a set of scenes.
             // All probes need to be baked only once for the whole batch and not once per cell
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
-            m_BakingBatch = new BakingBatch(0);
+            m_BakingBatch = new BakingBatch(m_BakingBatchIndex++);
 
             // subdivide and create positions and add them to the bake queue
             foreach (var cellPos in cellPositions)
@@ -521,10 +526,10 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Calculate the cell volume:
                 ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-                cellVolume.corner = new Vector3(cellPos.x * bakingReferenceVolumeAuthoring.cellSize, cellPos.y * bakingReferenceVolumeAuthoring.cellSize, cellPos.z * bakingReferenceVolumeAuthoring.cellSize);
-                cellVolume.X = new Vector3(bakingReferenceVolumeAuthoring.cellSize, 0, 0);
-                cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSize, 0);
-                cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.corner = new Vector3(cellPos.x * m_BakingReferenceVolumeAuthoring.cellSize, cellPos.y * m_BakingReferenceVolumeAuthoring.cellSize, cellPos.z * m_BakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.X = new Vector3(m_BakingReferenceVolumeAuthoring.cellSize, 0, 0);
+                cellVolume.Y = new Vector3(0, m_BakingReferenceVolumeAuthoring.cellSize, 0);
+                cellVolume.Z = new Vector3(0, 0, m_BakingReferenceVolumeAuthoring.cellSize);
                 cellVolume.Transform(cellTrans);
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
