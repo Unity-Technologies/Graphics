@@ -61,6 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public BoolParameter rayTracing = new BoolParameter(false);
 
+        /// <summary>
+        /// Enable Sky Importance Sampling.
+        /// </summary>
+        public BoolParameter skyImportanceSampling = new BoolParameter(false);
+
         // Shared Data
         /// <summary>
         /// Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.

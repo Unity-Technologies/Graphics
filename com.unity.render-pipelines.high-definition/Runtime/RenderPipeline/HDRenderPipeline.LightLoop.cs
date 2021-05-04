@@ -400,6 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int reprojectionKernel;
             public int accumulateKernel;
             public bool transparentSSR;
+            public bool skyImportanceSampling;
             public bool usePBRAlgo;
             public bool accumNeedClear;
             public bool previousAccumNeedClear;
@@ -424,6 +425,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+            public RTHandle marginal;
+            public RTHandle conditionalMarginal;
+            public RTHandle integral;
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
@@ -503,6 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
                     passData.accumulateKernel = m_SsrAccumulateKernel;
                     passData.transparentSSR = transparent;
+                    passData.skyImportanceSampling = settings.skyImportanceSampling.value;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
@@ -520,6 +525,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
+
+                    var skySetting = hdCamera.volumeStack.GetComponent<HDRISky>();
+                    if (skySetting != null && skySetting.hdriSky != null)
+                    {
+                        int marginalID = ImportanceSamplers.GetIdentifier(skySetting.hdriSky.value);
+                        ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(marginalID);
+                        if (marginals != null)
+                        {
+                            passData.marginal = marginals.marginal;
+                            passData.conditionalMarginal = marginals.conditionalMarginal;
+                            passData.integral = marginals.integral;
+                        }
+                    }
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -559,9 +577,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                                 ctx.cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
 
+                            if (data.skyImportanceSampling)
+                            {
+                                ctx.cmd.EnableShaderKeyword("SSR_IMPORTANCE_SAMPLE_SKY");
+                            }
+                            else
+                            {
+                                ctx.cmd.DisableShaderKeyword("SSR_IMPORTANCE_SAMPLE_SKY");
+                            }
+
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
                             {
-                                // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                                //cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                                 // Bind the non mip chain if we are rendering the transparent version
                                 ctx.cmd.SetComputeTextureParam(cs, data.tracingKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                                 ctx.cmd.SetComputeTextureParam(cs, data.tracingKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);

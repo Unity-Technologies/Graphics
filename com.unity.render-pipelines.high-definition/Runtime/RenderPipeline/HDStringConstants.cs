@@ -759,6 +759,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputVelocityMagnitudeHistory  = Shader.PropertyToID("_InputVelocityMagnitudeHistory");
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
 
+        public static readonly int _Samples                        = Shader.PropertyToID("_Samples");
+        public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
+        public static readonly int _Integral                       = Shader.PropertyToID("_Integral");
+        public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
+        public static readonly int _SrcCubeTexture                 = Shader.PropertyToID("_SrcCubeTexture");
+        public static readonly int _SrcCubeTextureArray            = Shader.PropertyToID("_SrcCubeTextureArray");
+        public static readonly int _CubeMipLvl                     = Shader.PropertyToID("_CubeMipLvl");
+        public static readonly int _CubeArrayIndex                 = Shader.PropertyToID("_CubeArrayIndex");
+        public static readonly int _ManualTex2SRGB                 = Shader.PropertyToID("_ManualTex2SRGB");
+        public static readonly int _BuildPDF                       = Shader.PropertyToID("_BuildPDF");
+        public static readonly int _PreMultiplyByJacobian          = Shader.PropertyToID("_PreMultiplyByJacobian");
+        public static readonly int _PreMultiplyByCosTheta          = Shader.PropertyToID("_PreMultiplyByCosTheta");
+        public static readonly int _PreMultiplyBySolidAngle        = Shader.PropertyToID("_PreMultiplyBySolidAngle");
+
+        public static readonly int _PDF                                 = Shader.PropertyToID("_PDF");
+        public static readonly int _CDF                                 = Shader.PropertyToID("_CDF");
+        public static readonly int _Marginal                            = Shader.PropertyToID("_Marginal");
+        public static readonly int _ConditionalMarginal                 = Shader.PropertyToID("_ConditionalMarginal");
+        public static readonly int _SkyTextureImportanceSamplerReady    = Shader.PropertyToID("_SkyTextureImportanceSamplerReady");
+        public static readonly int _SkyTextureSizeInfos                 = Shader.PropertyToID("_SkyTextureSizeInfos");
+        public static readonly int _SkyTextureIntegrals                 = Shader.PropertyToID("_SkyTextureIntegrals");
+        public static readonly int _SkyTextureMarginals                 = Shader.PropertyToID("_SkyTextureMarginals");
+        public static readonly int _SkyTextureConditionalMarginals      = Shader.PropertyToID("_SkyTextureConditionalMarginals");
+
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
         public static readonly int _Params1                        = Shader.PropertyToID("_Params1");

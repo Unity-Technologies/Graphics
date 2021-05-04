@@ -1659,6 +1659,21 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
+                        // Time sliced marginals build
+                        // Ideally once each frame
+                        {
+                            var cmd = CommandBufferPool.Get("");
+                            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildMaginals)))
+                            {
+                                // Generate Marginals texture for importance sampling
+                                ImportanceSamplers.Update(cmd);
+                                // Release a RTHandle when their lifetime counter scheduled became 0
+                                RTHandlesDeleter.Update();
+                            }
+                            renderContext.ExecuteCommandBuffer(cmd);
+                            CommandBufferPool.Release(cmd);
+                            renderContext.Submit();
+                        }
 
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)

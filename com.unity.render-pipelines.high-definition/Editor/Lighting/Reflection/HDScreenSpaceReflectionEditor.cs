@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MinSmoothness;
         SerializedDataParameter m_SmoothnessFadeStart;
         SerializedDataParameter m_ReflectSky;
+        SerializedDataParameter m_SkyImportanceSampling;
 
         // SSR Only
         SerializedDataParameter m_ScreenFadeDistance;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MinSmoothness                 = Unpack(o.Find(x => x.minSmoothness));
             m_SmoothnessFadeStart           = Unpack(o.Find(x => x.smoothnessFadeStart));
             m_ReflectSky                    = Unpack(o.Find(x => x.reflectSky));
+            m_SkyImportanceSampling         = Unpack(o.Find(x => x.skyImportanceSampling));
 
             // SSR Data
             m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
@@ -81,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
+        static public readonly GUIContent k_SkyImportanceSampling = EditorGUIUtility.TrTextContent("Sky Importance Sampling", "When enabled, SSR importance sample sky based on the surface roughness.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection.");
         static public readonly GUIContent k_TextureLodBiasText = EditorGUIUtility.TrTextContent("Texture Lod Bias", "The LOD Bias HDRP applies to textures in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.");
         static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
@@ -145,6 +148,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             PropertyField(m_ReflectSky, k_ReflectSkyText);
+            if (m_ReflectSky.value.boolValue)
+            {
+                PropertyField(m_SkyImportanceSampling, k_SkyImportanceSampling);
+            }
             PropertyField(m_LayerMask, k_LayerMaskText);
             PropertyField(m_TextureLodBias, k_TextureLodBiasText);
 
@@ -208,9 +215,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Shared Data
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
-                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                if (PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText))
+                    m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
-                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                if (m_ReflectSky.value.boolValue)
+                {
+                    PropertyField(m_SkyImportanceSampling, k_SkyImportanceSampling);
+                }
 
                 PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);

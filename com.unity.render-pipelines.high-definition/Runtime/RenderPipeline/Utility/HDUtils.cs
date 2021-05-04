@@ -1063,6 +1063,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {GraphicsFormat.RGB_BC6H_SFloat, 1}, // BC6H uses 128 bits for each 4x4 tile which is 8 bits per pixel
         };
 
+        static Dictionary<GraphicsFormat, int> graphicsFormatChannelsCount = new Dictionary<GraphicsFormat, int>
+        {
+            // Init some default format so we don't allocate more memory on the first frame.
+            {GraphicsFormat.R16G16B16A16_SFloat, 4},
+            {GraphicsFormat.R32G32B32A32_SFloat, 4},
+            {GraphicsFormat.R16_SFloat, 1},
+            {GraphicsFormat.R32_SFloat, 1},
+        };
+
+        static Dictionary<GraphicsFormat, int> graphicsFormatMaxPrecisionBits = new Dictionary<GraphicsFormat, int>
+        {
+            // Init some default format so we don't allocate more memory on the first frame.
+            {GraphicsFormat.R16G16B16A16_SFloat, 16},
+            {GraphicsFormat.R32G32B32A32_SFloat, 32},
+            {GraphicsFormat.R16_SFloat, 16},
+            {GraphicsFormat.R32_SFloat, 32},
+        };
+
         /// <summary>
         /// Compute the size in bytes of a GraphicsFormat. Does not works with compressed formats.
         /// </summary>
@@ -1086,6 +1104,66 @@ namespace UnityEngine.Rendering.HighDefinition
             size = bits / 8;
             graphicsFormatSizeCache[format] = size;
             return size;
+        }
+
+        /// <summary>
+        /// Compute the number of channel of a GraphicsFormat. Does not works with compressed formats.
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns>Channels Count</returns>
+        internal static int GetFormatChannelsCount(GraphicsFormat format)
+        {
+            if (graphicsFormatChannelsCount.TryGetValue(format, out var channelsCount))
+                return channelsCount;
+
+            // Compute the size by parsing the enum name: Note that it does not works with compressed formats
+            string name = format.ToString();
+            int underscoreIndex = name.IndexOf('_');
+            name = name.Substring(0, underscoreIndex == -1 ? name.Length : underscoreIndex);
+
+            channelsCount = 0;
+            foreach (char c in name)
+            {
+                if (c == 'R')
+                    ++channelsCount;
+                else if (c == 'G')
+                    ++channelsCount;
+                else if (c == 'B')
+                    ++channelsCount;
+                else if (c == 'A')
+                    ++channelsCount;
+            }
+
+            graphicsFormatChannelsCount[format] = channelsCount;
+
+            return channelsCount;
+        }
+
+        /// <summary>
+        /// Compute the max precision (in bits) of a given format.
+        /// </summary>
+        /// <param name="format"></param>
+        /// <returns>Max precision in bits</returns>
+        internal static int GetFormatMaxPrecisionBits(GraphicsFormat format)
+        {
+            if (graphicsFormatMaxPrecisionBits.TryGetValue(format, out var maxBitsPrecision))
+                return maxBitsPrecision;
+
+            // Compute the size by parsing the enum name: Note that it does not works with compressed formats
+            maxBitsPrecision = 0;
+            string name = format.ToString();
+            for (int k = 32; k >= 0; k--)
+            {
+                if (name.IndexOf(k.ToString()) != -1)
+                {
+                    maxBitsPrecision = k;
+                    break;
+                }
+            }
+
+            graphicsFormatMaxPrecisionBits[format] = maxBitsPrecision;
+
+            return maxBitsPrecision;
         }
 
         internal static void DisplayMessageNotification(string msg)

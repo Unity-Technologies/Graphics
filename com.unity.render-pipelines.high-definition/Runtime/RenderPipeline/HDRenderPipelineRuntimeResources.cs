@@ -180,6 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader encodeBC6HCS;
             [Reload("Runtime/Core/CoreResources/CubeToPano.shader")]
             public Shader cubeToPanoPS;
+            [Reload("Runtime/Core/CoreResources/CubeToHemiPano.shader")]
+            public Shader cubeToHemiPanoPS;
             [Reload("Runtime/Core/CoreResources/BlitCubeTextureFace.shader")]
             public Shader blitCubeTextureFacePS;
             [Reload("Runtime/Material/LTCAreaLight/FilterAreaLightCookies.shader")]
@@ -192,6 +194,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader customPassRenderersUtils;
             [Reload("Runtime/RenderPipeline/Utility/Texture3DAtlas.compute")]
             public ComputeShader texture3DAtlasCS;
+
+            // General tools used Importance Sampling
+            [Reload("Runtime/Core/CoreResources/GPUScan.compute")]
+            public ComputeShader gpuScanCS;
+            [Reload("Runtime/Core/CoreResources/Arithmetics.compute")]
+            public ComputeShader gpuArithmeticsCS;
+            [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
+            public ComputeShader rescale01CS;
+            [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
+            public ComputeShader importanceSample2DCS;
+            [Reload("Runtime/Core/CoreResources/ImportanceSamplingFromSamples.compute")]
+            public ComputeShader ImportanceSamplingFromSamplesCS;
+            [Reload("Runtime/Core/CoreResources/InverseCDF1D.compute")]
+            public ComputeShader inverseCDF1DCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

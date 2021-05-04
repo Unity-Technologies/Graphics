@@ -82,6 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display the final color pyramid for the frame.</summary>
         FinalColorPyramid,
 
+        // TODO: Move before count for 11.0
+        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
+        ScreenSpaceReflectionsPrev,
+        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
+        ScreenSpaceReflectionsAccum,
+
         // Raytracing Only
         /// <summary>Display ray tracing light cluster.</summary>
         LightCluster,
@@ -132,11 +138,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug,
-        // TODO: Move before count for 11.0
-        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
-        ScreenSpaceReflectionsPrev,
-        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum,
 
         /// <summary>Display the world space position.</summary>
         WorldSpacePosition,
