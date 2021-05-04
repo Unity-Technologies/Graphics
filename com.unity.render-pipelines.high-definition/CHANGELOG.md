@@ -182,6 +182,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 - Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed pixel coord to view direction matrix for asymetric projection matrix.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
