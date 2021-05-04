@@ -616,6 +616,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RefVolTransform GetTransform() { return m_Transform; }
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
+        internal float MinDistanceBetweenProbes() { return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1); }
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
@@ -917,14 +918,22 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name="cmd">A command buffer used to perform the data update.</param>
         /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
+        /// <param name="viewBias">View bias to apply to the position used to sample probe volumes.</param>
+        /// <param name="scaleBiasByMinDistanceBetweenProbes">Whether to scale the biases with the minimum distance between probes.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias, float viewBias, bool scaleBiasByMinDistanceBetweenProbes)
         {
+            if (scaleBiasByMinDistanceBetweenProbes)
+            {
+                normalBias *= MinDistanceBetweenProbes();
+                viewBias *= MinDistanceBetweenProbes();
+            }
+
             ShaderVariablesProbeVolumes shaderVars;
             shaderVars._WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
             shaderVars._IndexDim = m_Index.GetIndexDimension();
             shaderVars._NormalBias = normalBias;
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars.pad0 = 0;
+            shaderVars._ViewBias = viewBias;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
