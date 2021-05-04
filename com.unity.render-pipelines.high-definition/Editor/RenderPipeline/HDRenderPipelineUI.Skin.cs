@@ -27,13 +27,17 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
             public static readonly GUIContent decalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
             public static readonly GUIContent decalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
+
             public static readonly GUIContent shadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
-            public static readonly GUIContent directionalShadowsSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
-            public static readonly GUIContent punctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
-            public static readonly GUIContent areaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
-            public static readonly GUIContent shadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
+
+            public static readonly GUIContent pointLightshadowSubTitle = EditorGUIUtility.TrTextContent("Point Light Shadows");
+            public static readonly GUIContent directionalLightshadowSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
+            public static readonly GUIContent areaLightshadowSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
+
+            public static readonly GUIContent shadowPointLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Point Lights Atlas");
             public static readonly GUIContent shadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
-            public static readonly GUIContent punctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Punctual Shadow Resolution Tiers");
+
+            public static readonly GUIContent punctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Point Shadow Resolution Tiers");
             public static readonly GUIContent areaLightsShadowTiers = EditorGUIUtility.TrTextContent("Area Shadow Resolution Tiers");
             public static readonly GUIContent directionalLightsShadowTiers = EditorGUIUtility.TrTextContent("Directional Shadow Resolution Tiers");
             public static readonly GUIContent dynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
