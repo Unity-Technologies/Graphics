@@ -14,6 +14,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
+using ShadowQuality = UnityEngine.ShadowQuality;
+using ShadowResolution = UnityEngine.ShadowResolution;
 
 internal class ProjectSettingsConverter : RenderPipelineConverter
 {
@@ -26,6 +28,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
 
     private List<ProjectSettingItem> settingsItems = new List<ProjectSettingItem>();
     private List<CameraSettings> cameraSettings = new List<CameraSettings>();
+    private GraphicsTierSettings graphicsTierSettings;
 
     private bool needsForward = false;
     private int forwardIndex = -1;
@@ -34,10 +37,9 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
 
     public override void OnInitialize(InitializeConverterContext context)
     {
-        // find all cameras and thier info
+        // find all cameras and their info
         GatherCameras(ref context);
 
-        // checking if deferred or forward
         // check graphics tiers
         GatherGraphicsTiers();
 
@@ -126,164 +128,110 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         }
     }
 
-    internal void GatherGraphicsTiers()
+    /// <summary>
+    /// Grabs the 3rd tier from the Graphics Tier Settings based off the current build platform
+    /// </summary>
+    private void GatherGraphicsTiers()
     {
         var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
-        for (var i = 0; i < 3; i++)
-        {
-            var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, i == 0 ? GraphicsTier.Tier1 : i == 1 ? GraphicsTier.Tier2 : GraphicsTier.Tier3);
-            switch (tier.renderingPath)
-            {
-                case RenderingPath.VertexLit:
-                    needsForward = true;
-                    break;
-                case RenderingPath.Forward:
-                    needsForward = true;
-                    break;
-                case RenderingPath.DeferredLighting:
-                    needsDeferred = true;
-                    break;
-                case RenderingPath.DeferredShading:
-                    needsDeferred = true;
-                    break;
-                default:
-                    needsForward = true;
-                    break;
-            }
-        }
+        var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier1);
+
+        graphicsTierSettings.RenderingPath = tier.renderingPath;
+        graphicsTierSettings.ReflectionProbeBlending = tier.reflectionProbeBlending;
+        graphicsTierSettings.ReflectionProbeBoxProjection = tier.reflectionProbeBoxProjection;
+        graphicsTierSettings.CascadeShadows = tier.cascadedShadowMaps;
+        graphicsTierSettings.HDR = tier.hdr;
     }
 
-    internal void GatherCameras(ref InitializeConverterContext context)
+    /// <summary>
+    /// Searches and finds any cameras that have dedicated Render Path values, i.e not using hte Graphics Settings option.
+    /// </summary>
+    /// <param name="context">Converter context to fill in.</param>
+    private void GatherCameras(ref InitializeConverterContext context)
     {
         using var searchForwardContext = SearchService.CreateContext("asset", "p:t=camera (renderingpath=forward or renderingpath=legacyvertexlit)");
         using var forwardRequest = SearchService.Request(searchForwardContext);
         {
-            // we're going to do this step twice in order to get them ordered, but it should be fast
-            var orderedRequest = forwardRequest.OrderBy(req =>
-                {
-                    GlobalObjectId.TryParse(req.id, out var gid);
-                    return gid.assetGUID;
-                })
-                .ToList();
-
-            foreach (var r in orderedRequest)
-            {
-                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                {
-                    continue;
-                }
-
-                var label = r.provider.fetchLabel(r, r.context);
-                var description = r.provider.fetchDescription(r, r.context);
-
-                var item = new ConverterItemDescriptor()
-                {
-                    name = $"{label} : {description}",
-                    info = "Needs Forward Renderer",
-                };
-
-                context.AddAssetToConvert(item);
-                needsForward = true;
-            }
+            AddCamera(forwardRequest, ref context, RenderingPath.Forward);
         }
 
         using var searchDeferredContext = SearchService.CreateContext("asset", "p:t=camera (renderingpath=deferred or renderingpath=legacydeferred(lightprepass))");
         using var deferredRequest = SearchService.Request(searchDeferredContext);
         {
-            // we're going to do this step twice in order to get them ordered, but it should be fast
-            var orderedRequest = deferredRequest.OrderBy(req =>
-                {
-                    GlobalObjectId.TryParse(req.id, out var gid);
-                    return gid.assetGUID;
-                })
-                .ToList();
-
-            foreach (var r in orderedRequest)
-            {
-                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                {
-                    continue;
-                }
-
-                var label = r.provider.fetchLabel(r, r.context);
-                var description = r.provider.fetchDescription(r, r.context);
-
-                var item = new ConverterItemDescriptor()
-                {
-                    name = $"{label} : {description}",
-                    info = "Needs Deferred Renderer",
-                };
-
-                context.AddAssetToConvert(item);
-                needsDeferred = true;
-            }
+            AddCamera(deferredRequest, ref context, RenderingPath.DeferredShading);
         }
-
-
-        /*
-        foreach (var camera in cameras)
-        {
-            CameraSettings camSettings = null;
-
-            switch (camera.renderingPath)
-            {
-                case RenderingPath.UsePlayerSettings:
-                    Debug.Log($"Camera {camera.name} not needed, is {camera.renderingPath}");
-                    break;
-                case RenderingPath.VertexLit:
-                    Debug.Log($"Camera {camera.name} Render path {camera.renderingPath} is not supported.");
-                    break;
-                case RenderingPath.Forward:
-                    camSettings = new CameraSettings();
-                    CaptureCamera(camera, ref camSettings);
-                    needsForward = true;
-                    break;
-                case RenderingPath.DeferredLighting:
-                    camSettings = new CameraSettings();
-                    CaptureCamera(camera, ref camSettings);
-                    needsDeferred = true;
-                    break;
-                case RenderingPath.DeferredShading:
-                    camSettings = new CameraSettings();
-                    CaptureCamera(camera, ref camSettings);
-                    needsDeferred = true;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            if (camSettings == null)
-                return;
-
-            cameraSettings.Add(camSettings);
-
-            ConverterItemDescriptor info = new ConverterItemDescriptor()
-            {
-                name = $"Camera:{camera.name} > {camSettings.renderingPath}",
-                info = camSettings.assetPath,
-                warningMessage = "",
-            };
-            context.AddAssetToConvert(info);
-            // TODO remove in final
-            Thread.Sleep(100);
-        }
-        */
     }
 
-    internal void GatherQualityLevels(ref InitializeConverterContext context)
+    private void AddCamera(ISearchList searchList, ref InitializeConverterContext context, RenderingPath path)
+    {
+        // we're going to do this step twice in order to get them ordered, but it should be fast
+        var orderedRequest = searchList.OrderBy(req =>
+            {
+                GlobalObjectId.TryParse(req.id, out var gid);
+                return gid.assetGUID;
+            })
+            .ToList();
+
+        foreach (var r in orderedRequest)
+        {
+            if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+            {
+                continue;
+            }
+
+            var label = r.provider.fetchLabel(r, r.context);
+            var description = r.provider.fetchDescription(r, r.context);
+
+            var item = new ConverterItemDescriptor()
+            {
+                name = $"{label} : {description}",
+                info = $"Needs {path}",
+            };
+
+            context.AddAssetToConvert(item);
+
+            var camItem = new CameraSettings()
+            {
+                goName = label,
+                objectID = gid,
+                assetPath = "unknown",
+                parent = Parent.Scene,
+                renderingPath = path,
+            };
+            cameraSettings.Add(camItem);
+        }
+    }
+
+    private void GatherQualityLevels(ref InitializeConverterContext context)
     {
         var id = 0;
         foreach (var levelName in QualitySettings.names)
         {
-            var projectSettings = new ProjectSettingItem();
+            var projectSettings = new ProjectSettingItem
+            {
+                index = id,
+                levelName = levelName,
+                pixelLightCount = QualitySettings.pixelLightCount,
+                MSAA = QualitySettings.antiAliasing,
+                softShadows = QualitySettings.shadows == ShadowQuality.All ? true : false,
+                shadowResolution = QualitySettings.shadowResolution,
+                shadowDistance = QualitySettings.shadowDistance,
+                shadowCascadeCount = QualitySettings.shadowCascades,
+                cascadeSplit1 = QualitySettings.shadowCascades == 1 ? QualitySettings.shadowCascade2Split : QualitySettings.shadowCascade4Split.x,
+                cascadeSplit2 = QualitySettings.shadowCascade4Split.y,
+                cascadeSplit3 = QualitySettings.shadowCascade4Split.z,
+            };
+            settingsItems.Add(projectSettings);
+
             var setting = QualitySettings.GetRenderPipelineAssetAt(id);
             var item = new ConverterItemDescriptor();
-            projectSettings.levelName = levelName;
             item.name = $"Quality Level {id}:{levelName}";
 
             var text = "";
             if (setting != null)
             {
+                item.warningMessage = "Contains SRP Asset already, can override if desired.";
+
                 if (setting.GetType().ToString().Contains("Universal.UniversalRenderPipelineAsset"))
                 {
                     text = "Contains URP Asset, will override existing asset.";
@@ -309,62 +257,42 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
                     text += "Deferred Renderer Asset.";
                 }
             }
-
             item.info = text;
-            projectSettings.index = id;
-            settingsItems.Add(projectSettings);
             context.AddAssetToConvert(item);
             id++;
         }
     }
 
-    internal void CaptureCamera(Camera camera, ref CameraSettings camSettings)
+    private struct GraphicsTierSettings
     {
-        camSettings.goName = camera.name;
-        camSettings.objectID = camera.GetInstanceID();
-        //render path
-        camSettings.renderingPath = camera.renderingPath;
-
-        if (PrefabUtility.IsPartOfAnyPrefab(camera))
-        {
-            camSettings.assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(camera);
-
-            if (PrefabUtility.IsPartOfVariantPrefab(camera))
-            {
-                camSettings.parent = Parent.PrefabVariant;
-                var overrides = PrefabUtility.GetObjectOverrides(camera.gameObject);
-                foreach (var objectOverride in overrides)
-                {
-                    // figure out if the rendering mode has been overridden
-                }
-            }
-            else
-            {
-                camSettings.parent = Parent.Prefab;
-            }
-        }
-        else
-        {
-            camSettings.parent = Parent.Scene;
-            camSettings.assetPath = camera.gameObject.scene.path;
-        }
-        //save path to object if !use graphics settings && not same as graphics tier
-        Debug.Log($"Camera {camSettings.objectID}:{camSettings.goName} " +
-                  $"is using {camSettings.renderingPath}, " +
-                  $"it lives in a {camSettings.parent} at {camSettings.assetPath}.");
+        public bool ReflectionProbeBoxProjection;
+        public bool ReflectionProbeBlending;
+        public bool CascadeShadows;
+        public bool HDR;
+        public RenderingPath RenderingPath;
     }
 
-    internal class ProjectSettingItem
+    private class ProjectSettingItem
     {
+        // General
         public int index;
         public string levelName;
-        //public UniversalRenderPipelineAsset URPAsset;
+        // Settings
+        public int pixelLightCount;
+        public int MSAA;
+        public bool softShadows;
+        public ShadowResolution shadowResolution;
+        public float shadowDistance;
+        public int shadowCascadeCount;
+        public float cascadeSplit1;
+        public float cascadeSplit2;
+        public float cascadeSplit3;
     }
 
     internal class CameraSettings
     {
         public string goName;
-        public int objectID;
+        public GlobalObjectId objectID;
         public Parent parent;
         public string assetPath;
         public RenderingPath renderingPath;
