@@ -223,11 +223,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
-                var dilationSettings = bakingReferenceVolumeAuthoring.GetDilationSettings();
-                if (dilationSettings.dilate)
-                {
-                    DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, dilationSettings);
-                }
+                DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
 
                 ProbeReferenceVolume.instance.cells[cell.index] = cell;
             }
