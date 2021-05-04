@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public struct VaryingsMeshToDS
         {
             public static string name = "VaryingsMeshToDS";
-            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
+            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionRWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
             public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_DS_NEED_NORMAL_WS", ShaderValueType.Float3);
             public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_DS_NEED_TANGENT_WS", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
