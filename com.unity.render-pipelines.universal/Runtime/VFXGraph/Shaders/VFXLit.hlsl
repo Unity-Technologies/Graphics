@@ -141,7 +141,6 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, co
     #ifdef VFX_VARYING_EXPOSUREWEIGHT
     surfaceData.emission *= lerp(GetInverseCurrentExposureMultiplier(), 1.0f, i.VFX_VARYING_EXPOSUREWEIGHT);
     #endif
-    surfaceData.emission *= opacity;
     #endif
 
     return surfaceData;
