@@ -408,6 +408,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Structs.SurfaceDescriptionInputs },
             { Structs.VertexDescriptionInputs },
         };
+
+        // Will be append on top of Default if tessellation is enabled
+        public static StructCollection DefaultTessellation = new StructCollection
+        {
+            { HDStructs.VaryingsMeshToDS }
+        };
     }
     #endregion
 
@@ -748,6 +754,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        // We will always select Basic or BasicTessellation - added in PostProcessSubShader
         public static PragmaCollection Basic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
@@ -767,7 +774,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
         };
 
-        public static PragmaCollection DotsInstancedInV2OnlyBase = new PragmaCollection
+        public static PragmaCollection BasicRaytracing = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target50) },
+            { Pragma.Raytracing("surface_shader") },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+        };
+
+        // Here are the Pragma Collection we can add on top of the Basic one
+        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
         {
             { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
@@ -777,7 +792,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             #endif
         };
 
-        public static PragmaCollection DotsInstancedInV1AndV2Base = new PragmaCollection
+        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
         {
             { Pragma.MultiCompileInstancing },
             // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
@@ -798,53 +813,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             #endif
         };
 
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSyncBase = new PragmaCollection
-        {
-            { DotsInstancedInV1AndV2Base },
-            { Pragma.EditorSyncCompilation },
-        };
-
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
-        {
-            { Basic },
-            { DotsInstancedInV2OnlyBase }
-        };
-
-        public static PragmaCollection DotsInstancedInV2OnlyTessellation = new PragmaCollection
-        {
-            { BasicTessellation },
-            { DotsInstancedInV2OnlyBase }
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
-        {
-            { Basic },
-            { DotsInstancedInV1AndV2Base }
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2Tessellation = new PragmaCollection
-        {
-            { BasicTessellation },
-            { DotsInstancedInV1AndV2Base }
-        };
-
         public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
         {
-            { Basic },
-            { DotsInstancedInV1AndV2EditorSyncBase }
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSyncTessellation = new PragmaCollection
-        {
-            { BasicTessellation },
-            { DotsInstancedInV1AndV2EditorSyncBase }
-        };
-
-        public static PragmaCollection RaytracingBasic = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target50) },
-            { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+            { DotsInstancedInV1AndV2 },
+            { Pragma.EditorSyncCompilation },
         };
     }
     #endregion

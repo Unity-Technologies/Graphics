@@ -181,11 +181,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Add keywords from subshaders:
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
                 passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-                CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
                     passDescriptor.structs = CoreStructCollections.Default;
+
+                // Tessellation management, append - Tessellation is currently not compatible with Raytracing
+                if (passDescriptor.useTessellation)
+                {
+                    passDescriptor.pragmas.Add(CorePragmas.BasicTessellation);
+                    passDescriptor.structs.Add(CoreStructCollections.DefaultTessellation);
+                    passDescriptor.defines.Add(CoreDefines.Tessellation);
+                }
+                else
+                {
+                    passDescriptor.pragmas.Add(passDescriptor.useRaytracing ? CorePragmas.Basic : CorePragmas.BasicRaytracing);
+                }
+
+                CollectPassKeywords(ref passDescriptor);
 
                 if (passDescriptor.fieldDependencies == null)
                 {

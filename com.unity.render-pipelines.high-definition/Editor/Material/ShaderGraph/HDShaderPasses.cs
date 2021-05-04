@@ -10,18 +10,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDShaderPasses
     {
-        // Helper
-        public static DefineCollection AppendTessellationDefine(DefineCollection current, bool tessellationEnabled)
-        {
-            return tessellationEnabled ? new DefineCollection(current).Add(CoreDefines.Tessellation) : current;
-        }
-
         #region Distortion Pass
 
         public static PassDescriptor GenerateDistortionPass(bool supportLighting, bool tessellationEnabled)
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "DistortionVectors",
                 referenceName = "SHADERPASS_DISTORTION",
@@ -30,8 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.ShaderGraphRaytracingDefault, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -86,6 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "ScenePickingPass",
                 referenceName = "SHADERPASS_DEPTH_ONLY",
@@ -94,8 +92,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ScenePicking,
-                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV1AndV2EditorSyncTessellation : CorePragmas.DotsInstancedInV1AndV2EditorSync,
-                defines = AppendTessellationDefine(CoreDefines.ScenePicking, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -123,6 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "SceneSelectionPass",
                 referenceName = "SHADERPASS_DEPTH_ONLY",
@@ -131,8 +131,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.SceneSelection,
-                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV1AndV2EditorSyncTessellation : CorePragmas.DotsInstancedInV1AndV2EditorSync,
-                defines = AppendTessellationDefine(CoreDefines.SceneSelection, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -166,6 +166,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor()
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "ShadowCaster",
                 referenceName = "SHADERPASS_SHADOWS",
@@ -183,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -264,6 +266,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "DepthForwardOnly",
                 referenceName = "SHADERPASS_DEPTH_ONLY",
@@ -273,8 +277,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -341,6 +345,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "MotionVectors",
                 referenceName = "SHADERPASS_MOTION_VECTORS",
@@ -350,8 +356,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
-                defines = AppendTessellationDefine(GenerateDefines(), tessellationEnabled),
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = GenerateDefines(),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -411,6 +417,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "ForwardOnly",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -420,8 +428,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
@@ -480,6 +488,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "ForwardEmissiveForDeferred",
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
@@ -489,8 +499,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.ForwardEmissiveForDeferred, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ForwardEmissiveForDeferred,
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
@@ -521,6 +531,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "TransparentBackface",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -530,8 +542,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.BackThenFront, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common
             };
@@ -574,6 +586,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "TransparentDepthPrepass",
                 referenceName = "SHADERPASS_TRANSPARENT_DEPTH_PREPASS",
@@ -605,8 +619,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.TransparentDepthPrepass, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -676,6 +690,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "TransparentDepthPostpass",
                 referenceName = "SHADERPASS_TRANSPARENT_DEPTH_POSTPASS",
@@ -692,8 +708,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 renderStates = GenerateRenderState(),
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.TransparentDepthPostpass, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.TransparentDepthPostpass,
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -740,6 +756,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 displayName = "DepthOnly",
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "DepthOnly",
@@ -748,8 +766,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = CoreRenderStates.DepthOnly,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.ShaderGraphRaytracingDefault, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -781,6 +799,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "GBuffer",
                 referenceName = "SHADERPASS_GBUFFER",
@@ -790,8 +810,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = GBufferRenderState,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.ShaderGraphRaytracingDefault, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -837,6 +857,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "Forward",
                 referenceName = "SHADERPASS_FORWARD",
@@ -846,8 +868,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = (tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only),
-                defines = AppendTessellationDefine(CoreDefines.ForwardLit, tessellationEnabled),
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ForwardLit,
                 includes = ForwardIncludes,
                 customInterpolators = CoreCustomInterpolators.Common,
                 virtualTextureFeedback = true,
@@ -925,6 +947,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 // Definition
                 displayName = "IndirectDXR",
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
@@ -933,7 +957,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = supportLighting ? CoreRequiredFields.LitMinimal : null,
 
                 // Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
                 keywords = supportLighting ? IndirectDiffuseKeywordCollection : null,
                 includes = GenerateIncludes(),
@@ -985,6 +1008,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 // Definition
                 displayName = "VisibilityDXR",
                 referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
@@ -996,7 +1021,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingVisibilityFragment,
 
                 // Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingVisibilityDefines : null,
                 keywords = CoreKeywords.RaytracingVisiblity,
                 includes = GenerateIncludes(),
@@ -1038,6 +1062,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 // Definition
                 displayName = "ForwardDXR",
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
@@ -1050,7 +1076,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingForwardFragment,
 
                 // Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
                 includes = GenerateIncludes(),
             };
@@ -1104,6 +1129,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 // Definition
                 displayName = "GBufferDXR",
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
@@ -1116,7 +1143,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingGBufferFragment,
 
                 // Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
                 keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : null,
                 includes = GenerateIncludes(),
@@ -1166,6 +1192,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 //Definition
                 displayName = "PathTracingDXR",
                 referenceName = "SHADERPASS_PATH_TRACING",
@@ -1177,7 +1205,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = PathTracingFragment,
 
                 //Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
                 includes = GenerateIncludes(),
             };
@@ -1227,6 +1254,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useRaytracing = true,
+
                 //Definition
                 displayName = "SubSurfaceDXR",
                 referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
@@ -1243,7 +1272,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 //Collections
-                pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
                 includes = GenerateIncludes(),
             };
@@ -1285,6 +1313,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new PassDescriptor
             {
+                useTessellation = tessellationEnabled,
+
                 // Definition
                 displayName = "FullScreenDebug",
                 referenceName = "SHADERPASS_FULL_SCREEN_DEBUG",
@@ -1292,7 +1322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Collections
-                pragmas = tessellationEnabled ? CorePragmas.DotsInstancedInV2OnlyTessellation : CorePragmas.DotsInstancedInV2Only,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),
             };

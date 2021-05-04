@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
         public static FieldDescriptor EmissionOverriden =       new FieldDescriptor(string.Empty, "EmissionOverriden", string.Empty);
         public static FieldDescriptor TessellationFactor =      new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");
+        public static FieldDescriptor TessellationDisplacement = new FieldDescriptor(string.Empty, "TessellationDisplacement", "_TESSELLATION_DISPLACEMENT 1");
         #endregion
     }
 }

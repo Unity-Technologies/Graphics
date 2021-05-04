@@ -69,19 +69,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public struct VaryingsMeshToDS
         {
             public static string name = "VaryingsMeshToDS";
-            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3);
-            public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3);
-            public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+            public static FieldDescriptor positionRWS = new FieldDescriptor(VaryingsMeshToDS.name, "positionWS", "VARYINGS_DS_NEED_POSITION_WS", ShaderValueType.Float3);
+            public static FieldDescriptor normalWS = new FieldDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_DS_NEED_NORMAL_WS", ShaderValueType.Float3);
+            public static FieldDescriptor tangentWS = new FieldDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_DS_NEED_TANGENT_WS", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord0 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord0 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord0", "VARYINGS_DS_NEED_TEXCOORD0", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord1 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord1 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord1", "VARYINGS_DS_NEED_TEXCOORD1", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord2 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord2 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord2", "VARYINGS_DS_NEED_TEXCOORD2", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+            public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_DS_NEED_TEXCOORD3", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+            public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");

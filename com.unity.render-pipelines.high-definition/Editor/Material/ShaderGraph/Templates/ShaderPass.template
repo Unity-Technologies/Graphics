@@ -77,6 +77,16 @@ Pass
 
     $splice(GraphDefines)
 
+	#ifdef TESSELLATION_ON
+	$VaryingsMeshToDS.positionRWS:      #define VARYINGS_DS_NEED_POSITION_WS
+    $VaryingsMeshToDS.normalWS:         #define VARYINGS_DS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToDS.texCoord0:        #define VARYINGS_DS_NEED_TEXCOORD0
+    $VaryingsMeshToDS.texCoord1:        #define VARYINGS_DS_NEED_TEXCOORD1
+    $VaryingsMeshToDS.texCoord2:        #define VARYINGS_DS_NEED_TEXCOORD2
+    $VaryingsMeshToDS.texCoord3:        #define VARYINGS_DS_NEED_TEXCOORD3
+    $VaryingsMeshToDS.color:            #define VARYINGS_DS_NEED_COLOR
+	#endif
+
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
     // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here

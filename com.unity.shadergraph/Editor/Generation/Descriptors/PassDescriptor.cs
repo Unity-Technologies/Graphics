@@ -30,6 +30,10 @@ namespace UnityEditor.ShaderGraph
         public AdditionalCommandCollection additionalCommands;
         public CustomInterpSubGen.Collection customInterpolators;
 
+        // Properties
+        public bool useTessellation;
+        public bool useRaytracing;
+
         // Methods
         public bool Equals(PassDescriptor other)
         {

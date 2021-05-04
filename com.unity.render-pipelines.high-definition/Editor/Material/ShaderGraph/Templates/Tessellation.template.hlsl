@@ -103,7 +103,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 
     // TODO: This shouldn't be in SurfaceDescription but in TessellationDescription
     float tessellationFactor = 1.0;
-    $SurfaceDescription.TessellationFactor: tessellationFactor = $SurfaceDescription.TessellationFactor;
+    $vertexDescription.TessellationFactor: tessellationFactor = vertexDescription.TessellationFactor;
 
     edgeTessFactors *= tessellationFactor * _GlobalTessellationFactorMultiplier;
 
@@ -122,7 +122,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)
 {
     // TODO: This shouldn't be in SurfaceDescription but in TessellationDescription
-    $SurfaceDescription.TessellationDisplacement: // Comment about Tessellation
+    $vertexDescription.TessellationDisplacement: float3 displacementWS = vertexDescription.TessellationDisplacement;
 
     return ;
 }
