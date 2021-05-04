@@ -162,7 +162,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
-            public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
             public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
@@ -1482,10 +1481,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
                 int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
-
-                // It doesn't seem UniversalRP use this.
-                Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
-                cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
