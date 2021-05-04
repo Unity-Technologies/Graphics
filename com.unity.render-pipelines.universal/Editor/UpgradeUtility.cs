@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Asset is used by objects that have materials which may have been upgraded, but there is no unambiguous upgrade path.
         /// </summary>
-        UsedByAmbiguouslyUpgraded = 4 | 2
+        UsedByAmbiguouslyUpgraded = 8
     }
 
     /// <summary>

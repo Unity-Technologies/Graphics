@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Tests
                 },
                 "_BaseColor1"
             )
-                .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
+                .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, color property"),
             new TestCaseData(
                 "_MainTex_ST", "NewShader", RenameType.Float,
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Tests
                 },
                 "_BaseMap_ST_ST1"
             )
-                .Returns(SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
+                .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Single target material, upgraded with multiple paths, float property"),
             new TestCaseData(
                 "_Color", "OldShader", RenameType.Color,
