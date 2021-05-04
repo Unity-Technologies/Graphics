@@ -1,4 +1,4 @@
-import argparse
+import platform
 import os
 import subprocess
 from os import path
@@ -43,13 +43,13 @@ if __name__ == "__main__":
             if line == "":
                 break
             test_name, asset_path, should_update_image = line.split(",")
-            _, _, colorspace, editor, platform, vr, testname, testasset = asset_path.split("/")
+            _, _, colorspace, editor, test_platform, vr, testname, testasset = asset_path.split("/")
 
             if should_update_image == "True":
                 actual_img_path = path.join(os.getcwd(), root, "Assets", "ActualImages",
-                                            colorspace, editor, platform, vr, test_name + ".png")
+                                            colorspace, editor, test_platform, vr, test_name + ".png")
                 reference_img_path = path.join(os.getcwd(), root, "Assets", "ReferenceImages",
-                                               colorspace, editor, platform, vr, test_name)
+                                               colorspace, editor, test_platform, vr, test_name)
                 copyfile(actual_img_path, reference_img_path + ".png")
                 repo.git.add(reference_img_path + ".png")
                 asset_meta_dir_path = path.join(root, asset_path.rsplit("/", 1)[0])
