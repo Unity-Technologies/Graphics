@@ -160,6 +160,7 @@ namespace UnityEditor.ShaderGraph
                     m_Targets[i].Setup(ref context);
 
                     var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, m_TemporaryBlocks);
+
                     foreach (var subShader in context.subShaders)
                     {
                         GenerateSubShader(i, subShader, subShaderProperties);
