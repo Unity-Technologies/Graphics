@@ -16,7 +16,17 @@
 // scaleBias.w = unused
 //uniform float4 _ScaleBias;
 uniform float4 _ScaleBiasRt;
-float4 _TimeParameters;
+
+// _TimeParameters is not defined in built-in, but is expected to be defined as [t, sin(t), cos(t), 0].
+// This can be dynamically constructed from other variables knowing that:
+// float4 _Time; // (t/20, t, t*2, t*3)
+// float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
+// float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
+float4 GetTimeParameters()
+{
+    return float4(_Time.y, _SinTime.w, _CosTime.w, 0);
+}
+#define _TimeParameters GetTimeParameters()
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
 {
