@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
@@ -73,6 +74,13 @@ namespace UnityEditor.Rendering.Universal
             SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both);
         }
 
+        static List<XRDisplaySubsystemDescriptor> displayDescriptors = new List<XRDisplaySubsystemDescriptor>();
+
+        static void OnReloadSubsystemsComplete()
+        {
+            SubsystemManager.GetSubsystemDescriptors(displayDescriptors);
+        }
+
         public new void OnEnable()
         {
             base.OnEnable();
@@ -91,6 +99,9 @@ namespace UnityEditor.Rendering.Universal
             validCameras.Clear();
             m_TypeErrorCameras.Clear();
             m_OutputWarningCameras.Clear();
+
+            SubsystemManager.GetSubsystemDescriptors(displayDescriptors);
+            SubsystemManager.afterReloadSubsystems += OnReloadSubsystemsComplete;
 
             UpdateAnimationValues(true);
 
@@ -556,6 +567,11 @@ namespace UnityEditor.Rendering.Universal
                 else
                     settings.DrawProjection();
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                bool displaySubsystemPresent = displayDescriptors.Count > 0;
+                if (displaySubsystemPresent && m_SerializedCamera.allowXRRendering.boolValue && camera.orthographic && camera.targetTexture == null)
+                    EditorGUILayout.HelpBox("One or more XR Plug-in providers were detected in your project. Using Orthographic projection is not supported when running in XR and enabling this may cause problems.", MessageType.Warning, true);
+#endif
                 settings.DrawClippingPlanes();
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
