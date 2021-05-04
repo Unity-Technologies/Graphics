@@ -26,6 +26,9 @@ namespace UnityEditor.ShaderGraph
         public static FieldDescriptor GraphVFX =              new FieldDescriptor(kFeatures, "graphVFX", "FEATURES_GRAPH_VFX");
         public static FieldDescriptor ObjectToWorld =         new FieldDescriptor(kTransforms, "ObjectToWorld", "_OBJECT_TO_WORLD");
         public static FieldDescriptor WorldToObject =         new FieldDescriptor(kTransforms, "WorldToObject", "_WORLD_TO_OBJECT");
+
+        public static FieldDescriptor TessellationFactor =    new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");
+        public static FieldDescriptor TessellationDisplacement = new FieldDescriptor(string.Empty, "TessellationDisplacement", "_TESSELLATION_DISPLACEMENT 1");
         #endregion
     }
 }

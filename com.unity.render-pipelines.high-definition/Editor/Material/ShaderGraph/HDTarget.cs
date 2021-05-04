@@ -401,7 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region StructCollections
     static class CoreStructCollections
     {
-        public static StructCollection Default = new StructCollection
+        public static StructCollection Basic = new StructCollection
         {
             { HDStructs.AttributesMesh },
             { HDStructs.VaryingsMeshToPS },
@@ -410,9 +410,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // Will be append on top of Default if tessellation is enabled
-        public static StructCollection DefaultTessellation = new StructCollection
+        public static StructCollection BasicTessellation = new StructCollection
         {
-            { HDStructs.VaryingsMeshToDS }
+            { HDStructs.AttributesMesh },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { Structs.SurfaceDescriptionInputs },
+            { Structs.VertexDescriptionInputs },
+        };
+
+        public static StructCollection BasicRaytracing = new StructCollection
+        {
+            { HDStructs.AttributesMesh },
+            { Structs.SurfaceDescriptionInputs },
         };
     }
     #endregion
@@ -436,7 +446,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DependencyCollection Tessellation = new DependencyCollection
         {
-            //Tessellation Varying Dependencies
+           //Tessellation Varying Dependencies
             new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.VaryingsMeshToDS.positionRWS),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                            HDStructFields.VaryingsMeshToDS.normalWS),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                           HDStructFields.VaryingsMeshToDS.tangentWS),
@@ -447,14 +457,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.VaryingsMeshToDS.color),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.VaryingsMeshToDS.instanceID),
 
-            //Tessellation Varying Dependencies, TODO: Why is this loop created?
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.VaryingsMeshToPS.tangentWS),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                           HDStructFields.VaryingsMeshToPS.texCoord0),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                           HDStructFields.VaryingsMeshToPS.texCoord1),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                           HDStructFields.VaryingsMeshToPS.texCoord2),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.VaryingsMeshToPS.texCoord3),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.VaryingsMeshToPS.color),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.VaryingsMeshToPS.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.positionRWS,                         HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.normalWS,                            HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                           HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                           HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                           HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.AttributesMesh.color),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
         };
 
         public static DependencyCollection FragInput = new DependencyCollection

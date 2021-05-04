@@ -268,9 +268,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
-                //Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = DecalRenderStates.DBufferProjector,
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
@@ -288,10 +285,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
-
-                //Fields
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
                 renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
@@ -313,9 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
                 renderStates = DecalRenderStates.DBufferMesh,
@@ -337,9 +328,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
                 renderStates = DecalRenderStates.DecalMeshForwardEmissive,
@@ -361,9 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
-                structs = CoreStructCollections.Default,
                 requiredFields = DecalRequiredFields.Mesh,
-                fieldDependencies = CoreFieldDependencies.Default,
 
                 // Render state overrides
                 renderStates = DecalRenderStates.Preview,

@@ -276,8 +276,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
-            context.AddBlock(HDBlockFields.SurfaceDescription.TessellationFactor, systemData.tessellation);
-            context.AddBlock(HDBlockFields.SurfaceDescription.TessellationDisplacement, systemData.tessellation);
+
+            context.AddBlock(BlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
+            context.AddBlock(BlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

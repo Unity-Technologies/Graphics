@@ -178,24 +178,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.validVertexBlocks == null)
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
-                // Add keywords from subshaders:
+                // Add struct, pragmas, keywords, defines from subshaders:
+                passDescriptor.structs = passDescriptor.structs == null ? new StructCollection() : new StructCollection { passDescriptor.structs }; // Duplicate structs to avoid side effects (static list modification)
+                passDescriptor.pragmas = passDescriptor.pragmas == null ? new PragmaCollection() : new PragmaCollection { passDescriptor.pragmas }; // Duplicate pragmas to avoid side effects (static list modification)
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
                 passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-
-                // Set default values for HDRP "surface" passes:
-                if (passDescriptor.structs == null)
-                    passDescriptor.structs = CoreStructCollections.Default;
-
+                    
                 // Tessellation management, append - Tessellation is currently not compatible with Raytracing
                 if (passDescriptor.useTessellation)
                 {
+                    passDescriptor.structs.Add(CoreStructCollections.BasicTessellation);
                     passDescriptor.pragmas.Add(CorePragmas.BasicTessellation);
-                    passDescriptor.structs.Add(CoreStructCollections.DefaultTessellation);
                     passDescriptor.defines.Add(CoreDefines.Tessellation);
                 }
                 else
                 {
-                    passDescriptor.pragmas.Add(passDescriptor.useRaytracing ? CorePragmas.Basic : CorePragmas.BasicRaytracing);
+                    passDescriptor.structs.Add(passDescriptor.useRaytracing ? CoreStructCollections.BasicRaytracing : CoreStructCollections.Basic);
+                    passDescriptor.pragmas.Add(passDescriptor.useRaytracing ? CorePragmas.BasicRaytracing : CorePragmas.Basic);
                 }
 
                 CollectPassKeywords(ref passDescriptor);
