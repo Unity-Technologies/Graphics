@@ -3,9 +3,9 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ScriptablePath), true)]

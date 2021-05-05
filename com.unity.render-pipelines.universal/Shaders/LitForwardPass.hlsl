@@ -210,6 +210,10 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
+#ifdef _DBUFFER
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+#endif
+
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
