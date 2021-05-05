@@ -190,7 +190,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)" : "TransformWorldToObject(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)", inputValue);
+                    transformString = string.Format(conversionType == ConversionType.Direction ?
+                        "TransformWorldToObjectDir(mul((float3x3)UNITY_MATRIX_I_V, {0}))" :
+                        "TransformWorldToObject(mul(UNITY_MATRIX_I_V, $precision4({0}, 1) ).xyz)", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
