@@ -1,7 +1,4 @@
-using System.IO;
-using UnityEditor;
-
-namespace UnityEngine
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// SRPLensFlareBlendMode defined the available blend mode for each LensFlareElement

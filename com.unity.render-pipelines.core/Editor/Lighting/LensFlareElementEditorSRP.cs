@@ -1,6 +1,5 @@
-using System.IO;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -97,7 +96,7 @@ namespace UnityEditor.Rendering
             SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
             SerializedProperty distortionRelativeToCenterProp = property.FindPropertyRelative("distortionRelativeToCenter");
 
-            SRPLensFlareType flareType = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+            SRPLensFlareType flareType = (SRPLensFlareType)flareTypeProp.enumValueIndex;
             Texture texture = lensFlareProp.objectReferenceValue ? lensFlareProp.objectReferenceValue as Texture : null;
             float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
             float imgWidth = 1.5f * 35.0f;
@@ -144,7 +143,7 @@ namespace UnityEditor.Rendering
                 {
                     rect = GetNextRect();
                     SRPLensFlareType newType;
-                    SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                    SRPLensFlareType typeValue = (SRPLensFlareType)flareTypeProp.enumValueIndex;
                     if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
                         flareTypeProp.enumValueIndex = (int)newType;
 
@@ -209,7 +208,7 @@ namespace UnityEditor.Rendering
                         intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
                     rect = GetNextRect();
                     SRPLensFlareBlendMode newBlendMode;
-                    SRPLensFlareBlendMode blendModeValue = (UnityEngine.SRPLensFlareBlendMode)blendModeProp.enumValueIndex;
+                    SRPLensFlareBlendMode blendModeValue = (SRPLensFlareBlendMode)blendModeProp.enumValueIndex;
                     if ((newBlendMode = ((SRPLensFlareBlendMode)(EditorGUI.EnumPopup(rect, Styles.blendMode, blendModeValue)))) != blendModeValue)
                         blendModeProp.enumValueIndex = (int)newBlendMode;
                 }
@@ -284,7 +283,7 @@ namespace UnityEditor.Rendering
                     {
                         rect = GetNextRect();
                         SRPLensFlareDistribution newDistribution;
-                        SRPLensFlareDistribution distributionValue = (UnityEngine.SRPLensFlareDistribution)distributionProp.enumValueIndex;
+                        SRPLensFlareDistribution distributionValue = (SRPLensFlareDistribution)distributionProp.enumValueIndex;
                         if ((newDistribution = ((SRPLensFlareDistribution)(EditorGUI.EnumPopup(rect, Styles.distribution, distributionValue)))) != distributionValue)
                             distributionProp.enumValueIndex = (int)newDistribution;
 
@@ -340,7 +339,7 @@ namespace UnityEditor.Rendering
             {
                 rect = GetNextRect(35.0f);
                 SRPLensFlareType newType;
-                SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                SRPLensFlareType typeValue = (SRPLensFlareType)flareTypeProp.enumValueIndex;
                 if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
                     flareTypeProp.enumValueIndex = (int)newType;
                 rect = GetNextRect();

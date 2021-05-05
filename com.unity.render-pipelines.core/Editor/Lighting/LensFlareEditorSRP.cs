@@ -1,6 +1,5 @@
-using System.IO;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
