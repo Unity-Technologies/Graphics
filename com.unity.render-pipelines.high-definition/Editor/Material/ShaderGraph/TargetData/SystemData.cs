@@ -184,11 +184,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        float m_MaxTessellationDisplacement;
-        public float maxTessellationDisplacement
+        float m_TessellationMaxDisplacement;
+        public float tessellationMaxDisplacement
         {
-            get => m_MaxTessellationDisplacement;
-            set => m_MaxTessellationDisplacement = value;
+            get => m_TessellationMaxDisplacement;
+            set => m_TessellationMaxDisplacement = value;
         }
 
         // End Tessellation

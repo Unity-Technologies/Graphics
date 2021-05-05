@@ -181,8 +181,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     pass.keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer, new FieldCondition(HDFields.Unlit, false));
             }
 
-            if (systemData.tessellation)
+            if (pass.useTessellation)
+            {
                 pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
+                pass.keywords.Add(CoreKeywordDescriptors.TessellationAdaptative);
+            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -402,7 +405,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 material.SetFloat(kTessellationFactorTriangleSize, systemData.tessellationFactorTriangleSize);
                 material.SetFloat(kTessellationShapeFactor, systemData.tessellationShapeFactor);
                 material.SetFloat(kTessellationBackFaceCullEpsilon, systemData.tessellationBackFaceCullEpsilon);
-                material.SetFloat(kMaxTessellationDisplacement, systemData.maxTessellationDisplacement);
+                material.SetFloat(kTessellationMaxDisplacement, systemData.tessellationMaxDisplacement);
             }
 
             // No sorting priority for shader graph preview

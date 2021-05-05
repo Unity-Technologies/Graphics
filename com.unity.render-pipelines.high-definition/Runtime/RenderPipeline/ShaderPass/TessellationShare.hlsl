@@ -85,8 +85,6 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     return CalcTriTessFactorsFromEdgeTessFactors(edgeTessFactors);
 }
 
-#define _TESSELLATION_ADAPTATIVE // TODO: move as a keyword
-
 struct TessellationFactors
 {
     float edge[3] : SV_TessFactor;

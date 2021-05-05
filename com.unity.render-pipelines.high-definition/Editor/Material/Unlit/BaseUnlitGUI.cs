@@ -253,6 +253,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (material.HasProperty(kTessellationMode))
+            {
+                TessellationMode tessMode = (TessellationMode)material.GetFloat(kTessellationMode);
+                CoreUtils.SetKeyword(material, "_TESSELLATION_PHONG", tessMode == TessellationMode.Phong);
+                bool tessAdaptative = material.GetFloat(kTessellationAdaptative) > 0.0f;
+                CoreUtils.SetKeyword(material, "_TESSELLATION_ADAPTATIVE", tessAdaptative);
+            }
+
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
             bool doubleSidedGI = false;

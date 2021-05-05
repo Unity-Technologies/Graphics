@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle Size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle.");
             public static GUIContent tessellationShapeFactorText = new GUIContent("Shape Factor", "Controls the strength of Phong tessellation shape (lerp factor).");
             public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle Culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
-            public static GUIContent maxTessellationDisplacementText = new GUIContent("Max Displacement", "Positive maximum displacement in meter of the current displace geometry. This is use to adapt the culling algorithm in case of large deformation. Can be the maximum height in meter of a heightmap for example.");
+            public static GUIContent tessellationMaxDisplacementText = new GUIContent("Max Displacement", "Positive maximum displacement in meter of the current displace geometry. This is use to adapt the culling algorithm in case of large deformation. Can be the maximum height in meter of a heightmap for example.");
 
             // Shader graph
             public static GUIContent tessellationEnableText = new GUIContent("Tessellation", "When enabled, HDRP active tessellation for this Material.");
@@ -39,11 +39,13 @@ namespace UnityEditor.Rendering.HighDefinition
         // tessellation params
         MaterialProperty tessellationMode = null;
         MaterialProperty tessellationFactor = null;
+        MaterialProperty tessellationAdaptative = null;
         MaterialProperty tessellationFactorMinDistance = null;
         MaterialProperty tessellationFactorMaxDistance = null;
         MaterialProperty tessellationFactorTriangleSize = null;
         MaterialProperty tessellationShapeFactor = null;
         MaterialProperty tessellationBackFaceCullEpsilon = null;
+        MaterialProperty tessellationMaxDisplacement = null;
         MaterialProperty doubleSidedEnable = null;
 
         /// <summary>
@@ -64,12 +66,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode);
-            tessellationFactor = FindProperty(kTessellationFactor);
+            tessellationAdaptative = FindProperty(kTessellationAdaptative);            
+            tessellationFactor = FindProperty(kTessellationFactor); // non-SG only property
             tessellationFactorMinDistance = FindProperty(kTessellationFactorMinDistance);
             tessellationFactorMaxDistance = FindProperty(kTessellationFactorMaxDistance);
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon);
+            tessellationMaxDisplacement = FindProperty(kTessellationMaxDisplacement); // SG only property            
         }
 
         /// <summary>
@@ -82,21 +86,32 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
+            if (tessellationFactor != null)
+                materialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);
+            if (tessellationMaxDisplacement != null)
+                materialEditor.ShaderProperty(tessellationMaxDisplacement, Styles.tessellationMaxDisplacementText);
+            if (doubleSidedEnable.floatValue == 0.0)
+                materialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
+
+            materialEditor.ShaderProperty(tessellationAdaptative, Styles.tessellationAdaptativeText);
+            if (tessellationAdaptative.floatValue > 0.0f)
+            {
+                EditorGUI.indentLevel++;
+                DrawDelayedFloatProperty(tessellationFactorMinDistance, Styles.tessellationFactorMinDistanceText);
+                DrawDelayedFloatProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
+                // clamp min distance to be below max distance
+                tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
+                materialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
+                EditorGUI.indentLevel--;
+            }
+
             TessellationModePopup();
-            materialEditor.ShaderProperty(tessellationFactor, Styles.tessellationFactorText);
-            DrawDelayedFloatProperty(tessellationFactorMinDistance, Styles.tessellationFactorMinDistanceText);
-            DrawDelayedFloatProperty(tessellationFactorMaxDistance, Styles.tessellationFactorMaxDistanceText);
-            // clamp min distance to be below max distance
-            tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
-            materialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
             if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong)
             {
+                EditorGUI.indentLevel++;
                 materialEditor.ShaderProperty(tessellationShapeFactor, Styles.tessellationShapeFactorText);
-            }
-            if (doubleSidedEnable.floatValue == 0.0)
-            {
-                materialEditor.ShaderProperty(tessellationBackFaceCullEpsilon, Styles.tessellationBackFaceCullEpsilonText);
-            }
+                EditorGUI.indentLevel--;
+            }            
         }
 
         void TessellationModePopup()

@@ -53,7 +53,7 @@ float GetTessellationFactor(VaryingsMeshToDS input)
 
 float GetMaxDisplacement()
 {
-    return _MaxTessellationDisplacement;
+    return _TessellationMaxDisplacement;
 }
 
 // TODO => must take into account custom interpolator
