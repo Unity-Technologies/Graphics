@@ -447,7 +447,7 @@ namespace UnityEditor.Rendering
                 // material property animations apply to all materials, so check shader usage in all of them
                 foreach (var material in rendererData.Materials)
                 {
-                    data.Usage |= UpgradeUtility.GetNewPropertyName(
+                    var usage = UpgradeUtility.GetNewPropertyName(
                         shaderProperty.Name,
                         material,
                         renameType,
@@ -455,6 +455,20 @@ namespace UnityEditor.Rendering
                         upgradePathsUsedByMaterials,
                         out var newPropertyName
                     );
+
+                    // if the property has already been upgraded with a different name, mark the upgrade as ambiguous
+                    if (usage == SerializedShaderPropertyUsage.UsedByUpgraded)
+                    {
+                        if (data.PropertyRenames.TryGetValue(binding, out var propertyRename))
+                        {
+                            if (propertyRename != newPropertyName)
+                            {
+                                usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
+                            }
+                        }
+                    }
+
+                    data.Usage |= usage;
                     data.PropertyRenames[binding] = newPropertyName;
                 }
             }
