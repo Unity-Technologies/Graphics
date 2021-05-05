@@ -71,12 +71,18 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     {
         const half3 normalTS = half3(0, 0, 1);
 
-        #if defined(_NORMALMAP)
-        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        #if SHADER_API_VULKAN || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_GLCORE
+            // Something about the code below is problematic for HLSLcc.
+            inputData.normalWS = inputData.normalWS;
+            surfaceData.normalTS = normalTS;
         #else
-        inputData.normalWS = inputData.normalWS;
+            #if defined(_NORMALMAP)
+            inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+            #else
+            inputData.normalWS = inputData.normalWS;
+            #endif
+            surfaceData.normalTS = normalTS;
         #endif
-        surfaceData.normalTS = normalTS;
         changed = true;
     }
 
