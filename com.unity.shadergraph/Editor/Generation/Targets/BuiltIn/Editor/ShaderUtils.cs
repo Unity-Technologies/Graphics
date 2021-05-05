@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.BuiltIn
 
         internal static ShaderID GetShaderID(Shader shader)
         {
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 BuiltInMetadata meta;
                 if (!shader.TryGetMetadataOfType<BuiltInMetadata>(out meta))
