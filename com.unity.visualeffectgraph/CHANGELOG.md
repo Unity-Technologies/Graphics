@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 - Material Offset setting in inspector of the rendered outputs.
 - Restore "Exact Fixed Time Step" option on VisualEffectAsset.
+- Support 2D Renderer in URP for Unlit.
 
 ### Changed
 - Allow remaking an existing link.
