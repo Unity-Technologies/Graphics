@@ -32,7 +32,6 @@ float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 sample
     // Remap to atlas texture
     float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
-    // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
@@ -48,7 +47,6 @@ float2 URP_LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sa
     // Remap into rect in the atlas texture
     float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
-    // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
@@ -65,7 +63,6 @@ float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositi
     // Remap to atlas texture
     float2 positionAtlasUV = atlasUVRect.xy * float2(positionUV) + atlasUVRect.zw;
 
-    // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
 
