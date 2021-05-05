@@ -5,6 +5,9 @@ using UnityEngine;
 public class MoveScript : MonoBehaviour
 {
     Vector3 m_originPos;
+    int m_frameCounter;
+    float m_speed = -1f;
+    
     void Start()
     {
         m_originPos = transform.position;
@@ -12,6 +15,13 @@ public class MoveScript : MonoBehaviour
     
     void Update()
     {
-        transform.position = m_originPos + transform.right * Mathf.Sin(Time.time * 10f);
+        transform.position += transform.right * m_speed;
+        ++m_frameCounter;
+
+        if (m_frameCounter > 4)
+        {
+            m_frameCounter = 0;
+            m_speed *= -1;
+        }
     }
 }
