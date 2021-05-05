@@ -370,12 +370,13 @@ namespace UnityEditor.Rendering.Universal
                 DrawShadowResolutionTierSettings();
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= !m_AdditionalLightShadowsSupportedProp.boolValue;
+                EditorGUILayout.Space();
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= !m_AdditionalLightShadowsSupportedProp.boolValue;
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
                 EditorGUI.EndDisabledGroup();
