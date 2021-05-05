@@ -126,6 +126,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling nomatrices nolightprobe nolightmap
 

@@ -67,21 +67,21 @@ struct FragmentOutput
     half4 GBuffer3 : SV_Target3; // Camera color attachment
 
 #if _RENDER_PASS_ENABLED
-	float GBuffer4 : SV_Target4;
+    float GBuffer4 : SV_Target4;
 
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     half4 GBuffer5 : SV_Target5;
     #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
     half4 GBuffer6 : SV_Target6;
-	#endif
+    #endif
 #else
     #ifdef GBUFFER_OPTIONAL_SLOT_1
-    half4 GBuffer4 : SV_Target5;
+    half4 GBuffer4 : SV_Target4;
     #endif
     #ifdef GBUFFER_OPTIONAL_SLOT_2
-    half4 GBuffer5 : SV_Target6;
-	#endif
+    half4 GBuffer5 : SV_Target5;
+    #endif
 #endif
 };
 
@@ -140,10 +140,10 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.occlusion);            // specular        specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, surfaceData.smoothness);                     // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                      // GI              GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-#if _RENDER_PASS_ENABLED
-	output.GBuffer4 = inputData.positionCS.z;
-#endif
-	#if OUTPUT_SHADOWMASK
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
+    #if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
     #ifdef _LIGHT_LAYERS
@@ -214,10 +214,10 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     output.GBuffer1 = half4(packedSpecular, occlusion);                              // metallic/specular specular        specular        occlusion
     output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal    encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 1);                                  // GI                GI              GI              [optional: see OutputAlpha()] (lighting buffer)
-	#if _RENDER_PASS_ENABLED
-	output.GBuffer4 = inputData.positionCS.z;
-	#endif
-	#if OUTPUT_SHADOWMASK
+    #if _RENDER_PASS_ENABLED
+    output.GBuffer4 = inputData.positionCS.z;
+    #endif
+    #if OUTPUT_SHADOWMASK
     output.GBUFFER_SHADOWMASK = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
     #endif
     #ifdef _LIGHT_LAYERS

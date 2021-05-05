@@ -169,6 +169,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // TODO: review the lastPassToBB logic to mak it work with merged passes
                     bool isLastPassToBB = false;
+
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
@@ -519,7 +520,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int GetValidInputAttachmentCount(ScriptableRenderPass renderPass)
         {
             var length = renderPass.m_InputAttachments.Length;
-            if (length != 8) // overriden, means yes
+            if (length != 8) // overriden, there are attachments
                 return length;
             else
             {
@@ -595,16 +596,15 @@ namespace UnityEngine.Rendering.Universal
 
         private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
-            var w = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
-            var h = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
-            var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+            var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+            var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+            var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
             return new RenderPassDescriptor(w, h, samples, depthID);
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
         {
-
             if (cameraData.isHdrEnabled)
             {
                 GraphicsFormat hdrFormat = GraphicsFormat.None;

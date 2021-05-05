@@ -311,6 +311,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
@@ -840,8 +841,7 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_DeferredPass);
 
-            //TODO: RenderPass API doesn't get the color attachment, fixit
-             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            EnqueuePass(m_RenderOpaqueForwardOnlyPass);
         }
 
         private struct RenderPassInputSummary

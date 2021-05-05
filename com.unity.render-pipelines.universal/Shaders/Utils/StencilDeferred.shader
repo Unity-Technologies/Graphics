@@ -310,11 +310,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
-#if _RENDER_PASS_ENABLED
-		float d = LOAD_FRAMEBUFFER_INPUT(3, input.positionCS.xy);
-#else
-        float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
-#endif
+        #if _RENDER_PASS_ENABLED
+            float d = LOAD_FRAMEBUFFER_INPUT(3, input.positionCS.xy);
+        #else
+            float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
+        #endif
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);
@@ -412,7 +412,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -457,7 +457,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -504,7 +504,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -551,7 +551,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
