@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 - Fixed depth of field pass usage on unsupported devices. [case 1327076](https://issuetracker.unity3d.com/issues/adreno-3xx-nothing-is-rendered-when-post-processing-is-enabled)
 - Fixed an issue with Shader Graph Lit shaders where the normalized view direction produced incorrect lighting. [1332804]
+- Fixed return values from GetStereoProjectionMatrix() and SetStereoViewMatrix(). [case 1312813](https://issuetracker.unity3d.com/issues/xr-urp-begincamerarender-method-is-lagging-behind-when-using-urp)
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
