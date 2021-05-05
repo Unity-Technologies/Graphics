@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
+- Fixed an issue when using the opaque texture with XR multipass. [case 1256604](https://issuetracker.unity3d.com/issues/urp-xr-xr-sdk-opaque-texture-is-black-in-one-eye-if-both-depth-and-opaque-texture-enabled-for-multipass-vr-in-urp)
 
 ## [7.6.0] - 2021-03-25
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
 - Fixed an issue that caused HDR to not work correctly in XR. [case 1311161](https://issuetracker.unity3d.com/issues/xr-urp-emission-effect-does-not-work-when-in-play-mode-and-xr-is-enabled)
 - Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
+- Fixed resolution of intermediate textures when rendering to part of a render texture. [case 1261287](https://issuetracker.unity3d.com/product/unity/issues/guid/1261287/)
 
 ## [7.5.3] - 2021-01-11
 
