@@ -29,7 +29,6 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 //    inputData.shadowCoord = inputData.shadowCoord;
 #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
