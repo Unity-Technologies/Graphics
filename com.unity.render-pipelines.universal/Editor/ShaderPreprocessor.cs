@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.Universal
         LightLayers = (1 << 14),
         ReflectionProbeBlending = (1 << 15),
         ReflectionProbeBoxProjection = (1 << 16),
+        RenderPassEnabled = (1 << 17),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
         ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);
+        ShaderKeyword m_RenderPassEnabled = new ShaderKeyword(ShaderKeywordStrings.RenderPassEnabled);
         ShaderKeyword m_DebugDisplay = new ShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
         ShaderKeyword m_LocalDetailMulx2;
@@ -161,6 +163,10 @@ namespace UnityEditor.Rendering.Universal
 
             if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers) &&
                 !IsFeatureEnabled(features, ShaderFeatures.LightLayers))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(m_RenderPassEnabled) &&
+                !IsFeatureEnabled(features, ShaderFeatures.RenderPassEnabled))
                 return true;
 
             // No additional light shadows
@@ -470,6 +476,7 @@ namespace UnityEditor.Rendering.Universal
             bool hasDeferredRenderer = false;
             bool withAccurateGbufferNormals = false;
             bool withoutAccurateGbufferNormals = false;
+            bool usesRenderPass = false;
 
             int rendererCount = pipelineAsset.m_RendererDataList.Length;
             for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
@@ -483,6 +490,7 @@ namespace UnityEditor.Rendering.Universal
                         hasDeferredRenderer |= true;
                         withAccurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
                         withoutAccurateGbufferNormals |= !universalRenderer.accurateGbufferNormals;
+                        usesRenderPass |= universalRenderer.useRenderPassEnabled;
                     }
                 }
 
@@ -518,6 +526,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;
+
+            if (usesRenderPass)
+                shaderFeatures |= ShaderFeatures.RenderPassEnabled;
 
             if (pipelineAsset.reflectionProbeBlending)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;

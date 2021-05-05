@@ -436,7 +436,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
 
-        internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
+        internal DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial, bool useNativeRenderPass = false)
         {
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
@@ -485,6 +485,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.TiledDeferredShading = true;
             this.UseJobSystem = true;
             m_HasTileVisLights = false;
+            this.UseRenderPass = useNativeRenderPass;
         }
 
         internal ref DeferredTiler GetTiler(int i)
