@@ -1,13 +1,9 @@
-using System.Linq;
 using UnityEngine;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
-    // [FormerName("UnityEditor.ShaderGraph.Texture2DNode")]
     [Title("Input", "Texture", "Sample Texture 2D Sandbox")]
     class SampleTexture2DSandboxNode : SandboxNode<SampleTexture2DNodeDefinition>
     {
@@ -50,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             // not cached (TODO: build a pure function memoizer cache)
             var shaderFunc = BuildFunction(textureType, useSamplerInput);
 
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc);
 
             if (!useSamplerInput)
@@ -60,7 +56,7 @@ namespace UnityEditor.ShaderGraph
         // statically cached function definition
         static ShaderFunction BuildFunction(TextureType textureType, bool useSamplerInput)
         {
-            var func = new ShaderFunction.Builder($"Unity_SampleTexture2D_{textureType}_{(useSamplerInput ? "Sampler_" : "")}$precision");
+            var func = new ShaderFunction.Builder($"Unity_SampleTexture2DSB_{textureType}_{(useSamplerInput ? "Sampler_" : "")}$precision");
 
             func.AddInput(Types._UnityTexture2D, "Texture");
             func.AddInput(Types._precision2, "UV", Binding.MeshUV0);

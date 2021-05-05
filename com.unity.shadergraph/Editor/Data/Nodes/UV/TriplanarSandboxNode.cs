@@ -12,11 +12,11 @@ namespace UnityEditor.ShaderGraph
     {
         // hax to make UI work
         [EnumControl("Type")]
-        public TextureType textureType
+        public SampleTexture2DNodeDefinition.TextureType textureType
         {
             get
             {
-                return this.m_Definition?.m_TextureType ?? TextureType.Default;
+                return this.m_Definition?.m_TextureType ?? SampleTexture2DNodeDefinition.TextureType.Default;
             }
             set
             {
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
     class TriplanarNodeDefinition : JsonObject, ISandboxNodeDefinition
     {
         [SerializeField]
-        public TextureType m_TextureType = TextureType.Default;
+        public SampleTexture2DNodeDefinition.TextureType m_TextureType = SampleTexture2DNodeDefinition.TextureType.Default;
 
         public void BuildRuntime(ISandboxNodeBuildContext context)
         {
@@ -45,20 +45,20 @@ namespace UnityEditor.ShaderGraph
             // not cached (TODO: build a pure function memoizer cache)
             var shaderFunc = BuildFunction(context.GetInputConnected("Sampler"), m_TextureType);
 
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc, PreviewMode.Preview3D);
         }
 
-        static ShaderFunction BuildFunction(bool useSeparateSamplerState, TextureType textureType)
+        static ShaderFunction BuildFunction(bool useSeparateSamplerState, SampleTexture2DNodeDefinition.TextureType textureType)
         {
-            var func = new ShaderFunction.Builder($"Unity_Triplanar_{textureType}_{(useSeparateSamplerState ? "sampler_" : "")}$precision");
+            var func = new ShaderFunction.Builder($"Unity_TriplanarSB_{textureType}_{(useSeparateSamplerState ? "sampler_" : "")}$precision");
             func.AddInput(Types._UnityTexture2D, "Texture");
             func.AddInput(Types._UnitySamplerState, "Sampler");
             func.AddInput(Types._float3, "Position", Binding.AbsoluteWorldSpacePosition);
             func.AddInput(Types._precision3, "Normal", Binding.WorldSpaceNormal);
             func.AddInput(Types._precision, "Tile", 1.0f);
             func.AddInput(Types._precision, "Blend", 1.0f);
-            if (textureType == TextureType.Normal)
+            if (textureType == SampleTexture2DNodeDefinition.TextureType.Normal_TangentSpace)
             {
                 // TODO: need to tag this as not visible inputs by default
                 func.AddInput(Types._precision3, "MeshTangent", Binding.WorldSpaceTangent);
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             func.AddLine("$precision3 UV = Position * Tile;");
             func.AddLine("$precision3 Alpha = SafePositivePow_$precision(Normal, min(Blend, floor(log2(Min_$precision()) / log2(1 / sqrt(3)))));");
             func.AddLine("Alpha /= dot(Alpha, 1.0);");
-            if (textureType == TextureType.Default)
+            if (textureType == SampleTexture2DNodeDefinition.TextureType.Default)
             {
                 if (useSeparateSamplerState)
                 {
@@ -111,10 +111,13 @@ namespace UnityEditor.ShaderGraph
                 func.AddLine("Z = $precision3(Z.xy + Normal.xy, abs(Z.z) * Normal.z);");
                 func.AddLine("Out = $precision4(normalize(X.zyx * Alpha.x + Y.xzy * Alpha.y + Z.xyz * Alpha.z), 1);");
 
-                // at this point we have world space normal -- but a standard shadergraph expects it in tangent space.. so convert spaces
-                // TODO: we could add an option to output world space normal directly, if the user has configured their input blocks to take world space normals
-                func.AddLine("$precision3x3 Transform = float3x3(MeshTangent, MeshBiTangent, MeshNormal);");
-                func.AddLine("Out.xyz = TransformWorldToTangent(Out.xyz, Transform);");
+                if (textureType == SampleTexture2DNodeDefinition.TextureType.Normal_TangentSpace)
+                {
+                    // at this point we have world space normal -- but a standard shadergraph expects it in tangent space.. so convert spaces
+                    // TODO: we could add an option to output world space normal directly, if the user has configured their input blocks to take world space normals
+                    func.AddLine("$precision3x3 Transform = float3x3(MeshTangent, MeshBiTangent, MeshNormal);");
+                    func.AddLine("Out.xyz = TransformWorldToTangent(Out.xyz, Transform);");
+                }
             }
             func.AddLine("R = Out.r; G = Out.g; B = Out.b; A = Out.a;");
 

@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -33,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             var vectorType = SandboxNodeUtils.DetermineDynamicVectorType(context, shaderFunc);
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 
-            context.SetMainFunction(specializedFunc, declareSlots: true);
+            context.SetMainFunction(specializedFunc);
             context.SetPreviewFunction(specializedFunc);
 
             // Add the prompt slot for the user to connect another input, if they want

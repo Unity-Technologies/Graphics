@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using UnityEngine;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
@@ -30,13 +26,13 @@ namespace UnityEditor.ShaderGraph
             // TODO: memoize! :D
             var shaderFunc = BuildFunction(inputType);
 
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc, PreviewMode.Preview3D);
         }
 
         static ShaderFunction BuildFunction(SandboxType inputType)
         {
-            var func = new ShaderFunction.Builder("Unity_Split_" + inputType.Name);
+            var func = new ShaderFunction.Builder("Unity_SplitSB_" + inputType.Name);
             func.AddInput(inputType, "In");
             int vecCount = inputType.VectorDimension;
 

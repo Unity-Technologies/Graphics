@@ -359,6 +359,8 @@ namespace UnityEditor.ShaderGraph
         {
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
+                var function = (generationMode == GenerationMode.Preview) ? previewFunction : mainFunction;
+
                 // declare output slot variables
                 GetOutputSlots(tempSlots);
                 foreach (var outSlot in tempSlots)
@@ -370,16 +372,16 @@ namespace UnityEditor.ShaderGraph
 
                 // call node function
                 sb.AppendIndentation();
-                sb.Add(mainFunction.Name, "(");
+                sb.Add(function.Name, "(");
 
                 tempSlots.Clear();
 
                 // get all slots
                 GetSlots(tempSlots);
                 bool firstParam = true;
-                for (int pIndex = 0; pIndex < mainFunction.Parameters.Count; pIndex++)
+                for (int pIndex = 0; pIndex < function.Parameters.Count; pIndex++)
                 {
-                    var p = mainFunction.Parameters[pIndex];
+                    var p = function.Parameters[pIndex];
                     if (!firstParam)
                         sb.Add(", ");
                     firstParam = false;

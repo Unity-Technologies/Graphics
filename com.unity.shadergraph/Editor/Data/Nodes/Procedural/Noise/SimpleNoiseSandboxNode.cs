@@ -1,6 +1,4 @@
-using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,7 +17,7 @@ namespace UnityEditor.ShaderGraph
             if (shaderFunc == null)
                 shaderFunc = BuildUnityNoiseFunction();
 
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc);
         }
 

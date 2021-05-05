@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -20,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             if (shaderFunc == null)
                 shaderFunc = BuildFunction();
 
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc);
         }
 
@@ -28,12 +27,12 @@ namespace UnityEditor.ShaderGraph
         static ShaderFunction shaderFunc = null;
         static ShaderFunction BuildFunction()
         {
-            var func = new ShaderFunction.Builder("Unity_CheckerboardSandbox_$precision");
-            func.AddInput(Types._float2,        "UV",          Binding.MeshUV0);                             // TODO: ExternalInput type?
-            func.AddInput(Types._precision3,    "ColorA",      new Vector3(0.2f, 0.2f, 0.2f));     // TODO: serializable defaults?
+            var func = new ShaderFunction.Builder("Unity_CheckerboardSB_$precision");
+            func.AddInput(Types._float2,        "UV",          Binding.MeshUV0);
+            func.AddInput(Types._precision3,    "ColorA",      new Vector3(0.2f, 0.2f, 0.2f));
             func.AddInput(Types._precision3,    "ColorB",      new Vector3(0.7f, 0.7f, 0.7f));
             func.AddInput(Types._precision2,    "Frequency",   new Vector2(1.0f, 1.0f));
-            func.AddOutput(Types._precision3,   "Out");                                            // TODO:  ShaderStageCapability.Fragment
+            func.AddOutput(Types._precision3,   "Out");             // TODO:  ShaderStageCapability.Fragment   meta data?   scan body code for ddx/ddy/tfetch instructions?
 
             func.AddLine("UV = (UV.xy + 0.5) * Frequency;");
             func.AddLine("$precision4 derivatives = $precision4(ddx(UV), ddy(UV));");

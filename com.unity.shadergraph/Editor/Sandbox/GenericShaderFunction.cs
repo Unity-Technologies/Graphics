@@ -25,7 +25,8 @@ public class GenericShaderFunction : ShaderFunction
 
         var specializedName = Name + "_" + specializedType.Name;
 
-        // TODO: should figure out if the function is still generic or not...  maybe we should combine the function builders into one that can do either?
+        // TODO: should figure out if the function is still generic or not...  support partial specialization?
+        // or else provide multiple generic parameter bindings when specializing functions
         var builder = new ShaderFunction.Builder(specializedName);
 
         // copy parameters, replacing types
@@ -38,7 +39,7 @@ public class GenericShaderFunction : ShaderFunction
         }
 
         // TODO: this replacement needs to be a bit smarter to avoid falsely replacing only part of an identifier...
-        // (unless we ensure the generic names are always uniquely identified, like $name$)
+        // (unless we ensure the generic names are always uniquely identified by characters, like $name$)
         var newBody = Body.Replace(genericTypeParameter.Name, specializedType.Name);
         builder.AddLine(newBody);
 

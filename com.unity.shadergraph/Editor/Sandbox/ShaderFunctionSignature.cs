@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -11,14 +12,14 @@ public class ShaderFunctionSignature : JsonObject
     public override int latestVersion => 1;
 
     // public API
-    public string Name { get { return name; } }
+    public string Name                              { get { return name; } }
 
-    // note: IReadOnlyList is not a guarantee of immutability..  :(
-    public IReadOnlyList<Parameter> Parameters { get { return parameters ?? ListUtils.EmptyReadOnlyList<Parameter>(); } }
+    public IReadOnlyList<Parameter> Parameters      { get { return parameters.AsReadOnly() ?? ListUtils.EmptyReadOnlyList<Parameter>(); } }
 
     [SerializeField]
     protected string name;
 
+    // TODO: can we store ReadOnlyCollection<> instead of List<> ?   is it serializable?
     [SerializeField]
     protected List<Parameter> parameters;
 
@@ -85,7 +86,9 @@ public class ShaderFunctionSignature : JsonObject
         {
             if (parameters == null)
                 parameters = new List<Parameter>();
-            // todo: verify name collision
+
+            // TODO: check for name collision
+
             parameters.Add(param);
         }
 

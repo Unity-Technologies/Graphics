@@ -4,7 +4,6 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
-
 // TODO: should be able to represent functions that use return values (not just output parameters)
 // maybe just the output parameter labeled "return"?
 

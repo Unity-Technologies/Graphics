@@ -1,7 +1,4 @@
-using System;
-using System.Reflection;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -23,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             var vectorType = SandboxNodeUtils.DetermineDynamicVectorType(context, shaderFunc);
             var specializedFunc = shaderFunc.SpecializeType(Types._dynamicVector, vectorType);
 
-            context.SetMainFunction(specializedFunc, declareSlots: true);
+            context.SetMainFunction(specializedFunc);
             context.SetPreviewFunction(specializedFunc);
         }
 
@@ -31,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         static GenericShaderFunction shaderFunc = null;
         static GenericShaderFunction BuildFunction()
         {
-            var func = new ShaderFunction.Builder("Unity_Maximum");
+            var func = new ShaderFunction.Builder("Unity_MaximumSB");
             var dynamicVectorType = func.AddGenericTypeParameter(Types._dynamicVector);
             func.AddInput(Types._dynamicVector, "A");       // TODO: could call AddGenericTypeParameter automatically for any input or output placeholder type...
             func.AddInput(Types._dynamicVector, "B");

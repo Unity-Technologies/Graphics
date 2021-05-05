@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+
 public class ShaderBuilder
 {
     // NOTE: a char is 2 bytes in C# (wide char)
@@ -26,26 +27,25 @@ public class ShaderBuilder
         return Types._half;
     }
 
-    /*
-        void Grow()
-        {
-            // var newbuf = new string[buf.Length * 3];
-            // buf.CopyTo(newbuf, 0);
-            // buf = newbuf;
-            // TODO: use linked list instead to avoid large copies?
-            // or maybe we just cache the buffers to avoid GC?
-            // we'll need lots of smallish buffers for function definition building...
-            // and very large buffers for whole-shader building...
-            var newbuf = new char[buf.Length * 3];
-            unsafe
-            {
-                fixed (char* sourcePtr = buf)
-                fixed (char* destPtr = newbuf)
-                    Buffer.MemoryCopy((byte*)destPtr, (byte*)sourcePtr, newbuf.Length * 2, length * 2);
-            }
-            buf = newbuf;
-        }
-    */
+//     void Grow()
+//     {
+//         // var newbuf = new string[buf.Length * 3];
+//         // buf.CopyTo(newbuf, 0);
+//         // buf = newbuf;
+//         // TODO: use linked list instead to avoid large copies?
+//         // or maybe we just cache the buffers to avoid GC?
+//         // we'll need lots of smallish buffers for function definition building...
+//         // and very large buffers for whole-shader building...
+//         var newbuf = new char[buf.Length * 3];
+//         unsafe
+//         {
+//             fixed (char* sourcePtr = buf)
+//             fixed (char* destPtr = newbuf)
+//                 Buffer.MemoryCopy((byte*)destPtr, (byte*)sourcePtr, newbuf.Length * 2, length * 2);
+//         }
+//         buf = newbuf;
+//     }
+
     static readonly string _space = " ";
     public void Space()
     {
@@ -60,16 +60,14 @@ public class ShaderBuilder
         charLength += 1;
     }
 
-    /*
-    public void Add(char c)
-    {
-        int newlength = length + 1;
-        if (newlength >= buf.Length)
-            Grow();
-        buf[length] = c;
-        length = newlength;
-    }
-    */
+//     public void Add(char c)
+//     {
+//         int newlength = length + 1;
+//         if (newlength >= buf.Length)
+//             Grow();
+//         buf[length] = c;
+//         length = newlength;
+//     }
 
     public void AddLine(string l0)
     {
@@ -86,31 +84,6 @@ public class ShaderBuilder
     {
         strs.Add(l0);
         charLength += l0.Length;
-        /*
-                int l0length = l0.Length;
-                if (l0length > 0)
-                {
-                    int newlength = length + l0length;
-                    if (newlength >= buf.Length)
-                        Grow();
-                    if (l0length <= 2)
-                    {
-                        buf[length] = l0[0];
-                        if (l0length > 1)
-                            buf[length + 1] = l0[1];
-                    }
-                    else
-                    {
-                        unsafe
-                        {
-                            fixed (char* sourcePtr = l0)
-                            fixed (char* destPtr = &buf[length])
-                                Buffer.MemoryCopy((byte*)destPtr, (byte*)sourcePtr, buf.Length * 2, length * 2);
-                        }
-                    }
-                    length = newlength;
-                }
-        */
     }
 
     public void Identifier(string i0)

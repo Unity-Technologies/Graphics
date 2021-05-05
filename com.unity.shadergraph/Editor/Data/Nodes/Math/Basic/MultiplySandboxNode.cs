@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             var BType = context.GetInputType("B");
 
             var shaderFunc = BuildFunction(AType, BType);
-            context.SetMainFunction(shaderFunc, declareSlots: true);
+            context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc);
         }
 
