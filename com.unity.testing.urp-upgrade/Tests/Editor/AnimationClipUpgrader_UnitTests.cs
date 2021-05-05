@@ -252,7 +252,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader") },
                 "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor") },
+                new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader") },
                 "material._MainTex_ST.x",
-                new[] { (From: "material._MainTex_ST.x", To: "_BaseMap_ST_ST") },
+                new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
@@ -274,7 +274,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader") },
                 "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor1") },
+                new[] { (From: "_Color", To: "_BaseColor1") },
                 new[]
                 {
                     ("OldShader1", "NewShader", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader") },
                 "material._MainTex_ST.x",
-                new[] { (From: "material._MainTex_ST.x", To: "_BaseMap_ST_ST1") },
+                new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1") },
                 new[]
                 {
                     ("OldShader1", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST1", Type: (int)RenameType.Float) }),
@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "OldShader") },
                 "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_Color") },
+                new[] { (From: "_Color", To: "_Color") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
@@ -309,7 +309,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "OldShader") },
                 "material._MainTex_ST.x",
-                new[] { (From: "material._MainTex_ST.x", To: "_MainTex_ST") },
+                new[] { (From: "_MainTex_ST", To: "_MainTex_ST") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST_ST", Type: (int)RenameType.Float) })
@@ -320,7 +320,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") },
                 "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor") },
+                new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
                     ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) }),
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering.Tests
             new TestCaseData(
                 new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") },
                 "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor2") },
+                new[] { (From: "_Color", To: "_BaseColor2") },
                 new[]
                 {
                     ("OldShader", "NewShader1", new[] { (From: "_Color", To: "_BaseColor1", Type: (int)RenameType.Color) }),
@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.Tests
                 upgradePathsUsedByMaterials: default
             );
 
-            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (kv2.Key.propertyName, kv2.Value))).ToArray();
+            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (AnimationClipUpgrader.InferShaderProperty(kv2.Key).Name, kv2.Value))).ToArray();
             Assert.That(actualRenames, Is.EqualTo(expectedRenames));
 
             return clipData[clip].Usage;
@@ -380,7 +380,7 @@ namespace UnityEditor.Rendering.Tests
         {
             new TestCaseData(
                 new[] { ("ID1", "NewShader") }, "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor") },
+                new[] { (From: "_Color", To: "_BaseColor") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_Color", To: "_BaseColor", Type: (int)RenameType.Color) })
@@ -390,7 +390,7 @@ namespace UnityEditor.Rendering.Tests
                 .SetName("Single target material, color property"),
             new TestCaseData(
                 new[] { ("ID1", "NewShader") }, "material._MainTex_ST.x",
-                new[] { (From: "material._MainTex_ST.x", To: "_BaseMap_ST") },
+                new[] { (From: "_MainTex_ST", To: "_BaseMap_ST") },
                 new[]
                 {
                     ("OldShader", "NewShader", new[] { (From: "_MainTex_ST", To: "_BaseMap_ST", Type: (int)RenameType.Float) })
@@ -430,7 +430,7 @@ namespace UnityEditor.Rendering.Tests
                 upgradePathsUsedByMaterials: upgradePathsUsedByMaterials
             );
 
-            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (kv2.Key.propertyName, kv2.Value))).ToArray();
+            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (AnimationClipUpgrader.InferShaderProperty(kv2.Key).Name, kv2.Value))).ToArray();
             Assert.That(actualRenames, Is.EqualTo(expectedRenames));
 
             return clipData[clip].Usage;
@@ -448,19 +448,19 @@ namespace UnityEditor.Rendering.Tests
         {
             new TestCaseData(
                 new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor2") },
+                new[] { (From: "_Color", To: "_BaseColor2") },
                 k_AllUpgrades,
                 new[]
                 {
                     k_KnownUpgrade,
-                    ("OldShader2", "NewShader2", new[] { (From: "material._Color.r", To: "_BaseColor2", Type: (int)RenameType.Color) })
+                    ("OldShader2", "NewShader2", new[] { (From: "_Color", To: "_BaseColor2", Type: (int)RenameType.Color) })
                 }
             )
                 .Returns(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded)
                 .SetName("Two target materials, second is different known upgrade"),
             new TestCaseData(
                 new[] { ("ID1", "NewShader1"), ("ID2", "OldShader1") }, "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_Color") },
+                new[] { (From: "_Color", To: "_Color") },
                 k_AllUpgrades,
                 new[] { k_KnownUpgrade }
             )
@@ -468,7 +468,7 @@ namespace UnityEditor.Rendering.Tests
                 .SetName("Two target materials, second is non-upgraded material"),
             new TestCaseData(
                 new[] { ("ID1", "NewShader1"), ("ID2", "NewShader2") }, "material._Color.r",
-                new[] { (From: "material._Color.r", To: "_BaseColor2") },
+                new[] { (From: "_Color", To: "_BaseColor2") },
                 k_AllUpgrades,
                 new[] { k_KnownUpgrade }
             )
@@ -508,7 +508,7 @@ namespace UnityEditor.Rendering.Tests
                 upgradePathsUsedByMaterials: upgradePathsUsedByMaterials
             );
 
-            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (kv2.Key.propertyName, kv2.Value))).ToArray();
+            var actualRenames = clipData.SelectMany(kv1 => kv1.Value.PropertyRenames.Select(kv2 => (AnimationClipUpgrader.InferShaderProperty(kv2.Key).Name, kv2.Value))).ToArray();
             Assert.That(actualRenames, Is.EqualTo(expectedRenames));
 
             return clipData[clip].Usage;
