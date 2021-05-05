@@ -532,7 +532,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = depthTarget;
         }
 
-#if ENABLE_RENDER_PASS_UI
         internal void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, RenderTargetIdentifier resolveTarget)
         {
             m_CameraColorTarget = colorTarget;
@@ -540,7 +539,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraResolveTarget = resolveTarget;
         }
 
-#endif
 
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
