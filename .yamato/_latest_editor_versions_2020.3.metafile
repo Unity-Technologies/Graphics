@@ -26,29 +26,29 @@ editor_versions:
       version: 2020.3.8f1
   2020_3_latest_public:
     Android:
-      revision: 338bb68529b2
-      updated_at: '2021-04-29 00:01:59.909179'
-      version: 2020.3.6f1
+      revision: dd97f2c94397
+      updated_at: '2021-05-05 23:38:34.121086'
+      version: 2020.3.7f1
     Linux:
-      revision: 338bb68529b2
-      updated_at: '2021-04-29 00:01:59.909179'
-      version: 2020.3.6f1
+      revision: dd97f2c94397
+      updated_at: '2021-05-05 23:38:34.121086'
+      version: 2020.3.7f1
     OSX:
-      revision: 338bb68529b2
-      updated_at: '2021-04-29 00:01:59.909179'
-      version: 2020.3.6f1
+      revision: dd97f2c94397
+      updated_at: '2021-05-05 23:38:34.121086'
+      version: 2020.3.7f1
     Win:
-      revision: 338bb68529b2
-      updated_at: '2021-04-29 00:01:59.909179'
-      version: 2020.3.6f1
+      revision: dd97f2c94397
+      updated_at: '2021-05-05 23:38:34.121086'
+      version: 2020.3.7f1
     android:
       revision: c7b5465681fb
       updated_at: '2021-02-03 23:59:16.124934'
       version: 2020.3.0f1
     iPhone:
-      revision: 338bb68529b2
-      updated_at: '2021-04-29 00:01:59.909179'
-      version: 2020.3.6f1
+      revision: dd97f2c94397
+      updated_at: '2021-05-05 23:38:34.121086'
+      version: 2020.3.7f1
   2020_3_staging:
     Android:
       revision: 507919d4fff5f039ef64ebff01e488c2f8e38421
