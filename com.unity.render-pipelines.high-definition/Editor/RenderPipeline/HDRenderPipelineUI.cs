@@ -446,6 +446,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ++EditorGUI.indentLevel;
 
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             bool dlssDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
             if (serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue)
@@ -480,7 +481,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 #endif
-
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue))
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
@@ -540,6 +540,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             --EditorGUI.indentLevel;
+
+#if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
+            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
+            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true)))
+            {
+                PackageManager.Client.Add("com.unity.modules.nvidia");    
+            }
+#endif
+
         }
 
         static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

@@ -221,6 +221,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("Use Optimal Settings", "Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings.");
             public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. This setting is ignored if use optimal settings is used");
 
+            public const string DLSSPackageLabel = "DLSS is not active on this project. To activate it, the NVIDIA builtin module must be installed.";
+            public const string DLSSInstallButton = "Install NVIDIA Builtin package (com.unity.modules.nvidia)"; 
+
             public const  string   DLSSFeatureDetectedMsg = "Unity detected NVIDIA Deep Learning Super Sampling and will ignore the Fallback Upscale Filter.";
             public const  string   DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling (DLSS) and will use the Fallback Upscale Filter instead.";
             public const  string   DLSSIgnorePercentages = "Unity detected that NVIDIA Deep Learning Super Sampling (DLSS) is using Optimal Settings. When DLSS is on, the percentage settings for Dynamic Resolution Scaling are ignored.";
