@@ -190,7 +190,6 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("maxShadowTextureCount cannot be less than 1");
                 return;
             }
-           
 
 
             // Break up light rendering into batches for the purpose of shadow casting
