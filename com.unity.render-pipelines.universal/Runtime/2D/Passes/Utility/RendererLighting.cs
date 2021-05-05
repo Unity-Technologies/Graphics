@@ -190,6 +190,8 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("maxShadowTextureCount cannot be less than 1");
                 return;
             }
+           
+
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
@@ -203,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
                     var light = lights[lightIndex + batchedLights];
-                    if (light.shadowsEnabled && light.shadowIntensity > 0)
+                    if (light.shadowsEnabled && light.shadowIntensity > 0 && light.IsLitLayer(layerToRender))
                     {
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity);
                         shadowLightCount++;
