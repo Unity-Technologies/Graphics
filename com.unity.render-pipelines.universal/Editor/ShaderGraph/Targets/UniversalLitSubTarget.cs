@@ -283,7 +283,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target),      CorePragmas.DOTSInstanced));
 
-                result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                if (complexLit)
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                else
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
                 result.passes.Add(PassVariant(LitPasses.Meta(target),            CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(LitPasses._2D(target),             CorePragmas.DOTSDefault));
 
