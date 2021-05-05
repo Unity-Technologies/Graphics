@@ -28,12 +28,7 @@ $splice(PassKeywords)
 $splice(GraphKeywords)
 
 // Defines
-$SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
-$AlphaClip: #define _AlphaClip 1
 $Normal: #define _NORMALMAP 1
-$SpecularSetup: #define _SPECULAR_SETUP
-$BlendMode.Add: #define _BLENDMODE_ADD 1
-$BlendMode.Premultiply: #define _ALPHAPREMULTIPLY_ON 1
 $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
 $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
 $NormalDropOffWS: #define _NORMAL_DROPOFF_WS 1

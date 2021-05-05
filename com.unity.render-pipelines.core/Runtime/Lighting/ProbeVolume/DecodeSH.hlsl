@@ -5,7 +5,7 @@ float3 DecodeSH(float l0, float3 l1)
 {
     // TODO: We're working on irradiance instead of radiance coefficients
     //       Add safety margin 2 to avoid out-of-bounds values
-    const float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+    const float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
 
     return (l1 - 0.5f) * 2.0f * l1scale * l0;
 }
