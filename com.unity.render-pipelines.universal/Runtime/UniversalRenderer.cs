@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -21,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
     public sealed class UniversalRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
-        static readonly string k_DepthNormalsOnly = "DepthNormalsOnly";
+        static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
         private static class Profiling
         {
@@ -537,7 +538,7 @@ namespace UnityEngine.Rendering.Universal
                         // Depth is allocated by this renderer.
                         m_DepthNormalPrepass.allocateDepth = false;
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
-                        m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
+                        m_DepthNormalPrepass.shaderTagIds = k_DepthNormalsOnly;
                     }
                     else
                     {

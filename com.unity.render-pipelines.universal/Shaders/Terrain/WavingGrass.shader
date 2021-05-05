@@ -83,36 +83,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             ENDHLSL
         }
 
-        // This pass is used when drawing to a _CameraNormalsTexture texture
-        Pass
-        {
-            Name "DepthNormals"
-            Tags{"LightMode" = "DepthNormals"}
-
-            ZWrite On
-            Cull Off
-
-            HLSLPROGRAM
-            #pragma target 2.0
-
-            #pragma vertex DepthNormalOnlyVertex
-            #pragma fragment DepthNormalOnlyFragment
-
-            // -------------------------------------
-            // Material Keywords
-            #define _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-
-            //--------------------------------------
-            // GPU Instancing
-            #pragma multi_compile_instancing
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/WavingGrassDepthNormalsPass.hlsl"
-            ENDHLSL
-        }
-
-        // This pass is used when drawing to a _CameraNormalsTexture texture
+        // This pass is used when drawing to a _CameraNormalsTexture texture with the forward renderer or the depthNormal prepass with the deferred renderer.
         Pass
         {
             Name "DepthNormalsOnly"

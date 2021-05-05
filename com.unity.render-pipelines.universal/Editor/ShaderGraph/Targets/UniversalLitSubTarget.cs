@@ -553,6 +553,45 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
+            public static PassDescriptor DepthNormal(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthNormals",
+                    referenceName = "SHADERPASS_DEPTHNORMALS",
+                    lightMode = "DepthNormals",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = LitRequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection(),
+                    includes = CoreIncludes.DepthNormalsOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
             public static PassDescriptor DepthNormalOnly(UniversalTarget target)
             {
                 var result = new PassDescriptor()
@@ -560,7 +599,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Definition
                     displayName = "DepthNormals",
                     referenceName = "SHADERPASS_DEPTHNORMALSONLY",
-                    lightMode = "DepthNormals",
+                    lightMode = "DepthNormalsOnly",
                     useInPreview = false,
 
                     // Template
