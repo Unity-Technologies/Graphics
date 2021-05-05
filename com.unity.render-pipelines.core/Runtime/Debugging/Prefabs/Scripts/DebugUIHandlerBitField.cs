@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.UI
                 m_Field.SetValue(System.Enum.ToObject(m_Field.enumType, 0));
                 foreach (var toggle in toggles)
                 {
-                    if (toggle.getter != null)
+                    if (toggle?.getter != null)
                         toggle.UpdateValueLabel();
                 }
             }

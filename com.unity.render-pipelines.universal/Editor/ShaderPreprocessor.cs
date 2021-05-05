@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.Universal
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
             {
                 stripDebugDisplayShaders = true;
             }
