@@ -304,6 +304,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // XR multipass and instanced views are supported (see XRSystem)
         internal XRPass xr { get; private set; }
 
+        internal float globalMipBias { set; get; } = 0.0f;
+
         internal float deltaTime => time - lastTime;
 
         // Non oblique projection matrix (RHS)
@@ -708,6 +710,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
 
+            globalMipBias = m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.materialMipBias;
+
             UpdateVolumeAndPhysicalParameters();
 
             xr = xrPass;
@@ -731,9 +735,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If we have a mismatch with color buffer format we need to reallocate the pyramid
                 var hdPipeline = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
                 bool forceReallocPyramid = false;
-                if (m_NumColorPyramidBuffersAllocated > 0)
+                int colorBufferID = (int)HDCameraFrameHistoryType.ColorBufferMipChain;
+                int numColorPyramidBuffersAllocated = m_HistoryRTSystem.GetNumFramesAllocated(colorBufferID);
+                if (numColorPyramidBuffersAllocated > 0)
                 {
-                    var currPyramid = GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                    var currPyramid = GetCurrentFrameRT(colorBufferID);
                     if (currPyramid != null && currPyramid.rt.graphicsFormat != hdPipeline.GetColorBufferFormat())
                     {
                         forceReallocPyramid = true;
@@ -746,8 +752,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
+                // Check if we have any AOV requests that require history buffer allocations (the actual allocation happens later in this function)
+                foreach (var aovRequest in aovRequests)
+                {
+                    var aovHistory = GetHistoryRTHandleSystem(aovRequest);
+                    if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
+                    {
+                        forceReallocPyramid = true;
+                        break;
+                    }
+                }
+
                 // Handle the color buffers
-                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocPyramid)
+                if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocPyramid)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
@@ -775,9 +792,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         BindHistoryRTHandleSystem(cameraHistory);
                     }
-
-                    // Mark as init.
-                    m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
                 }
 
                 // Handle the volumetric fog buffers
@@ -981,6 +995,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaFrameInfo = new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
+            cb._GlobalMipBias = globalMipBias;
 
             float ct = time;
             float pt = lastTime;
@@ -1210,7 +1225,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDAdditionalCameraData  m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem  m_HistoryRTSystem = new BufferedRTHandleSystem();
-        int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float                   m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
