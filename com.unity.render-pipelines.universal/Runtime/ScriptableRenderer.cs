@@ -541,7 +541,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraResolveTarget = resolveTarget;
         }
 
-
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
         {

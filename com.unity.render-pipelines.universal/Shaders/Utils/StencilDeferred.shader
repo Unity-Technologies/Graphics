@@ -123,10 +123,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer2);
 
 #if _RENDER_PASS_ENABLED
-	FRAMEBUFFER_INPUT_HALF(0);
-	FRAMEBUFFER_INPUT_HALF(1);
-	FRAMEBUFFER_INPUT_HALF(2);
-	FRAMEBUFFER_INPUT_FLOAT(3);
+    FRAMEBUFFER_INPUT_HALF(0);
+    FRAMEBUFFER_INPUT_HALF(1);
+    FRAMEBUFFER_INPUT_HALF(2);
+    FRAMEBUFFER_INPUT_FLOAT(3);
 
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer5);
@@ -142,6 +142,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X(_GBuffer5);
     #endif
 #endif
+
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
@@ -222,7 +223,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     {
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         #if _RENDER_PASS_ENABLED

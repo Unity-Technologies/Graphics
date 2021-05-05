@@ -192,7 +192,6 @@ namespace UnityEngine.Rendering.Universal
                             }
 
                             pass.m_ColorAttachmentIndices[i] = currentAttachmentIdx;
-
                             currentAttachmentIdx++;
                             m_RenderPassesAttachmentCount[currentPassHash]++;
                         }
@@ -206,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
                     if (PassHasInputAttachments(pass))
                         SetupInputAttachmentIndices(pass);
 
-                        // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
+                    // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, !isLastPassToBB);
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
@@ -307,7 +306,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // add a new attachment
                         pass.m_ColorAttachmentIndices[0] = currentAttachmentIdx;
-
                         m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                         currentAttachmentIdx++;
                         m_RenderPassesAttachmentCount[currentPassHash]++;

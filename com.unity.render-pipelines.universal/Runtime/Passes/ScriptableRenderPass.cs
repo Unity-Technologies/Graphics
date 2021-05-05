@@ -283,6 +283,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_InputAttachments = inputs;
         }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
