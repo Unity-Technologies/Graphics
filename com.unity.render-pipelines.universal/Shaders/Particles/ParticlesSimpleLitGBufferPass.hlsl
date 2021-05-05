@@ -10,7 +10,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
-
+    output.positionCS = input.clipPos;
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
     output.normalWS = TransformTangentToWorld(normalTS,

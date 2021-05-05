@@ -160,6 +160,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 InputData inputData = (InputData)0;
                 inputData.normalWS = input.NormalWS;
+                inputData.positionCS = input.PositionCS;
 
                 return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingInvalid);
             }

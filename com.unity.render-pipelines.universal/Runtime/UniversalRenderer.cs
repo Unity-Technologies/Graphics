@@ -311,10 +311,6 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
-            var cmd = CommandBufferPool.Get();
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, useRenderPassEnabled);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Release();
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
@@ -571,7 +567,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             if (this.actualRenderingMode == RenderingMode.Deferred)
+            {
+                var cmd = CommandBufferPool.Get();
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, useRenderPassEnabled);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Release();
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
+            }
             else
             {
                 // Optimized store actions are very important on tile based GPUs and have a great impact on performance.
@@ -799,6 +801,12 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment,
                 m_ActiveCameraColorAttachment
             );
+            // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
+            if (useRenderPassEnabled)
+            {
+                m_GBufferPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+                m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+            }
 
             EnqueuePass(m_GBufferPass);
 
@@ -826,9 +834,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
-            // Need to call Configure to setup input attachments
-            if (useRenderPassEnabled)
-                m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+
             EnqueuePass(m_DeferredPass);
 
             //TODO: RenderPass API doesn't get the color attachment, fixit

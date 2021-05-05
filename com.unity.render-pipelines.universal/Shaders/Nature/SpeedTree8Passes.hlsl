@@ -317,7 +317,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData = (InputData)0;
 
     inputData.positionWS = input.interpolated.positionWS.xyz;
-
+    inputData.positionCS = input.interpolated.clipPos;
 #ifdef EFFECT_BUMP
     inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);

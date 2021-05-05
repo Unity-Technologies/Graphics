@@ -80,6 +80,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input = (InputData)0;
 
     input.positionWS = IN.positionWS;
+    input.positionCS = IN.clipPos;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
