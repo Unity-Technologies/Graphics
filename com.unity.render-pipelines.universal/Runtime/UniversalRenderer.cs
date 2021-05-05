@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
             if (this.actualRenderingMode == RenderingMode.Deferred)
             {
                 var cmd = CommandBufferPool.Get();
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, useRenderPassEnabled);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, useRenderPassEnabled && cameraData.cameraType == CameraType.Game);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Release();
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
