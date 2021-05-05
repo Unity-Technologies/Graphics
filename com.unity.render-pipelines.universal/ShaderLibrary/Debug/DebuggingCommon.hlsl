@@ -152,4 +152,13 @@ bool IsLightingFeatureEnabled(uint bitMask)
     #endif
 }
 
+bool IsOnlyAOLightingFeatureEnabled()
+{
+    #if defined(DEBUG_DISPLAY)
+    return _DebugLightingFeatureFlags == DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION;
+    #else
+    return false;
+    #endif
+}
+
 #endif
