@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph;
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     [Serializable]
-    internal class ExposableProperty//: IEquatable<ExposableProperty<T>>
+    internal class ExposableProperty
     {
         [SerializeField]
         private bool exposed;
@@ -96,45 +96,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }, exposedField);
             }
         }
-
-        /*
-        public static bool operator ==(ExposableProperty<T> lhs, T rhs) => !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
-        public static bool operator !=(ExposableProperty<T> lhs, T rhs) => !(lhs == rhs);
-        public bool Equals(ExposableProperty<T> other)
-        {
-            if (ReferenceEquals(null, other))
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
-            return System.Collections.Generic.EqualityComparer<T>.Default.Equals(value, other.value);
-        }
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            if (obj.GetType() != GetType())
-                return false;
-
-            return Equals((ExposableProperty<T>)obj);
-        }
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 23 + value.GetHashCode();
-                hash = hash * 23 + exposed.GetHashCode();
-                return hash;
-            }
-        }
-
-        public static explicit operator T(ExposableProperty<T> prop) => prop.value;
-        */
     }
 }

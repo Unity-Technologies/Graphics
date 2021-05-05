@@ -79,7 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddShaderProperty<T>(this PropertyCollector collector, string referenceName, ExposableProperty<T> property, AbstractShaderProperty abstractProperty, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
-            abstractProperty.hidden = !property.IsExposed;
+            abstractProperty.hidden = true;
+            abstractProperty.exposed = property.IsExposed;
             abstractProperty.overrideHLSLDeclaration = true;
             abstractProperty.hlslDeclarationOverride = declarationType;
             abstractProperty.overrideReferenceName = referenceName;
@@ -210,7 +211,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddShaderProperty(new BooleanShaderProperty
             {
                 value = mode != DoubleSidedMode.Disabled,
-                hidden = !modeProp.IsExposed,
+                hidden = true,
+                exposed = modeProp.IsExposed,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = "_DoubleSidedEnable",
@@ -221,7 +223,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
-                hidden = !modeProp.IsExposed,
+                hidden = true,
+                exposed = modeProp.IsExposed,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)normalMode,
@@ -240,7 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumNames = { "Auto", "On", "Off" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedGIMode",
-                hidden = false,
+                hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)giMode,

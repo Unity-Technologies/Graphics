@@ -207,7 +207,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 floatType = FloatType.Enum,
-                hidden = !litData.refractionModelProp.IsExposed,
+                hidden = true,
+                exposed = litData.refractionModelProp.IsExposed,
                 value = (int)litData.refractionModel,
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,

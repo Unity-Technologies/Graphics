@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             bool hasAlphaTest = IsEnabled(systemData.alphaTestProp);
-            bool transparent = systemData.surfaceType == SurfaceType.Transparent;
+            bool transparent = systemData.surfaceTypeProp.IsExposed || systemData.surfaceType == SurfaceType.Transparent;
 
             if (supportDistortion)
                 AddDistortionBlocks(ref context);
@@ -321,7 +321,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
                 overrideReferenceName = "_RenderQueueType",
-                hidden = !systemData.renderQueueTypeProp.IsExposed,
+                hidden = true,
+                exposed = systemData.renderQueueTypeProp.IsExposed,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)systemData.renderQueueType,

@@ -251,6 +251,12 @@ namespace UnityEditor.Rendering.HighDefinition
             throw new NotImplementedException($"You must implement {nameof(OnGUIOpen)} if you are not overriding {nameof(OnGUI)}");
         }
 
-        protected bool ShowProperty(MaterialProperty prop) => prop != null && (prop.flags & MaterialProperty.PropFlags.HideInInspector) == 0;
+        protected bool ShowProperty(MaterialProperty prop)
+        {
+            if (prop == null)
+                return false;
+            var shader = ((Material)prop.targets[0]).shader;
+            return !shader.GetPropertyAttributes(shader.FindPropertyIndex(prop.name)).Contains("HideInMaterial");
+        }
     }
 }

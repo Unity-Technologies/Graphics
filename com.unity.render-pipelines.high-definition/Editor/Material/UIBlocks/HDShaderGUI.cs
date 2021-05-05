@@ -104,6 +104,21 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="material">The target material.</param>
         protected static void SynchronizeShaderGraphProperties(Material material)
         {
+            var shader = material.shader;
+            for (int i = 0; i < shader.GetPropertyCount(); i++)
+            {
+                if (shader.GetPropertyAttributes(i).Contains("HideInMaterial"))
+                {
+                    var type = shader.GetPropertyType(i);
+                    if (type == ShaderPropertyType.Float || type == ShaderPropertyType.Range)
+                        material.SetFloat(shader.GetPropertyNameId(i), shader.GetPropertyDefaultFloatValue(i));
+                    else if (type == ShaderPropertyType.Vector)
+                        material.SetVector(shader.GetPropertyNameId(i), shader.GetPropertyDefaultVectorValue(i));
+                    else if (type == ShaderPropertyType.Color)
+                        material.SetColor(shader.GetPropertyNameId(i), shader.GetPropertyDefaultVectorValue(i));
+                }
+            }
+
             var defaultProperties = new Material(material.shader);
             foreach (var floatToSync in floatPropertiesToSynchronize)
                 if (material.HasProperty(floatToSync) && defaultProperties.HasProperty(floatToSync))

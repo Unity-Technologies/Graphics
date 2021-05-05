@@ -92,7 +92,15 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Hidden = value;
         }
 
-        internal string hideTagString => hidden ? "[HideInInspector]" : "";
+        [SerializeField]
+        bool m_Exposed = true;
+        public bool exposed
+        {
+            get => m_Exposed;
+            set => m_Exposed = value;
+        }
+
+        internal string hideTagString => (hidden ? "[HideInInspector]" : "") + (exposed ? "" : "[HideInMaterial]");
 
         // reference names are the HLSL declaration name / property block ref name
         internal virtual void GetPropertyReferenceNames(List<string> result)
