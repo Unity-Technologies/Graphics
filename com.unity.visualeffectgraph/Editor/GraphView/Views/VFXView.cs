@@ -247,8 +247,12 @@ namespace UnityEditor.VFX.UI
             set
             {
                 if (m_ComponentBoard.parent == null)
-                    ToggleComponentBoard();
-                m_ComponentBoard.Attach(value);
+                    m_ToggleComponentBoard.value = true;
+
+                if (value == null)
+                    m_ComponentBoard.Detach();
+                else
+                    m_ComponentBoard.Attach(value);
             }
         }
 
@@ -440,6 +444,11 @@ namespace UnityEditor.VFX.UI
             compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
+
+            var resyncMatButton = new ToolbarButton(OnResyncMaterial);
+            resyncMatButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            resyncMatButton.text = "Resync Material";
+            m_Toolbar.Add(resyncMatButton);
 
             m_SaveButton = new ToolbarButton(OnSave);
             m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
@@ -799,6 +808,11 @@ namespace UnityEditor.VFX.UI
             ToggleComponentBoard();
         }
 
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
+        {
+            m_ComponentBoard.OnVisualEffectComponentChanged(visualEffects);
+        }
+
         void Delete(string cmd, AskUser askUser)
         {
             var selection = this.selection.ToArray();
@@ -901,7 +915,7 @@ namespace UnityEditor.VFX.UI
 
         public bool IsAssetEditable()
         {
-            return controller.model.IsAssetEditable();
+            return controller.model != null && controller.model.IsAssetEditable();
         }
 
         void NewControllerSet()
@@ -1400,6 +1414,11 @@ namespace UnityEditor.VFX.UI
             VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
         }
 
+        void OnResyncMaterial()
+        {
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
+        }
+
         void OnCompile()
         {
             if (controller.model.isSubgraph)
@@ -1419,14 +1438,12 @@ namespace UnityEditor.VFX.UI
 
         void OnSave()
         {
-            OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
             GetGraphsRecursively(controller.graph, graphToSave);
 
             foreach (var graph in graphToSave)
             {
                 graph.GetResource().WriteAsset();
-                graph.OnSaved();
             }
         }
 

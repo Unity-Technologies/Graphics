@@ -1,12 +1,11 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(UniversalRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRendererDataEditor : ScriptableRendererDataEditor
+    public class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {
         private static class Styles
         {
