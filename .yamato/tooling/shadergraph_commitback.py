@@ -70,4 +70,4 @@ if __name__ == "__main__":
         utr_file_name = "utr.bat"
     else:
         utr_file_name = "utr"
-    exit(subprocess.call(utr_file_name + utr))
+    exit(subprocess.call(utr_file_name + utr.insert(0, utr_file_name)))
