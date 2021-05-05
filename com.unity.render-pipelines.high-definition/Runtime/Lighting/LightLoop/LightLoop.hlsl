@@ -533,6 +533,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                         bsdfData.normalWS,
                                         -bsdfData.normalWS,
+                                        V,
                                         apvBuiltinData.bakeDiffuseLighting,
                                         apvBuiltinData.backBakeDiffuseLighting);
 
@@ -571,7 +572,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 float3 uvw;
                 uint subdiv;
-                if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS, uvw, subdiv))
+                if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS, V, uvw, subdiv))
                     // Only mix 50% of the color to avoid getting black result with incompatible colors.
                     builtinData.bakeDiffuseLighting = (0.5 + 0.5 * _DebugAPVSubdivColors[subdiv].xyz) * builtinData.bakeDiffuseLighting;
                 else

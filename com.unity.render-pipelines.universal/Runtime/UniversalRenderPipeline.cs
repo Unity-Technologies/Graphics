@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+            DecalProjector.defaultMaterial = asset.decalMaterial;
+
 #if URP_ENABLE_DEBUG_DISPLAY
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
 #endif
@@ -363,6 +365,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
+                    renderer.OnPreCullRenderPasses(in cameraData);
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
 
@@ -514,6 +517,8 @@ namespace UnityEngine.Rendering.Universal
                     // Helper function for updating cameraData with xrPass Data
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
+                    UpdateCameraStereoMatrices(baseCameraData);
+
                     // Update volume manager to use baseCamera's settings for XR multipass rendering.
                     if (baseCameraData.xr.multipassId > 0)
                     {
@@ -551,6 +556,8 @@ namespace UnityEngine.Rendering.Universal
                         // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
+
+                        UpdateCameraStereoMatrices(overlayCameraData);
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
@@ -1043,6 +1050,20 @@ namespace UnityEngine.Rendering.Universal
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
+        }
+
+        static void UpdateCameraStereoMatrices(CameraData cameraData)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                for (int i = 0; i < Mathf.Min(2, cameraData.xr.viewCount); i++)
+                {
+                    cameraData.camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, cameraData.GetProjectionMatrix(i));
+                    cameraData.camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, cameraData.GetViewMatrix(i));
+                }
+            }
+#endif
         }
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
