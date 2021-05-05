@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth of field pass usage on unsupported devices. [case 1327076](https://issuetracker.unity3d.com/issues/adreno-3xx-nothing-is-rendered-when-post-processing-is-enabled)
 - Fixed an issue with Shader Graph Lit shaders where the normalized view direction produced incorrect lighting. [1332804]
 - Fixed return values from GetStereoProjectionMatrix() and SetStereoViewMatrix(). [case 1312813](https://issuetracker.unity3d.com/issues/xr-urp-begincamerarender-method-is-lagging-behind-when-using-urp)
+- Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
