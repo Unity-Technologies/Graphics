@@ -77,7 +77,6 @@ namespace UnityEngine.Experimental.Rendering
         internal float brickSize { get { return m_Profile.brickSize; } }
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
-        internal float normalBias { get { return m_Profile.normalBias; } }
 
 #if UNITY_EDITOR
         // Dilation
@@ -201,6 +200,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (debugDisplay.drawBricks)
             {
+                var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                 {
                     if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                             Vector3 scaledPos = brick.position + scaledSize / 2;
-                            meshGizmo.AddWireCube(scaledPos, scaledSize, Color.blue);
+                            meshGizmo.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                         }
                         brickGizmos[cell] = meshGizmo;
                         return meshGizmo;

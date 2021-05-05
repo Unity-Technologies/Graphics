@@ -162,7 +162,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
-            public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
             public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
@@ -1483,10 +1482,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
                 int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
 
-                // It doesn't seem UniversalRP use this.
-                Vector4 screenSize = new Vector4(this.RenderWidth, this.RenderHeight, 1.0f / this.RenderWidth, 1.0f / this.RenderHeight);
-                cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
-
                 int tileWidth = m_Tilers[0].TilePixelWidth;
                 int tileHeight = m_Tilers[0].TilePixelHeight;
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
@@ -1603,7 +1598,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 bool hasSoftShadow = hasDeferredShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, isFirstLight); // First directional light applies SSAO
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT, visLightIndex == mainLightIndex); // main directional light use different uniform constants from additional directional lights
 
@@ -1620,7 +1615,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
 
@@ -1662,7 +1657,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
                 cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
@@ -1681,7 +1676,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
 
@@ -1721,7 +1716,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasSoftShadow = hasDeferredLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1744,7 +1739,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
