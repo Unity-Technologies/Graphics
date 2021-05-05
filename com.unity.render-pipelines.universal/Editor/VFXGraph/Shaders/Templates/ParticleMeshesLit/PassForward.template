@@ -83,7 +83,7 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXURPLitFillVaryings}
 ${VFXEnd}
         
-    ${VFXIncludeRP("Templates/Mesh/Pass.template")}
+    ${VFXIncludeRP("Templates/ParticleMeshesLit/Pass.template")}
     #define SHADERPASS SHADERPASS_FORWARD
     ${VFXIncludeRP("VFXLit.template")}
     

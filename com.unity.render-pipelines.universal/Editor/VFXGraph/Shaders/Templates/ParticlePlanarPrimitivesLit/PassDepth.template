@@ -7,7 +7,7 @@ Pass
     
     HLSLPROGRAM
     #define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
-    ${VFXIncludeRP("Templates/Mesh/PassDepthOrMV.template")}
+    ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassDepthOrMV.template")}
 
     ENDHLSL
 }

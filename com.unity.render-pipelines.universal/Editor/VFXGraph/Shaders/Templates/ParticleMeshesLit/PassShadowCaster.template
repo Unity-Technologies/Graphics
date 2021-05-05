@@ -1,3 +1,4 @@
+// Shadow pass
 Pass
 {
     Tags { "LightMode"=${VFXPassShadow} }
@@ -11,7 +12,6 @@ Pass
     #if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
     #define USE_ALPHA_TEST 1
     #endif
-    ${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
-
+    ${VFXIncludeRP("Templates/ParticleMeshesLit/PassDepthOrMV.template")}
     ENDHLSL
 }
