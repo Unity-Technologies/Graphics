@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
 - Added support for lighting full screen debug mode in automated tests.
 - Added a way for fitting a probe volume around either the scene contents or a selection.
+- Added support for mip bias override on texture samplers through the HDAdditionalCameraData component.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -182,6 +183,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 - Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed normals provided in object space or world space, when using double sided materials.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
