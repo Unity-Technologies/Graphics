@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera, drsSettings);
 
                     var dynResHandler = DynamicResolutionHandler.instance;
                     if (hdCam != null)
