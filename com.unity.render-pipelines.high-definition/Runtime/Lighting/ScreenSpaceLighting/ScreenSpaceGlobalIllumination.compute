@@ -345,6 +345,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
         EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                     normalData.normalWS,
                                     -normalData.normalWS,
+                                    GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     apvBuiltinData.bakeDiffuseLighting,
                                     apvBuiltinData.backBakeDiffuseLighting);
         color = apvBuiltinData.bakeDiffuseLighting * _IndirectDiffuseLightingMultiplier * GetCurrentExposureMultiplier();
