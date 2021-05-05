@@ -258,18 +258,18 @@ namespace UnityEngine.Rendering
 
             var touches = InputSystem.EnhancedTouch.Touch.activeTouches;
             var touchCount = touches.Count;
-            const InputSystem.TouchPhase expectedTouchPhase = InputSystem.TouchPhase.Ended;
+            InputSystem.TouchPhase? expectedTouchPhase = null;
 #else
             var touches = Input.touches;
             var touchCount = Input.touchCount;
-            const TouchPhase expectedTouchPhase = TouchPhase.Began;
+            TouchPhase? expectedTouchPhase = TouchPhase.Began;
 #endif
             if (touchCount == 3)
             {
                 foreach (var touch in touches)
                 {
                     // Gesture: 3-finger double-tap
-                    if (touch.phase == expectedTouchPhase && touch.tapCount == 2)
+                    if ((!expectedTouchPhase.HasValue || touch.phase == expectedTouchPhase.Value) && touch.tapCount == 2)
                         return true;
                 }
             }
@@ -281,10 +281,12 @@ namespace UnityEngine.Rendering
         {
 #if USE_INPUT_SYSTEM
             bool mouseWheelActive = Mouse.current.scroll.ReadValue() != Vector2.zero;
+            bool touchSupported = Touchscreen.current != null;
 #else
             bool mouseWheelActive = Input.mouseScrollDelta != Vector2.zero;
+            bool touchSupported = Input.touchSupported;
 #endif
-            return mouseWheelActive;
+            return mouseWheelActive || touchSupported; // Touchscreens have general problems with scrolling, so it's disabled.
         }
 
         void RegisterInputs()
