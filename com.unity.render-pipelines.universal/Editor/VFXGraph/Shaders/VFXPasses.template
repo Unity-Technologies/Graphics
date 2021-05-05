@@ -1,4 +1,5 @@
 ${VFXBegin:VFXPassForward}"UniversalForwardOnly"${VFXEnd}
+${VFXBegin:VFXPassForward2D}"Universal2D"${VFXEnd}
 ${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
 ${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
 ${VFXBegin:VFXPassDepth}"DepthOnly"${VFXEnd}
