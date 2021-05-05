@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
-using static Unity.Rendering.BuiltIn.ShaderUtils;
+using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {

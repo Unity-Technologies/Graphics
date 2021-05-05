@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Rendering.BuiltIn;
+using UnityEditor.Rendering.BuiltIn;
 using UnityEngine;
-using static Unity.Rendering.BuiltIn.ShaderUtils;
+using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn
 {
@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.BuiltIn
         static void InitializeLatest(Material material, ShaderID shaderID)
         {
             // newly created shadergraph materials should reset their keywords immediately (in case inspector doesn't get invoked)
-            Unity.Rendering.BuiltIn.ShaderUtils.ResetMaterialKeywords(material);
+            ShaderUtils.ResetMaterialKeywords(material);
         }
     }
 }

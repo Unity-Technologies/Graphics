@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using Unity.Rendering.BuiltIn;
+using UnityEditor.Rendering.BuiltIn;
 
 namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 {
