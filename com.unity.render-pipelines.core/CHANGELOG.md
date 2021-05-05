@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Red, Green, Blue Texture2D on CoreEditorStyles
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
-- Adding documentation links to Light Sections
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
