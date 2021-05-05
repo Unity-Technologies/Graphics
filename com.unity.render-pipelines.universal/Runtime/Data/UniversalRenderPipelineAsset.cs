@@ -812,11 +812,19 @@ namespace UnityEngine.Rendering.Universal
             get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
         }
 
+        /// <summary>
+        /// Returns the default material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default lit and unlit shader passes for sprites in the 2D renderer.</returns>
         public override Material default2DMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
 
+        /// <summary>
+        /// Returns the default sprite mask material for the 2D renderer.
+        /// </summary>
+        /// <returns>Returns the material containing the default shader pass for sprite mask in the 2D renderer.</returns>
         public override Material default2DMaskMaterial
         {
             get { return GetMaterial(DefaultMaterialType.SpriteMask); }
