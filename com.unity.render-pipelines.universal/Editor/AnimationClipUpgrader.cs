@@ -457,16 +457,12 @@ namespace UnityEditor.Rendering
                     );
 
                     // if the property has already been upgraded with a different name, mark the upgrade as ambiguous
-                    if (usage == SerializedShaderPropertyUsage.UsedByUpgraded)
-                    {
-                        if (data.PropertyRenames.TryGetValue(binding, out var propertyRename))
-                        {
-                            if (propertyRename != newPropertyName)
-                            {
-                                usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
-                            }
-                        }
-                    }
+                    if (
+                        usage == SerializedShaderPropertyUsage.UsedByUpgraded
+                        && data.PropertyRenames.TryGetValue(binding, out var propertyRename)
+                        && propertyRename != newPropertyName
+                    )
+                        usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
 
                     data.Usage |= usage;
                     data.PropertyRenames[binding] = newPropertyName;
