@@ -254,13 +254,13 @@ namespace UnityEngine.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true)
+        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
         {
             ScriptableRendererData data = CreateRendererData(type);
             string dataPath;
             if (relativePath)
                 dataPath =
-                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_Renderer{Path.GetExtension(path)}";
+                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
             else
                 dataPath = path;
             AssetDatabase.CreateAsset(data, dataPath);
