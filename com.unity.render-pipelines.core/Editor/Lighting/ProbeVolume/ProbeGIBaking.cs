@@ -191,8 +191,6 @@ namespace UnityEngine.Experimental.Rendering
 
         private static void OnBakeStarted()
         {
-            FindWorldBounds();
-
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             if (refVolAuthList.Length == 0)
                 return;
@@ -204,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
                 return;
             }
+
+            FindWorldBounds();
 
             RunPlacement();
         }
