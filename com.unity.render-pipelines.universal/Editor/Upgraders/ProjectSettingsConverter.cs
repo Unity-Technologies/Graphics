@@ -26,106 +26,27 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         "settings based on equivalent settings from builtin renderer.";
     public override Type conversion => typeof(BuiltInToURPConverterContainer);
 
-    private List<ProjectSettingItem> settingsItems = new List<ProjectSettingItem>();
-    private List<CameraSettings> cameraSettings = new List<CameraSettings>();
     private GraphicsTierSettings graphicsTierSettings;
+    private List<SettingsItem> settingsItems = new List<SettingsItem>();
 
+    private RenderingPath defaultRenderingPath = RenderingPath.Forward;
     private bool needsForward = false;
     private int forwardIndex = -1;
     private bool needsDeferred = false;
     private int deferredIndex = -1;
 
+    private const string pipelineAssetPath = "TestAssets";
+
     public override void OnInitialize(InitializeConverterContext context)
     {
-        // find all cameras and their info
-        GatherCameras(ref context);
-
         // check graphics tiers
         GatherGraphicsTiers();
 
+        // find all cameras and their info
+        GatherCameras(ref context);
+
         // check quality levels
         GatherQualityLevels(ref context);
-    }
-
-    public override void OnRun(ref RunItemContext context)
-    {
-        var currentQualityLevel = QualitySettings.GetQualityLevel();
-
-        var item = context.item;
-        // is camera
-        if (item.index > cameraSettings.Count - 1)
-        {
-            var projectSetting = settingsItems[item.index - cameraSettings.Count];
-            // which one am I?
-            Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
-
-            //creating pipeline asset
-            Thread.Sleep(100);
-            var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
-            if(!AssetDatabase.IsValidFolder("Assets/TestAssets"))
-                AssetDatabase.CreateFolder("Assets", "TestAssets");
-            var path = $"Assets/TestAssets/{projectSetting.levelName}_PipelineAsset.asset";
-            AssetDatabase.CreateAsset(asset, path);
-
-            //create renderers
-            if (needsForward)
-            {
-                Debug.Log($"Generating a forward renderer");
-                var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
-                //Missing API to set deferred or forward
-                //missing API to assign to pipeline assetß
-                forwardIndex = asset.m_RendererDataList.Length == 1 ? -1 : 1;
-                // TODO remove in final
-                Thread.Sleep(100);
-            }
-
-            if (needsDeferred)
-            {
-                Debug.Log("Generating a deferred renderer");
-                var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
-                //Missing API to set deferred or forward
-                //missing API to assign to pipeline asset
-                deferredIndex = asset.m_RendererDataList.Length == 1 ? -1 : asset.m_RendererDataList.Length - 1;
-                // TODO remove in final
-                Thread.Sleep(100);
-            }
-
-            //looping through all settings
-
-            //assign asset
-            QualitySettings.SetQualityLevel(projectSetting.index);
-            QualitySettings.renderPipeline = asset;
-        }
-        else // is quality level
-        {
-            if (cameraSettings[item.index].renderingPath == RenderingPath.Forward)
-            {
-                needsForward = true;
-            }
-            if (cameraSettings[item.index].renderingPath == RenderingPath.DeferredLighting ||
-                cameraSettings[item.index].renderingPath == RenderingPath.DeferredShading)
-            {
-                needsDeferred = true;
-            }
-        }
-
-        QualitySettings.SetQualityLevel(currentQualityLevel);
-    }
-
-    public override void OnClicked(int index)
-    {
-        if (index > cameraSettings.Count - 1)
-        {
-            // in quality levels
-            SettingsService.OpenProjectSettings("Project/Quality");
-        }
-        else
-        {
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(cameraSettings[index].assetPath);
-
-            if(obj)
-                EditorGUIUtility.PingObject(obj);
-        }
     }
 
     /// <summary>
@@ -135,6 +56,20 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
     {
         var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
         var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier1);
+
+        switch (tier.renderingPath)
+        {
+            case RenderingPath.VertexLit:
+            case RenderingPath.Forward:
+                defaultRenderingPath = RenderingPath.Forward;
+                needsForward = true;
+                break;
+            case RenderingPath.DeferredLighting:
+            case RenderingPath.DeferredShading:
+                defaultRenderingPath = RenderingPath.DeferredShading;
+                needsDeferred = true;
+                break;
+        }
 
         graphicsTierSettings.RenderingPath = tier.renderingPath;
         graphicsTierSettings.ReflectionProbeBlending = tier.reflectionProbeBlending;
@@ -190,7 +125,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
 
             context.AddAssetToConvert(item);
 
-            var camItem = new CameraSettings()
+            var camItem = new CameraSettingItem()
             {
                 goName = label,
                 objectID = gid,
@@ -198,28 +133,31 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
                 parent = Parent.Scene,
                 renderingPath = path,
             };
-            cameraSettings.Add(camItem);
+            settingsItems.Add(camItem);
         }
     }
 
     private void GatherQualityLevels(ref InitializeConverterContext context)
     {
+        var currentQuality = QualitySettings.GetQualityLevel();
         var id = 0;
         foreach (var levelName in QualitySettings.names)
         {
+            QualitySettings.SetQualityLevel(id);
+
             var projectSettings = new ProjectSettingItem
             {
                 index = id,
                 levelName = levelName,
                 pixelLightCount = QualitySettings.pixelLightCount,
                 MSAA = QualitySettings.antiAliasing,
-                softShadows = QualitySettings.shadows == ShadowQuality.All ? true : false,
+                shadows = QualitySettings.shadows,
                 shadowResolution = QualitySettings.shadowResolution,
                 shadowDistance = QualitySettings.shadowDistance,
                 shadowCascadeCount = QualitySettings.shadowCascades,
-                cascadeSplit1 = QualitySettings.shadowCascades == 1 ? QualitySettings.shadowCascade2Split : QualitySettings.shadowCascade4Split.x,
-                cascadeSplit2 = QualitySettings.shadowCascade4Split.y,
-                cascadeSplit3 = QualitySettings.shadowCascade4Split.z,
+                cascadeSplit2 = QualitySettings.shadowCascade2Split,
+                cascadeSplit4 = QualitySettings.shadowCascade4Split,
+                softParticles = QualitySettings.softParticles,
             };
             settingsItems.Add(projectSettings);
 
@@ -230,7 +168,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
             var text = "";
             if (setting != null)
             {
-                item.warningMessage = "Contains SRP Asset already, can override if desired.";
+                item.warningMessage = "Contains SRP Asset already.";
 
                 if (setting.GetType().ToString().Contains("Universal.UniversalRenderPipelineAsset"))
                 {
@@ -261,7 +199,144 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
             context.AddAssetToConvert(item);
             id++;
         }
+        QualitySettings.SetQualityLevel(currentQuality);
     }
+
+    public override void OnRun(ref RunItemContext context)
+    {
+        var item = context.item;
+        // is quality item
+        if (settingsItems[item.index].GetType() == typeof(ProjectSettingItem))
+        {
+            GeneratePipelineAsset(item.index);
+        }
+        else if (settingsItems[item.index].GetType() == typeof(CameraSettingItem))// is camera
+        {
+            /*
+            var cameraSetting = settingsItems[item.index] as CameraSettingItem;
+            if (cameraSetting.renderingPath == RenderingPath.Forward)
+            {
+                needsForward = true;
+            }
+            if (cameraSetting.renderingPath == RenderingPath.DeferredLighting ||
+                cameraSetting.renderingPath == RenderingPath.DeferredShading)
+            {
+                needsDeferred = true;
+            }
+            */
+        }
+    }
+
+    private void GeneratePipelineAsset(int index)
+    {
+        // store current quality level
+        var currentQualityLevel = QualitySettings.GetQualityLevel();
+
+        // get the project setting we are working with
+        var projectSetting = settingsItems[index] as ProjectSettingItem;
+        Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
+
+        //creating pipeline asset
+        var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
+        if(!AssetDatabase.IsValidFolder($"Assets/{pipelineAssetPath}"))
+            AssetDatabase.CreateFolder("Assets", pipelineAssetPath);
+        var path = $"Assets/{pipelineAssetPath}/{projectSetting.levelName}_PipelineAsset.asset";
+
+        // Setting Pipeline Asset settings
+        SetPipelineSettings(asset, projectSetting);
+
+        //create renderers
+        var renderers = new List<ScriptableRendererData>();
+        if (needsForward)
+        {
+            renderers.Add(CreateRendererDataAsset(path, RenderingPath.Forward, "ForwardRenderer"));
+        }
+
+        if (needsDeferred)
+        {
+            renderers.Add(CreateRendererDataAsset(path, RenderingPath.DeferredShading, "DeferredRenderer"));
+        }
+
+        asset.m_RendererDataList = renderers.ToArray();
+
+        // create asset on disk
+        AssetDatabase.CreateAsset(asset, path);
+        //assign asset
+        QualitySettings.SetQualityLevel(projectSetting.index);
+        QualitySettings.renderPipeline = asset;
+
+        // return to original quality level
+        QualitySettings.SetQualityLevel(currentQualityLevel);
+    }
+
+    private ScriptableRendererData CreateRendererDataAsset(string assetPath, RenderingPath renderingPath, string name)
+    {
+        Debug.Log("Generating a deferred renderer");
+        var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(assetPath, RendererType.UniversalRenderer, true, name) as UniversalRendererData;
+        //Missing API to set deferred or forward
+        rendererAsset.renderingMode = renderingPath == RenderingPath.Forward ? RenderingMode.Forward : RenderingMode.Deferred;
+        //missing API to assign to pipeline asset
+        return rendererAsset;
+    }
+
+    /// <summary>
+    /// Sets all relevant RP settings in order they appear in URP
+    /// </summary>
+    /// <param name="asset">Pipeline asset to set</param>
+    /// <param name="settings">The ProjectSettingItem with stored settings</param>
+    private void SetPipelineSettings(UniversalRenderPipelineAsset asset, ProjectSettingItem settings)
+    {
+        // General
+        asset.supportsCameraDepthTexture = settings.softParticles;
+
+        // Quality
+        asset.supportsHDR = graphicsTierSettings.HDR;
+        asset.msaaSampleCount = settings.MSAA == 0 ? 1 : settings.MSAA;
+
+        // Main Light
+        asset.mainLightRenderingMode = settings.pixelLightCount == 0
+            ? LightRenderingMode.Disabled
+            : LightRenderingMode.PerPixel;
+        asset.supportsMainLightShadows = settings.shadows != ShadowQuality.Disable;
+        asset.mainLightShadowmapResolution = GetEquivalentShadowResolution((int)settings.shadowResolution);
+
+        // Additional Lights
+        asset.additionalLightsRenderingMode = settings.pixelLightCount <= 1
+            ? LightRenderingMode.Disabled
+            : LightRenderingMode.PerPixel;
+        asset.maxAdditionalLightsCount = Mathf.Max(0, settings.pixelLightCount - 1);
+        asset.supportsAdditionalLightShadows = settings.shadows != ShadowQuality.Disable;
+        asset.additionalLightsShadowmapResolution = GetEquivalentShadowResolution((int)settings.shadowResolution);
+
+        // Reflection Probes
+        asset.reflectionProbeBlending = graphicsTierSettings.ReflectionProbeBlending;
+        asset.reflectionProbeBoxProjection = graphicsTierSettings.ReflectionProbeBoxProjection;
+
+        // Shadows
+        asset.shadowDistance = settings.shadowDistance;
+        asset.shadowCascadeCount = settings.shadowCascadeCount;
+        asset.cascade2Split = settings.cascadeSplit2;
+        asset.cascade4Split = settings.cascadeSplit4;
+        asset.supportsSoftShadows = settings.shadows == ShadowQuality.All;
+    }
+
+    private static int GetEquivalentShadowResolution(int value)
+    {
+        return value switch
+        {
+            0 => // low
+                1024,
+            1 => // med
+                2048,
+            2 => // high
+                4096,
+            3 => // very high
+                4096,
+            _ => 1024
+        };
+    }
+
+    #region Structs
 
     private struct GraphicsTierSettings
     {
@@ -272,7 +347,9 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         public RenderingPath RenderingPath;
     }
 
-    private class ProjectSettingItem
+    private class SettingsItem { }
+
+    private class ProjectSettingItem : SettingsItem
     {
         // General
         public int index;
@@ -280,16 +357,16 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         // Settings
         public int pixelLightCount;
         public int MSAA;
-        public bool softShadows;
+        public ShadowQuality shadows;
         public ShadowResolution shadowResolution;
         public float shadowDistance;
         public int shadowCascadeCount;
-        public float cascadeSplit1;
         public float cascadeSplit2;
-        public float cascadeSplit3;
+        public Vector3 cascadeSplit4;
+        public bool softParticles;
     }
 
-    internal class CameraSettings
+    private class CameraSettingItem : SettingsItem
     {
         public string goName;
         public GlobalObjectId objectID;
@@ -298,7 +375,9 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         public RenderingPath renderingPath;
     }
 
-    internal enum Parent
+    #endregion
+
+    private enum Parent
     {
         Prefab,
         PrefabVariant,
