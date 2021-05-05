@@ -6,7 +6,7 @@ namespace UnityEngine
     /// Editor for Flare (builtin): Editor to show an error message
     /// </summary>
     [CustomEditorForRenderPipeline(typeof(UnityEngine.Flare), typeof(Rendering.RenderPipelineAsset))]
-    internal class FlareEditor : Editor
+    class FlareEditor : Editor
     {
         /// <summary>
         /// Implement this function to make a custom inspector
@@ -21,7 +21,7 @@ namespace UnityEngine
     /// Editor for Lens Flare (builtin): Editor to show an error message
     /// </summary>
     [CustomEditorForRenderPipeline(typeof(UnityEngine.LensFlare), typeof(Rendering.RenderPipelineAsset))]
-    internal class LensFlareEditor : Editor
+    class LensFlareEditor : Editor
     {
         /// <summary>
         /// Implement this function to make a custom inspector

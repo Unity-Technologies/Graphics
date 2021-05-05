@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering
     {
         static class Icons
         {
-            const string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/PostProcess/LensFlareResource/";
+            const string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/PostProcessing/LensFlareResource/";
             public static readonly Texture2D circle = CoreEditorUtils.LoadIcon(k_IconFolder, "CircleFlareThumbnail", forceLowRes: false);
             public static readonly Texture2D polygon = CoreEditorUtils.LoadIcon(k_IconFolder, "PolygonFlareThumbnail", forceLowRes: false);
             public static readonly Texture2D generic = CoreEditorUtils.LoadIcon(k_IconFolder, "Flare128", forceLowRes: false);

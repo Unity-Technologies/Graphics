@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
     /// LensFlareDataSRP shows how the SRP Lens Flare Asset is shown in the UI
     /// </summary>
     [CustomEditorForRenderPipeline(typeof(LensFlareDataSRP), typeof(UnityEngine.Rendering.RenderPipelineAsset))]
-    internal class LensFlareEditorSRP : Editor
+    class LensFlareDataSRPEditor : Editor
     {
         SerializedProperty m_Elements;
 
