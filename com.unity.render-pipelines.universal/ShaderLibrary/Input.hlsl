@@ -33,6 +33,36 @@ struct InputData
     half3   bakedGI;
     float2  normalizedScreenSpaceUV;
     half4   shadowMask;
+
+    #if defined(LIGHTMAP_ON)
+    half2   lightmapUV;
+    #else
+    float3  vertexSH;
+    #endif
+    #if defined(_NORMALMAP)
+    half3x3 tangentToWorld;
+    #endif
+
+    #if defined(DEBUG_DISPLAY)
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
+    float2 uv;
+    uint mipCount;
+
+    // texelSize :
+    // x = 1 / width
+    // y = 1 / height
+    // z = width
+    // w = height
+    float4 texelSize;
+
+    // mipInfo :
+    // x = quality settings minStreamingMipLevel
+    // y = original mip count for texture
+    // z = desired on screen mip level
+    // w = loaded mip level
+    float4 mipInfo;
+    #endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,6 +71,10 @@ struct InputData
 
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
+
+half4 _GlossyEnvironmentCubeMap_HDR;
+TEXTURECUBE(_GlossyEnvironmentCubeMap);
+SAMPLER(sampler_GlossyEnvironmentCubeMap);
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;

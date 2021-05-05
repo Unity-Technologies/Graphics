@@ -16,6 +16,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -23,7 +24,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  git checkout %GIT_BRANCH%
       -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=7200 --zero-tests-are-ok=1
     artifacts:
@@ -32,6 +33,9 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_cache_il2cpp_Linear on version trunk
     agent:
@@ -40,6 +44,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -47,7 +52,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  git checkout %GIT_BRANCH%
       -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=StandaloneWindows64 --scripting-backend=IL2CPP --suite=playmode --testfilter=Memory --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
     artifacts:
@@ -56,6 +61,9 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version trunk
     agent:
@@ -64,6 +72,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -71,7 +80,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  git checkout %GIT_BRANCH%
       -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
     artifacts:
@@ -80,6 +89,9 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_cache_il2cpp_Linear on version trunk
     agent:
@@ -88,6 +100,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         GIT_BRANCH: master
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -95,7 +108,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  git checkout %GIT_BRANCH%
       -  utr --artifacts_path=TestProjects/HDRP_PerformanceTests/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --loglevel=verbose --performance-project-version=. --report-performance-data --performance-project-id=HDRP --platform=editmode --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/HDRP_PerformanceTests --timeout=14400 --zero-tests-are-ok=1
     artifacts:
@@ -104,6 +117,9 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_cache_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_PerformanceTests/Logs/*.log"
               -  "PrebuildLog/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+         rerun: on_new_revision
 HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version CUSTOM-REVISION
     agent:

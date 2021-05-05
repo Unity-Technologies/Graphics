@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -62,8 +60,6 @@ namespace UnityEditor.Rendering.Universal
 
         public bool spotOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Spot; } }
         public bool pointOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Point; } }
-        public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
-        public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
         public bool shadowResolutionOptionsValue  { get { return spotOptionsValue || pointOptionsValue; } } // Currently only additional punctual lights can specify per-light shadow resolution
 
         //  Area light shadows not supported
@@ -92,38 +88,54 @@ namespace UnityEditor.Rendering.Universal
             serializedLight.settings.DrawLightType();
 
             Light light = target as Light;
-            if (LightType.Directional != light.type && light == RenderSettings.sun)
+            var lightType = light.type;
+            if (LightType.Directional != lightType && light == RenderSettings.sun)
             {
                 EditorGUILayout.HelpBox(Styles.SunSourceWarning.text, MessageType.Warning);
             }
 
             EditorGUILayout.Space();
 
-            // When we are switching between two light types that don't show the range (directional and area lights)
-            // we want the fade group to stay hidden.
-            if (dirOptionsValue)
+            if (typeIsSame)
+            {
+                if (lightType != LightType.Directional)
+                {
 #if UNITY_2020_1_OR_NEWER
-                serializedLight.settings.DrawRange();
+                    serializedLight.settings.DrawRange();
 #else
-                serializedLight.settings.DrawRange(m_AnimAreaOptions.target);
+                    serializedLight.settings.DrawRange(false);
 #endif
+                }
 
-            // Spot angle
-            if (spotOptionsValue)
-                DrawSpotAngle();
+                // Spot angle
+                if (lightType == LightType.Spot)
+                    DrawSpotAngle();
 
-            // Area width & height
-            if (areaOptionsValue)
-                serializedLight.settings.DrawArea();
+                // Area width & height
+                if (serializedLight.settings.isAreaLightType)
+                    serializedLight.settings.DrawArea();
+            }
 
             serializedLight.settings.DrawColor();
 
             EditorGUILayout.Space();
 
-            CheckLightmappingConsistency();
-            if (areaOptionsValue && light.type != LightType.Disc)
+            if (typeIsSame)
             {
-                serializedLight.settings.DrawLightmapping();
+                if (serializedLight.settings.isAreaLightType)
+                {
+                    //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
+                    if (serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
+                    {
+                        serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
+                        serializedLight.Apply();
+                    }
+                }
+                else
+                {
+                    // Draw the Mode property field
+                    serializedLight.settings.DrawLightmapping();
+                }
             }
 
             serializedLight.settings.DrawIntensity();
@@ -162,29 +174,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             serializedLight.Apply();
-        }
-
-        void CheckLightmappingConsistency()
-        {
-            //Universal render-pipeline only supports baked area light, enforce it as this inspector is the universal one.
-            if (serializedLight.settings.isAreaLightType && serializedLight.settings.lightmapping.intValue != (int)LightmapBakeType.Baked)
-            {
-                serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
-                serializedObject.ApplyModifiedProperties();
-            }
-        }
-
-        void SetOptions(AnimBool animBool, bool initialize, bool targetValue)
-        {
-            if (initialize)
-            {
-                animBool.value = targetValue;
-                animBool.valueChanged.AddListener(Repaint);
-            }
-            else
-            {
-                animBool.target = targetValue;
-            }
         }
 
         void DrawSpotAngle()
