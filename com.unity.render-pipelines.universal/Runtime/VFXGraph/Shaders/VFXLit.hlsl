@@ -23,10 +23,13 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     inputData.normalWS = normalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = inputData.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+
+//When there is only one cascaded, this shadowCoord can be computed at vertex stage
+//#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+//    inputData.shadowCoord = inputData.shadowCoord;
+#if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
