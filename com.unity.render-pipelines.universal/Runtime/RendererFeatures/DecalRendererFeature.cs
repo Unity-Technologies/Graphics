@@ -321,6 +321,8 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS5)
                 return true;
+            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.WSA)
+                return true;
             return false;
 #else
             return SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console;
