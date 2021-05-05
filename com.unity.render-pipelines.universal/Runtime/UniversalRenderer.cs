@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 
                 if (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled)
-                    m_CopyDepthPass.AllocateRT = true; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
+                    m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass but it's not called when using RenderPass API.
 
                 EnqueuePass(m_CopyDepthPass);
             }
