@@ -480,7 +480,7 @@ namespace UnityEngine.Rendering.Universal
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             // Temporarily disable depth priming on certain platforms such as Vulkan because we lack proper depth resolve support.
-            useDepthPriming &= !SystemInfo.supportsMultisampleAutoResolve || cameraTargetDescriptor.msaaSamples == 1;
+            useDepthPriming &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan || cameraTargetDescriptor.msaaSamples == 1;
 
             if (usesRenderPass || useDepthPriming)
             {
