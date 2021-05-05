@@ -492,9 +492,8 @@ namespace UnityEngine.Rendering.Universal
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            RenderTextureDescriptor originalTargetDesc;
             var xrActive = false;
-            var xrPasses = m_XRSystem.SetupFrame(baseCameraAdditionalData);
+            var xrPasses = m_XRSystem.SetupFrame(baseCamera);
             foreach (XRPass xrPass in xrPasses)
             {
 
@@ -510,11 +509,11 @@ namespace UnityEngine.Rendering.Universal
                 }
                 // Update volumeframework before initializing additional camera data
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, var out baseCameraData);
+                InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+                RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
                 if (xrPass.enabled)
                 {
-                    originalTargetDesc = baseCameraData.cameraTargetDescriptor;
                     // Helper function for updating cameraData with xrPass Data
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                     baseCameraData.xr = xrPass;
@@ -1058,7 +1057,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
                 {
-                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjectionMatrix(i));
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
                     camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
                 }
             }
