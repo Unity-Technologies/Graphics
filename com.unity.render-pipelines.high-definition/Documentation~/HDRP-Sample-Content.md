@@ -40,7 +40,7 @@ In the **Eye** Scene, the eye examples use a carefully designed mesh with a part
 
 ![Lens Flare Samples](Images/LensFlareSamples.png)
 
-This Sample provides Lens Flare content that can be used in your project. It provides:
+This Sample includes the following Lens Flare examples that you can use in your project::
 - Lens Flare Assets
 - Lens Flare Textures
-- A scene to easily preview and author Lens Flare Assets
+- A scene you can use to preview Lens Flare Assets
