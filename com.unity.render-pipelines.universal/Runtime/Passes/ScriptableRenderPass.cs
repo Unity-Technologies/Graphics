@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthStoreAction = storeAction;
         }
 
-		internal void ConfigureInputAttachments(RenderTargetIdentifier input)
+        internal void ConfigureInputAttachments(RenderTargetIdentifier input)
         {
             m_InputAttachments[0] = input;
         }

@@ -220,19 +220,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
-#if _RENDER_PASS_ENABLED
+        #if _RENDER_PASS_ENABLED
         float d        = LOAD_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
         half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
         half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
-#else
+        #else
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
         float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
-#endif
+        #endif
         #if defined(_DEFERRED_MIXED_LIGHTING)
         half4 shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), my_point_clamp_sampler, screen_uv, 0);
         #else
