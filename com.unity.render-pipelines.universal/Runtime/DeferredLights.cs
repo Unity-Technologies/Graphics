@@ -362,6 +362,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Output lighting result.
         internal RenderTargetHandle[] GbufferAttachments { get; set; }
+        internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle DepthAttachment { get; set; }
         //
@@ -786,8 +787,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
+            {
+                this.DeferredInputAttachments = new RenderTargetIdentifier[4]
+                {
+                    this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
+                    this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                };
+            }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
             if (renderingData.cameraData.xr.enabled)
