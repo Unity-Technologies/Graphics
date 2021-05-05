@@ -9,6 +9,7 @@ using RenderQueue = UnityEngine.Rendering.RenderQueue;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
 using System.Linq;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor
 {
@@ -259,16 +260,7 @@ namespace UnityEditor
             if (properties == null)
                 return;
 
-            foreach (var prop in properties)
-            {
-                if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
-                    continue;
-
-                float h = materialEditor.GetPropertyHeight(prop, prop.displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
-
-                materialEditor.ShaderProperty(r, prop, prop.displayName);
-            }
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties.ToArray());
         }
 
         internal static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
