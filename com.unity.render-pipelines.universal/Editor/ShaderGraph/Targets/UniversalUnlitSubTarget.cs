@@ -225,6 +225,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Port Mask
                     validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = UnlitBlockMasks.FragmentDepthNormals,
 
                     // Fields
                     structs = CoreStructCollections.Default,
@@ -246,6 +247,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 return result;
             }
+
+            #region PortMasks
+            static class UnlitBlockMasks
+            {
+                public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.Alpha,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                };
+            }
+            #endregion
 
             #region RequiredFields
             static class UnlitRequiredFields
