@@ -218,6 +218,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
 
+            // If specific category to copy to is provided, find and use it
             foreach (var category in graphData.categories)
             {
                 if (category.categoryGuid == containingCategoryGuid)
@@ -226,6 +227,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
             }
+
+            // Else, add to default category
+            graphData.categories.First().InsertItemIntoCategory(copiedShaderInput);
         }
 
         public Action<GraphData> modifyGraphDataAction => CopyShaderInput;
@@ -558,11 +562,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (IsInputUncategorized(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
-                        // Rows should auto-expand when an input is first added
-                        // blackboardRow.expanded = true;
-                        var propertyView = blackboardRow.Q<SGBlackboardField>();
-                        if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
-                            propertyView.OpenTextEditor();
+                        if (blackboardRow != null)
+                        {
+                            var propertyView = blackboardRow.Q<SGBlackboardField>();
+                            if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                                propertyView.OpenTextEditor();
+                        }
                     }
                     break;
                 // Need to handle deletion of shader inputs here as opposed to BlackboardCategoryController, as currently,
@@ -662,7 +667,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsInputUncategorized(ShaderInput shaderInput)
         {
-            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
+            // Skip the first category controller as that is guaranteed to be the default category
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values.Skip(1))
             {
                 if (categoryController.IsInputInCategory(shaderInput))
                     return false;

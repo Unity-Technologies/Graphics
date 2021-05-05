@@ -366,7 +366,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // When category is empty
                     if (this.childCount == 0)
                     {
-                        indicatorY = 0;
+                        // This moves the indicator to the bottom of the category in case of an empty category
+                        indicatorY = this.layout.height * 0.9f;
                     }
                     else
                     {
@@ -426,9 +427,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 List<VisualElement> draggedElements = new List<VisualElement>();
                 foreach (ISelectable selectedElement in selection)
                 {
-                    var draggedElement = selectedElement as VisualElement;
-
-                    if (draggedElement != null)
+                    if (selectedElement is VisualElement draggedElement)
                     {
                         draggedElements.Add(draggedElement);
                     }
@@ -449,6 +448,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         addItemToCategoryAction.itemToAdd = newShaderInput;
                         addItemToCategoryAction.indexToAddItemAt = m_InsertIndex;
                         m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
+
+                        // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
+                        selection.Remove(draggedElement as ISelectable);
                     }
                     m_InsertIndex++;
                 }

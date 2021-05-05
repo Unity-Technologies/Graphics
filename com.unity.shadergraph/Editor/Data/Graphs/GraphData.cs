@@ -1237,6 +1237,11 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        public bool ContainsCategory(CategoryData categoryData)
+        {
+            return categories.Contains(categoryData);
+        }
+
         public bool ContainsInput(ShaderInput shaderInput)
         {
             if (shaderInput == null)
@@ -1583,10 +1588,16 @@ namespace UnityEditor.ShaderGraph
         public void MoveCategory(CategoryData category, int newIndex)
         {
             if (newIndex > m_CategoryData.Count || newIndex < 0)
+            {
                 AssertHelpers.Fail("New index is not within categories list.");
+                return;
+            }
             var currentIndex = m_CategoryData.IndexOf(category);
             if (currentIndex == -1)
+            {
                 AssertHelpers.Fail("Category is not in graph.");
+                return;
+            }
             if (newIndex == currentIndex)
                 return;
             m_CategoryData.RemoveAt(currentIndex);
@@ -1740,19 +1751,6 @@ namespace UnityEditor.ShaderGraph
                 ConnectNoValidate(newSlot.slotReference, edge.inputSlot);
 
             RemoveNodeNoValidate(propertyNode);
-        }
-
-        public bool DoesCategoryExist(string categoryGUID)
-        {
-            foreach (var categoryData in categories)
-            {
-                if (categoryData.categoryGuid == categoryGUID)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public void AddCategory(CategoryData categoryDataReference)

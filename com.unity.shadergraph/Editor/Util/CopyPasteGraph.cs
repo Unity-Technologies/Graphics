@@ -155,11 +155,6 @@ namespace UnityEditor.ShaderGraph
         // The only situation in which an input has an identical reference name to another input in a category, while not being the same instance, is if they are duplicates
         public bool IsInputDuplicatedFromCategory(ShaderInput shaderInput, CategoryData inputCategory, GraphData targetGraphData)
         {
-            // Need to check if they share same graph owner as well, if not then we can early out
-            bool inputBelongsToTargetGraph = targetGraphData.ContainsInput(shaderInput);
-            if (inputBelongsToTargetGraph == false)
-                return false;
-
             foreach(var child in inputCategory.Children)
             {
                 if(child.referenceName.Equals(shaderInput.referenceName, StringComparison.Ordinal) && child.objectId != shaderInput.objectId)
@@ -167,6 +162,12 @@ namespace UnityEditor.ShaderGraph
                     return true;
                 }
             }
+
+            // Need to check if they share same graph owner as well, if not then we can early out
+            bool inputBelongsToTargetGraph = targetGraphData.ContainsInput(shaderInput);
+            if (inputBelongsToTargetGraph == false)
+                return false;
+
             return false;
         }
 

@@ -70,7 +70,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangeIsExpanded(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeIsExpanded on Category");
-            graphData.owner.RegisterCompleteObjectUndo($"Change Category IsExpanded");
             foreach (var catid in categoryGuids)
             {
                 var key = $"{editorPrefsBaseKey}.{catid}.{kEditorPrefKey}";
@@ -145,7 +144,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
             // If categoryData associated with this controller is removed by an operation, destroy controller and views associated
-            if (graphData.DoesCategoryExist(ViewModel.associatedCategoryGuid) == false)
+            if (graphData.ContainsCategory(Model) == false)
             {
                 this.Destroy();
                 return;
@@ -243,10 +242,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
-            // If no index specified, add to end of category
-            if (insertionIndex == -1)
-                insertionIndex = m_BlackboardItemControllers.Count;
-
             var shaderInputViewModel = new ShaderInputViewModel()
             {
                 model = shaderInput,
@@ -258,7 +253,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (existingItemController == null)
             {
                 m_BlackboardItemControllers.Add(shaderInput.objectId, blackboardItemController);
-                blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
+                // If no index specified, add to end of category
+                if (insertionIndex == -1)
+                    blackboardCategoryView.Add(blackboardItemController.BlackboardItemView);
+                else
+                    blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
+
                 return blackboardItemController.BlackboardItemView;
             }
             else

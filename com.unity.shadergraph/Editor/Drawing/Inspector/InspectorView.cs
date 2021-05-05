@@ -130,8 +130,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
+
                     if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                    {
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
+                        m_MaxItemsMessageLabel.style.visibility = Visibility.Visible;
+                        break;
+                    }
                 }
                 if (anySelectables && forceNodeView)
                 {

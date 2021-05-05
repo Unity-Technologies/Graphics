@@ -175,10 +175,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_DragIndicator.name = "categoryDragIndicator";
             m_DragIndicator.style.position = Position.Absolute;
             hierarchy.Add(m_DragIndicator);
-            SetDragIndicatorVisible(false);
+            SetCategoryDragIndicatorVisible(false);
         }
 
-        void SetDragIndicatorVisible(bool visible)
+        void SetCategoryDragIndicatorVisible(bool visible)
         {
             if (visible && (m_DragIndicator.parent == null))
             {
@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnDragExitedEvent(DragExitedEvent evt)
         {
-            SetDragIndicatorVisible(false);
+            SetCategoryDragIndicatorVisible(false);
             HideScrollBoundaryRegions();
         }
 
@@ -260,13 +260,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             if (selection == null)
             {
-                SetDragIndicatorVisible(false);
+                SetCategoryDragIndicatorVisible(false);
                 return;
             }
 
             if (!selection.OfType<SGBlackboardCategory>().Any())
             {
-                SetDragIndicatorVisible(false);
+                SetCategoryDragIndicatorVisible(false);
                 return;
             }
 
@@ -280,7 +280,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
             }
-            SetDragIndicatorVisible(true);
+            SetCategoryDragIndicatorVisible(true);
 
             Vector2 localPosition = evt.localMousePosition;
             m_InsertIndex = InsertionIndex(localPosition);
@@ -307,13 +307,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
-                SetDragIndicatorVisible(true);
+                SetCategoryDragIndicatorVisible(true);
                 m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
             else
             {
-                SetDragIndicatorVisible(false);
+                SetCategoryDragIndicatorVisible(false);
             }
 
             evt.StopPropagation();
@@ -327,38 +327,72 @@ namespace UnityEditor.ShaderGraph.Drawing
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
             if (selection == null)
             {
-                SetDragIndicatorVisible(false);
+                SetCategoryDragIndicatorVisible(false);
                 return;
             }
 
+            // Hide the category drag indicator if no categories in selection
             if (!selection.OfType<SGBlackboardCategory>().Any())
             {
-                SetDragIndicatorVisible(false);
-
-                return;
-            }
-
-            foreach (ISelectable selectedElement in selection)
-            {
-                var sourceItem = selectedElement as VisualElement;
-                if (sourceItem is SGBlackboardCategory blackboardCategory && blackboardCategory.controller.Model.IsNamedCategory() == false)
-                    return;
+                SetCategoryDragIndicatorVisible(false);
             }
 
             Vector2 localPosition = evt.localMousePosition;
             m_InsertIndex = InsertionIndex(localPosition);
+
+            // Any categories in the selection that are from other graphs, would have to be copied as opposed to moving the categories within the same graph
+            foreach (var item in selection.ToList())
+            {
+                if (item is SGBlackboardCategory category)
+                {
+                    var selectedCategoryData = category.controller.Model;
+                    bool doesCategoryExistInGraph = controller.Model.ContainsCategory(selectedCategoryData);
+                    if (doesCategoryExistInGraph == false)
+                    {
+                        var copyCategoryAction = new CopyCategoryAction();
+                        copyCategoryAction.categoryToCopyReference = selectedCategoryData;
+                        ViewModel.requestModelChangeAction(copyCategoryAction);
+                        selection.Remove(item);
+
+                        // Remove any child inputs that belong to this category from the selection, to prevent duplicates from being copied onto the graph
+                        foreach (var otherItem in selection.ToList())
+                        {
+                            if (otherItem is SGBlackboardField blackboardField && category.Contains(blackboardField))
+                                selection.Remove(otherItem);
+                        }
+                    }
+                }
+            }
+
+            // Same as above, but for blackboard items (properties, keywords, dropdowns)
+            foreach (var item in selection.ToList())
+            {
+                if (item is SGBlackboardField blackboardField)
+                {
+                    var selectedBlackboardItem = blackboardField.controller.Model;
+                    bool doesInputExistInGraph = controller.Model.ContainsInput(selectedBlackboardItem);
+                    if (doesInputExistInGraph == false)
+                    {
+                        var copyShaderInputAction = new CopyShaderInputAction();
+                        copyShaderInputAction.shaderInputToCopy = selectedBlackboardItem;
+                        ViewModel.requestModelChangeAction(copyShaderInputAction);
+                        selection.Remove(item);
+                    }
+                }
+            }
+
             var moveCategoryAction = new MoveCategoryAction();
             moveCategoryAction.newIndexValue = m_InsertIndex;
             moveCategoryAction.categoryGuids = selection.OfType<SGBlackboardCategory>().OrderBy(sgcat => sgcat.GetPosition().y).Select(cat => cat.viewModel.associatedCategoryGuid).ToList();
             ViewModel.requestModelChangeAction(moveCategoryAction);
 
-            SetDragIndicatorVisible(false);
+            SetCategoryDragIndicatorVisible(false);
         }
 
         void OnDragLeaveEvent(DragLeaveEvent evt)
         {
             DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
-            SetDragIndicatorVisible(false);
+            SetCategoryDragIndicatorVisible(false);
             m_InsertIndex = -1;
         }
 

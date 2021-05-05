@@ -1037,7 +1037,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         dropdownsDirty = true;
                     }
                 }
-                else if (selectable is SGBlackboardCategory category)
+                // Don't allow the default category to be deleted
+                else if (selectable is SGBlackboardCategory category && category.controller.Model.IsNamedCategory())
                 {
                     deleteCategoriesAction.categoriesToRemoveGuids.Add(category.viewModel.associatedCategoryGuid);
                 }
@@ -1086,14 +1087,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool dragging = false;
             if (selection != null)
             {
-                // Blackboard
-                bool validFields = false;
-                foreach (SGBlackboardField propertyView in selection.OfType<SGBlackboardField>())
+                var anyCategoriesInSelection = selection.OfType<SGBlackboardCategory>();
+                if (!anyCategoriesInSelection.Any())
                 {
-                    if (!(propertyView.userData is MultiJsonInternal.UnknownShaderPropertyType))
-                        validFields = true;
+                    // Blackboard items
+                    bool validFields = false;
+                    foreach (SGBlackboardField propertyView in selection.OfType<SGBlackboardField>())
+                    {
+                        if (!(propertyView.userData is MultiJsonInternal.UnknownShaderPropertyType))
+                            validFields = true;
+                    }
+
+                    dragging = validFields;
                 }
-                dragging = validFields;
+                else
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
             }
             else
             {
