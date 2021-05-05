@@ -76,7 +76,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
-                refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
+                Vector3 center = refVolAuthoring.transform.position;
+                if (hasFoundBounds)
+                {
+                    center = Vector3.zero;
+                }
+                refVol.SetTRS(center, refVolAuthoring.transform.rotation, refVolAuthoring.brickSize);
                 refVol.SetMaxSubdivision(refVolAuthoring.maxSubdivision);
             }
 
@@ -303,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (hasFoundBounds)
                         {
                             // TODO: Needs to be global bounds center when we get rid of the importance of the location of the ref volume
-                            Vector3 center = refVol.transform.position; //globalBounds.center;
+                            Vector3 center = Vector3.zero;// refVol.transform.position; //globalBounds.center;
 
                             float cellSizeInMeters = Mathf.CeilToInt((float)refVol.profile.cellSizeInBricks * refVol.profile.brickSize);
 
