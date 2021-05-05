@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
-         {
+        {
             if (cameras.Count > 1)
                 cameras.Sort(cameraComparison);
         }
