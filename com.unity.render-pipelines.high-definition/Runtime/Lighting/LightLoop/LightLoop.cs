@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<Vector4>                env2DCaptureForward { get; private set; }
             public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
-            public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
+            public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipelineRuntimeResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
 
-        void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        void InitShadowSystem(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = new HDShadowManager();
@@ -949,7 +949,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to verify and flush any pending asset loading for probe volume.
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.PerformPendingOperations();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                {
+                    if (hdCamera.camera.cameraType != CameraType.Reflection &&
+                        hdCamera.camera.cameraType != CameraType.Preview)
+                    {
+                        ProbeReferenceVolume.instance.SortPendingCells(hdCamera.camera.transform.position);
+                    }
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                }
             }
         }
 
@@ -3315,7 +3323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
 
             // Cluster
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             var clustPrepassSourceIdx = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
             var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
             if (tileAndClusterData.clusterNeedsDepth)

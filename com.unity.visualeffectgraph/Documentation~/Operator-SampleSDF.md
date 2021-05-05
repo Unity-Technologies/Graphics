@@ -6,7 +6,7 @@ The Sample Signed Distance Field Operator allows you to fetch a distance field s
 
 A Signed Distance Field (SDF) determines the distance from a point in space to the surface of a shape. By convention, this function is negative for points inside of the shape, and positive outside. The SDF is equal to zero on the surface of the object.
 
-### Operator Properties
+### Operator properties
 
 | **Input**       | **Type**                           | **Description**                                              |
 | --------------- | ---------------------------------- | ------------------------------------------------------------ |
