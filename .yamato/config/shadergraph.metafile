@@ -14,7 +14,7 @@ test_platforms:
       - [all]: mkdir C:\ProgramData\pip && echo [global] >> C:\ProgramData\pip\pip.ini && echo extra-index-url = https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple >> C:\ProgramData\pip\pip.ini
       - [all]: pip install GitPython
       - [all]: python .yamato/tooling/wrap_utr.py <UTR_FLAGS>
-      - [Win_DX11] ls C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/
+      - [Win_DX11]: ls C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/
       - [Win_DX11, Win_DX12, Win_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       - [OSX_Metal]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
       - [Android_OpenGLES3, Android_Vulkan]: python .yamato/tooling/shadergraph_commitback.py --root "TestProjects/ShaderGraph"
