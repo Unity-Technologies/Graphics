@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
-            var needsDepth = m_CreateDepthTexture || (!m_CreateColorTexture && m_UseDepthStencilBuffer);
+            var needsDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
             m_Render2DLightingPass.Setup(needsDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
