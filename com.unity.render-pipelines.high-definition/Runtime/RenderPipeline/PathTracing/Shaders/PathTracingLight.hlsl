@@ -169,14 +169,14 @@ if (withLocal)
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-if (withDistant)
-{
-    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    if (withDistant)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
-            list.distantIndex[list.distantCount++] = i;
+        for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+        {
+            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
+                list.distantIndex[list.distantCount++] = i;
+        }
     }
-}
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
     list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
@@ -300,6 +300,7 @@ bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
                   float3 normal,
+                  bool isVolume,
               out float3 outgoingDir,
               out float3 value,
               out float pdf,
@@ -308,8 +309,8 @@ bool SampleLights(LightList lightList,
     if (!GetLightCount(lightList))
         return false;
 
-    // Are we lighting a volume or a surface?
-    bool isVolume = !any(normal);
+    // Are we lighting a spherical (e.g. volume) or a hemi-spherical distribution (e.g. opaque surface)?
+    bool isSpherical = isVolume || !any(normal);
 
     if (PickLocalLights(lightList, inputSample.z))
     {
@@ -330,7 +331,7 @@ bool SampleLights(LightList lightList,
             dist = sqrt(sqDist);
             outgoingDir /= dist;
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             float cosTheta = -dot(outgoingDir, lightData.forward);
@@ -364,7 +365,7 @@ bool SampleLights(LightList lightList,
                 pdf = DELTA_PDF;
             }
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
@@ -400,7 +401,7 @@ bool SampleLights(LightList lightList,
             outgoingDir = -lightData.forward;
         }
 
-        if (!isVolume && (dot(normal, outgoingDir) < 0.001))
+        if (!isSpherical && (dot(normal, outgoingDir) < 0.001))
             return false;
 
         dist = FLT_INF;

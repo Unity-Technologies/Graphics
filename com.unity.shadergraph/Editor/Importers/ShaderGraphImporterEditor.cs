@@ -59,15 +59,33 @@ namespace UnityEditor.ShaderGraph
                 Debug.Assert(importer != null, "importer != null");
                 ShowGraphEditWindow(importer.assetPath);
             }
-            if (GUILayout.Button("View Generated Shader"))
+            using (var horizontalScope = new GUILayout.HorizontalScope("box"))
             {
                 AssetImporter importer = target as AssetImporter;
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
                 string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
+                bool alreadyExists = File.Exists(path);
+                bool update = false;
+                bool open = false;
 
-                var graphData = GetGraphData(importer);
-                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
-                if (GraphUtil.WriteToFile(path, generator.generatedShader))
+                if (GUILayout.Button("View Generated Shader"))
+                {
+                    update = true;
+                    open = true;
+                }
+
+                if (alreadyExists && GUILayout.Button("Regenerate"))
+                    update = true;
+
+                if (update)
+                {
+                    var graphData = GetGraphData(importer);
+                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                    if (!GraphUtil.WriteToFile(path, generator.generatedShader))
+                        open = false;
+                }
+
+                if (open)
                     GraphUtil.OpenFile(path);
             }
             if (Unsupported.IsDeveloperMode())

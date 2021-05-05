@@ -384,7 +384,7 @@ namespace UnityEditor.VFX
         {
             if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
-                m_Layer = uint.MaxValue; //Completely independent system
+                m_Layer = 0; //Independent system, choose layer 0 anyway.
             }
             else
             {

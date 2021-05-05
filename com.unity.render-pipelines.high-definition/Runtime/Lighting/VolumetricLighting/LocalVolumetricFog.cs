@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class LocalVolumetricFogParameters
 
     /// <summary>Local Volumetric Fog class.</summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Local-Volumetric-Fog" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Local-Volumetric-Fog")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class LocalVolumetricFog : MonoBehaviour

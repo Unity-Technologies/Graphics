@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
@@ -891,6 +892,7 @@ namespace UnityEditor.VFX
                 taskDesc.values = uniformMappings.ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
+                taskDesc.model = context;
 
                 if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
                 {
@@ -918,6 +920,7 @@ namespace UnityEditor.VFX
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerCameraSort;
                             sortTaskDesc.externalProcessor = null;
+                            sortTaskDesc.model = context;
 
                             sortTaskDesc.buffers = new VFXMapping[3];
                             sortTaskDesc.buffers[0] = new VFXMapping("srcBuffer", update.bufferIndex + j);

@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Linq;
-
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
@@ -35,10 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static class Styles
         {
-            public const string header = "Exposed Properties";
+            public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Exposed Properties");
         }
 
-        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
 
         /// <summary>
@@ -47,8 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features enabled in the block.</param>
         public ShaderGraphUIBlock(ExpandableBit expandableBit = ExpandableBit.ShaderGraph, Features features = Features.All)
+            : base(expandableBit, Styles.header)
         {
-            m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
@@ -56,18 +53,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Loads the material properties for the block.
         /// </summary>
         public override void LoadMaterialProperties() {}
-
-        /// <summary>
-        /// Renders the properties in the block.
-        /// </summary>
-        public override void OnGUI()
-        {
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
-            {
-                if (header.expanded)
-                    DrawShaderGraphGUI();
-            }
-        }
 
         MaterialProperty[] oldProperties;
 
@@ -111,7 +96,10 @@ namespace UnityEditor.Rendering.HighDefinition
             return propertyChanged;
         }
 
-        void DrawShaderGraphGUI()
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
+        protected override void OnGUIOpen()
         {
             // Filter out properties we don't want to draw:
             if ((m_Features & Features.ExposedProperties) != 0)
