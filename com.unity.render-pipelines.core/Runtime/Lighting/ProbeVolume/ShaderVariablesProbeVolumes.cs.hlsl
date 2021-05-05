@@ -11,7 +11,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float3 _IndexDim;
     float _NormalBias;
     float3 _PoolDim;
-    float pad0;
+    float _ViewBias;
 CBUFFER_END
 
 

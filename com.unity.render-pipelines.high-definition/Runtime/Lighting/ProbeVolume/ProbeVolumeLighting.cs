@@ -69,11 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData) ? 1u : 0u;
 
             var probeVolumeOptions = hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>();
-            var normalBias = probeVolumeOptions.normalBias.value;
 
             if (cb._EnableProbeVolumes > 0)
             {
-                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, normalBias);
+                ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, probeVolumeOptions.normalBias.value,
+                    probeVolumeOptions.viewBias.value,
+                    probeVolumeOptions.scaleBiasWithMinProbeDistance.value);
             }
         }
     }

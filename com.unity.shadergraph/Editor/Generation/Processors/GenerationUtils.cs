@@ -202,6 +202,7 @@ namespace UnityEditor.ShaderGraph
             packBuilder.AppendLine("{");
             packBuilder.IncreaseIndent();
             packBuilder.AppendLine($"{packedStruct} output;");
+            packBuilder.AppendLine($"ZERO_INITIALIZE({packedStruct}, output);");
 
             unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packedStruct} input)");
             unpackBuilder.AppendLine("{");
