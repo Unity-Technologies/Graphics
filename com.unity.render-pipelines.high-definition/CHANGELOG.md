@@ -184,6 +184,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Clouds on Metal or platforms that don't support RW in same shader of R11G11B10 textures.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
 - Fixed normals provided in object space or world space, when using double sided materials.
+- Fixed multi cameras using cloud layers shadows.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
