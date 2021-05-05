@@ -767,14 +767,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
 
-            //this.DepthCopyTexture = depthCopyTexture;
+            this.DepthCopyTexture = depthCopyTexture;
             this.DepthInfoTexture = depthInfoTexture;
             this.TileDepthInfoTexture = tileDepthInfoTexture;
 
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-           // this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
+            this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
@@ -793,7 +793,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
             if (renderingData.cameraData.xr.enabled)
             {
-             //   this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
+                this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
                 this.DepthInfoTextureIdentifier = new RenderTargetIdentifier(this.DepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
                 this.TileDepthInfoTextureIdentifier = new RenderTargetIdentifier(this.TileDepthInfoTextureIdentifier, 0, CubemapFace.Unknown, -1);
 

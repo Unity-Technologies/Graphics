@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 
-                if (this.actualRenderingMode == RenderingMode.Deferred)
+                if (this.actualRenderingMode == RenderingMode.Deferred && !useRenderPassEnabled)
                     m_CopyDepthPass.AllocateRT = true; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
 
                 EnqueuePass(m_CopyDepthPass);
@@ -826,8 +826,9 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
-
-            m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
+            // Need to call Configure to setup input attachments
+            if (useRenderPassEnabled)
+                m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
             EnqueuePass(m_DeferredPass);
 
             //TODO: RenderPass API doesn't get the color attachment, fixit
