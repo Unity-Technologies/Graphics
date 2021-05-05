@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            context.AddField(Fields.GraphVertex,                    descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
@@ -522,6 +522,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                       HDStructFields.AttributesMesh.vertexID),
         };
 
+        public static DependencyCollection VertexDescriptionTessellation = new DependencyCollection
+        {
+            //Vertex Description Dependencies
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,             HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,              HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,           HDStructFields.VaryingsMeshToDS.tangentWS),
+
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            HDStructFields.VaryingsMeshToDS.texCoord0),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            HDStructFields.VaryingsMeshToDS.texCoord1),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.VaryingsMeshToDS.texCoord2),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.VaryingsMeshToDS.texCoord3),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.VaryingsMeshToDS.color),
+        };
+
         public static DependencyCollection SurfaceDescription = new DependencyCollection
         {
             //Surface Description Dependencies
@@ -565,6 +579,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Tessellation },
             { FragInput },
             { VertexDescription },
+            { VertexDescriptionTessellation },
             { SurfaceDescription },
         };
     }

@@ -206,7 +206,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty(kTessellationFactorMinDistance, 20.0f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kTessellationFactorMaxDistance, 50.0f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kTessellationFactorTriangleSize, 100.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty(kTessellationFactor, 0.75f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationShapeFactor, 0.75f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kTessellationBackFaceCullEpsilon, -0.25f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kMaxTessellationDisplacement, 0.01f, HLSLDeclaration.UnityPerMaterial);
         }
