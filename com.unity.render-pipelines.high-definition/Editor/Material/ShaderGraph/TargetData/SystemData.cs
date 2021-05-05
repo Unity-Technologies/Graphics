@@ -183,6 +183,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_TessellationBackFaceCullEpsilon = value;
         }
 
+        [SerializeField]
+        float m_MaxTessellationDisplacement;
+        public float maxTessellationDisplacement
+        {
+            get => m_MaxTessellationDisplacement;
+            set => m_MaxTessellationDisplacement = value;
+        }
+
         // End Tessellation
 
         [SerializeField]

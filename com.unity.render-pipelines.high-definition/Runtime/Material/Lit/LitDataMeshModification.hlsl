@@ -54,11 +54,11 @@ float GetTessellationFactor(VaryingsMeshToDS input)
     return _TessellationFactor;
 }
 
-void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)
+VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)
 {
 #if defined(_TESSELLATION_DISPLACEMENT)
 
-    positionRWS += GetVertexDisplacement(positionRWS, normalWS,
+    input.positionRWS += GetVertexDisplacement(input.positionRWS, input.normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0.xy,
     #else
@@ -85,7 +85,10 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inou
         float4(0.0, 0.0, 0.0, 0.0)
     #endif
         );
+
 #endif // _TESSELLATION_DISPLACEMENT
+
+    return input;
 }
 
 #endif // #ifdef TESSELLATION_ON

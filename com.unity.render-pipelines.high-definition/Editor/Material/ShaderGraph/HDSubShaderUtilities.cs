@@ -203,11 +203,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
-            collector.AddFloatProperty("_TessellationFactorMinDistance", 20.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty("_TessellationFactorMaxDistance", 50.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty("_TessellationFactorTriangleSize", 100.0f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty("_TessellationShapeFactor", 0.75f, HLSLDeclaration.UnityPerMaterial);
-            collector.AddFloatProperty("_TessellationBackFaceCullEpsilon", -0.25f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorMinDistance, 20.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorMaxDistance, 50.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactorTriangleSize, 100.0f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationFactor, 0.75f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kTessellationBackFaceCullEpsilon, -0.25f, HLSLDeclaration.UnityPerMaterial);
+            collector.AddFloatProperty(kMaxTessellationDisplacement, 0.01f, HLSLDeclaration.UnityPerMaterial);
         }
 
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)

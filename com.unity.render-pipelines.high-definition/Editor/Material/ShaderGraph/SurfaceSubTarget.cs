@@ -239,7 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddField(HDStructFields.FragInputs.positionRWS);
 
             context.AddField(Fields.TessellationFactor, systemData.tessellation);
-            context.AddField(Fields.TessellationDisplacement, systemData.tessellation);
+            context.AddField(Fields.TessellationPosition, systemData.tessellation);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
 
             context.AddBlock(BlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
-            context.AddBlock(BlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
+            context.AddBlock(BlockFields.VertexDescription.TessellationPosition, systemData.tessellation);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
@@ -402,6 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 material.SetFloat(kTessellationFactorTriangleSize, systemData.tessellationFactorTriangleSize);
                 material.SetFloat(kTessellationShapeFactor, systemData.tessellationShapeFactor);
                 material.SetFloat(kTessellationBackFaceCullEpsilon, systemData.tessellationBackFaceCullEpsilon);
+                material.SetFloat(kMaxTessellationDisplacement, systemData.maxTessellationDisplacement);
             }
 
             // No sorting priority for shader graph preview

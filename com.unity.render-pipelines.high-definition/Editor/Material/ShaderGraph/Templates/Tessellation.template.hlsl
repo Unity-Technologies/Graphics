@@ -44,16 +44,16 @@ float GetTessellationFactor(VaryingsMeshToDS input)
     float tessellationFactor = 1.0;
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
     // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
-    $VertexDescription.TessellationFactor: VaryingsMeshToDSToVertexDescriptionInputs(input);
-    $VertexDescription.TessellationFactor: VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     $VertexDescription.TessellationFactor: tessellationFactor = vertexDescription.TessellationFactor;
+
     return tessellationFactor;
 }
 
 float GetMaxDisplacement()
 {
-    //$VertexDescription.TessellationMaxDisplacement: float3 displacementWS = vertexDescription.TessellationMaxDisplacement;
-    return 0.01;
+    return _MaxTessellationDisplacement;
 }
 
 // TODO => must take into account custom interpolator
@@ -94,12 +94,22 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 // y - 2->0 edge
 // z - 0->1 edge
 // w - inside tessellation factor
-void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)
+VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 timeParameters)
 {
-    // TODO: This shouldn't be in SurfaceDescription but in TessellationDescription
-   // $VertexDescription.TessellationDisplacement: float3 displacementWS = vertexDescription.TessellationDisplacement;
+    // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
+    // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
+    VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
+    // Override time paramters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
-    return ;
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    $VertexDescription.TessellationPosition: input.positionRWS = vertexDescription.TessellationPosition;
+
+    // TODO: Check custom interpolator
+    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
+    // $splice(CustomInterpolatorVertexDefinitionToVaryings)
+
+    return input;
 }
 
 #endif
