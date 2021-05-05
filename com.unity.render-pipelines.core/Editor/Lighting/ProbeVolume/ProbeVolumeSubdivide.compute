@@ -13,19 +13,25 @@
 #include "Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbePlacement.cs.hlsl"
 
 Texture3D _Input;
+Texture3D _ProbeVolumeData;
 RWTexture3D<float4> _Output;
 RWTexture3D<float4> _FinalOutput;
 
 AppendStructuredBuffer<float3> _Bricks;
 RWStructuredBuffer<float3> _BricksToClear;
 
+StructuredBuffer<GPUProbeVolumeOBB> _ProbeVolumes;
+
 float3 _Size;
 float _Offset;
 float3 _MaxBrickSize;
 float3 _VolumeSize;
 float3 _VolumeOffsetInBricks;
+float3 _VolumeWorldOffset;
+float _BrickSize;
 float3 _SDFSize;
 float _SubdivisionLevel;
+float _ProbeVolumeCount;
 
 [numthreads(8,8,1)]
 void Clear(uint3 id : SV_DispatchThreadID)
@@ -134,8 +140,49 @@ void FinalPass(uint3 id : SV_DispatchThreadID)
     _Output[id] = float4(dist.xxx, 1);
 }
 
-bool PointInsideOBB()
+float2 ProjectOBB(GPUProbeVolumeOBB obb, float3 axis)
 {
+    float pMin = dot(axis, obb.corner);
+    float pMax = pMin;
+
+    for (int x = 0; x < 2; x++)
+    {
+        for (int y = 0; y < 2; y++)
+        {
+            for (int z = 0; z < 2; z++)
+            {
+                float3 vert = obb.corner + obb.X * x + obb.Y * y + obb.Z * z;
+
+                float proj = dot(axis, vert);
+
+                if (proj < pMin)
+                    pMin = proj;
+                else if (proj > pMax)
+                    pMax = proj;
+            }
+        }
+    }
+
+    return float2(pMin, pMax);
+}
+
+bool PointInsideOBB(GPUProbeVolumeOBB obb, float3 p)
+{
+    float3 axes[] =
+    {
+        normalize(obb.X),
+        normalize(obb.Y),
+        normalize(obb.Z),
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        float2 obbProjection = ProjectOBB(obb, axes[i]);
+        float pointProjection = dot(p, axes[i]);
+
+        if (obbProjection.y < pointProjection || pointProjection < obbProjection.x)
+            return false;
+    }
 
     return true;
 }
@@ -143,7 +190,26 @@ bool PointInsideOBB()
 [numthreads(8, 8, 1)]
 void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 {
+    float2 subdivisionLimits = float2(0, 0);
 
+    if (any(id >= uint3(_MaxBrickSize)))
+        return;
+
+    // id to brick world position
+    float3 brickCenterPosition = id * _BrickSize + _VolumeWorldOffset;
+
+    for (int i = 0; i < _ProbeVolumeCount; i++)
+    {
+        GPUProbeVolumeOBB obb = _ProbeVolumes[i];
+
+        if (PointInsideOBB(obb, brickCenterPosition))
+        {
+            subdivisionLimits.x = max(subdivisionLimits.x, obb.minSubdivisionLevel);
+            subdivisionLimits.y = max(subdivisionLimits.y, obb.maxSubdivisionLevel);
+        }
+    }
+
+    _Output[id] = float4(subdivisionLimits, 0, 0);
 }
 
 [numthreads(8, 8, 1)]
@@ -151,6 +217,9 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
 {
     if (any(id >= uint3(_MaxBrickSize)))
         return;
+
+    // Get the local min and max subdivision levels
+    float2 subdivisionLevelData = _ProbeVolumeData[id].xy;
 
     // Compute the position at the center of the voxel
     float3 position01 = (float3(id) + 0.5) / _MaxBrickSize;
@@ -165,7 +234,7 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
     // TODO: expose this distance as a parameter
-    if (dist <= voxelDetectionDistance)
+    if (dist <= voxelDetectionDistance || subdivisionLevelData.x > _SubdivisionLevel)
     {
         // transform id to world position
         float3 positionInCell = _VolumeOffsetInBricks + (id / _MaxBrickSize) * _VolumeSize;

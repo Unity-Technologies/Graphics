@@ -24,6 +24,9 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3 X;
             public Vector3 Y;
             public Vector3 Z;
+
+            public int minSubdivisionLevel;
+            public int maxSubdivisionLevel;
         }
 
         static ComputeShader _subdivideSceneCS;
@@ -54,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering
             RenderTexture sceneSDF2 = null;
             RenderTexture dummyRenderTarget = null;
             var bricks = new List<Brick>();
+            var cellAABB = cellVolume.CalculateAABB();
 
             try
             {
@@ -92,6 +96,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 GenerateDistanceField(cmd, sceneSDF, sceneSDF2);
 
+                // Now that the distance field is generated, we can store the probe subdivision data inside sceneSDF2
+                var probeSubdivisionData = sceneSDF2;
+                int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(GPUProbeVolumeOBB));
+                var probeVolumesBuffer = new ComputeBuffer(probeVolumes.Count, stride, ComputeBufferType.Structured);
+                VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, sceneSDF2, probeVolumesBuffer, maxBrickCountPerAxis);
+
                 var bricksBuffer = new ComputeBuffer(maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
                 var readbackCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 
@@ -107,64 +117,64 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // Add the bricks from the probe volume min subdivision level:
                     int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - subdivisionLevel);
-                    int brickSize = (int)Mathf.Pow(3, subdivisionLevel);
+                    // int brickSize = (int)Mathf.Pow(3, subdivisionLevel);
 
-                    // Check if a probe volume inside the cell will add subdivision at this level
-                    float localMinSubdiv = probeVolumes.Max(pv => pv.component.minSubdivisionMultiplier);
+                    // // Check if a probe volume inside the cell will add subdivision at this level
+                    // float localMinSubdiv = probeVolumes.Max(pv => pv.component.minSubdivisionMultiplier);
 
-                    if (maxSubdivLevel - subdivisionLevel < refVol.GetMaxSubdivision(localMinSubdiv))
-                    {
-                        // Adds the bricks from the min subdivision setting of the volume
-                        for (int x = 0; x < brickCountPerAxis; x++)
-                        {
-                            for (int y = 0; y < brickCountPerAxis; y++)
-                            {
-                                for (int z = 0; z < brickCountPerAxis; z++)
-                                {
-                                    var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
-                                    ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
+                    // if (maxSubdivLevel - subdivisionLevel < refVol.GetMaxSubdivision(localMinSubdiv))
+                    // {
+                    //     // Adds the bricks from the min subdivision setting of the volume
+                    //     for (int x = 0; x < brickCountPerAxis; x++)
+                    //     {
+                    //         for (int y = 0; y < brickCountPerAxis; y++)
+                    //         {
+                    //             for (int z = 0; z < brickCountPerAxis; z++)
+                    //             {
+                    //                 var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
+                    //                 ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
 
-                                    // TODO: collider check on the probe volume:
-                                    // var closestPoint = collider.ClosestPoint(triggerPos);
-                                    // var d = (closestPoint - triggerPos).sqrMagnitude;
+                    //                 // TODO: collider check on the probe volume:
+                    //                 // var closestPoint = collider.ClosestPoint(triggerPos);
+                    //                 // var d = (closestPoint - triggerPos).sqrMagnitude;
 
-                                    // minSqrDistance = Mathf.Min(minSqrDistance, d);
+                    //                 // minSqrDistance = Mathf.Min(minSqrDistance, d);
 
-                                    // // Update the list of overlapping colliders
-                                    // if (d <= sqrFadeRadius)
-                                    //     volume.m_OverlappingColliders.Add(collider);
+                    //                 // // Update the list of overlapping colliders
+                    //                 // if (d <= sqrFadeRadius)
+                    //                 //     volume.m_OverlappingColliders.Add(collider);
 
-                                    localMinSubdiv = 0;
-                                    bool overlapVolume = false;
-                                    foreach (var kp in probeVolumes)
-                                    {
-                                        var vol = kp.volume;
-                                        if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
-                                        {
-                                            localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
-                                            overlapVolume = true;
-                                        }
-                                    }
+                    //                 localMinSubdiv = 0;
+                    //                 bool overlapVolume = false;
+                    //                 foreach (var kp in probeVolumes)
+                    //                 {
+                    //                     var vol = kp.volume;
+                    //                     if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
+                    //                     {
+                    //                         localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
+                    //                         overlapVolume = true;
+                    //                     }
+                    //                 }
 
-                                    bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < refVol.GetMaxSubdivision(localMinSubdiv);
+                    //                 bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < refVol.GetMaxSubdivision(localMinSubdiv);
 
-                                    // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                                    if (overlapVolume && belowMinSubdiv)
-                                        bricksList.Add(brick);
-                                }
-                            }
-                        }
-                    }
+                    //                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
+                    //                 if (overlapVolume && belowMinSubdiv)
+                    //                     bricksList.Add(brick);
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
                     int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
                     cmd.Clear();
                     cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
-                    cmd.DispatchCompute(subdivideSceneCS, clearBufferKernel, maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis / 8, 1, 1);
+                    DispatchCompute(cmd, clearBufferKernel, maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, 1);
                     cmd.SetBufferCounterValue(bricksBuffer, 0);
 
                     bricksBuffer.SetCounterValue(0);
                     // TODO: avoid subdividing more than the max local subdivision from probe volume
-                    SubdivideFromDistanceField(cmd, cellVolume.CalculateAABB(), sceneSDF, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis);
+                    SubdivideFromDistanceField(cmd, cellAABB, sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis, subdivisionLevel);
                     cmd.CopyCounterValue(bricksBuffer, readbackCountBuffer, 0);
                     Graphics.ExecuteCommandBuffer(cmd);
 
@@ -184,6 +194,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 bricksBuffer.Release();
                 readbackCountBuffer.Release();
+                probeVolumesBuffer.Release();
 
                 bricks = bricksList.ToList();
 
@@ -346,21 +357,61 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static void SubdivideFromDistanceField(CommandBuffer cmd, Bounds volume, RenderTexture sceneSDF, ComputeBuffer buffer, int brickCount, int maxBrickCountPerAxis)
+        static void VoxelizeProbeVolumeData(CommandBuffer cmd, Bounds cellAABB,
+            List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
+            RenderTexture target, ComputeBuffer probeVolumesBuffer, int maxBrickCountPerAxis)
         {
-            // TODO: cleanup: cache kernel names + cache shader ids
-            int kernel = subdivideSceneCS.FindKernel("Subdivide");
+            using (new ProfilingScope(cmd, new ProfilingSampler("Voxelize Probe Volume Data")))
+            {
+                List<GPUProbeVolumeOBB> gpuProbeVolumes = new List<GPUProbeVolumeOBB>();
 
-            // We convert the world space volume position (of a corner) in bricks.
-            // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
-            Vector3 volumeBrickPosition = (volume.center - volume.extents) / ProbeReferenceVolume.instance.MinBrickSize();
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffsetInBricks", volumeBrickPosition);
-            cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSize", Vector3.one * maxBrickCountPerAxis);
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_SDFSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
-            cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Input", sceneSDF);
-            DispatchCompute(cmd, kernel, brickCount, brickCount, brickCount);
+                // Prepare list of GPU probe volumes
+                foreach (var kp in probeVolumes)
+                {
+                    int minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(kp.component.minSubdivisionMultiplier);
+                    int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision(kp.component.maxSubdivisionMultiplier);
+                    gpuProbeVolumes.Add(new GPUProbeVolumeOBB{
+                        corner = kp.volume.corner,
+                        X = kp.volume.X,
+                        Y = kp.volume.Y,
+                        Z = kp.volume.Z,
+                        minSubdivisionLevel = minSubdiv,
+                        maxSubdivisionLevel = maxSubdiv,
+                    });
+                }
+
+                cmd.SetBufferData(probeVolumesBuffer, gpuProbeVolumes);
+                int kernel = subdivideSceneCS.FindKernel("VoxelizeProbeVolumeData");
+                cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_ProbeVolumes", probeVolumesBuffer);
+                cmd.SetComputeFloatParam(subdivideSceneCS, "_ProbeVolumeCount", probeVolumes.Count);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
+                cmd.SetComputeFloatParam(subdivideSceneCS, "_BrickSize", cellAABB.size.x / maxBrickCountPerAxis);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * maxBrickCountPerAxis);
+                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Output", target);
+                DispatchCompute(cmd, kernel, maxBrickCountPerAxis, maxBrickCountPerAxis, maxBrickCountPerAxis);
+            }
+        }
+
+        static void SubdivideFromDistanceField(CommandBuffer cmd, Bounds volume, RenderTexture sceneSDF, RenderTexture probeVolumeData, ComputeBuffer buffer, int brickCount, int maxBrickCountPerAxis, int subdivisionLevel)
+        {
+            using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Bricks at level {Mathf.Log(brickCount, 3)}")))
+            {
+                // TODO: cleanup: cache kernel names + cache shader ids
+                int kernel = subdivideSceneCS.FindKernel("Subdivide");
+
+                // We convert the world space volume position (of a corner) in bricks.
+                // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
+                Vector3 volumeBrickPosition = (volume.center - volume.extents) / ProbeReferenceVolume.instance.MinBrickSize();
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffsetInBricks", volumeBrickPosition);
+                cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);
+                cmd.SetComputeIntParam(subdivideSceneCS, "_SubdivisionLevel", subdivisionLevel);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSize", Vector3.one * maxBrickCountPerAxis);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_SDFSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
+                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Input", sceneSDF);
+                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_ProbeVolumeData", probeVolumeData);
+                DispatchCompute(cmd, kernel, brickCount, brickCount, brickCount);
+            }
         }
     }
 }
