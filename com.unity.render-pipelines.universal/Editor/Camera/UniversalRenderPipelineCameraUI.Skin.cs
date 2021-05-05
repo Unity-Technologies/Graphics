@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
         {
             public static GUIContent projectionSettingsText = EditorGUIUtility.TrTextContent("Projection", "These settings control how the camera views the world.");
             public static GUIContent environmentSettingsText = EditorGUIUtility.TrTextContent("Environment", "These settings control what the camera background looks like.");
-            public static GUIContent volumesSettingsText = EditorGUIUtility.TrTextContent("Volumes", "These settings control how volumes affect this camera.");
+            public static GUIContent volumesSettingsText = EditorGUIUtility.TrTextContent("Volumes", "These settings define how Volumes affect this Camera.");
             public static GUIContent outputSettingsText = EditorGUIUtility.TrTextContent("Output", "These settings control how the camera output is formatted.");
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
@@ -28,9 +28,9 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent rendererType = EditorGUIUtility.TrTextContent("Renderer", "Controls which renderer this camera uses.");
 
-            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This camera will only be affected by volumes in the selected scene-layers.");
-            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
-            public static GUIContent volumeUpdates = EditorGUIUtility.TrTextContent("Update Mode", "Should volumes be updated every frame or via scripting? In the editor, volumes are updated every frame when not in playmode.");
+            public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Mask", "This Camera is only affected by Volumes in the Layers that are assigned to the Camera.");
+            public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Trigger", "A Transform component that acts as a trigger for Volume blending. If none is set, the Camera itself acts as a trigger.");
+            public static GUIContent volumeUpdates = EditorGUIUtility.TrTextContent("Update Mode", "Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
