@@ -129,11 +129,11 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
             DecrementFlare();
         }
 #else
-        if (Input.GetKeyDown("d"))
+        if (Input.GetKeyDown("d") || Input.GetKeyDown("left"))
         {
             IncrementFlare();
         }
-        else if (Input.GetKeyDown("a"))
+        else if (Input.GetKeyDown("a")|| Input.GetKeyDown("right"))
         {
             DecrementFlare();
         }
