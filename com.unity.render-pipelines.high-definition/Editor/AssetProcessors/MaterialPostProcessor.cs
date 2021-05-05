@@ -351,7 +351,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Shader shader = material.shader;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
@@ -384,7 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Synchronize properties we exposed from SG to the material
                 ResetFloatProperty(kReceivesSSR);

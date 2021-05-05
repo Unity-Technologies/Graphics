@@ -73,7 +73,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 APVResources apvRes = FillAPVResources();
 
                 float3 uvw;
-                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, uvw))
+                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, 0.0f, uvw))
                 {
                     float L1Rx;
                     float3 L0 = EvaluateAPVL0Point(apvRes, uvw, L1Rx);

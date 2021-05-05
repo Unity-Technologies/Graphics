@@ -41,11 +41,6 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [Min(0.1f)]
         public float minDistanceBetweenProbes = 1.0f;
-        /// <summary>
-        /// The normal bias to apply during shading.
-        /// </summary>
-        [Range(0.0f, 1.0f), Delayed]
-        public float normalBias = 0.2f;
 
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
@@ -71,8 +66,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             return minDistanceBetweenProbes == otherProfile.minDistanceBetweenProbes &&
                 cellSize == otherProfile.cellSize &&
-                maxSubdivision == otherProfile.maxSubdivision &&
-                normalBias == otherProfile.normalBias;
+                maxSubdivision == otherProfile.maxSubdivision;
         }
     }
 

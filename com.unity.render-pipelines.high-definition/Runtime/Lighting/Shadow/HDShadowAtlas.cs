@@ -7,6 +7,47 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     abstract class HDShadowAtlas
     {
+        internal struct HDShadowAtlasInitParameters
+        {
+            internal HDRenderPipelineRuntimeResources renderPipelineResources;
+            internal RenderGraph renderGraph;
+            internal bool useSharedTexture;
+            internal int width;
+            internal int height;
+            internal int atlasShaderID;
+            internal int maxShadowRequests;
+            internal string name;
+
+            internal Material clearMaterial;
+            internal HDShadowInitParameters initParams;
+            internal BlurAlgorithm blurAlgorithm;
+            internal FilterMode filterMode;
+            internal DepthBits depthBufferBits;
+            internal RenderTextureFormat format;
+            internal ConstantBuffer<ShaderVariablesGlobal> cb;
+
+            internal HDShadowAtlasInitParameters(HDRenderPipelineRuntimeResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
+                                                 Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
+            {
+                this.renderPipelineResources = renderPipelineResources;
+                this.renderGraph = renderGraph;
+                this.useSharedTexture = useSharedTexture;
+                this.width = width;
+                this.height = height;
+                this.atlasShaderID = atlasShaderID;
+                this.clearMaterial = clearMaterial;
+                this.maxShadowRequests = maxShadowRequests;
+                this.initParams = initParams;
+                this.blurAlgorithm = BlurAlgorithm.None;
+                this.filterMode = FilterMode.Bilinear;
+                this.depthBufferBits = DepthBits.Depth16;
+                this.format = RenderTextureFormat.Shadowmap;
+                this.name = "";
+
+                this.cb = cb;
+            }
+        }
+
         public enum BlurAlgorithm
         {
             None,
@@ -35,6 +76,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
 
+        // This is only a reference that is hold by the atlas, but its lifetime is responsibility of the shadow manager.
+        ConstantBuffer<ShaderVariablesGlobal> m_GlobalConstantBuffer;
+
         // This must be true for atlas that contain cached data (effectively this
         // drives what to do with mixed cached shadow map -> if true we filter with only static
         // if false we filter only for dynamic)
@@ -52,31 +96,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDShadowAtlas() {}
 
-        public virtual void InitAtlas(HDRenderPipelineRuntimeResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public virtual void InitAtlas(HDShadowAtlasInitParameters initParams)
         {
-            this.width = width;
-            this.height = height;
-            m_FilterMode = filterMode;
-            m_DepthBufferBits = depthBufferBits;
-            m_Format = format;
-            m_Name = name;
+            this.width = initParams.width;
+            this.height = initParams.height;
+            m_FilterMode = initParams.filterMode;
+            m_DepthBufferBits = initParams.depthBufferBits;
+            m_Format = initParams.format;
+            m_Name = initParams.name;
             // With render graph, textures are "allocated" every frame so we need to prepare strings beforehand.
             m_MomentName = m_Name + "Moment";
             m_MomentCopyName = m_Name + "MomentCopy";
             m_IntermediateSummedAreaName = m_Name + "IntermediateSummedArea";
             m_SummedAreaName = m_Name + "SummedAreaFinal";
-            m_AtlasShaderID = atlasShaderID;
-            m_ClearMaterial = clearMaterial;
-            m_BlurAlgorithm = blurAlgorithm;
-            m_RenderPipelineResources = renderPipelineResources;
+            m_AtlasShaderID = initParams.atlasShaderID;
+            m_ClearMaterial = initParams.clearMaterial;
+            m_BlurAlgorithm = initParams.blurAlgorithm;
+            m_RenderPipelineResources = initParams.renderPipelineResources;
             m_IsACacheForShadows = false;
 
-            InitializeRenderGraphOutput(renderGraph, useSharedTexture);
+            m_GlobalConstantBuffer = initParams.cb;
+
+            InitializeRenderGraphOutput(initParams.renderGraph, initParams.useSharedTexture);
         }
 
-        public HDShadowAtlas(HDRenderPipelineRuntimeResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,  BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public HDShadowAtlas(HDShadowAtlasInitParameters initParams)
         {
-            InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            InitAtlas(initParams);
         }
 
         TextureDesc GetMomentAtlasDesc(string name)
@@ -190,7 +236,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public TextureHandle atlasTexture;
 
-            public ShaderVariablesGlobal globalCB;
+            public ShaderVariablesGlobal globalCBData;
+            public ConstantBuffer<ShaderVariablesGlobal> globalCB;
             public ShadowDrawingSettings shadowDrawSettings;
             public List<HDShadowRequest> shadowRequests;
             public Material clearMaterial;
@@ -198,11 +245,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderingOnACache;
         }
 
-        TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
+        TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
         {
             using (var builder = renderGraph.AddRenderPass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
-                passData.globalCB = globalCB;
+                passData.globalCBData = globalCBData;
+                passData.globalCB = m_GlobalConstantBuffer;
                 passData.shadowRequests = m_ShadowRequests;
                 passData.clearMaterial = m_ClearMaterial;
                 passData.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
@@ -259,14 +307,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Setup matrices for shadow rendering:
                             Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                            data.globalCB._ViewMatrix = shadowRequest.view;
-                            data.globalCB._InvViewMatrix = shadowRequest.view.inverse;
-                            data.globalCB._ProjMatrix = shadowRequest.deviceProjectionYFlip;
-                            data.globalCB._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
-                            data.globalCB._ViewProjMatrix = viewProjection;
-                            data.globalCB._InvViewProjMatrix = viewProjection.inverse;
+                            data.globalCBData._ViewMatrix = shadowRequest.view;
+                            data.globalCBData._InvViewMatrix = shadowRequest.view.inverse;
+                            data.globalCBData._ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                            data.globalCBData._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                            data.globalCBData._ViewProjMatrix = viewProjection;
+                            data.globalCBData._InvViewProjMatrix = viewProjection.inverse;
 
-                            ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                            data.globalCB.PushGlobal(ctx.cmd, data.globalCBData, HDShaderIDs._ShaderVariablesGlobal);
 
                             ctx.cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
