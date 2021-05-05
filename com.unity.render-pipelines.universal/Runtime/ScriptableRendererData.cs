@@ -98,6 +98,25 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns true if contains renderer feature with specified type.
+        /// </summary>
+        /// <typeparam name="T">Renderer Feature type.</typeparam>
+        /// <returns></returns>
+        internal bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
+        {
+            foreach (var target in rendererFeatures)
+            {
+                if (target.GetType() == typeof(T))
+                {
+                    rendererFeature = target as T;
+                    return true;
+                }
+            }
+            rendererFeature = null;
+            return false;
+        }
+
 #if UNITY_EDITOR
         internal virtual Material GetDefaultMaterial(DefaultMaterialType materialType)
         {

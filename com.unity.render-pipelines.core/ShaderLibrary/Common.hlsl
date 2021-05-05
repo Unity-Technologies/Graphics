@@ -858,8 +858,6 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
-uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
-{
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
     #define MIP_COUNT_SUPPORTED 1
 #endif
@@ -872,6 +870,8 @@ uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
 #endif
     // Metal doesn't support high enough OpenGL version
 
+uint GetMipCount(TEXTURE2D_PARAM(tex, smp))
+{
 #if defined(MIP_COUNT_SUPPORTED)
     uint mipLevel, width, height, mipCount;
     mipLevel = width = height = mipCount = 0;

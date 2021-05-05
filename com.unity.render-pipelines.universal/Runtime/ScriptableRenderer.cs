@@ -218,6 +218,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
+
+            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(cameraWidth, cameraHeight, 1.0f / cameraWidth, 1.0f / cameraHeight));
         }
 
         /// <summary>
@@ -803,6 +805,24 @@ namespace UnityEngine.Rendering.Universal
                 return ClearFlag.DepthStencil;
 
             return ClearFlag.All;
+        }
+
+        /// <summary>
+        /// Calls <c>OnCull</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.OnCameraPreCull(ScriptableRenderer, in CameraData)"/>
+        /// </summary>
+        /// <param name="cameraData">Current render state information.</param>
+        internal void OnPreCullRenderPasses(in CameraData cameraData)
+        {
+            // Add render passes from custom renderer features
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+                rendererFeatures[i].OnCameraPreCull(this, in cameraData);
+            }
         }
 
         /// <summary>
