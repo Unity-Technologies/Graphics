@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
-        internal float brickSize { get { return m_Profile.brickSize; } }
+        internal float brickSize { get { return m_Profile.minBrickSize; } }
         internal float cellSizeInMeters { get { return m_Profile.cellSizeInMeters; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
@@ -114,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
-            refVol.SetTRS(transform.position, transform.rotation, m_Profile.brickSize);
+            refVol.SetTRS(transform.position, transform.rotation, m_Profile.minBrickSize);
             refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
 
             if (volumeAsset != null)

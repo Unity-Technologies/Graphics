@@ -60,10 +60,10 @@ namespace UnityEngine.Experimental.Rendering
                 Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
                 Vector3Int max = new Vector3Int(Mathf.CeilToInt(maxCellPosition.x), Mathf.CeilToInt(maxCellPosition.y), Mathf.CeilToInt(maxCellPosition.z));
 
-                for (int x = min.x; x <= max.x; x++)
+                for (int x = min.x; x < max.x; x++)
                 {
-                    for (int y = min.y; y <= max.y; y++)
-                        for (int z = min.z; z <= max.z; z++)
+                    for (int y = min.y; y < max.y; y++)
+                        for (int z = min.z; z < max.z; z++)
                         {
                             var cellPos = new Vector3Int(x, y, z);
                             if (cellPositions.Add(cellPos))

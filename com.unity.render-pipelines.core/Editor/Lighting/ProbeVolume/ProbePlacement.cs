@@ -17,6 +17,15 @@ namespace UnityEngine.Experimental.Rendering
 
     class ProbePlacement
     {
+        [GenerateHLSL]
+        struct GPUProbeVolumeOBB
+        {
+            public Vector3 corner;
+            public Vector3 X;
+            public Vector3 Y;
+            public Vector3 Z;
+        }
+
         static ComputeShader _subdivideSceneCS;
         static ComputeShader subdivideSceneCS
         {
@@ -38,18 +47,7 @@ namespace UnityEngine.Experimental.Rendering
             return v;
         }
 
-        // TODO: alloc this in the BakeCells function
-        static RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
-        {
-            height = 64,
-            width = 64,
-            volumeDepth = 64,
-            enableRandomWrite = true,
-            dimension = TextureDimension.Tex3D,
-            graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
-            msaaSamples = 1,
-        };
-
+        // TODO: split this function
         public static List<Brick> SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes)
         {
             RenderTexture sceneSDF = null;
@@ -67,16 +65,28 @@ namespace UnityEngine.Experimental.Rendering
                 int maxBrickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel);
                 int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCountPerAxis);
 
+                RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
+                {
+                    height = sceneSDFSize,
+                    width = sceneSDFSize,
+                    volumeDepth = sceneSDFSize,
+                    enableRandomWrite = true,
+                    dimension = TextureDimension.Tex3D,
+                    graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
+                    msaaSamples = 1,
+                };
+
                 sceneSDF = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
                 sceneSDF.name = "Scene SDF";
                 sceneSDF.Create();
                 sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
                 sceneSDF2.name = "Scene SDF Double Buffer";
                 sceneSDF2.Create();
-                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize * 4, sceneSDFSize * 4, 0, GraphicsFormat.R8_SNorm);
+                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize, sceneSDFSize, 0, GraphicsFormat.R8_SNorm);
 
                 cellVolume.CalculateCenterAndSize(out var center, out var _);
-                var cmd = CommandBufferPool.Get($"Subdivide Cell {center}");
+                Profiler.BeginSample($"Subdivide Cell {center}");
+                var cmd = CommandBufferPool.Get();
 
                 RastersizeMeshes(cmd, cellVolume, sceneSDF, dummyRenderTarget, maxBrickCountPerAxis, renderers);
 
@@ -124,8 +134,6 @@ namespace UnityEngine.Experimental.Rendering
                                     // if (d <= sqrFadeRadius)
                                     //     volume.m_OverlappingColliders.Add(collider);
 
-                                    // Find the local max from all overlapping probe volumes:
-                                    // float localMaxSubdiv = 0;
                                     localMinSubdiv = 0;
                                     bool overlapVolume = false;
                                     foreach (var kp in probeVolumes)
@@ -133,15 +141,11 @@ namespace UnityEngine.Experimental.Rendering
                                         var vol = kp.volume;
                                         if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
                                         {
-                                            // localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivisionMultiplier);
-                                            // Do we use max for min subdiv too?
                                             localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
                                             overlapVolume = true;
                                         }
                                     }
 
-                                    // Debug.Log(localMinSubdiv);
-                                    // bool belowMaxSubdiv = subdivisionLevel <= refVol.GetMaxSubdivision(localMaxSubdiv);
                                     bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < refVol.GetMaxSubdivision(localMinSubdiv);
 
                                     // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
@@ -152,9 +156,12 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
 
+                    int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
                     cmd.Clear();
-                    // TODO: clear the buffer in a compute shader
-                    cmd.SetBufferData(bricksBuffer, new Vector3[maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis]);
+                    cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
+                    cmd.DispatchCompute(subdivideSceneCS, clearBufferKernel, maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis / 8, 1, 1);
+                    cmd.SetBufferCounterValue(bricksBuffer, 0);
+
                     bricksBuffer.SetCounterValue(0);
                     // TODO: avoid subdividing more than the max local subdivision from probe volume
                     SubdivideFromDistanceField(cmd, cellVolume.CalculateAABB(), sceneSDF, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis);
@@ -175,8 +182,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
 
-                // var bricksArray = new Vector3[maxBrickCount * maxBrickCount * maxBrickCount];
-                // bricksBuffer.GetData(bricksArray);
                 bricksBuffer.Release();
                 readbackCountBuffer.Release();
 
@@ -197,6 +202,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     return 0;
                 });
+                Profiler.EndSample();
                 Profiler.EndSample();
             }
             finally // Release resources in case a fatal error occurs
@@ -239,11 +245,14 @@ namespace UnityEngine.Experimental.Rendering
 
                 Matrix4x4 GetCameraMatrixForAngle(Quaternion rotation)
                 {
-                    cellVolume.CalculateCenterAndSize(out var _, out var size);
-                    size /= 2;
-                    var worldToCamera = Matrix4x4.Rotate(rotation);
-                    var projection = Matrix4x4.Ortho(-size.x, size.x, -size.y, size.y, -size.z, size.z);
-                    return projection * worldToCamera;
+                    cellVolume.CalculateCenterAndSize(out var center, out var size);
+                    Vector3 cameraSize = new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth) / 2.0f;
+                    cameraSize = size / 2;
+                    var worldToCamera = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
+                    var projection = Matrix4x4.Ortho(-cameraSize.x, cameraSize.x, -cameraSize.y, cameraSize.y, 0, cameraSize.z * 2);
+                    // var projection = Matrix4x4.Ortho(-1, 1, -1, 1, 0, 2);
+                    // return worldToCamera;
+                    return Matrix4x4.Rotate(Quaternion.Euler((Time.realtimeSinceStartup * 10f) % 360, 0, 0));
                 }
 
                 // We need to bind at least something for rendering
@@ -262,11 +271,11 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         if (renderer.TryGetComponent<MeshFilter>(out var meshFilter))
                         {
-                            props.SetMatrix("_CameraMatrix", topMatrix);
+                            props.SetInt("_AxisSwizzle", 0);
                             cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                            props.SetMatrix("_CameraMatrix", rightMatrix);
+                            props.SetInt("_AxisSwizzle", 1);
                             cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
-                            props.SetMatrix("_CameraMatrix", forwardMatrix);
+                            props.SetInt("_AxisSwizzle", 2);
                             cmd.DrawMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, mat, 0, shaderPass: 0, props);
                         }
                     }
@@ -345,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering
             // We convert the world space volume position (of a corner) in bricks.
             // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
             Vector3 volumeBrickPosition = (volume.center - volume.extents) / ProbeReferenceVolume.instance.MinBrickSize();
-            cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffset", volumeBrickPosition);
+            cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffsetInBricks", volumeBrickPosition);
             cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
             cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);
             cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSize", Vector3.one * maxBrickCountPerAxis);
