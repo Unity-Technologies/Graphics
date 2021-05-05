@@ -47,6 +47,13 @@ namespace UnityEditor.ShaderGraph
 
             context.SetMainFunction(shaderFunc);
             context.SetPreviewFunction(shaderFunc, PreviewMode.Preview3D);
+
+            if (m_TextureType == SampleTexture2DNodeDefinition.TextureType.Normal_TangentSpace)
+            {
+                context.HideSlot("MeshTangent");
+                context.HideSlot("MeshBiTangent");
+                context.HideSlot("MeshNormal");
+            }
         }
 
         static ShaderFunction BuildFunction(bool useSeparateSamplerState, SampleTexture2DNodeDefinition.TextureType textureType)
@@ -61,7 +68,7 @@ namespace UnityEditor.ShaderGraph
             if (textureType == SampleTexture2DNodeDefinition.TextureType.Normal_TangentSpace)
             {
                 // TODO: need to tag this as not visible inputs by default
-                func.AddInput(Types._precision3, "MeshTangent", Binding.WorldSpaceTangent);
+                func.AddInput(Types._precision3, "MeshTangent", defaultValue: Binding.WorldSpaceTangent);
                 func.AddInput(Types._precision3, "MeshBiTangent", Binding.WorldSpaceBitangent);
                 func.AddInput(Types._precision3, "MeshNormal", Binding.WorldSpaceNormal);
             }

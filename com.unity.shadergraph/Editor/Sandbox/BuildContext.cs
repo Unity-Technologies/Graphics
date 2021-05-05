@@ -15,6 +15,7 @@ public interface ISandboxNodeBuildContext
 
     void AddInputSlot(SandboxType type, string name, System.Object defaultValue = null);        // TODO: slot type filters, hidden inputs
     void AddOutputSlot(SandboxType type, string name);
+    void HideSlot(string name);
 
     void SetMainFunction(ShaderFunction function, bool declareSlots = true);
     void SetPreviewFunction(ShaderFunction function, PreviewMode defaultPreviewMode = PreviewMode.Inherit);

@@ -281,6 +281,13 @@ namespace UnityEditor.ShaderGraph
             m_PreviewMode = defaultPreviewMode;
         }
 
+        void ISandboxNodeBuildContext.HideSlot(string name)
+        {
+            var slot = definitionSlots.Find(s => s.shaderOutputName == name);
+            if (slot != null)
+                slot.hidden = true;
+        }
+
         void ISandboxNodeBuildContext.Error(string message)
         {
             throw new NotImplementedException();

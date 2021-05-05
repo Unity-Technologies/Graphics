@@ -82,7 +82,7 @@ public class ShaderFunctionSignature : JsonObject
             this.name = name;
         }
 
-        public void AddParameter(Parameter param)
+        internal void AddParameter(Parameter param)
         {
             if (parameters == null)
                 parameters = new List<Parameter>();
