@@ -112,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering
         public static void FindWorldBounds()
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
+
             var prevScenes = new List<string>();
             for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
             {
@@ -352,6 +353,8 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
+
+            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {
