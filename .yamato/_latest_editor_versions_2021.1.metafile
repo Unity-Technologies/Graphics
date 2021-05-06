@@ -26,43 +26,43 @@ editor_versions:
       version: 2021.1.7f1
   2021_1_latest_public:
     Android:
-      revision: 3737af19df53
-      updated_at: '2021-04-29 00:02:03.077836'
-      version: 2021.1.5f1
+      revision: c0fade0cc7e9
+      updated_at: '2021-05-06 23:31:20.501425'
+      version: 2021.1.6f1
     Linux:
-      revision: 3737af19df53
-      updated_at: '2021-04-29 00:02:03.077836'
-      version: 2021.1.5f1
+      revision: c0fade0cc7e9
+      updated_at: '2021-05-06 23:31:20.501425'
+      version: 2021.1.6f1
     OSX:
-      revision: 3737af19df53
-      updated_at: '2021-04-29 00:02:03.077836'
-      version: 2021.1.5f1
+      revision: c0fade0cc7e9
+      updated_at: '2021-05-06 23:31:20.501425'
+      version: 2021.1.6f1
     Win:
-      revision: 3737af19df53
-      updated_at: '2021-04-29 00:02:03.077836'
-      version: 2021.1.5f1
+      revision: c0fade0cc7e9
+      updated_at: '2021-05-06 23:31:20.501425'
+      version: 2021.1.6f1
     iPhone:
-      revision: 3737af19df53
-      updated_at: '2021-04-29 00:02:03.077836'
-      version: 2021.1.5f1
+      revision: c0fade0cc7e9
+      updated_at: '2021-05-06 23:31:20.501425'
+      version: 2021.1.6f1
   2021_1_staging:
     Android:
-      revision: d0601963382b97bc375b9f241fc294a844536179
-      updated_at: '2021-05-06 06:33:39.983803'
+      revision: 37d246d89f4efe01c51daa62ec3c95f08cee475c
+      updated_at: '2021-05-06 23:31:20.501425'
       version: ''
     Linux:
-      revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
-      updated_at: '2021-05-05 23:33:49.019554'
+      revision: 37d246d89f4efe01c51daa62ec3c95f08cee475c
+      updated_at: '2021-05-06 23:31:20.501425'
       version: ''
     OSX:
-      revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
-      updated_at: '2021-05-05 23:33:49.019554'
+      revision: d0601963382b97bc375b9f241fc294a844536179
+      updated_at: '2021-05-06 23:31:20.501425'
       version: ''
     Win:
-      revision: d0601963382b97bc375b9f241fc294a844536179
-      updated_at: '2021-05-06 06:33:39.983803'
+      revision: 37d246d89f4efe01c51daa62ec3c95f08cee475c
+      updated_at: '2021-05-06 23:31:20.501425'
       version: ''
     iPhone:
-      revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
-      updated_at: '2021-05-05 23:33:49.019554'
+      revision: 37d246d89f4efe01c51daa62ec3c95f08cee475c
+      updated_at: '2021-05-06 23:31:20.501425'
       version: ''
