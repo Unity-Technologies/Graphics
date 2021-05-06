@@ -206,8 +206,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.layerMask = lightLayerMask;
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
 
-            #ifdef _ADDITIONAL_LIGHT_COOKIES
-                // Enable/disable is done toggling the keyword _ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
+            #ifdef _DEFERRED_ADDITIONAL_LIGHT_COOKIES
+                // Enable/disable is done toggling the keyword _DEFERRED_ADDITIONAL_LIGHT_COOKIES, but we could do a "static if" instead if required.
                 // if(_CookieLightIndex >= 0)
                 {
                     float4 cookieUvRect = URP_LightCookie_GetAtlasUVRect(_CookieLightIndex);
@@ -418,7 +418,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -463,7 +463,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

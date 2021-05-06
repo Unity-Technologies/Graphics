@@ -1678,7 +1678,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
                 // We could test this in shader (static if) a variant (shader change) is undesirable. Same for spot light.
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightCookies, cookieLightIndex >= 0);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES, cookieLightIndex >= 0);
 
                 cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
                 cmd.SetGlobalVector(ShaderConstants._LightColor, lightColor);
@@ -1697,6 +1697,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
@@ -1741,7 +1742,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT, hasSoftShadow);
 
                 int cookieLightIndex = m_LightCookieManager.GetLightCookieShaderDataIndex(visLightIndex);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightCookies, cookieLightIndex >= 0);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES, cookieLightIndex >= 0);
 
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1765,6 +1766,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_COOKIES);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_SHADOWS_SOFT);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);

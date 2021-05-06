@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string LightLayers = "_LIGHT_LAYERS";
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
 
-        public static readonly string MainLightCookie        = "_MAIN_LIGHT_COOKIE";
+        public static readonly string MainLightCookie = "_MAIN_LIGHT_COOKIE";
         public static readonly string AdditionalLightCookies = "_ADDITIONAL_LIGHT_COOKIES";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
@@ -392,6 +392,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _DEFERRED_SHADOWS_SOFT = "_DEFERRED_SHADOWS_SOFT";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_COOKIES = "_DEFERRED_ADDITIONAL_LIGHT_COOKIES";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
         public static readonly string DYNAMICLIGHTMAP_ON = "DYNAMICLIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
