@@ -478,6 +478,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         dlssDetected ? Styles.DLSSFeatureDetectedMsg : Styles.DLSSFeatureNotDetectedMsg,
                         dlssDetected ? MessageType.Info : MessageType.Warning);
                 }
+
+                if (dlssDetected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.HelpBox(Styles.DLSSWinTargetWarning, MessageType.Info);
+                    if (GUILayout.Button(Styles.DLSSSwitchTarget64Button, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                    {
+                        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    ++EditorGUI.indentLevel;
+                }
 #endif
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
@@ -538,11 +551,13 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
 
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
-            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
             {
                 PackageManager.Client.Add("com.unity.modules.nvidia");
             }
+            EditorGUILayout.EndHorizontal();
 #endif
         }
 
