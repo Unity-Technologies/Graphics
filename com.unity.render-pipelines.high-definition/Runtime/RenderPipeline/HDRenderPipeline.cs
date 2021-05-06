@@ -3306,7 +3306,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // clear decal property mask buffer
             cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
-            cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
+            
+            if ( HDUtils.RWTargetsAlwaysStartFromZero())
+            {
+                cmd.SetRandomWriteTarget(0, propertyMaskBuffer);
+            }
+            else
+            {
+                cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
+            }
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
