@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the transform that will act as a trigger for volume blending.
+        /// Returns the Transform that acts as a trigger for Volume blending.
         /// </summary>
         public Transform volumeTrigger
         {
