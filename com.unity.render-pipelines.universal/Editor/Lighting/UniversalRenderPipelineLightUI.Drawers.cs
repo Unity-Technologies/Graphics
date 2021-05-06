@@ -19,7 +19,8 @@ namespace UnityEditor.Rendering.Universal
             Shape = 1 << 1,
             Emission = 1 << 2,
             Rendering = 1 << 3,
-            Shadows = 1 << 4
+            Shadows = 1 << 4,
+            LightCookie = 1 << 5
         }
 
         static readonly ExpandedState<Expandable, Light> k_ExpandedState = new(~-1, "URP");
@@ -66,7 +67,11 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(Styles.shadowHeader,
                 Expandable.Shadows,
                 k_ExpandedState,
-                DrawShadowsContent)
+                DrawShadowsContent),
+            CED.FoldoutGroup(Styles.lightCookieHeader,
+                Expandable.LightCookie,
+                k_ExpandedState,
+                DrawLightCookieContent)
         );
 
         static Func<int> s_SetGizmosDirty = SetGizmosDirty();
@@ -394,6 +399,29 @@ namespace UnityEditor.Rendering.Universal
                         serializedLight.additionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;
                         serializedLight.Apply();
                     }
+                }
+            }
+        }
+
+        static void DrawLightCookieContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            var settings = serializedLight.settings;
+            if (settings.lightType.hasMultipleDifferentValues)
+            {
+                EditorGUILayout.HelpBox("Cannot multi edit light cookies from different light types.", MessageType.Info);
+                return;
+            }
+
+            settings.DrawCookie();
+
+            // Draw 2D cookie size for directional lights
+            bool isDirectionalLight = settings.light.type == LightType.Directional;
+            if (isDirectionalLight)
+            {
+                if (settings.cookie != null)
+                {
+                    EditorGUILayout.PropertyField(serializedLight.lightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                    EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
                 }
             }
         }
