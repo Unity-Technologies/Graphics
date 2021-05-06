@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineAsset : IVersionable<HDRenderPipelineAsset.Version>, IMigratableAsset
     {
-        // /!\ For each new version, you must now upgrade asset in HDRP_Runtime and HDRP_Performance test project.
+        // /!\ For each new version, you must now upgrade asset in HDRP_Runtime, HDRP_Performance and SRP_SmokeTest test project.
         enum Version
         {
             None,

@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering
         const int kProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
-        internal struct Cell
+        internal class Cell
         {
             public int index;
             public Vector3Int position;
@@ -60,6 +60,26 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3[] probePositions;
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
+        }
+
+        private class CellSortInfo : IComparable
+        {
+            internal string sourceAsset;
+            internal Cell cell;
+            internal float distanceToCamera = 0;
+            internal Vector3 position;
+
+            public int CompareTo(object obj)
+            {
+                CellSortInfo other = obj as CellSortInfo;
+
+                if (distanceToCamera < other.distanceToCamera)
+                    return 1;
+                else if (distanceToCamera > other.distanceToCamera)
+                    return -1;
+                else
+                    return 0;
+            }
         }
 
         internal struct Volume
@@ -252,6 +272,9 @@ namespace UnityEngine.Experimental.Rendering
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
+        // List of info for cells that are yet to be loaded.
+        private List<CellSortInfo> m_CellsToBeLoaded = new List<CellSortInfo>();
+
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
         // Similarly the index dimensions come from the authoring component; if a change happens
@@ -261,7 +284,11 @@ namespace UnityEngine.Experimental.Rendering
 
         private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
+        private int m_NumberOfCellsLoadedPerFrame = 2;
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
@@ -282,8 +309,16 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
-        /// Initialize the Probe Volume system
+        /// Set the number of cells that are loaded per frame when needed.
         /// </summary>
+        /// <param name="numberOfCells"></param>
+        public void SetNumberOfCellsLoadedPerFrame(int numberOfCells)
+        {
+            m_NumberOfCellsLoadedPerFrame = Mathf.Max(1, numberOfCells);
+        }
+
+        /// <summary>
+        /// Initialize the Probe Volume system
         /// <param name="parameters">Initialization parameters.</param>
         public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
@@ -299,7 +334,6 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = true;
         }
 
-        /// <summary>
         /// Cleanup the Probe Volume system.
         /// </summary>
         public void Cleanup()
@@ -350,6 +384,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             var key = asset.GetSerializedFullPath();
 
+            for (int i = m_CellsToBeLoaded.Count - 1; i >= 0; i--)
+            {
+                if (m_CellsToBeLoaded[i].sourceAsset == key)
+                    m_CellsToBeLoaded.RemoveAt(i);
+            }
+
             if (m_ActiveAssets.ContainsKey(key))
             {
                 m_ActiveAssets.Remove(key);
@@ -388,27 +428,22 @@ namespace UnityEngine.Experimental.Rendering
             var path = asset.GetSerializedFullPath();
             m_AssetPathToBricks[path] = new List<RegId>();
 
-            foreach (var cell in asset.cells)
+
+            for (int i = 0; i < asset.cells.Count; ++i)
             {
-                // Push data to HDRP
-                bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
-
-                // TODO register ID of brick list
-                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
-
-                cells[cell.index] = cell;
-                m_AssetPathToBricks[path].Add(regId);
-
-                dataLocation.Cleanup();
+                var cell = asset.cells[i];
+                CellSortInfo sortInfo = new CellSortInfo();
+                sortInfo.cell = cell;
+                sortInfo.position = ((Vector3)cell.position * MaxBrickSize() * 0.5f) + m_Transform.posWS;
+                sortInfo.sourceAsset = asset.GetSerializedFullPath();
+                m_CellsToBeLoaded.Add(sortInfo);
             }
         }
 
         void PerformPendingLoading()
         {
+            LoadPendingCells();
+
             if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
@@ -429,10 +464,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            m_PendingAssetsToBeLoaded.Clear();
+
             // Mark the loading as done.
             m_NeedLoadAsset = false;
-
-            m_PendingAssetsToBeLoaded.Clear();
         }
 
         void PerformPendingDeletion()
@@ -449,6 +484,33 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_PendingAssetsToBeUnloaded.Clear();
+        }
+
+        void LoadPendingCells()
+        {
+            int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
+            for (int i = 0; i < count; ++i)
+            {
+                // Pop from queue.
+                var sortInfo = m_CellsToBeLoaded[0];
+                var cell = sortInfo.cell;
+                var path = sortInfo.sourceAsset;
+
+                bool compressed = false;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
+
+                // TODO register ID of brick list
+                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                brickList.AddRange(cell.bricks);
+                var regId = AddBricks(brickList, dataLocation);
+
+                cells[cell.index] = cell;
+                m_AssetPathToBricks[path].Add(regId);
+
+                dataLocation.Cleanup();
+                m_CellsToBeLoaded.RemoveAt(0);
+            }
         }
 
         /// <summary>
@@ -499,6 +561,23 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedLoadAsset = true;
         }
 
+        /// <summary>
+        /// Perform sorting of pending cells to be loaded.
+        /// </summary>
+        /// <param name ="cameraPosition"> The position to sort against (closer to the position will be loaded first).</param>
+        public void SortPendingCells(Vector3 cameraPosition)
+        {
+            if (m_CellsToBeLoaded.Count > 0)
+            {
+                for (int i = 0; i < m_CellsToBeLoaded.Count; ++i)
+                {
+                    m_CellsToBeLoaded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeLoaded[i].position);
+                }
+
+                m_CellsToBeLoaded.Sort();
+            }
+        }
+
         ProbeReferenceVolume()
         {
             m_Transform.posWS = Vector3.zero;
@@ -539,6 +618,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RefVolTransform GetTransform() { return m_Transform; }
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
+        internal float MinDistanceBetweenProbes() { return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1); }
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
@@ -555,6 +635,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+            }
+
+            if (clearAssetsOnVolumeClear)
+            {
+                m_PendingAssetsToBeLoaded.Clear();
+                m_ActiveAssets.Clear();
             }
         }
 
@@ -840,14 +926,22 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name="cmd">A command buffer used to perform the data update.</param>
         /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
+        /// <param name="viewBias">View bias to apply to the position used to sample probe volumes.</param>
+        /// <param name="scaleBiasByMinDistanceBetweenProbes">Whether to scale the biases with the minimum distance between probes.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias, float viewBias, bool scaleBiasByMinDistanceBetweenProbes)
         {
+            if (scaleBiasByMinDistanceBetweenProbes)
+            {
+                normalBias *= MinDistanceBetweenProbes();
+                viewBias *= MinDistanceBetweenProbes();
+            }
+
             ShaderVariablesProbeVolumes shaderVars;
             shaderVars._WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
             shaderVars._IndexDim = m_Index.GetIndexDimension();
             shaderVars._NormalBias = normalBias;
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars.pad0 = 0;
+            shaderVars._ViewBias = viewBias;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

@@ -23,6 +23,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// High Shadow Filtering Quality
         /// </summary>
         High = 2,
+        /// <summary>
+        /// Very High Shadow Filtering Quality
+        /// </summary>
+        VeryHigh = 3,
     }
 
     enum ShadowMapType
