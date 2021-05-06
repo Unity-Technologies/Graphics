@@ -322,7 +322,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
-                result.passes.Add(LitPasses.DepthNormalOnly(target));
+                if (complexLit)
+                    result.passes.Add(LitPasses.DepthNormalOnly(target));
+                else
+                    result.passes.Add(LitPasses.DepthNormal(target));
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
 
@@ -600,7 +603,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor()
                 {
                     // Definition
-                    displayName = "DepthNormals",
+                    displayName = "DepthNormalsOnly",
                     referenceName = "SHADERPASS_DEPTHNORMALSONLY",
                     lightMode = "DepthNormalsOnly",
                     useInPreview = false,
