@@ -163,7 +163,6 @@ namespace UnityEngine.Rendering.Universal
                         pass.m_InputAttachmentIndices[i] = -1;
 
                     uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachments);
-
                     // TODO: review the lastPassToBB logic to mak it work with merged passes
                     bool isLastPassToBB = false;
 
@@ -177,12 +176,10 @@ namespace UnityEngine.Rendering.Universal
 
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(pass.colorAttachments[i], m_ActiveColorAttachmentDescriptors);
 
-
                         if (existingAttachmentIndex == -1)
                         {
                             // add a new attachment
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
-
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i],  (clearFlag & ClearFlag.Color) == 0, true);
 
                             if ((clearFlag & ClearFlag.Color) != 0)
@@ -281,7 +278,7 @@ namespace UnityEngine.Rendering.Universal
                     if (PassHasInputAttachments(pass))
                         SetupInputAttachmentIndices(pass);
 
-                        // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
+                    // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
                         ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, !isLastPassToBB);
