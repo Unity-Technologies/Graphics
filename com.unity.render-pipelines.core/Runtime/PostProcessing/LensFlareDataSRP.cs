@@ -1,3 +1,5 @@
+using UnityEngine.Serialization;
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -73,9 +75,7 @@ namespace UnityEngine.Rendering
     [System.Serializable]
     public sealed class LensFlareDataElementSRP
     {
-        /// <summary>
-        /// Initialize default values
-        /// </summary>
+        /// <summary> Initialize default values </summary>
         public LensFlareDataElementSRP()
         {
             localIntensity = 1.0f;
@@ -125,183 +125,181 @@ namespace UnityEngine.Rendering
             inverseSDF = false;
         }
 
-        /// <summary>
-        /// Position
-        /// </summary>
-        [Range(-1.0f, 1.0f)]
+        /// <summary> Position </summary>
         public float position;
-        /// <summary>
-        /// Position offset
-        /// </summary>
+
+        /// <summary> Position offset </summary>
         public Vector2 positionOffset;
-        /// <summary>
-        /// Angular offset
-        /// </summary>
+
+        /// <summary> Angular offset </summary>
         public float angularOffset;
-        /// <summary>
-        /// Translation Scale
-        /// </summary>
+
+        /// <summary> Translation Scale </summary>
         public Vector2 translationScale;
-        /// <summary>
-        /// Intensity of this element
-        /// </summary>
-        [Range(0.0f, 1.0f)]
-        public float localIntensity;
-        /// <summary>
-        /// Texture used to for this Lens Flare Element
-        /// </summary>
+
+        [Min(0), SerializeField, FormerlySerializedAs("localIntensity")]
+        float m_LocalIntensity;
+
+        /// <summary> Intensity of this element </summary>
+        public float localIntensity
+        {
+            get => m_LocalIntensity;
+            set => m_LocalIntensity = Mathf.Max(0, value);
+        }
+
+        /// <summary> Texture used to for this Lens Flare Element </summary>
         public Texture lensFlareTexture;
-        /// <summary>
-        /// Uniform scale applied
-        /// </summary>
+
+        /// <summary> Uniform scale applied </summary>
         public float uniformScale;
-        /// <summary>
-        /// Scale size on each dimension
-        /// </summary>
+
+        /// <summary> Scale size on each dimension </summary>
         public Vector2 sizeXY;
-        /// <summary>
-        /// Enable multiple elements
-        /// </summary>
+
+        /// <summary> Enable multiple elements </summary>
         public bool allowMultipleElement;
-        /// <summary>
-        /// Element can be repeated 'count' times
-        /// </summary>
-        [Min(1)]
-        public int count;
-        /// <summary>
-        /// Preserve  Aspect Ratio
-        /// </summary>
+
+        [Min(1), SerializeField, FormerlySerializedAs("count")]
+        int m_Count;
+
+        /// <summary> Element can be repeated 'count' times </summary>
+        public int count
+        {
+            get => m_Count;
+            set => m_Count = Mathf.Max(1, value);
+        }
+
+        /// <summary> Preserve  Aspect Ratio </summary>
         public bool preserveAspectRatio;
-        /// <summary>
-        /// Local rotation of the texture
-        /// </summary>
-        [Range(0, 360)]
+
+        /// <summary> Local rotation of the texture </summary>
         public float rotation;
-        /// <summary>
-        /// Tint of the texture can be modulated by the light we are attached to
-        /// </summary>
+
+        /// <summary> Tint of the texture can be modulated by the light we are attached to </summary>
         public Color tint;
-        /// <summary>
-        /// Blend mode used
-        /// </summary>
+
+        /// <summary> Blend mode used </summary>
         public SRPLensFlareBlendMode blendMode;
-        /// <summary>
-        /// Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation')
-        /// </summary>
+
+        /// <summary> Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation') </summary>
         public bool autoRotate;
-        /// <summary>
-        /// FlareType used
-        /// </summary>
+
+        /// <summary> FlareType used </summary>
         public SRPLensFlareType flareType;
-        /// <summary>
-        /// Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'
-        /// </summary>
+
+        /// <summary>  Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override' </summary>
         public bool modulateByLightColor;
-        /// <summary>
-        /// Internal value use to store the state of minimized or maximized LensFlareElement
-        /// </summary>
-        public bool isFoldOpened;
-        /// <summary>
-        /// SRPLensFlareDistribution defined how we spread the flare element when count > 1
-        /// </summary>
+
+#pragma warning disable 0414 // never used (editor state)
+        /// <summary> Internal value use to store the state of minimized or maximized LensFlareElement </summary>
+        [SerializeField]
+        bool isFoldOpened;
+#pragma warning restore 0414
+
+        /// <summary> SRPLensFlareDistribution defined how we spread the flare element when count > 1 </summary>
         public SRPLensFlareDistribution distribution;
-        /// <summary>
-        /// Length to spread the distribution of flares, spread start at 'starting position'
-        /// </summary>
+
+        /// <summary> Length to spread the distribution of flares, spread start at 'starting position' </summary>
         public float lengthSpread;
-        /// <summary>
-        /// Curve describing how to place flares distribution (Used only for Uniform and Curve 'distribution')
-        /// </summary>
+
+        /// <summary> Curve describing how to place flares distribution (Used only for Uniform and Curve 'distribution') </summary>
         public AnimationCurve positionCurve;
-        /// <summary>
-        /// Curve describing how to scale flares distribution (Used only for Uniform and Curve 'distribution')
-        /// </summary>
+
+        /// <summary> Curve describing how to scale flares distribution (Used only for Uniform and Curve 'distribution') </summary>
         public AnimationCurve scaleCurve;
-        /// <summary>
-        /// Seed used to seed randomness
-        /// </summary>
+
+        /// <summary> Seed used to seed randomness </summary>
         public int seed;
-        /// <summary>
-        /// Colors used uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'.
-        /// </summary>
+
+        /// <summary> Colors used uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'. </summary>
         public Gradient colorGradient;
-        /// <summary>
-        /// Scale factor applied on the variation of the intensities.
-        /// </summary>
-        [Range(0.0f, 1.0f)]
-        public float intensityVariation;
-        /// <summary>
-        /// Scale factor applied on the variation of the positions.
-        /// </summary>
+
+        [Range(0, 1), SerializeField, FormerlySerializedAs("intensityVariation")]
+        float m_IntensityVariation;
+
+        /// <summary> Scale factor applied on the variation of the intensities. </summary>
+        public float intensityVariation
+        {
+            get => m_IntensityVariation;
+            set => m_IntensityVariation = Mathf.Max(0, value);
+        }
+
+        /// <summary> Scale factor applied on the variation of the positions. </summary>
         public Vector2 positionVariation;
-        /// <summary>
-        /// Coefficient applied on the variation of the scale (relative to the current scale).
-        /// </summary>
+
+        /// <summary> Coefficient applied on the variation of the scale (relative to the current scale). </summary>
         public float scaleVariation;
-        /// <summary>
-        /// Scale factor applied on the variation of the rotation (relative to the current rotation or auto-rotate).
-        /// </summary>
+
+        /// <summary> Scale factor applied on the variation of the rotation (relative to the current rotation or auto-rotate). </summary>
         public float rotationVariation;
-        /// <summary>
-        /// True to use or not the radial distortion.
-        /// </summary>
+
+        /// <summary> True to use or not the radial distortion. </summary>
         public bool enableRadialDistortion;
-        /// <summary>
-        /// Target size used on the edge of the screen.
-        /// </summary>
+
+        /// <summary> Target size used on the edge of the screen. </summary>
         public Vector2 targetSizeDistortion;
-        /// <summary>
-        /// Curve blending from screen center to the edges of the screen.
-        /// </summary>
+
+        /// <summary> Curve blending from screen center to the edges of the screen. </summary>
         public AnimationCurve distortionCurve;
-        /// <summary>
-        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position.
-        /// </summary>
+
+        /// <summary> If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. </summary>
         public bool distortionRelativeToCenter;
 
-        /// <summary>
-        /// Fall of the gradient used for the Procedural Flare.
-        /// </summary>
-        [Range(0.0f, 1.0f)]
-        public float fallOff;
-        /// <summary>
-        /// Gradient Offset used for the Procedural Flare.
-        /// </summary>
-        [Range(0.0f, 1.0f)]
-        public float edgeOffset;
-        /// <summary>
-        /// Side count of the regular polygon generated.
-        /// </summary>
-        public int sideCount;
-        /// <summary>
-        /// Roundness of the polygon flare (0: Sharp Polygon, 1: Circle).
-        /// </summary>
-        [Range(0.0f, 1.0f)]
-        public float sdfRoundness;
-        /// <summary>
-        /// Inverse the gradient direction.
-        /// </summary>
+        [Range(0, 1), SerializeField, FormerlySerializedAs("fallOff")]
+        float m_FallOff;
+
+        /// <summary> Fall of the gradient used for the Procedural Flare. </summary>
+        public float fallOff
+        {
+            get => m_FallOff;
+            set => m_FallOff = Mathf.Clamp01(value);
+        }
+
+        [Range(0, 1), SerializeField, FormerlySerializedAs("edgeOffset")]
+        float m_EdgeOffset;
+
+        /// <summary> Gradient Offset used for the Procedural Flare. </summary>
+        public float edgeOffset
+        {
+            get => m_EdgeOffset;
+            set => m_EdgeOffset = Mathf.Clamp01(value);
+        }
+
+        [Min(3), SerializeField, FormerlySerializedAs("sideCount")]
+        int m_SideCount;
+
+        /// <summary> Side count of the regular polygon generated. </summary>
+        public int sideCount
+        {
+            get => m_SideCount;
+            set => m_SideCount = Mathf.Max(3, value);
+        }
+
+        [Range(0, 1), SerializeField, FormerlySerializedAs("sdfRoundness")]
+        float m_SdfRoundness;
+
+        /// <summary> Roundness of the polygon flare (0: Sharp Polygon, 1: Circle). </summary>
+        public float sdfRoundness
+        {
+            get => m_SdfRoundness;
+            set => m_SdfRoundness = Mathf.Clamp01(value);
+        }
+
+        /// <summary> Inverse the gradient direction. </summary>
         public bool inverseSDF;
     }
 
-    /// <summary>
-    /// LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP
-    /// </summary>
+    /// <summary> LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP </summary>
     [System.Serializable]
     public sealed class LensFlareDataSRP : ScriptableObject
     {
-        /// <summary>
-        /// Initialize default value
-        /// </summary>
+        /// <summary> Initialize default value </summary>
         public LensFlareDataSRP()
         {
             elements = null;
         }
 
-        /// <summary>
-        /// List of LensFlareDataElementSRP
-        /// </summary>
-        [SerializeField]
+        /// <summary> List of LensFlareDataElementSRP </summary>
         public LensFlareDataElementSRP[] elements;
     }
 }

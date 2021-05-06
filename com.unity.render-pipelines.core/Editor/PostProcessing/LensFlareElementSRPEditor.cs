@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering
             float offsetHeight = 1.75f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
             InitFirstRect(position);
 
-            SerializedProperty intensityProp = property.FindPropertyRelative("localIntensity");
+            SerializedProperty intensityProp = property.FindPropertyRelative("m_LocalIntensity");
             SerializedProperty positionProp = property.FindPropertyRelative("position");
             SerializedProperty positionOffsetProp = property.FindPropertyRelative("positionOffset");
             SerializedProperty angularOffsetProp = property.FindPropertyRelative("angularOffset");
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering
             SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
-            SerializedProperty countProp = property.FindPropertyRelative("count");
+            SerializedProperty countProp = property.FindPropertyRelative("m_Count");
             SerializedProperty allowMultipleElementProp = property.FindPropertyRelative("allowMultipleElement");
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering
 
             // Random
             SerializedProperty seedProp = property.FindPropertyRelative("seed");
-            SerializedProperty intensityVariationProp = property.FindPropertyRelative("intensityVariation");
+            SerializedProperty intensityVariationProp = property.FindPropertyRelative("m_IntensityVariation");
             SerializedProperty positionVariationProp = property.FindPropertyRelative("positionVariation");
             SerializedProperty scaleVariationProp = property.FindPropertyRelative("scaleVariation");
             SerializedProperty sizeVariationProp = property.FindPropertyRelative("sizeVariation");
@@ -163,10 +163,10 @@ namespace UnityEditor.Rendering
                     }
                     else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
                     {
-                        SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
-                        SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
-                        SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
-                        SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
+                        SerializedProperty fallOffProp = property.FindPropertyRelative("m_FallOff");
+                        SerializedProperty edgeOffsetProp = property.FindPropertyRelative("m_EdgeOffset");
+                        SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("m_SdfRoundness");
+                        SerializedProperty sideCountProp = property.FindPropertyRelative("m_SideCount");
                         SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
 
                         rect = GetNextRect();
