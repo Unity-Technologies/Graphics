@@ -597,31 +597,23 @@ namespace UnityEditor.Rendering
             var dialogMessage = L10n.Tr(
                 "Upgrading Material curves in AnimationClips assumes you have already upgraded Materials and shaders as needed. " +
                 "It also requires loading assets that use clips to inspect their usage, which can be a slow process. " +
-                "Which asset types do you want to check for usage?"
-            );
-            const int k_PrefabsOnly = 2;
-            const int k_Cancel = 1;
-            var selection = EditorUtility.DisplayDialogComplex(
-                L10n.Tr("Upgrade AnimationClips"),
-                dialogMessage,
-                L10n.Tr("Prefabs and Scenes"),
-                L10n.Tr("Do Not Upgrade AnimationClips"),
-                L10n.Tr("Prefabs Only")
+                "Do you want to proceed?"
             );
 
-            // exit early if canceled
-            if (selection == k_Cancel)
+            if (!EditorUtility.DisplayDialog(
+                L10n.Tr("Upgrade AnimationClips"),
+                dialogMessage,
+                DialogText.proceed,
+                DialogText.cancel))
                 return;
 
             // only include scene paths if user requested it
             var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
                 .Select(p => (PrefabPath)AssetDatabase.GUIDToAssetPath(p))
                 .ToArray();
-            var scenePaths = selection == k_PrefabsOnly
-                ? Array.Empty<ScenePath>()
-                : AssetDatabase.FindAssets("t:Scene")
-                    .Select(p => (ScenePath)AssetDatabase.GUIDToAssetPath(p))
-                    .ToArray();
+            var scenePaths = AssetDatabase.FindAssets("t:Scene")
+                .Select(p => (ScenePath)AssetDatabase.GUIDToAssetPath(p))
+                .ToArray();
 
             // retrieve clip assets with material animation
             var clipData = GetAssetDataForClipsFiltered(clipPaths);
