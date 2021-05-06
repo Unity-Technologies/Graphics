@@ -177,7 +177,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 }
 
                 #if defined(_MAIN_LIGHT_COOKIE)
-                    half3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
+                    real3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
                     unityLight.color *= float4(cookieColor, 1);
                 #endif
             #else

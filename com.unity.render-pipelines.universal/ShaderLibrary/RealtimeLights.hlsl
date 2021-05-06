@@ -134,7 +134,7 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
     light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
 
     #ifdef _MAIN_LIGHT_COOKIE
-        half3 cookieColor = URP_LightCookie_SampleMainLightCookie(positionWS);
+        real3 cookieColor = URP_LightCookie_SampleMainLightCookie(positionWS);
         light.color *= cookieColor;
     #endif
 
@@ -274,7 +274,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 #endif
     light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
 #ifdef _ADDITIONAL_LIGHT_COOKIES
-    half3 cookieColor = URP_LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS /*, TODO: light type*/);
+    real3 cookieColor = URP_LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS);
     light.color *= cookieColor;
 #endif
 
