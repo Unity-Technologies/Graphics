@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.URP
 {
     abstract class VFXAbstractParticleURPLitOutput : VFXShaderGraphParticleOutput
     {
@@ -106,9 +106,7 @@ namespace UnityEditor.VFX
 
         public override sealed bool CanBeCompiled()
         {
-            if (!base.CanBeCompiled())
-                return false;
-            return GetCurrentRenderPipelineAsset() is UniversalRenderPipelineAsset;
+            return (VFXLibrary.currentSRPBinder is VFXURPBinder) && base.CanBeCompiled();
         }
 
         private IEnumerable<SmoothnessSource> validSmoothnessSources

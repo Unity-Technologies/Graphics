@@ -26,9 +26,7 @@ namespace UnityEditor.VFX.HDRP
 
         public override sealed bool CanBeCompiled()
         {
-            if (!base.CanBeCompiled())
-                return false;
-            return GetCurrentRenderPipelineAsset() is HDRenderPipelineAsset;
+            return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
         }
 
         protected override IEnumerable<string> filteredOutSettings
