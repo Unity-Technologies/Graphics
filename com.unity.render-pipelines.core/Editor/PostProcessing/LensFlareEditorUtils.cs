@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering
 {
     static class LensFlareEditorUtils
     {
-        static class Icons
+        internal static class Icons
         {
             const string k_IconFolder = @"Packages/com.unity.render-pipelines.core/Editor/PostProcessing/LensFlareResource/";
             public static readonly Texture2D circle = CoreEditorUtils.LoadIcon(k_IconFolder, "CircleFlareThumbnail", forceLowRes: false);
