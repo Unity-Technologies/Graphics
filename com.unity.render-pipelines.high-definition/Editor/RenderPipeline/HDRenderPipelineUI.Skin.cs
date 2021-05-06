@@ -30,11 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent shadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
 
-            public static readonly GUIContent pointLightshadowSubTitle = EditorGUIUtility.TrTextContent("Point Light Shadows");
+            public static readonly GUIContent pointLightshadowSubTitle = EditorGUIUtility.TrTextContent("Punctial Light Shadows");
             public static readonly GUIContent directionalLightshadowSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
             public static readonly GUIContent areaLightshadowSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
 
-            public static readonly GUIContent shadowPointLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Point Lights Atlas");
+            public static readonly GUIContent shadowPointLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
             public static readonly GUIContent shadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
 
             public static readonly GUIContent punctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Point Shadow Resolution Tiers");
