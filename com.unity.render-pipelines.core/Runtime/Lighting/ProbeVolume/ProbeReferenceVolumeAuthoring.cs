@@ -77,7 +77,6 @@ namespace UnityEngine.Experimental.Rendering
         internal float brickSize { get { return m_Profile.brickSize; } }
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
-        internal float normalBias { get { return m_Profile.normalBias; } }
 
 #if UNITY_EDITOR
         // Dilation
