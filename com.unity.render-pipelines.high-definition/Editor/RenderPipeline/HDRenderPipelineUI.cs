@@ -448,11 +448,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue))
             {
-
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 bool dlssDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS, Styles.enableDLSS);
-                
+
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
                 {
                     ++EditorGUI.indentLevel;
@@ -460,18 +459,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         Styles.DLSSQualitySettingContent,
                         (UnityEngine.NVIDIA.DLSSQuality)
                         serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue);
-                
+
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
-                
+
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
-                
+
                     using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
                     {
                         EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSSharpness, Styles.DLSSSharpnessContent);
                     }
                     --EditorGUI.indentLevel;
                 }
-                
+
                 showUpsampleFilterAsFallback = serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue;
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
                 {
@@ -542,10 +541,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
             if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true)))
             {
-                PackageManager.Client.Add("com.unity.modules.nvidia");    
+                PackageManager.Client.Add("com.unity.modules.nvidia");
             }
 #endif
-
         }
 
         static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
