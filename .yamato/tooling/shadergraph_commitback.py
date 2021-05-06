@@ -74,5 +74,5 @@ if __name__ == "__main__":
     else:
         utr_file_name = "utr"
     utr.insert(0, utr_file_name)
-    print("Calling utr with arguments: \n" + utr)
+    print("Calling utr with arguments: \n" + " ".join(utr))
     exit(subprocess.call(utr))
