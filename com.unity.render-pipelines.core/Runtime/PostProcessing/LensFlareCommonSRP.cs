@@ -298,6 +298,19 @@ namespace UnityEngine
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
+            if (cam.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == cam && !sv.sceneViewState.flaresEnabled)
+                    {
+                        return;
+                    }
+                }
+            }
+
             foreach (LensFlareComponentSRP comp in lensFlares.GetData())
             {
                 if (comp == null)
