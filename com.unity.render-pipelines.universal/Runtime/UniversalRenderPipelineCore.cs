@@ -564,14 +564,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 Light light = requests[i];
 
-                var additionalLightData = light.GetComponent<UniversalAdditionalLightData>();
+                UniversalAdditionalLightData additionalLightData;
+                light.TryGetComponent(out additionalLightData);
                 if (additionalLightData == null)
                 {
                     additionalLightData = ComponentSingleton<UniversalAdditionalLightData>.instance;
                 }
 
-                Cookie cookie;
-                LightmapperUtils.Extract(light, out cookie);
+                LightmapperUtils.Extract(light, out Cookie cookie);
 
                 switch (light.type)
                 {
@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
                         DirectionalLight directionalLight = new DirectionalLight();
                         LightmapperUtils.Extract(light, ref directionalLight);
 
-                        if (light.cookie != null && additionalLightData != null)
+                        if (light.cookie != null)
                         {
                             // Size == 1 / Scale
                             cookie.sizes = additionalLightData.lightCookieSize;

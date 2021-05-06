@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Settings.atlas.useMips)
             {
                 // Payload texture is inset
-                uvScaleOffset = (m_AdditionalLightsCookieAtlas as PowerOfTwoTextureAtlas).GetPaddedScaleOffset(cookie, uvScaleOffset);
+                uvScaleOffset = (m_AdditionalLightsCookieAtlas as PowerOfTwoTextureAtlas).GetPayloadScaleOffset(cookie, uvScaleOffset);
             }
             else
             {

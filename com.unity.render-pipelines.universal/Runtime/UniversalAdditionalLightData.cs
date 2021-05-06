@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Version 0 means serialized data before the version field.
         [SerializeField] int m_Version = 1;
-        public int version
+        internal int version
         {
             get => m_Version;
         }

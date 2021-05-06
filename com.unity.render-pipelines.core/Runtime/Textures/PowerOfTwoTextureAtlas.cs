@@ -40,27 +40,27 @@ namespace UnityEngine.Rendering
         int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
 
         /// <summary>
-        /// Get location of actual non-padded texture data in Atlas.
+        /// Get location of the actual texture data without padding in Atlas.
         /// </summary>
-        /// <param name="texture"></param>
-        /// <param name="scaleOffset"></param>
+        /// <param name="texture">The source texture cached in the atlas.</param>
+        /// <param name="scaleOffset">Cached atlas location (scale and offset) for the source texture.</param>
         /// <returns></returns>
-        public Vector4 GetPaddedScaleOffset(Texture texture, in Vector4 scaleOffset)
+        public Vector4 GetPayloadScaleOffset(Texture texture, in Vector4 scaleOffset)
         {
             int pixelPadding = GetTexturePadding();
             Vector2 paddingSize = Vector2.one * pixelPadding;
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
-            return GetPaddedScaleOffset(textureSize, paddingSize, scaleOffset);
+            return GetPayloadScaleOffset(textureSize, paddingSize, scaleOffset);
         }
 
         /// <summary>
-        /// Get location of actual non-padded texture data in Atlas.
+        /// Get location of the actual texture data without padding in Atlas.
         /// </summary>
-        /// <param name="textureSize"></param>
-        /// <param name="paddingSize"></param>
-        /// <param name="scaleOffset"></param>
-        /// <returns></returns>
-        static public Vector4 GetPaddedScaleOffset(in Vector2 textureSize, in Vector2 paddingSize, in Vector4 scaleOffset)
+        /// <param name="textureSize">Size of the source texture</param>
+        /// <param name="paddingSize">Padding size used for the source texture. </param>
+        /// <param name="scaleOffset">Cached atlas location (scale and offset) for the source texture.</param>
+        /// <returns>Scale and offset for the source texture without padding.</returns>
+        static public Vector4 GetPayloadScaleOffset(in Vector2 textureSize, in Vector2 paddingSize, in Vector4 scaleOffset)
         {
             // Scale, Offset is a padded atlas sub-texture rectangle.
             // Actual texture data (payload) is inset, i.e. padded inwards.

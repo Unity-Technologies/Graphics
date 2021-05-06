@@ -1,10 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using System;
-using UnityEngine.Apple;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Rendering
 {
@@ -138,8 +134,17 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class Texture2DAtlas
     {
+        /// <summary>
+        /// Texture is not on the GPU or is not up to date.
+        /// </summary>
         protected const int kGPUTexInvalid      = 0;
+        /// <summary>
+        /// Texture Mip0 is on the GPU and up to date.
+        /// </summary>
         protected const int kGPUTexValidMip0    = 1;
+        /// <summary>
+        /// Texture and all mips are on the GPU and up to date.
+        /// </summary>
         protected const int kGPUTexValidMipAll  = 2;
 
         /// <summary>
@@ -321,8 +326,7 @@ namespace UnityEngine.Rendering
                     ((1 << ((int)GraphicsFormatUtility.GetSwizzleB(destination.graphicsFormat) & 0x7)) << 16) |
                     ((1 << ((int)GraphicsFormatUtility.GetSwizzleG(destination.graphicsFormat) & 0x7)) << 8) |
                     ((1 << ((int)GraphicsFormatUtility.GetSwizzleR(destination.graphicsFormat) & 0x7)));
-                if (srcCount == dstCount &&
-                    srcSwizzle != dstSwizzle)
+                if (srcSwizzle != dstSwizzle)
                     return true;
             }
 
