@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Utility", "Logic", "Branch On Input Connection")]
-    class BranchOnInputConnectionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class BranchOnInputConnectionNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public const int InputSlotId = 0;
         public const int ConnectedSlotId = 1;
@@ -39,69 +39,21 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var functionName = GetFunctionName(out string dynamicType);
-
-            // declare output variables
-            sb.AppendLine(dynamicType + " " + GetVariableNameForSlot(OutSlotId) + ";");
-
-            // call function
-            sb.AppendIndentation();
-            sb.Append(functionName);
-            sb.Append("(");
-            sb.Append(GetSlotValue(InputSlotId, generationMode));
-            sb.Append(",");
-            sb.Append(GetSlotValue(ConnectedSlotId, generationMode));
-            sb.Append(",");
-            sb.Append(GetSlotValue(NotConnectedSlotId, generationMode));
-            sb.Append(",");
-            sb.Append(GetVariableNameForSlot(OutSlotId));
-            sb.Append(");");
-            sb.AppendNewLine();
-        }
-
-        string GetFunctionName(out string dynamicType)
-        {
             // inspect one of the dynamic slots to figure out what type we are actually using
             var dynSlot = this.FindInputSlot<DynamicVectorMaterialSlot>(ConnectedSlotId);
             string dynamicDimension = NodeUtils.GetSlotDimension(dynSlot.concreteValueType);
-            dynamicType = "$precision" + dynamicDimension;
+            var dynamicType = "$precision" + dynamicDimension;
 
-            return $"Unity_BranchOnInputConnection_{dynamicType}";
-        }
+            // declare output variable
+            var input = GetSlotValue(InputSlotId, generationMode);
+            var connected = GetSlotValue(ConnectedSlotId, generationMode);
+            var notconnected = GetSlotValue(NotConnectedSlotId, generationMode);
+            var output = GetVariableNameForSlot(OutSlotId);
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
-        {
-            var functionName = GetFunctionName(out string dynamicType);
-
-            // build the function
-            registry.ProvideFunction(functionName, sb =>
-            {
-                sb.AppendLine($"void {functionName}(bool Input, {dynamicType} Connected, {dynamicType} NotConnected, out {dynamicType} Out)");
-                using (sb.BlockScope())
-                {
-                    if (generationMode == GenerationMode.Preview)
-                        sb.AppendLine("Out = NotConnected;");
-                    else
-                        sb.AppendLine("Out = Input ? Connected : NotConnected;");
-                }
-            });
-        }
-
-        public override void ValidateNode()
-        {
-            base.ValidateNode();
-            var slot = FindInputSlot<MaterialSlot>(InputSlotId);
-            if (slot.isConnected)
-            {
-                var property = GetSlotProperty(InputSlotId);
-                if (property == null || !property.isConnectionTestable)
-                {
-                    var edges = owner.GetEdges(GetSlotReference(InputSlotId));
-                    owner.RemoveElements(new AbstractMaterialNode[] { }, edges.ToArray(), new GroupData[] { }, new StickyNoteData[] { });
-                    if (property != null)
-                        owner.AddValidationError(objectId, String.Format("Connected property {0} is not connection testable and was disconnected from the Input port", property.displayName), ShaderCompilerMessageSeverity.Warning);
-                }
-            }
+            if (generationMode == GenerationMode.Preview)
+                sb.AppendLine($"{dynamicType} {output} = {notconnected};");
+            else
+                sb.AppendLine($"{dynamicType} {output} = {input} ? {connected} : {notconnected};");
         }
     }
 }
