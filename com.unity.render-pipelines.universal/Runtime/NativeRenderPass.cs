@@ -383,8 +383,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex) // Check if it's the first pass
                 {
-                    if (PassHasInputAttachments(renderPass)) //First ScriptableRenderPass cannot have input attachments - something is wrong
-                        return;
+                    if (PassHasInputAttachments(renderPass))
+                        Debug.LogWarning("First pass in a RenderPass should not have input attachments.");
 
                     context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
