@@ -737,6 +737,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
             // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
 
+            CreateGbufferAttachments();
+        }
+
+        // In cases when custom pass is injected between GBuffer and Deferred passes we need to fallback
+        // To non-renderpass path in the middle of setup, which means recreating the gbuffer attachments as well due to GBuffer4 used for RenderPass
+        internal void DisableUseRenderPass()
+        {
+            this.UseRenderPass = false;
+            CreateGbufferAttachments();
+        }
+
+        internal void CreateGbufferAttachments()
+        {
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {

@@ -543,6 +543,8 @@ namespace UnityEngine.Rendering.Universal
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
                             m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
+                        if (m_DeferredLights.UseRenderPass && RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent)
+                            m_DeferredLights.DisableUseRenderPass();
                     }
                     else
                     {
@@ -576,7 +578,7 @@ namespace UnityEngine.Rendering.Universal
             if (this.actualRenderingMode == RenderingMode.Deferred)
             {
                 var cmd = CommandBufferPool.Get();
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, useRenderPassEnabled && cameraData.cameraType == CameraType.Game);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, m_DeferredLights.UseRenderPass && cameraData.cameraType == CameraType.Game);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
@@ -809,7 +811,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraColorAttachment
             );
             // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
-            if (useRenderPassEnabled)
+            if (useRenderPassEnabled && m_DeferredLights.UseRenderPass)
             {
                 m_GBufferPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
                 m_DeferredPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
@@ -818,7 +820,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
-            if (!useRenderPassEnabled)
+            if (!useRenderPassEnabled || !m_DeferredLights.UseRenderPass)
             {
                 m_GBufferCopyDepthPass.Setup(m_CameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_GBufferCopyDepthPass);
