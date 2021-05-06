@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 - Adding documentation links to Light Sections
+- Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
+- New SRPLensFlareData Asset
 - Added DebugUI.Foldout.isHeader property to allow creating full-width header foldouts in Rendering Debugger.
 - Added DebugUI.Flags.IsHidden to allow conditional display of widgets in Rendering Debugger.
 - Added "Expand/Collapse All" buttons to Rendering Debugger window menu.
