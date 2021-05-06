@@ -120,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -251,6 +253,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Display Show Lens Flare Data Driven Only.</summary>
+            public bool showLensFlareDataDrivenOnly = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;

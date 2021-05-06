@@ -829,6 +829,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+        LensFlareDataDriven,
 
         FinalBlit
     }

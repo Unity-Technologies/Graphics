@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering
                 cmd.DrawProcedural(Matrix4x4.identity, material, shaderPass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
-        static private void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
+        static internal void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
         {
             if (SystemInfo.graphicsShaderLevel < 30)
                 cmd.DrawMesh(s_QuadMesh, Matrix4x4.identity, material, 0, shaderPass, s_PropertyBlock);
