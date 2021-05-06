@@ -44,6 +44,8 @@ namespace UnityEngine.Experimental.Rendering
             public ComputeBuffer[] bricksBuffers;
             public ComputeBuffer[] readbackCountBuffers;
 
+            public Vector3[] brickPositions;
+
             public GPUSubdivisionContext(int probeVolumeCount)
             {
                 // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
@@ -88,6 +90,8 @@ namespace UnityEngine.Experimental.Rendering
                     bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
                     readbackCountBuffers[i] = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
                 }
+
+                brickPositions = new Vector3[maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis];
             }
 
             public void Dispose()
@@ -131,80 +135,91 @@ namespace UnityEngine.Experimental.Rendering
         // TODO: split this function
         public static List<Brick> SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, GPUSubdivisionContext ctx, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes)
         {
-            HashSet<Brick> bricksList = new HashSet<Brick>();
+            List<Brick> finalBricks = new List<Brick>();
+            HashSet<Brick> bricksSet = new HashSet<Brick>();
             var cellAABB = cellVolume.CalculateAABB();
 
             cellVolume.CalculateCenterAndSize(out var center, out var _);
-            Profiler.BeginSample($"Subdivide Cell {center}");
             var cmd = CommandBufferPool.Get();
-
-            RastersizeMeshes(cmd, cellVolume, ctx.sceneSDF, ctx.dummyRenderTarget, ctx.maxBrickCountPerAxis, renderers);
-
-            GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
-
-            // Now that the distance field is generated, we can store the probe subdivision data inside sceneSDF2
-            var probeSubdivisionData = ctx.sceneSDF2;
-            VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx.sceneSDF2, ctx.probeVolumesBuffer, ctx.maxBrickCountPerAxis, ctx.maxSubdivisionLevel);
-
-            // TODO: try to remove this fence and execute all the subdivision in one go
-            Graphics.ExecuteCommandBuffer(cmd);
-
-            // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
-            int startSubdivisionLevel = ctx.maxSubdivisionLevel - (refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier)) - 1);
-            for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevel; subdivisionLevel++)
+            using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Cell {center}")))
             {
-                // Add the bricks from the probe volume min subdivision level:
-                int brickCountPerAxis = (int)Mathf.Pow(3, ctx.maxSubdivisionLevel - subdivisionLevel);
-                int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
-                var bricksBuffer = ctx.bricksBuffers[subdivisionLevel];
-                var brickCountReadbackBuffer = ctx.readbackCountBuffers[subdivisionLevel];
+                RastersizeMeshes(cmd, cellVolume, ctx.sceneSDF, ctx.dummyRenderTarget, ctx.maxBrickCountPerAxis, renderers);
 
-                cmd.Clear();
-                cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
-                DispatchCompute(cmd, clearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
-                cmd.SetBufferCounterValue(bricksBuffer, 0);
+                GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
 
-                bricksBuffer.SetCounterValue(0);
-                SubdivideFromDistanceField(cmd, cellAABB, ctx.sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, ctx.maxBrickCountPerAxis, subdivisionLevel, ctx.maxSubdivisionLevel);
-                cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
+                // Now that the distance field is generated, we can store the probe subdivision data inside sceneSDF2
+                var probeSubdivisionData = ctx.sceneSDF2;
+                VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx.sceneSDF2, ctx.probeVolumesBuffer, ctx.maxBrickCountPerAxis, ctx.maxSubdivisionLevel);
+
+                // // TODO: try to remove this fence and execute all the subdivision in one go
+                // Graphics.ExecuteCommandBuffer(cmd);
+
+                List<AsyncGPUReadbackRequest> brickReadbackRequests = new List<AsyncGPUReadbackRequest>();
+
+                // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
+                int startSubdivisionLevel = ctx.maxSubdivisionLevel - (refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier)) - 1);
+                for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevel; subdivisionLevel++)
+                {
+                    // Add the bricks from the probe volume min subdivision level:
+                    int brickCountPerAxis = (int)Mathf.Pow(3, ctx.maxSubdivisionLevel - subdivisionLevel);
+                    int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
+                    var bricksBuffer = ctx.bricksBuffers[subdivisionLevel];
+                    var brickCountReadbackBuffer = ctx.readbackCountBuffers[subdivisionLevel];
+
+                    // cmd.Clear();
+                    using (new ProfilingScope(cmd, new ProfilingSampler("Clear Bricks Buffer")))
+                    {
+                        cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
+                        DispatchCompute(cmd, clearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
+                        cmd.SetBufferCounterValue(bricksBuffer, 0);
+                    }
+
+                    SubdivideFromDistanceField(cmd, cellAABB, ctx.sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, ctx.maxBrickCountPerAxis, subdivisionLevel, ctx.maxSubdivisionLevel);
+                    cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
+                    // Graphics.ExecuteCommandBuffer(cmd);
+                    // Capture locally the subdivision level to use it inside the lambda
+                    int localSubdivLevel = subdivisionLevel;
+                    cmd.RequestAsyncReadback(brickCountReadbackBuffer, sizeof(int), 0, (data) => {
+                        int readbackBrickCount = data.GetData<int>()[0];
+
+                        if (readbackBrickCount > 0)
+                        {
+                            bricksBuffer.GetData(ctx.brickPositions, 0, 0, readbackBrickCount);
+                            for (int i = 0; i < readbackBrickCount; i++)
+                            {
+                                var pos = ctx.brickPositions[i];
+                                var brick = new Brick(new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)), localSubdivLevel);
+                                bricksSet.Add(brick);
+                            }
+                        }
+                    });
+                }
+
+                cmd.WaitAllAsyncReadbackRequests();
                 Graphics.ExecuteCommandBuffer(cmd);
 
-                var brickCountReadbackArray = new int[1];
-                brickCountReadbackBuffer.GetData(brickCountReadbackArray, 0, 0, 1);
-                int readbackBrickCount = brickCountReadbackArray[0];
+                finalBricks = bricksSet.ToList();
 
-                Vector3[] brickPositions = new Vector3[readbackBrickCount];
-                bricksBuffer.GetData(brickPositions, 0, 0, readbackBrickCount);
-
-                foreach (var pos in brickPositions)
+                // TODO: this is really slow :/
+                Profiler.BeginSample($"Sort {finalBricks.Count} bricks");
+                // sort from larger to smaller bricks
+                finalBricks.Sort((Brick lhs, Brick rhs) =>
                 {
-                    var brick = new Brick(new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)), subdivisionLevel);
-                    bricksList.Add(brick);
-                }
+                    if (lhs.subdivisionLevel != rhs.subdivisionLevel)
+                        return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
+                    if (lhs.position.z != rhs.position.z)
+                        return lhs.position.z < rhs.position.z ? -1 : 1;
+                    if (lhs.position.y != rhs.position.y)
+                        return lhs.position.y < rhs.position.y ? -1 : 1;
+                    if (lhs.position.x != rhs.position.x)
+                        return lhs.position.x < rhs.position.x ? -1 : 1;
+
+                    return 0;
+                });
+                Profiler.EndSample();
             }
 
-            var bricks = bricksList.ToList();
-
-            // TODO: this is really slow :/
-            Profiler.BeginSample($"Sort {bricks.Count} bricks");
-            // sort from larger to smaller bricks
-            bricks.Sort((Brick lhs, Brick rhs) =>
-            {
-                if (lhs.subdivisionLevel != rhs.subdivisionLevel)
-                    return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
-                if (lhs.position.z != rhs.position.z)
-                    return lhs.position.z < rhs.position.z ? -1 : 1;
-                if (lhs.position.y != rhs.position.y)
-                    return lhs.position.y < rhs.position.y ? -1 : 1;
-                if (lhs.position.x != rhs.position.x)
-                    return lhs.position.x < rhs.position.x ? -1 : 1;
-
-                return 0;
-            });
-            Profiler.EndSample();
-            Profiler.EndSample();
-
-            return bricks;
+            return finalBricks;
         }
 
         static void RastersizeMeshes(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, RenderTexture sceneSDF, RenderTexture dummyRenderTarget, int maxBrickCountPerAxis, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers)
@@ -239,8 +254,6 @@ namespace UnityEngine.Experimental.Rendering
                     cameraSize = size / 2;
                     var worldToCamera = Matrix4x4.TRS(Vector3.zero, rotation, Vector3.one);
                     var projection = Matrix4x4.Ortho(-cameraSize.x, cameraSize.x, -cameraSize.y, cameraSize.y, 0, cameraSize.z * 2);
-                    // var projection = Matrix4x4.Ortho(-1, 1, -1, 1, 0, 2);
-                    // return worldToCamera;
                     return Matrix4x4.Rotate(Quaternion.Euler((Time.realtimeSinceStartup * 10f) % 360, 0, 0));
                 }
 
