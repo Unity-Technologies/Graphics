@@ -39,7 +39,6 @@ namespace UnityEngine.Experimental.Rendering
             public RenderTexture sceneSDF2;
             public RenderTexture dummyRenderTarget;
 
-            // TODO: allocate one buffer for each subdivision level to avoid blocking GPU execution while reading data back
             public ComputeBuffer probeVolumesBuffer;
             public ComputeBuffer[] bricksBuffers;
             public ComputeBuffer[] readbackCountBuffers;
@@ -305,12 +304,7 @@ namespace UnityEngine.Experimental.Rendering
                 int fillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
                 int finalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
 
-                // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                // {
-                //     for (int i = 0; i < sceneSDF1.volumeDepth; i++)
-                //         cmd.CopyTexture(sceneSDF1, i, 0, sceneSDF2, i, 0);
-                // }
-                        Swap(ref sceneSDF1, ref sceneSDF2);
+                Swap(ref sceneSDF1, ref sceneSDF2);
 
                 // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
                 using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
@@ -331,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering
                         Swap(ref sceneSDF1, ref sceneSDF2);
                     }
                 }
-                        Swap(ref sceneSDF1, ref sceneSDF2);
+                Swap(ref sceneSDF1, ref sceneSDF2);
 
                 void Swap(ref RenderTexture s1, ref RenderTexture s2)
                 {
@@ -339,12 +333,6 @@ namespace UnityEngine.Experimental.Rendering
                     s1 = s2;
                     s2 = tmp;
                 }
-
-                // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                // {
-                //     for (int j = 0; j < sceneSDF1.volumeDepth; j++)
-                //         cmd.CopyTexture(sceneSDF1, j, 0, sceneSDF2, j, 0);
-                // }
 
                 cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", sceneSDF2);
                 cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF1);
