@@ -467,8 +467,8 @@ namespace UnityEditor.Rendering
                 // determine the shader property name and type from the binding
                 var shaderProperty = InferShaderProperty(binding);
                 var renameType = shaderProperty.Type == ShaderPropertyType.Color
-                    ? MaterialUpgrader.RenameType.Color
-                    : MaterialUpgrader.RenameType.Float;
+                    ? MaterialUpgrader.MaterialPropertyType.Color
+                    : MaterialUpgrader.MaterialPropertyType.Float;
 
                 // material property animations apply to all materials, so check shader usage in all of them
                 foreach (var material in rendererData.Materials)

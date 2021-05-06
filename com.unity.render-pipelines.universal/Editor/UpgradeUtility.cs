@@ -86,11 +86,11 @@ namespace UnityEditor.Rendering
             foreach (var upgrader in upgraders)
             {
                 // skip over upgraders that do not rename shaders or have not been initialized
-                if (upgrader.NewShader == null)
+                if (upgrader.NewShaderPath == null)
                     continue;
 
-                if (!upgradePathBuilder.TryGetValue(upgrader.NewShader, out var allPaths))
-                    upgradePathBuilder[upgrader.NewShader] = allPaths = new List<MaterialUpgrader>();
+                if (!upgradePathBuilder.TryGetValue(upgrader.NewShaderPath, out var allPaths))
+                    upgradePathBuilder[upgrader.NewShaderPath] = allPaths = new List<MaterialUpgrader>();
                 allPaths.Add(upgrader);
             }
             return upgradePathBuilder.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<MaterialUpgrader>);
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering
         /// The target material to which some shader property modification will be applied.
         /// It is presumed to have already been upgraded.
         /// </param>
-        /// <param name="renameType">What type of property <paramref name="shaderPropertyName"/> is.</param>
+        /// <param name="materialPropertyType">What type of property <paramref name="shaderPropertyName"/> is.</param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
         /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering
         public static SerializedShaderPropertyUsage GetNewPropertyName(
             string shaderPropertyName,
             IMaterial material,
-            MaterialUpgrader.RenameType renameType,
+            MaterialUpgrader.MaterialPropertyType materialPropertyType,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials,
             out string newPropertyName
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering
             {
                 result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
-                var propertyRenameTable = upgrader.GetRename(renameType);
+                var propertyRenameTable = upgrader.GetRename(materialPropertyType);
                 propertyRenameTable.TryGetValue(shaderPropertyName, out newPropertyName);
             }
 
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering
                 {
                     // narrow possible upgraders to those which specify a rename for the bound property
                     possibleUpgraders = possibleUpgraders.Where(
-                        u => u.GetRename(renameType).ContainsKey(shaderPropertyName)
+                        u => u.GetRename(materialPropertyType).ContainsKey(shaderPropertyName)
                         ).ToList();
 
                     // if there are any, assume the material has been upgraded
@@ -173,9 +173,9 @@ namespace UnityEditor.Rendering
                         result |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
                         // if there are many possible upgrade paths to take, mark the upgrade as ambiguous
-                        newPropertyName = possibleUpgraders[0].GetRename(renameType)[shaderPropertyName];
+                        newPropertyName = possibleUpgraders[0].GetRename(materialPropertyType)[shaderPropertyName];
                         var name = newPropertyName; // cannot use out param inside lambda
-                        if (possibleUpgraders.Any(u => u.GetRename(renameType)[shaderPropertyName] != name))
+                        if (possibleUpgraders.Any(u => u.GetRename(materialPropertyType)[shaderPropertyName] != name))
                             result |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
                     }
                 }

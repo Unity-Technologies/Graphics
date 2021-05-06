@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Retrieves path to new shader.
         /// </summary>
-        public string NewShader
+        public string NewShaderPath
         {
             get => m_NewShader;
         }
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Type of property to rename.
         /// </summary>
-        public enum RenameType
+        public enum MaterialPropertyType
         {
             /// <summary>Texture reference property.</summary>
             Texture,
@@ -79,18 +79,18 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Retrieves a collection of renamed parameters of a specific RenameType.
+        /// Retrieves a collection of renamed parameters of a specific MaterialPropertyType.
         /// </summary>
-        /// <param name="type">Rename Type</param>
+        /// <param name="type">Material Property Type</param>
         /// <returns>Dictionary of property names to their renamed values.</returns>
         /// <exception cref="ArgumentException">type is not valid.</exception>
-        public IReadOnlyDictionary<string, string> GetRename(RenameType type)
+        public IReadOnlyDictionary<string, string> GetRename(MaterialPropertyType type)
         {
             switch (type)
             {
-                case RenameType.Texture: return m_TextureRename;
-                case RenameType.Float: return m_FloatRename;
-                case RenameType.Color: return m_ColorRename;
+                case MaterialPropertyType.Texture: return m_TextureRename;
+                case MaterialPropertyType.Float: return m_FloatRename;
+                case MaterialPropertyType.Color: return m_ColorRename;
                 default: throw new ArgumentException(nameof(type));
             }
         }
