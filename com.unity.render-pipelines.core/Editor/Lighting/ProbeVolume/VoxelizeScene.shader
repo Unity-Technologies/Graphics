@@ -11,7 +11,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
         Pass
         {
             Cull Off
-            // ColorMask 0
+            ColorMask 0
             ZWrite Off
             ZClip Off
 
@@ -70,12 +70,12 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             {
                 float3 cellPos = i.worldPos;
                 float3 cellPos01 = cellPos / _VolumeSize;
-                float3 pos = (cellPos01 * _OutputSize);
+                uint3 pos = (cellPos01 * _OutputSize);
 
-                if (any(pos < 0) || any(pos > _OutputSize))
+                if (any(pos < 0) || any(pos > uint3(_OutputSize)))
                     return 0;
 
-                _Output[uint3(pos)] = 1;
+                _Output[pos] = 1;
 
                 return 1;
             }

@@ -132,17 +132,17 @@ namespace UnityEngine.Experimental.Rendering
 
         public static GPUSubdivisionContext AllocateGPUResources(int probeVolumeCount) => new GPUSubdivisionContext(probeVolumeCount);
 
-        // TODO: split this function
         public static List<Brick> SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, GPUSubdivisionContext ctx, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes)
         {
             List<Brick> finalBricks = new List<Brick>();
             HashSet<Brick> bricksSet = new HashSet<Brick>();
             var cellAABB = cellVolume.CalculateAABB();
-
             cellVolume.CalculateCenterAndSize(out var center, out var _);
-            var cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Cell {center}")))
+
+            Profiler.BeginSample($"Subdivide Cell {center}");
             {
+                var cmd = CommandBufferPool.Get($"Subdivide Cell {center}");
+
                 RastersizeMeshes(cmd, cellVolume, ctx.sceneSDF, ctx.dummyRenderTarget, ctx.maxBrickCountPerAxis, renderers);
 
                 GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
@@ -151,32 +151,27 @@ namespace UnityEngine.Experimental.Rendering
                 var probeSubdivisionData = ctx.sceneSDF2;
                 VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx.sceneSDF2, ctx.probeVolumesBuffer, ctx.maxBrickCountPerAxis, ctx.maxSubdivisionLevel);
 
-                // // TODO: try to remove this fence and execute all the subdivision in one go
-                // Graphics.ExecuteCommandBuffer(cmd);
-
-                List<AsyncGPUReadbackRequest> brickReadbackRequests = new List<AsyncGPUReadbackRequest>();
-
                 // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
                 int startSubdivisionLevel = ctx.maxSubdivisionLevel - (refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier)) - 1);
                 for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevel; subdivisionLevel++)
                 {
                     // Add the bricks from the probe volume min subdivision level:
                     int brickCountPerAxis = (int)Mathf.Pow(3, ctx.maxSubdivisionLevel - subdivisionLevel);
-                    int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
                     var bricksBuffer = ctx.bricksBuffers[subdivisionLevel];
                     var brickCountReadbackBuffer = ctx.readbackCountBuffers[subdivisionLevel];
 
-                    // cmd.Clear();
                     using (new ProfilingScope(cmd, new ProfilingSampler("Clear Bricks Buffer")))
                     {
+                        int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
                         cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
                         DispatchCompute(cmd, clearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
                         cmd.SetBufferCounterValue(bricksBuffer, 0);
                     }
 
+                    // Generate the list of bricks on the GPU
                     SubdivideFromDistanceField(cmd, cellAABB, ctx.sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, ctx.maxBrickCountPerAxis, subdivisionLevel, ctx.maxSubdivisionLevel);
+
                     cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
-                    // Graphics.ExecuteCommandBuffer(cmd);
                     // Capture locally the subdivision level to use it inside the lambda
                     int localSubdivLevel = subdivisionLevel;
                     cmd.RequestAsyncReadback(brickCountReadbackBuffer, sizeof(int), 0, (data) => {
@@ -218,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering
                 });
                 Profiler.EndSample();
             }
+            Profiler.EndSample();
 
             return finalBricks;
         }
@@ -235,7 +231,6 @@ namespace UnityEngine.Experimental.Rendering
                     DispatchCompute(cmd, clearKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
                 }
 
-                // Hum, will this cause binding issues for other systems?
                 cmd.SetRandomWriteTarget(4, sceneSDF);
 
                 var mat = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
@@ -310,13 +305,12 @@ namespace UnityEngine.Experimental.Rendering
                 int fillUVKernel = subdivideSceneCS.FindKernel("FillUVMap");
                 int finalPassKernel = subdivideSceneCS.FindKernel("FinalPass");
 
-                // TODO: try to get rid of the copies again
-                using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                {
-                    for (int i = 0; i < sceneSDF1.volumeDepth; i++)
-                        cmd.CopyTexture(sceneSDF1, i, 0, sceneSDF2, i, 0);
-                }
-                // Swap(ref sceneSDF1, ref sceneSDF2);
+                // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                // {
+                //     for (int i = 0; i < sceneSDF1.volumeDepth; i++)
+                //         cmd.CopyTexture(sceneSDF1, i, 0, sceneSDF2, i, 0);
+                // }
+                        Swap(ref sceneSDF1, ref sceneSDF2);
 
                 // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
                 using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
@@ -335,25 +329,22 @@ namespace UnityEngine.Experimental.Rendering
                         DispatchCompute(cmd, jumpFloodingKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
                         Swap(ref sceneSDF1, ref sceneSDF2);
-                        // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                        // {
-                        //     for (int j = 0; j < sceneSDF1.volumeDepth; j++)
-                        //         cmd.CopyTexture(sceneSDF2, j, 0, sceneSDF1, j, 0);
-                        // }
                     }
                 }
+                        Swap(ref sceneSDF1, ref sceneSDF2);
 
-                using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                {
-                    for (int j = 0; j < sceneSDF1.volumeDepth; j++)
-                        cmd.CopyTexture(sceneSDF1, j, 0, sceneSDF2, j, 0);
-                }
                 void Swap(ref RenderTexture s1, ref RenderTexture s2)
                 {
                     var tmp = s1;
                     s1 = s2;
                     s2 = tmp;
                 }
+
+                // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                // {
+                //     for (int j = 0; j < sceneSDF1.volumeDepth; j++)
+                //         cmd.CopyTexture(sceneSDF1, j, 0, sceneSDF2, j, 0);
+                // }
 
                 cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", sceneSDF2);
                 cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF1);
