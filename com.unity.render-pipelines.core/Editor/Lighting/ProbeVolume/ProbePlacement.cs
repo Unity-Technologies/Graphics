@@ -84,6 +84,9 @@ namespace UnityEngine.Experimental.Rendering
                 sceneSDF.name = "Scene SDF";
                 sceneSDF.Create();
                 sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
+                // We need mipmaps for the second map to store the probe volume min and max subdivision
+                sceneSDF2.useMipMap = true;
+                sceneSDF2.autoGenerateMips = false;
                 sceneSDF2.name = "Scene SDF Double Buffer";
                 sceneSDF2.Create();
                 dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize, sceneSDFSize, 0, GraphicsFormat.R8_SNorm);
@@ -100,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering
                 var probeSubdivisionData = sceneSDF2;
                 int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(GPUProbeVolumeOBB));
                 var probeVolumesBuffer = new ComputeBuffer(probeVolumes.Count, stride, ComputeBufferType.Structured);
-                VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, sceneSDF2, probeVolumesBuffer, maxBrickCountPerAxis);
+                VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, sceneSDF2, probeVolumesBuffer, maxBrickCountPerAxis, maxSubdivLevel);
 
                 var bricksBuffer = new ComputeBuffer(maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
                 var readbackCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
@@ -174,7 +177,7 @@ namespace UnityEngine.Experimental.Rendering
 
                     bricksBuffer.SetCounterValue(0);
                     // TODO: avoid subdividing more than the max local subdivision from probe volume
-                    SubdivideFromDistanceField(cmd, cellAABB, sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis, subdivisionLevel);
+                    SubdivideFromDistanceField(cmd, cellAABB, sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis, subdivisionLevel, maxSubdivLevel);
                     cmd.CopyCounterValue(bricksBuffer, readbackCountBuffer, 0);
                     Graphics.ExecuteCommandBuffer(cmd);
 
@@ -309,7 +312,6 @@ namespace UnityEngine.Experimental.Rendering
 
         static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF, RenderTexture tmp)
         {
-            // TODO: replace samples by ProfilingScope
             using (new ProfilingScope(cmd, new ProfilingSampler("GenerateDistanceField")))
             {
                 // Generate distance field with JFA
@@ -359,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering
 
         static void VoxelizeProbeVolumeData(CommandBuffer cmd, Bounds cellAABB,
             List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes,
-            RenderTexture target, ComputeBuffer probeVolumesBuffer, int maxBrickCountPerAxis)
+            RenderTexture target, ComputeBuffer probeVolumesBuffer, int maxBrickCountPerAxis, int maxSubdivLevel)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler("Voxelize Probe Volume Data")))
             {
@@ -385,14 +387,20 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_ProbeVolumes", probeVolumesBuffer);
                 cmd.SetComputeFloatParam(subdivideSceneCS, "_ProbeVolumeCount", probeVolumes.Count);
                 cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeWorldOffset", cellAABB.center - cellAABB.extents);
-                cmd.SetComputeFloatParam(subdivideSceneCS, "_BrickSize", cellAABB.size.x / maxBrickCountPerAxis);
                 cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * maxBrickCountPerAxis);
-                cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Output", target);
-                DispatchCompute(cmd, kernel, maxBrickCountPerAxis, maxBrickCountPerAxis, maxBrickCountPerAxis);
+
+                int subdivisionLevelCount = (int)Mathf.Log(maxBrickCountPerAxis, 3);
+                for (int i = 0; i <= subdivisionLevelCount; i++)
+                {
+                    int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - i);
+                    cmd.SetComputeFloatParam(subdivideSceneCS, "_BrickSize", cellAABB.size.x / brickCountPerAxis);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Output", target, i);
+                    DispatchCompute(cmd, kernel, brickCountPerAxis, brickCountPerAxis, brickCountPerAxis);
+                }
             }
         }
 
-        static void SubdivideFromDistanceField(CommandBuffer cmd, Bounds volume, RenderTexture sceneSDF, RenderTexture probeVolumeData, ComputeBuffer buffer, int brickCount, int maxBrickCountPerAxis, int subdivisionLevel)
+        static void SubdivideFromDistanceField(CommandBuffer cmd, Bounds volume, RenderTexture sceneSDF, RenderTexture probeVolumeData, ComputeBuffer buffer, int brickCount, int maxBrickCountPerAxis, int subdivisionLevel, int maxSubdivisionLevel)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Bricks at level {Mathf.Log(brickCount, 3)}")))
             {
@@ -405,8 +413,9 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeOffsetInBricks", volumeBrickPosition);
                 cmd.SetComputeBufferParam(subdivideSceneCS, kernel, "_Bricks", buffer);
                 cmd.SetComputeVectorParam(subdivideSceneCS, "_MaxBrickSize", Vector3.one * brickCount);
-                cmd.SetComputeIntParam(subdivideSceneCS, "_SubdivisionLevel", subdivisionLevel);
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSize", Vector3.one * maxBrickCountPerAxis);
+                cmd.SetComputeFloatParam(subdivideSceneCS, "_SubdivisionLevel", subdivisionLevel);
+                cmd.SetComputeFloatParam(subdivideSceneCS, "_MaxSubdivisionLevel", maxSubdivisionLevel);
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_VolumeSizeInBricks", Vector3.one * maxBrickCountPerAxis);
                 cmd.SetComputeVectorParam(subdivideSceneCS, "_SDFSize", new Vector3(sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth));
                 cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_Input", sceneSDF);
                 cmd.SetComputeTextureParam(subdivideSceneCS, kernel, "_ProbeVolumeData", probeVolumeData);

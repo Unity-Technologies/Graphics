@@ -25,12 +25,13 @@ StructuredBuffer<GPUProbeVolumeOBB> _ProbeVolumes;
 float3 _Size;
 float _Offset;
 float3 _MaxBrickSize;
-float3 _VolumeSize;
+float3 _VolumeSizeInBricks;
 float3 _VolumeOffsetInBricks;
 float3 _VolumeWorldOffset;
 float _BrickSize;
 float3 _SDFSize;
 float _SubdivisionLevel;
+float _MaxSubdivisionLevel;
 float _ProbeVolumeCount;
 
 [numthreads(8,8,1)]
@@ -166,21 +167,24 @@ float2 ProjectOBB(GPUProbeVolumeOBB obb, float3 axis)
     return float2(pMin, pMax);
 }
 
-bool PointInsideOBB(GPUProbeVolumeOBB obb, float3 p)
+bool PointInsideOBB(GPUProbeVolumeOBB obbA, GPUProbeVolumeOBB obbB)
 {
     float3 axes[] =
     {
-        normalize(obb.X),
-        normalize(obb.Y),
-        normalize(obb.Z),
+        normalize(obbA.X),
+        normalize(obbA.Y),
+        normalize(obbA.Z),
+        normalize(obbB.X),
+        normalize(obbB.Y),
+        normalize(obbB.Z),
     };
 
     for (int i = 0; i < 3; i++)
     {
-        float2 obbProjection = ProjectOBB(obb, axes[i]);
-        float pointProjection = dot(p, axes[i]);
+        float2 obbAProjection = ProjectOBB(obbA, axes[i]);
+        float2 obbBProjection = ProjectOBB(obbB, axes[i]);
 
-        if (obbProjection.y < pointProjection || pointProjection < obbProjection.x)
+        if (obbAProjection.y < obbBProjection.x || obbBProjection.y < obbAProjection.x)
             return false;
     }
 
@@ -195,14 +199,18 @@ void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
     if (any(id >= uint3(_MaxBrickSize)))
         return;
 
-    // id to brick world position
-    float3 brickCenterPosition = id * _BrickSize + _VolumeWorldOffset;
+    // Calculate the brick
+    GPUProbeVolumeOBB brickOBB;
+    brickOBB.corner = id * _BrickSize + _VolumeWorldOffset;
+    brickOBB.X = float3(_BrickSize, 0, 0);
+    brickOBB.Y = float3(0, _BrickSize, 0);
+    brickOBB.Z = float3(0, 0, _BrickSize);
 
     for (int i = 0; i < _ProbeVolumeCount; i++)
     {
         GPUProbeVolumeOBB obb = _ProbeVolumes[i];
 
-        if (PointInsideOBB(obb, brickCenterPosition))
+        if (PointInsideOBB(obb, brickOBB))
         {
             subdivisionLimits.x = max(subdivisionLimits.x, obb.minSubdivisionLevel);
             subdivisionLimits.y = max(subdivisionLimits.y, obb.maxSubdivisionLevel);
@@ -218,11 +226,15 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     if (any(id >= uint3(_MaxBrickSize)))
         return;
 
-    // Get the local min and max subdivision levels
-    float2 subdivisionLevelData = _ProbeVolumeData[id].xy;
-
     // Compute the position at the center of the voxel
     float3 position01 = (float3(id) + 0.5) / _MaxBrickSize;
+
+    // Get the local min and max subdivision levels
+    float2 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel)).xy;
+
+    // Discard bricks that are below the max subdiv level of the probe volume
+    if (_SubdivisionLevel >= subdivisionLevelData.y)
+        return;
 
     // TODO: check the subdiv level of the probe volume min and max
     uint3 sdfId = floor(position01 * _SDFSize);
@@ -233,11 +245,13 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance *= voxelDetectionDistance;
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
+    int minSubdiv = _MaxSubdivisionLevel - subdivisionLevelData.x;
+
     // TODO: expose this distance as a parameter
-    if (dist <= voxelDetectionDistance || subdivisionLevelData.x > _SubdivisionLevel)
+    if (dist <= voxelDetectionDistance || _SubdivisionLevel > minSubdiv)
     {
         // transform id to world position
-        float3 positionInCell = _VolumeOffsetInBricks + (id / _MaxBrickSize) * _VolumeSize;
+        float3 positionInCell = _VolumeOffsetInBricks + (id / _MaxBrickSize) * _VolumeSizeInBricks;
         _Bricks.Append(positionInCell);
     }
 }
