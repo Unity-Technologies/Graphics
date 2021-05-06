@@ -177,12 +177,10 @@ namespace UnityEngine.Rendering.Universal
 
                         int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(pass.colorAttachments[i], m_ActiveColorAttachmentDescriptors);
 
-
                         if (existingAttachmentIndex == -1)
                         {
                             // add a new attachment
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
-
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i],  (clearFlag & ClearFlag.Color) == 0, true);
 
                             if ((clearFlag & ClearFlag.Color) != 0)
