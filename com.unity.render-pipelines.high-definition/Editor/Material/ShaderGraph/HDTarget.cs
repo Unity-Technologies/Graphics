@@ -1338,16 +1338,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Domain,
         };
 
-        public static KeywordDescriptor TessellationAdaptative = new KeywordDescriptor()
-        {
-            displayName = "Tessellation Adaptative",
-            referenceName = "_TESSELLATION_ADAPTATIVE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Domain,
-        };
-
         public static KeywordDescriptor TransparentDepthPrepass = new KeywordDescriptor()
         {
             displayName = "Transparent Depth Prepass",

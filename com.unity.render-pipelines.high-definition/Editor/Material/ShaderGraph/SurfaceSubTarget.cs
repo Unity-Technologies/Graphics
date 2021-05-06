@@ -184,7 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.useTessellation)
             {
                 pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
-                pass.keywords.Add(CoreKeywordDescriptors.TessellationAdaptative);
             }
         }
 

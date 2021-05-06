@@ -372,7 +372,6 @@ Shader "HDRP/LayeredLitTessellation"
         // Tessellation specific
         [Enum(None, 0, Phong, 1)] _TessellationMode("Tessellation mode", Float) = 0
         _TessellationFactor("Tessellation Factor", Range(0.0, 64.0)) = 4.0
-        [ToggleUI] _TessellationAdaptative("Tessellation Adaptative", Float) = 1.0
         _TessellationFactorMinDistance("Tessellation start fading distance", Float) = 20.0
         _TessellationFactorMaxDistance("Tessellation end fading distance", Float) = 50.0
         _TessellationFactorTriangleSize("Tessellation triangle size", Float) = 100.0
@@ -413,7 +412,6 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local_domain _TESSELLATION_PHONG
-    #pragma shader_feature_local_domain _TESSELLATION_ADAPTATIVE
 
     #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK

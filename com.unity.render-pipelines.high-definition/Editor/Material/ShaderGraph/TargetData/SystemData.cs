@@ -136,14 +136,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_TessellationAdaptative;
-        public bool tessellationAdaptative
-        {
-            get => m_TessellationAdaptative;
-            set => m_TessellationAdaptative = value;
-        }
-
-        [SerializeField]
         float m_TessellationFactorMinDistance;
         public float tessellationFactorMinDistance
         {

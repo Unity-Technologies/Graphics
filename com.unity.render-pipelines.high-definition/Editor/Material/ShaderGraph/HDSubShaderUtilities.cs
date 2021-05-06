@@ -218,7 +218,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
 
-            collector.AddToggleProperty(kTessellationAdaptative, true);
             collector.AddFloatProperty(kTessellationFactorMinDistance, 20.0f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kTessellationFactorMaxDistance, 50.0f, HLSLDeclaration.UnityPerMaterial);
             collector.AddFloatProperty(kTessellationFactorTriangleSize, 100.0f, HLSLDeclaration.UnityPerMaterial);

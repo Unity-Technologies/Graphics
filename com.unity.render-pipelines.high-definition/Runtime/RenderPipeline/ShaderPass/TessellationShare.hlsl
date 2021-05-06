@@ -59,7 +59,6 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     // which achieves the desired effect.
     float3 edgeTessFactors = float3(frustumCullEdgesMainView.x ? 0 : 1, frustumCullEdgesMainView.y ? 0 : 1, frustumCullEdgesMainView.z ? 0 : 1);
 
-#ifdef _TESSELLATION_ADAPTATIVE
     // Adaptive screen space tessellation
     if (_TessellationFactorTriangleSize > 0.0)
     {
@@ -75,7 +74,6 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
                                                                                                                                                                  // We square the disance factor as it allow a better percptual descrease of vertex density.
         edgeTessFactors *= distFactor * distFactor;
     }
-#endif
 
     edgeTessFactors *= inputTessellationFactors * _GlobalTessellationFactorMultiplier;
 

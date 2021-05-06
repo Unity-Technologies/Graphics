@@ -133,15 +133,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (systemData.doubleSidedMode == DoubleSidedMode.Disabled)
                     AddProperty(tessellationBackFaceCullEpsilonText, () => systemData.tessellationBackFaceCullEpsilon, (newValue) => systemData.tessellationBackFaceCullEpsilon = newValue);
 
-                AddProperty(tessellationAdaptativeText, () => systemData.tessellationAdaptative, (newValue) => systemData.tessellationAdaptative = newValue);
-                if (systemData.tessellationAdaptative)
-                {
-                    context.globalIndentLevel++;
-                    AddProperty(tessellationFactorMinDistanceText, () => systemData.tessellationFactorMinDistance, (newValue) => systemData.tessellationFactorMinDistance = newValue);
-                    AddProperty(tessellationFactorMaxDistanceText, () => systemData.tessellationFactorMaxDistance, (newValue) => systemData.tessellationFactorMaxDistance = newValue);
-                    AddProperty(tessellationFactorTriangleSizeText, () => systemData.tessellationFactorTriangleSize, (newValue) => systemData.tessellationFactorTriangleSize = newValue);
-                    context.globalIndentLevel--;
-                }
+                AddProperty(tessellationFactorMinDistanceText, () => systemData.tessellationFactorMinDistance, (newValue) => systemData.tessellationFactorMinDistance = newValue);
+                AddProperty(tessellationFactorMaxDistanceText, () => systemData.tessellationFactorMaxDistance, (newValue) => systemData.tessellationFactorMaxDistance = newValue);
+                AddProperty(tessellationFactorTriangleSizeText, () => systemData.tessellationFactorTriangleSize, (newValue) => systemData.tessellationFactorTriangleSize = newValue);
 
                 AddProperty(tessellationModeText, () => systemData.tessellationMode, (newValue) => systemData.tessellationMode = newValue);
                 if (systemData.tessellationMode == TessellationMode.Phong)
