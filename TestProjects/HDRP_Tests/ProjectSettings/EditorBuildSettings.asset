@@ -546,6 +546,18 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4091_DRS-Software.unity
     guid: 6293ce393e2851d4e9827ff3dadd2673
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4092_LensFlare_Circle_DataDriven.unity
+    guid: 127cf0a76c5410c44ab9d294dd01c6bd
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4093_LensFlare_Polygon_DataDriven.unity
+    guid: 1855b23a6b57d2b40a5885c843a5c9db
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4094_LensFlare_Image_DataDriven.unity
+    guid: 475d979c4af80a043b6b9a7711903eab
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4095_LensFlare_Component_DataDriven.unity
+    guid: db1e613f72b7a5b4188402e98ca17cd4
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4101_FP16Alpha.unity
     guid: 5f05ae64777a2d9458961c7ac5f1977f
   - enabled: 1
@@ -743,4 +755,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9902_AOV_buffers2.unity
     guid: f63ff73f5ad6e02479e7d9e556f572b6
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9910_MaterialSamplerOverride.unity
+    guid: 3f9d18568d46df044847954b624b6152
   m_configObjects: {}

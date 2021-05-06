@@ -17,6 +17,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -73,7 +74,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 APVResources apvRes = FillAPVResources();
 
                 float3 uvw;
-                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, uvw))
+                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, 0.0f, uvw))
                 {
                     float L1Rx;
                     float3 L0 = EvaluateAPVL0Point(apvRes, uvw, L1Rx);

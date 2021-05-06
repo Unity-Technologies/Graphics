@@ -77,18 +77,31 @@ namespace UnityEngine.Experimental.Rendering
             subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
 
             RegisterDebug();
+
+#if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared += OnClearLightingdata;
+#endif
         }
 
         void CleanupDebug()
         {
             UnregisterDebug(true);
             CoreUtils.Destroy(m_DebugMaterial);
+
+#if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared -= OnClearLightingdata;
+#endif
         }
 
         void RefreshDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebug(false);
             RegisterDebug();
+        }
+
+        void DebugCellIndexChanged<T>(DebugUI.Field<T> field, T value)
+        {
+            ClearDebugData();
         }
 
         void RegisterDebug()
@@ -249,6 +262,11 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_CellDebugData.Add(debugData);
             }
+        }
+
+        void OnClearLightingdata()
+        {
+            ClearDebugData();
         }
     }
 }
