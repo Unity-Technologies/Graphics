@@ -17,7 +17,7 @@ using Object = UnityEngine.Object;
 using ShadowQuality = UnityEngine.ShadowQuality;
 using ShadowResolution = UnityEngine.ShadowResolution;
 
-internal class ProjectSettingsConverter : RenderPipelineConverter
+internal class RenderSettingsConverter : RenderPipelineConverter
 {
     public override string name => "Quality and Graphics Settings";
 
@@ -29,7 +29,6 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
     private GraphicsTierSettings graphicsTierSettings;
     private List<SettingsItem> settingsItems = new List<SettingsItem>();
 
-    private RenderingPath defaultRenderingPath = RenderingPath.Forward;
     private bool needsForward = false;
     private int forwardIndex = -1;
     private bool needsDeferred = false;
@@ -61,12 +60,10 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         {
             case RenderingPath.VertexLit:
             case RenderingPath.Forward:
-                defaultRenderingPath = RenderingPath.Forward;
                 needsForward = true;
                 break;
             case RenderingPath.DeferredLighting:
             case RenderingPath.DeferredShading:
-                defaultRenderingPath = RenderingPath.DeferredShading;
                 needsDeferred = true;
                 break;
         }
@@ -145,7 +142,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         {
             QualitySettings.SetQualityLevel(id);
 
-            var projectSettings = new ProjectSettingItem
+            var projectSettings = new RenderSettingItem
             {
                 index = id,
                 levelName = levelName,
@@ -206,7 +203,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
     {
         var item = context.item;
         // is quality item
-        if (settingsItems[item.index].GetType() == typeof(ProjectSettingItem))
+        if (settingsItems[item.index].GetType() == typeof(RenderSettingItem))
         {
             GeneratePipelineAsset(item.index);
         }
@@ -233,7 +230,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         var currentQualityLevel = QualitySettings.GetQualityLevel();
 
         // get the project setting we are working with
-        var projectSetting = settingsItems[index] as ProjectSettingItem;
+        var projectSetting = settingsItems[index] as RenderSettingItem;
         Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
 
         //creating pipeline asset
@@ -250,6 +247,8 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         if (needsForward)
         {
             renderers.Add(CreateRendererDataAsset(path, RenderingPath.Forward, "ForwardRenderer"));
+            //if (GetEquivalentRenderMode(graphicsTierSettings.RenderingPath) == RenderingMode.Forward)
+
         }
 
         if (needsDeferred)
@@ -284,7 +283,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
     /// </summary>
     /// <param name="asset">Pipeline asset to set</param>
     /// <param name="settings">The ProjectSettingItem with stored settings</param>
-    private void SetPipelineSettings(UniversalRenderPipelineAsset asset, ProjectSettingItem settings)
+    private void SetPipelineSettings(UniversalRenderPipelineAsset asset, RenderSettingItem settings)
     {
         // General
         asset.supportsCameraDepthTexture = settings.softParticles;
@@ -298,7 +297,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
             ? LightRenderingMode.Disabled
             : LightRenderingMode.PerPixel;
         asset.supportsMainLightShadows = settings.shadows != ShadowQuality.Disable;
-        asset.mainLightShadowmapResolution = GetEquivalentShadowResolution((int)settings.shadowResolution);
+        asset.mainLightShadowmapResolution = GetEquivalentMainlightShadowResolution((int)settings.shadowResolution);
 
         // Additional Lights
         asset.additionalLightsRenderingMode = settings.pixelLightCount <= 1
@@ -306,7 +305,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
             : LightRenderingMode.PerPixel;
         asset.maxAdditionalLightsCount = Mathf.Max(0, settings.pixelLightCount - 1);
         asset.supportsAdditionalLightShadows = settings.shadows != ShadowQuality.Disable;
-        asset.additionalLightsShadowmapResolution = GetEquivalentShadowResolution((int)settings.shadowResolution);
+        asset.additionalLightsShadowmapResolution = GetEquivalentAdditionalLightAtlasShadowResolution((int)settings.shadowResolution);
 
         // Reflection Probes
         asset.reflectionProbeBlending = graphicsTierSettings.ReflectionProbeBlending;
@@ -314,10 +313,20 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
 
         // Shadows
         asset.shadowDistance = settings.shadowDistance;
-        asset.shadowCascadeCount = settings.shadowCascadeCount;
+        asset.shadowCascadeCount = graphicsTierSettings.CascadeShadows ? settings.shadowCascadeCount : 0;
         asset.cascade2Split = settings.cascadeSplit2;
         asset.cascade4Split = settings.cascadeSplit4;
         asset.supportsSoftShadows = settings.shadows == ShadowQuality.All;
+    }
+
+    private static int GetEquivalentMainlightShadowResolution(int value)
+    {
+        return GetEquivalentShadowResolution(value);
+    }
+
+    private static int GetEquivalentAdditionalLightAtlasShadowResolution(int value)
+    {
+        return GetEquivalentShadowResolution(value);
     }
 
     private static int GetEquivalentShadowResolution(int value)
@@ -336,6 +345,21 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
         };
     }
 
+    private RenderingMode GetEquivalentRenderMode(RenderingPath path)
+    {
+        switch (path)
+        {
+            case RenderingPath.VertexLit:
+            case RenderingPath.Forward:
+                return RenderingMode.Forward;
+            case RenderingPath.DeferredLighting:
+            case RenderingPath.DeferredShading:
+                return RenderingMode.Deferred;
+            default:
+                return RenderingMode.Forward;
+        }
+    }
+
     #region Structs
 
     private struct GraphicsTierSettings
@@ -349,7 +373,7 @@ internal class ProjectSettingsConverter : RenderPipelineConverter
 
     private class SettingsItem { }
 
-    private class ProjectSettingItem : SettingsItem
+    private class RenderSettingItem : SettingsItem
     {
         // General
         public int index;
