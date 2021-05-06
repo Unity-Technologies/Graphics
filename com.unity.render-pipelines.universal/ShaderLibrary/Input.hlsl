@@ -10,7 +10,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
-#define MAX_ZBIN_VEC4S (4096/4)
 #if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
     #define MAX_VISIBLE_LIGHTS 16
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
@@ -19,7 +18,14 @@
     #define MAX_VISIBLE_LIGHTS 256
 #endif
 
-#define MAX_VISIBILITY_VEC4S (MAX_VISIBLE_LIGHTS/32/4 * 3840/8)
+// Match with values in UniversalRenderPipeline.cs
+#define MAX_ZBIN_VEC4S 1023
+#if MAX_VISIBLE_LIGHTS < 32
+#define LIGHTS_PER_TILE 32
+#else
+#define LIGHTS_PER_TILE MAX_VISIBLE_LIGHTS
+#endif
+#define MAX_VISIBILITY_VEC4S ((LIGHTS_PER_TILE * 3840)/(8*32*4))
 
 struct InputData
 {
@@ -54,27 +60,7 @@ half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-StructuredBuffer<LightData> _AdditionalLightsBuffer;
-StructuredBuffer<int> _AdditionalLightsIndices;
-#else
-// GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
-CBUFFER_START(AdditionalLights)
-#endif
-float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-#ifndef SHADER_API_GLES3
-CBUFFER_END
-#endif
-#endif
-
 #if USE_CLUSTERED_LIGHTING
-// TODO: Handle SHADER_API_GLES3
-
 // Directional lights would be in all clusters, so they don't go into the cluster structure.
 // Instead, they are stored first in the light buffer.
 uint _AdditionalLightsDirectionalCount;
@@ -84,19 +70,36 @@ uint _AdditionalLightsZBinOffset;
 float _AdditionalLightsZBinScale;
 // Scale from screen-space UV [0, 1] to tile coordinates [0, tile resolution].
 float2 _AdditionalLightsTileScale;
+#endif
 
-CBUFFER_START(AdditionalLightsZBins)
-uint4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+StructuredBuffer<LightData> _AdditionalLightsBuffer;
+StructuredBuffer<int> _AdditionalLightsIndices;
+#else
+// GLES3 causes a performance regression in some devices when using CBUFFER.
+#if !defined(SHADER_API_GLES3) || (defined(SHADER_API_GLES3) && !defined(SHADER_API_GLES30))
+CBUFFER_START(AdditionalLights)
+#endif
+float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
+#if !defined(SHADER_API_GLES3) || (defined(SHADER_API_GLES3) && !defined(SHADER_API_GLES30))
 CBUFFER_END
+#endif
+#endif
 
-CBUFFER_START(AdditionalLightsHorizontalVisibility)
-uint4 _AdditionalLightsHorizontalVisibility[MAX_VISIBILITY_VEC4S];
-CBUFFER_END
-
-CBUFFER_START(AdditionalLightsVerticalVisibility)
-uint4 _AdditionalLightsVerticalVisibility[MAX_VISIBILITY_VEC4S];
-CBUFFER_END
-
+#if USE_CLUSTERED_LIGHTING
+    CBUFFER_START(AdditionalLightsZBins)
+        float4 _AdditionalLightsZBins[MAX_ZBIN_VEC4S];
+    CBUFFER_END
+    CBUFFER_START(AdditionalLightsHorizontalVisibility)
+        float4 _AdditionalLightsHorizontalVisibility[MAX_VISIBILITY_VEC4S];
+    CBUFFER_END
+    CBUFFER_START(AdditionalLightsVerticalVisibility)
+        float4 _AdditionalLightsVerticalVisibility[MAX_VISIBILITY_VEC4S];
+    CBUFFER_END
 #endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

@@ -140,8 +140,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static int maxZBins => 4096;
-        internal static int maxVisibilityVec4s => (maxVisibleAdditionalLights * 3840) / (8 * 32 * 4);
+        // Match with values in Input.hlsl
+        internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
+        internal static int maxZBins => 1023 * 4;
+        internal static int maxVisibilityVec4s => (lightsPerTile * 3840) / (8 * 32 * 4);
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {

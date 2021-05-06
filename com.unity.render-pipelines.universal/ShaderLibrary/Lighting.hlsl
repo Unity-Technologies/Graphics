@@ -87,57 +87,87 @@ uint Select4(uint4 v, uint i)
 uint2 LoadZBin(float viewZ)
 {
     uint zBinIndex = min(4*MAX_ZBIN_VEC4S, (uint)(sqrt(viewZ) * _AdditionalLightsZBinScale) - _AdditionalLightsZBinOffset);
-    uint data = Select4(_AdditionalLightsZBins[zBinIndex / 4], zBinIndex % 4);
+    uint data = Select4(asuint(_AdditionalLightsZBins[zBinIndex / 4]), zBinIndex % 4);
     uint minIndex = (data & 0xFFFF);
     uint maxIndex = ((data >> 16) & 0xFFFF);
     return uint2(minIndex, maxIndex);
 }
 
-float CalculateViewZ(float3 positionWS)
+float GetViewZ(float3 positionWS)
 {
     return dot(GetViewForwardDir(), positionWS - GetCameraPositionWS());
 }
 
-uint2 CalculateTileId(float2 normalizedScreenSpaceUV)
+uint2 GetTileId(float2 normalizedScreenSpaceUV)
 {
     return uint2(normalizedScreenSpaceUV * _AdditionalLightsTileScale);
 }
 
 uint LoadTileMask(uint2 tileId, uint wordIndex, uint2 zBin, uint wordMin, uint wordMax)
 {
-    uint indexV = (MAX_VISIBLE_LIGHTS / 32) * tileId.x + wordIndex;
-    uint indexH = (MAX_VISIBLE_LIGHTS / 32) * tileId.y + wordIndex;
-    uint maskV = Select4(_AdditionalLightsVerticalVisibility[indexV / 4], indexV % 4);
-    uint maskH = Select4(_AdditionalLightsHorizontalVisibility[indexH / 4], indexH % 4);
+    uint indexV = (LIGHTS_PER_TILE / 32) * tileId.x + wordIndex;
+    uint indexH = (LIGHTS_PER_TILE / 32) * tileId.y + wordIndex;
+    uint maskV = Select4(asuint(_AdditionalLightsVerticalVisibility[indexV / 4]), indexV % 4);
+    uint maskH = Select4(asuint(_AdditionalLightsHorizontalVisibility[indexH / 4]), indexH % 4);
     uint mask = maskV & maskH;
     // The Z-bin might start/end in the middle of a word, so we mask out unneeded parts.
-    mask &= (0xFFFFFFFF << ((zBin.x & 0x1F) * (wordIndex == wordMin)));
+    mask &= 0xFFFFFFFF << ((zBin.x & 0x1F) * (wordIndex == wordMin));
     mask &= 0xFFFFFFFF >> ((31 - (zBin.y & 0x1F)) * (wordIndex == wordMax));
     return mask;
 }
 
-uint NextLightIndex(inout uint tileMask, uint wordIndex)
+uint LoadTileMaskSingle(uint2 tileId, uint2 zBin)
 {
-    uint bitIndex = firstbitlow(tileMask);
-    tileMask ^= (1 << bitIndex);
-    return wordIndex * 32 + bitIndex;
+    uint indexV = (LIGHTS_PER_TILE / 32) * tileId.x;
+    uint indexH = (LIGHTS_PER_TILE / 32) * tileId.y;
+    uint maskV = Select4(asuint(_AdditionalLightsVerticalVisibility[indexV / 4]), indexV % 4);
+    uint maskH = Select4(asuint(_AdditionalLightsHorizontalVisibility[indexH / 4]), indexH % 4);
+    uint mask = maskV & maskH;
+    mask &= 0xFFFFFFFF << zBin.x;
+    mask &= 0xFFFFFFFF >> (31 - zBin.y);
+    return mask;
 }
 
-#define LIGHT_LOOP_BEGIN(lightCount) \
+uint NextLightIndex(inout uint tileMask, inout uint bitIndex, uint wordIndex)
+{
+#if SHADER_TARGET < 45
+    while ((tileMask & (1 << bitIndex)) == 0) bitIndex++;
+#else
+    bitIndex = firstbitlow(tileMask);
+#endif
+    tileMask ^= (1 << bitIndex);
+    return _AdditionalLightsDirectionalCount + wordIndex * 32 + bitIndex;
+}
+
+#endif
+
+#if USE_CLUSTERED_LIGHTING && (LIGHTS_PER_TILE > 32)
+    #define LIGHT_LOOP_BEGIN(lightCount) \
     lightCount = 0; \
-    uint2 zBin = LoadZBin(CalculateViewZ(inputData.positionWS)); \
+    uint2 zBin = LoadZBin(GetViewZ(inputData.positionWS)); \
     uint wordMin = zBin.x / 32; \
     uint wordMax = zBin.y / 32; \
     for (uint wordIndex = wordMin; wordIndex <= wordMax; wordIndex++) { \
-        uint tileMask = LoadTileMask(CalculateTileId(inputData.normalizedScreenSpaceUV), wordIndex, zBin, wordMin, wordMax); \
+        uint tileMask = LoadTileMask(GetTileId(inputData.normalizedScreenSpaceUV), wordIndex, zBin, wordMin, wordMax); \
         while (tileMask != 0) \
         { \
             lightCount++; \
-            uint lightIndex = _AdditionalLightsDirectionalCount + NextLightIndex(tileMask, wordIndex);
-#define LIGHT_LOOP_END \
+            uint bitIndex = 0; \
+            uint lightIndex = NextLightIndex(tileMask, bitIndex, wordIndex);
+    #define LIGHT_LOOP_END \
         } \
     }
-
+#elif USE_CLUSTERED_LIGHTING
+    #define LIGHT_LOOP_BEGIN(lightCount) \
+    lightCount = 0; \
+    uint2 zBin = LoadZBin(GetViewZ(inputData.positionWS)); \
+    uint tileMask = LoadTileMaskSingle(GetTileId(inputData.normalizedScreenSpaceUV), zBin); \
+    uint bitIndex = zBin.x; \
+    while (tileMask != 0) { \
+        uint lightIndex = NextLightIndex(tileMask, bitIndex, 0); \
+        lightCount++;
+    #define LIGHT_LOOP_END \
+    }
 #elif !_USE_WEBGL1_LIGHTS
     #define LIGHT_LOOP_BEGIN(lightCount) \
     for (uint lightIndex = 0u; lightIndex < lightCount; ++lightIndex) {
