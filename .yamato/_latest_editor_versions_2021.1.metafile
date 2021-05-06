@@ -9,9 +9,9 @@ editor_versions:
       updated_at: '2021-05-05 23:33:49.019554'
       version: 2021.1.7f1
     Linux:
-      revision: c0fade0cc7e9
-      updated_at: '2021-04-28 01:51:35.482946'
-      version: 2021.1.6f1
+      revision: d91830b65d9b
+      updated_at: '2021-05-06 06:33:39.983803'
+      version: 2021.1.7f1
     OSX:
       revision: d91830b65d9b
       updated_at: '2021-05-05 23:33:49.019554'
@@ -47,8 +47,8 @@ editor_versions:
       version: 2021.1.5f1
   2021_1_staging:
     Android:
-      revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
-      updated_at: '2021-05-05 23:33:49.019554'
+      revision: d0601963382b97bc375b9f241fc294a844536179
+      updated_at: '2021-05-06 06:33:39.983803'
       version: ''
     Linux:
       revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
@@ -59,8 +59,8 @@ editor_versions:
       updated_at: '2021-05-05 23:33:49.019554'
       version: ''
     Win:
-      revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
-      updated_at: '2021-05-05 23:33:49.019554'
+      revision: d0601963382b97bc375b9f241fc294a844536179
+      updated_at: '2021-05-06 06:33:39.983803'
       version: ''
     iPhone:
       revision: d91830b65d9bd56380fe9fecc084b975c4d7b54d
