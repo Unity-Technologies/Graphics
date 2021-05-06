@@ -8,9 +8,9 @@ using UnityEditor;
 
 public class Editmode_ParametricReflectionProbeTests
 {
-	private readonly string sceneOutputPath = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake";
-	private readonly string sceneFileName = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake.unity";
-	private readonly string[] foldersToLookIn = { "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/settings" };
+    private readonly string sceneOutputPath = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake";
+    private readonly string sceneFileName = "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/ReflectionProbeBake.unity";
+    private readonly string[] foldersToLookIn = { "Assets/EditModeTestAssets/Lighting_ReflectionProbeBaking/settings" };
 
     public enum BakeAPI
     {
@@ -62,20 +62,23 @@ public class Editmode_ParametricReflectionProbeTests
 
     [TestCaseSource("GetReflectionProbeTestCases")]
     public void RefProbeAPI(string settings, BakeAPI bakeAPI)
-	{
-		EditorSceneManager.OpenScene(sceneFileName, OpenSceneMode.Single);
+    {
+        EditorSceneManager.OpenScene(sceneFileName, OpenSceneMode.Single);
 
-		// Bake with a lighting settings asset.
-		string[] settingsAssets = AssetDatabase.FindAssets(settings + " t:lightingsettings", foldersToLookIn);
-		Debug.Log("Found " + settingsAssets.Length + " matching lighting settings assets in " + foldersToLookIn[0]);
-		Assert.That(settingsAssets.Length, Is.EqualTo(1));
-		string lsaPath = AssetDatabase.GUIDToAssetPath(settingsAssets[0]);
-		Debug.Log("Loading " + lsaPath);
-		LightingSettings lightingSettings = (LightingSettings)AssetDatabase.LoadAssetAtPath(lsaPath, typeof(LightingSettings));
-		Lightmapping.lightingSettings = lightingSettings;
-		string fileName = System.IO.Path.GetFileNameWithoutExtension(lsaPath);
-		Assert.That(fileName, Is.EqualTo(settings));
-		Lightmapping.Clear();
+        // Bake with a lighting settings asset.
+        string[] settingsAssets = AssetDatabase.FindAssets(settings + " t:lightingsettings", foldersToLookIn);
+        Debug.Log("Found " + settingsAssets.Length + " matching lighting settings assets in " + foldersToLookIn[0]);
+        Assert.That(settingsAssets.Length, Is.EqualTo(1));
+        string lsaPath = AssetDatabase.GUIDToAssetPath(settingsAssets[0]);
+        Debug.Log("Loading " + lsaPath);
+        LightingSettings lightingSettings = (LightingSettings)AssetDatabase.LoadAssetAtPath(lsaPath, typeof(LightingSettings));
+        Lightmapping.lightingSettings = lightingSettings;
+        string fileName = System.IO.Path.GetFileNameWithoutExtension(lsaPath);
+        Assert.That(fileName, Is.EqualTo(settings));
+        Lightmapping.Clear();
+        // The disk cache needs clearing between runs because we are only changing the API and not necessarily the settings.
+        // Changing the API use to bake the probe is assumed to not affect the result so the reflection probe is fetched from the disk cache.
+        // To detect that everything works as intended the cached reflection probe needs to be cleared.
         Lightmapping.ClearDiskCache();
         Debug.Log("Baking " + fileName);
         bool result = true;
@@ -85,55 +88,55 @@ public class Editmode_ParametricReflectionProbeTests
                 result = Lightmapping.Bake();
                 break;
             case BakeAPI.BakeAll:
-                {
-                    var probe = Object.FindObjectOfType<ReflectionProbe>();
-                    Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
-                    Debug.Log("Found reflection probe: " + probe.name);
+            {
+                var probe = Object.FindObjectOfType<ReflectionProbe>();
+                Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
+                Debug.Log("Found reflection probe: " + probe.name);
 
-                    var oldEnabledValue = probe.enabled;
-                    probe.enabled = false;
-                    result = Lightmapping.Bake();
-                    probe.enabled = oldEnabledValue;
-                    result &= Lightmapping.BakeAllReflectionProbesSnapshots();
-                }
-                break;
+                var oldEnabledValue = probe.enabled;
+                probe.enabled = false;
+                result = Lightmapping.Bake();
+                probe.enabled = oldEnabledValue;
+                result &= Lightmapping.BakeAllReflectionProbesSnapshots();
+            }
+            break;
             case BakeAPI.BakeSingle:
-                {
-                    var probe = Object.FindObjectOfType<ReflectionProbe>();
-                    Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
-                    Debug.Log("Found reflection probe: " + probe.name);
+            {
+                var probe = Object.FindObjectOfType<ReflectionProbe>();
+                Assert.That(probe, !Is.EqualTo(null), "Couldn't find ReflectionProbe");
+                Debug.Log("Found reflection probe: " + probe.name);
 
-                    var oldEnabledValue = probe.enabled;
-                    probe.enabled = false;
-                    result = Lightmapping.Bake();
-                    probe.enabled = oldEnabledValue;
-                    result &= Lightmapping.BakeReflectionProbeSnapshot(probe);
-                }
-                break;
-        }        
-		Assert.That(result, Is.True);
-		
-		// Get Test settings.
-		var graphicsTestSettingsCustom = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-		Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
+                var oldEnabledValue = probe.enabled;
+                probe.enabled = false;
+                result = Lightmapping.Bake();
+                probe.enabled = oldEnabledValue;
+                result &= Lightmapping.BakeReflectionProbeSnapshot(probe);
+            }
+            break;
+        }
+        Assert.That(result, Is.True);
+
+        // Get Test settings.
+        var graphicsTestSettingsCustom = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
+        Assert.That(graphicsTestSettingsCustom, !Is.EqualTo(null), "Couldn't find GraphicsTestSettingsCustom");
 
         // Load reference image.
         var referenceImagePath = System.IO.Path.Combine("Assets/ReferenceImages", string.Format("{0}/{1}/{2}/{3}/{4}",
-			UseGraphicsTestCasesAttribute.ColorSpace,
-			UseGraphicsTestCasesAttribute.Platform,
-			UseGraphicsTestCasesAttribute.GraphicsDevice,
-			UseGraphicsTestCasesAttribute.LoadedXRDevice,
-			"RefProbeAPI_" + settings + "-" + bakeAPI.ToString() + "_.png"));
+            UseGraphicsTestCasesAttribute.ColorSpace,
+            UseGraphicsTestCasesAttribute.Platform,
+            UseGraphicsTestCasesAttribute.GraphicsDevice,
+            UseGraphicsTestCasesAttribute.LoadedXRDevice,
+            "RefProbeAPI_" + settings + "-" + bakeAPI.ToString() + "_.png"));
 
         Debug.Log("referenceImagePath " + referenceImagePath);
-		var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
-		
-		// Compare screenshots.
-		GraphicsTestCase testCase = new GraphicsTestCase(settings, referenceImage);
-		var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
-		ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), graphicsTestSettingsCustom.ImageComparisonSettings);
-		UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
-	}
+        var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImagePath);
+
+        // Compare screenshots.
+        GraphicsTestCase testCase = new GraphicsTestCase(settings, referenceImage);
+        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
+        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), graphicsTestSettingsCustom.ImageComparisonSettings);
+        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
 
     [OneTimeTearDown]
     public void Cleanup()
