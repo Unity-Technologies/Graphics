@@ -498,7 +498,7 @@ URP_Lighting_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
