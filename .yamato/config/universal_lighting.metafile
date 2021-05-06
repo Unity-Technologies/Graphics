@@ -129,7 +129,7 @@ platforms:
       editmode:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
       standalone:
         type: Unity::VM::GPU
