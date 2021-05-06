@@ -381,7 +381,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     cmd.Blit(GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
-                    //Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
                     // TODO: We need a proper camera texture swap chain in URP.
                     // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                     // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
