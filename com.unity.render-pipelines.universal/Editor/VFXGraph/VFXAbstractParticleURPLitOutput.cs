@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Metallic;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specified the smoothness map source. It can be the alpha channel of the Metallic Map or the Base Color Map if they are used in the output.")]
         protected SmoothnessSource smoothnessSource = SmoothnessSource.None;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
