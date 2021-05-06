@@ -704,6 +704,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        // Can UAVs can be assigned from slot 0 irrespective of the number of render targets
+        internal static bool RWTargetsAlwaysStartFromZero()
+        {
+            GraphicsDeviceType device = SystemInfo.graphicsDeviceType;
+            
+            return ((device == GraphicsDeviceType.GameCoreXboxSeries ) || ( device == GraphicsDeviceType.GameCoreXboxOne));
+        }
+
+
         /// <summary>
         /// Extract scale and bias from a fade distance to achieve a linear fading starting at 90% of the fade distance.
         /// </summary>
