@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAssetLightLayers
   m_EditorClassIdentifier: 
-  k_AssetVersion: 9
-  k_AssetPreviousVersion: 9
+  k_AssetVersion: 8
+  k_AssetPreviousVersion: 8
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -24,7 +24,6 @@ MonoBehaviour:
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
-  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
   m_MSAA: 1
   m_RenderScale: 1
@@ -35,11 +34,9 @@ MonoBehaviour:
   m_AdditionalLightsPerObjectLimit: 8
   m_AdditionalLightShadowsSupported: 1
   m_AdditionalLightsShadowmapResolution: 2048
-  m_AdditionalLightsShadowResolutionTierLow: 512
-  m_AdditionalLightsShadowResolutionTierMedium: 1024
-  m_AdditionalLightsShadowResolutionTierHigh: 2048
-  m_ReflectionProbeBlending: 0
-  m_ReflectionProbeBoxProjection: 0
+  m_AdditionalLightsShadowResolutionTierLow: 256
+  m_AdditionalLightsShadowResolutionTierMedium: 512
+  m_AdditionalLightsShadowResolutionTierHigh: 1024
   m_ShadowDistance: 50
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
