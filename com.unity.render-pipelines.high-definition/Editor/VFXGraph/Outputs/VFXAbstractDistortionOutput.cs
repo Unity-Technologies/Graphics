@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.HDRP
         {
             if (!base.CanBeCompiled())
                 return false;
-            return GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
+            return GetCurrentRenderPipelineAsset() is HDRenderPipelineAsset;
         }
 
         protected override IEnumerable<string> filteredOutSettings
