@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferProjector));
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));
+            useNativeRenderPass = false;
         }
 
         internal void Setup(DeferredLights deferredLights)

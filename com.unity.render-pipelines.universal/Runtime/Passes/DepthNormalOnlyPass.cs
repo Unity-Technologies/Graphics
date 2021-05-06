@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
+            useNativeRenderPass = false;
         }
 
         /// <summary>

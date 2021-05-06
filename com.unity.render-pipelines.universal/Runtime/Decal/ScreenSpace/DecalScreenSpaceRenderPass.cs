@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceProjector));
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
+            useNativeRenderPass = false;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
