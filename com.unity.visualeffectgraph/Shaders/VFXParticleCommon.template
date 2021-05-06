@@ -169,6 +169,8 @@ ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 int _ObjectId;
 int _PassValue;
+TEXTURE2D(unity_EditorViz_DepthBuffer);
+SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 #endif
 
 #pragma fragment frag

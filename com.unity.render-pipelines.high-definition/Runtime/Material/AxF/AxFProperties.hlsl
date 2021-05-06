@@ -138,5 +138,7 @@ float3 _EmissionColor;
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;
+TEXTURE2D(unity_EditorViz_DepthBuffer);
+SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 
 CBUFFER_END

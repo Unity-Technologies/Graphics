@@ -32,6 +32,8 @@ CBUFFER_START(UnityTerrain)
 #ifdef SCENESELECTIONPASS
     int _ObjectId;
     int _PassValue;
+    TEXTURE2D(unity_EditorViz_DepthBuffer);
+    SAMPLER(sampler_unity_EditorViz_DepthBuffer);
 #endif
 CBUFFER_END
 
