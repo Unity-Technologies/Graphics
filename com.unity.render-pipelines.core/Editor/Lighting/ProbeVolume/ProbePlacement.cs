@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Linq;
 using UnityEngine.Profiling;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -27,6 +28,81 @@ namespace UnityEngine.Experimental.Rendering
 
             public int minSubdivisionLevel;
             public int maxSubdivisionLevel;
+        }
+
+        public class GPUSubdivisionContext : IDisposable
+        {
+            public int maxSubdivisionLevel;
+            public int maxBrickCountPerAxis;
+
+            public RenderTexture sceneSDF;
+            public RenderTexture sceneSDF2;
+            public RenderTexture dummyRenderTarget;
+
+            // TODO: allocate one buffer for each subdivision level to avoid blocking GPU execution while reading data back
+            public ComputeBuffer probeVolumesBuffer;
+            public ComputeBuffer[] bricksBuffers;
+            public ComputeBuffer[] readbackCountBuffers;
+
+            public GPUSubdivisionContext(int probeVolumeCount)
+            {
+                // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
+                maxSubdivisionLevel = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1; // remove 1 because the last subdiv level is the cell size
+                maxBrickCountPerAxis = (int)Mathf.Pow(3, maxSubdivisionLevel); // cells are always cube
+
+                // jump flooding algorithm works best with POT textures
+                int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCountPerAxis);
+                RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
+                {
+                    height = sceneSDFSize,
+                    width = sceneSDFSize,
+                    volumeDepth = sceneSDFSize,
+                    enableRandomWrite = true,
+                    dimension = TextureDimension.Tex3D,
+                    graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, // we need 16 bit precision for the distance field
+                    msaaSamples = 1,
+                };
+
+                sceneSDF = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
+                sceneSDF.name = "Scene SDF";
+                sceneSDF.Create();
+                sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
+                // We need mipmaps for the second map to store the probe volume min and max subdivision
+                sceneSDF2.useMipMap = true;
+                sceneSDF2.autoGenerateMips = false;
+                sceneSDF2.name = "Scene SDF Double Buffer";
+                sceneSDF2.Create();
+
+                // Dummy render texture to bind during the voxelization of meshes
+                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize, sceneSDFSize, 0, GraphicsFormat.R8_SNorm);
+
+                int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(GPUProbeVolumeOBB));
+                probeVolumesBuffer = new ComputeBuffer(probeVolumeCount, stride, ComputeBufferType.Structured);
+
+                // Allocate one readback and bricks buffer per subdivision level
+                bricksBuffers = new ComputeBuffer[maxSubdivisionLevel + 1];
+                readbackCountBuffers = new ComputeBuffer[maxSubdivisionLevel + 1];
+                for (int i = 0; i <= maxSubdivisionLevel; i++)
+                {
+                    int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivisionLevel - i);
+                    bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
+                    readbackCountBuffers[i] = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+                }
+            }
+
+            public void Dispose()
+            {
+                RenderTexture.ReleaseTemporary(sceneSDF);
+                RenderTexture.ReleaseTemporary(sceneSDF2);
+                RenderTexture.ReleaseTemporary(dummyRenderTarget);
+                probeVolumesBuffer.Release();
+
+                for (int i = 0; i <= maxSubdivisionLevel; i++)
+                {
+                    bricksBuffers[i].Release();
+                    readbackCountBuffers[i].Release();
+                }
+            }
         }
 
         static ComputeShader _subdivideSceneCS;
@@ -50,184 +126,83 @@ namespace UnityEngine.Experimental.Rendering
             return v;
         }
 
+        public static GPUSubdivisionContext AllocateGPUResources(int probeVolumeCount) => new GPUSubdivisionContext(probeVolumeCount);
+
         // TODO: split this function
-        public static List<Brick> SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes)
+        public static List<Brick> SubdivideWithSDF(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, GPUSubdivisionContext ctx, List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes)
         {
-            RenderTexture sceneSDF = null;
-            RenderTexture sceneSDF2 = null;
-            RenderTexture dummyRenderTarget = null;
-            var bricks = new List<Brick>();
+            HashSet<Brick> bricksList = new HashSet<Brick>();
             var cellAABB = cellVolume.CalculateAABB();
 
-            try
+            cellVolume.CalculateCenterAndSize(out var center, out var _);
+            Profiler.BeginSample($"Subdivide Cell {center}");
+            var cmd = CommandBufferPool.Get();
+
+            RastersizeMeshes(cmd, cellVolume, ctx.sceneSDF, ctx.dummyRenderTarget, ctx.maxBrickCountPerAxis, renderers);
+
+            GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
+
+            // Now that the distance field is generated, we can store the probe subdivision data inside sceneSDF2
+            var probeSubdivisionData = ctx.sceneSDF2;
+            VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx.sceneSDF2, ctx.probeVolumesBuffer, ctx.maxBrickCountPerAxis, ctx.maxSubdivisionLevel);
+
+            // TODO: try to remove this fence and execute all the subdivision in one go
+            Graphics.ExecuteCommandBuffer(cmd);
+
+            // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
+            int startSubdivisionLevel = ctx.maxSubdivisionLevel - (refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier)) - 1);
+            for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevel; subdivisionLevel++)
             {
-                // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
-                int maxSubdivLevel = refVol.GetMaxSubdivision() - 1; // remove 1 because the last subdiv level is the cell size
-                int startSubdivisionLevel = maxSubdivLevel - (refVol.GetMaxSubdivision(probeVolumes.Max(p => p.component.maxSubdivisionMultiplier)) - 1);
+                // Add the bricks from the probe volume min subdivision level:
+                int brickCountPerAxis = (int)Mathf.Pow(3, ctx.maxSubdivisionLevel - subdivisionLevel);
+                int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
+                var bricksBuffer = ctx.bricksBuffers[subdivisionLevel];
+                var brickCountReadbackBuffer = ctx.readbackCountBuffers[subdivisionLevel];
 
-                // We assume that all the cells are cubes
-                int maxBrickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel);
-                int sceneSDFSize = Mathf.NextPowerOfTwo(maxBrickCountPerAxis);
+                cmd.Clear();
+                cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
+                DispatchCompute(cmd, clearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
+                cmd.SetBufferCounterValue(bricksBuffer, 0);
 
-                RenderTextureDescriptor distanceFieldTextureDescriptor = new RenderTextureDescriptor
-                {
-                    height = sceneSDFSize,
-                    width = sceneSDFSize,
-                    volumeDepth = sceneSDFSize,
-                    enableRandomWrite = true,
-                    dimension = TextureDimension.Tex3D,
-                    graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,
-                    msaaSamples = 1,
-                };
-
-                sceneSDF = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
-                sceneSDF.name = "Scene SDF";
-                sceneSDF.Create();
-                sceneSDF2 = RenderTexture.GetTemporary(distanceFieldTextureDescriptor);
-                // We need mipmaps for the second map to store the probe volume min and max subdivision
-                sceneSDF2.useMipMap = true;
-                sceneSDF2.autoGenerateMips = false;
-                sceneSDF2.name = "Scene SDF Double Buffer";
-                sceneSDF2.Create();
-                dummyRenderTarget = RenderTexture.GetTemporary(sceneSDFSize, sceneSDFSize, 0, GraphicsFormat.R8_SNorm);
-
-                cellVolume.CalculateCenterAndSize(out var center, out var _);
-                Profiler.BeginSample($"Subdivide Cell {center}");
-                var cmd = CommandBufferPool.Get();
-
-                RastersizeMeshes(cmd, cellVolume, sceneSDF, dummyRenderTarget, maxBrickCountPerAxis, renderers);
-
-                GenerateDistanceField(cmd, sceneSDF, sceneSDF2);
-
-                // Now that the distance field is generated, we can store the probe subdivision data inside sceneSDF2
-                var probeSubdivisionData = sceneSDF2;
-                int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(GPUProbeVolumeOBB));
-                var probeVolumesBuffer = new ComputeBuffer(probeVolumes.Count, stride, ComputeBufferType.Structured);
-                VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, sceneSDF2, probeVolumesBuffer, maxBrickCountPerAxis, maxSubdivLevel);
-
-                var bricksBuffer = new ComputeBuffer(maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
-                var readbackCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
-
-                HashSet<Brick> bricksList = new HashSet<Brick>();
-
+                bricksBuffer.SetCounterValue(0);
+                SubdivideFromDistanceField(cmd, cellAABB, ctx.sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, ctx.maxBrickCountPerAxis, subdivisionLevel, ctx.maxSubdivisionLevel);
+                cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
                 Graphics.ExecuteCommandBuffer(cmd);
 
-                // Brick index offset based on the cell position
-                var brickOffset = new Vector3Int((int)cellVolume.corner.x, (int)cellVolume.corner.y, (int)cellVolume.corner.z) / 3;
+                var brickCountReadbackArray = new int[1];
+                brickCountReadbackBuffer.GetData(brickCountReadbackArray, 0, 0, 1);
+                int readbackBrickCount = brickCountReadbackArray[0];
 
-                var transform = refVol.GetTransform();
-                for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= maxSubdivLevel; subdivisionLevel++)
+                Vector3[] brickPositions = new Vector3[readbackBrickCount];
+                bricksBuffer.GetData(brickPositions, 0, 0, readbackBrickCount);
+
+                foreach (var pos in brickPositions)
                 {
-                    // Add the bricks from the probe volume min subdivision level:
-                    int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivLevel - subdivisionLevel);
-                    // int brickSize = (int)Mathf.Pow(3, subdivisionLevel);
-
-                    // // Check if a probe volume inside the cell will add subdivision at this level
-                    // float localMinSubdiv = probeVolumes.Max(pv => pv.component.minSubdivisionMultiplier);
-
-                    // if (maxSubdivLevel - subdivisionLevel < refVol.GetMaxSubdivision(localMinSubdiv))
-                    // {
-                    //     // Adds the bricks from the min subdivision setting of the volume
-                    //     for (int x = 0; x < brickCountPerAxis; x++)
-                    //     {
-                    //         for (int y = 0; y < brickCountPerAxis; y++)
-                    //         {
-                    //             for (int z = 0; z < brickCountPerAxis; z++)
-                    //             {
-                    //                 var brick = new Brick(brickOffset + new Vector3Int(x * brickSize, y * brickSize, z * brickSize), subdivisionLevel);
-                    //                 ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(transform, brick);
-
-                    //                 // TODO: collider check on the probe volume:
-                    //                 // var closestPoint = collider.ClosestPoint(triggerPos);
-                    //                 // var d = (closestPoint - triggerPos).sqrMagnitude;
-
-                    //                 // minSqrDistance = Mathf.Min(minSqrDistance, d);
-
-                    //                 // // Update the list of overlapping colliders
-                    //                 // if (d <= sqrFadeRadius)
-                    //                 //     volume.m_OverlappingColliders.Add(collider);
-
-                    //                 localMinSubdiv = 0;
-                    //                 bool overlapVolume = false;
-                    //                 foreach (var kp in probeVolumes)
-                    //                 {
-                    //                     var vol = kp.volume;
-                    //                     if (ProbeVolumePositioning.OBBIntersect(vol, brickVolume))
-                    //                     {
-                    //                         localMinSubdiv = Mathf.Max(localMinSubdiv, vol.minSubdivisionMultiplier);
-                    //                         overlapVolume = true;
-                    //                     }
-                    //                 }
-
-                    //                 bool belowMinSubdiv = (maxSubdivLevel - subdivisionLevel) < refVol.GetMaxSubdivision(localMinSubdiv);
-
-                    //                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                    //                 if (overlapVolume && belowMinSubdiv)
-                    //                     bricksList.Add(brick);
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                    int clearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
-                    cmd.Clear();
-                    cmd.SetComputeBufferParam(subdivideSceneCS, clearBufferKernel, "_BricksToClear", bricksBuffer);
-                    DispatchCompute(cmd, clearBufferKernel, maxBrickCountPerAxis * maxBrickCountPerAxis * maxBrickCountPerAxis, 1);
-                    cmd.SetBufferCounterValue(bricksBuffer, 0);
-
-                    bricksBuffer.SetCounterValue(0);
-                    // TODO: avoid subdividing more than the max local subdivision from probe volume
-                    SubdivideFromDistanceField(cmd, cellAABB, sceneSDF, probeSubdivisionData, bricksBuffer, brickCountPerAxis, maxBrickCountPerAxis, subdivisionLevel, maxSubdivLevel);
-                    cmd.CopyCounterValue(bricksBuffer, readbackCountBuffer, 0);
-                    Graphics.ExecuteCommandBuffer(cmd);
-
-                    var brickCountReadbackArray = new int[1];
-                    readbackCountBuffer.GetData(brickCountReadbackArray, 0, 0, 1);
-                    int readbackBrickCount = brickCountReadbackArray[0];
-
-                    Vector3[] brickPositions = new Vector3[readbackBrickCount];
-                    bricksBuffer.GetData(brickPositions, 0, 0, readbackBrickCount);
-
-                    foreach (var pos in brickPositions)
-                    {
-                        var brick = new Brick(new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)), subdivisionLevel);
-                        bricksList.Add(brick);
-                    }
+                    var brick = new Brick(new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)), subdivisionLevel);
+                    bricksList.Add(brick);
                 }
-
-                bricksBuffer.Release();
-                readbackCountBuffer.Release();
-                probeVolumesBuffer.Release();
-
-                bricks = bricksList.ToList();
-
-                Profiler.BeginSample("sort");
-                // sort from larger to smaller bricks
-                bricks.Sort((Brick lhs, Brick rhs) =>
-                {
-                    if (lhs.subdivisionLevel != rhs.subdivisionLevel)
-                        return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
-                    if (lhs.position.z != rhs.position.z)
-                        return lhs.position.z < rhs.position.z ? -1 : 1;
-                    if (lhs.position.y != rhs.position.y)
-                        return lhs.position.y < rhs.position.y ? -1 : 1;
-                    if (lhs.position.x != rhs.position.x)
-                        return lhs.position.x < rhs.position.x ? -1 : 1;
-
-                    return 0;
-                });
-                Profiler.EndSample();
-                Profiler.EndSample();
             }
-            finally // Release resources in case a fatal error occurs
+
+            var bricks = bricksList.ToList();
+
+            // TODO: this is really slow :/
+            Profiler.BeginSample($"Sort {bricks.Count} bricks");
+            // sort from larger to smaller bricks
+            bricks.Sort((Brick lhs, Brick rhs) =>
             {
-                if (sceneSDF != null)
-                    RenderTexture.ReleaseTemporary(sceneSDF);
-                if (sceneSDF2 != null)
-                    RenderTexture.ReleaseTemporary(sceneSDF2);
-                if (dummyRenderTarget != null)
-                    RenderTexture.ReleaseTemporary(dummyRenderTarget);
-            }
+                if (lhs.subdivisionLevel != rhs.subdivisionLevel)
+                    return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
+                if (lhs.position.z != rhs.position.z)
+                    return lhs.position.z < rhs.position.z ? -1 : 1;
+                if (lhs.position.y != rhs.position.y)
+                    return lhs.position.y < rhs.position.y ? -1 : 1;
+                if (lhs.position.x != rhs.position.x)
+                    return lhs.position.x < rhs.position.x ? -1 : 1;
+
+                return 0;
+            });
+            Profiler.EndSample();
+            Profiler.EndSample();
 
             return bricks;
         }
@@ -310,12 +285,12 @@ namespace UnityEngine.Experimental.Rendering
                 Mathf.Max(1, Mathf.CeilToInt(depth / (float)z)));
         }
 
-        static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF, RenderTexture tmp)
+        static void GenerateDistanceField(CommandBuffer cmd, RenderTexture sceneSDF1, RenderTexture sceneSDF2)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler("GenerateDistanceField")))
             {
                 // Generate distance field with JFA
-                cmd.SetComputeVectorParam(subdivideSceneCS, "_Size", new Vector4(sceneSDF.width, 1.0f / sceneSDF.width));
+                cmd.SetComputeVectorParam(subdivideSceneCS, "_Size", new Vector4(sceneSDF1.width, 1.0f / sceneSDF1.width));
 
                 int clearKernel = subdivideSceneCS.FindKernel("Clear");
                 int jumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
@@ -325,37 +300,51 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO: try to get rid of the copies again
                 using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
                 {
-                    for (int i = 0; i < sceneSDF.volumeDepth; i++)
-                        cmd.CopyTexture(sceneSDF, i, 0, tmp, i, 0);
+                    for (int i = 0; i < sceneSDF1.volumeDepth; i++)
+                        cmd.CopyTexture(sceneSDF1, i, 0, sceneSDF2, i, 0);
                 }
+                // Swap(ref sceneSDF1, ref sceneSDF2);
 
                 // Jump flooding implementation based on https://www.comp.nus.edu.sg/~tants/jfa.html
                 using (new ProfilingScope(cmd, new ProfilingSampler("JumpFlooding")))
                 {
-                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Input", tmp);
-                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Output", sceneSDF);
-                    DispatchCompute(cmd, fillUVKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Input", sceneSDF2);
+                    cmd.SetComputeTextureParam(subdivideSceneCS, fillUVKernel, "_Output", sceneSDF1);
+                    DispatchCompute(cmd, fillUVKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
-                    int maxLevels = (int)Mathf.Log(sceneSDF.width, 2);
+                    int maxLevels = (int)Mathf.Log(sceneSDF1.width, 2);
                     for (int i = 0; i <= maxLevels; i++)
                     {
                         float offset = 1 << (maxLevels - i);
                         cmd.SetComputeFloatParam(subdivideSceneCS, "_Offset", offset);
-                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Input", sceneSDF);
-                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Output", tmp);
-                        DispatchCompute(cmd, jumpFloodingKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Input", sceneSDF1);
+                        cmd.SetComputeTextureParam(subdivideSceneCS, jumpFloodingKernel, "_Output", sceneSDF2);
+                        DispatchCompute(cmd, jumpFloodingKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
 
-                        using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
-                        {
-                            for (int j = 0; j < sceneSDF.volumeDepth; j++)
-                                cmd.CopyTexture(tmp, j, 0, sceneSDF, j, 0);
-                        }
+                        Swap(ref sceneSDF1, ref sceneSDF2);
+                        // using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                        // {
+                        //     for (int j = 0; j < sceneSDF1.volumeDepth; j++)
+                        //         cmd.CopyTexture(sceneSDF2, j, 0, sceneSDF1, j, 0);
+                        // }
                     }
                 }
 
-                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", tmp);
-                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF);
-                DispatchCompute(cmd, finalPassKernel, sceneSDF.width, sceneSDF.height, sceneSDF.volumeDepth);
+                using (new ProfilingScope(cmd, new ProfilingSampler("Copy")))
+                {
+                    for (int j = 0; j < sceneSDF1.volumeDepth; j++)
+                        cmd.CopyTexture(sceneSDF1, j, 0, sceneSDF2, j, 0);
+                }
+                void Swap(ref RenderTexture s1, ref RenderTexture s2)
+                {
+                    var tmp = s1;
+                    s1 = s2;
+                    s2 = tmp;
+                }
+
+                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Input", sceneSDF2);
+                cmd.SetComputeTextureParam(subdivideSceneCS, finalPassKernel, "_Output", sceneSDF1);
+                DispatchCompute(cmd, finalPassKernel, sceneSDF1.width, sceneSDF1.height, sceneSDF1.volumeDepth);
             }
         }
 

@@ -515,63 +515,66 @@ namespace UnityEngine.Experimental.Rendering
             bool realtimeSubdivision = ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision;
             if (realtimeSubdivision)
                 ctx.refVolume.realtimeSubdivisionInfo.Clear();
-
-            // subdivide all the cells and generate brick positions 
-            foreach (var cell in ctx.cells)
+            
+            using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count))
             {
-                sceneRefs.Clear();
-
-                // Calculate overlaping probe volumes to avoid unnecessary work
-                var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
-                foreach (var probeVolume in ctx.probeVolumes)
+                // subdivide all the cells and generate brick positions 
+                foreach (var cell in ctx.cells)
                 {
-                    if (ProbeVolumePositioning.OBBIntersect(probeVolume.volume, cell.volume))
-                    {
-                        overlappingProbeVolumes.Add(probeVolume);
-                        TrackSceneRefs(probeVolume.component.gameObject.scene, sceneRefs);
-                    }
-                }
+                    sceneRefs.Clear();
 
-                // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
-                var validRenderers = new List<(Renderer component, ProbeReferenceVolume.Volume volume)>();
-                foreach (var renderer in ctx.renderers)
-                {
-                    var go = renderer.component.gameObject;
-                    int rendererLayerMask = 1 << go.layer;
-
-                    foreach (var probeVolume in overlappingProbeVolumes)
+                    // Calculate overlaping probe volumes to avoid unnecessary work
+                    var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
+                    foreach (var probeVolume in ctx.probeVolumes)
                     {
-                        if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume))
+                        if (ProbeVolumePositioning.OBBIntersect(probeVolume.volume, cell.volume))
                         {
-                            // Check if the renderer has a matching layer with probe volume
-                            if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
+                            overlappingProbeVolumes.Add(probeVolume);
+                            TrackSceneRefs(probeVolume.component.gameObject.scene, sceneRefs);
+                        }
+                    }
+
+                    // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
+                    var validRenderers = new List<(Renderer component, ProbeReferenceVolume.Volume volume)>();
+                    foreach (var renderer in ctx.renderers)
+                    {
+                        var go = renderer.component.gameObject;
+                        int rendererLayerMask = 1 << go.layer;
+
+                        foreach (var probeVolume in overlappingProbeVolumes)
+                        {
+                            if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume))
                             {
-                                validRenderers.Add(renderer);
-                                TrackSceneRefs(go.scene, sceneRefs);
+                                // Check if the renderer has a matching layer with probe volume
+                                if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
+                                {
+                                    validRenderers.Add(renderer);
+                                    TrackSceneRefs(go.scene, sceneRefs);
+                                }
                             }
                         }
                     }
+
+                    // Skip empty cells
+                    if (validRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
+                        continue;
+
+                    var bricks = ProbePlacement.SubdivideWithSDF(cell.volume, refVol, gpuResources, validRenderers, overlappingProbeVolumes);
+
+                    // Each cell keeps a number of references it has to each scene it was influenced by
+                    // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
+                    var sortedRefs = new SortedDictionary<int, Scene>();
+                    foreach (var item in sceneRefs)
+                        sortedRefs[-item.Value] = item.Key;
+
+                    result.cellPositions.Add(cell.position);
+                    result.bricksPerCells[cell.position] = bricks;
+                    result.sortedRefs = sortedRefs;
+
+                    // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
+                    if (realtimeSubdivision)
+                        ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = bricks;
                 }
-
-                // Skip empty cells
-                if (validRenderers.Count == 0 && overlappingProbeVolumes.Count == 0)
-                    continue;
-
-                var bricks = ProbePlacement.SubdivideWithSDF(cell.volume, refVol, validRenderers, overlappingProbeVolumes);
-
-                // Each cell keeps a number of references it has to each scene it was influenced by
-                // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
-                var sortedRefs = new SortedDictionary<int, Scene>();
-                foreach (var item in sceneRefs)
-                    sortedRefs[-item.Value] = item.Key;
-
-                result.cellPositions.Add(cell.position);
-                result.bricksPerCells[cell.position] = bricks;
-                result.sortedRefs = sortedRefs;
-
-                // If realtime subdivision is enabled, we save a copy of the data inside the authoring component for the debug view
-                if (realtimeSubdivision)
-                    ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = bricks;
             }
 
             return result;

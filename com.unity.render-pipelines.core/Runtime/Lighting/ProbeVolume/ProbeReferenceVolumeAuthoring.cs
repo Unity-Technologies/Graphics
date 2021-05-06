@@ -248,6 +248,9 @@ namespace UnityEngine.Experimental.Rendering
                 brickGizmos.Clear();
                 foreach (var brick in GetVisibleBricks())
                 {
+                    if (brick.subdivisionLevel < 0)
+                        continue;
+                        
                     Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                     Vector3 scaledPos = brick.position + scaledSize / 2;
                     brickGizmos.AddWireCube(scaledPos, scaledSize, debugColors[brick.subdivisionLevel]);
