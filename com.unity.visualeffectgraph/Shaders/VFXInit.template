@@ -30,7 +30,7 @@ ByteAddressBuffer inputAdditional;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
 ${VFXPerPassInclude}

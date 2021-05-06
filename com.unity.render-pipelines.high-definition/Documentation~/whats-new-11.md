@@ -26,11 +26,32 @@ This can result in significant performance improvements for projects that have l
 
 For more information about the future, see the [Shadow](Shadows-in-HDRP.md) section of the documentation.
 
+## Improvements
+
+### Support for exposure for planar reflection probe.
+
+From HDRP 11.0, [Planar Reflection Probes](Planar-Reflection-Probe.md) now consider exposure mode when they calculate reflections for emissive Materials. Previously, Planar Reflection Probes did not correctly reflect emissive Materials that had expose weight attenuations of 0.0 due to using the wrong exposure value.
+
+### AxF Material
+
+From HDRP 11.0, the AxF Material supports ray tracing. It also supports rasterized area light shadows.
+
+![](Images/AxFRaytracing.png)
+
+### Decal widget
+
+From HDRP 11.0, the decal widget includes more functionality to help you create decals in a Scene. It now includes pivot point manipulation (both in the Inspector and Scene view), UV manipulation (in the Scene view only), and color and intensity customization.
+
+![](Images/DecalWidget-1.gif)
+
+![](Images/DecalWidget-2.gif)
+
 ### Cubemap fields in Volume components
 
 Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they use the cubemap mode / dimension. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
 
 For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
+
 ### Volume System API
 
 #### Nested Volume Component Parameters

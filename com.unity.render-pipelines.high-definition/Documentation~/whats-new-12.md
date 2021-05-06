@@ -15,11 +15,17 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ## Improvements
 
-### Density Volume Improvements
+### Area Lights
 
-Density Volumes masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+The AxF shader and Fabric and Hair master nodes now correctly support Area lights.
 
-The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the density volume resolution.
+### Density Volume (Local Volumetric Fog) Improvements
+
+Density Volumes are now known as **Local Volumetric Fog**. This is a more accurate, descriptive name that removes confusion with [Volumes](Volumes.md) and makes the relation to fog clearer.
+
+Local Volumetric Fog masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+
+The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Local Volumetric Fog Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the Local Volumetric Fog resolution.
 
 There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
 
@@ -41,6 +47,8 @@ This version of HDRP introduces multiple improvements to Dynamic Resolution Scal
 - The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
 - The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
 - Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
+- Fixing a corrupted scaling on dx12 hardware mode when a planar reflection probe / secondary camera is present.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 
 ### AOV API
 
@@ -53,12 +61,19 @@ From HDRP 12.0, The AOV API includes the following improvements:
 
 From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
 
+### Path traced fabric material
+
+![](Images/HDRPFeatures-FabricPT.png)
+
+HDRP's path tracer now offers support for the fabric material, in both its cotton/wool and silk variants.
+
 ### Top level menus
 
 From HDRP 12.0, various top level menus are now different. This is to make the top level menus more consistent between HDRP and the Universal Render Pipeline. The top level menus this change affects are:
 
 * **Window**
   * **HD Render Pipeline Wizard** is now at **Window > Rendering > HDRP Wizard**
+  * **Graphics Compositor** is now at **Window > Rendering > Graphics Compositor**
 * **Assets**
   * HDRP Shader Graphs are now in **Assets > Create > Shader Graph > HDRP**
   * **Custom FullScreen Pass** is now at **Assets > Create > Shader > HDRP Custom FullScreen Pass**
@@ -69,8 +84,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **C# Custom Pass** is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
   * **C# Post Process Volume** is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
 * **GameObject**
-  * **Density Volume** is now at **GameObject > Volume > Density Volume**
-  * **Decal Projector** is now at **GameObject > Decal Projector**
+  * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
 ## Issues resolved

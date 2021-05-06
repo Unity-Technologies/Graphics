@@ -54,16 +54,19 @@ namespace UnityEditor.ShaderGraph
             internal string name;     // for struct or function.
             internal string define;   // defined for client code to indicate we're live.
             internal string splice;   // splice location, prefer use something from the list.
+            internal string preprocessor;
 
             internal bool isBlock => src != null && dst != null && name == null && splice != null;
             internal bool isStruct => src == null && dst == null && name != null && splice != null;
             internal bool isFunc => src != null && dst != null && name != null && splice != null;
             internal bool isDefine => define != null && splice != null && src == null && dst == null & name == null;
+            internal bool isValid => isDefine || isBlock || isStruct || isFunc;
+            internal bool hasPreprocessor => !String.IsNullOrEmpty(preprocessor);
 
-            internal static Descriptor MakeFunc(string splice, string name, string dstType, string srcType, string define = "") => new Descriptor { splice = splice, name = name, dst = dstType, src = srcType, define = define };
-            internal static Descriptor MakeStruct(string splice, string name, string define = "") => new Descriptor { splice = splice, name = name, define = define };
-            internal static Descriptor MakeBlock(string splice, string dst, string src) => new Descriptor { splice = splice, dst = dst, src = src };
-            internal static Descriptor MakeDefine(string splice, string define) => new Descriptor { splice = splice, define = define };
+            internal static Descriptor MakeFunc(string splice, string name, string dstType, string srcType, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, dst = dstType, src = srcType, define = define, preprocessor = preprocessor };
+            internal static Descriptor MakeStruct(string splice, string name, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, define = define, preprocessor = preprocessor };
+            internal static Descriptor MakeBlock(string splice, string dst, string src, string preprocessor = "") => new Descriptor { splice = splice, dst = dst, src = src, preprocessor = preprocessor };
+            internal static Descriptor MakeDefine(string splice, string define, string preprocessor = "") => new Descriptor { splice = splice, define = define, preprocessor = preprocessor };
         }
 
         [GenerationAPI]
@@ -104,6 +107,8 @@ namespace UnityEditor.ShaderGraph
             if (CustomInterpolatorUtils.generatorSkipFlag)
                 return;
 
+            bool needsGraphFeature = false;
+
             // departing from current generation code, we will select what to generate based on some graph analysis.
             foreach (var cin in pixelNodes.OfType<CustomInterpolatorNode>().ToList())
             {
@@ -138,8 +143,13 @@ namespace UnityEditor.ShaderGraph
                         vertexNodes.Add(cin.e_targetBlockNode);
                     if (!vertexSlots.Contains(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0)))
                         vertexSlots.Add(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0));
+
+                    needsGraphFeature = true;
                 }
             }
+            // if a target has allowed custom interpolators, it should expect that the vertex feature can be forced on.
+            if (needsGraphFeature)
+                activeFields.AddAll(Fields.GraphVertex);
         }
 
         // This entry point is to inject custom interpolator fields into the appropriate structs for struct generation.
@@ -189,11 +199,19 @@ namespace UnityEditor.ShaderGraph
             foreach (var desc in descriptors)
             {
                 builder.Clear();
-                if (desc.isBlock)  GenCopyBlock(desc.dst, desc.src, builder);
-                else if (desc.isFunc)   GenCopyFunc(desc.name, desc.dst, desc.src, builder, desc.define);
+                if (!desc.isValid)
+                    continue;
+
+                if (desc.hasPreprocessor)
+                    builder.AppendLine($"#ifdef {desc.preprocessor}");
+
+                if (desc.isBlock) GenCopyBlock(desc.dst, desc.src, builder);
+                else if (desc.isFunc) GenCopyFunc(desc.name, desc.dst, desc.src, builder, desc.define);
                 else if (desc.isStruct) GenStruct(desc.name, builder, desc.define);
                 else if (desc.isDefine) builder.AppendLine($"#define {desc.define}");
-                else continue;
+
+                if (desc.hasPreprocessor)
+                    builder.AppendLine("#endif");
 
                 if (!spliceCommandBuffer.ContainsKey(desc.splice))
                     spliceCommandBuffer.Add(desc.splice, new ShaderStringBuilder());

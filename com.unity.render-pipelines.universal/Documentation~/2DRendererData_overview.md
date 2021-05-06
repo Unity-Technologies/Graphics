@@ -2,7 +2,7 @@
 
 ![The 2D Renderer Data Asset property settings](Images/2D/2dRendererData_properties.png)
 
-The __2D Renderer Data__ asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale), or customize your own [Light Blend Styles](LightBlendStyles). Refer to their respective pages for more information about their properties and options.
+The __2D Renderer Data__ Asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale), or customize your own [Light Blend Styles](LightBlendStyles). Refer to their respective pages for more information about their properties and options.
 
 ## Default Material Type
 
@@ -17,7 +17,6 @@ __Unlit__: Unity assigns a Material with the Unlit type (default Material:  Spri
 __Custom__: Unity assigns a Material with the Custom type. When you select this  option, Unity shows the __Default Custom Material__ box. Assign the desired Material to this box.
 
 ![The 2D Renderer Data Asset property settings](Images/2D/Default_Custom_Material.png)
-
 
 ## Use Depth/Stencil Buffer
 

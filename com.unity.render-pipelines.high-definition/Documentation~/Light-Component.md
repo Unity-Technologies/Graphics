@@ -35,18 +35,18 @@ For more detailed information on how to configure realistic light fixtures, see 
 
 The properties available for Lights are in separate sections. Each section contains some properties that all Lights share, and also properties that customize the behavior of the specific type of Light. These sections also contain [additional properties](More-Options.md) that you can expose if you want to fine-tune your light's behavior. The sections are:
 
-- [General](#GeneralProperties)
-- [Shape](#ShapeProperties)
-- [Celestial Body](#CelestialBodyProperties)
-- [Emission](#EmissionProperties)
-- [Volumetrics](#VolumetricProperties)
-- [Shadows](#ShadowProperties)
+- [General](#General)
+- [Shape](#Shape)
+- [Celestial Body](#CelestialBody)
+- [Emission](#Emission)
+- [Volumetrics](#Volumetric)
+- [Shadows](#Shadow)
 
 ### Animation
 
 To make the Light work with the **Animation window**, when you click on the **Add Property** button, you need to use the properties inside the **HD Additional Light Data** component and not inside the Light component itself. If you do edit the properties inside the Light component, this modifies the built-in light values, which HDRP does not support. Alternatively, you can use the record button and modify the values directly inside the Inspector.
 
-<a name="GeneralProperties"></a>
+<a name="General"></a>
 
 ### General
 
@@ -63,15 +63,15 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | **Type**        | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Spot**        | Emits light from a specified location and range over which the light diminishes. A Spot Light constrains the light it emits to an angle, which results in a cone-shaped region of illumination. The center of the cone points in the forward direction (z-axis) of the Light GameObject. Light also diminishes at the edges of the Spot Light’s cone. Increase the **Spot Angle** to increase the width of the cone. |
-| **Directional** | Creates effects that are similar to sunlight in your Scene. Like sunlight, Directional Lights are distant light sources that HDRP treats as though they are infinitely far away. A Directional Light does not have any identifiable source position, and you can place the Light GameObject anywhere in the Scene. A **Directional Light** illuminates all GameObjects in the Scene as if the Light rays are parallel and always from the same direction. The Light disregards the distance between the Light itself and the target GameObject, so the Light does not diminish with distance. |
-| **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
-| **Area**        | Projects light from a surface. Light shines in all directions uniformly from the surface of the rectangle.|
+| **Directional** | Creates effects that are similar to sunlight in your Scene. Like sunlight, Directional Lights are distant light sources that HDRP treats as though they are infinitely far away. A Directional Light does not have any identifiable source position, and you can place the Light GameObject anywhere in the Scene. <br/>A **Directional Light** illuminates all GameObjects in the Scene as if the Light rays are parallel and always from the same direction. The Light disregards the distance between the Light itself and the target GameObject, so the Light does not diminish with distance |
+| **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. <br/>Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
+| **Area**        | Projects light from a surface. Light shines in all directions uniformly from the surface of the rectangle. |
 
 ##### Limitations
 
 [!include[](snippets/area-light-material-support-disclaimer.md)]
 
-<a name="ShapeProperties"></a>
+<a name="Shape"></a>
 
 ### **Shape**
 
@@ -116,7 +116,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Length**   | For **Tube**. Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
 | **Radius**   | For **Disc**. Define the radius of the Disc Light.           |
 
-<a name="CelestialBodyProperties"></a>
+<a name="CelestialBody"></a>
 
 ### **Celestial Body (Directional only)**
 
@@ -132,7 +132,7 @@ These settings define the behavior of the light when you use it as a celestial b
 | **- Surface Tint** | Tints the surface of the celestial body. |
 | **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
-<a name="EmissionProperties"></a>
+<a name="Emission"></a>
 
 ### **Emission**
 
@@ -173,7 +173,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **Size X**   | The horizontal size of the projected cookie texture in pixels.<br />This property only appears when you set a **Cookie** in the Light Inspector. |
 | **Size Y**   | The vertical size of the projected cookie texture in pixels.<br />This property only appears when you set a **Cookie** in the Light Inspector. |
 
-<a name="VolumetricProperties"></a>
+<a name="Volumetric"></a>
 
 ### **Volumetrics**
 
@@ -187,7 +187,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 | **Dimmer**        | Dims the volumetric lighting effect of this Light.           |
 | **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
 
-<a name="ShadowProperties"></a>
+<a name="Shadow"></a>
 
 ### **Shadows**
 
@@ -225,8 +225,8 @@ This section is only available in Realtime or Mixed light **Mode**.
 | **Tint**                   | Specifies whether HDRP should tint the shadows this Light casts. This option affects dynamic shadows, [Contact Shadows](Override-Contact-Shadows.md), and [ShadowMask](Lighting-Mode-Shadowmask.md). It does not affect baked shadows. You can use this behavior to change the color and transparency of shadows.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 | **Penumbra Tint**          | Specifies whether the tint should only affect the shadow's penumbra. If you enable this property, HDRP only applies the color tint to the shadow's penumbra. If you disable this property, HDRP applies the color tint to the entire shadow including the penumbra. To change the color HDRP tints the shadow to, see the above **Tint** property.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 | **Fade Distance**          | The distance, in meters, between the Camera and the Light at which shadows fade out. This property is available for **Spot** and **Point** Lights.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
-| **Link Light Layer**       | Enable the checkbox to use the same [Light Layer](Light-Layers.md) for shadows and lighting. If you enable this feature, then HDRP uses the Light Layer from the **Light Layer** drop-down in the **General** section for shadowing. If you disable this feature, then HDRP uses the **Light Layer** drop-down in this section for shadowing.<br /> This property only appears when you enable [additional properties](More-Options.md) for this section.To access this property, enable **Light Layers** in your [HDRP Asset](HDRP-Asset.md). |
-| **Light Layer**            | Use the drop-down to set the Light Layer HDRP uses for shadowing. This Light therefore only casts shadows for GameObjects that use a matching Light Layer. For more information about using Light Layers for shadowing, see [Shadow Light Layers](Light-Layers.md#ShadowLightLayers).<br /> This property only appears when you enable [additional properties](More-Options.md) for this section. To access this property, disable the **Link Light Layer** checkbox. |
+| **Custom Shadow Layer**    | Enable the checkbox to use a different [Light Layer](Light-Layers.md) for shadows than the one used for lighting. If you enable this feature, then HDRP uses the **Layer** drop-down in this section for shadowing. If you disable it, then HDRP uses the **Light Layer** drop-down in the **General** section for shadowing. <br />This property only appears when you enable [additional properties](More-Options.md) for this section. To access this property, enable **Light Layers** in your [HDRP Asset](HDRP-Asset.md). |
+| **Layer**                  | Use the drop-down to set the [Light Layer](Light-Layers.md) HDRP uses for shadowing. This Light therefore only casts shadows for GameObjects that use a matching Light Layer. For more information about using Light Layers for shadowing, see [Shadow Light Layers](Light-Layers.md#ShadowLightLayers).<br /> This property only appears when you enable [additional properties](More-Options.md) for this section. To access this property, enable the **Custom Shadow Layer** checkbox. |
 
 ##### Contact Shadows
 

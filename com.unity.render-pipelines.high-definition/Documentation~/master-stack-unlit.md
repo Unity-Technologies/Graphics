@@ -111,6 +111,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/alpha-to-mask.md)]
 [!include[](snippets/shader-properties/surface-options/double-sided.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/shadow-matte.md)]
 </table>
 
@@ -138,4 +139,14 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 </tr>
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>
+
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
 </table>

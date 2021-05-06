@@ -87,6 +87,8 @@ struct SpeedTreeVertexDepthNormalOutput
 
 void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
 {
+    inputData = (InputData)0;
+
     inputData.positionWS = input.positionWS.xyz;
 
     #ifdef EFFECT_BUMP
@@ -110,11 +112,21 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    // Billboards cannot use lightmaps.
+    inputData.bakedGI = SAMPLE_GI(NOT_USED, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
+
+    #if defined(LIGHTMAP_ON)
+    inputData.lightmapUV = input.lightmapUV;
+    #else
+    inputData.vertexSH = 0;
+    #endif
+    #if defined(_NORMALMAP)
+    inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
+    #endif
 }
 
 #ifdef GBUFFER
@@ -142,7 +154,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        clip(diffuse.a - _Cutoff);
+        AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
     half3 diffuseColor = diffuse.rgb;
@@ -175,6 +187,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uvHueVariation.xy, _MainTex);
 
     #ifdef VERTEX_COLOR
         diffuseColor.rgb *= input.color.rgb;
@@ -182,17 +195,25 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         diffuseColor.rgb *= _Color.rgb;
     #endif
 
+    SurfaceData surfaceData;
+
+    surfaceData.albedo = diffuseColor.rgb;
+    surfaceData.alpha = diffuse.a;
+    surfaceData.emission = half3(0, 0, 0);
+    surfaceData.metallic = 0;
+    surfaceData.occlusion = 1;
+    surfaceData.smoothness = 0;
+    surfaceData.specular = half3(0, 0, 0);
+    surfaceData.clearCoatMask = 0;
+    surfaceData.clearCoatSmoothness = 1;
+    surfaceData.normalTS = normalTs;
 
     #ifdef GBUFFER
         half4 color = half4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
-        SurfaceData surfaceData;
-        surfaceData.smoothness = 0;
-        surfaceData.albedo = diffuseColor.rgb;
-        surfaceData.specular = half3(0, 0, 0);
         surfaceData.occlusion = 1.0;
         return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
     #else
-        half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
+        half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
         color.a = OutputAlpha(color.a, _Surface);
         return color;
@@ -215,7 +236,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        clip(diffuse.a - _Cutoff);
+        AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
     #if defined(SCENESELECTIONPASS)
@@ -247,11 +268,23 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        clip(diffuse.a - _Cutoff);
+        AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    float3 normalWS = NormalizeNormalPerPixel(input.normalWS.xyz);
-    return half4(normalWS, 0.0);
+    #if defined(EFFECT_BUMP)
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half4 detailColor = tex2D(_DetailTex, input.detail.xy);
+            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            normalTS = lerp(normalTS, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+        #endif
+
+        half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz)).xyz;
+    #else
+        half3 normalWS = input.normalWS.xyz;
+    #endif
+
+    return half4(NormalizeNormalPerPixel(normalWS), 0.0);
 }
 
 #endif

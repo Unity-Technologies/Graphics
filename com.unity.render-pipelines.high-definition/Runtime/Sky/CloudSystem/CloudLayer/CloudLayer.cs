@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Enum volume parameter.
     /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
     {
@@ -83,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
@@ -112,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
         public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
+        /// <summary>Specifies the size of the projected shadows.</summary>
+        [Tooltip("Specifies the size of the projected shadows.")]
+        public MinFloatParameter shadowSize = new MinFloatParameter(500f, 0.0f);
 
 
         /// <summary>
@@ -172,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.")]
+            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
             public BoolParameter castShadows = new BoolParameter(false);
 
 
@@ -332,9 +336,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
-            if (asset != null)
-                CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
+                CloudMap.s_DefaultTexture = globalSettings.renderPipelineResources?.textures.defaultCloudMap;
         }
     }
 }

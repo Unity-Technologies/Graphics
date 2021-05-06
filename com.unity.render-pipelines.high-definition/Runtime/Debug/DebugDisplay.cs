@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -14,6 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _DebugRenderingLayersColors[32 * 4];
         [HLSLArray(11, typeof(ShaderGenUInt4))]
         public fixed uint _DebugViewMaterialArray[11 * 4]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+        [HLSLArray(7, typeof(Vector4))] // Must match ProbeBrickIndex.kMaxSubdivisionLevels
+        public fixed float _DebugAPVSubdivColors[7 * 4];
 
         public int _DebugLightingMode; // Match enum DebugLightingMode
         public int _DebugLightLayersMask;
@@ -40,7 +43,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
-        public int _DebugDisplayPad0;
+        public int _DebugIsLitShaderModeDeferred;
+
+        public int _DebugAOVOutput;
+        public float _ShaderVariablesDebugDisplayPad0;
+        public float _ShaderVariablesDebugDisplayPad1;
+        public float _ShaderVariablesDebugDisplayPad2;
     }
 
     /// <summary>
@@ -85,7 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
 
         // Volumetric Clouds
+        /// <summary>Display the volumetric clouds in-scattering x transmittance.</summary>
         VolumetricClouds,
+        /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
@@ -110,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VertexDensity,
         /// <summary>Display Requested Virtual Texturing tiles, colored by the mip</summary>
         RequestedVirtualTextureTiles,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -159,8 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
         static GUIContent[] s_MsaaSamplesDebugStrings = null;
         static int[] s_MsaaSamplesDebugValues = null;
-        static GUIContent[] s_TileAndClusterDebugStrings = null;
-        static int[] s_TileAndClusterDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -235,8 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
             /// <summary>Current volume debug settings.</summary>
             public VolumeDebugSettings volumeDebugSettings = new VolumeDebugSettings();
-            /// <summary>Current number of samples for MSAA textures.</summary>
-            public MSAASamples msaaSamples = MSAASamples.None;
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -245,6 +253,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Display Show Lens Flare Data Driven Only.</summary>
+            public bool showLensFlareDataDrivenOnly = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -275,6 +285,28 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
 
+            private float m_DebugGlobalMipBiasOverride = 0.0f;
+            public float GetDebugGlobalMipBiasOverride()
+            {
+                return m_DebugGlobalMipBiasOverride;
+            }
+
+            public void SetDebugGlobalMipBiasOverride(float value)
+            {
+                m_DebugGlobalMipBiasOverride = value;
+            }
+
+            private bool m_UseDebugGlobalMipBiasOverride = false;
+            public bool UseDebugGlobalMipBiasOverride()
+            {
+                return m_UseDebugGlobalMipBiasOverride;
+            }
+
+            public void SetUseDebugGlobalMipBiasOverride(bool value)
+            {
+                m_UseDebugGlobalMipBiasOverride = value;
+            }
+
             // When settings mutually exclusives enum values, we need to reset the other ones.
             internal void ResetExclusiveEnumIndices()
             {
@@ -302,6 +334,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>List of Full Screen Rendering Debug mode values.</summary>
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
 
+        /// <summary>List of Full Screen Lighting Debug mode names.</summary>
+        public static GUIContent[] lightingFullScreenDebugStrings => s_LightingFullScreenDebugStrings;
+        /// <summary>List of Full Screen Lighting Debug mode values.</summary>
+        public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
+
         internal DebugDisplaySettings()
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
@@ -319,8 +356,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
-
-            FillTileClusterDebugEnum();
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
@@ -993,6 +1028,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
+            if (ShaderConfig.s_GlobalMipBias)
+            {
+                list.Add(
+                    new DebugUI.BoolField
+                    {
+                        displayName = "Override Global Material Texture Mip Bias",
+                        getter = ()      => data.UseDebugGlobalMipBiasOverride(),
+                        setter = (value) => data.SetUseDebugGlobalMipBiasOverride(value),
+                        onValueChanged = RefreshMaterialDebug
+                    });
+
+                if (data.UseDebugGlobalMipBiasOverride())
+                {
+                    list.Add(
+                        new DebugUI.FloatField
+                        {
+                            displayName = "Debug Global Material Texture Mip Bias Value",
+                            getter = ()      => data.GetDebugGlobalMipBiasOverride(),
+                            setter = (value) => data.SetDebugGlobalMipBiasOverride(value),
+                            onValueChanged = RefreshMaterialDebug
+                        });
+                }
+            }
+
             m_DebugMaterialItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelMaterials, true);
             panel.children.Add(m_DebugMaterialItems);
@@ -1019,7 +1078,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            // Explicitly invoke the render debug unregister to handle render graph items.
+            UnregisterRenderingDebug();
             RegisterRenderingDebug();
         }
 
@@ -1348,7 +1408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var clusterDebugContainer = new DebugUI.Container();
 
-                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, enumNames = s_TileAndClusterDebugStrings, enumValues = s_TileAndClusterDebugValues, getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
+                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, autoEnum = typeof(TileClusterCategoryDebug), getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
                 if (data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.Cluster)
                 {
                     clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Cluster Debug Mode", getter = () => (int)data.lightingDebugSettings.clusterDebugMode, setter = value => data.lightingDebugSettings.clusterDebugMode = (ClusterDebugMode)value, autoEnum = typeof(ClusterDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.clusterDebugModeEnumIndex, setIndex = value => data.clusterDebugModeEnumIndex = value });
@@ -1416,28 +1476,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Density Volume Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
-            if (data.lightingDebugSettings.displayDensityVolumeAtlas)
+            list.Add(new DebugUI.BoolField { displayName = "Display Local Volumetric Fog Atlas", getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
             {
                 list.Add(new DebugUI.Container
                 {
                     children =
                     {
-                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetDensityVolumeSliceCount()},
-                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.densityVolumeUseSelection, setter = value => data.lightingDebugSettings.densityVolumeUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.localVolumetricFogAtlasSlice, setter = value => data.lightingDebugSettings.localVolumetricFogAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
+                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
                     }
                 });
             }
 
-            uint GetDensityVolumeSliceCount()
+            uint GetLocalVolumetricFogSliceCount()
             {
 #if UNITY_EDITOR
-                if (data.lightingDebugSettings.densityVolumeUseSelection)
+                if (data.lightingDebugSettings.localVolumetricFogUseSelection)
                 {
                     var selectedGO = UnityEditor.Selection.activeGameObject;
-                    if (selectedGO != null && selectedGO.TryGetComponent<DensityVolume>(out var densityVolume))
+                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
                     {
-                        var texture = densityVolume.parameters.volumeMask;
+                        var texture = localVolumetricFog.parameters.volumeMask;
 
                         if (texture != null)
                             return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
@@ -1446,7 +1506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
 #endif
-                return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
+                return (uint)LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
@@ -1786,14 +1846,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportMSAA ?? true)
-            {
-                widgetList.AddRange(new DebugUI.Widget[]
-                {
-                    new DebugUI.EnumField { displayName = "MSAA Samples", getter = () => (int)data.msaaSamples, setter = value => data.msaaSamples = (MSAASamples)value, enumNames = s_MsaaSamplesDebugStrings, enumValues = s_MsaaSamplesDebugValues, getIndex = () => data.msaaSampleDebugModeEnumIndex, setIndex = value => data.msaaSampleDebugModeEnumIndex = value },
-                });
-            }
-
             widgetList.AddRange(new DebugUI.Widget[]
             {
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
@@ -1889,21 +1941,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void FillTileClusterDebugEnum()
-        {
-            string[] names = Enum.GetNames(typeof(TileClusterCategoryDebug));
-            for (int i = 0; i < names.Length; ++i)
-            {
-                var n = names[i];
-                names[i] = n.Replace("Environment", "ReflectionProbes");
-            }
-
-            s_TileAndClusterDebugStrings = names
-                .Select(t => new GUIContent(t))
-                .ToArray();
-            s_TileAndClusterDebugValues = (int[])Enum.GetValues(typeof(TileClusterCategoryDebug));
-        }
-
         static string FormatVector(Vector3 v)
         {
             return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
@@ -1977,7 +2014,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
                 GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.RefractionLighting
+                GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
+                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision
             );
         }
 
@@ -1986,7 +2024,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
-                debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
+                debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade || debugLighting == DebugLightingMode.ProbeVolumeSampledSubdivision) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
