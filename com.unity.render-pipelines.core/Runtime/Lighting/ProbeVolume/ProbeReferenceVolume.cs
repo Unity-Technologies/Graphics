@@ -281,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
         bool m_NeedsIndexDimChange = false;
+        bool m_HasChangedIndexDim = false;
 
         private int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
@@ -367,7 +368,7 @@ namespace UnityEngine.Experimental.Rendering
                 indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
 
             m_PendingIndexDimChange = indexDimension;
-            m_NeedsIndexDimChange = true;
+            m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -419,7 +420,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 CleanupLoadedData();
                 InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
-                m_NeedsIndexDimChange = false;
+                m_HasChangedIndexDim = true;
+            }
+            else
+            {
+                m_HasChangedIndexDim = false;
             }
         }
 
@@ -450,9 +455,12 @@ namespace UnityEngine.Experimental.Rendering
             m_Pool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
-            foreach (var asset in m_ActiveAssets.Values)
+            if (m_HasChangedIndexDim)
             {
-                LoadAsset(asset);
+                foreach (var asset in m_ActiveAssets.Values)
+                {
+                    LoadAsset(asset);
+                }
             }
 
             foreach (var asset in m_PendingAssetsToBeLoaded.Values)
