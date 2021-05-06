@@ -180,7 +180,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
                     source = m_CurrentSettings.Source;
-                    useNativeRenderPass = false;
                 }
 
 
