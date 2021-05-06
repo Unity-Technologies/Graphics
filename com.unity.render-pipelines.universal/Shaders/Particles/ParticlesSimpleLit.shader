@@ -97,20 +97,21 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
             #pragma shader_feature_local _FLIPBOOKBLENDING_ON
             #pragma shader_feature_local _SOFTPARTICLES_ON
             #pragma shader_feature_local _FADING_ON
             #pragma shader_feature_local _DISTORTION_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -118,11 +119,13 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup
 
             #pragma vertex ParticlesLitVertex
@@ -133,6 +136,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitForwardPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
@@ -188,6 +192,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitGBufferPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Depth Only pass.
         Pass
@@ -285,6 +290,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene picking buffer pass.
         Pass
@@ -319,6 +325,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "Universal2D"

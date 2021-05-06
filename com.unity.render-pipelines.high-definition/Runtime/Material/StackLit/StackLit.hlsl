@@ -2244,7 +2244,7 @@ void PreLightData_LoadLtcTransformSpecular(float2 uv, int lobeIdx, inout PreLigh
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformSpecular[lobeIdx]      = 0.0;
     preLightData.ltcTransformSpecular[lobeIdx]._m22 = 1.0;
-    preLightData.ltcTransformSpecular[lobeIdx]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODELS_GGX, 0);
+    preLightData.ltcTransformSpecular[lobeIdx]._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
 }
 
 void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMALS], float NdotV[NB_NORMALS] /* clamped */, inout PreLightData preLightData)
@@ -2285,7 +2285,7 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     // Get the inverse LTC matrix for Disney Diffuse
     //preLightData.ltcTransformDiffuse      = 0.0;
     //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODELS_DISNEY_DIFFUSE, 0);
+    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
 #endif
 } // PreLightData_SetupAreaLights
 
@@ -2338,7 +2338,7 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
     // Get the inverse LTC matrix for Disney Diffuse
     //preLightData.ltcTransformDiffuse      = 0.0;
     //preLightData.ltcTransformDiffuse._m22 = 1.0;
-    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODELS_DISNEY_DIFFUSE, 0);
+    //preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_DISNEY_DIFFUSE, 0);
 #endif
 } // PreLightData_SetupAreaLightsAniso
 
@@ -4231,7 +4231,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         }
 
         lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
-        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC, bsdfData.coatMask);
+        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
     }
     else
     {

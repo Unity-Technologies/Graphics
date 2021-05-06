@@ -187,9 +187,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shadowPlaneDistance > 0)
             {
-                var shadowDiscRadius = shadowPlaneDistance * Mathf.Sin(outerAngle * Mathf.Deg2Rad * 0.5f);
-                var shadowDiscDistance = Mathf.Cos(Mathf.Deg2Rad * outerAngle / 2) * shadowPlaneDistance;
-                Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
+                var shadowDiscRadius = shadowPlaneDistance * Mathf.Tan(outerAngle * Mathf.Deg2Rad * 0.5f);
+                Handles.DrawWireDisc(Vector3.forward * shadowPlaneDistance, Vector3.forward, shadowDiscRadius);
             }
         }
 

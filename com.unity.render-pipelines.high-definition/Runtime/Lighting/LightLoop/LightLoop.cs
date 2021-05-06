@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
 
         // Screen space shadow flags
+        public static uint s_RayTracedScreenSpaceShadowFlag = 0x1000;
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
@@ -326,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<Vector4>                env2DCaptureForward { get; private set; }
             public List<Vector4>                env2DAtlasScaleOffset {get; private set; } = new List<Vector4>();
 
-            public void Initialize(HDRenderPipelineAsset hdrpAsset, RenderPipelineResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
+            public void Initialize(HDRenderPipelineAsset hdrpAsset, HDRenderPipelineRuntimeResources defaultResources,  IBLFilterBSDF[] iBLFilterBSDFArray)
             {
                 var lightLoopSettings = hdrpAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
@@ -636,7 +637,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Directional light
         Light m_CurrentSunLight;
-        int m_CurrentSunLightIndex;
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
 
-        void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        void InitShadowSystem(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = new HDShadowManager();
@@ -854,7 +854,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
+            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
@@ -949,7 +949,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to verify and flush any pending asset loading for probe volume.
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
-                ProbeReferenceVolume.instance.PerformPendingOperations();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                {
+                    if (hdCamera.camera.cameraType != CameraType.Reflection &&
+                        hdCamera.camera.cameraType != CameraType.Preview)
+                    {
+                        ProbeReferenceVolume.instance.SortPendingCells(hdCamera.camera.transform.position);
+                    }
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
+                }
             }
         }
 
@@ -1118,10 +1126,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Light direction for directional is opposite to the forward direction
             lightData.forward = light.GetForward();
-            // Rescale for cookies and windowing.
-            lightData.right      = light.GetRight() * 2 / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
-            lightData.up         = light.GetUp() * 2 / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
-            lightData.positionRWS = light.GetPosition();
             lightData.color = GetLightColor(light);
 
             // Caution: This is bad but if additionalData == HDUtils.s_DefaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
@@ -1133,12 +1137,11 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.specularDimmer        = additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0;
             lightData.volumetricLightDimmer = additionalLightData.volumetricDimmer;
 
-            lightData.shadowIndex = -1;
+            lightData.shadowIndex = shadowIndex;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
 
             // fix up shadow information
-            lightData.shadowIndex = shadowIndex;
             if (shadowIndex != -1)
             {
                 if (additionalLightData.WillRenderScreenSpaceShadow())
@@ -1153,42 +1156,52 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         screenSpaceShadowslot++;
                     }
+
+                    // Raise the ray tracing flag in case the light is ray traced
+                    if (additionalLightData.WillRenderRayTracedShadow())
+                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+
                     screenSpaceShadowIndex++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
-                m_CurrentSunLight = lightComponent;
-                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
             }
 
-            // Fallback to the first non shadow casting directional light.
-            if (m_CurrentSunLight == null)
+            // Get correct light cookie in case it is overriden by a volume
+            CookieParameters cookieParams = new CookieParameters()
             {
-                m_CurrentSunLight = lightComponent;
-                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
+                texture = lightComponent?.cookie,
+                size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight),
+                position = light.GetPosition()
+            };
+            if (lightComponent == GetCurrentSunLight())
+            {
+                // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
+                if (HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+                    cookieParams = RenderVolumetricCloudsShadows(cmd, hdCamera);
+                else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
+                {
+                    if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
+                        cloudRenderer.RenderSunLightCookie(cloudSettings, lightComponent, cmd);
+                }
             }
 
-            // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
-            if (lightComponent == GetCurrentSunLight() && HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+            if (cookieParams.texture)
             {
-                RTHandle shadowCookie = RenderVolumetricCloudsShadows(cmd, hdCamera);
-                lightData.cookieMode = CookieMode.Clamp;
-                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, shadowCookie);
+                lightData.cookieMode = cookieParams.texture.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
+                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, cookieParams.texture);
             }
             else
             {
-                if (lightComponent != null && lightComponent.cookie != null)
-                {
-                    lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
-                }
-                else
-                {
-                    lightData.cookieMode = CookieMode.None;
-                }
+                lightData.cookieMode = CookieMode.None;
             }
+
+            // Rescale for cookies and windowing.
+            lightData.right = light.GetRight() * 2 / Mathf.Max(cookieParams.size.x, 0.001f);
+            lightData.up = light.GetUp() * 2 / Mathf.Max(cookieParams.size.y, 0.001f);
+            lightData.positionRWS = cookieParams.position;
 
             if (additionalLightData.surfaceTexture == null)
             {
@@ -2244,6 +2257,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light, lightType);
                 }
 
+                if (processedData.gpuLightType == GPULightType.Directional)
+                {
+                    // Sunlight is the directional casting shadows
+                    // Fallback to the first non shadow casting directional light.
+                    if (additionalData.WillRenderShadowMap() || m_CurrentSunLight == null)
+                        m_CurrentSunLight = light.light;
+                }
+
                 // Reserve the cookie resolution in the 2D atlas
                 ReserveCookieAtlasTexture(additionalData, light.light, lightType);
 
@@ -2260,6 +2281,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandle cloudTexture = RequestVolumetricCloudsShadowTexture(hdCamera);
                 m_TextureCaches.lightCookieManager.ReserveSpace(cloudTexture);
+            }
+            else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
+            {
+                CookieParameters cookieParams = new CookieParameters();
+                if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
+                    m_TextureCaches.lightCookieManager.ReserveSpace(cookieParams.texture);
             }
 
             CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
@@ -2616,7 +2643,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
-                m_CurrentSunLightIndex = 0;
                 m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
@@ -2716,11 +2742,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
-                }
-
-                if (HasVolumetricCloudsShadows(hdCamera))
-                {
-                    m_lightList.directionalLights[m_CurrentSunLightIndex] = OverrideDirectionalLightDataForVolumetricCloudsShadows(hdCamera, m_lightList.directionalLights[m_CurrentSunLightIndex]);
                 }
 
                 PushLightDataGlobalParams(cmd);
@@ -3302,7 +3323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
 
             // Cluster
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             var clustPrepassSourceIdx = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
             var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
             if (tileAndClusterData.clusterNeedsDepth)
