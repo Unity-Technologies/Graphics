@@ -4,7 +4,7 @@ import subprocess
 from os import path
 from shutil import copyfile
 import sys
-from git import Repo, exc
+from git import Repo, exc, Head
 
 if __name__ == "__main__":
 
@@ -20,7 +20,10 @@ if __name__ == "__main__":
     if branch_name is None:  # Local run, we can use the branch name
         branch_name = repo.active_branch
     repo.git.stash()
-    new_branch_name = branch_name + "-ref-images"
+    if isinstance(branch_name, Head):
+        new_branch_name = branch_name.name + "-ref-images"
+    else:
+        new_branch_name = branch_name + "-ref-images"
     repo.create_head(new_branch_name)
     repo.git.checkout(new_branch_name)
     try:
