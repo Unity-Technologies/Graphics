@@ -87,7 +87,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     #elif defined(LIGHTMAP_ON)
     inputData.staticLightmapUV = input.lightmapUV;
     #else
-    inputData.vertexSH = input.sh;
+    inputData.vertexSH = input.vertexSH;
     #endif
     #endif
 }

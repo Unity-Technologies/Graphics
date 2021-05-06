@@ -120,7 +120,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
     #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
-    inputData.vertexSH = input.sh;
+    inputData.vertexSH = input.vertexSH;
     #endif
 
     #if defined(_NORMALMAP)

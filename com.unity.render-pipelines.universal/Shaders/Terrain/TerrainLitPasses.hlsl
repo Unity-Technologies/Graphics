@@ -131,7 +131,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
     inputData.staticLightmapUV = IN.uvMainAndLM.zw;
     #elif defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = IN.staticLightmapUV;
+    inputData.staticLightmapUV = IN.uvMainAndLM.zw;
     #else
     inputData.vertexSH = SH;
     #endif
