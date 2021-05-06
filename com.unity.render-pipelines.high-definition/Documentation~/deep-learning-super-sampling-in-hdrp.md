@@ -54,10 +54,10 @@ DLSS now works in your project, but you can change the quality mode to customize
 To change the DLSS quality mode for your whole project:
 
 1. Select the HDRP Asset that has DLSS enabled and view it in the Inspector.
-2. Go to **Rendering** > **Dynamic Resolution** > **DLSS** and set the **Performance Quality** property to the quality mode you want.
+2. Go to **Rendering** > **Dynamic Resolution** > **DLSS** and set the **Mode** property to the quality mode you want.
 
 To override the DLSS quality mode for a particular Camera:
 
 1. In the Hierarchy or Scene view, select a Camera and view it in the Inspector.
 2. Select **Use Custom Quality**.
-3. Set the **Performance Quality** property to the quality mode you want.
+3. Set the **Mode** property to the quality mode you want.
