@@ -1,8 +1,8 @@
-# SRP Lens Flare Override Component
+# Lens Flare (SRP) Component
 
 ![](images/LensFlareHeader.png)
 
-Unity’s Scriptable Render Pipeline (SRP) includes the SRP Lens Flare Override component to control a [SRP Lens Flare Data](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset. You can attach an SRP Lens Flare Override component to any GameObject.
+Unity’s Scriptable Render Pipeline (SRP) includes the SRP Lens Flare Override component to control a [Lens Flare (SRP) Data](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset. You can attach an Lens Flare (SRP) Component to any GameObject.
 Some properties only appear when you attach this component to a light.
 
 ![](images/LensFlareComp.png)
@@ -13,7 +13,7 @@ Some properties only appear when you attach this component to a light.
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Lens Flare Data | Select the [Lens Flare Element](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset this component controls. |
+| Lens Flare Data | Select the [Lens Flare (SRP) Asset](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset this component controls. |
 | Intensity     | Multiplies the intensity of the lens flare. |
 | Scale         | Multiplies the scale of the lens flare. |
 | Attenuation by Light Shape | Enable this property to automatically change the appearance of the lens flare based on the type of light you attached this component to.<br/>For example, if this component is attached to a spot light and the camera is looking at this light from behind, the lens flare will not be visible. <br/>This property is only available when this component is attached to a light. |
