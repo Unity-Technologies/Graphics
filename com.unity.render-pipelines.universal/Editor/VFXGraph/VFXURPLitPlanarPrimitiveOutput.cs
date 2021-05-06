@@ -1,3 +1,4 @@
+#if HAS_VFX_GRAPH
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
@@ -96,3 +97,4 @@ namespace UnityEditor.VFX.URP
         }
     }
 }
+#endif
