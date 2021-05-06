@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LightCookie/LightCookieInput.hlsl"
 
-#if defined(_MAIN_LIGHT_COOKIE) || defined(_ADDITIONAL_LIGHT_COOKIES)
+#if defined(_LIGHT_COOKIES)
     #ifndef REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
         #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR 1
     #endif

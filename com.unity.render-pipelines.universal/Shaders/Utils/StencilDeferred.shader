@@ -176,7 +176,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                     #endif
                 }
 
-                #if defined(_MAIN_LIGHT_COOKIE)
+                #if defined(_LIGHT_COOKIES)
                     real3 cookieColor = URP_LightCookie_SampleMainLightCookie(posWS);
                     unityLight.color *= float4(cookieColor, 1);
                 #endif
@@ -510,7 +510,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -557,7 +557,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

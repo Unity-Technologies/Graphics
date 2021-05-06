@@ -758,8 +758,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
-                { CoreKeywordDescriptors.MainLightLightCookie },
-                { CoreKeywordDescriptors.AdditionalLightLightCookies },
+                { CoreKeywordDescriptors.LightCookies },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection

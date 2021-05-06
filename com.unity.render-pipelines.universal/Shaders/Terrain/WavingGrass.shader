@@ -31,8 +31,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_COOKIE
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             // -------------------------------------
             // Unity defined keywords

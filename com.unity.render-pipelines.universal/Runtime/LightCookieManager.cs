@@ -283,14 +283,14 @@ namespace UnityEngine.Rendering.Universal
                 isMainLightAvailable = SetupMainLight(cmd, ref mainLight);
             }
 
-
             // Additional lights, N spot and point lights in atlas
             bool isAdditionalLightsAvailable = lightData.additionalLightsCount > 0;
             if (isAdditionalLightsAvailable)
                 isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightCookie, isMainLightAvailable);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightCookies, isAdditionalLightsAvailable);
+            // Main and additional lights are merged into one keyword to reduce variants.
+            bool isLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, isLightCookieEnabled);
         }
 
         bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)
