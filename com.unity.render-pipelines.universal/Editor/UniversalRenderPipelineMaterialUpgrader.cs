@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal
 
             MaterialUpgrader.UpgradeProjectFolder(m_Upgraders, m_ShaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
             // TODO: return upgrade paths and pass to AnimationClipUpgrader
-            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders);
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
         [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Universal
 
             MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
             // TODO: return upgrade paths and pass to AnimationClipUpgrader
-            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders);
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)

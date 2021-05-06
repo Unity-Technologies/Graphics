@@ -171,6 +171,9 @@ namespace UnityEditor.Rendering
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
         /// </param>
+        /// <param name="progressFunctor">
+        /// Optional functor to display a progress bar.
+        /// </param>
         internal static void GatherClipsUsageInDependentPrefabs(
             IReadOnlyDictionary<ClipPath, IReadOnlyCollection<PrefabPath>> clipDependents,
             // TODO: right now, clip dependencies are gathered in Animation/Animator, so this may not be needed...
@@ -180,16 +183,26 @@ namespace UnityEditor.Rendering
                 (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default,
+            Func<string, float, bool> progressFunctor = null
         )
         {
+            int clipIndex = 0;
+            int totalNumberOfClips = clipDependents.Count;
+
             // check all dependents for usage
             foreach (var kv in clipDependents)
+            {
+                float currentProgress = (float)++clipIndex / totalNumberOfClips;
+                if (progressFunctor != null && progressFunctor($"({clipIndex} of {totalNumberOfClips}) {kv.Key.Path}", currentProgress))
+                    break;
+
                 foreach (var prefabPath in kv.Value)
                 {
                     var go = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
                     GatherClipsUsageForGameObject(go, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials);
                 }
+            }
         }
 
         /// <summary>
@@ -218,6 +231,9 @@ namespace UnityEditor.Rendering
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
         /// </param>
+        /// <param name="progressFunctor">
+        /// Optional functor to display a progress bar.
+        /// </param>
         internal static void GatherClipsUsageInDependentScenes(
             IReadOnlyDictionary<ClipPath, IReadOnlyCollection<ScenePath>> clipDependents,
             // TODO: right now, clip dependencies are gathered in Animation/Animator, so this may not be needed...
@@ -228,17 +244,27 @@ namespace UnityEditor.Rendering
                     PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
-            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default
+            IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials = default,
+            Func<string, float, bool> progressFunctor = null
         )
         {
+            int clipIndex = 0;
+            int totalNumberOfClips = clipDependents.Count;
+
             // check all dependents for usage
             foreach (var kv in clipDependents)
+            {
+                float currentProgress = (float)++clipIndex / totalNumberOfClips;
+                if (progressFunctor != null && progressFunctor($"({clipIndex} of {totalNumberOfClips}) {kv.Key.Path}", currentProgress))
+                    break;
+
                 foreach (var scenePath in kv.Value)
                 {
                     var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
                     foreach (var go in scene.GetRootGameObjects())
                         GatherClipsUsageForGameObject(go, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials);
                 }
+            }
         }
 
         /// <summary>
@@ -481,18 +507,27 @@ namespace UnityEditor.Rendering
         /// <param name="excludeFlags">Do not upgrade clips that have any of these flags set.</param>
         /// <param name="upgraded">Collector for all clips that are upgraded.</param>
         /// <param name="notUpgraded">Collector for all clips that are not upgraded.</param>
+        /// <param name="progressFunctor">Optional functor to display a progress bar.</param>
         internal static void UpgradeClips(
             IDictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<EditorCurveBinding, string> PropertyRenames)> clipsToUpgrade,
             SerializedShaderPropertyUsage excludeFlags,
             HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> upgraded,
-            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> notUpgraded
+            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> notUpgraded,
+            Func<string, float, bool> progressFunctor = null
         )
         {
             upgraded.Clear();
             notUpgraded.Clear();
 
+            int clipIndex = 0;
+            int totalNumberOfClips = clipsToUpgrade.Count;
+
             foreach (var kv in clipsToUpgrade)
             {
+                float currentProgress = (float)++clipIndex / totalNumberOfClips;
+                if (progressFunctor != null && progressFunctor($"({clipIndex} of {totalNumberOfClips}) {kv.Value.Path.Path}", currentProgress))
+                    break;
+
                 if (kv.Value.Usage == SerializedShaderPropertyUsage.Unknown || (kv.Value.Usage & excludeFlags) != 0)
                 {
                     notUpgraded.Add((kv.Key, kv.Value.Path, kv.Value.Usage));
@@ -535,6 +570,7 @@ namespace UnityEditor.Rendering
         /// </param>
         public static void DoUpgradeAllClipsMenuItem(
             IEnumerable<MaterialUpgrader> allUpgraders,
+            string progressBarName,
             IReadOnlyDictionary<UID, MaterialUpgrader> knownUpgradePaths = default,
             SerializedShaderPropertyUsage filterFlags = ~(SerializedShaderPropertyUsage.UsedByUpgraded | SerializedShaderPropertyUsage.UsedByNonUpgraded)
         )
@@ -542,12 +578,13 @@ namespace UnityEditor.Rendering
             var clipPaths = AssetDatabase.FindAssets("t:AnimationClip")
                 .Select(p => (ClipPath)AssetDatabase.GUIDToAssetPath(p))
                 .ToArray();
-            DoUpgradeClipsMenuItem(clipPaths, allUpgraders, knownUpgradePaths, filterFlags);
+            DoUpgradeClipsMenuItem(clipPaths, allUpgraders, progressBarName, knownUpgradePaths, filterFlags);
         }
 
         static void DoUpgradeClipsMenuItem(
             ClipPath[] clipPaths,
             IEnumerable<MaterialUpgrader> allUpgraders,
+            string progressBarName,
             IReadOnlyDictionary<UID, MaterialUpgrader> upgradePathsUsedByMaterials,
             SerializedShaderPropertyUsage filterFlags
         )
@@ -586,27 +623,44 @@ namespace UnityEditor.Rendering
                     .Select(p => (ScenePath)AssetDatabase.GUIDToAssetPath(p))
                     .ToArray();
 
-            // TODO: Make following display progress bar?
-
             // retrieve clip assets with material animation
             var clipData = GetAssetDataForClipsFiltered(clipPaths);
+
+            const float kGatherInPrefabsTotalProgress = 0.33f;
+            const float kGatherInScenesTotalProgress = 0.66f;
+            const float kUpgradeClipsTotalProgress = 1f;
 
             // create table mapping all upgrade paths to new shaders
             var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(allUpgraders);
 
             // retrieve interdependencies with prefabs to figure out which clips can be safely upgraded
             GetClipDependencyMappings(clipPaths, prefabPaths, out var clipPrefabDependents, out var prefabDependencies);
+
             GatherClipsUsageInDependentPrefabs(
-                clipPrefabDependents, prefabDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
+                clipPrefabDependents, prefabDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials,
+                (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Gathering from prefabs {info}", Mathf.Lerp(0f, kGatherInPrefabsTotalProgress, progress))
             );
+
+            if (EditorUtility.DisplayCancelableProgressBar(progressBarName, "", kGatherInPrefabsTotalProgress))
+            {
+                EditorUtility.ClearProgressBar();
+                return;
+            }
 
             // if any scenes should be considered, do the same for clips used by scenes
             if (scenePaths.Any())
             {
                 GetClipDependencyMappings(clipPaths, scenePaths, out var clipSceneDependents, out var sceneDependencies);
                 GatherClipsUsageInDependentScenes(
-                    clipSceneDependents, sceneDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
+                    clipSceneDependents, sceneDependencies, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials,
+                    (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Gathering from scenes {info}", Mathf.Lerp(kGatherInPrefabsTotalProgress, kGatherInScenesTotalProgress, progress))
                 );
+            }
+
+            if (EditorUtility.DisplayCancelableProgressBar(progressBarName, "", kGatherInScenesTotalProgress))
+            {
+                EditorUtility.ClearProgressBar();
+                return;
             }
 
             // patch clips that should be upgraded
@@ -614,9 +668,14 @@ namespace UnityEditor.Rendering
             var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
 
             AssetDatabase.StartAssetEditing();
-            UpgradeClips(clipData, filterFlags, upgraded, notUpgraded);
+            UpgradeClips(
+                clipData, filterFlags, upgraded, notUpgraded,
+                (info, progress) => EditorUtility.DisplayCancelableProgressBar(progressBarName, $"Upgrading clips {info}", Mathf.Lerp(kGatherInScenesTotalProgress, kUpgradeClipsTotalProgress, progress))
+            );
             AssetDatabase.SaveAssets();
             AssetDatabase.StopAssetEditing();
+
+            EditorUtility.ClearProgressBar();
 
             // report results
             if (upgraded.Count > 0)
