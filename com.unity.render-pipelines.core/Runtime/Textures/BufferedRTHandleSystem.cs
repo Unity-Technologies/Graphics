@@ -139,15 +139,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
+        /// Swap buffers Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool)"/>)
         /// </summary>
         /// <param name="width">The width of the RTs of this buffer.</param>
         /// <param name="height">The height of the RTs of this buffer.</param>
-        /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
-        public void SwapAndSetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        public void SwapAndSetReferenceSize(int width, int height)
         {
             Swap();
-            m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
+            m_RTHandleSystem.SetReferenceSize(width, height);
         }
 
         /// <summary>
@@ -158,6 +157,18 @@ namespace UnityEngine.Rendering
         public void ResetReferenceSize(int width, int height)
         {
             m_RTHandleSystem.ResetReferenceSize(width, height);
+        }
+
+        /// <summary>
+        /// Queries the number of RT handle buffers allocated for a buffer ID.
+        /// </summary>
+        /// <param name="bufferId">The buffer ID to query.</param>
+        public int GetNumFramesAllocated(int bufferId)
+        {
+            if (!m_RTHandles.ContainsKey(bufferId))
+                return 0;
+
+            return m_RTHandles[bufferId].Length;
         }
 
         void Swap()

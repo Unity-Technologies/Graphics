@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SMAAMaterial;
         Material m_TemporalAAMaterial;
 
+        // Lens Flare Data-Driven
+        Material m_LensFlareDataDrivenShader;
+
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
         const int k_HistogramBins = 128;   // Important! If this changes, need to change HistogramExposure.compute
@@ -88,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_MotionBlurFS;
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
+        bool m_LensFlareDataDataDrivenFS;
         bool m_ChromaticAberrationFS;
         bool m_LensDistortionFS;
         bool m_VignetteFS;
@@ -130,6 +134,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.temporalAntialiasingPS);
+
+            // Lens Flare
+            m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareDataDrivenPS);
+            m_LensFlareDataDrivenShader.SetOverrideTag("RenderType", "Transparent");
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -184,7 +192,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 wrapMode = TextureWrapMode.Clamp
             };
             m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
-
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
         }
@@ -265,6 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
             m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
             m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_LensFlareDataDataDrivenFS = frameSettings.IsEnabled(FrameSettingsField.LensFlareDataDriven);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
             m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
             m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
@@ -357,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -372,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
@@ -391,7 +399,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.ColorLog);
 
-                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, m_GlobalSettings.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
+
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -1086,7 +1096,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
             {
                 TextureHandle source = colorBuffer;
-                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, defaultAsset.beforeTransparentCustomPostProcesses);
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, m_GlobalSettings.beforeTransparentCustomPostProcesses);
 
                 if (needBlitToColorBuffer)
                 {
@@ -2607,6 +2617,127 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region Lens Flare
+
+        class LensFlareData
+        {
+            public LensFlareParameters parameters;
+            public TextureHandle source;
+            public HDCamera hdCamera;
+        }
+
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        {
+            if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
+                {
+                    passData.source = builder.WriteTexture(source);
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.hdCamera = hdCamera;
+                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
+                    //passData.destination = builder.WriteTexture(dest);
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, (float)data.hdCamera.actualWidth, (float)data.hdCamera.actualHeight,
+                                data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
+                                ctx.cmd, data.source,
+                                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
+                                // And here the lambda setup like that seem to not alloc anything.
+                                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
+                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, data.parameters.skipCopy);
+                        });
+
+                    PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
+                }
+            }
+
+            return source;
+        }
+
+        struct LensFlareParameters
+        {
+            public Material lensFlareShader;
+            public LensFlareCommonSRP lensFlares;
+            public float paniniDistance;
+            public float paniniCropToFit;
+            public bool skipCopy;
+            public bool usePanini;
+        }
+
+        LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
+        {
+            LensFlareParameters parameters;
+
+            parameters.lensFlares = LensFlareCommonSRP.Instance;
+            parameters.lensFlareShader = m_LensFlareDataDrivenShader;
+            parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
+
+            PaniniProjection panini = camera.volumeStack.GetComponent<PaniniProjection>();
+
+            if (panini)
+            {
+                parameters.usePanini = panini.IsActive();
+                parameters.paniniDistance = panini.distance.value;
+                parameters.paniniCropToFit = panini.cropToFit.value;
+            }
+            else
+            {
+                parameters.usePanini = false;
+                parameters.paniniDistance = 0.0f;
+                parameters.paniniCropToFit = 1.0f;
+            }
+
+            return parameters;
+        }
+
+        static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        {
+            // Must always be true
+            if (light.TryGetComponent<HDAdditionalLightData>(out var hdLightData))
+            {
+                switch (hdLightData.type)
+                {
+                    case HDLightType.Directional:
+                        return LensFlareCommonSRP.ShapeAttenuationDirLight(hdLightData.transform.forward, wo);
+                    case HDLightType.Point:
+                        // Do nothing point are omnidirectional for the Lens Flare
+                        return LensFlareCommonSRP.ShapeAttenuationPointLight();
+                    case HDLightType.Spot:
+                        switch (hdLightData.spotLightShape)
+                        {
+                            case SpotLightShape.Cone:
+                                return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(hdLightData.transform.forward, wo, light.spotAngle, hdLightData.innerSpotPercent01);
+                            case SpotLightShape.Box:
+                                return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(hdLightData.transform.forward, wo);
+                            case SpotLightShape.Pyramid:
+                                return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(hdLightData.transform.forward, wo);
+                            default: throw new Exception($"GetLensFlareLightAttenuation Unknown SpotLightShape: {typeof(SpotLightShape)}: {hdLightData.type}");
+                        }
+                    case HDLightType.Area:
+                        switch (hdLightData.areaLightShape)
+                        {
+                            case AreaLightShape.Tube:
+                                return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(hdLightData.transform.position, hdLightData.transform.right, hdLightData.shapeWidth, cam);
+                            case AreaLightShape.Rectangle:
+                                return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(hdLightData.transform.forward, wo);
+                            case AreaLightShape.Disc:
+                                return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(hdLightData.transform.forward, wo);
+                            default: throw new Exception($"GetLensFlareLightAttenuation Unknown AreaLightShape {typeof(AreaLightShape)}: {hdLightData.type}");
+                        }
+                    default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(HDLightType)}: {hdLightData.type}");
+                }
+            }
+
+            return 1.0f;
+        }
+
+        #endregion
+
         #region Motion Blur
 
         class MotionBlurData
@@ -3019,6 +3150,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
 
+                    if (m_EnableAlpha)
+                        passData.paniniProjectionCS.EnableKeyword("ENABLE_ALPHA");
+
                     passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
                     passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
 
@@ -3162,6 +3296,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // the mip up 0 will be used by uber, so not allocated as transient.
             m_BloomBicubicParams = new Vector4(passData.bloomMipInfo[0].x, passData.bloomMipInfo[0].y, 1.0f / passData.bloomMipInfo[0].x, 1.0f / passData.bloomMipInfo[0].y);
             var mip0Scale = new Vector2(passData.bloomMipInfo[0].z, passData.bloomMipInfo[0].w);
+
+            // We undo the scale here, because bloom uses these parameters for its bicubic filtering offset.
+            // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
+            // unscaled pixel sizes to compute the offsets of the samples.
+            // For more info please see the implementation of SampleTexture2DBicubic
+            m_BloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
+            m_BloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
+            m_BloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
+
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
             {
                 name = "Bloom final mip up",
@@ -3902,6 +4046,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.source = builder.ReadTexture(source);
                     passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
+
+                    passData.fxaaCS.shaderKeywords = null;
+                    if (m_EnableAlpha)
+                        passData.fxaaCS.EnableKeyword("ENABLE_ALPHA");
 
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>
