@@ -195,6 +195,9 @@ namespace UnityEngine.Experimental.Rendering
             if (refVolAuthList.Length == 0)
                 return;
 
+            FindWorldBounds();
+            refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+
             m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
 
             if (m_BakingReferenceVolumeAuthoring == null)
@@ -203,7 +206,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            FindWorldBounds();
 
             RunPlacement();
         }
@@ -352,6 +354,7 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
+            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {
