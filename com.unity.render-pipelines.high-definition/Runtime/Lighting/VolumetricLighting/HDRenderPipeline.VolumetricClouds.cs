@@ -164,6 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalWidth;
             public int finalHeight;
             public int viewCount;
+            public bool localClouds;
             public bool historyValidity;
             public bool planarReflection;
             public bool needExtraColorBufferCopy;
@@ -438,6 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
             parameters.historyValidity = historyValidity;
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
+            parameters.localClouds = settings.localClouds.value;
 
             parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
                 // On PC and Metal, but not on console.
@@ -517,6 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
             CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", parameters.planarReflection);
+            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.localClouds);
 
             RTHandle currentDepthBuffer = depthPyramid;
 

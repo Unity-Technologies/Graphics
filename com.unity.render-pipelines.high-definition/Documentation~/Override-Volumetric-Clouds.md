@@ -66,6 +66,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property** | **Description**                                       |
 | ------------ | ----------------------------------------------------- |
 | Enable       | Indicates whether to render volumetric clouds or not. |
+| Local Clouds | Indicates whether the clouds are part of the scene or rendered into the skybox. When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry. |
 
 ### Shape
 

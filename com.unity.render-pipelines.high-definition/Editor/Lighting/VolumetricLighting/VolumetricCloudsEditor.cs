@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // General
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_LocalClouds;
 
         // Shape
         SerializedDataParameter m_CloudControl;
@@ -75,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // General
             m_Enable = Unpack(o.Find(x => x.enable));
+            m_LocalClouds = Unpack(o.Find(x => x.localClouds));
 
             // Shape
             m_CloudControl = Unpack(o.Find(x => x.cloudControl));
@@ -145,10 +147,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
+            PropertyField(m_LocalClouds);
+            if (!m_LocalClouds.value.boolValue)
+                EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Shape", EditorStyles.miniLabel);

@@ -135,6 +135,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
+        /// Controls if the clouds are rendered in the local space of the scene.
+        /// </summary>
+        [Tooltip("Controls if the clouds are rendered in the local space of the scene.")]
+        public BoolParameter localClouds = new BoolParameter(false);
+
+        /// <summary>
         /// Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.
         /// </summary>
         [Tooltip("Controls the curvature of the cloud volume which defines the distance at which the clouds intersect with the horizon.")]
