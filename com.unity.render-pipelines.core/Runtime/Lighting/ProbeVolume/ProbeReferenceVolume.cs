@@ -644,7 +644,6 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Clear();
                 cells.Clear();
             }
-
             if (clearAssetsOnVolumeClear)
             {
                 m_PendingAssetsToBeLoaded.Clear();
