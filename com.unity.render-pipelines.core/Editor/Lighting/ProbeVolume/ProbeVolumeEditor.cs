@@ -15,7 +15,14 @@ namespace UnityEditor.Experimental.Rendering
         SerializedProbeVolume m_SerializedProbeVolume;
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
 
-        static HierarchicalBox s_ShapeBox { get; } = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
+        static HierarchicalBox _ShapeBox;
+        static HierarchicalBox s_ShapeBox
+        {
+            get
+            {
+                return _ShapeBox ??= new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
+            }
+        }
 
         protected void OnEnable()
         {
