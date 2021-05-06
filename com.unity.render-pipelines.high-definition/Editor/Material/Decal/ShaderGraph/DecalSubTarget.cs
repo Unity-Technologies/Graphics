@@ -586,7 +586,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.MinimalCorePregraph },
                 { kDecal, IncludeLocation.Pregraph },
-                { CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
             };
         }
