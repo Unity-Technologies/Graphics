@@ -346,6 +346,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
         public GameObject exposureTarget = null;
 
+        /// <summary> Mip bias used on texture samplers during material rendering </summary>
+        public float materialMipBias = 0;
+
         internal float probeCustomFixedExposure = 1.0f;
         internal float deExposureMultiplier = 1.0f;
 
