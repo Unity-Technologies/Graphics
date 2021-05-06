@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class UniversalRenderPipelineSerializedCamera : ISerializedCamera
+    class UniversalRenderPipelineSerializedCamera : ISerializedCamera
     {
         public SerializedObject serializedObject { get; }
         public SerializedObject serializedAdditionalDataObject { get; }

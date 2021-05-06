@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added 'Store Actions' option that enables bandwidth optimizations on mobile GPU architectures.
 - Added "Allow Material Override" option to Lit and Unlit ShaderGraph targets.  When checked, allows Material to control the surface options (transparent/opaque, blend mode, etc).
 - Added a new UI for Render Pipeline Converters. Used now for Built-in to Universal conversion.
+- Added sections on Light Inspector.
+- Reorder camera inspector to be in the same order as HDRP.
 - VFX: Basic support of Lit output.
 
 ### Changed
