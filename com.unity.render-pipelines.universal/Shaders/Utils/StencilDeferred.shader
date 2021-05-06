@@ -123,10 +123,16 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer2);
 
 #if _RENDER_PASS_ENABLED
-    FRAMEBUFFER_INPUT_HALF(0);
-    FRAMEBUFFER_INPUT_HALF(1);
-    FRAMEBUFFER_INPUT_HALF(2);
-    FRAMEBUFFER_INPUT_FLOAT(3);
+
+    #define GBUFFER0 0
+    #define GBUFFER1 1
+    #define GBUFFER2 2
+    #define GBUFFER3 3
+
+    FRAMEBUFFER_INPUT_HALF(GBUFFER0);
+    FRAMEBUFFER_INPUT_HALF(GBUFFER1);
+    FRAMEBUFFER_INPUT_HALF(GBUFFER2);
+    FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
 
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer5);
@@ -226,10 +232,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         #if _RENDER_PASS_ENABLED
-        float d        = LOAD_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
-        half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
-        half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
-        half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
+        float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
+        half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
+        half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
         #else
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
@@ -316,7 +322,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     half4 FragFog(Varyings input) : SV_Target
     {
         #if _RENDER_PASS_ENABLED
-            float d = LOAD_FRAMEBUFFER_INPUT(3, input.positionCS.xy);
+            float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy);
         #else
             float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
         #endif
