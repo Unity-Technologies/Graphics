@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adding documentation links to Light Sections
 - Support for Lens Flare Data Driven (from images and Procedural shapes), on HDRP
 - New SRPLensFlareData Asset
+- Adding documentation links to Light Sections.
+- Added sampling noise to probe volume sampling position to hide seams between subdivision levels.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
