@@ -86,7 +86,8 @@ namespace UnityEditor.Rendering.Universal
             RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
             wnd.titleContent = new GUIContent("Render Pipeline Converter");
             DontSaveToLayout(wnd);
-
+            wnd.maxSize = new Vector2(625f, 4000f);
+            wnd.minSize = new Vector2(625f, 400f);
             wnd.Show();
         }
 
