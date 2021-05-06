@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
             RenameFloat("_WindQuality", "_WINDQUALITY");
-            RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph.
         }
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
@@ -50,14 +49,15 @@ namespace UnityEditor.Rendering
                 return;
 
             int cullmode = 0;
+
             mat.SetFloat("_WINDQUALITY", windQuality);
             if (isBillboard)
             {
                 mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
                 cullmode = 2;
             }
-            if (mat.HasProperty("_CullMode"))
-                mat.SetFloat("_CullMode", cullmode);
+
+            mat.SetFloat("_TwoSided", cullmode); // Temporary; Finalizer shoudl read from this and apply the value to a pipeline-specific cull property
 
             if (mat.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
                 mat.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
@@ -102,9 +102,6 @@ namespace UnityEditor.Rendering
         /// <param name="material">SpeedTree 8 material to upgrade.</param>
         public static void SpeedTree8MaterialFinalizer(Material material)
         {
-            if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
-                material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
-
             if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
                 material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
 

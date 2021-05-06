@@ -207,6 +207,12 @@ namespace UnityEditor.Rendering.Universal
             //    Debug.Log("UniversalRP Material log: " + upgradeLog);
         }
 
+        public void OnPostprocessSpeedTree(GameObject speedtree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedtree, stImporter, SpeedTree8Upgrader.UniversalSpeedTree8MaterialFinalizer);
+        }
+
         static void InitializeLatest(Material material, ShaderID id)
         {
             // newly created materials should reset their keywords immediately (in case inspector doesn't get invoked)

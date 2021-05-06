@@ -46,13 +46,12 @@ void LODDitheringTransitionSG_float(float3 viewDirWS, float4 screenPos, out floa
         multiplyAlpha = f < 0 ? 0.0f : 1.0f;
 #endif
 }
-void DoLODCrossFade_half(float3 viewDirWS, float4 screenPos, out half halfAlpha)
+void LODDitheringTransitionSG_half(float3 viewDirWS, float4 screenPos, out float multiplyAlpha)
 {
 #if !defined (SHADER_API_GLES) && !defined(SHADER_STAGE_RAY_TRACING)
     float p = GenerateHashedRandomFloat(ComputeFadeMaskSeed(viewDirWS, screenPos.xy));
     float f = unity_LODFade.x - CopySign(p, unity_LODFade.x);
-    float multiplyAlpha = f < 0 ? 0.0f : 1.0f;
-    halfAlpha = (half)multiplyAlpha;
+    multiplyAlpha = f < 0 ? 0.0f : 1.0f;
 #endif
 }
 #endif

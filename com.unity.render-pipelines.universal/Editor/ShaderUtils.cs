@@ -5,7 +5,6 @@ using ShaderPathID = UnityEngine.Rendering.Universal.ShaderPathID;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGUI;
-
 namespace Unity.Rendering.Universal
 {
     public static class ShaderUtils
@@ -89,6 +88,9 @@ namespace Unity.Rendering.Universal
                     break;
                 case ShaderID.ParticlesUnlit:
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
+                    break;
+                case ShaderID.SpeedTree8:
+                    ShaderGraphLitGUI.UpdateMaterial(material, updateType);
                     break;
                 case ShaderID.SG_Lit:
                     ShaderGraphLitGUI.UpdateMaterial(material, updateType);

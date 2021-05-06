@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
 {
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
@@ -59,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Simple Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -161,6 +163,7 @@ namespace UnityEditor.Rendering.Universal
             upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
             upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
             upgraders.Add(new SpeedTree8Upgrader("Nature/SpeedTree8"));
+            upgraders.Add(new SpeedTree8Upgrader("Universal Render Pipeline/Nature/SpeedTree8"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -513,11 +516,24 @@ namespace UnityEditor.Rendering.Universal
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
         }
     }
-    internal class SpeedTree8Upgrader : MaterialUpgrader
+    internal class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
     {
         internal SpeedTree8Upgrader(string oldShaderName)
+            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            RenameFloat("_TwoSided", Property.CullMode);
+        }
+
+        static public void UniversalSpeedTree8MaterialFinalizer(Material mat)
+        {
+            SpeedTree8MaterialFinalizer(mat);
+
+            if (mat.HasFloat("_TwoSided"))
+                mat.SetFloat(Property.CullMode, mat.GetFloat("_TwoSided"));
+
+            Unity.Rendering.Universal.ShaderUtils.UpdateMaterial(mat,
+                Unity.Rendering.Universal.ShaderUtils.MaterialUpdateType.CreatedNewMaterial,
+                Unity.Rendering.Universal.ShaderUtils.ShaderID.SpeedTree8);
         }
     }
 
