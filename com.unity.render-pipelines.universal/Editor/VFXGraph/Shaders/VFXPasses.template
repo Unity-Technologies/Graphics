@@ -26,6 +26,7 @@ ${VFXBegin:VFXPassForwardLitAdditionalPragma}
 #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
 #pragma multi_compile_fragment _ _SHADOWS_SOFT
 #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+#pragma multi_compile_fragment _ _LIGHT_LAYERS
 #pragma multi_compile_fog
 #pragma multi_compile _ DEBUG_DISPLAY
 ${VFXEnd}
@@ -41,6 +42,7 @@ ${VFXBegin:VFXPassGBufferAdditionalPragma}
 //#pragma multi_compile _ _ADDITIONAL_LIGHTS
 //#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 #pragma multi_compile _ _SHADOWS_SOFT
+#pragma multi_compile_fragment _ _LIGHT_LAYERS
 ${VFXEnd}
 
 ${VFXBegin:VFXShaderGraphFunctionsInclude}
