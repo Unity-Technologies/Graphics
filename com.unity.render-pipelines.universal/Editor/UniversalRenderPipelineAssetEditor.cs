@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
             public static GUIContent tightEnclosingSphere = EditorGUIUtility.TrTextContent("Tight Enclosing Sphere", "If enabled, as tight conservative enclosing sphere is used. If disabled, the sphere will be smaller than the cascade size.");
+            public static GUIContent numIterationsEnclosingSphere = EditorGUIUtility.TrTextContent("Number of Iterations", "Number of iterations for the minimal enclosing sphere iterative method. A higher number of iterations will minimize the sphere but increases CPU computation necessary.");
 
 
             // Post-processing
@@ -143,6 +144,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowNormalBiasProp;
         SerializedProperty m_SoftShadowsSupportedProp;
         SerializedProperty m_TightEnclosingSphereProp;
+        SerializedProperty m_NumIterationsEnclosingSphereProp;
 
         SerializedProperty m_SRPBatcher;
         SerializedProperty m_SupportsDynamicBatching;
@@ -224,6 +226,7 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
             m_TightEnclosingSphereProp = serializedObject.FindProperty("m_TightEnclosingSphere");
+            m_NumIterationsEnclosingSphereProp = serializedObject.FindProperty("m_NumIterationsEnclosingSphere");
 
             m_SRPBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
@@ -429,6 +432,12 @@ namespace UnityEditor.Rendering.Universal
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
                 EditorGUILayout.PropertyField(m_TightEnclosingSphereProp, Styles.tightEnclosingSphere);
+                if (m_TightEnclosingSphereProp.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.IntSlider(m_NumIterationsEnclosingSphereProp, 1, UniversalRenderPipeline.maxNumIterationsEnclosingSphere, Styles.numIterationsEnclosingSphere);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

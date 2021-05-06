@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
         [SerializeField] bool m_TightEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -756,6 +757,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_TightEnclosingSphere; }
             set { m_TightEnclosingSphere = value; }
+        }
+
+        public int numItertionsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial

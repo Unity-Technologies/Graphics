@@ -1,6 +1,7 @@
 using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
+using System;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -663,6 +664,8 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
 
             cullingParameters.tightEnclosingSphere = UniversalRenderPipeline.asset.tightEnclosingSphere;
+
+            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numItertionsEnclosingSphere;
         }
 
         /// <inheritdoc />
