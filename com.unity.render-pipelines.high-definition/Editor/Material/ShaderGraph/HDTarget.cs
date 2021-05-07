@@ -137,9 +137,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
-                descs.Contains(BlockFields.VertexDescription.Normal) ||
-                descs.Contains(BlockFields.VertexDescription.Tangent));
+            if (!context.pass.useRaytracing) // Don't handle vertex shader when using raytracing
+            {
+                context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
+                                                     descs.Contains(BlockFields.VertexDescription.Normal) ||
+                                                     descs.Contains(BlockFields.VertexDescription.Tangent));
+            }
+
             context.AddField(Fields.GraphPixel);
 
             // SubTarget
@@ -428,7 +432,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static StructCollection BasicRaytracing = new StructCollection
         {
-            { HDStructs.AttributesMesh },
             { Structs.SurfaceDescriptionInputs },
         };
     }
