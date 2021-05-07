@@ -45,6 +45,18 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.CopySerialized(HDUtils.s_DefaultHDAdditionalReflectionData, reflectionProbeAdditionalData);
         }
 
+        [MenuItem("CONTEXT/ReflectionProbe/Show All Additional Properties...", false, 100)]
+        static void ShowAllAdditionalProperties(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
+
+        [MenuItem("CONTEXT/PlanarReflectionProbe/Show All Additional Properties...", false, 700)]
+        static void ShowAllAdditionalPropertiesPlanar(MenuCommand menuCommand)
+        {
+            CoreRenderPipelinePreferences.Open();
+        }
+
         #endregion
 
         protected override void OnEnable()

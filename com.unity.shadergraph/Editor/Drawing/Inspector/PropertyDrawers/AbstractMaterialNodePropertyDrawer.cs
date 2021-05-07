@@ -31,6 +31,10 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_updateNodeViewsCallback = updateNodeViewsCallback;
         }
 
+        internal virtual void AddCustomNodeProperties(VisualElement parentElement, AbstractMaterialNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        {
+        }
+
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
             VisualElement nodeSettings = new VisualElement();
@@ -38,6 +42,15 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             nodeSettings.Add(nameLabel);
             if (node.sgVersion < node.latestVersion)
             {
+                string deprecationText = null;
+                string buttonText = null;
+                string labelText = null;
+                MessageType messageType = MessageType.Warning;
+                if (node is IHasCustomDeprecationMessage nodeWithCustomDeprecationSettings)
+                {
+                    nodeWithCustomDeprecationSettings.GetCustomDeprecationMessage(out deprecationText, out buttonText, out labelText, out messageType);
+                }
+
                 var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
                 {
                     m_setNodesAsDirtyCallback?.Invoke();
@@ -46,7 +59,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     inspectorUpdateDelegate?.Invoke();
                     m_updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
-                });
+                }, deprecationText, buttonText, labelText, messageType);
 
                 if (help != null)
                 {
@@ -55,6 +68,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             PropertyDrawerUtils.AddDefaultNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
+            AddCustomNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
             propertyVisualElement = null;
 

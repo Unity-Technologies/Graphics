@@ -24,7 +24,7 @@ In order to set the Menu path of the currently edited Subgraph, you can double-c
 
 To create a property, click the plus (**+**) button in the top-right of the Blackboard then select a property type from the menu.
 
-You can also convert an inline operator to a property. To do this, right-click on the Node and select either:
+You can also convert an inline Operator to a property. To do this, right-click on the Node and select either:
 
 - **Convert to Property** if you want to create a constant.
 - **Convert to Exposed Property** if you want to create an exposed property
@@ -43,7 +43,7 @@ To edit a property in the Blackboard, click the folding arrow to the left of the
 
 
 ### Filtering properties
-Float, Int and Uint properties have some filter mode : 
+Float, Int and Uint properties have some filter mode :
 * default. does nothing special. You will edit the property value in a textfield.
 * Range. You will specify a minimum and a maximum value in the blackboard and you will edit the property with a slider instead of just a textfield
 * Enum. Exclusive to uint, You will specify a list of names in the blackboard and you will edit the property with a popup menu.

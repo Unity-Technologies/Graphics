@@ -2,10 +2,15 @@ float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend
 {
     float4 mvs = (float4)0;
 #if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
-    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
-    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-blend);
-    mvs.xy = mvPrev;
-    mvs.zw = mvNext;
+    #if USE_FLIPBOOK_ARRAY_LAYOUT
+    float2 mvPrev = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.z).rg * 2 - 1;
+    float2 mvNext = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.w).rg * 2 - 1;
+    #else
+    float2 mvPrev = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1;
+    float2 mvNext = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1;
+    #endif
+    mvs.xy = mvPrev * (-i.VFX_VARYING_MOTIONVECTORSCALE * blend);
+    mvs.zw = mvNext * (i.VFX_VARYING_MOTIONVECTORSCALE * (1.0 - blend));
 #endif
     return mvs;
 }
@@ -13,23 +18,42 @@ float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolants
 {
     VFXUVData data = (VFXUVData)0;
-#ifdef VFX_VARYING_UV
-    data.uvs.xy = i.VFX_VARYING_UV.xy;
-#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND) && defined(VFX_VARYING_UV)
-    data.uvs.zw = i.VFX_VARYING_UV.zw;
-    data.blend = i.VFX_VARYING_FRAMEBLEND;
-    data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
-#endif
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+    #ifdef VFX_VARYING_UV
+        data.uvs.xyz = i.VFX_VARYING_UV.xyz;
+        #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND) && defined(VFX_VARYING_UV)
+            data.uvs.w = i.VFX_VARYING_UV.w;
+            data.blend = i.VFX_VARYING_FRAMEBLEND;
+            data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
+        #endif
+    #endif
+#else
+    #ifdef VFX_VARYING_UV
+        data.uvs.xy = i.VFX_VARYING_UV.xy;
+        #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND) && defined(VFX_VARYING_UV)
+            data.uvs.zw = i.VFX_VARYING_UV.zw;
+            data.blend = i.VFX_VARYING_FRAMEBLEND;
+            data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
+        #endif
+    #endif
 #endif
     return data;
 }
 
 VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from ps directly
 {
-#ifdef VFX_VARYING_FLIPBOOKSIZE
-    float2 flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+    #ifdef VFX_VARYING_FLIPBOOKSIZE
+        float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
+    #else
+        float flipBookSize = 1.0f;
+    #endif
 #else
-    float2 flipBookSize = float2(1, 1);
+    #ifdef VFX_VARYING_FLIPBOOKSIZE
+        float2 flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
+    #else
+        float2 flipBookSize = float2(1, 1);
+    #endif
 #endif
 
 #ifdef VFX_VARYING_INVFLIPBOOKSIZE
@@ -49,7 +73,11 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
 #endif
 
     VFXUVData data;
-    data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
+    #if USE_FLIPBOOK_ARRAY_LAYOUT
+        data = GetUVData(flipBookSize, uv, texIndex);
+    #else
+        data = GetUVData(flipBookSize, invFlipBookSize, uv, texIndex);
+    #endif
     data.mvs = GetFlipbookMotionVectors(i, data.uvs, data.blend);
     return data;
 }
@@ -84,14 +112,24 @@ float4 VFXGetTextureColor(VFXSampler2D s,VFX_VARYING_PS_INPUTS i)
     return SampleTexture(s, GetUVData(i));
 }
 
+float4 VFXGetTextureColor(VFXSampler2DArray s, VFX_VARYING_PS_INPUTS i)
+{
+    return SampleTexture(s, GetUVData(i));
+}
+
 float4 VFXGetTextureColorWithProceduralUV(VFXSampler2D s, VFX_VARYING_PS_INPUTS i, float2 uv)
+{
+    return SampleTexture(s, GetUVData(i, uv));
+}
+
+float4 VFXGetTextureColorWithProceduralUV(VFXSampler2DArray s, VFX_VARYING_PS_INPUTS i, float2 uv)
 {
     return SampleTexture(s, GetUVData(i, uv));
 }
 
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
-    float4 packedNormal = s.t.Sample(s.s,uv);
+    float4 packedNormal = SampleTexture(s, uv);
     packedNormal.w *= packedNormal.x;
     float3 normal;
     normal.xy = packedNormal.wy * 2.0 - 1.0;

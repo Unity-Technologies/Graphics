@@ -102,7 +102,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
         {
             // no where to start
             if (node == null)
@@ -132,15 +132,15 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation, ignoreActiveState: ignoreActiveState);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include && node.isActive)
+            if (includeSelf == IncludeSelf.Include && (node.isActive || ignoreActiveState))
                 nodeList.Add(node);
         }
 
-        private static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        internal static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
             var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
@@ -482,12 +482,16 @@ namespace UnityEditor.Graphing
             var graph = initialSlot.owner.owner;
             s_SlotStack.Clear();
             s_SlotStack.Push(initialSlot);
+            ShaderStageCapability capabilities = ShaderStageCapability.All;
             while (s_SlotStack.Any())
             {
                 var slot = s_SlotStack.Pop();
-                ShaderStage stage;
-                if (slot.stageCapability.TryGetShaderStage(out stage))
-                    return slot.stageCapability;
+
+                // Clear any stages from the total capabilities that this slot doesn't support (e.g. if this is vertex, clear pixel)
+                capabilities &= slot.stageCapability;
+                // Can early out if we know nothing is compatible, otherwise we have to keep checking everything we can reach.
+                if (capabilities == ShaderStageCapability.None)
+                    return capabilities;
 
                 if (goingBackwards && slot.isInputSlot)
                 {
@@ -517,7 +521,7 @@ namespace UnityEditor.Graphing
                 }
             }
 
-            return ShaderStageCapability.All;
+            return capabilities;
         }
 
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)
@@ -538,6 +542,8 @@ namespace UnityEditor.Graphing
                     return "3x3";
                 case ConcreteSlotValueType.Matrix4:
                     return "4x4";
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return String.Empty;
                 default:
                     return "Error";
             }
@@ -579,6 +585,120 @@ namespace UnityEditor.Graphing
             "2x1", "2x2", "2x3", "2x4",
             "3x1", "3x2", "3x3", "3x4",
             "4x1", "4x2", "4x3", "4x4"
+        };
+
+        static HashSet<string> m_ShaderLabKeywords = new HashSet<string>()
+        {
+            // these should all be lowercase, as shaderlab keywords are case insensitive
+            "properties",
+            "range",
+            "bind",
+            "bindchannels",
+            "tags",
+            "lod",
+            "shader",
+            "subshader",
+            "category",
+            "fallback",
+            "dependency",
+            "customeditor",
+            "rect",
+            "any",
+            "float",
+            "color",
+            "int",
+            "integer",
+            "vector",
+            "matrix",
+            "2d",
+            "cube",
+            "3d",
+            "2darray",
+            "cubearray",
+            "name",
+            "settexture",
+            "true",
+            "false",
+            "on",
+            "off",
+            "separatespecular",
+            "offset",
+            "zwrite",
+            "zclip",
+            "conservative",
+            "ztest",
+            "alphatest",
+            "fog",
+            "stencil",
+            "colormask",
+            "alphatomask",
+            "cull",
+            "front",
+            "material",
+            "ambient",
+            "diffuse",
+            "specular",
+            "emission",
+            "shininess",
+            "blend",
+            "blendop",
+            "colormaterial",
+            "lighting",
+            "pass",
+            "grabpass",
+            "usepass",
+            "gpuprogramid",
+            "add",
+            "sub",
+            "revsub",
+            "min",
+            "max",
+            "logicalclear",
+            "logicalset",
+            "logicalcopy",
+            "logicalcopyinverted",
+            "logicalnoop",
+            "logicalinvert",
+            "logicaland",
+            "logicalnand",
+            "logicalor",
+            "logicalnor",
+            "logicalxor",
+            "logicalequiv",
+            "logicalandreverse",
+            "logicalandinverted",
+            "logicalorreverse",
+            "logicalorinverted",
+            "multiply",
+            "screen",
+            "overlay",
+            "darken",
+            "lighten",
+            "colordodge",
+            "colorburn",
+            "hardlight",
+            "softlight",
+            "difference",
+            "exclusion",
+            "hslhue",
+            "hslsaturation",
+            "hslcolor",
+            "hslluminosity",
+            "zero",
+            "one",
+            "dstcolor",
+            "srccolor",
+            "oneminusdstcolor",
+            "srcalpha",
+            "oneminussrccolor",
+            "dstalpha",
+            "oneminusdstalpha",
+            "srcalphasaturate",
+            "oneminussrcalpha",
+            "constantcolor",
+            "oneminusconstantcolor",
+            "constantalpha",
+            "oneminusconstantalpha",
         };
 
         static HashSet<string> m_HLSLKeywords = new HashSet<string>()
@@ -730,6 +850,16 @@ namespace UnityEditor.Graphing
             "while"
         };
 
+        static HashSet<string> m_ShaderGraphKeywords = new HashSet<string>()
+        {
+            "Gradient",
+            "UnitySamplerState",
+            "UnityTexture2D",
+            "UnityTexture2DArray",
+            "UnityTexture3D",
+            "UnityTextureCube"
+        };
+
         static bool m_HLSLKeywordDictionaryBuilt = false;
 
         public static bool IsHLSLKeyword(string id)
@@ -748,9 +878,24 @@ namespace UnityEditor.Graphing
             return isHLSLKeyword;
         }
 
-        public static string ConvertToValidHLSLIdentifier(string originalId)
+        public static bool IsShaderLabKeyWord(string id)
+        {
+            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
+            return isShaderLabKeyword;
+        }
+
+        public static bool IsShaderGraphKeyWord(string id)
+        {
+            bool isShaderGraphKeyword = m_ShaderGraphKeywords.Contains(id);
+            return isShaderGraphKeyword;
+        }
+
+        public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)
         {
             // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
+            if (originalId == null)
+                originalId = "";
+
             StringBuilder hlslId = new StringBuilder(originalId.Length);
             bool lastInvalid = false;
             for (int i = 0; i < originalId.Length; i++)
@@ -796,6 +941,10 @@ namespace UnityEditor.Graphing
             while (IsHLSLKeyword(result))
                 result = "_" + result;
 
+            if (isDisallowedIdentifier != null)
+                while (isDisallowedIdentifier(result))
+                    result = "_" + result;
+
             return result;
         }
 
@@ -816,7 +965,7 @@ namespace UnityEditor.Graphing
         public static bool ValidateSlotName(string inName, out string errorMessage)
         {
             //check for invalid characters between display safe and hlsl safe name
-            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName) && GetDisplaySafeName(inName) != ConvertToValidHLSLIdentifier(inName))
             {
                 errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
                 return true;

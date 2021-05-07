@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRaytracingLightCluster
     {
         // External data
-        RenderPipelineResources m_RenderPipelineResources = null;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources = null;
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
         HDRenderPipeline m_RenderPipeline = null;
 
@@ -80,8 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
-            m_RenderPipelineResources = renderPipeline.asset.renderPipelineResources;
-            m_RenderPipelineRayTracingResources = renderPipeline.asset.renderPipelineRayTracingResources;
+            m_RenderPipelineResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
+            m_RenderPipelineRayTracingResources = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources;
 
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnvLightDataGPUArray.SetData(m_EnvLightDataCPUArray);
         }
 
-        public struct LightClusterDebugParameters
+        class LightClusterDebugPassData
         {
             public int texWidth;
             public int texHeight;
@@ -610,61 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material debugMaterial;
             public ComputeBuffer lightCluster;
             public ComputeShader lightClusterDebugCS;
-        }
 
-        LightClusterDebugParameters PrepareLightClusterDebugParameters(HDCamera hdCamera)
-        {
-            LightClusterDebugParameters parameters = new LightClusterDebugParameters();
-            parameters.texWidth = hdCamera.actualWidth;
-            parameters.texHeight = hdCamera.actualHeight;
-            parameters.clusterCellSize = clusterCellSize;
-            parameters.lightCluster = m_LightCluster;
-            parameters.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
-            parameters.lightClusterDebugKernel = parameters.lightClusterDebugCS.FindKernel("DebugLightCluster");
-            parameters.debugMaterial = m_DebugMaterial;
-            return parameters;
-        }
-
-        public struct LightClusterDebugResources
-        {
-            public RTHandle depthStencilBuffer;
-            public RTHandle depthTexture;
-            public RTHandle debugLightClusterTexture;
-        }
-
-        static public void ExecuteLightClusterDebug(CommandBuffer cmd, LightClusterDebugParameters parameters, LightClusterDebugResources resources, MaterialPropertyBlock debugMaterialProperties)
-        {
-            // Bind the output texture
-            CoreUtils.SetRenderTarget(cmd, resources.debugLightClusterTexture, resources.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
-
-            // Inject all the parameters to the debug compute
-            cmd.SetComputeBufferParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
-            cmd.SetComputeVectorParam(parameters.lightClusterDebugCS, _ClusterCellSize, parameters.clusterCellSize);
-            cmd.SetComputeTextureParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, resources.depthStencilBuffer);
-
-            // Target output texture
-            cmd.SetComputeTextureParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, _DebutLightClusterTexture, resources.debugLightClusterTexture);
-
-            // Dispatch the compute
-            int lightVolumesTileSize = 8;
-            int numTilesX = (parameters.texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-            int numTilesY = (parameters.texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-
-            cmd.DispatchCompute(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, numTilesX, numTilesY, 1);
-
-            // Bind the parameters
-            debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
-            debugMaterialProperties.SetVector(_ClusterCellSize, parameters.clusterCellSize);
-            debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
-
-            // Draw the faces
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, debugMaterialProperties);
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, debugMaterialProperties);
-        }
-
-        class LightClusterDebugPassData
-        {
-            public LightClusterDebugParameters parameters;
             public TextureHandle depthStencilBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle outputBuffer;
@@ -677,7 +623,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareLightClusterDebugParameters(hdCamera);
+                passData.texWidth = hdCamera.actualWidth;
+                passData.texHeight = hdCamera.actualHeight;
+                passData.clusterCellSize = clusterCellSize;
+                passData.lightCluster = m_LightCluster;
+                passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
+                passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
+                passData.debugMaterial = m_DebugMaterial;
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthStencilBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -686,12 +638,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (LightClusterDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        // We need to fill the structure that holds the various resources
-                        LightClusterDebugResources resources = new LightClusterDebugResources();
-                        resources.depthStencilBuffer = data.depthStencilBuffer;
-                        resources.depthTexture = data.depthPyramid;
-                        resources.debugLightClusterTexture = data.outputBuffer;
-                        ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                        var debugMaterialProperties = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+
+                        // Bind the output texture
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.outputBuffer, data.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
+
+                        // Inject all the parameters to the debug compute
+                        ctx.cmd.SetComputeBufferParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, data.lightCluster);
+                        ctx.cmd.SetComputeVectorParam(data.lightClusterDebugCS, _ClusterCellSize, data.clusterCellSize);
+                        ctx.cmd.SetComputeTextureParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, data.depthStencilBuffer);
+
+                        // Target output texture
+                        ctx.cmd.SetComputeTextureParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, _DebutLightClusterTexture, data.outputBuffer);
+
+                        // Dispatch the compute
+                        int lightVolumesTileSize = 8;
+                        int numTilesX = (data.texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+                        int numTilesY = (data.texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+
+                        ctx.cmd.DispatchCompute(data.lightClusterDebugCS, data.lightClusterDebugKernel, numTilesX, numTilesY, 1);
+
+                        // Bind the parameters
+                        debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster);
+                        debugMaterialProperties.SetVector(_ClusterCellSize, data.clusterCellSize);
+                        debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+
+                        // Draw the faces
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, debugMaterialProperties);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, debugMaterialProperties);
                     });
 
                 debugTexture = passData.outputBuffer;

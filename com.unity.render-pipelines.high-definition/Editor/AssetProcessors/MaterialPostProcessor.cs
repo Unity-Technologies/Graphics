@@ -116,6 +116,17 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        void OnPostprocessMaterial(Material material)
+        {
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
+                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)
@@ -186,6 +197,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public void OnPostprocessSpeedTree(GameObject speedTree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
+        }
+
         // Note: It is not possible to separate migration step by kind of shader
         // used. This is due that user can change shader that material reflect.
         // And when user do this, the material is not reimported and we have no
@@ -206,6 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
             FixIncorrectEmissiveColorSpace,
             ExposeRefraction,
             MetallicRemapping,
+            ForceForwardEmissiveForDeferred,
         };
 
         #region Migrations
@@ -333,7 +351,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Shader shader = material.shader;
 
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
@@ -366,7 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Synchronize properties we exposed from SG to the material
                 ResetFloatProperty(kReceivesSSR);
@@ -643,6 +661,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedMaterial.ApplyModifiedProperties();
 
                 material.SetFloat(kMetallicRemapMax, metallicScale);
+            }
+        }
+
+        static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Force Forward emissive for deferred pass is only setup for Lit shader
+            if (id == HDShaderUtils.ShaderID.SG_Lit || id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
             }
         }
 

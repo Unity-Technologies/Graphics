@@ -6,11 +6,10 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class KeywordCollection : IEnumerable<KeywordCollection.Item>
     {
-        public class Item : IConditional, IShaderString
+        public class Item : IConditional
         {
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
-            public string value => descriptor.ToDeclarationString();
 
             public Item(KeywordDescriptor descriptor, FieldCondition[] fieldConditions)
             {

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         TextureHandle DenoiseDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
             TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
         {
             // Is the history still valid?
@@ -24,9 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             GetShadowChannelMask(dirShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
 
             // Apply the temporal denoiser
-            HDTemporalFilter temporalFilter = GetTemporalFilter();
-            HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
-                depthBuffer, normalBuffer, motionVetorsBuffer,
+            HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult = GetTemporalFilter().DenoiseBuffer(renderGraph, hdCamera,
+                depthBuffer, normalBuffer, motionVetorsBuffer, historyValidityBuffer,
                 noisyBuffer, shadowHistoryArray,
                 distanceBuffer, shadowHistoryDistanceArray,
                 velocityBuffer,
@@ -59,7 +58,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputShadowBuffer;
         }
 
-        void RenderRayTracedDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+        void RenderRayTracedDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
+            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             TextureHandle directionalShadow;
             TextureHandle velocityBuffer;
@@ -107,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentSunLightAdditionalLightData.filterTracedShadow && rtsdtParams.softShadow)
             {
                 directionalShadow = DenoiseDirectionalScreenSpaceShadow(renderGraph, hdCamera,
-                    depthBuffer, normalBuffer, motionVetorsBuffer,
+                    depthBuffer, normalBuffer, motionVetorsBuffer, historyValidityBuffer,
                     directionalShadow, velocityBuffer, distanceBuffer);
             }
 
@@ -125,7 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle screenSpaceShadowArray;
         }
 
-        void RenderDirectionalLightScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+        void RenderDirectionalLightScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer,
+            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             // Should we be executing anything really?
             bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow();
@@ -136,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool rayTracedDirectionalRequired = m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow();
                 // If the shadow is flagged as ray traced, we need to evaluate it completely
                 if (rayTracedDirectionalRequired)
-                    RenderRayTracedDirectionalScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                    RenderRayTracedDirectionalScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowArray);
                 else
                 {
                     using (var builder = renderGraph.AddRenderPass<SSSDirectionalTracePassData>("Directional RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow)))

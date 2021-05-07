@@ -134,7 +134,7 @@ A function that describes a wave that represents the human eye’s relative sens
 
 
 <a name="PunctualLight"></a>
-#### punctual lights: 
+#### punctual lights:
 A light is considered to be punctual if it emits light from a single point. HDRPs Spot and Point Lights are punctual.
 
 ## Rendering Artifacts

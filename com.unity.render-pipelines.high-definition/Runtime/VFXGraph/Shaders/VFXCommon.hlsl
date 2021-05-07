@@ -82,14 +82,33 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld());
+#else
     return GetObjectToWorldMatrix();
+#endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
+// NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject());
+#else
     return GetWorldToObjectMatrix();
+#endif
 }
 
 float3x3 VFXGetWorldToViewRotMatrix()
@@ -175,3 +194,8 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 #endif
 }
 #endif
+
+float3 VFXGetCameraWorldDirection()
+{
+    return -_CameraViewMatrix._m20_m21_m22;
+}

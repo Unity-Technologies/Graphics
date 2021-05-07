@@ -57,10 +57,10 @@ namespace UnityEditor.Rendering.LookDev
         internal static IViewDisplayer currentViewDisplayer => s_ViewDisplayer;
         internal static IEnvironmentDisplayer currentEnvironmentDisplayer => s_EnvironmentDisplayer;
 
-        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
+        [MenuItem("Window/Rendering/Look Dev", false, 10001)]
         static void OpenLookDev() => Open();
 
-        [MenuItem("Window/Render Pipeline/Look Dev", true, 10200)]
+        [MenuItem("Window/Rendering/Look Dev", true, 10001)]
         static bool LookDevAvailable() => supported;
 
         internal static bool waitingConfigure { get; private set; } = true;
@@ -129,7 +129,10 @@ namespace UnityEditor.Rendering.LookDev
             s_ViewDisplayer = window;
             s_EnvironmentDisplayer = window;
             open = true;
-            ConfigureLookDev(reloadWithTemporaryID: false);
+
+            // Lookdev Initialize can be called when the window is re-created by the editor layout system.
+            // In that case, the current context won't be null and there might be objects to reload from the temp ID
+            ConfigureLookDev(reloadWithTemporaryID: s_CurrentContext != null);
         }
 
         [Callbacks.DidReloadScripts]
@@ -188,10 +191,6 @@ namespace UnityEditor.Rendering.LookDev
                 s_ViewDisplayer = null;
                 //currentContext = null;
 
-                //release editorInstanceIDs
-                currentContext.GetViewContent(ViewIndex.First).CleanTemporaryObjectIndexes();
-                currentContext.GetViewContent(ViewIndex.Second).CleanTemporaryObjectIndexes();
-
                 SaveConfig();
 
                 open = false;
@@ -238,7 +237,12 @@ namespace UnityEditor.Rendering.LookDev
 
         static void LinkEnvironmentDisplayer()
         {
-            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += currentContext.UpdateEnvironmentLibrary;
+            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += UpdateEnvironmentLibrary;
+        }
+
+        static void UpdateEnvironmentLibrary(EnvironmentLibrary library)
+        {
+            LookDev.currentContext.UpdateEnvironmentLibrary(library);
         }
 
         static void ReloadStage(bool reloadWithTemporaryID)

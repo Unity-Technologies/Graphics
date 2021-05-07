@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.PostProcessing
     sealed class DefineSetter
     {
         const string k_Define = "UNITY_POST_PROCESSING_STACK_V2";
-        
+
         static DefineSetter()
         {
             var targets = Enum.GetValues(typeof(BuildTargetGroup))

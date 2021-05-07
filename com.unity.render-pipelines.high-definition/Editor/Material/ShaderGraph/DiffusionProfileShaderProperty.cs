@@ -40,16 +40,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             /// <summary>Float to string convertion function without any loss of precision</summary>
-            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
+            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339), CultureInfo.InvariantCulture);
 
             return
                 $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 
-        public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
+        public override string GetOldDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return $"float {referenceName}";
         }
@@ -81,11 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return new DiffusionProfileShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

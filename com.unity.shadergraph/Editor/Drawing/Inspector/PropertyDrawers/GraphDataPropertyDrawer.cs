@@ -16,20 +16,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
+        public delegate void ChangeGraphDefaultPrecisionCallback(GraphPrecision newDefaultGraphPrecision);
         public delegate void PostTargetSettingsChangedCallback();
 
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
-        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+        ChangeGraphDefaultPrecisionCallback m_changeGraphDefaultPrecisionCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
-            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+            ChangeGraphDefaultPrecisionCallback changeGraphDefaultPrecisionCallback)
         {
             m_postChangeTargetSettingsCallback = postChangeValueCallback;
-            m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
+            m_changeGraphDefaultPrecisionCallback = changeGraphDefaultPrecisionCallback;
         }
 
         VisualElement GetSettings(GraphData graphData, Action onChange)
@@ -107,8 +107,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            // Inform the user that VFXTarget is deprecated, if they are using one.
+            if (graphData.m_ActiveTargets.Count(t => t.value.SupportsVFX()) == 1 &&
+                graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Info);
+
+                var vfxWarningLabel = new Label("The Visual Effect target is deprecated. \n" +
+                    "Add a Universal or HDRP target instead, and enable 'Support VFX Graph' in the Graph Inspector.");
+
+                vfxWarningLabel.style.color = new StyleColor(Color.white);
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
+            }
+#endif
+
             return element;
         }
+
+        // used to display UI to select GraphPrecision in the GraphData inspector
+        enum UI_GraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+        };
+
+        enum UI_SubGraphPrecision
+        {
+            Single = GraphPrecision.Single,
+            Half = GraphPrecision.Half,
+            Switchable = GraphPrecision.Graph,
+        };
 
         internal VisualElement CreateGUI(GraphData graphData)
         {
@@ -120,18 +151,30 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return propertySheet;
             }
 
+            if (!graphData.isSubGraph)
             {
+                // precision selector for shader graphs
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
-                    graphData.concretePrecision,
+                    newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                    (UI_GraphPrecision)graphData.graphDefaultPrecision,
                     "Precision",
-                    ConcretePrecision.Single,
+                    UI_GraphPrecision.Single,
                     out var propertyVisualElement));
             }
 
             if (graphData.isSubGraph)
             {
+                {
+                    var enum2PropertyDrawer = new EnumPropertyDrawer();
+                    propertySheet.Add(enum2PropertyDrawer.CreateGUI(
+                        newValue => { m_changeGraphDefaultPrecisionCallback((GraphPrecision)newValue); },
+                        (UI_SubGraphPrecision)graphData.graphDefaultPrecision,
+                        "Precision",
+                        UI_SubGraphPrecision.Switchable,
+                        out var propertyVisualElement2));
+                }
+
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
                     newValue =>

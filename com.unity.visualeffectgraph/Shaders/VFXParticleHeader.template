@@ -29,8 +29,15 @@ ByteAddressBuffer deadListCount;
 Buffer<uint> stripDataBuffer;
 #endif
 
-#if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+#if VFX_FEATURE_MOTION_VECTORS
 ByteAddressBuffer elementToVFXBufferPrevious;
+
+#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+#define VFX_FEATURE_MOTION_VECTORS_INTERPOLATION noperspective
+#else
+#define VFX_FEATURE_MOTION_VECTORS_INTERPOLATION
+#endif
+
 #endif
 
 CBUFFER_START(outputParams)

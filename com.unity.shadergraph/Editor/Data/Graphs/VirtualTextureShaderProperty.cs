@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // argument string used to pass this property to a subgraph
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "VTPropertyWithTextureType " + referenceName;
         }
@@ -165,9 +165,7 @@ namespace UnityEditor.ShaderGraph
             var vt =  new VirtualTextureShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = new SerializableVirtualTexture(),
-                precision = precision
             };
 
             // duplicate layer data, but reset reference names (they should be unique)
@@ -186,11 +184,13 @@ namespace UnityEditor.ShaderGraph
             {
                 string layerRefName = value.layers[layer].layerRefName;
                 var layerTexture = value.layers[layer].layerTexture;
+                var texture = layerTexture != null ? layerTexture.texture : null;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerRefName,
-                    textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
+                    textureId = texture != null ? texture.GetInstanceID() : 0,
+                    dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
                     modifiable = true
                 };
                 infos.Add(textureInfo);
@@ -198,6 +198,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal override bool isAlwaysExposed => true;
+        internal override bool isCustomSlotAllowed => false;
 
         public override void OnAfterDeserialize(string json)
         {

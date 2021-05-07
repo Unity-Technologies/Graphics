@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.PostProcessing
             collider.isTrigger = true;
             gameObject.AddComponent<PostProcessVolume>();
 
-            Selection.objects = new [] { gameObject };
+            Selection.objects = new[] { gameObject };
             EditorApplication.ExecuteMenuItem("GameObject/Move To View");
         }
     }

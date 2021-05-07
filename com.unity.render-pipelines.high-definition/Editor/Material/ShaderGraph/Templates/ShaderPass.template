@@ -24,6 +24,20 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    // For custom interpolators to inject a substruct definition before FragInputs definition,
+    // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
+    $splice(CustomInterpolatorPreInclude)
+
+	$features.graphVFX: #define HAVE_VFX_MODIFICATION
+
+    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+	#ifdef HAVE_VFX_MODIFICATION
+	struct FragInputsVFX
+    {
+        $splice(FragInputsVFX)
+    };
+    #endif
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -43,6 +57,7 @@ Pass
     $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
     $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
     $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.vertexID:           #define ATTRIBUTES_NEED_VERTEXID
     $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
     $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
     $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
@@ -50,6 +65,8 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:  #define VARYINGS_NEED_WORLD_TO_ELEMENT
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
 
@@ -62,7 +79,7 @@ Pass
     // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
     // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
     // to still allow us to rename the field and keyword of this node without breaking existing code.
-    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT
     #define RAYTRACING_SHADER_GRAPH_HIGH
     #endif
 
@@ -102,13 +119,18 @@ Pass
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-        #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
+        #if !defined(_SURFACE_TYPE_TRANSPARENT)
             #if SHADERPASS == SHADERPASS_FORWARD
             #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #elif SHADERPASS == SHADERPASS_GBUFFER
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
             #endif
         #endif
+    #endif
+
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #if defined(SHADER_LIT) && !defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _DEFERRED_CAPABLE_MATERIAL
     #endif
 
     // Translate transparent motion vector define
@@ -139,6 +161,7 @@ Pass
 
     // Includes
     $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -163,6 +186,7 @@ Pass
     // --------------------------------------------------
     // Build Graph Inputs
 
+	$features.graphVFX:     $include("VFX/Config.template.hlsl")
     $features.graphVertex:  $include("VertexAnimation.template.hlsl")
     $features.graphPixel:   $include("SharedCode.template.hlsl")
 
@@ -194,7 +218,17 @@ Pass
         #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+
+        #if defined(HAVE_VFX_MODIFICATION)
+        GraphProperties properties;
+        ZERO_INITIALIZE(GraphProperties, properties);
+
+        GetElementPixelProperties(fragInputs, properties);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+        #else
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+        #endif
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
@@ -252,7 +286,10 @@ Pass
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
+		// If we want to force forward emissive and we have GBuffer pass, don't do anything
+		#if !(SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE))
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+		#endif
 
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
@@ -283,6 +320,13 @@ Pass
     // Main
 
     $splice(PostGraphIncludes)
+
+    // --------------------------------------------------
+    // Visual Effect Vertex Invocations
+
+	#ifdef HAVE_VFX_MODIFICATION
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/VisualEffectVertex.hlsl"
+	#endif
 
     ENDHLSL
 }

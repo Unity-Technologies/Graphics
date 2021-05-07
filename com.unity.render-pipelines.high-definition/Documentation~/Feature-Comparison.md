@@ -86,8 +86,8 @@ The tables that follow provide an overview of the Features that the High Definit
 
 | **Feature**            | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------ | ------------------------ | ------------------------------- |
-| **Enlighten**      | Yes                      | Not supported                   |
-| **Enlighten Realtime** | Yes                      | Not supported                   |
+| **Enlighten**      | Yes                      | Deprecated                   |
+| **Enlighten Realtime** | Yes                      | Yes                   |
 | **Progressive CPU** | Yes                      | Yes                             |
 | **Progressive GPU** | Yes                      | Yes                             |
 
@@ -306,7 +306,7 @@ Managing LOD in this way has two consequences:
 
 | **Feature**                  | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------------ | ------------------------ | ------------------------------- |
-| **Speed Tree**           | Yes                      | In research                     |
+| **Speed Tree**           | Yes                      | SpeedTree 8 only.               |
 | **Paint Trees**          | Yes                      | Yes                             |
 | **Detail**               | Yes                      | Not supported                   |
 | **Wind Zone**            | Yes                      | Not supported                   |

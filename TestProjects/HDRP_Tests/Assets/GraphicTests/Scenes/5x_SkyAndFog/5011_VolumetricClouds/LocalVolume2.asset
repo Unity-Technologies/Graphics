@@ -1,0 +1,207 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: LocalVolume2
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 1671757936769656800}
+--- !u!114 &1671757936769656800
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9e4ed5a6f56fb4ebd693e39684f36f, type: 3}
+  m_Name: VolumetricClouds
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  earthCurvature:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  cloudTiling:
+    m_OverrideState: 0
+    m_Value: {x: 1, y: 1}
+  cloudOffset:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0}
+  lowestCloudAltitude:
+    m_OverrideState: 0
+    m_Value: 500
+    min: 0.01
+  cloudThickness:
+    m_OverrideState: 0
+    m_Value: 3000
+    min: 100
+  numPrimarySteps:
+    m_OverrideState: 0
+    m_Value: 48
+    min: 16
+    max: 512
+  numLightSteps:
+    m_OverrideState: 0
+    m_Value: 8
+    min: 6
+    max: 32
+  cloudMap:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  cloudLut:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  cloudControl:
+    m_OverrideState: 1
+    m_Value: 1
+  cloudPreset:
+    m_OverrideState: 1
+    m_Value: 3
+  cumulusMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: c048349d208625040b34910e0ba90ee4, type: 3}
+  cumulusMapMultiplier:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  altoStratusMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
+  altoStratusMapMultiplier:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  cumulonimbusMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 0}
+  cumulonimbusMapMultiplier:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  rainMap:
+    m_OverrideState: 1
+    m_Value: {fileID: 0}
+  cloudMapResolution:
+    m_OverrideState: 1
+    m_Value: 64
+  scatteringDirection:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  scatteringTint:
+    m_OverrideState: 0
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
+  powderEffectIntensity:
+    m_OverrideState: 0
+    m_Value: 0.8
+    min: 0
+    max: 1
+  multiScattering:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  densityMultiplier:
+    m_OverrideState: 1
+    m_Value: 0.832
+    min: 0
+    max: 1
+  shapeFactor:
+    m_OverrideState: 1
+    m_Value: 0.887
+    min: 0
+    max: 1
+  shapeScale:
+    m_OverrideState: 1
+    m_Value: 0.848
+    min: 0
+    max: 1
+  erosionFactor:
+    m_OverrideState: 1
+    m_Value: 0.212
+    min: 0
+    max: 1
+  erosionScale:
+    m_OverrideState: 1
+    m_Value: 0.842
+    min: 0
+    max: 1
+  ambientLightProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  globalWindSpeed:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  orientation:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  cloudMapSpeedMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
+  shapeSpeedMultiplier:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  erosionSpeedMultiplier:
+    m_OverrideState: 0
+    m_Value: 0.25
+    min: 0
+    max: 1
+  temporalAccumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.95
+    min: 0
+    max: 1
+  shadows:
+    m_OverrideState: 1
+    m_Value: 1
+  shadowResolution:
+    m_OverrideState: 1
+    m_Value: 256
+  shadowPlaneHeightOffset:
+    m_OverrideState: 0
+    m_Value: 0
+  shadowDistance:
+    m_OverrideState: 0
+    m_Value: 8000
+    min: 1000
+  shadowOpacity:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  shadowOpacityFallback:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1

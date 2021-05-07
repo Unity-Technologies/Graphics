@@ -52,7 +52,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
     m_EnableBakedLightmaps: 1
-    m_EnableRealtimeLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 12
     m_Resolution: 2
@@ -473,7 +473,7 @@ MonoBehaviour:
     ImageResolution: 0
   captureFrameRate: 20
   simulateTime: 5.95
-  xrCompatible: 0
+  xrCompatible: 1
 --- !u!4 &299252011
 Transform:
   m_ObjectHideFlags: 0

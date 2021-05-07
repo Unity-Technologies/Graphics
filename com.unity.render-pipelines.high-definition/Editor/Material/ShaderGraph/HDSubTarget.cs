@@ -8,13 +8,14 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using UnityEditor.VFX;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     abstract class HDSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>
+        IRequiresData<SystemData>, IVersionable<ShaderGraphVersion>, IRequireVFXContext
     {
         SystemData m_SystemData;
         protected bool m_MigrateFromOldCrossPipelineSG; // Use only for the migration to shader stack architecture
@@ -33,6 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SystemData;
             set => m_SystemData = value;
         }
+
+        // VFX Properties
+        protected VFXContext m_ContextVFX = null;
+        protected VFXContextCompiledData m_ContextDataVFX;
+        protected bool TargetsVFX() => m_ContextVFX != null;
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
@@ -91,7 +97,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            context.AddCustomEditorForRenderPipeline(customInspector, typeof(HDRenderPipelineAsset));
+            var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
+            if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
@@ -118,6 +126,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
+            if (TargetsVFX())
+                subShaderDescriptor = VFXSubTarget.PostProcessSubShader(subShaderDescriptor, m_ContextVFX, m_ContextDataVFX);
+
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
 
@@ -139,22 +150,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.requiredFields.Add(subShaderField);
 
                 IncludeCollection finalIncludes = new IncludeCollection();
-                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
 
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
                 {
-                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
-                        include.descriptor.value = subShaderInclude;
-                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
-                        include.descriptor.value = postDecalsInclude;
-                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
-                        include.descriptor.value = raytracingInclude;
-                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
-                        include.descriptor.value = pathtracingInclude;
+                    var path = include.path;
 
-                    if (!String.IsNullOrEmpty(include.descriptor.value))
-                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                    if (path == CoreIncludes.kPassPlaceholder)
+                        path = subShaderInclude;
+                    if (path == CoreIncludes.kPostDecalsPlaceholder)
+                        path = postDecalsInclude;
+                    if (path == CoreIncludes.kRaytracingPlaceholder)
+                        path = raytracingInclude;
+                    if (path == CoreIncludes.kPathtracingPlaceholder)
+                        path = pathtracingInclude;
+
+                    if (!String.IsNullOrEmpty(path))
+                        finalIncludes.Add(path, include.location, include.fieldConditions);
                 }
                 passDescriptor.includes = finalIncludes;
 
@@ -174,8 +186,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
                     passDescriptor.structs = CoreStructCollections.Default;
+
                 if (passDescriptor.fieldDependencies == null)
-                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                {
+                    if (TargetsVFX())
+                        passDescriptor.fieldDependencies = new DependencyCollection()
+                        {
+                            CoreFieldDependencies.Default,
+                            VFXHDRPSubTarget.ElementSpaceDependencies
+                        };
+                    else
+                        passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                }
+                else if (TargetsVFX())
+                {
+                    var fieldDependencies = passDescriptor.fieldDependencies;
+                    passDescriptor.fieldDependencies = new DependencyCollection()
+                    {
+                        fieldDependencies,
+                        VFXHDRPSubTarget.ElementSpaceDependencies
+                    };
+                }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
@@ -191,7 +222,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Common properties between all HD master nodes
             // Dots
-            context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
+            context.AddField(HDFields.DotsInstancing, systemData.dotsInstancing);
+
+            // VFX Setup
+            if (TargetsVFX())
+                VFXSubTarget.GetFields(ref context, m_ContextVFX);
         }
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
@@ -216,6 +251,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return new HDSaveContext { updateMaterials = needsUpdate };
             }
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            m_ContextVFX = context;
+            m_ContextDataVFX = data;
         }
     }
 }

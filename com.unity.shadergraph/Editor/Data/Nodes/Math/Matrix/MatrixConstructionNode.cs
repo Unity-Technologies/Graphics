@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_MatrixConstruction_{axis}_{concretePrecision.ToShaderString()}";
+            return $"Unity_MatrixConstruction_{axis}_$precision";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

@@ -2,7 +2,6 @@
 // way to being deprecated and removed in future releases
 using System;
 using System.ComponentModel;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -11,6 +10,42 @@ namespace UnityEngine.Rendering.Universal
         // This callback method will be removed. Please use OnCameraCleanup() instead.
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
+    }
+
+    /// <summary>
+    /// Default renderer for Universal RP.
+    /// This renderer is supported on all Universal RP supported platforms.
+    /// It uses a classic forward rendering strategy with per-object light culling.
+    /// </summary>
+    [Obsolete("ForwardRenderer has been deprecated (UnityUpgradable) -> UniversalRenderer", true)]
+    public sealed class ForwardRenderer : ScriptableRenderer
+    {
+        private static readonly string k_ErrorMessage = "ForwardRenderer has been deprecated. Use UniversalRenderer instead";
+
+        public ForwardRenderer(ForwardRendererData data) : base(data)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
+
+        public override void FinishRendering(CommandBuffer cmd)
+        {
+            throw new NotSupportedException(k_ErrorMessage);
+        }
     }
 
     namespace Internal
@@ -25,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
+    public enum ShadowCascadesOption
     {
         NoCascades,
         TwoCascades,
@@ -72,7 +107,6 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public abstract partial class ScriptableRenderer
     {
         // Deprecated in 10.x

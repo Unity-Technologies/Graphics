@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
 
+                // Normal buffer may have already been created if there was a depthNormal prepass before.
+                // DepthNormal prepass is needed for forward-only materials when SSAO is generated between gbuffer and deferred lighting pass.
                 if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                     continue;
 
@@ -72,9 +74,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
-            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            // ScriptableRenderer will implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -87,7 +89,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 gbufferCommands.Clear();
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
-                // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
+                // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
                 {

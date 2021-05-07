@@ -17,7 +17,7 @@ To prevent aliasing, the High Definition Render Pipeline (HDRP) has multiple met
 
 ## Using anti-aliasing
 
-Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity. 
+Anti-aliasing is a per-Camera effect which means that you can have Cameras that use different anti-aliasing methods. This is useful if you have low priority secondary Cameras that can use a lower quality anti-aliasing effect with a lower resource intensity.
 
 <a name="FXAA"></a>
 
@@ -42,6 +42,12 @@ To select TAA for a Camera:
 
 1. Select the Camera in the Scene view or Hierarchy and view it in the Inspector.
 2. In the General section, select Temporal Anti-aliasing (TAA) from the Anti-aliasing drop-down.
+
+When using the same Camera GameObject for multiple Game Views TAA may not work as expected due to limitations of the history buffer system. Multiple game views using different Cameras will however work as expected.
+
+### Limitations
+In the Editor, if multiple Game views use the same Camera, TAA may not work as expected due to limitations of the history buffer system. However, if you use multiple Game views, where each Game view uses a unique Camera, TAA works as expected.
+
 
 <a name="SMAA"></a>
 

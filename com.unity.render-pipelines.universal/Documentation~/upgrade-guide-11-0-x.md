@@ -4,7 +4,7 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ## Upgrading from URP 10.0.x–10.2.x
 
-1. The file names of the following Shader Graph shaders were renamed. The new file names do not have spaces:<br/>`Autodesk Interactive`<br/>`Autodesk Interactive Masked`<br/>`Autodesk Interactive Transparent` 
+1. The file names of the following Shader Graph shaders were renamed. The new file names do not have spaces:<br/>`Autodesk Interactive`<br/>`Autodesk Interactive Masked`<br/>`Autodesk Interactive Transparent`
 
     If your code uses the `Shader.Find()` method to search for the shaders, remove spaces from the shader names, for example, `Shader.Find("AutodeskInteractive)`.
 
@@ -24,7 +24,7 @@ If you intend to use the SSAO effect with your custom shaders, consider the foll
 
 * The `_SCREEN_SPACE_OCCLUSION` keyword.
 
-* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct. 
+* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct.
 
 * `Lighting.hlsl` contains the `AmbientOcclusionFactor` struct with the variables for calculating indirect and direct occlusion:
 

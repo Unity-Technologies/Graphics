@@ -11,7 +11,7 @@ The Motion Blur effect uses velocities from HDRP's velocity buffer. This means t
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Motion Blur**. HDRP now applies **Motion Blur** to any Camera this Volume affects.
 
-Motion Blur includes [more options](More-Options.md) that you must manually expose.
+Motion Blur includes [additional properties](More-Options.md) that you must manually expose.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -34,10 +34,10 @@ Motion Blur includes [more options](More-Options.md) that you must manually expo
 
 ## Details
 
-There are multiple options available to decrease the performance impact of Motion Blur. Listed in order of effectiveness, you can: 
+There are multiple options available to decrease the performance impact of Motion Blur. Listed in order of effectiveness, you can:
 
-1. Reduce the **Sample Count**. A lower sample count directly translates to higher performance. However, it is important to keep in mind that the algorithm clamps the maximum amount of samples so that no two samples are less than a pixel apart, so a high sample count does not affect slowly moving GameObjects very much. 
+1. Reduce the **Sample Count**. A lower sample count directly translates to higher performance. However, it is important to keep in mind that the algorithm clamps the maximum amount of samples so that no two samples are less than a pixel apart, so a high sample count does not affect slowly moving GameObjects very much.
 2. Increase the **Minimum Velocity**. Increase this threshold to make HDRP blur less of the screen. If many GameObjects are at a velocity below this threshold, HDRP does not calculate Motion Blur for them, and the resource intensity of the effect decreases.
-3. Decrease the **Maximum Velocity** and the **Camera Clamp** parameters. This gives a less intense blur, which leads to an access pattern that is more friendly to the GPU. 
+3. Decrease the **Maximum Velocity** and the **Camera Clamp** parameters. This gives a less intense blur, which leads to an access pattern that is more friendly to the GPU.
 
 If you select a **Camera Clamp Mode** other than **None**, motion vectors that are usually relative to camera motion no longer are. For example, if an object has the camera as a parent and thus perfectly follows the camera, normally that object has a motion vector with a length close to zero. However, if the camera uses a different clamping method to object, the final velocity length is likely not zero if the clamping point is reached.

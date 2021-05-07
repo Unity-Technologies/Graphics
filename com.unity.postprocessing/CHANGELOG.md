@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2021-03-08
+
+### Fixed
+- Fix for broken MSVO on desktop platforms.
+- Fix for compilation issue with BuildTarget error on XboxOne platform.
+
+## [3.1.0] - 2021-03-02
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fix for issue thrown upon unloading a scene from an AssetBundle (case 1262826)
+- Fix for MSVO when used with dynamic resolution reallocating temporary render targets whenever the dynamic resolution scale was changed which could cause a higher peak VRAM usage and fragmentation (Case 1285605). Temporary targets will now use dynamic scaling as well to solve this. Please note there is a bug in Unity that breaks this fix (case 1285577) To make use of dynamic resolution and MSVO please use Unity 2019.4.19f1, 2020.2.2f1, 2021.1.0a9 or later.
+- Fix for compilation error in the FinalPass shader with GLES2/WebGL1 (case 1311160)
+- Fix for MSVO errors on unsupported Android platforms (case 1316915)
+
+## [3.0.3] - 2021-02-19
+
+- bump version to 3.0.3 to not conflict with unrelease 3.0.2
+
 ## [3.0.2] - 2020-12-08
 
 ### Fixed
@@ -101,7 +123,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.1.4] - 2019-02-27
 
 ### Fixed
-- Shader compilation errors with OpenGL ES2 and Switch.
+- Shader compilation errors with OpenGL ES2 and other platforms.
 - Proper viewport support on Builtin render pipelines.
 
 ## [2.1.3] - 2019-01-30
@@ -121,7 +143,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Optimized volume texture blending.
-- Switch compilation issues with 2019.1+.
+- Compilation issues with 2019.1+ on some platforms.
 
 ### Changed
 - Chromatic aberration is now forced to "fast mode" when running on GLES2.0 platforms due to compatibility issues.
@@ -239,14 +261,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.0.5-preview] - 2018-04-20
 
 ### Fixed
-- More XR/Switch related fixes.
+- More XR/platform-specific related fixes.
 
 ## [2.0.4-preview] - 2018-04-19
 
 ### Fixed
 - Temporal Anti-aliasing creating NaN values in some cases. ([#337](https://github.com/Unity-Technologies/PostProcessing/issues/337))
 - Auto-exposure has been fixed to work the same way it did before the full-compute port.
-- XR compilation errors on Xbox One & Switch (2018.2).
+- XR compilation errors specific-platforms (2018.2).
 - `ArgumentNullException` when attempting to get a property sheet for a null shader. ([#515](https://github.com/Unity-Technologies/PostProcessing/pull/515))
 - Stop NaN Propagation not working for opaque-only effects.
 - HDR color grading had a slight color temperature offset.

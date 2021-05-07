@@ -34,10 +34,9 @@ public class TestSceneAsset : ScriptableObject
         public IEnumerable<(SceneData sceneData, SRPAssetData assetData)> GetTestList()
         {
             foreach (var srpAsset in srpAssets)
-                if (srpAsset != null)
-                    foreach (var scene in scenes)
-                        if (scene.enabled)
-                            yield return (scene, srpAsset);
+                foreach (var scene in scenes)
+                    if (scene.enabled)
+                        yield return (scene, srpAsset);
         }
     }
 
@@ -67,27 +66,27 @@ public struct CounterTestDescription
 {
     public TestSceneAsset.SceneData    sceneData;
     public TestSceneAsset.SRPAssetData  assetData;
-
     public override string ToString()
-        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, k_Default);
+    {
+        var formatTestName = PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels,
+            String.IsNullOrEmpty(assetData.alias) ? assetData.asset?.name ?? "Builtin" : assetData.alias, assetData.assetLabels,
+            k_Default);
+        return formatTestName;
+    }
 }
-
 public struct MemoryTestDescription
 {
     public TestSceneAsset.SceneData     sceneData;
     public TestSceneAsset.SRPAssetData  assetData;
     public Type                         assetType;
-
     public override string ToString()
-        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, assetType.Name);
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset?.name ?? "Builtin" : assetData.alias, assetData.assetLabels, assetType.Name);
 }
-
 public struct BuildTestDescription
 {
     public TestSceneAsset.SceneData     sceneData;
     public TestSceneAsset.SRPAssetData   assetData;
     public string                       testName;
-
     public override string ToString()
-        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset.name : assetData.alias, assetData.assetLabels, testName);
+        => PerformanceTestUtils.FormatTestName(sceneData.scene, sceneData.sceneLabels, String.IsNullOrEmpty(assetData.alias) ? assetData.asset?.name ?? "Builtin" : assetData.alias, assetData.assetLabels, testName);
 }

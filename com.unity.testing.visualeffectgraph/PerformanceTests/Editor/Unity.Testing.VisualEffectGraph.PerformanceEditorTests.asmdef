@@ -1,0 +1,26 @@
+{
+    "name": "Unity.Testing.VisualEffectGraph.PerformanceEditorTests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.GraphicTests.Performance.Editor",
+        "Unity.GraphicTests.Performance.Runtime",
+        "Unity.VisualEffectGraph.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

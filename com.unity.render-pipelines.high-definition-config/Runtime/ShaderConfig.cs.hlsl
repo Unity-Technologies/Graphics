@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERCONFIG_CS_HLSL
@@ -14,6 +14,7 @@
 #define SHADEROPTIONS_XR_MAX_VIEWS (2)
 #define SHADEROPTIONS_AREA_LIGHTS (1)
 #define SHADEROPTIONS_BARN_DOOR (0)
+#define SHADEROPTIONS_GLOBAL_MIP_BIAS (1)
 
 
 #endif

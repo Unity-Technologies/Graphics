@@ -8,7 +8,7 @@ HDRP uses these two sorting methods together to control the render queue. To cal
 
 1. Sorts Meshes into groups that share Materials
 2. Uses each Materials’ **Priority** to calculate the rendering order of these Material groups
-3.  Sorts the Material groups using each Mesh Renderer’s **Priority** property. 
+3.  Sorts the Material groups using each Mesh Renderer’s **Priority** property.
 
 The resulting queue is a list of GameObjects that are first sorted by their Material’s **Priority**, then by their individual Mesh Renderer’s **Priority**.
 
@@ -16,7 +16,7 @@ The resulting queue is a list of GameObjects that are first sorted by their Mate
 
 ## Sorting by Material
 
-Materials with a **Transparent Surface Type** have a **Sorting Priority** property that you can use to sort groups of Meshes that use different Materials. This property is an integer value clamped between -100 and 100.
+Materials with a **Transparent Surface Type** have a **Sorting Priority** property that you can use to sort groups of Meshes that use different Materials. This property is an integer value clamped between -50 and 50.
 
 ![](Images/RendererAndMaterialPriority1.png)
 

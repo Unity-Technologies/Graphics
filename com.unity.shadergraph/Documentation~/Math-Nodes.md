@@ -102,7 +102,7 @@
 | ![Image](images/StepNodeThumb.png) | ![Image](images/TruncateNodeThumb.png) |
 | Returns 1 if the value of input In is greater than or equal to the value of input Edge, otherwise returns 0. | Returns the integer, or whole number, component of the value of input In. |
 
-## Trigonometry 
+## Trigonometry
 
 | [Arccosine](Arccosine-Node) | [Arcsine](Arcsine-Node.md) |
 | :------- | :------ |

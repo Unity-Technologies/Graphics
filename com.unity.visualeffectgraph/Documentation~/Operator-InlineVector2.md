@@ -18,4 +18,3 @@ The **Vector2** inline Operator allows you to store an instance of a Vector2. Th
 | **Output** | Vector2   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 80cbdb9ff18b3a444868af6d256be922
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1991
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 5000
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: LITHONIA ARCHITECTURAL OUTDOOR
+    LuminaireCatalogNumber: KBD8 70M LV
+    LuminaireDescription: 8 IN ROUND BOLLARD W/ LOUVERS
+    LampCatalogNumber: M70/U
+    LampDescription: 70 WATT CLEAR METAL HALIDE
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90

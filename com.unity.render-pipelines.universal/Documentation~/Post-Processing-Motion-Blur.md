@@ -23,7 +23,7 @@ Universal Render Pipeline (URP) only blurs camera motions.
 
 ## Troubleshooting performance issues
 
-To decrease the performance impact of Motion Blur, you can: 
+To decrease the performance impact of Motion Blur, you can:
 
 * Reduce the **Quality**. A lower quality setting gives higher performance but may exhibit more visual artifacts.
 * Decrease the **Clamp** to reduce the maximum velocity that Unity takes into account. Lower values give higher performance.

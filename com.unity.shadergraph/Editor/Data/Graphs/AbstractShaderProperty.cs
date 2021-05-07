@@ -22,9 +22,29 @@ namespace UnityEditor.ShaderGraph.Internal
             set {}
         }
 
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
+        {
+            if (mode == GenerationMode.VFX)
+            {
+                // Per-element exposed properties are provided by the properties structure filled by VFX.
+                if (overrideHLSLDeclaration)
+                    return $"PROP.{referenceName}";
+                // For un-exposed global properties, just read from the cbuffer.
+                else
+                    return referenceName;
+            }
+
+            return referenceName;
+        }
+
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            return referenceName;
+            return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
+        }
+
+        internal string GetConnectionStateHLSLVariableName()
+        {
+            return GetConnectionStateVariableName(referenceName + "_" + objectId);
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
@@ -59,9 +79,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        internal void SetupConcretePrecision(ConcretePrecision defaultPrecision)
         {
-            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+            m_ConcretePrecision = precision.ToConcrete(defaultPrecision, defaultPrecision);
         }
 
         [SerializeField]
@@ -100,7 +120,12 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
-        internal abstract string GetPropertyAsArgumentString();
+        internal virtual string GetPropertyAsArgumentStringForVFX(string precisionString)
+        {
+            return GetPropertyAsArgumentString(precisionString);
+        }
+
+        internal abstract string GetPropertyAsArgumentString(string precisionString);
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
 
@@ -219,6 +244,15 @@ namespace UnityEditor.ShaderGraph.Internal
             "TEXTURE2D_ARRAY",
             "SAMPLER",
         };
+
+        public bool IsObjectType()
+        {
+            return type == HLSLType._SamplerState ||
+                type == HLSLType._Texture2D    ||
+                type == HLSLType._Texture3D    ||
+                type == HLSLType._TextureCube  ||
+                type == HLSLType._Texture2DArray;
+        }
 
         public string GetValueTypeString()
         {

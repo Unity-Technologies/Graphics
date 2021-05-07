@@ -31,8 +31,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
         protected override string raytracingInclude => CoreIncludes.kFabricRaytracing;
+        protected override string pathtracingInclude => CoreIncludes.kFabricPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Fabric SubShader", "");
         protected override bool requireSplitLighting => fabricData.subsurfaceScattering;
+
+        // SubShader features
+        protected override bool supportPathtracing => true;
 
         FabricData m_FabricData;
 
@@ -56,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (fabricData.subsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
 
             return descriptor;
         }

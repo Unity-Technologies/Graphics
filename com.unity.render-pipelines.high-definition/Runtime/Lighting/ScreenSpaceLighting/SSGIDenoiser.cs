@@ -13,13 +13,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_TemporalFilterHalfKernel;
         int m_TemporalFilterKernel;
         int m_CopyHistory;
-        static Color s_CoCgAccClearColor = new Color(0.501960784f, 0.501960784f, 0.0f, 0.0f);
 
         public SSGIDenoiser()
         {
         }
 
-        public void Init(RenderPipelineResources rpResources)
+        public void Init(HDRenderPipelineRuntimeResources rpResources)
         {
             // Keep track of the resources
             m_SSGIDenoiserCS = rpResources.shaders.ssGIDenoiserCS;
@@ -62,14 +61,72 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        RTHandle IndirectDiffuseHistoryBufferAllocatorFunction0(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureXR.dimension,
                 enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                name: string.Format("IndirectDiffuseHistoryBuffer{0}", frameIndex));
+                name: string.Format("IndirectDiffuseHistoryBuffer0{0}", frameIndex));
         }
 
-        struct SSGIDenoiserParameters
+        RTHandle IndirectDiffuseHistoryBufferAllocatorFunction1(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("IndirectDiffuseHistoryBuffer1{0}", frameIndex));
+        }
+
+        static void SpatialFilter(CommandBuffer cmd, DenoiseSSGIPassData data, int filterRadius, Vector2 filterDirection,
+            RTHandle input0, RTHandle input1, RTHandle output0, RTHandle output1)
+        {
+            // Bind the input scalars
+            cmd.SetComputeVectorParam(data.ssgiDenoiserCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, data.firstMipOffset);
+            cmd.SetComputeIntParam(data.ssgiDenoiserCS, HDShaderIDs._IndirectDiffuseSpatialFilter, filterRadius);
+            cmd.SetComputeFloatParam(data.ssgiDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
+            cmd.SetComputeVectorParam(data.ssgiDenoiserCS, HDShaderIDs._SpatialFilterDirection, filterDirection);
+
+            // Inject half screen size if required
+            if (data.halfResolution)
+                cmd.SetComputeVectorParam(data.ssgiDenoiserCS, HDShaderIDs._HalfScreenSize, data.halfScreenSize);
+
+            // Bind the input buffers
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._DepthTexture, data.depthTexture);
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._InputNoisyBuffer0, input0);
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._InputNoisyBuffer1, input1);
+
+            // Bind the output buffer
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._OutputFilteredBuffer0, output0);
+            cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.spatialFilterKernel, HDShaderIDs._OutputFilteredBuffer1, output1);
+
+            // Do the spatial pass
+            cmd.DispatchCompute(data.ssgiDenoiserCS, data.spatialFilterKernel, data.numTilesX, data.numTilesY, data.viewCount);
+        }
+
+        RTHandle RequestIndirectDiffuseHistory0(HDCamera hdCamera, out bool historyRequireClear)
+        {
+            historyRequireClear = false;
+            RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF);
+            if (indirectDiffuseHistory == null)
+            {
+                indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction0, 1);
+                historyRequireClear = true;
+            }
+            return indirectDiffuseHistory;
+        }
+
+        RTHandle RequestIndirectDiffuseHistory1(HDCamera hdCamera, out bool historyRequireClear)
+        {
+            historyRequireClear = false;
+            RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF);
+            if (indirectDiffuseHistory == null)
+            {
+                indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF, IndirectDiffuseHistoryBufferAllocatorFunction1, 1);
+                historyRequireClear = true;
+            }
+            return indirectDiffuseHistory;
+        }
+
+        class DenoiseSSGIPassData
         {
             // Camera Parameters
             public int numTilesX;
@@ -84,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float historyValidity;
             public bool historyNeedsClear;
             public float pixelSpreadTangent;
+            public bool exclusiveMode;
 
             // Shader
             public ComputeShader ssgiDenoiserCS;
@@ -92,165 +150,24 @@ namespace UnityEngine.Rendering.HighDefinition
             public int spatialFilterKernel;
             public int temporalFilterKernel;
             public int copyHistory;
-        }
 
-        SSGIDenoiserParameters PrepareSSGIDenoiserParameters(HDCamera hdCamera, bool halfResolution, float historyValidity, bool historyNeedsClear, HDUtils.PackedMipChainInfo depthMipInfo)
-        {
-            var giSettings = hdCamera.volumeStack.GetComponent<UnityEngine.Rendering.HighDefinition.GlobalIllumination>();
-
-            SSGIDenoiserParameters parameters = new SSGIDenoiserParameters();
-
-            // Compute the dispatch parameters based on if we are half res or not
-            int tileSize = 8;
-            EvaluateDispatchParameters(hdCamera, halfResolution, tileSize, out parameters.numTilesX, out parameters.numTilesY, out parameters.halfScreenSize);
-            parameters.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].y));
-            parameters.historyValidity = historyValidity;
-            parameters.viewCount = hdCamera.viewCount;
-            parameters.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-
-            // Denoising parameters
-            parameters.filterRadius = giSettings.filterRadius;
-            parameters.halfResolution = halfResolution;
-            parameters.historyValidity = historyValidity;
-            parameters.historyNeedsClear = historyNeedsClear;
-
-            // Compute shader
-            parameters.ssgiDenoiserCS = m_SSGIDenoiserCS;
-
-            // Kernels
-            parameters.spatialFilterKernel = halfResolution ? m_SpatialFilterHalfKernel : m_SpatialFilterKernel;
-            parameters.temporalFilterKernel = halfResolution ? m_TemporalFilterHalfKernel : m_TemporalFilterKernel;
-            parameters.copyHistory = m_CopyHistory;
-
-            return parameters;
-        }
-
-        struct SSGIDenoiserResources
-        {
-            // Input Buffers
-            public RTHandle depthTexture;
-            public RTHandle normalBuffer;
-            public RTHandle motionVectorsBuffer;
-
-            // History Buffer
-            public RTHandle indirectDiffuseHistory0;
-            public RTHandle indirectDiffuseHistory1;
-            public RTHandle historyDepthBuffer;
-
-            // Intermediate buffer
-            public RTHandle intermediateBuffer0;
-            public RTHandle intermediateBuffer1;
-
-            // In-output Buffer
-            public RTHandle inputOutputBuffer0;
-            public RTHandle inputOutputBuffer1;
-        }
-
-        static void Denoise(CommandBuffer cmd, SSGIDenoiserParameters parameters, SSGIDenoiserResources resources)
-        {
-            if (resources.historyDepthBuffer == null)
-                return;
-
-            // Bind the input scalars
-            cmd.SetComputeVectorParam(parameters.ssgiDenoiserCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, parameters.firstMipOffset);
-            cmd.SetComputeIntParam(parameters.ssgiDenoiserCS, HDShaderIDs._IndirectDiffuseSpatialFilter, parameters.filterRadius);
-            cmd.SetComputeFloatParam(parameters.ssgiDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, parameters.pixelSpreadTangent);
-            // Inject half screen size if required
-            if (parameters.halfResolution)
-                cmd.SetComputeVectorParam(parameters.ssgiDenoiserCS, HDShaderIDs._HalfScreenSize, parameters.halfScreenSize);
-
-            // Bind the input buffers
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._NormalBufferTexture, resources.normalBuffer);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._InputNoisyBuffer0, resources.inputOutputBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._InputNoisyBuffer1, resources.inputOutputBuffer1);
-
-            // Bind the output buffer
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._OutputFilteredBuffer0, resources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, HDShaderIDs._OutputFilteredBuffer1, resources.intermediateBuffer1);
-
-            // Do the spatial pass
-            cmd.DispatchCompute(parameters.ssgiDenoiserCS, parameters.spatialFilterKernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
-
-            // Grab the history buffer
-            if (parameters.historyNeedsClear)
-            {
-                // clear it to black if this is the first pass to avoid nans
-                CoreUtils.SetRenderTarget(cmd, resources.indirectDiffuseHistory0, ClearFlag.Color, Color.black);
-                CoreUtils.SetRenderTarget(cmd, resources.indirectDiffuseHistory1, ClearFlag.Color, s_CoCgAccClearColor);
-            }
-
-            // Bind the input buffers
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._DepthTexture, resources.depthTexture);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._NormalBufferTexture, resources.normalBuffer);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._CameraMotionVectorsTexture, resources.motionVectorsBuffer);
-            cmd.SetComputeFloatParam(parameters.ssgiDenoiserCS, HDShaderIDs._HistoryValidity, parameters.historyValidity);
-            if (parameters.halfResolution)
-            {
-                cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._HistoryDepthTexture, resources.historyDepthBuffer);
-                cmd.SetComputeVectorParam(parameters.ssgiDenoiserCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, parameters.firstMipOffset);
-            }
-            else
-            {
-                cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._HistoryDepthTexture, resources.historyDepthBuffer);
-            }
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._HistoryBuffer0, resources.indirectDiffuseHistory0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._HistoryBuffer1, resources.indirectDiffuseHistory1);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._InputNoisyBuffer0, resources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._InputNoisyBuffer1, resources.intermediateBuffer1);
-
-            // Bind the output buffer
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._OutputFilteredBuffer0, resources.inputOutputBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, HDShaderIDs._OutputFilteredBuffer1, resources.inputOutputBuffer1);
-
-            // Do the temporal pass
-            cmd.DispatchCompute(parameters.ssgiDenoiserCS, parameters.temporalFilterKernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
-
-            // Copy the new version into the history buffer
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.copyHistory, HDShaderIDs._InputNoisyBuffer0, resources.inputOutputBuffer0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.copyHistory, HDShaderIDs._InputNoisyBuffer1, resources.inputOutputBuffer1);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.copyHistory, HDShaderIDs._OutputFilteredBuffer0, resources.indirectDiffuseHistory0);
-            cmd.SetComputeTextureParam(parameters.ssgiDenoiserCS, parameters.copyHistory, HDShaderIDs._OutputFilteredBuffer1, resources.indirectDiffuseHistory1);
-            cmd.DispatchCompute(parameters.ssgiDenoiserCS, parameters.copyHistory, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
-        }
-
-        RTHandle RequestIndirectDiffuseHistory0(HDCamera hdCamera, out bool historyRequireClear)
-        {
-            historyRequireClear = false;
-            RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF);
-            if (indirectDiffuseHistory == null)
-            {
-                indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-                historyRequireClear = true;
-            }
-            return indirectDiffuseHistory;
-        }
-
-        RTHandle RequestIndirectDiffuseHistory1(HDCamera hdCamera, out bool historyRequireClear)
-        {
-            historyRequireClear = false;
-            RTHandle indirectDiffuseHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF);
-            if (indirectDiffuseHistory == null)
-            {
-                indirectDiffuseHistory = hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
-                historyRequireClear = true;
-            }
-            return indirectDiffuseHistory;
-        }
-
-        class DenoiseSSGIPassData
-        {
-            public SSGIDenoiserParameters parameters;
+            // Prepass data
             public TextureHandle depthTexture;
             public TextureHandle normalBuffer;
             public TextureHandle motionVectorsBuffer;
+
+            // History buffer
             public TextureHandle indirectDiffuseHistory0;
             public TextureHandle indirectDiffuseHistory1;
             public TextureHandle historyDepthBuffer;
-            public TextureHandle intermediateBuffer0;
-            public TextureHandle intermediateBuffer1;
-            public TextureHandle inputOutputBuffer0;
-            public TextureHandle inputOutputBuffer1;
+
+            // input buffers
+            public TextureHandle inputBuffer0;
+            public TextureHandle inputBuffer1;
+
+            // Output buffers
+            public TextureHandle outputBuffer0;
+            public TextureHandle outputBuffer1;
         }
 
         public struct SSGIDenoiserOutput
@@ -260,20 +177,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public SSGIDenoiserOutput Denoise(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle inputOutputBuffer0, TextureHandle inputOutputBuffer1,
+            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle inputBuffer0, TextureHandle inputBuffer1,
             HDUtils.PackedMipChainInfo depthMipInfo, bool halfResolution = false, float historyValidity = 1.0f)
         {
             using (var builder = renderGraph.AddRenderPass<DenoiseSSGIPassData>("Denoise SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIDenoise)))
             {
                 builder.EnableAsyncCompute(false);
 
-                // Input buffers
+                // Prepass buffers
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
 
-
-                // History buffer
+                // History buffers
                 bool historyRequireClear = false;
                 RTHandle indirectDiffuseHistory0 = RequestIndirectDiffuseHistory0(hdCamera, out historyRequireClear);
                 passData.indirectDiffuseHistory0 = builder.ReadWriteTexture(renderGraph.ImportTexture(indirectDiffuseHistory0));
@@ -281,36 +197,105 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.indirectDiffuseHistory1 = builder.ReadWriteTexture(renderGraph.ImportTexture(indirectDiffuseHistory1));
                 var historyDepthBuffer = halfResolution ? hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth1) : hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 passData.historyDepthBuffer = historyDepthBuffer != null ? builder.ReadTexture(renderGraph.ImportTexture(historyDepthBuffer)) : renderGraph.defaultResources.blackTextureXR;
-                passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate0" });
-                passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Denoiser Intermediate1" });
-                passData.inputOutputBuffer0 = builder.ReadWriteTexture(inputOutputBuffer0);
-                passData.inputOutputBuffer1 = builder.ReadWriteTexture(inputOutputBuffer1);
 
-                passData.parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear, depthMipInfo);
+                // Input buffers
+                passData.inputBuffer0 = builder.ReadTexture(inputBuffer0);
+                passData.inputBuffer1 = builder.ReadTexture(inputBuffer1);
+
+                // Output buffers
+                passData.outputBuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Denoised 0" }));
+                passData.outputBuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Denoised 1" }));
+
+                // Parameters
+                var giSettings = hdCamera.volumeStack.GetComponent<UnityEngine.Rendering.HighDefinition.GlobalIllumination>();
+
+                // Compute the dispatch parameters based on if we are half res or not
+                int tileSize = 8;
+                EvaluateDispatchParameters(hdCamera, halfResolution, tileSize, out passData.numTilesX, out passData.numTilesY, out passData.halfScreenSize);
+                passData.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].y));
+                passData.historyValidity = historyValidity;
+                passData.viewCount = hdCamera.viewCount;
+                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
+
+                // Denoising parameters
+                passData.filterRadius = giSettings.filterRadius;
+                passData.halfResolution = halfResolution;
+                passData.historyValidity = historyValidity;
+                passData.historyNeedsClear = historyRequireClear;
+                passData.exclusiveMode = !hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume);
+
+                // Compute shader
+                passData.ssgiDenoiserCS = m_SSGIDenoiserCS;
+
+                // Kernels
+                passData.spatialFilterKernel = halfResolution ? m_SpatialFilterHalfKernel : m_SpatialFilterKernel;
+                passData.temporalFilterKernel = halfResolution ? m_TemporalFilterHalfKernel : m_TemporalFilterKernel;
+                passData.copyHistory = m_CopyHistory;
 
                 builder.SetRenderFunc(
                     (DenoiseSSGIPassData data, RenderGraphContext ctx) =>
                     {
-                        // We need to fill the structure that holds the various resources
-                        SSGIDenoiserResources resources = new SSGIDenoiserResources();
-                        resources.depthTexture = data.depthTexture;
-                        resources.normalBuffer = data.normalBuffer;
-                        resources.motionVectorsBuffer = data.motionVectorsBuffer;
-                        resources.indirectDiffuseHistory0 = data.indirectDiffuseHistory0;
-                        resources.indirectDiffuseHistory1 = data.indirectDiffuseHistory1;
-                        resources.historyDepthBuffer = data.historyDepthBuffer;
-                        resources.intermediateBuffer0 = data.intermediateBuffer0;
-                        resources.intermediateBuffer1 = data.intermediateBuffer1;
-                        resources.inputOutputBuffer0 = data.inputOutputBuffer0;
-                        resources.inputOutputBuffer1 = data.inputOutputBuffer1;
-                        Denoise(ctx.cmd, data.parameters, resources);
+                        int effectiveRadius = data.exclusiveMode ? data.filterRadius / 2 : data.filterRadius;
+                        if (data.exclusiveMode)
+                        {
+                            // Horizontal Filter
+                            SpatialFilter(ctx.cmd, data, effectiveRadius, new Vector2(1.0f, 0.0f), data.inputBuffer0, data.inputBuffer1, data.outputBuffer0, data.outputBuffer1);
+                            // Vertical Filter
+                            SpatialFilter(ctx.cmd, data, effectiveRadius, new Vector2(0.0f, 1.0f), data.outputBuffer0, data.outputBuffer1, data.inputBuffer0, data.inputBuffer1);
+                        }
+
+                        // Grab the history buffer
+                        if (data.historyNeedsClear)
+                        {
+                            // clear it to black if this is the first pass to avoid nans
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.indirectDiffuseHistory0, ClearFlag.Color, Color.black);
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.indirectDiffuseHistory1, ClearFlag.Color, Color.black);
+                        }
+
+                        // Bind the input buffers
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._DepthTexture, data.depthTexture);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
+                        ctx.cmd.SetComputeFloatParam(data.ssgiDenoiserCS, HDShaderIDs._HistoryValidity, data.historyValidity);
+                        if (data.halfResolution)
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepthBuffer);
+                            ctx.cmd.SetComputeVectorParam(data.ssgiDenoiserCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, data.firstMipOffset);
+                        }
+                        else
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepthBuffer);
+                        }
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._HistoryBuffer0, data.indirectDiffuseHistory0);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._HistoryBuffer1, data.indirectDiffuseHistory1);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._InputNoisyBuffer0, data.inputBuffer0);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._InputNoisyBuffer1, data.inputBuffer1);
+
+                        // Bind the output buffer
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._OutputFilteredBuffer0, data.outputBuffer0);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.temporalFilterKernel, HDShaderIDs._OutputFilteredBuffer1, data.outputBuffer1);
+
+                        // Do the temporal pass
+                        ctx.cmd.DispatchCompute(data.ssgiDenoiserCS, data.temporalFilterKernel, data.numTilesX, data.numTilesY, data.viewCount);
+
+                        // Copy the new version into the history buffer
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.copyHistory, HDShaderIDs._InputNoisyBuffer0, data.outputBuffer0);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.copyHistory, HDShaderIDs._InputNoisyBuffer1, data.outputBuffer1);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.copyHistory, HDShaderIDs._OutputFilteredBuffer0, data.indirectDiffuseHistory0);
+                        ctx.cmd.SetComputeTextureParam(data.ssgiDenoiserCS, data.copyHistory, HDShaderIDs._OutputFilteredBuffer1, data.indirectDiffuseHistory1);
+                        ctx.cmd.DispatchCompute(data.ssgiDenoiserCS, data.copyHistory, data.numTilesX, data.numTilesY, data.viewCount);
+
+                        // Horizontal Filter
+                        SpatialFilter(ctx.cmd, data, effectiveRadius, new Vector2(1.0f, 0.0f), data.outputBuffer0, data.outputBuffer1, data.inputBuffer0, data.inputBuffer1);
+                        // Vertical Filter
+                        SpatialFilter(ctx.cmd, data, effectiveRadius, new Vector2(0.0f, 1.0f), data.inputBuffer0, data.inputBuffer1, data.outputBuffer0, data.outputBuffer1);
                     });
 
                 SSGIDenoiserOutput denoiserOutput = new SSGIDenoiserOutput();
-                denoiserOutput.outputBuffer0 = inputOutputBuffer0;
-                denoiserOutput.outputBuffer1 = inputOutputBuffer1;
+                denoiserOutput.outputBuffer0 = passData.outputBuffer0;
+                denoiserOutput.outputBuffer1 = passData.outputBuffer1;
                 return denoiserOutput;
             }
         }

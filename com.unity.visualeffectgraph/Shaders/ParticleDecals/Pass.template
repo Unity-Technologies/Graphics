@@ -14,7 +14,11 @@ struct ps_input
 	// z: exposure weight
 	nointerpolation float3 builtInInterpolants : TEXCOORD0;
 	#if USE_FLIPBOOK
-	nointerpolation float4 flipbookSize : TEXCOORD1;
+	#if USE_FLIPBOOK_ARRAY_LAYOUT
+			nointerpolation float flipBookSize : TEXCOORD6;
+		#else
+			nointerpolation float4 flipBookSize : TEXCOORD6;
+		#endif
 	#endif
 	#if USE_FLIPBOOK_MOTIONVECTORS
 	// x: motion vectors scale X
@@ -50,8 +54,12 @@ struct ps_output
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #if USE_FLIPBOOK
 #define VFX_VARYING_TEXINDEX builtInInterpolants.y
-#define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
-#define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
+#if USE_FLIPBOOK_ARRAY_LAYOUT
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize
+#else
+	#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
+	#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#endif
 #endif
 #if USE_FLIPBOOK_MOTIONVECTORS
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
@@ -122,10 +130,9 @@ ps_output frag(ps_input i)
 	const float bias = 0.0f;
 	clip(1.0f - abs(elementPos) + bias);
 
-	VFXSampler2D s = VFX_SAMPLER(mainTexture);
 	float2 uv = elementPos.xy * 0.5f + 0.5f;
 
-	#define VFX_TEXTURE_COLOR VFXGetTextureColorWithProceduralUV(s,i,uv)
+	#define VFX_TEXTURE_COLOR VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,uv)
 	${VFXApplyColor}
 
 	o.color = VFXApplyPreExposure(o.color, i);

@@ -1,30 +1,44 @@
-using System.Collections.Generic;
+using System;
+using System.Collections;
 using System.Linq;
+using System.Collections.Generic;
+
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing;
+
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 
 namespace UnityEditor.ShaderGraph
 {
+    class DummyChangeAction : IGraphDataAction
+    {
+        void OnDummyChangeAction(GraphData m_GraphData)
+        {
+        }
+
+        public Action<GraphData> modifyGraphDataAction => OnDummyChangeAction;
+    }
+
     struct SGControllerChangedEvent
     {
         public ISGControlledElement target;
         public SGController controller;
-        public int change;
+        public IGraphDataAction change;
 
-        bool m_PropagationStopped;
-        public void StopPropagation()
+        private bool m_PropagationStopped;
+        void StopPropagation()
         {
             m_PropagationStopped = true;
         }
 
-        public bool isPropagationStopped
-        { get { return m_PropagationStopped; } }
+        public bool isPropagationStopped => m_PropagationStopped;
     }
 
     class SGControllerEvent
     {
-        public ISGControlledElement target = null;
+        ISGControlledElement target = null;
 
         SGControllerEvent(ISGControlledElement controlledTarget)
         {
@@ -34,11 +48,10 @@ namespace UnityEditor.ShaderGraph
 
     abstract class SGController
     {
-    }
-
-    abstract class SGController<T> : SGController
-    {
         public bool m_DisableCalled = false;
+
+        protected IGraphDataAction DummyChange = new DummyChangeAction();
+
         public virtual void OnDisable()
         {
             if (m_DisableCalled)
@@ -47,13 +60,13 @@ namespace UnityEditor.ShaderGraph
             m_DisableCalled = true;
             foreach (var element in allChildren)
             {
-                Profiler.BeginSample(element.GetType().Name + ".OnDisable");
+                UnityEngine.Profiling.Profiler.BeginSample(element.GetType().Name + ".OnDisable");
                 element.OnDisable();
-                Profiler.EndSample();
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
 
-        public void RegisterHandler(ISGControlledElement handler)
+        internal void RegisterHandler(ISGControlledElement handler)
         {
             //Debug.Log("RegisterHandler  of " + handler.GetType().Name + " on " + GetType().Name );
 
@@ -63,35 +76,33 @@ namespace UnityEditor.ShaderGraph
             {
                 m_EventHandlers.Add(handler);
 
-                NotifyEventHandler(handler, AnyThing);
+                NotifyEventHandler(handler, DummyChange);
             }
         }
 
-        public void UnregisterHandler(ISGControlledElement handler)
+        internal void UnregisterHandler(ISGControlledElement handler)
         {
             m_EventHandlers.Remove(handler);
         }
 
-        public const int AnyThing = -1;
-
-        protected void NotifyChange(int eventID)
+        protected void NotifyChange(IGraphDataAction changeAction)
         {
             var eventHandlers = m_EventHandlers.ToArray(); // Some notification may trigger Register/Unregister so duplicate the collection.
 
             foreach (var eventHandler in eventHandlers)
             {
-                Profiler.BeginSample("NotifyChange:" + eventHandler.GetType().Name);
-                NotifyEventHandler(eventHandler, eventID);
-                Profiler.EndSample();
+                UnityEngine.Profiling.Profiler.BeginSample("NotifyChange:" + eventHandler.GetType().Name);
+                NotifyEventHandler(eventHandler, changeAction);
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
 
-        void NotifyEventHandler(ISGControlledElement eventHandler, int eventID)
+        void NotifyEventHandler(ISGControlledElement eventHandler, IGraphDataAction changeAction)
         {
             SGControllerChangedEvent e = new SGControllerChangedEvent();
             e.controller = this;
             e.target = eventHandler;
-            e.change = eventID;
+            e.change = changeAction;
             eventHandler.OnControllerChanged(ref e);
             if (e.isPropagationStopped)
                 return;
@@ -121,45 +132,66 @@ namespace UnityEditor.ShaderGraph
 
         public abstract void ApplyChanges();
 
-
-        public virtual IEnumerable<SGController<T>> allChildren
+        public virtual IEnumerable<SGController> allChildren
         {
-            get { return Enumerable.Empty<SGController<T>>(); }
+            get { return Enumerable.Empty<SGController>(); }
         }
 
         List<ISGControlledElement> m_EventHandlers = new List<ISGControlledElement>();
     }
 
-    // Using the Curiously Recurring Template Pattern here
-    // Generic subclass that provides itself as argument for base class type
-    // Allows access to child class functionality in the parent
-    abstract class SGViewController<T> : SGController<SGViewController<T>> where T : SGViewModel
+    abstract class SGController<T> : SGController
     {
-        // Holds application specific data
-        GraphData m_Model;
+        GraphDataStore m_DataStore;
+        protected GraphDataStore DataStore => m_DataStore;
 
-        // Holds data specific to the views this controller is responsible for
-        T m_ViewModel;
-        protected SGViewController(T viewModel, GraphData graphData)
+        protected SGController(T model, GraphDataStore dataStore)
         {
-            m_ViewModel = viewModel;
-            m_Model = graphData;
-            m_ViewModel.ConstructFromModel(m_Model);
+            m_Model = model;
+            m_DataStore = dataStore;
+            DataStore.Subscribe += ModelChanged;
         }
 
-        protected abstract void ModelChanged(GraphData graphData);
+        protected abstract void RequestModelChange(IGraphDataAction changeAction);
+
+        protected abstract void ModelChanged(GraphData graphData, IGraphDataAction changeAction);
+
+        T m_Model;
+        public T Model => m_Model;
+
+        // Cleanup delegate association before destruction
+        ~SGController()
+        {
+            DataStore.Subscribe -= ModelChanged;
+        }
+    }
+
+    abstract class SGViewController<ModelType, ViewModelType> : SGController<ModelType>
+    {
+        protected SGViewController(ModelType model, ViewModelType viewModel, GraphDataStore graphDataStore) : base(model, graphDataStore)
+        {
+            m_ViewModel = viewModel;
+            try
+            {
+                // Need ViewModel to be initialized before we call ModelChanged() [as view model might need to update]
+                ModelChanged(DataStore.State, DummyChange);
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Failed to initialize View Controller of type: " + this.GetType() + " due to exception: " + e);
+            }
+        }
+
+        // Holds data specific to the views this controller is responsible for
+        ViewModelType m_ViewModel;
+        public ViewModelType ViewModel => m_ViewModel;
 
         public override void ApplyChanges()
         {
-            ModelChanged(Model);
-            ViewModel.ConstructFromModel(Model);
             foreach (var controller in allChildren)
             {
                 controller.ApplyChanges();
             }
         }
-
-        public T ViewModel => m_ViewModel;
-        public GraphData Model => m_Model;
     }
 }

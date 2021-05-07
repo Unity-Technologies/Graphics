@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_DEPTH_ONLY_PASS_INCLUDED
-#define UNIVERSAL_DEPTH_ONLY_PASS_INCLUDED
+#ifndef UNIVERSAL_DEPTH_NORMALS_PASS_INCLUDED
+#define UNIVERSAL_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -45,7 +45,7 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
 
     #if defined(_GBUFFER_NORMALS_OCT)
     float3 normalWS = normalize(input.normalWS);
-    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
+    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms.
     float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
     return half4(packedNormalWS, 0.0);

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -18,6 +18,7 @@
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _ViewMatrix;
+    float4x4 _CameraViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
     float4x4 _InvProjMatrix;
@@ -30,8 +31,11 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _WorldSpaceCameraPos_Internal;
     float4 _PrevCamPosRWS_Internal;
     float4 _ScreenSize;
+    float4 _PostProcessScreenSize;
     float4 _RTHandleScale;
     float4 _RTHandleScaleHistory;
+    float4 _RTHandlePostProcessScale;
+    float4 _RTHandlePostProcessScaleHistory;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -52,7 +56,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MaxFogDistance;
     float4 _FogColor;
     float _FogColorMode;
-    float _Pad0;
+    float _GlobalMipBias;
     float _Pad1;
     float _Pad2;
     float4 _MipFogParameters;
@@ -152,7 +156,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
-    float _Pad9;
+    float _DeExposureMultiplier;
 CBUFFER_END
 
 

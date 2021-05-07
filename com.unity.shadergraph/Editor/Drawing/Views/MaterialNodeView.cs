@@ -26,9 +26,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         new VisualElement m_ButtonContainer;
 
         VisualElement m_PreviewContainer;
-        VisualElement m_ControlItems;
         VisualElement m_PreviewFiller;
+        VisualElement m_ControlItems;
         VisualElement m_ControlsDivider;
+        VisualElement m_DropdownItems;
+        VisualElement m_DropdownsDivider;
         IEdgeConnectorListener m_ConnectorListener;
 
         MaterialGraphView m_GraphView;
@@ -71,6 +73,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
+
+            // Add dropdowns container
+            var dropdownContainer = new VisualElement { name = "dropdowns" };
+            {
+                m_DropdownsDivider = new VisualElement { name = "divider" };
+                m_DropdownsDivider.AddToClassList("horizontal");
+                dropdownContainer.Add(m_DropdownsDivider);
+                m_DropdownItems = new VisualElement { name = "items" };
+                dropdownContainer.Add(m_DropdownItems);
+                UpdateDropdownEntries();
+            }
+            if (m_DropdownItems.childCount > 0)
+                contents.Add(dropdownContainer);
 
             if (node.hasPreview)
             {
@@ -178,7 +193,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             Add(badge);
-            badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
+
+            if (node is BlockNode)
+            {
+                FindPort(node.GetSlotReference(0), out var port);
+                badge.AttachTo(port.parent, SpriteAlignment.RightCenter);
+            }
+            else
+            {
+                badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
+            }
         }
 
         public void SetActive(bool state)
@@ -227,6 +251,41 @@ namespace UnityEditor.ShaderGraph.Drawing
             var badge = this.Q<IconBadge>();
             badge?.Detach();
             badge?.RemoveFromHierarchy();
+        }
+
+        public void UpdateDropdownEntries()
+        {
+            if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
+            {
+                m_DropdownItems.Clear();
+                var dropdowns = subGraphNode.asset.dropdowns;
+                foreach (var dropdown in dropdowns)
+                {
+                    if (dropdown.isExposed)
+                    {
+                        var name = subGraphNode.GetDropdownEntryName(dropdown.referenceName);
+                        if (!dropdown.ContainsEntry(name))
+                        {
+                            name = dropdown.entryName;
+                            subGraphNode.SetDropdownEntryName(dropdown.referenceName, name);
+                        }
+
+                        var field = new PopupField<string>(dropdown.entries.Select(x => x.displayName).ToList(), name);
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            subGraphNode.owner.owner.RegisterCompleteObjectUndo("Change Dropdown Value");
+                            subGraphNode.SetDropdownEntryName(dropdown.referenceName, field.value);
+                            subGraphNode.Dirty(ModificationScope.Topological);
+                        });
+
+                        m_DropdownItems.Add(new PropertyRow(new Label(dropdown.displayName)), (row) =>
+                        {
+                            row.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+                            row.Add(field);
+                        });
+                    }
+                }
+            }
         }
 
         public VisualElement colorElement
@@ -441,7 +500,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node.sgVersion < node.latestVersion)
                 {
-                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    if (node is IHasCustomDeprecationMessage customDeprecationMessage)
+                    {
+                        title = customDeprecationMessage.GetCustomDeprecationLabel();
+                    }
+                    else if (ShaderGraphPreferences.allowDeprecatedBehaviors)
                     {
                         title = node.name + $" (Deprecated V{node.sgVersion})";
                     }
@@ -661,15 +724,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphEditorView == null)
                 return;
 
-            var blackboardProvider = graphEditorView.blackboardProvider;
-            if (blackboardProvider == null)
+            var blackboardController = graphEditorView.blackboardController;
+            if (blackboardController == null)
                 return;
 
             // Keyword nodes should be highlighted when Blackboard entry is hovered
             // TODO: Move to new NodeView type when keyword node has unique style
             if (node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
+                var keywordRow = blackboardController.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())
@@ -679,6 +742,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                     {
                         keywordRow.RemoveFromClassList("hovered");
+                    }
+                }
+            }
+
+            if (node is DropdownNode dropdownNode)
+            {
+                var dropdownRow = blackboardController.GetBlackboardRow(dropdownNode.dropdown);
+                if (dropdownRow != null)
+                {
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    {
+                        dropdownRow.AddToClassList("hovered");
+                    }
+                    else
+                    {
+                        dropdownRow.RemoveFromClassList("hovered");
                     }
                 }
             }

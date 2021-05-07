@@ -1,6 +1,6 @@
 # Sine
 
-Menu Path : **Operator > Math > Trigonometry > Sine**  
+Menu Path : **Operator > Math > Trigonometry > Sine**
 
 The **Sine** Operator calculates the [sine](https://docs.unity3d.com/ScriptReference/Mathf.Sin.html) of the input in radians.
 

@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   counterTestSuite:
     scenes:
-    - scene: 0000_LitCube
+    - scene: Effects
       sceneLabels: Simple
-      scenePath: Assets/Scenes/0000_LitCube.unity
+      scenePath: Assets/Scenes/Effects.unity
       enabled: 1
-    - scene: 0001_1000_LitCube
-      sceneLabels: Default
-      scenePath: Assets/Scenes/0001_1000_LitCube.unity
+    - scene: Lighting
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Lighting.unity
       enabled: 1
-    - scene: 0002_TransparentOverdraw
-      sceneLabels: Default
-      scenePath: Assets/Scenes/0002_TransparentOverdraw.unity
+    - scene: Materials
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Materials.unity
       enabled: 1
-    - scene: 0003_TesselationShadow
-      sceneLabels: Default
-      scenePath: Assets/Scenes/0003_TesselationShadow.unity
+    - scene: Others
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Others.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
@@ -39,19 +39,34 @@ MonoBehaviour:
       alias: 
   memoryTestSuite:
     scenes:
-    - scene: 0000_LitCube
+    - scene: Effects
       sceneLabels: Simple
-      scenePath: Assets/Scenes/0000_LitCube.unity
+      scenePath: Assets/Scenes/Effects.unity
+      enabled: 1
+    - scene: Lighting
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Lighting.unity
+      enabled: 1
+    - scene: Materials
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Materials.unity
+      enabled: 1
+    - scene: Others
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Others.unity
       enabled: 1
     srpAssets:
-    - asset: {fileID: 11400000, guid: ab65795a0e3c7814fb033506abd6198f, type: 2}
+    - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: 67455f860e03ac64fad87471cf78b339, type: 2}
       assetLabels: Default
       alias: 
   buildTestSuite:
     scenes:
-    - scene: 0002_TransparentOverdraw
-      sceneLabels: Default
-      scenePath: Assets/Scenes/0002_TransparentOverdraw.unity
+    - scene: Materials
+      sceneLabels: Simple
+      scenePath: Assets/Scenes/Materials.unity
       enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}

@@ -31,7 +31,7 @@ Scene with **Chromatic Aberration**.
 - Green/Purple
 - Purple/Green
 
-You can create custom spectral textures in any image editing software. While the resolution size of spectral textures are not limited, small sizes like the 3x1 textures provided work best. 
+You can create custom spectral textures in any image editing software. While the resolution size of spectral textures are not limited, small sizes like the 3x1 textures provided work best.
 
 You can achieve a rougher effect by manually setting the **Filter Mode** of the input texture to **Point (no filter)** in the [Texture Import Settings](https://docs.unity3d.com/Manual/class-TextureImporter.html) window.
 

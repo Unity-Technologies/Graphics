@@ -72,6 +72,10 @@ namespace UnityEditor.VFX
             {
                 return "m_NamedObject";
             }
+            else if (type == typeof(SkinnedMeshRenderer))
+            {
+                return "m_NamedObject";
+            }
             else if (type == typeof(float))
             {
                 return "m_Float";
@@ -240,7 +244,7 @@ namespace UnityEditor.VFX
 
             VFXParameter parameter = GetParameter(name, resource);
 
-            if (!VFXGizmoUtility.HasGizmo(parameter.type))
+            if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
                 base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
@@ -332,18 +336,6 @@ namespace UnityEditor.VFX
             }
 
             return context;
-        }
-
-        protected override void OnSceneViewGUI(SceneView sv)
-        {
-            base.OnSceneViewGUI(sv);
-
-            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
-            {
-                ContextAndGizmo context = GetGizmo();
-
-                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
-            }
         }
 
         class GizmoContext : VFXGizmoUtility.Context
@@ -694,9 +686,16 @@ namespace UnityEditor.VFX
             return base.GetWorldBoundsOfTarget(targetObject);
         }
 
-        protected override void SceneViewGUICallback(UnityObject tar, SceneView sceneView)
+        protected override void SceneViewGUICallback()
         {
-            base.SceneViewGUICallback(tar, sceneView);
+            base.SceneViewGUICallback();
+
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoableParameters.Count > 0 && ((VisualEffect)target).visualEffectAsset != null)
+            {
+                ContextAndGizmo context = GetGizmo();
+                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
+            }
+
             if (m_GizmoableParameters.Count > 0)
             {
                 int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;
@@ -727,7 +726,9 @@ namespace UnityEditor.VFX
                         context.gizmo.spaceLocalByDefault = context.context.spaceLocalByDefault;
                         context.gizmo.component = (VisualEffect)target;
                         Bounds bounds = context.gizmo.CallGetGizmoBounds(context.context.value);
-                        sceneView.Frame(bounds, false);
+                        var sceneView = SceneView.lastActiveSceneView;
+                        if (sceneView)
+                            sceneView.Frame(bounds, false);
                     }
                 }
                 GUI.enabled = saveEnabled;

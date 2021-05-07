@@ -62,7 +62,7 @@ namespace UnityEditor
         public const string editorResourcesFolder = "Editor/UIResources";
         public static string editorResourcesPath => VisualEffectGraphPackageInfo.assetPackagePath + "/" + editorResourcesFolder;
 
-        [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
+        [MenuItem("GameObject/Visual Effects/Visual Effect", priority = 12)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null, "Visual Effect"));

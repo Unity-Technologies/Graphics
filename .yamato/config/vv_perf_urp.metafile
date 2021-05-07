@@ -1,0 +1,259 @@
+project:
+  name: VikingVillage_URP
+  folder: Viking-Village-Perf
+  variables:
+    VV_URP_BRANCH: master
+    VV_URP_REVISION: eebe6db7d9b186603b63095a926d76ded2bf1110
+
+reuse_blocks:
+  unity_config:
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
+
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
+
+
+    - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+    - [iPhone_Metal, OSX_Metal]: brew install unity-config
+
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install unity-config
+
+    - [Linux_Vulkan]: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
+    - [Linux_Vulkan]: curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
+    - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
+    - [Linux_Vulkan]: sudo apt update
+    - [Linux_Vulkan]: sudo apt install -y unity-config
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
+  perf_utr_flags:
+    - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+    - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity"
+    - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+    - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+    - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+    - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+    - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+    - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+    - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+    - [all]: --category=URP
+
+
+
+test_platforms:
+  - type: Standalone
+    name: performance_playmode_runtime
+    commands:
+      - [OSX_Metal]: <reuse_blocks.unity_config>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=VikingVillage_URP
+          - [iPhone_Metal]: --timeout=2400
+          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
+          - [OSX_Metal]: --testfilter=Medium
+          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
+    commands_build:
+      - <reuse_blocks.unity_config>
+      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+        flags:
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+          - [all]: --player-save-path=playersMedium
+
+  - type: playmode
+    name: performance_playmode_editor
+    commands:
+      - <reuse_blocks.unity_config>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=VikingVillage_URP
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+  - type: editmode
+    name: performance_build_editmode
+    commands:
+      - <reuse_blocks.unity_config>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.call_utr>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --report-performance-data
+          - [all]: --performance-project-id=VikingVillage_URP
+          - <reuse_blocks.perf_utr_flags>
+          - [all]: --testfilter=Medium
+expression_trigger:
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+  - name: Android
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM::osx
+        image: mobile/macos-10.15-testing:stable
+        flavor: b1.large
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        #- performance_playmode_editor
+        - performance_build_editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
+        - performance_build_editmode
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        #- performance_playmode_editor
+        - performance_build_editmode
+nightly:
+  dependencies:
+    - project: VikingVillage_URP
+      pr: true

@@ -31,11 +31,28 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
+        public override bool supportsMaterialOffset
+        {
+            get
+            {
+                if (owner.isBlendModeOpaque)
+                    return false;
+                return true;
+            }
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
-                if (!supportsQueueSelection)
+                if (!supportsQueueSelection || GeneratesWithShaderGraph())
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
@@ -100,23 +117,46 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override string GetRenderQueueStr()
+        private RenderQueueType GetRenderQueueType()
         {
             RenderQueueType renderQueueType;
+            if (owner.isBlendModeOpaque)
+                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
+            else
+                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
+            return renderQueueType;
+        }
+
+        public override string GetRenderQueueStr()
+        {
             string prefix = string.Empty;
             if (owner.isBlendModeOpaque)
             {
                 prefix = "Geometry";
-                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
             }
             else
             {
                 prefix = "Transparent";
-                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = GetRenderQueueOffset() - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
+        }
+
+        private int GetRenderQueueOffset()
+        {
+            var renderQueueType = GetRenderQueueType();
+            return HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
+        }
+
+        private int GetMaterialOffset()
+        {
+            if (supportsMaterialOffset)
+            {
+                int rawMaterialOffset = owner.GetMaterialOffset();
+                return ClampsTransparentRangePriority(rawMaterialOffset);
+            }
+            return 0;
         }
 
         private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)

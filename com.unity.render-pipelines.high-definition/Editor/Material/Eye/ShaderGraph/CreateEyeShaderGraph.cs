@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateEyeShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Eye Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Eye Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 3)]
         public static void CreateEyeGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));

@@ -1,6 +1,6 @@
 # Step
 
-Menu Path : **Operator > Math > Arithmetic > Step** 
+Menu Path : **Operator > Math > Arithmetic > Step**
 
 The **Step** Operator compares an input value to a threshold and returns whether the input is above or below the threshold:
 
@@ -9,7 +9,7 @@ The **Step** Operator compares an input value to a threshold and returns whether
 
 For example, for a threshold of 0.5, an input of (0.3, 0.5, 1)  outputs (0, 0, 1).
 
-The **Step** Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input. 
+The **Step** Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input.
 
 ## Operator properties
 

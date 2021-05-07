@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowSliceData
+    public struct ShadowSliceData
     {
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
@@ -23,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShadowUtils
+    public static class ShadowUtils
     {
         private static readonly RenderTextureFormat m_ShadowmapFormat;
         private static readonly bool m_ForceShadowPointSampling;
@@ -56,6 +55,10 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.offsetY = (cascadeIndex / 2) * shadowResolution;
             shadowSliceData.resolution = shadowResolution;
             shadowSliceData.shadowTransform = GetShadowTransform(shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
+
+            // This used to be fixed to .6f, but is now configureable.
+            // It is the culling sphere radius multiplier for shadow cascade blending
+            shadowSliceData.splitData.shadowCascadeBlendCullingFactor = 0.6f;
 
             // If we have shadow cascades baked into the atlas we bake cascade transform
             // in each shadow matrix to save shader ALU and L/S
@@ -218,6 +221,34 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
         }
 
+        /// <summary>
+        /// Extract scale and bias from a fade distance to achieve a linear fading of the fade distance.
+        /// </summary>
+        /// <param name="fadeDistance">Distance at which object should be totally fade</param>
+        /// <param name="border">Normalized distance of fade</param>
+        /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
+        /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
+        internal static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, float border, out float scale, out float bias)
+        {
+            // To avoid division from zero
+            // This values ensure that fade within cascade will be 0 and outside 1
+            if (border < 0.0001f)
+            {
+                float multiplier = 1000f; // To avoid blending if difference is in fractions
+                scale = multiplier;
+                bias = -fadeDistance * multiplier;
+                return;
+            }
+
+            border = 1 - border;
+            border *= border;
+
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            float distanceFadeNear = border * fadeDistance;
+            scale = 1.0f / (fadeDistance - distanceFadeNear);
+            bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
+        }
+
         public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
@@ -229,35 +260,6 @@ namespace UnityEngine.Rendering.Universal
             // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
             Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
             cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
-        }
-
-        internal static Vector4 GetMainLightShadowParams(ref RenderingData renderingData)
-        {
-            // Main Light shadow params
-            float mainLightShadowStrength = 0f;
-            float mainLightSoftShadowsProp = 0f;
-            if (renderingData.lightData.mainLightIndex != -1)
-            {
-                mainLightShadowStrength = renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex].light.shadowStrength;
-
-                if (renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex].light.shadows == LightShadows.Soft && renderingData.shadowData.supportsSoftShadows)
-                    mainLightSoftShadowsProp = 1f;
-            }
-
-            // Shadow params used by both MainLight and AdditionalLights
-            float maxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
-            //To make the shadow fading fit into a single MAD instruction:
-            //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
-            float startFade = maxShadowDistance * 0.9f;
-            float oneOverFadeDist = 1 / (maxShadowDistance - startFade);
-            float minusStartFade = -startFade * oneOverFadeDist;
-
-            return new Vector4(mainLightShadowStrength, mainLightSoftShadowsProp, oneOverFadeDist, minusStartFade);
-        }
-
-        internal static void SetupShadowReceiverConstantBuffer(CommandBuffer cmd, Vector4 mainLightShadowParams)
-        {
-            cmd.SetGlobalVector("_MainLightShadowParams", mainLightShadowParams);
         }
 
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)

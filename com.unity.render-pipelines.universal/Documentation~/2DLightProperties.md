@@ -1,8 +1,17 @@
-# 2D Lights properties
+# Common properties of 2D Lights
+Each 2D Light Type has various properties and options to customize their appearance and behavior. This page documents the properties that are common to all 2D Light Types.
+
+ following are the common properties used by the different Light types. For properties specific to each of the available Light Types, refer to their respective sections:
+
+- [Freeform](LightTypes.html#freeform)
+- [Sprite](LightTypes.html#sprite)
+- [Spot](LightTypes.html#spot) (**Note:** The **Point** Light Type has been renamed to the **Spot** Light Type from URP 11 onwards.)
+- [Global](LightTypes.html#global)
+
 
 ## Creating a Light
 
-![image alt text](Images/2D/image_7.png)
+![](Images/2D/2d-lights-gameobject-menu.png)
 
 Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and selecting one of the five available types:
 
@@ -11,7 +20,7 @@ Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and sel
 - __Spot__: You can control the inner and outer radius, direction and angle of this Light type.
 - __Global__: This 2D Light affects all rendered Sprites on all targeted sorting layers.
 
-The following are the common properties used by the different Light types. 
+The following are the common properties used by the different Light types.
 
 ![](Images/2D/2DLightBasics.png)
 
@@ -30,10 +39,7 @@ The following are the common properties used by the different Light types.
 | __[Normal Map Quality](#quality)__                                      | Select either __Disabled__ (degfault)m __Accurate__ or __Fast__ to adjust the accuracy of the lighting calculations used. |
 | __[Normal Map Distance](#distance)__  (available when __Use Normal Map__ quality is not disabled) | Enter the desired distance (in Unity units) between the Light and the lit Sprite. This does not Transform the position of the Light in the Scene. |
 
-
-
-
-## Overlap Operation 
+## Overlap Operation
 
 This property controls the way in the selected Light interacts with other rendered Lights. You can toggle between the two modes by enabling or disabling this property. The effects of both modes are shown in the examples below:
 
@@ -47,7 +53,7 @@ When __Overlap Operation__ is set to __Alpha Blend__, Lights are blended togethe
 
 ## Light Order
 
-The __Light Order__ value determines the position of the Light in the Render queue relative to other Lights that target the same sorting layer(s). Lower numbered Lights are rendered first, with higher numbered Lights rendered above those below. This especially affects the appearance of blended Lights when __Overlap Operation__ is set to __Alpha Blend__. 
+The __Light Order__ value determines the position of the Light in the Render queue relative to other Lights that target the same sorting layer(s). Lower numbered Lights are rendered first, with higher numbered Lights rendered above those below. This especially affects the appearance of blended Lights when __Overlap Operation__ is set to __Alpha Blend__.
 
 ## Intensity
 

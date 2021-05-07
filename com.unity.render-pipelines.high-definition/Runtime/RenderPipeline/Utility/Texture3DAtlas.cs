@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Elements.Add(elem);
             }
 
-            m_Texture3DAtlasCompute = HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.texture3DAtlasCS;
+            m_Texture3DAtlasCompute = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.texture3DAtlasCS;
             m_CopyKernel = m_Texture3DAtlasCompute.FindKernel("Copy");
             m_GenerateMipKernel = m_Texture3DAtlasCompute.FindKernel("GenerateMipMap");
             m_Texture3DAtlasCompute.GetKernelThreadGroupSizes(m_CopyKernel, out var groupThreadX, out var groupThreadY, out var groupThreadZ);
@@ -525,7 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             ClearTextures();
-            m_Atlas.Release();
+            CoreUtils.Destroy(m_Atlas);
+            CoreUtils.Destroy(m_MipMapGenerationTemp);
         }
 
         public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format, bool hasMipMaps)

@@ -1,9 +1,8 @@
-using UnityEditor.Rendering;
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -17,6 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         HDAdditionalLightData targetAdditionalData
             => m_AdditionalLightDatas[ReferenceTargetIndex(this)];
+
+        public HDAdditionalLightData GetAdditionalDataForTargetIndex(int i)
+            => m_AdditionalLightDatas[i];
 
         static Func<Editor, int> ReferenceTargetIndex;
 
@@ -41,12 +43,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += OnUndoRedo;
+
+            HDLightUI.RegisterEditor(this);
         }
 
         void OnDisable()
         {
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed -= OnUndoRedo;
+            HDLightUI.UnregisterEditor(this);
         }
 
         void OnUndoRedo()
@@ -54,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Serialized object is lossing references after an undo
             if (m_SerializedHDLight.serializedObject.targetObject != null)
             {
-                m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                m_SerializedHDLight.serializedObject.Update();
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();

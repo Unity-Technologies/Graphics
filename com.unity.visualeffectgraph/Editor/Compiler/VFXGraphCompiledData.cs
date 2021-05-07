@@ -39,7 +39,8 @@ namespace UnityEditor.VFX
 
     class VFXGraphCompiledData
     {
-        public const uint compiledVersion = 2;
+        // 3: Serialize material
+        public const uint compiledVersion = 3;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
@@ -135,10 +136,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.TextureCubeArray:
                             value = CreateObjectValueDesc<Texture>(exp, i);
                             break;
+                        case VFXValueType.CameraBuffer: value = CreateObjectValueDesc<Texture>(exp, i); break;
                         case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
                         case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.SkinnedMeshRenderer: value = CreateObjectValueDesc<SkinnedMeshRenderer>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
@@ -474,9 +477,23 @@ namespace UnityEditor.VFX
             foreach (var expression in expressionPerSpawnToProcess)
                 CollectParentExpressionRecursively(expression, allExpressions);
 
-            var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
-            var processChunk = new List<ProcessChunk>();
+            var expressionIndexes = allExpressions.
+                Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
+                .Select(o => graph.GetFlattenedIndex(o))
+                .OrderBy(i => i);
 
+            //Additional verification of appropriate expected expression index
+            //In flatten expression, all common expressions are sorted first, then, we have chunk of additional preprocess
+            //We aren't supposed to happen a chunk which is running common expression here.
+            if (expressionIndexes.Any(i => i < graph.CommonExpressionCount))
+            {
+                var expressionInCommon = allExpressions
+                    .Where(o => graph.GetFlattenedIndex(o) < graph.CommonExpressionCount)
+                    .OrderBy(o => graph.GetFlattenedIndex(o));
+                Debug.LogErrorFormat("Unexpected preprocess expression detected : {0} (count)", expressionInCommon.Count());
+            }
+
+            var processChunk = new List<ProcessChunk>();
             int previousIndex = int.MinValue;
             foreach (var indice in expressionIndexes)
             {
@@ -1220,10 +1237,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.TextureCubeArray:
                             SetObjectValueDesc<Texture>(desc, exp);
                             break;
+                        case VFXValueType.CameraBuffer: SetObjectValueDesc<Texture>(desc, exp); break;
                         case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }

@@ -1,6 +1,6 @@
 # Discretize
 
-Menu Path : **Operator > Math > Clamp > Discretize**  
+Menu Path : **Operator > Math > Clamp > Discretize**
 
 The **Discretize** Operator outputs the multiple of the **B** value that is closest to **A**. For example, an input of **A** = 7.2 and **B** = 3, outputs 6.
 
@@ -19,7 +19,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Node's configuration, click the **cog** icon in the Node's header. 
+To view the Node's configuration, click the **cog** icon in the Node's header.
 
 ### Available types
 
