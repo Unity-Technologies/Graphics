@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 - Material Offset setting in inspector of the rendered outputs.
+- New tool : Signed Distance Field baker.
 
 ### Changed
 - Allow remaking an existing link.

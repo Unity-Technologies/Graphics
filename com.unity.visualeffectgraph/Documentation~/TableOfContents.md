@@ -31,6 +31,10 @@
   * [Visual Effect Target](sg-target-visual-effect.md)
 * Pipeline Tools
   * [Representing Complex Shapes](representing-complex-shapes.md)
+    * [Signed Distance Fields](sdf-in-vfx-graph.md)
+      * [SDF Bake Tool](sdf-bake-tool.md)
+        * [SDF Bake Tool window](sdf-bake-tool-window.md)
+        * [SDF Bake Tool API](sdf-bake-tool-api.md)
     * [Point Caches](point-cache-in-vfx-graph.md)
       * [Point Cache asset](point-cache-asset.md)
       * [Point Cache Bake Tool](point-cache-bake-tool.md)
