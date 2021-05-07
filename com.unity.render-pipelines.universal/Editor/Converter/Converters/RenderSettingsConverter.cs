@@ -36,9 +36,6 @@ namespace UnityEditor.Rendering.Universal
             // check graphics tiers
             GatherGraphicsTiers();
 
-            // find all cameras and their info
-            GatherCameras(ref context);
-
             // check quality levels
             GatherQualityLevels(ref context);
         }
@@ -59,67 +56,6 @@ namespace UnityEditor.Rendering.Universal
             m_GraphicsTierSettings.ReflectionProbeBoxProjection = tier.reflectionProbeBoxProjection;
             m_GraphicsTierSettings.CascadeShadows = tier.cascadedShadowMaps;
             m_GraphicsTierSettings.HDR = tier.hdr;
-        }
-
-        /// <summary>
-        /// Searches and finds any cameras that have dedicated Render Path values, i.e not using hte Graphics Settings option.
-        /// </summary>
-        /// <param name="context">Converter context to add elements to.</param>
-        private void GatherCameras(ref InitializeConverterContext context)
-        {
-            using var searchForwardContext = Search.SearchService.CreateContext("asset",
-                "p:t=camera (renderingpath=forward or renderingpath=legacyvertexlit)");
-            using var forwardRequest = Search.SearchService.Request(searchForwardContext);
-            {
-                AddCamera(forwardRequest, ref context, RenderingPath.Forward);
-            }
-
-            using var searchDeferredContext = Search.SearchService.CreateContext("asset",
-                "p:t=camera (renderingpath=deferred or renderingpath=legacydeferred(lightprepass))");
-            using var deferredRequest = Search.SearchService.Request(searchDeferredContext);
-            {
-                AddCamera(deferredRequest, ref context, RenderingPath.DeferredShading);
-            }
-        }
-
-        private void AddCamera(ISearchList searchList, ref InitializeConverterContext context, RenderingPath path)
-        {
-            // we're going to do this step twice in order to get them ordered, but it should be fast
-            var orderedRequest = searchList.OrderBy(req =>
-                {
-                    GlobalObjectId.TryParse(req.id, out var gid);
-                    return gid.assetGUID;
-                })
-                .ToList();
-
-            foreach (var r in orderedRequest)
-            {
-                if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                {
-                    continue;
-                }
-
-                var label = r.provider.fetchLabel(r, r.context);
-                var description = r.provider.fetchDescription(r, r.context);
-
-                var item = new ConverterItemDescriptor()
-                {
-                    name = $"{label} : {description}",
-                    info = $"Needs {path}",
-                };
-
-                context.AddAssetToConvert(item);
-
-                var camItem = new CameraSettingItem()
-                {
-                    GOName = label,
-                    ObjectID = gid,
-                    AssetPath = "unknown",
-                    Parent = Parent.Scene,
-                    RenderingPath = path,
-                };
-                m_SettingsItems.Add(camItem);
-            }
         }
 
         /// <summary>
@@ -350,15 +286,6 @@ namespace UnityEditor.Rendering.Universal
             public float CascadeSplit2;
             public Vector3 CascadeSplit4;
             public bool SoftParticles;
-        }
-
-        private class CameraSettingItem : SettingsItem
-        {
-            public string GOName;
-            public GlobalObjectId ObjectID;
-            public Parent Parent;
-            public string AssetPath;
-            public RenderingPath RenderingPath;
         }
 
         #endregion
