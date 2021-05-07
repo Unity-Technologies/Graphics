@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES tonemaping on mobile platforms by forcing some shader color conversion functions to full float precision.
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Fixed ACES filter artefact due to half floating point error on some mobile platforms.
 
 ## [10.2.0] - 2020-10-19
 
