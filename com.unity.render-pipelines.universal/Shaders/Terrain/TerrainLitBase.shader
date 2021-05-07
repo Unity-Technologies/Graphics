@@ -45,6 +45,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords

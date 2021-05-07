@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
-        public static readonly string ClusteredRenderingCPU = "_CLUSTERED_RENDERING_CPU";
+        public static readonly string ClusteredRendering = "_CLUSTERED_RENDERING";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility

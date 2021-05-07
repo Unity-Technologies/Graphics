@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     additionalLightsCount > 0 && additionalLightsPerVertex && !m_UseClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
                     additionalLightsCount > 0 && !additionalLightsPerVertex && !m_UseClusteredRendering);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRenderingCPU,
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
                     m_UseClusteredRendering);
 
                 bool isShadowMask = renderingData.lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;

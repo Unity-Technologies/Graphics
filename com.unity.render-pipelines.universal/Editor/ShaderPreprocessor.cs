@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
-        ShaderKeyword m_ClusteredRenderingCPU = new ShaderKeyword(ShaderKeywordStrings.ClusteredRenderingCPU);
+        ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.Universal
             if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
                 return true;
 
-            if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRenderingCPU))
+            if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering))
                 return true;
 
             // Screen Space Shadows
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.Universal
             bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRenderingCPU)))
+            if (isAdditionalShadow && !(compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel) || compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering)))
                 return true;
 
             bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);

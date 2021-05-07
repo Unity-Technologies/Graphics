@@ -43,6 +43,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             #pragma multi_compile_fog
 
