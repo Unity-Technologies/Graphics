@@ -34,6 +34,7 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.uv2:                       output.uv2 = input.texCoord2;
     $VertexDescriptionInputs.uv3:                       output.uv3 = input.texCoord3;
     $VertexDescriptionInputs.VertexColor:               output.VertexColor = input.color;
+    $VertexDescriptionInputs.TimeParameters:            output.TimeParameters = _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
     //$VertexDescriptionInputs.BoneWeights:             output.BoneWeights = input.weights; // undefined for Hull shader
     //$VertexDescriptionInputs.BoneIndices:             output.BoneIndices = input.indices; // undefined for Hull shader
     //$VertexDescriptionInputs.VertexID:                output.VertexID = input.vertexID;   // undefined for Hull shader
@@ -101,7 +102,7 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
     // HACK: As there is no specific tessellation stage for now in shadergraph, we reuse the vertex description mechanism.
     // It mean we store TessellationFactor inside vertex description causing extra read on both vertex and hull stage, but unusued paramater are optimize out by the shader compiler, so no impact.
     VertexDescriptionInputs vertexDescriptionInputs = VaryingsMeshToDSToVertexDescriptionInputs(input);
-    // Override time paramters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    // Override time paramters with used one (This is required to correctly handle motion vector for tessellation animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);

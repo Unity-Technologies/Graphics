@@ -32,6 +32,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv2:                       output.uv2 =                         input.uv2;
     $VertexDescriptionInputs.uv3:                       output.uv3 =                         input.uv3;
     $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+    $VertexDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
     $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
     $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
     $VertexDescriptionInputs.VertexID:                  output.VertexID =                    input.vertexID;
@@ -60,7 +61,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    // Override time paramters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
