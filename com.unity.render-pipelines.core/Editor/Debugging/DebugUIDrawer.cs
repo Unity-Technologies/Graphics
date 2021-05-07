@@ -90,18 +90,23 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Prepares the rendering Rect of the Drawer/
+        /// Prepares the rendering Rect of the Drawer.
         /// </summary>
         /// <param name="height">Height of the rect.</param>
+        /// <param name="fullWidth">Whether to reserve full width for the element.</param>
         /// <returns>Appropriate Rect for drawing.</returns>
-        protected Rect PrepareControlRect(float height = -1)
+        protected Rect PrepareControlRect(float height = -1, bool fullWidth = false)
         {
             if (height < 0)
                 height = EditorGUIUtility.singleLineHeight;
             var rect = GUILayoutUtility.GetRect(1f, 1f, height, height);
-            rect.width -= 2f;
-            rect.xMin += 2f;
-            EditorGUIUtility.labelWidth = rect.width / 2f;
+
+            const float paddingLeft = 4f;
+            rect.width -= paddingLeft;
+            rect.xMin += paddingLeft;
+
+            EditorGUIUtility.labelWidth = fullWidth ? rect.width : rect.width / 2f;
+
             return rect;
         }
     }
