@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < length; ++i)
                 {
-                    if (renderPass.m_InputAttachments[i] == -1)
+                    if (renderPass.m_InputAttachments[i] == null)
                         return i;
                 }
                 return length;
@@ -639,7 +639,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool PassHasInputAttachments(ScriptableRenderPass renderPass)
         {
-            return renderPass.m_InputAttachments.Length != 8 || renderPass.m_InputAttachments[0] != -1;
+            return renderPass.m_InputAttachments.Length != 8 || renderPass.m_InputAttachments[0] != null;
         }
 
         internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)

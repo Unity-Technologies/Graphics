@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
@@ -350,11 +351,40 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static uint GetValidColorBufferCount(RTHandle[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var identifier in colorBuffers)
+                {
+                    if (identifier?.nameID != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static bool IsMRT(RTHandle[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
