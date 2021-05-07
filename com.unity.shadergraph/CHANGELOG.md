@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where an integer property would be exposed in the material inspector as a float [1330302](https://issuetracker.unity3d.com/product/unity/issues/guid/1330302/)
 - Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
 - Changed BranchOnInputNode to choose NotConnected in Preview mode
+- Fixed an issue where a missing subgraph with a "Use Custom Binding" property would cause the parent graph to fail to load [1334621] (https://issuetracker.unity3d.com/issues/shadergraph-shadergraph-cannot-be-opened-if-containing-subgraph-with-custom-binding-that-has-been-deleted)
 
 ## [11.0.0] - 2020-10-21
 
