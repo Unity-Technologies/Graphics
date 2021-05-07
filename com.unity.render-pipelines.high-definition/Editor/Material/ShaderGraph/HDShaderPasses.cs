@@ -908,7 +908,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
                 // no tessellation for raytracing
-                pragmas = CorePragmas.Basic,
+                pragmas = null,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = RayTracingPrepassIncludes,
             };

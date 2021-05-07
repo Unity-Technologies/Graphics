@@ -91,16 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
-                    Structs.SurfaceDescriptionInputs,
-                    Structs.VertexDescriptionInputs,
                     attributesStruct,
                     sourceAttributesStruct
-                };
-
-                passDescriptor.pragmas = new PragmaCollection
-                {
-                    ModifyVertexEntry(passDescriptor.pragmas),
-                    Pragma.MultiCompileInstancing
                 };
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
@@ -128,25 +120,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             subShaderDescriptor.passes = vfxPasses;
 
             return subShaderDescriptor;
-        }
-
-        static PragmaCollection ModifyVertexEntry(PragmaCollection pragmas)
-        {
-            // Replace the default vertex shader entry with one defined by VFX.
-            // NOTE: Assumes they are named "Vert" for all shader passes, which they are.
-            const string k_CoreBasicVertex = "#pragma vertex Vert";
-
-            var pragmaVFX = new PragmaCollection();
-
-            foreach (var pragma in pragmas)
-            {
-                if (pragma.value != k_CoreBasicVertex)
-                    pragmaVFX.Add(pragma.descriptor);
-                else
-                    pragmaVFX.Add(Pragma.Vertex("VertVFX"));
-            }
-
-            return pragmaVFX;
         }
 
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()

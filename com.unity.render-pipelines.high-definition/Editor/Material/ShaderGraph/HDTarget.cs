@@ -405,8 +405,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDStructs.AttributesMesh },
             { HDStructs.VaryingsMeshToPS },
-            { Structs.SurfaceDescriptionInputs },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        // VFX have its own structure define in PostProcessSubShader, below is just the basic to complement
+        public static StructCollection BasicVFX = new StructCollection
+        {
+            { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
         };
 
         // Will be append on top of Default if tessellation is enabled
@@ -415,8 +422,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDStructs.AttributesMesh },
             { HDStructs.VaryingsMeshToDS },
             { HDStructs.VaryingsMeshToPS },
-            { Structs.SurfaceDescriptionInputs },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
         };
 
         public static StructCollection BasicRaytracing = new StructCollection
@@ -775,13 +782,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
-        // We will always select Basic or BasicTessellation - added in PostProcessSubShader
+        // We will always select Basic, BasicVFX or BasicTessellation - added in PostProcessSubShader
         public static PragmaCollection Basic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.MultiCompileInstancing },
+        };
+
+        public static PragmaCollection BasicVFX = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.Vertex("VertVFX") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
@@ -793,6 +810,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Hull("Hull") },
             { Pragma.Domain("Domain") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.MultiCompileInstancing },
         };
 
         public static PragmaCollection BasicRaytracing = new PragmaCollection
@@ -805,7 +823,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Here are the Pragma Collection we can add on top of the Basic one
         public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
         {
-            { Pragma.MultiCompileInstancing },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
@@ -815,7 +832,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
         {
-            { Pragma.MultiCompileInstancing },
             // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
             #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },

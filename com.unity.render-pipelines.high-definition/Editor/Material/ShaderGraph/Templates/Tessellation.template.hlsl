@@ -1,4 +1,6 @@
 
+#ifdef TESSELLATION_ON
+
 VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshToDS input)
 {
     VertexDescriptionInputs output;
@@ -113,3 +115,5 @@ VaryingsMeshToDS ApplyTessellationModification(VaryingsMeshToDS input, float3 ti
 }
 
 #endif
+
+#endif // TESSELLATION_ON

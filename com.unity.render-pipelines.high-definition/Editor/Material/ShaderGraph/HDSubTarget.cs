@@ -183,9 +183,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.pragmas = passDescriptor.pragmas == null ? new PragmaCollection() : new PragmaCollection { passDescriptor.pragmas }; // Duplicate pragmas to avoid side effects (static list modification)
                 passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
                 passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
-                    
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+
+                passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
+
+                if (TargetsVFX())
+                {
+                    passDescriptor.structs.Add(CoreStructCollections.BasicVFX); // Complement the struct already added by call to VFXSubTarget.PostProcessSubShader
+                    passDescriptor.pragmas.Add(CorePragmas.BasicVFX);
+                    passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
+                }
                 // Tessellation management, append - Tessellation is currently not compatible with Raytracing
-                if (passDescriptor.useTessellation)
+                else if (passDescriptor.useTessellation)
                 {
                     passDescriptor.structs.Add(CoreStructCollections.BasicTessellation);
                     passDescriptor.pragmas.Add(CorePragmas.BasicTessellation);
@@ -198,27 +207,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
 
                 CollectPassKeywords(ref passDescriptor);
-
-                if (passDescriptor.fieldDependencies == null)
-                {
-                    if (TargetsVFX())
-                        passDescriptor.fieldDependencies = new DependencyCollection()
-                        {
-                            CoreFieldDependencies.Default,
-                            VFXHDRPSubTarget.ElementSpaceDependencies
-                        };
-                    else
-                        passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
-                }
-                else if (TargetsVFX())
-                {
-                    var fieldDependencies = passDescriptor.fieldDependencies;
-                    passDescriptor.fieldDependencies = new DependencyCollection()
-                    {
-                        fieldDependencies,
-                        VFXHDRPSubTarget.ElementSpaceDependencies
-                    };
-                }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }

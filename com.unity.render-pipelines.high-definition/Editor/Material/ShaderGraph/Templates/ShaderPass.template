@@ -192,9 +192,6 @@ Pass
     // Graph Vertex
     $splice(GraphVertex)
 
-    // Graph Tessellation
-    $splice(GraphTessellation)
-
     // Graph Pixel
     $splice(GraphPixel)
 
