@@ -481,8 +481,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static PragmaCollection Instanced = new PragmaCollection
             {
-                { CorePragmas.Basic },
-                { Pragma.MultiCompileInstancing },
 #if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
 #endif

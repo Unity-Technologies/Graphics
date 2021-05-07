@@ -86,3 +86,44 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 
     return input;
 }
+
+FragInputs BuildFragInputs(VaryingsMeshToPS input)
+{
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
+
+    // Init to some default value to make the computer quiet (else it output 'divide by zero' warning even if value is not used).
+    // TODO: this is a really poor workaround, but the variable is used in a bunch of places
+    // to compute normals which are then passed on elsewhere to compute other values...
+    output.tangentToWorld = k_identity3x3;
+    output.positionSS = input.positionCS;       // input.positionCS is SV_Position
+
+    $FragInputs.positionRWS:        output.positionRWS = input.positionRWS;
+    $FragInputs.tangentToWorld:     output.tangentToWorld = BuildTangentToWorld(input.tangentWS, input.normalWS);
+    $FragInputs.texCoord0:          output.texCoord0 = input.texCoord0;
+    $FragInputs.texCoord1:          output.texCoord1 = input.texCoord1;
+    $FragInputs.texCoord2:          output.texCoord2 = input.texCoord2;
+    $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
+    $FragInputs.color:              output.color = input.color;
+
+#ifdef HAVE_VFX_MODIFICATION
+    // FragInputs from VFX come from two places: Interpolator or CBuffer.
+    $splice(VFXSetFragInputs)
+
+        $FragInputs.elementToWorld:     BuildElementToWorld(input);
+    $FragInputs.worldToElement:     BuildWorldToElement(input);
+#endif
+
+    // splice point to copy custom interpolator fields from varyings to frag inputs
+    $splice(CustomInterpolatorVaryingsToFragInputs)
+
+        return output;
+}
+
+// existing HDRP code uses the combined function to go directly from packed to frag inputs
+FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    VaryingsMeshToPS unpacked = UnpackVaryingsMeshToPS(input);
+    return BuildFragInputs(unpacked);
+}

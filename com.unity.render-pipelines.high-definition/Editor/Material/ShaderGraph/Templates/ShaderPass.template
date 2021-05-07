@@ -199,9 +199,9 @@ Pass
     // Build Graph Inputs
 
 	$features.graphVFX:     $include("VFX/Config.template.hlsl")
-    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphVertex:  $include("Vertex.template.hlsl")
 	$features.graphTessellation:  $include("Tessellation.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
