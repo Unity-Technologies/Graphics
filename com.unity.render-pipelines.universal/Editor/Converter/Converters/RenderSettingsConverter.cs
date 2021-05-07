@@ -227,18 +227,19 @@ namespace UnityEditor.Rendering.Universal
 
         private static int GetEquivalentShadowResolution(int value)
         {
-            return value switch
+            switch (value)
             {
-                0 => // low
-                    1024,
-                1 => // med
-                    2048,
-                2 => // high
-                    4096,
-                3 => // very high
-                    4096,
-                _ => 1024
-            };
+                case 0: // low
+                    return 1024;
+                case 1: // med
+                    return 2048;
+                case 2: // high
+                    return 4096;
+                case 3: // very high
+                    return 4096;
+                default: // backup
+                    return 1024;
+            }
         }
 
         private RenderingMode GetEquivalentRenderMode(RenderingPath path)
