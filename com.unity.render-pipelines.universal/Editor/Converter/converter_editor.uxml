@@ -9,7 +9,7 @@
             <ui:DropdownField index="-1" name="conversionsDropDown" style="height: 27px; width: 208px; display: none;" />
             <ui:VisualElement style="flex-grow: 1;" />
         </ui:VisualElement>
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" style="flex-grow: 1; flex-shrink: 1; max-width: none; width: 627px; padding-right: 0;" />
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" style="flex-grow: 1; flex-shrink: 1; max-width: none; width: 628px; padding-right: 0;" />
     </ui:VisualElement>
     <ui:VisualElement style="flex-direction: row-reverse; flex-shrink: 0; padding-left: 15px; padding-right: 14px;">
         <ui:Button text="Convert" name="convertButton" style="flex-direction: column; max-width: 150px; min-width: 150px; max-height: 50px; min-height: 50px;" />
