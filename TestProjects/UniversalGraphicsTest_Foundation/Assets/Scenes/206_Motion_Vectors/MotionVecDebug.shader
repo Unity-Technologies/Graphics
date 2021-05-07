@@ -18,8 +18,6 @@ Shader "MotionVecDebug"
 
 
 
-            TEXTURE2D_X(_SourceTex);
-            SAMPLER(sampler_SourceTex);
             TEXTURE2D(_MotionVectorTexture);
             SAMPLER(sampler_MotionVectorTexture);
 
@@ -30,14 +28,9 @@ Shader "MotionVecDebug"
             half4 frag (Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv);
                 float4 vel = SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, input.uv);
 
-                if (vel.x == 0 && vel.y == 0)
-                    discard;
-
-                col.xy = vel.xy * _Intensity;
-                return col;
+                return vel * _Intensity;
             }
             ENDHLSL
         }
