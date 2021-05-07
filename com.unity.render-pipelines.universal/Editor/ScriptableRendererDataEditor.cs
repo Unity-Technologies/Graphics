@@ -4,13 +4,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScriptableRendererData), true)]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ScriptableRendererDataEditor : Editor
+    public class ScriptableRendererDataEditor : Editor
     {
         class Styles
         {
@@ -93,13 +92,32 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        private bool GetCustumTitle(Type type, out string title)
+        {
+            var isSingleFeature = type.GetCustomAttribute<DisallowMultipleRendererFeature>();
+            if (isSingleFeature != null)
+            {
+                title = isSingleFeature.customTitle;
+                return title != null;
+            }
+            title = null;
+            return false;
+        }
+
         private void DrawRendererFeature(int index, ref SerializedProperty renderFeatureProperty)
         {
             Object rendererFeatureObjRef = renderFeatureProperty.objectReferenceValue;
             if (rendererFeatureObjRef != null)
             {
                 bool hasChangedProperties = false;
-                string title = ObjectNames.GetInspectorTitle(rendererFeatureObjRef);
+                string title;
+
+                bool hasCustomTitle = GetCustumTitle(rendererFeatureObjRef.GetType(), out title);
+
+                if (!hasCustomTitle)
+                {
+                    title = ObjectNames.GetInspectorTitle(rendererFeatureObjRef);
+                }
 
                 // Get the serialized object for the editor script & update it
                 Editor rendererFeatureEditor = m_Editors[index];
@@ -115,19 +133,22 @@ namespace UnityEditor.Rendering.Universal
                 // ObjectEditor
                 if (displayContent)
                 {
-                    EditorGUI.BeginChangeCheck();
-                    SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
-                    nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
-                    if (EditorGUI.EndChangeCheck())
+                    if (!hasCustomTitle)
                     {
-                        hasChangedProperties = true;
+                        EditorGUI.BeginChangeCheck();
+                        SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
+                        nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            hasChangedProperties = true;
 
-                        // We need to update sub-asset name
-                        rendererFeatureObjRef.name = nameProperty.stringValue;
-                        AssetDatabase.SaveAssets();
+                            // We need to update sub-asset name
+                            rendererFeatureObjRef.name = nameProperty.stringValue;
+                            AssetDatabase.SaveAssets();
 
-                        // Triggers update for sub-asset name change
-                        ProjectWindowUtil.ShowCreatedAsset(target);
+                            // Triggers update for sub-asset name change
+                            ProjectWindowUtil.ShowCreatedAsset(target);
+                        }
                     }
 
                     EditorGUI.BeginChangeCheck();
@@ -259,6 +280,9 @@ namespace UnityEditor.Rendering.Universal
             if (component != null)
             {
                 Undo.DestroyObjectImmediate(component);
+
+                ScriptableRendererFeature feature = component as ScriptableRendererFeature;
+                feature?.Dispose();
             }
 
             // Force save / refresh
@@ -280,16 +304,19 @@ namespace UnityEditor.Rendering.Universal
 
         private string GetMenuNameFromType(Type type)
         {
-            var path = type.Name;
+            string path;
+            if (!GetCustumTitle(type, out path))
+            {
+                path = ObjectNames.NicifyVariableName(type.Name);
+            }
+
             if (type.Namespace != null)
             {
                 if (type.Namespace.Contains("Experimental"))
                     path += " (Experimental)";
             }
 
-            // Inserts blank space in between camel case strings
-            return Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2", RegexOptions.Compiled),
-                "([A-Z])([A-Z][a-z])", "$1 $2", RegexOptions.Compiled);
+            return path;
         }
 
         private string ValidateName(string name)

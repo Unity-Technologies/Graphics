@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void InitData(RenderPipelineResources renderPipelineResources)
+        public void InitData(HDRenderPipelineRuntimeResources renderPipelineResources)
         {
             m_DebugLightVolumeMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.debugLightVolumePS);
             m_DebugLightVolumeCompute = renderPipelineResources.shaders.debugLightVolumeCS;
@@ -42,12 +42,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugLightVolumeColorsKernel = m_DebugLightVolumeCompute.FindKernel("LightVolumeColors");
             m_ColorGradientTexture = renderPipelineResources.textures.colorGradient;
 
-            m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
+            m_Blit = Blitter.GetBlitMaterial(TextureDimension.Tex2D);
         }
 
         public void ReleaseData()
         {
-            CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_DebugLightVolumeMaterial);
         }
 

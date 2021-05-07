@@ -140,6 +140,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
 [!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
 [!include[](snippets/shader-properties/surface-options/ss-depth-offset.md)]
+[!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/clear-coat.md)]
 [!include[](snippets/shader-properties/surface-options/transmission.md)]
 [!include[](snippets/shader-properties/transparency-inputs/refraction-model.md)]
@@ -171,4 +172,14 @@ This set of settings only appears if you set **Surface Type** to **Transparent**
 [!include[](snippets/shader-properties/advanced-options/override-baked-gi.md)]
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+</table>
+
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
 </table>

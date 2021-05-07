@@ -1,8 +1,8 @@
+using System.Text;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.Text;
-using UnityEngine.Experimental.Rendering;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -13,10 +13,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         enum Expandable
         {
-            CameraFrameSettings = 1 << 0,
-            BakedOrCustomProbeFrameSettings = 1 << 1,
-            RealtimeProbeFrameSettings = 1 << 2,
-            General = 1 << 3,
+            // CameraFrameSettings = 1 << 0, //obsolete
+            // BakedOrCustomProbeFrameSettings = 1 << 1, //obsolete
+            // RealtimeProbeFrameSettings = 1 << 2, //obsolete
+            // General = 1 << 3, // empty - settings moved to HD Global Settings
             Rendering = 1 << 4,
             Lighting = 1 << 5,
             Material = 1 << 6,
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             VolumetricClouds = 1 << 35
         }
 
-        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
+        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.Rendering, "HDRP");
 
         enum ShadowResolutionValue
         {
@@ -64,15 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ShadowResolution8192 = 8192,
             ShadowResolution16384 = 16384
         }
-
-        internal enum SelectedFrameSettings
-        {
-            Camera,
-            BakedOrCustomReflection,
-            RealtimeReflection
-        }
-
-        internal static SelectedFrameSettings selectedFrameSettings;
 
         internal static VirtualTexturingSettingsUI virtualTexturingSettingsUI = new VirtualTexturingSettingsUI();
 
@@ -88,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
                     CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
-                    CED.FoldoutGroup(Styles.volumetricCloudsSubTitle, Expandable.VolumetricClouds, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_VolumetricClouds),
                     CED.FoldoutGroup(Styles.probeVolumeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
@@ -117,151 +107,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings),
                 CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
             );
-
-            // fix init of selection along what is serialized
-            if (k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings])
-                selectedFrameSettings = SelectedFrameSettings.BakedOrCustomReflection;
-            else if (k_ExpandedState[Expandable.RealtimeProbeFrameSettings])
-                selectedFrameSettings = SelectedFrameSettings.RealtimeReflection;
-            else //default value: camera
-                selectedFrameSettings = SelectedFrameSettings.Camera;
         }
 
         public static readonly CED.IDrawer Inspector;
 
-        public static readonly CED.IDrawer GeneralSection = CED.Group(Drawer_SectionGeneral);
-
-        public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
-            CED.Group(
-                (serialized, owner) => EditorGUILayout.BeginVertical("box"),
-                Drawer_TitleDefaultFrameSettings
-                ),
-            CED.Conditional(
-                (serialized, owner) => k_ExpandedState[Expandable.CameraFrameSettings],
-                CED.Select(
-                    (serialized, owner) => serialized.defaultFrameSettings,
-                    FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                )
-                ),
-            CED.Conditional(
-                (serialized, owner) => k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings],
-                CED.Select(
-                    (serialized, owner) => serialized.defaultBakedOrCustomReflectionFrameSettings,
-                    FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                )
-                ),
-            CED.Conditional(
-                (serialized, owner) => k_ExpandedState[Expandable.RealtimeProbeFrameSettings],
-                CED.Select(
-                    (serialized, owner) => serialized.defaultRealtimeReflectionFrameSettings,
-                    FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                )
-                ),
-            CED.Group((serialized, owner) => EditorGUILayout.EndVertical())
-        );
-
-        static public void ApplyChangedDisplayedFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            k_ExpandedState.SetExpandedAreas(Expandable.CameraFrameSettings | Expandable.BakedOrCustomProbeFrameSettings | Expandable.RealtimeProbeFrameSettings, false);
-            switch (selectedFrameSettings)
-            {
-                case SelectedFrameSettings.Camera:
-                    k_ExpandedState.SetExpandedAreas(Expandable.CameraFrameSettings, true);
-                    break;
-                case SelectedFrameSettings.BakedOrCustomReflection:
-                    k_ExpandedState.SetExpandedAreas(Expandable.BakedOrCustomProbeFrameSettings, true);
-                    break;
-                case SelectedFrameSettings.RealtimeReflection:
-                    k_ExpandedState.SetExpandedAreas(Expandable.RealtimeProbeFrameSettings, true);
-                    break;
-            }
-        }
-
-        static void Drawer_TitleDefaultFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Styles.defaultFrameSettingsContent, EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
-            selectedFrameSettings = (SelectedFrameSettings)EditorGUILayout.EnumPopup(selectedFrameSettings);
-            if (EditorGUI.EndChangeCheck())
-                ApplyChangedDisplayedFrameSettings(serialized, owner);
-            GUILayout.EndHorizontal();
-        }
-
-        static void Drawer_SectionGeneral(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            EditorGUILayout.PropertyField(serialized.renderPipelineResources, Styles.GeneralSection.renderPipelineResourcesContent);
-
-            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-            if (hdrp != null && hdrp.rayTracingSupported)
-                EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, Styles.GeneralSection.renderPipelineRayTracingResourcesContent);
-
-            // Not serialized as editor only datas... Retrieve them in data
-            EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
-            EditorGUI.BeginChangeCheck();
-            var editorResources = EditorGUILayout.ObjectField(Styles.GeneralSection.renderPipelineEditorResourcesContent, serialized.firstEditorResources, typeof(HDRenderPipelineEditorResources), allowSceneObjects: false) as HDRenderPipelineEditorResources;
-            if (EditorGUI.EndChangeCheck())
-                serialized.SetEditorResource(editorResources);
-            EditorGUI.showMixedValue = false;
-
-            //EditorGUILayout.PropertyField(serialized.enableSRPBatcher, k_SRPBatcher);
-            EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
-
-            EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.GeneralSection.lensAttenuationModeContent);
-
-            m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayerNamesText, true);
-            if (m_ShowLightLayerNames)
-            {
-                ++EditorGUI.indentLevel;
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.renderPipelineSettings.lightLayerName0);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.renderPipelineSettings.lightLayerName1);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.renderPipelineSettings.lightLayerName2);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName3, serialized.renderPipelineSettings.lightLayerName3);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName4, serialized.renderPipelineSettings.lightLayerName4);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.renderPipelineSettings.lightLayerName5);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.renderPipelineSettings.lightLayerName6);
-                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.renderPipelineSettings.lightLayerName7);
-                --EditorGUI.indentLevel;
-            }
-
-            m_ShowDecalLayerNames = EditorGUILayout.Foldout(m_ShowDecalLayerNames, Styles.decalLayerNamesText, true);
-            if (m_ShowDecalLayerNames)
-            {
-                ++EditorGUI.indentLevel;
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName0, serialized.renderPipelineSettings.decalLayerName0);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName1, serialized.renderPipelineSettings.decalLayerName1);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName2, serialized.renderPipelineSettings.decalLayerName2);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName3, serialized.renderPipelineSettings.decalLayerName3);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName4, serialized.renderPipelineSettings.decalLayerName4);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName5, serialized.renderPipelineSettings.decalLayerName5);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName6, serialized.renderPipelineSettings.decalLayerName6);
-                HDEditorUtils.DrawDelayedTextField(Styles.decalLayerName7, serialized.renderPipelineSettings.decalLayerName7);
-                --EditorGUI.indentLevel;
-            }
-        }
-
         static void Drawer_Volumetric(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricFogContent);
 
             using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.supportVolumetrics.boolValue))
             {
+                EditorGUI.indentLevel++;
                 var lightSettings = serialized.renderPipelineSettings.lightLoopSettings;
-                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumeSize, Styles.maxDensityVolumeSizeStyle);
-                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumesOnScreen, Styles.maxDensityVolumesOnScreenStyle);
 
-                // Clamp values
-                lightSettings.maxDensityVolumeSize.intValue = Mathf.Clamp(lightSettings.maxDensityVolumeSize.intValue, (int)DensityVolumeResolution.Resolution32, (int)DensityVolumeResolution.Resolution256);
-                lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
+                lightSettings.maxLocalVolumetricFogSize.intValue = (int)(LocalVolumetricFogResolution)EditorGUILayout.EnumPopup(Styles.maxLocalVolumetricFogSizeStyle, (LocalVolumetricFogResolution)lightSettings.maxLocalVolumetricFogSize.intValue);
 
-                if (lightSettings.maxDensityVolumeSize.hasMultipleDifferentValues || lightSettings.maxDensityVolumesOnScreen.hasMultipleDifferentValues)
+                EditorGUILayout.PropertyField(lightSettings.maxLocalVolumetricFogOnScreen, Styles.maxLocalVolumetricFogOnScreenStyle);
+                lightSettings.maxLocalVolumetricFogOnScreen.intValue = Mathf.Clamp(lightSettings.maxLocalVolumetricFogOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleLocalVolumetricFogCount);
+
+                if (lightSettings.maxLocalVolumetricFogSize.hasMultipleDifferentValues || lightSettings.maxLocalVolumetricFogOnScreen.hasMultipleDifferentValues)
                     EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
                 else
                 {
                     long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
-                        lightSettings.maxDensityVolumeSize.intValue,
-                        lightSettings.maxDensityVolumesOnScreen.intValue,
-                        DensityVolumeManager.densityVolumeAtlasFormat,
+                        lightSettings.maxLocalVolumetricFogSize.intValue,
+                        lightSettings.maxLocalVolumetricFogOnScreen.intValue,
+                        LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                         true
                     );
 
@@ -269,9 +140,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         int count = Texture3DAtlas.GetMaxElementCountForWeightInByte(
                             HDRenderPipeline.k_MaxCacheSize,
-                            lightSettings.maxDensityVolumeSize.intValue,
-                            lightSettings.maxDensityVolumesOnScreen.intValue,
-                            DensityVolumeManager.densityVolumeAtlasFormat,
+                            lightSettings.maxLocalVolumetricFogSize.intValue,
+                            lightSettings.maxLocalVolumetricFogOnScreen.intValue,
+                            LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                             true
                         );
                         string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);
@@ -283,26 +154,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox(message, MessageType.Info);
                     }
                 }
+                EditorGUI.indentLevel--;
             }
-        }
 
-        static void Drawer_VolumetricClouds(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetricClouds, Styles.supportVolumetricCloudsContent);
         }
 
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
-            {
-                ++EditorGUI.indentLevel;
-
-                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
-                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
-
-                --EditorGUI.indentLevel;
-            }
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
@@ -417,8 +276,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool m_ShowLightLayerNames = false;
-        static private bool m_ShowDecalLayerNames = false;
         static private bool m_ShowDirectionalLightSection = false;
         static private bool m_ShowPunctualLightSection = false;
         static private bool m_ShowAreaLightSection = false;
@@ -585,9 +442,56 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
 
+            bool showUpsampleFilterAsFallback = false;
+
             ++EditorGUI.indentLevel;
+
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue))
             {
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                bool dlssDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS, Styles.enableDLSS);
+
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    ++EditorGUI.indentLevel;
+                    var v = EditorGUILayout.EnumPopup(
+                        Styles.DLSSQualitySettingContent,
+                        (UnityEngine.NVIDIA.DLSSQuality)
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue);
+
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
+
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
+
+                    using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue))
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSSharpness, Styles.DLSSSharpnessContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+
+                showUpsampleFilterAsFallback = serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue;
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    EditorGUILayout.HelpBox(
+                        dlssDetected ? Styles.DLSSFeatureDetectedMsg : Styles.DLSSFeatureNotDetectedMsg,
+                        dlssDetected ? MessageType.Info : MessageType.Warning);
+                }
+
+                if (dlssDetected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                {
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.HelpBox(Styles.DLSSWinTargetWarning, MessageType.Info);
+                    if (GUILayout.Button(Styles.DLSSSwitchTarget64Button, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                    {
+                        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    ++EditorGUI.indentLevel;
+                }
+#endif
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
@@ -595,11 +499,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
                 else
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, Styles.upsampleFilter);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, showUpsampleFilterAsFallback ? Styles.fallbackUpsampleFilter : Styles.upsampleFilter);
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
                     && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
                 {
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                    if (dlssDetected && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
+                    {
+                        EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
+                    }
+#endif
                     float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
                     float maxPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue;
 
@@ -639,6 +549,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             --EditorGUI.indentLevel;
+
+#if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
+            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+            {
+                PackageManager.Client.Add("com.unity.modules.nvidia");
+            }
+            EditorGUILayout.EndHorizontal();
+#endif
         }
 
         static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -1310,7 +1230,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportSubsurfaceScattering, Styles.supportedSSSContent);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricFogContent);
 
             if (serialized.renderPipelineSettings.supportLightLayers.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.supportLightLayerContent.text);
@@ -1319,7 +1239,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serialized.renderPipelineSettings.MSAASampleCount.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.MSAASampleCountContent.text);
-            else if (serialized.renderPipelineSettings.supportMSAA)
+            else
             {
                 // NO MSAA in deferred
                 if (serialized.renderPipelineSettings.supportedLitShaderMode.intValue != (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)

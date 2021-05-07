@@ -243,6 +243,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
                 CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+
+                // conservative depth offset for ShaderGraphs
+                if (material.HasProperty(kConservativeDepthOffsetEnable))
+                {
+                    // Depth offset is only enabled if per pixel displacement is
+                    bool conservativeDepthOffset = (material.GetFloat(kConservativeDepthOffsetEnable) > 0.0f);
+                    CoreUtils.SetKeyword(material, "_CONSERVATIVE_DEPTH_OFFSET", conservativeDepthOffset);
+                }
             }
 
             // DoubleSidedGI has to be synced with our double sided toggle
@@ -267,7 +275,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
+                var mainTexScale = material.GetTextureScale(colorMapPropertyName);
+                var mainTexOffset = material.GetTextureOffset(colorMapPropertyName);
                 material.SetTexture("_MainTex", mainTex);
+                material.SetTextureScale("_MainTex", mainTexScale);
+                material.SetTextureOffset("_MainTex", mainTexOffset);
             }
 
             if (material.HasProperty(colorPropertyName))
@@ -285,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.shader.IsShaderGraph())
+            if (material.IsShaderGraph())
             {
                 // Shader graph generate distortion pass only if required. So we can safely enable it
                 // all the time here.
@@ -348,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graphs materials have their own management of motion vector pass in the material inspector
             // (see DrawMotionVectorToggle())
-            if (!material.shader.IsShaderGraph())
+            if (!material.IsShaderGraph())
             {
                 //In the case of additional velocity data we will enable the motion vector pass.
                 bool addPrecomputedVelocity = false;

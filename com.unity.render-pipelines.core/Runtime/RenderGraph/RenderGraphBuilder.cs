@@ -83,7 +83,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_Resources.IncrementWriteCount(input.handle);
-            // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
             m_RenderPass.AddResourceWrite(input.handle);
             return input;
         }
