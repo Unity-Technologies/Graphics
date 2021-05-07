@@ -449,14 +449,6 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
 
-#if !CASE_1289829_HAS_BEEN_FIXED
-            if (visualEffectResource != null && (visualEffectResource.updateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
-            {
-                visualEffectResource.updateMode = visualEffectResource.updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-                Debug.Log("Sanitize : Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
-            }
-#endif
-
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
