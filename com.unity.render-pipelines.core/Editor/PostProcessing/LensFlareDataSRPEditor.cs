@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -94,6 +96,22 @@ namespace UnityEditor.Rendering
                 }
             }
         }
+
+        #region Reflection
+        static Func<SerializedProperty, GenericMenu> FillPropertyContextMenu;
+
+        static LensFlareDataSRPEditor()
+        {
+            MethodInfo FillPropertyContextMenuInfo = typeof(EditorGUI).GetMethod("FillPropertyContextMenu", BindingFlags.Static | BindingFlags.NonPublic);
+            var propertyParam = Expression.Parameter(typeof(SerializedProperty), "property");
+            var FillPropertyContextMenuBlock = Expression.Block(
+                Expression.Call(null, FillPropertyContextMenuInfo, propertyParam, Expression.Constant(null, typeof(SerializedProperty)), Expression.Constant(null, typeof(GenericMenu)))
+            );
+            var FillPropertyContextMenuLambda = Expression.Lambda<Func<SerializedProperty, GenericMenu>>(FillPropertyContextMenuBlock, propertyParam);
+            FillPropertyContextMenu = FillPropertyContextMenuLambda.Compile();
+        }
+
+        #endregion
 
         SerializedProperty m_Elements;
         ReorderableList m_List;
@@ -291,7 +309,7 @@ namespace UnityEditor.Rendering
             SerializedProperty element = m_Elements.GetArrayElementAtIndex(index);
             SerializedProperty isFoldOpened = element.FindPropertyRelative("isFoldOpened");
 
-            if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive))
+            if (DrawElementHeader(headerRect, isFoldOpened, selectedInList: isActive, element))
                 DrawFull(contentRect, element);
             else
                 DrawSummary(contentRect, element);
@@ -299,10 +317,19 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.wideMode = oldWideMode;
         }
 
-        bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList)
+        bool DrawElementHeader(Rect headerRect, SerializedProperty isFoldOpened, bool selectedInList, SerializedProperty element)
         {
             Rect labelRect = headerRect;
             labelRect.xMin += 16;
+            labelRect.xMax -= 16;
+
+            Rect contextMenuRect = labelRect;
+            contextMenuRect.xMin = labelRect.xMax;
+            contextMenuRect.width = 16;
+            contextMenuRect.y += 1;
+            contextMenuRect.height = 16;
+
+            EditorGUI.BeginProperty(headerRect, Styles.elementHeader, element); //handle contextual menu on name
 
             Rect foldoutRect = headerRect;
             foldoutRect.y += 3f;
@@ -318,15 +345,24 @@ namespace UnityEditor.Rendering
             bool newState = GUI.Toggle(foldoutRect, previousState, GUIContent.none, EditorStyles.foldout);
 
             var e = Event.current;
-            if (e.type == EventType.MouseDown && headerRect.Contains(e.mousePosition) && e.button == 0)
+            if (e.type == EventType.MouseDown && labelRect.Contains(e.mousePosition) && e.button == 0)
             {
                 newState = !previousState;
                 GUI.changed = true;
                 e.Use();
             }
 
+            // ellipsis menu
+            if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+            {
+                GenericMenu menu = FillPropertyContextMenu(element);
+                menu.DropDown(new Rect(new Vector2(contextMenuRect.x, contextMenuRect.yMax), Vector2.zero));
+            }
+
             if (newState ^ previousState)
                 isFoldOpened.boolValue = newState;
+
+            EditorGUI.EndProperty();
 
             return newState;
         }
