@@ -13,9 +13,38 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public struct ProbeVolumeSystemParameters
     {
+        /// <summary>
+        /// The memory budget determining the size of the textures containing SH data.
+        /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget;
+        /// <summary>
+        /// The debug mesh used to draw probes in the debug view.
+        /// </summary>
         public Mesh probeDebugMesh;
+        /// <summary>
+        /// The shader used to visualize the probes in the debug view.
+        /// </summary>
         public Shader probeDebugShader;
+    }
+
+    public struct ProbeVolumeShadingParameters
+    {
+        /// <summary>
+        /// Normal bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float normalBias;
+        /// <summary>
+        /// View bias to apply to the position used to sample probe volumes.
+        /// </summary>
+        public float viewBias;
+        /// <summary>
+        /// Whether to scale the biases with the minimum distance between probes.
+        /// </summary>
+        public bool scaleBiasByMinDistanceBetweenProbes;
+        /// <summary>
+        /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
+        /// </summary>
+        public float samplingNoise;
     }
 
     /// <summary>
@@ -287,6 +316,8 @@ namespace UnityEngine.Experimental.Rendering
         private int m_NumberOfCellsLoadedPerFrame = 2;
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
@@ -616,6 +647,7 @@ namespace UnityEngine.Experimental.Rendering
         internal RefVolTransform GetTransform() { return m_Transform; }
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
+        internal float MinDistanceBetweenProbes() { return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1); }
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
@@ -632,6 +664,12 @@ namespace UnityEngine.Experimental.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+            }
+
+            if (clearAssetsOnVolumeClear)
+            {
+                m_PendingAssetsToBeLoaded.Clear();
+                m_ActiveAssets.Clear();
             }
         }
 
@@ -916,15 +954,26 @@ namespace UnityEngine.Experimental.Rendering
         /// Update the constant buffer used by Probe Volumes in shaders.
         /// </summary>
         /// <param name="cmd">A command buffer used to perform the data update.</param>
-        /// <param name="normalBias">Normal bias to apply to the position used to sample probe volumes.</param>
-        public void UpdateConstantBuffer(CommandBuffer cmd, float normalBias)
+        /// <param name="parameters">Parameters to be used when sampling the probe volume.</param>
+        public void UpdateConstantBuffer(CommandBuffer cmd, ProbeVolumeShadingParameters parameters)
         {
+            float normalBias = parameters.normalBias;
+            float viewBias = parameters.viewBias;
+
+            if (parameters.scaleBiasByMinDistanceBetweenProbes)
+            {
+                normalBias *= MinDistanceBetweenProbes();
+                viewBias *= MinDistanceBetweenProbes();
+            }
+
             ShaderVariablesProbeVolumes shaderVars;
             shaderVars._WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
             shaderVars._IndexDim = m_Index.GetIndexDimension();
             shaderVars._NormalBias = normalBias;
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars.pad0 = 0;
+            shaderVars._ViewBias = viewBias;
+            shaderVars._PVSamplingNoise = parameters.samplingNoise;
+            shaderVars.pad0 = Vector2.zero;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

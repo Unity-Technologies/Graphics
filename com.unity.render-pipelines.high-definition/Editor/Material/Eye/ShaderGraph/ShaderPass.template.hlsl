@@ -57,14 +57,14 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // and an iris normal map. Same for smoothness, IOR and for subsurface mask. So we don't do any operation here.
 
     // normal delivered to master node
-    $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+    $SurfaceDescription.NormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.NormalOS, surfaceData.normalWS, doubleSidedConstants);
     $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
-    $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
+    $SurfaceDescription.NormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.NormalWS, surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.irisNormalWS = surfaceData.normalWS;
-    $SurfaceDescription.IrisNormalOS: surfaceData.irisNormalWS = TransformObjectToWorldNormal(surfaceDescription.IrisNormalOS);
+    $SurfaceDescription.IrisNormalOS: GetNormalWS_SrcOS(fragInputs, surfaceDescription.IrisNormalOS, surfaceData.irisNormalWS, doubleSidedConstants);
     $SurfaceDescription.IrisNormalTS: GetNormalWS(fragInputs, surfaceDescription.IrisNormalTS, surfaceData.irisNormalWS, doubleSidedConstants);
-    $SurfaceDescription.IrisNormalWS: surfaceData.irisNormalWS = surfaceDescription.IrisNormalWS;
+    $SurfaceDescription.IrisNormalWS: GetNormalWS_SrcWS(fragInputs, surfaceDescription.IrisNormalWS, surfaceData.irisNormalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
