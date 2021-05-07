@@ -106,8 +106,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum VolumeFrameworkUpdateMode
     {
+        [InspectorName("Every Frame")]
         EveryFrame = 0,
+        [InspectorName("Via Scripting")]
         ViaScripting = 1,
+        [InspectorName("Use Pipeline Settings")]
         UsePipelineSettings = 2,
     }
 
@@ -790,10 +793,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>
-        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode
-        {
-            get { return m_VolumeFrameworkUpdateMode; }
-        }
+        public VolumeFrameworkUpdateMode volumeFrameworkUpdateMode => m_VolumeFrameworkUpdateMode;
 
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
