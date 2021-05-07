@@ -13,6 +13,27 @@ using static UnityEditor.Rendering.HighDefinition.SurfaceOptionUIBlock.Styles;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
+    class HairSurfaceOptionPropertyBlock : SurfaceOptionPropertyBlock
+    {
+        class Styles
+        {
+            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+        }
+
+        HairData hairData;
+
+        public HairSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features features, HairData hairData) : base(features)
+            => this.hairData = hairData;
+
+        protected override void CreatePropertyGUI()
+        {
+            // TODO: Un-hide me when Marschner BSDF is available.
+            // AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
+
+            base.CreatePropertyGUI();
+        }
+    }
+
     class HairAdvancedOptionsPropertyBlock : AdvancedOptionsPropertyBlock
     {
         class Styles

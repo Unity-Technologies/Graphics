@@ -8,7 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            KajiyaKay
+            KajiyaKay,
+            Marschner
         }
 
         [SerializeField]
