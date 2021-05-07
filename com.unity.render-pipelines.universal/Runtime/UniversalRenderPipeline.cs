@@ -132,8 +132,16 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
 
+        private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
+        public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
+#if UNITY_EDITOR
+            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+#else
+            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
+#endif
             SetSupportedRenderingFeatures();
 
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
@@ -225,6 +233,15 @@ namespace UnityEngine.Rendering.Universal
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
 
+#if UNITY_EDITOR
+            // We do not want to start rendering if URP global settings are not ready (m_globalSettings is null)
+            // or been deleted/moved (m_globalSettings is not necessarily null)
+            if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
+            {
+                m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
+                return;
+            }
+#endif
 
             SortCameras(cameras);
 #if UNITY_2021_1_OR_NEWER

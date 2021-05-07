@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reorder camera inspector to be in the same order as HDRP.
 - Added new URP Debug Views under Window/Analysis/Rendering Debugger.
 - Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+- Added URP Global Settings Asset to the Graphics Settings - a common place for project-wide URP settings.
+- Added possibility to rename light layer values.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.

@@ -7,6 +7,7 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -117,22 +118,6 @@ namespace UnityEngine.Rendering.Universal
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        // Rendering layer settings.
-        // HDRP use GetRenderingLayerMaskNames to create its light linking system
-        // Mean here we define our name for light linking.
-        static readonly string[] k_RenderingLayerNames = new string[]
-        {
-            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7",
-            "Unused 0", "Unused 1", "Unused 2", "Unused 3", "Unused 4", "Unused 5", "Unused 6", "Unused 7",
-            "Unused 8", "Unused 9", "Unused 10", "Unused 11", "Unused 12", "Unused 13", "Unused 14", "Unused 15",
-            "Unused 16", "Unused 17", "Unused 18", "Unused 19", "Unused 20", "Unused 21", "Unused 22", "Unused 23"
-        };
-
-        static readonly string[] k_LightLayerNames = new string[]
-        {
-            "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"
-        };
-
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -956,12 +941,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames => k_RenderingLayerNames;
+        public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerMaskNames { get { return k_LightLayerNames; } }
+        public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
 
         public void OnBeforeSerialize()
         {
