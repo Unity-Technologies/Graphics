@@ -43,11 +43,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    string declaration = keyword.GetKeywordDeclarationString();
-                    if (!string.IsNullOrEmpty(declaration))
-                    {
-                        builder.AppendLine(declaration);
-                    }
+                    keyword.AppendKeywordDeclarationStrings(builder);
                 }
             }
 

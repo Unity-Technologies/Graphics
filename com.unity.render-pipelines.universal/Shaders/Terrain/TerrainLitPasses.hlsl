@@ -4,6 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 #if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
     #define ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -78,11 +79,13 @@ struct Varyings
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 {
     input = (InputData)0;
+
     input.positionWS = IN.positionWS;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+        input.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+        input.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
         half3 SH = SampleSH(input.normalWS.xyz);
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
@@ -122,6 +125,12 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 #endif
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
+
+    #if defined(LIGHTMAP_ON)
+    input.lightmapUV = IN.uvMainAndLM.zw;
+    #else
+    input.vertexSH = SH;
+    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -413,6 +422,18 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
+
+#if defined(_DBUFFER)
+    half3 specular = half3(0.0h, 0.0h, 0.0h);
+    ApplyDecal(IN.clipPos,
+        albedo,
+        specular,
+        inputData.normalWS,
+        metallic,
+        occlusion,
+        smoothness);
+#endif
 
 #ifdef TERRAIN_GBUFFER
 
@@ -423,7 +444,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 color;
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
     SplatmapFinalColor(color, inputData.fogCoord);
 
