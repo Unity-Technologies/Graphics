@@ -346,7 +346,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.shadowMask = half4(1, 1, 1, 1); // No GI currently.
 
     #if defined(DEBUG_DISPLAY) && !defined(LIGHTMAP_ON)
-    inputData.vertexSH = input.vertexSH;
+    inputData.vertexSH = input.interpolated.vertexSH;
     #endif
 
     #if defined(_NORMALMAP)

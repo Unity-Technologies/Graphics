@@ -96,9 +96,9 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     #if defined(DEBUG_DISPLAY)
     #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = input.dynamicLightmapUV;
-    inputData.staticLightmapUV = input.staticLightmapUV;
-    #elif defined(LIGHTMAP_ON)
+    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #if defined(LIGHTMAP_ON)
     inputData.staticLightmapUV = input.staticLightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
