@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
-            bool requiresDepthPrepass = renderPassInputs.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
             requiresDepthPrepass |= isSceneViewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;

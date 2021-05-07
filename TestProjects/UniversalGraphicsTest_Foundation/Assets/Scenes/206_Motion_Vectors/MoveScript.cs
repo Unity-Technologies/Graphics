@@ -5,7 +5,6 @@ public class MoveScript : MonoBehaviour
     int m_FrameCounter;
     float m_Speed = -1f;
 
-
     void Update()
     {
         transform.position += transform.right * m_Speed;

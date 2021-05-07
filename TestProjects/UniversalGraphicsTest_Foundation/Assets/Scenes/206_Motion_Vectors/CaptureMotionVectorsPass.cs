@@ -14,7 +14,7 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         if (shader != null)
             m_Material = new Material(shader);
         else
-            Debug.LogError("Null shader");
+            Debug.LogError(typeof(CaptureMotionVectorsPass) + " was assigned an invalid shader.");
 
         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
@@ -32,9 +32,7 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
             return;
 
         if (m_Material == null)
-        {
             return;
-        }
 
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Fields
         static MotionVectorRendering s_Instance;
 
-        Dictionary<Camera, MotionData> m_MotionDatas;
+        Dictionary<Camera, PreviousFrameData> m_MotionDatas;
         uint  m_FrameCount;
         float m_LastTime;
         float m_Time;
@@ -17,8 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Constructors
         private MotionVectorRendering()
         {
-            // Set data
-            m_MotionDatas = new Dictionary<Camera, MotionData>();
+            m_MotionDatas = new Dictionary<Camera, PreviousFrameData>();
         }
 
         public static MotionVectorRendering instance
@@ -39,13 +38,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MotionDatas.Clear();
         }
 
-        public MotionData GetMotionDataForCamera(Camera camera)
+        public PreviousFrameData GetMotionDataForCamera(Camera camera)
         {
             // Get MotionData
-            MotionData motionData;
+            PreviousFrameData motionData;
             if (!m_MotionDatas.TryGetValue(camera, out motionData))
             {
-                motionData = new MotionData();
+                motionData = new PreviousFrameData();
                 m_MotionDatas.Add(camera, motionData);
             }
 
@@ -89,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void UpdateMotionData(Camera camera, MotionData motionData)
+        void UpdateMotionData(Camera camera, PreviousFrameData motionData)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)

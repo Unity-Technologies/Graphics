@@ -2,17 +2,17 @@ using UnityEngine;
 
 public class AnimatorUpdater : MonoBehaviour
 {
-    Animator m_animator;
+    Animator m_Animator;
 
     void Start()
     {
-        m_animator = GetComponent<Animator>();
-        m_animator.enabled = false;
+        m_Animator = GetComponent<Animator>();
+        m_Animator.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        m_animator.Update(0.01f);
+        m_Animator.Update(0.01f);
     }
 }

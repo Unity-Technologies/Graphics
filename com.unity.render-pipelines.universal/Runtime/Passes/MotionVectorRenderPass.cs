@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
-        MotionData m_MotionData;
+        PreviousFrameData m_MotionData;
         private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);
         #endregion
 
@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region State
-        internal void Setup(MotionData motionData)
+        internal void Setup(PreviousFrameData frameData)
         {
-            m_MotionData = motionData;
+            m_MotionData = frameData;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)

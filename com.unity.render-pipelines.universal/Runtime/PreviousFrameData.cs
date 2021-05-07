@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal sealed class MotionData
+    internal sealed class PreviousFrameData
     {
         #region Fields
         bool m_IsFirstFrame;
@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region Constructors
-        internal MotionData()
+        internal PreviousFrameData()
         {
             // Set data
             m_IsFirstFrame = true;
