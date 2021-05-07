@@ -119,10 +119,8 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-#if 0
+#ifdef HDRP_FLARE
     float screenRatio = _ScreenRatio;
-#elif defined(HDRP_FLARE)
-    float screenRatio = _ScreenSize.y / _ScreenSize.x;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
     float screenRatio = screenParam.y / screenParam.x;
