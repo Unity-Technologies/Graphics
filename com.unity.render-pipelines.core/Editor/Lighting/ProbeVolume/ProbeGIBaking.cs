@@ -5,6 +5,7 @@ using Unity.Collections;
 using System;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
 using UnityEngine.SceneManagement;
@@ -67,6 +68,9 @@ namespace UnityEngine.Experimental.Rendering
         static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
         static int m_BakingBatchIndex = 0;
 
+        static Bounds globalBounds = new Bounds();
+        static bool hasFoundBounds = false;
+
         static ProbeGIBaking()
         {
             Init();
@@ -105,6 +109,49 @@ namespace UnityEngine.Experimental.Rendering
             m_BakingBatchIndex = 0;
         }
 
+        public static void FindWorldBounds()
+        {
+            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
+            var prevScenes = new List<string>();
+            for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
+            {
+                var scene = EditorSceneManager.GetSceneAt(i);
+                EditorSceneManager.SaveScene(scene);
+                prevScenes.Add(scene.path);
+            }
+
+            hasFoundBounds = false;
+
+            foreach (var buildScene in EditorBuildSettings.scenes)
+            {
+                var scene = EditorSceneManager.OpenScene(buildScene.path, OpenSceneMode.Single);
+                var probeVolumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+
+                foreach (var probeVolume in probeVolumes)
+                {
+                    var extent = probeVolume.GetExtents();
+                    var pos = probeVolume.gameObject.transform.position;
+                    Bounds localBounds = new Bounds(pos, extent);
+
+                    if (!hasFoundBounds)
+                    {
+                        hasFoundBounds = true;
+                        globalBounds = localBounds;
+                    }
+                    else
+                    {
+                        globalBounds.Encapsulate(localBounds);
+                    }
+                }
+            }
+
+            for (int i = 0; i < prevScenes.Count; ++i)
+            {
+                var scene = prevScenes[i];
+                EditorSceneManager.OpenScene(scene, i == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
+            }
+        }
+
         private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
@@ -135,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (reference.transform.localScale != compare.transform.localScale)
                     return null;
 
-                if (reference.profile != compare.profile)
+                if (!reference.profile.IsEquivalent(compare.profile))
                     return null;
             }
 
@@ -155,6 +202,8 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
                 return;
             }
+
+            FindWorldBounds();
 
             RunPlacement();
         }
